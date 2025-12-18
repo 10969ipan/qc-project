@@ -30,7 +30,17 @@ class GoogleSheetService
             throw new \Exception("Credentials file not found. Checked: '{$this->credentialsPath}'. Current Dir: '$cwd'. Tips: Pastikan file 'google-credentials.json' ada di folder 'storage/app/'.");
         }
 
-        $this->client->setAuthConfig($this->credentialsPath);
+        // Load the credentials and sanitize the private key
+        $authConfig = json_decode(file_get_contents($this->credentialsPath), true);
+        if (!is_array($authConfig)) {
+            throw new \Exception("Invalid credentials file format: " . $this->credentialsPath);
+        }
+
+        if (isset($authConfig['private_key'])) {
+            $authConfig['private_key'] = str_replace('\\n', "\n", $authConfig['private_key']);
+        }
+
+        $this->client->setAuthConfig($authConfig);
         $this->client->addScope(Sheets::SPREADSHEETS);
         $this->client->setAccessType('offline');
 
