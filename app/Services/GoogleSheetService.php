@@ -14,6 +14,7 @@ class GoogleSheetService
     private $service;
     private $sheetId;
     private $credentialsPath;
+    private $resolvedSheetName = null;
 
     public function __construct()
     {
@@ -96,6 +97,37 @@ class GoogleSheetService
     }
 
     /**
+     * Resolve the sheet name dynamically from the spreadsheet.
+     * Caches the result for the instance.
+     * 
+     * @return string
+     */
+    public function getSheetName()
+    {
+        if ($this->resolvedSheetName) {
+            return $this->resolvedSheetName;
+        }
+
+        try {
+            // Get spreadsheet metadata to find the first sheet's name
+            $spreadsheet = $this->service->spreadsheets->get($this->sheetId);
+            $sheets = $spreadsheet->getSheets();
+            if (count($sheets) > 0) {
+                $this->resolvedSheetName = $sheets[0]->getProperties()->getTitle();
+            } else {
+                // Fallback if no sheets found (unlikely)
+                $this->resolvedSheetName = 'Sheet1';
+            }
+        } catch (\Exception $e) {
+            Log::warning("Failed to fetch sheet name: " . $e->getMessage());
+            // Fallback to 'Sheet1' if API fails (e.g. permission issue, but let append try)
+            $this->resolvedSheetName = 'Sheet1';
+        }
+
+        return $this->resolvedSheetName;
+    }
+
+    /**
      * Append a row to the configured Google Sheet.
      * @param array $values List of values to append (e.g., ['Column1', 'Column2'])
      * @throws \Exception
@@ -115,7 +147,8 @@ class GoogleSheetService
                 'valueInputOption' => 'USER_ENTERED'
             ];
             
-            $this->service->spreadsheets_values->append($this->sheetId, 'Sheet1!A1', $body, $params);
+            $range = $this->getSheetName() . '!A1';
+            $this->service->spreadsheets_values->append($this->sheetId, $range, $body, $params);
             
             return true;
         } catch (\Exception $e) {
@@ -125,12 +158,16 @@ class GoogleSheetService
 
     /**
      * Clear all values in the sheet or a specific range.
-     * @param string $range The range to clear (default: 'Sheet1')
+     * @param string|null $range The range to clear. If null, uses the first sheet.
      */
-    public function clearSheet($range = 'Sheet1')
+    public function clearSheet($range = null)
     {
         if (!$this->sheetId) {
             throw new \Exception("Google Sheet ID is not configured.");
+        }
+
+        if ($range === null) {
+            $range = $this->getSheetName();
         }
 
         try {
@@ -162,7 +199,8 @@ class GoogleSheetService
                 'valueInputOption' => 'USER_ENTERED'
             ];
             
-            $this->service->spreadsheets_values->append($this->sheetId, 'Sheet1!A1', $body, $params);
+            $range = $this->getSheetName() . '!A1';
+            $this->service->spreadsheets_values->append($this->sheetId, $range, $body, $params);
             
             return true;
         } catch (\Exception $e) {

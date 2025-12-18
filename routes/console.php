@@ -14,9 +14,12 @@ Artisan::command('google-sheets:test', function () {
         $service = new \App\Services\GoogleSheetService();
         $this->info('GoogleSheetService initialized successfully.');
         
+        $sheetName = $service->getSheetName();
+        $this->info("Resolved Sheet Name: '$sheetName'");
+
         $this->info('Attempting to append a test row...');
         $service->appendRow(['Connection Test', date('Y-m-d H:i:s')]);
-        $this->info('Successfully appended a test row.');
+        $this->info("Successfully appended a test row to '$sheetName'.");
         
     } catch (\Exception $e) {
         $this->error('Connection failed: ' . $e->getMessage());
