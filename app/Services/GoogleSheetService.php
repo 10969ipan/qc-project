@@ -37,7 +37,26 @@ class GoogleSheetService
         }
 
         if (isset($authConfig['private_key'])) {
-            $authConfig['private_key'] = str_replace('\\n', "\n", $authConfig['private_key']);
+            $key = $authConfig['private_key'];
+            // Replace literal \n and \r with actual characters or remove them
+            $key = str_replace(['\\n', '\\r'], ["\n", ""], $key);
+            $authConfig['private_key'] = $key;
+            
+            // Validate the key format if OpenSSL is available
+            if (extension_loaded('openssl')) {
+                // Suppress warnings to capture error via openssl_error_string
+                $pkey = @openssl_pkey_get_private($key);
+                if (!$pkey) {
+                    $errorMsg = "The private_key in google-credentials.json is invalid.";
+                    while ($msg = openssl_error_string()) {
+                        $errorMsg .= " OpenSSL: " . $msg;
+                    }
+                    // Clear error buffer
+                    while(openssl_error_string()){}
+                    
+                    throw new \Exception($errorMsg);
+                }
+            }
         }
 
         $this->client->setAuthConfig($authConfig);
