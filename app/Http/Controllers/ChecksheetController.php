@@ -62,7 +62,7 @@ class ChecksheetController extends Controller
             $query->where('item_id', $request->item_id);
         }
 
-        $checksheets = $query->get();
+        $checksheets = $query->paginate(10);
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get(); 
         
