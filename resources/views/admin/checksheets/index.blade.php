@@ -64,6 +64,7 @@
             <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
                 <thead>
                     <tr class="text-center">
+                        <th rowspan="2" class="align-middle">No</th>
                         <th rowspan="2" class="align-middle">Tanggal</th>
                         <th rowspan="2" class="align-middle">Jam (Before)</th>
                         <th rowspan="2" class="align-middle">Jam (After)</th>
@@ -95,6 +96,7 @@
                 <tbody>
                     @foreach($checksheets as $checksheet)
                     <tr class="text-center">
+                        <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                         <td class="align-middle">{{ $checksheet->date }}</td>
                         <td class="align-middle">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>

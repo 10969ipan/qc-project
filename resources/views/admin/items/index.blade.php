@@ -51,7 +51,7 @@
                 <tbody>
                     @foreach($items as $index => $item)
                     <tr>
-                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $items->firstItem() + $index }}</td>
                         <td>
                             @if($item->file_path)
                                 <button type="button" class="btn btn-primary btn-sm view-pdf-btn" data-toggle="modal" data-target="#pdfModal" data-src="{{ asset($item->file_path) }}">
@@ -76,6 +76,9 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+        <div class="mt-4">
+            {{ $items->withQueryString()->links() }}
         </div>
     </div>
 </div>
