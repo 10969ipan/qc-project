@@ -129,10 +129,11 @@ class ChecksheetController extends Controller
             $sheetData = [
                 $checksheet->id, // Kolom A: No (ID)
                 $validated['date'], // Kolom B: Tanggal
-                now()->format('H:i:s'), // Kolom C: Jam Input
-                $validated['cycle_time'] ?? '-', // Kolom D: Cycle Time
-                $validated['shift'], // Kolom E: Shift
-                $item ? $item->name : '-', // Kolom F: Barang
+                $checksheet->created_at->copy()->subSeconds($validated['cycle_time'] ?? 0)->format('H:i:s'), // Kolom C: Jam Before
+                $checksheet->created_at->format('H:i:s'), // Kolom D: Jam After
+                $validated['cycle_time'] ?? '-', // Kolom E: Cycle Time
+                $validated['shift'], // Kolom F: Shift
+                $item ? $item->name : '-', // Kolom G: Barang
                 $item ? $item->part_number : '-', // Kolom G: Part No
                 $item ? $item->customer : '-', // Kolom H: Customer
                 $validated['total_qty'], // Kolom I: Total Qty
@@ -303,7 +304,7 @@ class ChecksheetController extends Controller
             
             // Send Header Row first
             $headerRow = [[
-                'Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 
+                'No', 'Tanggal', 'Jam Before', 'Jam After', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 
                 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 
                 'Inisial Operator', 'Remarks', 'Ka Shift', 'Supervisor', 'Asst Manager'
             ]];
@@ -318,7 +319,9 @@ class ChecksheetController extends Controller
                     $rows = [];
                     foreach ($checksheets as $c) {
                         $rows[] = [
+                            $c->id,
                             $c->date,
+                            $c->created_at->copy()->subSeconds($c->cycle_time ?? 0)->format('H:i:s'),
                             $c->created_at->format('H:i:s'),
                             $c->cycle_time ?? '-',
                             $c->shift,

@@ -65,7 +65,8 @@
                 <thead>
                     <tr class="text-center">
                         <th rowspan="2" class="align-middle">Tanggal</th>
-                        <th rowspan="2" class="align-middle">Jam Input</th>
+                        <th rowspan="2" class="align-middle">Jam Before</th>
+                        <th rowspan="2" class="align-middle">Jam After</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                         <th rowspan="2" class="align-middle">Shift</th>
                         <th rowspan="2" class="align-middle">Barang</th>
@@ -95,6 +96,7 @@
                     @foreach($checksheets as $checksheet)
                     <tr class="text-center">
                         <td class="align-middle">{{ $checksheet->date }}</td>
+                        <td class="align-middle">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                         <td class="align-middle">{{ $checksheet->shift }}</td>
@@ -385,17 +387,18 @@
                 },
                 columnStyles: {
                     0: { cellWidth: 12 }, // Tanggal
-                    1: { cellWidth: 8 }, // Jam Input
-                    2: { cellWidth: 15 }, // Cycle Time
-                    3: { cellWidth: 10 },  // Shift
-                    4: { cellWidth: 20 }, // Barang
-                    11: { cellWidth: 6 }, // Pcs
-                    12: { cellWidth: 22 }, // Jenis NG
-                    18: { cellWidth: 30 }  // Keterangan
+                    1: { cellWidth: 8 }, // Jam Before
+                    2: { cellWidth: 8 }, // Jam After
+                    3: { cellWidth: 15 }, // Cycle Time
+                    4: { cellWidth: 10 },  // Shift
+                    5: { cellWidth: 20 }, // Barang
+                    12: { cellWidth: 6 }, // Pcs
+                    13: { cellWidth: 22 }, // Jenis NG
+                    19: { cellWidth: 30 }  // Keterangan
                 },
                 didParseCell: function(data) {
-                    // Hide default text for multi-item cells in Pcs (11) and Jenis NG (12) to draw manually later
-                    if (data.section === 'body' && (data.column.index === 11 || data.column.index === 12)) {
+                    // Hide default text for multi-item cells in Pcs (12) and Jenis NG (13) to draw manually later
+                    if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
                         const td = data.cell.raw;
                         if (td && td.children.length > 1) {
                             data.cell.styles.textColor = [255, 255, 255]; // Hide original text
@@ -403,8 +406,8 @@
                     }
                 },
                 didDrawCell: function(data) {
-                    // Draw horizontal lines and manual text for separated defects in Pcs (11) and Jenis NG (12)
-                    if (data.section === 'body' && (data.column.index === 11 || data.column.index === 12)) {
+                    // Draw horizontal lines and manual text for separated defects in Pcs (12) and Jenis NG (13)
+                    if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
                         const td = data.cell.raw; 
                         if (td && td.children.length > 1) {
                             const count = td.children.length;
