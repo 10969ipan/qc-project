@@ -144,7 +144,22 @@
 
                                         <!-- Inisial Operator -->
                                         <td class="align-middle">
-                                            <input type="text" class="form-control text-center" name="operator_initials" placeholder="Inisial" required>
+                                            @php
+                                                $initial = '';
+                                                if (auth()->check()) {
+                                                    $name = strtolower(auth()->user()->name);
+                                                    if (str_contains($name, 'anggi')) {
+                                                        $initial = 'AP';
+                                                    } elseif (str_contains($name, 'irfan')) {
+                                                        $initial = 'IA';
+                                                    } elseif (str_contains($name, 'gugun')) {
+                                                        $initial = 'GK';
+                                                    } elseif (str_contains($name, 'dede')) {
+                                                        $initial = 'DS';
+                                                    }
+                                                }
+                                            @endphp
+                                            <input type="text" class="form-control text-center" name="operator_initials" placeholder="Inisial" value="{{ $initial }}" required>
                                         </td>
 
                                         <!-- Keterangan -->

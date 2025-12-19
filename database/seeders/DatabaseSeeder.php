@@ -49,6 +49,20 @@ class DatabaseSeeder extends Seeder
             'role' => 'inspector',
         ]);
 
+        User::create([
+            'name' => 'Gugun Kurniadi',
+            'email' => 'gugun@qc.com',
+            'password' => Hash::make('password'),
+            'role' => 'inspector',
+        ]);
+
+        User::create([
+            'name' => 'Dede Supriyadi',
+            'email' => 'dede@qc.com',
+            'password' => Hash::make('password'),
+            'role' => 'inspector',
+        ]);
+
         // Buat Akun Ka. Shift
         User::create([
             'name' => 'Ka Shift User',
