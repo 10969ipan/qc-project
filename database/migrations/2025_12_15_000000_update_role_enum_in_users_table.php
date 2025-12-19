@@ -57,8 +57,8 @@ return new class extends Migration
                 $table->id();
                 $table->string('name');
                 $table->string('email')->unique();
-                // Revert to original enum list
-                $table->enum('role', ['admin', 'supervisor', 'inspector'])
+                // Keep the extended enum list to prevent data loss on rollback
+                $table->enum('role', ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager'])
                       ->default('inspector');
                 $table->timestamp('email_verified_at')->nullable();
                 $table->string('password');
@@ -68,22 +68,14 @@ return new class extends Migration
 
             $users = DB::table('users')->get();
             foreach ($users as $user) {
-                // Warning: Data truncation or constraint violation may occur if users have new roles.
-                // In a real scenario, we might map them back to default or handle explicitly.
-                // Here we attempt to copy and let SQLite strictness decide.
-                try {
-                    DB::table('users_temp')->insert((array) $user);
-                } catch (\Exception $e) {
-                    // Log or ignore specific row failures if strictly necessary, 
-                    // but for down() it's better to fail loudly or handle gracefully.
-                    // We'll proceed.
-                }
+                DB::table('users_temp')->insert((array) $user);
             }
 
             Schema::drop('users');
             Schema::rename('users_temp', 'users');
         } else {
-            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'supervisor', 'inspector') DEFAULT 'inspector'");
+            // Keep the extended enum list to prevent data loss on rollback
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'supervisor', 'inspector', 'kashift', 'asst_manager') DEFAULT 'inspector'");
         }
     }
 };

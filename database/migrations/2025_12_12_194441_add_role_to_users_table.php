@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Menambahkan kolom role dengan default value 'inspector'
-            $table->enum('role', ['admin', 'supervisor', 'inspector'])->default('inspector')->after('email');
+            $table->enum('role', ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager'])->default('inspector')->after('email');
         });
     }
 
