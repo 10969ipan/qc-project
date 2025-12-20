@@ -40,8 +40,20 @@ class ItemSeeder extends Seeder
                 'name' => 'EMBLEM 3D',
                 'part_number' => '1PA - F836B - 00',
                 'customer' => 'PT. YAMAHA INDONESIA MOTOR MFG',
-                'file_path' => $basepathyiim . '0101. PCCP Cover, Front Top Set (6430B-K2V -N800) (Outgoing Subassy).pdf', // Placeholder or path if available
-            ]
+                'file_path' => $basepathyiim . '-.pdf', // Placeholder or path if available
+            ],
+            [
+                'name' => 'COVER HNDL END K3VA',
+                'part_number' => '53102-K0L -D002',
+                'customer' => 'PT. ASTRA HONDA MOTOR',
+                'file_path' => $basepathahm . '-.pdf', // Placeholder or path if available
+            ],
+            [
+                'name' => 'COVER HEAD LIGHT  (NATURAL)',
+                'part_number' => '53209-K3V-N100',
+                'customer' => 'PT. ASTRA HONDA MOTOR',
+                'file_path' => $basepathahm . '-.pdf', // Placeholder or path if available
+            ],
         ];
 
         foreach ($items as $item) {

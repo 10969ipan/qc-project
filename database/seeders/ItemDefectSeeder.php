@@ -54,7 +54,42 @@ class ItemDefectSeeder extends Seeder
                     'WELD LINE',
                     'FLOW'
                 ]
-            ]
+            ],
+            [
+                'name' => 'EMBLEM 3D',
+                'defects' => [
+                    'LUNTUR',
+                    'KOTOR',
+                    'GAGAL LEM',
+                    'SILVERING',
+                    'BUBBLE',
+                    'GORESAN / BARET'
+                ]
+            ],
+            [
+                'name' => 'COVER HNDL END K3VA',
+                'defects' => [
+                    'FLASH',
+                    'SINK MARK',
+                    'KASAR',
+                    'BEDA WARNA',
+                    'UNDER CUT',
+                    'WELD LINE',
+                    'GOMPAL'
+                ]
+            ],
+            [
+                'name' => 'COVER HEAD LIGHT  (NATURAL)',
+                'defects' => [
+                    'FLASH',
+                    'SINK MARK',
+                    'KASAR',
+                    'BEDA WARNA',
+                    'UNDER CUT',
+                    'WELD LINE',
+                    'GOMPAL'
+                ]
+            ],
         ];
 
         foreach ($itemsData as $data) {
