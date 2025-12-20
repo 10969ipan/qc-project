@@ -53,6 +53,7 @@
         <div id="collapseAnalysis" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{ route('analysis.monthly_ng') }}">Report Sub Assy</a>
+                <a class="collapse-item" href="{{ route('analysis.monthly_ng_in_process') }}">Report Inprocess</a>
             </div>
         </div>
     </li>
@@ -69,6 +70,7 @@
         <div id="collapseChecksheet" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{ route('checksheet.sub_assy') }}">Checksheet Sub Assy</a>
+                <a class="collapse-item" href="{{ route('in_process.create') }}">Checksheet Inprocess</a>
             </div>
         </div>
     </li>
@@ -85,6 +87,7 @@
         <div id="collapseReport" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{ route('admin.checksheets.index') }}">Laporan Sub Assy</a>
+                <a class="collapse-item" href="{{ route('in_process.index') }}">Laporan Inprocess</a>
             </div>
         </div>
     </li>
