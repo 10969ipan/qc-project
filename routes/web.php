@@ -78,7 +78,10 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager'])->prefi
     Route::put('checksheets/{checksheet}', [ChecksheetController::class, 'update'])->name('checksheets.update');
     Route::delete('checksheets/{checksheet}', [ChecksheetController::class, 'destroy'])->name('checksheets.destroy');
 
-    // Laporan Checksheet Inprocess (Edit/Delete)
+});
+
+// Laporan Checksheet Inprocess (Edit/Delete) - Without 'admin.' name prefix
+Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager'])->prefix('admin')->group(function () {
     Route::get('in-process-checksheets/{id}/edit', [InProcessChecksheetController::class, 'edit'])->name('in_process.edit');
     Route::put('in-process-checksheets/{id}', [InProcessChecksheetController::class, 'update'])->name('in_process.update');
     Route::delete('in-process-checksheets/{id}', [InProcessChecksheetController::class, 'destroy'])->name('in_process.destroy');

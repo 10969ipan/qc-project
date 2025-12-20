@@ -36,6 +36,12 @@ class ItemSeeder extends Seeder
                 'customer' => 'PT. ASTRA HONDA MOTOR',
                 'file_path' => $basepathahm . '0103. PCCP Cover, Assy Fuel Tank (1757A-K0JJ-NA00) (Outgoing Subassy).pdf', // Placeholder or path if available
             ],
+            [
+                'name' => 'EMBLEM 3D',
+                'part_number' => '1PA - F836B - 00',
+                'customer' => 'PT. YAMAHA INDONESIA MOTOR MFG',
+                'file_path' => $basepathyiim . '0101. PCCP Cover, Front Top Set (6430B-K2V -N800) (Outgoing Subassy).pdf', // Placeholder or path if available
+            ]
         ];
 
         foreach ($items as $item) {
