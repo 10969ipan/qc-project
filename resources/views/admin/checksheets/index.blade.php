@@ -6,7 +6,7 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Laporan Data Checksheet Sub Assy</h1>
     <!-- Hidden Logo for PDF Export -->
-    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
+    <img src="{{ asset('master item/ipp.png') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 </div>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
@@ -336,7 +336,7 @@
                         const img = document.getElementById('pdf-logo');
                         if (img) {
                             try {
-                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
+                                doc.addImage(img, 'PNG', data.cell.x + 2, data.cell.y + 2, 26, 21);
                             } catch (err) {
                                 console.warn('Error adding logo:', err);
                             }
