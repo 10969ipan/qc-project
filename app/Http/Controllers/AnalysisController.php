@@ -12,7 +12,7 @@ class AnalysisController extends Controller
     public function monthlyNgSubAssy(Request $request)
     {
         // Start Query
-        $query = Checksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id')
+        $query = Checksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials')
             ->with('item')
             ->orderBy('date');
 
