@@ -109,8 +109,15 @@ class AnalysisController extends Controller
         // Use existing $itemLabels (sorted by global avg cycle time) as the X-axis/Y-axis base
         $inspectorItemLabels = $itemLabels;
 
-        // Get all unique users
-        $users = $checksheets->pluck('operator_initials')->unique()->filter()->values();
+        // Get all unique users from the entire table to ensure we list everyone
+        // even if they have no data in the selected range.
+        // Also sorting them alphabetically for consistent display.
+        $users = Checksheet::select('operator_initials')
+            ->distinct()
+            ->whereNotNull('operator_initials')
+            ->where('operator_initials', '!=', '')
+            ->orderBy('operator_initials')
+            ->pluck('operator_initials');
 
         $inspectorItemDatasets = [];
         $colors = [
