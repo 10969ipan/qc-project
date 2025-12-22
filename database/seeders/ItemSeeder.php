@@ -52,7 +52,7 @@ class ItemSeeder extends Seeder
                 'name' => 'COVER HEAD LIGHT  (NATURAL)',
                 'part_number' => '53209-K3V-N100',
                 'customer' => 'PT. ASTRA HONDA MOTOR',
-                'file_path' => $basepathahm . '083. PCCP Cover, Hndl End (53102-K0L-D002) (Inproses Injection).pdf', // Placeholder or path if available
+                'file_path' => $basepathahm . '080. PCCP Cover, Head Light (53209-K3VA-N002) (Inproses Injection).pdf', // Placeholder or path if available
             ],
         ];
 
