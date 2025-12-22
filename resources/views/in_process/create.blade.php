@@ -102,6 +102,11 @@
                                                         <th>Point 1</th>
                                                         <th>Point 2</th>
                                                         <th>Point 3</th>
+                                                        <th>Point 4</th>
+                                                        <th>Point 5</th>
+                                                        <th>Point 6</th>
+                                                        <th>Point 7</th>
+                                                        <th>Point 8</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -110,7 +115,7 @@
                                                             <td class="text-center font-weight-bold">Cav {{ $i }}</td>
                                                             @for ($j = 1; $j <= 3; $j++)
                                                                 <td>
-                                                                    <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="P{{ $j }}">
+                                                                    <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
                                                                 </td>
                                                             @endfor
                                                         </tr>
