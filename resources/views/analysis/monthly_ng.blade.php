@@ -107,6 +107,18 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Detail Cycle Time per User Chart -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per User (s)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-bar">
+                        <canvas id="myUserCycleChart"></canvas>
+                    </div>
+                </div>
+            </div>
             
         </div>
 
@@ -218,6 +230,100 @@
                         intersect: false,
                         mode: 'index',
                         caretPadding: 10,
+                    }
+                }
+            }
+        });
+
+        // --- Bar Chart (Avg Cycle Time per User) ---
+        var ctxUserCycle = document.getElementById("myUserCycleChart");
+        var userLabels = @json($userLabels);
+        var userCycleTimeData = @json($userCycleTimeData);
+
+        var myUserCycleChart = new Chart(ctxUserCycle, {
+            type: 'bar',
+            data: {
+                labels: userLabels,
+                datasets: [{
+                    label: "Avg Cycle Time (s)",
+                    backgroundColor: "#e83e8c", // Pink/Darker
+                    hoverBackgroundColor: "#c82367",
+                    borderColor: "#e83e8c",
+                    data: userCycleTimeData,
+                    datalabels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'center',
+                        align: 'center',
+                        formatter: function(value, ctx) {
+                            return value + "s";
+                        }
+                    }
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 6
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            maxTicksLimit: 20, // Allow more items
+                            padding: 10,
+                            autoSkip: false // Show all names
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleColor: '#6e707e',
+                        titleFont: {
+                            size: 14,
+                        },
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        intersect: false,
+                        mode: 'index',
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
+                            }
+                        }
                     }
                 }
             }
