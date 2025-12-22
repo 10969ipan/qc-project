@@ -737,6 +737,71 @@
             updateTimerDisplay();
             $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
         });
+
+        // --- Dimension Validation Logic for "COVER, HNDL END" ---
+        // This object maps the dimension point (e.g., '1', '2') to its standard size and tolerance.
+        const dimensionStandards = {
+            '1': { size: 5, tolerance: 0.2 },
+            '2': { size: 10, tolerance: 0.2 },
+            '3': { size: 10, tolerance: 0.5 }, // Ø10
+            '4': { size: 20.5, tolerance: 0.2 },
+            '5': { size: 20, tolerance: 0.2 }
+        };
+
+        function validateDimensions() {
+            const selectedOption = $('#itemSelect').find('option:selected');
+            const itemName = selectedOption.data('name');
+
+            // Only apply validation if the selected item is "COVER HNDL END K3VA".
+            if (itemName !== 'COVER HNDL END K3VA') {
+                $('input[name^="dimensions"]').removeClass('is-invalid');
+                return;
+            }
+
+            let isAnyInvalid = false;
+            $('input[name^="dimensions"]').each(function() {
+                const name = $(this).attr('name');
+                // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
+                const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                if (!match) return;
+
+                const point = match[2]; // The point number (e.g., '1', '2', '3').
+                // Look up the standard for the current point.
+                const standard = dimensionStandards[point];
+                const value = parseFloat($(this).val()); // The user-entered dimension value.
+
+                // Check if a standard exists for this point and the input is a valid number.
+                if (standard && $(this).val().trim() !== '' && !isNaN(value)) {
+                    // Calculate the valid range.
+                    const lowerBound = standard.size - standard.tolerance;
+                    const upperBound = standard.size + standard.tolerance;
+
+                    // Compare the entered value against the valid range.
+                    if (value < lowerBound || value > upperBound) {
+                        $(this).addClass('is-invalid');
+                        isAnyInvalid = true;
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            // If any dimension is invalid, automatically set the judgment to "NG".
+            if (isAnyInvalid) {
+                $('#judgmentSelect').val('NG');
+            }
+        }
+
+        $(document).on('input', 'input[name^="dimensions"]', validateDimensions);
+        $('#itemSelect').on('change', function() {
+            $('input[name^="dimensions"]').removeClass('is-invalid').val('');
+            validateDimensions();
+        });
+
+        // Add CSS for invalid inputs
+        $('<style>.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }</style>').appendTo('head');
     });
 </script>
 @endpush

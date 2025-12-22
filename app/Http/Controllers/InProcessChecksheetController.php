@@ -96,6 +96,49 @@ class InProcessChecksheetController extends Controller
             'defect_quantities' => 'nullable|array',
         ]);
 
+        // --- Server-Side Dimension Validation for "COVER HNDL END K3VA" ---
+        $item = Item::find($validated['item_id']);
+        // Only apply validation if the item is "COVER HNDL END K3VA" and dimension data is present.
+        if ($item && $item->name === 'COVER HNDL END K3VA' && !empty($request->dimensions)) {
+            // Map of dimension points to their standard sizes and tolerances.
+            $dimensionStandards = [
+                '1' => ['size' => 5, 'tolerance' => 0.2],
+                '2' => ['size' => 10, 'tolerance' => 0.2],
+                '3' => ['size' => 10, 'tolerance' => 0.5],
+                '4' => ['size' => 20.5, 'tolerance' => 0.2],
+                '5' => ['size' => 20, 'tolerance' => 0.2],
+            ];
+
+            $isAnyInvalid = false;
+            foreach ($request->dimensions as $cavity => $points) {
+                if (!is_array($points)) continue;
+                foreach ($points as $point => $value) {
+                    // Check if a standard exists for the current point and if the value is a valid number.
+                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
+                        $standard = $dimensionStandards[$point]; // Get the standard for the point.
+                        $floatValue = (float) $value; // The user-entered dimension.
+
+                        // Calculate the valid range.
+                        $lowerBound = $standard['size'] - $standard['tolerance'];
+                        $upperBound = $standard['size'] + $standard['tolerance'];
+
+                        // If the value is outside the tolerance, mark as invalid and stop checking.
+                        if ($floatValue < $lowerBound || $floatValue > $upperBound) {
+                            $isAnyInvalid = true;
+                            break;
+                        }
+                    }
+                }
+                if ($isAnyInvalid) break;
+            }
+
+            // If any dimension was invalid, override the judgment to "NG".
+            if ($isAnyInvalid) {
+                $validated['judgment'] = 'NG';
+            }
+        }
+        // --- End Validation ---
+
         // Process Defects into Structured JSON
         $defects = [];
         if ($request->has('defect_types')) {
