@@ -120,7 +120,7 @@
                                     @foreach($dims as $key => $val)
                                         @if($val)
                                         <tr>
-                                            <td class="py-0 px-1 text-right border-right"><small>D{{ $key + 1 }}</small></td>
+                                            <td class="py-0 px-1 text-right border-right"><small>Ø{{ $key + 1 }}</small></td>
                                             <td class="py-0 px-1 text-left"><small class="font-weight-bold">{{ $val }}</small></td>
                                         </tr>
                                         @endif
