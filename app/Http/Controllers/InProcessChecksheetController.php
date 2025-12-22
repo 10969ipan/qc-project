@@ -319,7 +319,8 @@ class InProcessChecksheetController extends Controller
             if ($user->role !== 'admin') {
                 if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
                 if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager' && $user->role !== 'manager') abort(403);
+                if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
+                if ($type == 'manager' && $user->role !== 'manager') abort(403);
             }
 
             // Assign approval based on type
@@ -333,6 +334,9 @@ class InProcessChecksheetController extends Controller
             } elseif ($type == 'asst_manager') {
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
+            } elseif ($type == 'manager') {
+                $checksheet->manager_qc = $user->name;
+                $checksheet->manager_approved_at = now();
             }
 
             $checksheet->save();
@@ -354,7 +358,8 @@ class InProcessChecksheetController extends Controller
             if ($user->role !== 'admin') {
                 if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
                 if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager' && $user->role !== 'manager') abort(403);
+                if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
+                if ($type == 'manager' && $user->role !== 'manager') abort(403);
             }
             
             if ($type == 'kashift') {
@@ -368,6 +373,10 @@ class InProcessChecksheetController extends Controller
             } elseif ($type == 'asst_manager') {
                 $checksheet->asst_manager_qc = 'REJECTED';
                 $checksheet->asst_manager_approved_at = now();
+                $checksheet->approval_status = 'Rejected';
+            } elseif ($type == 'manager') {
+                $checksheet->manager_qc = 'REJECTED';
+                $checksheet->manager_approved_at = now();
                 $checksheet->approval_status = 'Rejected';
             }
 
@@ -396,7 +405,7 @@ class InProcessChecksheetController extends Controller
             $headerRow = [[
                 'No', 'Tanggal', 'Jam Before', 'Jam After', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 
                 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 
-                'Inisial Operator', 'Remarks', 'Check Dimensi', 'Ka Shift', 'Supervisor', 'Asst Manager'
+                'Inisial Operator', 'Remarks', 'Check Dimensi', 'Ka Shift', 'Supervisor', 'Asst Manager', 'Manager'
             ]];
             $service->appendRows($headerRow);
 
@@ -429,7 +438,8 @@ class InProcessChecksheetController extends Controller
                             // Approvals
                             $c->kashift_qc === 'REJECTED' ? 'REJECTED' : ($c->kashift_qc ?? ''),
                             $c->supervisor_qc === 'REJECTED' ? 'REJECTED' : ($c->supervisor_qc ?? ''),
-                            $c->asst_manager_qc === 'REJECTED' ? 'REJECTED' : ($c->asst_manager_qc ?? '')
+                            $c->asst_manager_qc === 'REJECTED' ? 'REJECTED' : ($c->asst_manager_qc ?? ''),
+                            $c->manager_qc === 'REJECTED' ? 'REJECTED' : ($c->manager_qc ?? '')
                         ];
                     }
                     $service->appendRows($rows);
@@ -463,7 +473,7 @@ class InProcessChecksheetController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = array('Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 'Inisial Operator', 'Remarks', 'Check Dimensi', 'Ka Shift', 'Supervisor', 'Asst Manager / Manager');
+        $columns = array('Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 'Inisial Operator', 'Remarks', 'Check Dimensi', 'Ka Shift', 'Supervisor', 'Asst Manager', 'Manager');
 
         $callback = function() use($checksheets, $columns) {
             $file = fopen('php://output', 'w');
@@ -490,6 +500,7 @@ class InProcessChecksheetController extends Controller
                 $row['Ka Shift']     = $checksheet->kashift_qc ?? ''; 
                 $row['Supervisor']   = $checksheet->supervisor_qc ?? '';
                 $row['Asst Manager'] = $checksheet->asst_manager_qc ?? '';
+                $row['Manager']      = $checksheet->manager_qc ?? '';
 
                 fputcsv($file, array(
                     $row['Tanggal'],
@@ -509,7 +520,8 @@ class InProcessChecksheetController extends Controller
                     $row['Check Dimensi'],
                     $row['Ka Shift'],
                     $row['Supervisor'],
-                    $row['Asst Manager']
+                    $row['Asst Manager'],
+                    $row['Manager']
                 ));
             }
 

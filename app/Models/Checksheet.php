@@ -28,6 +28,8 @@ class Checksheet extends Model
         'kashift_qc',
         'supervisor_qc',
         'asst_manager_qc',
+        'manager_qc',
+        'manager_approved_at',
         'cycle_time',
     ];
 
