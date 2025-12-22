@@ -136,7 +136,7 @@
                                             @foreach($dimensions as $cavity => $points)
                                                 <tr>
                                                     <td class="font-weight-bold p-1">{{ $cavity }}</td>
-                                                    @for ($j = 1; $j <= 10; $j++)
+                                                    @for ($j = 1; $j <= 3; $j++)
                                                         <td class="p-1">{{ $points[$j] ?? '-' }}</td>
                                                     @endfor
                                                 </tr>
@@ -348,7 +348,7 @@
             const doc = new jsPDF('landscape'); // Landscape to fit columns
             
             // Define Document Info Text
-            const docInfo = 'No. Dokumen:QC-KRW-F-0004\nTgl. Terbit:25/09/2015\nRevisi Ke:3\nTgl. Revisi:30/09/2020';
+            const docInfo = 'No. Dokumen:QC-KRW-F-0168\nTgl. Terbit:25/09/2015\nRevisi Ke:3\nTgl. Revisi:22/12/2025';
 
             // Generate Header Table
             doc.autoTable({
@@ -441,23 +441,55 @@
                     19: { cellWidth: 30 }  // Keterangan
                 },
                 didParseCell: function(data) {
-                    // Hide default text for multi-item cells in Pcs (12) and Jenis NG (13) to draw manually later
-                    if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
+                    // Hide default text for multi-item cells to draw them manually later
+                    if (data.section === 'body' && (data.column.index === 11 || data.column.index === 12 || data.column.index === 13)) {
                         const td = data.cell.raw;
-                        if (td && td.children.length > 1) {
-                            data.cell.styles.textColor = [255, 255, 255]; // Hide original text
+                        if (td && (td.querySelector('table') || td.children.length > 1)) {
+                            data.cell.text = ''; // Clear text to prevent default rendering
                         }
                     }
                 },
                 didDrawCell: function(data) {
-                    // Draw horizontal lines and manual text for separated defects in Pcs (12) and Jenis NG (13)
+                    // --- Manual Drawing for Dimension Check Grid ---
+                    if (data.section === 'body' && data.column.index === 11) {
+                        const td = data.cell.raw;
+                        const nestedTable = td.querySelector('table');
+                        if (nestedTable) {
+                            const head = Array.from(nestedTable.querySelectorAll('thead th')).map(th => th.innerText);
+                            const body = Array.from(nestedTable.querySelectorAll('tbody tr')).map(tr => 
+                                Array.from(tr.querySelectorAll('td')).map(td => td.innerText)
+                            );
+
+                            doc.autoTable({
+                                startY: data.cell.y + 0.5,
+                                startX: data.cell.x + 0.5,
+                                head: [head],
+                                body: body,
+                                theme: 'grid',
+                                tableWidth: data.cell.width - 1,
+                                styles: {
+                                    fontSize: 4,
+                                    cellPadding: 0.5,
+                                    lineColor: [0, 0, 0],
+                                    lineWidth: 0.1,
+                                },
+                                headStyles: {
+                                    fillColor: [230, 230, 230],
+                                    textColor: [0, 0, 0],
+                                    fontStyle: 'bold',
+                                }
+                            });
+                        }
+                    }
+
+                    // --- Manual Drawing for Defects (Pcs and Jenis NG) ---
                     if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
                         const td = data.cell.raw; 
                         if (td && td.children.length > 1) {
                             const count = td.children.length;
                             const height = data.cell.height;
                             const step = height / count;
-                            const textArray = data.cell.text; // Original text array
+                            const textNodes = Array.from(td.querySelectorAll('div'));
                             
                             // Draw horizontal lines between items
                             for (let i = 1; i < count; i++) {
@@ -468,14 +500,12 @@
                             }
 
                             // Draw text manually centered in each sub-cell
-                            doc.setTextColor(0, 0, 0);
+                            doc.setTextColor(220, 53, 69); // Red text
                             doc.setFontSize(5);
-                            for (let i = 0; i < count; i++) {
+                            textNodes.forEach((node, i) => {
                                 const yCenter = data.cell.y + (step * i) + (step / 2);
-                                // Ensure text is string and handle array/string mismatch
-                                const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
-                                doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
-                            }
+                                doc.text(node.innerText, data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
+                            });
                         }
                     }
                 },

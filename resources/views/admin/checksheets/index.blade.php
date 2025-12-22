@@ -306,7 +306,7 @@
             const doc = new jsPDF('landscape'); // Landscape to fit columns
             
             // Define Document Info Text
-            const docInfo = 'No. Dokumen:QC-KRW-F-0004\nTgl. Terbit:25/09/2015\nRevisi Ke:3\nTgl. Revisi:30/09/2020';
+            const docInfo = 'No. Dokumen:QC-KRW-F-0213\nTgl. Terbit:25/03/2015\nRevisi Ke:3\nTgl. Revisi:22/12/2025';
 
             // Generate Header Table
             doc.autoTable({
