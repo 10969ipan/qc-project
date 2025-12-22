@@ -54,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checksheet/in-process', [InProcessChecksheetController::class, 'store'])->name('in_process.store');
 
     // Rute Analis (Shared by Admin, Supervisor, Kashift, Asst. Manager)
-    Route::middleware(['role:admin,supervisor,kashift,asst_manager'])->group(function() {
+    Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->group(function() {
         Route::get('/analysis/monthly-ng-sub-assy', [App\Http\Controllers\AnalysisController::class, 'monthlyNgSubAssy'])->name('analysis.monthly_ng');
         Route::get('/analysis/monthly-ng-in-process', [App\Http\Controllers\AnalysisController::class, 'monthlyNgInProcess'])->name('analysis.monthly_ng_in_process');
     });
@@ -69,7 +69,7 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 // --- Rute Management (Master Data & Checksheet Actions) ---
 // Akses: Admin, Supervisor, Kashift, Asst. Manager (Semua kecuali Inspector)
-Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
     // Manajemen Barang (Items)
     Route::resource('items', ItemController::class);
 
@@ -81,7 +81,7 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager'])->prefi
 });
 
 // Laporan Checksheet Inprocess (Edit/Delete) - Without 'admin.' name prefix
-Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->group(function () {
     Route::get('in-process-checksheets/{id}/edit', [InProcessChecksheetController::class, 'edit'])->name('in_process.edit');
     Route::put('in-process-checksheets/{id}', [InProcessChecksheetController::class, 'update'])->name('in_process.update');
     Route::delete('in-process-checksheets/{id}', [InProcessChecksheetController::class, 'destroy'])->name('in_process.destroy');
@@ -91,13 +91,13 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager'])->prefi
 Route::middleware(['auth'])->group(function () { 
     
     // View Report (Admin, Supervisor, Inspector, Kashift, Asst. Manager)
-    Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager'])->group(function() {
+    Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager'])->group(function() {
          Route::get('/report/checksheets', [ChecksheetController::class, 'index'])->name('admin.checksheets.index');
          Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
     });
 
     // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager)
-    Route::middleware(['role:admin,supervisor,kashift,asst_manager'])->group(function() {
+    Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->group(function() {
          Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
          Route::get('/report/checksheets/export', [ChecksheetController::class, 'export'])->name('admin.checksheets.export');
          Route::post('/report/checksheets/sync', [ChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
