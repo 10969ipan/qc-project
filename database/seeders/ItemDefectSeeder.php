@@ -58,36 +58,41 @@ class ItemDefectSeeder extends Seeder
             [
                 'name' => 'EMBLEM 3D',
                 'defects' => [
-                    'LUNTUR',
-                    'KOTOR',
-                    'GAGAL LEM',
-                    'SILVERING',
-                    'BUBBLE',
-                    'GORESAN / BARET'
+                    'SINMARK',
+                    'BARET',
+                    'SILVER',
+                    'FLASH',
+                    'DUSPIN',
+                    'FLOW',
+                    'KAKI PATAH',
+                    'BERMINYAK'
                 ]
             ],
             [
                 'name' => 'COVER HNDL END K3VA',
                 'defects' => [
-                    'FLASH',
-                    'SINK MARK',
-                    'KASAR',
+                    'SILVER',
+                    'BARET',
+                    'SHORT MOLD',
                     'BEDA WARNA',
-                    'UNDER CUT',
-                    'WELD LINE',
-                    'GOMPAL'
+                    'FLASH',
+                    'SINMARK',
+                    'CUTTING GATE OVER ATAU UNDER'
                 ]
             ],
             [
                 'name' => 'COVER HEAD LIGHT  (NATURAL)',
                 'defects' => [
+                    'WIDELINE',
+                    'SILVER',
+                    'GATE RUNNER TIDAK RATA/RAPIH',
                     'FLASH',
-                    'SINK MARK',
-                    'KASAR',
-                    'BEDA WARNA',
-                    'UNDER CUT',
-                    'WELD LINE',
-                    'GOMPAL'
+                    'BINTIK',
+                    'SINMARK',
+                    'GOMPAL',
+                    'BARET',
+                    'KETRIK BULAN DAN TAHUN HARUS UPDATE',
+                    'CHECK CODE PART NO.53209-K3V -N100'
                 ]
             ],
         ];
