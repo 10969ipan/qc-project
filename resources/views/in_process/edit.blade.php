@@ -103,21 +103,31 @@
 
             <div class="form-group">
                 <label>Check Dimensi</label>
-                <div class="row">
-                    @php
-                        $dims = json_decode($checksheet->dimension_check, true) ?? [];
-                    @endphp
-                    @for($i = 1; $i <= 10; $i++)
-                        <div class="col-md-2 mb-2">
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">D{{ $i }}</span>
-                                </div>
-                                <input type="text" class="form-control" name="dimensions[]" value="{{ $dims[$i-1] ?? '' }}">
-                            </div>
-                        </div>
-                    @endfor
-                </div>
+                @php
+                    $dimensions = json_decode($checksheet->dimension_check, true) ?? [];
+                @endphp
+                <table class="table table-sm table-bordered">
+                    <thead class="text-center">
+                        <tr>
+                            <th style="width: 15%;">Cavity</th>
+                            <th>Point 1</th>
+                            <th>Point 2</th>
+                            <th>Point 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for ($i = 1; $i <= 8; $i++)
+                            <tr>
+                                <td class="text-center font-weight-bold">Cav {{ $i }}</td>
+                                @for ($j = 1; $j <= 3; $j++)
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="P{{ $j }}">
+                                    </td>
+                                @endfor
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
             </div>
 
             <div class="form-group">

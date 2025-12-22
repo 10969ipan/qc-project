@@ -107,9 +107,16 @@ class InProcessChecksheetController extends Controller
             }
         }
 
-        // Process Dimensions into JSON
+        // Process Dimensions into JSON, filtering out empty values
         $dimensions = $request->dimensions ?? [];
-        $dimensionCheck = json_encode($dimensions);
+        $filteredDimensions = [];
+        foreach ($dimensions as $cavity => $points) {
+            $filteredPoints = array_filter($points, fn($value) => $value !== null && $value !== '');
+            if (!empty($filteredPoints)) {
+                $filteredDimensions[$cavity] = $filteredPoints;
+            }
+        }
+        $dimensionCheck = json_encode($filteredDimensions);
 
         $checksheet = InProcessChecksheet::create([
             'item_id' => $validated['item_id'],
@@ -200,9 +207,16 @@ class InProcessChecksheetController extends Controller
             'created_time' => 'nullable|date_format:H:i',
         ]);
 
-        // Process Dimensions into JSON
+        // Process Dimensions into JSON, filtering out empty values
         $dimensions = $request->dimensions ?? [];
-        $dimensionCheck = json_encode($dimensions);
+        $filteredDimensions = [];
+        foreach ($dimensions as $cavity => $points) {
+            $filteredPoints = array_filter($points, fn($value) => $value !== null && $value !== '');
+            if (!empty($filteredPoints)) {
+                $filteredDimensions[$cavity] = $filteredPoints;
+            }
+        }
+        $dimensionCheck = json_encode($filteredDimensions);
 
         $updateData = [
             'item_id' => $validated['item_id'],

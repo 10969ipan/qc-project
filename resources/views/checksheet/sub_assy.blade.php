@@ -156,6 +156,8 @@
                                                         $initial = 'GK';
                                                     } elseif (str_contains($name, 'dede')) {
                                                         $initial = 'DS';
+                                                    } elseif (str_contains($name, 'arga')) {
+                                                        $initial = 'AY';
                                                     }
                                                 }
                                             @endphp

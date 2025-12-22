@@ -111,25 +111,35 @@
                         
                         {{-- Dimension Check Detail --}}
                         <td class="align-middle p-0">
-                             @php
-                                $dims = json_decode($checksheet->dimension_check, true);
-                             @endphp
-                             @if(is_array($dims) && count($dims) > 0)
-                                <div style="max-height: 100px; overflow-y: auto; font-size: 0.75rem;">
-                                    <table class="table table-borderless table-sm m-0">
-                                    @foreach($dims as $key => $val)
-                                        @if($val)
-                                        <tr>
-                                            <td class="py-0 px-1 text-right border-right"><small>Ø{{ $key + 1 }}</small></td>
-                                            <td class="py-0 px-1 text-left"><small class="font-weight-bold">{{ $val }}</small></td>
-                                        </tr>
-                                        @endif
-                                    @endforeach
+                            @php
+                                $dimensions = json_decode($checksheet->dimension_check, true);
+                            @endphp
+                            @if(is_array($dimensions) && count($dimensions) > 0)
+                                <div style="max-height: 120px; overflow-y: auto; font-size: 0.7rem;">
+                                    <table class="table table-bordered table-sm m-0">
+                                        <thead class="text-center" style="font-size: 0.6rem;">
+                                            <tr>
+                                                <th>Cav</th>
+                                                <th>P1</th>
+                                                <th>P2</th>
+                                                <th>P3</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($dimensions as $cavity => $points)
+                                                <tr>
+                                                    <td class="font-weight-bold p-1">{{ $cavity }}</td>
+                                                    @for ($j = 1; $j <= 3; $j++)
+                                                        <td class="p-1">{{ $points[$j] ?? '-' }}</td>
+                                                    @endfor
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
                                     </table>
                                 </div>
-                             @else
+                            @else
                                 <span class="text-muted">-</span>
-                             @endif
+                            @endif
                         </td>
 
                         <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>

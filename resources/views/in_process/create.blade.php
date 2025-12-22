@@ -93,18 +93,30 @@
                                             <input type="number" class="form-control text-center" name="sampling_qty" placeholder="0" min="0" required>
                                         </td>
 
-                                        <!-- Check Dimensi (10 Types) -->
+                                        <!-- Check Dimensi (Cavity & Points) -->
                                         <td class="align-middle">
-                                            <div style="max-height: 250px; overflow-y: auto;">
-                                                @for($i = 1; $i <= 10; $i++)
-                                                    <div class="input-group input-group-sm mb-1">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text" style="width: 35px;">{{ $i }}</span>
-                                                        </div>
-                                                        <input type="text" class="form-control" name="dimensions[]" placeholder="Dim {{ $i }}">
-                                                    </div>
-                                                @endfor
-                                            </div>
+                                            <table class="table table-sm table-bordered mb-0" style="min-width: 250px;">
+                                                <thead class="text-center">
+                                                    <tr>
+                                                        <th style="width: 25%;">Cavity</th>
+                                                        <th>Point 1</th>
+                                                        <th>Point 2</th>
+                                                        <th>Point 3</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @for ($i = 1; $i <= 8; $i++)
+                                                        <tr>
+                                                            <td class="text-center font-weight-bold">Cav {{ $i }}</td>
+                                                            @for ($j = 1; $j <= 3; $j++)
+                                                                <td>
+                                                                    <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="P{{ $j }}">
+                                                                </td>
+                                                            @endfor
+                                                        </tr>
+                                                    @endfor
+                                                </tbody>
+                                            </table>
                                         </td>
 
                                         <!-- Jenis (OK/NG) & Detail Varian NG -->
