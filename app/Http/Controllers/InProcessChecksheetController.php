@@ -191,7 +191,8 @@ class InProcessChecksheetController extends Controller
 
         // Kirim ke Google Sheets
         try {
-            $googleService = new GoogleSheetService();
+            $googleService = app(GoogleSheetService::class);
+            $googleService->setSheetName('Sheet2');
             $item = Item::find($validated['item_id']);
             
             $sheetData = [
@@ -210,7 +211,7 @@ class InProcessChecksheetController extends Controller
                 $validated['total_ng'], // Kolom L: Total NG
                 $validated['judgment'], // Kolom M: Judgment
                 $validated['operator_initials'], // Kolom N: Operator
-                $validated['remarks'] ?? '-', // Kolom O: Remarks
+                isset($validated['remarks']) ? $validated['remarks'] : '-', // Kolom O: Remarks
                 $validated['dimension_check'] ?? '-', // Kolom P: Check Dimensi
             ];
 
@@ -392,7 +393,8 @@ class InProcessChecksheetController extends Controller
     public function syncToGoogleSheets(Request $request)
     {
         try {
-            $service = new GoogleSheetService();
+            $service = app(GoogleSheetService::class);
+            $service->setSheetName('Sheet2');
             
             // 1. Clear Sheet (Note: This clears the whole sheet! Be careful if sharing with Sub Assy)
             // Ideally InProcess should use a different Sheet/Tab ID.
