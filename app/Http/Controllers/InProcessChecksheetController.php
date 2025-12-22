@@ -9,6 +9,28 @@ use App\Services\GoogleSheetService;
 
 class InProcessChecksheetController extends Controller
 {
+    private $partDimensionStandards = [
+        '53102-K0L -D002' => [ // Corresponds to "COVER HNDL END K3VA"
+            '1' => ['size' => 5, 'tolerance' => 0.2],
+            '2' => ['size' => 10, 'tolerance' => 0.2],
+            '3' => ['size' => 10, 'tolerance' => 0.5],
+            '4' => ['size' => 20.5, 'tolerance' => 0.2],
+            '5' => ['size' => 20, 'tolerance' => 0.2],
+        ],
+        '1PA - F836B - 00' => [ // Corresponds to "EMBLEM 3D"
+            '1' => ['size' => 25, 'tolerance' => 0.2],
+            '2' => ['size' => 21, 'tolerance' => 0.4],
+            '3' => ['size' => 3.2, 'tolerance' => 0.2],
+            '4' => ['size' => 24, 'tolerance' => 0.4],
+        ],
+        '53209-K3V-N100' => [ // Corresponds to "COVER HEAD LIGHT (NATURAL)"
+            '1' => ['size' => 10, 'tolerance' => 0.2],
+            '2' => ['size' => 10, 'tolerance' => 0.2],
+            '3' => ['size' => 10, 'tolerance' => 0.2],
+            '4' => ['size' => 10, 'tolerance' => 0.2],
+        ],
+    ];
+
     // For Admin to view list
     public function index(Request $request)
     {
@@ -73,7 +95,10 @@ class InProcessChecksheetController extends Controller
     public function create()
     {
         $items = Item::orderBy('name')->get();
-        return view('in_process.create', compact('items'));
+        return view('in_process.create', [
+            'items' => $items,
+            'partDimensionStandards' => json_encode($this->partDimensionStandards)
+        ]);
     }
 
     // Store submission
@@ -96,33 +121,20 @@ class InProcessChecksheetController extends Controller
             'defect_quantities' => 'nullable|array',
         ]);
 
-        // --- Server-Side Dimension Validation for "COVER HNDL END K3VA" ---
+        // --- Centralized Server-Side Dimension Validation ---
         $item = Item::find($validated['item_id']);
-        // Only apply validation if the item is "COVER HNDL END K3VA" and dimension data is present.
-        if ($item && $item->name === 'COVER HNDL END K3VA' && !empty($request->dimensions)) {
-            // Map of dimension points to their standard sizes and tolerances.
-            $dimensionStandards = [
-                '1' => ['size' => 5, 'tolerance' => 0.2],
-                '2' => ['size' => 10, 'tolerance' => 0.2],
-                '3' => ['size' => 10, 'tolerance' => 0.5],
-                '4' => ['size' => 20.5, 'tolerance' => 0.2],
-                '5' => ['size' => 20, 'tolerance' => 0.2],
-            ];
-
+        if ($item && isset($this->partDimensionStandards[$item->part_number]) && !empty($request->dimensions)) {
+            $dimensionStandards = $this->partDimensionStandards[$item->part_number];
             $isAnyInvalid = false;
             foreach ($request->dimensions as $cavity => $points) {
                 if (!is_array($points)) continue;
                 foreach ($points as $point => $value) {
-                    // Check if a standard exists for the current point and if the value is a valid number.
                     if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
-                        $standard = $dimensionStandards[$point]; // Get the standard for the point.
-                        $floatValue = (float) $value; // The user-entered dimension.
-
-                        // Calculate the valid range.
+                        $standard = $dimensionStandards[$point];
+                        $floatValue = (float) $value;
                         $lowerBound = $standard['size'] - $standard['tolerance'];
                         $upperBound = $standard['size'] + $standard['tolerance'];
 
-                        // If the value is outside the tolerance, mark as invalid and stop checking.
                         if ($floatValue < $lowerBound || $floatValue > $upperBound) {
                             $isAnyInvalid = true;
                             break;
@@ -132,7 +144,6 @@ class InProcessChecksheetController extends Controller
                 if ($isAnyInvalid) break;
             }
 
-            // If any dimension was invalid, override the judgment to "NG".
             if ($isAnyInvalid) {
                 $validated['judgment'] = 'NG';
             }

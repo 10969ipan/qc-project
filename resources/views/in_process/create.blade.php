@@ -59,6 +59,7 @@
                                                             data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                             data-file="{{ $item->file_path ? asset($item->file_path) : '' }}"
                                                             data-name="{{ $item->name }}"
+                                                            data-part-number="{{ $item->part_number }}"
                                                             data-description="{{ $item->description }}"
                                                             data-defects="{{ json_encode($item->defects) }}">
                                                         {{ $item->name }} ({{ $item->part_number ?? '-' }})
@@ -107,15 +108,13 @@
                                                         <th>Point 6</th>
                                                         <th>Point 7</th>
                                                         <th>Point 8</th>
-                                                        <th>Point 9</th>
-                                                        <th>Point 10</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @for ($i = 1; $i <= 8; $i++)
                                                         <tr>
                                                             <td class="text-center font-weight-bold">Cav {{ $i }}</td>
-                                                            @for ($j = 1; $j <= 10; $j++)
+                                                            @for ($j = 1; $j <= 8; $j++)
                                                                 <td>
                                                                     <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
                                                                 </td>
@@ -738,22 +737,19 @@
             $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
         });
 
-        // --- Dimension Validation Logic for "COVER, HNDL END" ---
-        // This object maps the dimension point (e.g., '1', '2') to its standard size and tolerance.
-        const dimensionStandards = {
-            '1': { size: 5, tolerance: 0.2 },
-            '2': { size: 10, tolerance: 0.2 },
-            '3': { size: 10, tolerance: 0.5 }, // Ø10
-            '4': { size: 20.5, tolerance: 0.2 },
-            '5': { size: 20, tolerance: 0.2 }
-        };
+        // --- Centralized Dimension Validation Logic ---
+        // The dimension standards are now passed from the controller.
+        const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
         function validateDimensions() {
             const selectedOption = $('#itemSelect').find('option:selected');
-            const itemName = selectedOption.data('name');
+            const itemPartNumber = selectedOption.data('part-number');
 
-            // Only apply validation if the selected item is "COVER HNDL END K3VA".
-            if (itemName !== 'COVER HNDL END K3VA') {
+            // Get the dimension standards for the currently selected item.
+            const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+            // If no specific standards exist for this part, clear any validation and exit.
+            if (!dimensionStandards) {
                 $('input[name^="dimensions"]').removeClass('is-invalid');
                 return;
             }
@@ -766,7 +762,7 @@
                 if (!match) return;
 
                 const point = match[2]; // The point number (e.g., '1', '2', '3').
-                // Look up the standard for the current point.
+                // Look up the standard for the current point for the selected part.
                 const standard = dimensionStandards[point];
                 const value = parseFloat($(this).val()); // The user-entered dimension value.
 
