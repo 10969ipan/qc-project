@@ -84,6 +84,7 @@
                         <th rowspan="2" class="align-middle">Kashift QC</th>
                         <th rowspan="2" class="align-middle">Supervisor QC</th>
                         <th rowspan="2" class="align-middle">Asst. Manager QC</th>
+                        <th rowspan="2" class="align-middle">Manager QC</th>
                         <th rowspan="2" class="align-middle">Keterangan</th>
                         @if(auth()->user()->role !== 'inspector')
                         <th rowspan="2" class="no-export align-middle">Aksi</th>
@@ -204,7 +205,7 @@
                             @if($checksheet->kashift_qc === 'REJECTED')
                                 <span class="badge badge-danger">REJECTED</span>
                             @elseif($checksheet->kashift_qc)
-                                <span class="badge badge-success">APPROVED</span>
+                                <span class="badge badge-success">{{ $checksheet->kashift_qc }}</span>
                             @else
                                 <span class="badge badge-warning">PENDING</span>
                             @endif
@@ -218,7 +219,7 @@
                             @if($checksheet->supervisor_qc === 'REJECTED')
                                 <span class="badge badge-danger">REJECTED</span>
                             @elseif($checksheet->supervisor_qc)
-                                <span class="badge badge-success">APPROVED</span>
+                                <span class="badge badge-success">{{ $checksheet->supervisor_qc }}</span>
                             @else
                                 <span class="badge badge-warning">PENDING</span>
                             @endif
@@ -232,12 +233,26 @@
                             @if($checksheet->asst_manager_qc === 'REJECTED')
                                 <span class="badge badge-danger">REJECTED</span>
                             @elseif($checksheet->asst_manager_qc)
-                                <span class="badge badge-success">APPROVED</span>
+                                <span class="badge badge-success">{{ $checksheet->asst_manager_qc }}</span>
                             @else
                                 <span class="badge badge-warning">PENDING</span>
                             @endif
                             @if($checksheet->asst_manager_approved_at)
                                 <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
+                            @endif
+                        </td>
+
+                        {{-- Manager QC --}}
+                        <td class="align-middle">
+                            @if($checksheet->manager_qc === 'REJECTED')
+                                <span class="badge badge-danger">REJECTED</span>
+                            @elseif($checksheet->manager_qc)
+                                <span class="badge badge-success">{{ $checksheet->manager_qc }}</span>
+                            @else
+                                <span class="badge badge-warning">PENDING</span>
+                            @endif
+                            @if($checksheet->manager_approved_at)
+                                <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</small>
                             @endif
                         </td>
                         
@@ -250,6 +265,7 @@
                                 $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
                                 $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && !$checksheet->supervisor_qc;
                                 $canApproveAsst = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && !$checksheet->asst_manager_qc;
+                                $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && !$checksheet->manager_qc;
                             @endphp
 
                             <div class="mr-2">
@@ -258,7 +274,7 @@
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="Approve (Kashift)">
-                                                <i class="fas fa-check"></i>{{ auth()->user()->role === 'admin' ? ' KS' : '' }}
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
                                             </button>
                                         </form>
                                         <form action="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST">
@@ -275,7 +291,7 @@
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="Approve (SPV)">
-                                                <i class="fas fa-check"></i>{{ auth()->user()->role === 'admin' ? ' SPV' : '' }}
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
                                             </button>
                                         </form>
                                         <form action="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST">
@@ -292,12 +308,29 @@
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="Approve (AM)">
-                                                <i class="fas fa-check"></i>{{ auth()->user()->role === 'admin' ? ' AM' : '' }}
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
                                             </button>
                                         </form>
                                         <form action="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-danger" title="Reject (AM)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+
+                                @if($canApproveManager)
+                                    <div class="btn-group btn-group-sm mb-1" role="group">
+                                        <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success" title="Approve (MGR)">
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger" title="Reject (MGR)">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </form>

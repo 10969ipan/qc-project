@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
 
         // Buat Akun Ka. Shift
         User::create([
-            'name' => 'Ka Shift User',
+            'name' => 'Ka Shift',
             'email' => 'kashift@qc.com',
             'password' => Hash::make('password'),
             'role' => 'kashift',
@@ -84,6 +84,14 @@ class DatabaseSeeder extends Seeder
             'email' => 'manager@qc.com',
             'password' => Hash::make('password'),
             'role' => 'asst_manager',
+        ]);
+
+        // Buat Akun Manager
+        User::create([
+            'name' => 'Manager',
+            'email' => 'generalmanager@qc.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
         ]);
 
         // Panggil ItemSeeder
