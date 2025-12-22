@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager)
     Route::middleware(['role:admin,supervisor,kashift,asst_manager'])->group(function() {
+         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
          Route::get('/report/checksheets/export', [ChecksheetController::class, 'export'])->name('admin.checksheets.export');
          Route::post('/report/checksheets/sync', [ChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
 

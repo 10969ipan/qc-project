@@ -6,6 +6,7 @@ use App\Models\InProcessChecksheet;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InProcessChecksheetController extends Controller
 {
@@ -516,5 +517,63 @@ class InProcessChecksheetController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    // Export Checksheets to PDF
+    public function exportPdf(Request $request)
+    {
+        // Reuse the query logic from the index method
+        $query = InProcessChecksheet::with('item')->latest();
+
+        if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        }
+
+        if ($request->has('approval_status') && $request->approval_status != '') {
+            if ($request->approval_status === 'Pending') {
+                $query->where(function($q) {
+                    $q->where('approval_status', 'Pending')
+                      ->orWhere(function($sub) {
+                          $sub->whereNull('approval_status')
+                              ->whereNull('supervisor_qc')
+                              ->where(function($rej) {
+                                  $rej->where('kashift_qc', '!=', 'REJECTED')
+                                      ->orWhereNull('kashift_qc');
+                              });
+                      });
+                });
+            } elseif ($request->approval_status === 'Approved') {
+                $query->where(function($q) {
+                    $q->where('approval_status', 'Approved')
+                      ->orWhere(function($sub) {
+                          $sub->whereNull('approval_status')
+                              ->whereNotNull('supervisor_qc')
+                              ->where('supervisor_qc', '!=', 'REJECTED');
+                      });
+                });
+            } elseif ($request->approval_status === 'Rejected') {
+                $query->where(function($q) {
+                    $q->where('approval_status', 'Rejected')
+                      ->orWhere(function($sub) {
+                          $sub->whereNull('approval_status')
+                              ->where(function($rej) {
+                                  $rej->where('kashift_qc', 'REJECTED')
+                                      ->orWhere('supervisor_qc', 'REJECTED')
+                                      ->orWhere('asst_manager_qc', 'REJECTED');
+                              });
+                      });
+                });
+            }
+        }
+
+        if ($request->has('item_id') && $request->item_id != '') {
+            $query->where('item_id', $request->item_id);
+        }
+
+        $checksheets = $query->get(); // Get all results, not paginated
+        $items = Item::orderBy('name')->get();
+
+        $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request'));
+        return $pdf->setPaper('a4', 'landscape')->stream('laporan-checksheet-inprocess.pdf');
     }
 }
