@@ -211,8 +211,8 @@ class InProcessChecksheetController extends Controller
                 $validated['total_ng'], // Kolom L: Total NG
                 $validated['judgment'], // Kolom M: Judgment
                 $validated['operator_initials'], // Kolom N: Operator
-                isset($validated['remarks']) ? $validated['remarks'] : '-', // Kolom O: Remarks
-                $validated['dimension_check'] ?? '-', // Kolom P: Check Dimensi
+                $validated['remarks'] ?? '-', // Kolom O: Remarks
+                $dimensionCheck ?? '-', // Kolom P: Check Dimensi
             ];
 
             // Kirim ke Google Sheets
