@@ -26,7 +26,7 @@
         Menu
     </div>
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager'))
+    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))
     <!-- Nav Item - Master Data (Shared Admin Access) -->
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMaster"
@@ -42,7 +42,7 @@
     </li>
     @endif
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager'))
+    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))
     <!-- Nav Item - Analis (Shared) -->
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAnalysis"
@@ -76,7 +76,7 @@
     </li>
     @endif
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'inspector' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager'))
+    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'inspector' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))
     <!-- Nav Item - Laporan (Shared) -->
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReport"
