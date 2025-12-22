@@ -128,13 +128,15 @@
                                                 <th>Ø6</th>
                                                 <th>Ø7</th>
                                                 <th>Ø8</th>
+                                                <th>Ø9</th>
+                                                <th>Ø10</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($dimensions as $cavity => $points)
                                                 <tr>
                                                     <td class="font-weight-bold p-1">{{ $cavity }}</td>
-                                                    @for ($j = 1; $j <= 3; $j++)
+                                                    @for ($j = 1; $j <= 10; $j++)
                                                         <td class="p-1">{{ $points[$j] ?? '-' }}</td>
                                                     @endfor
                                                 </tr>
