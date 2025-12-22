@@ -113,7 +113,7 @@
                                                     @for ($i = 1; $i <= 8; $i++)
                                                         <tr>
                                                             <td class="text-center font-weight-bold">Cav {{ $i }}</td>
-                                                            @for ($j = 1; $j <= 3; $j++)
+                                                            @for ($j = 1; $j <= 8; $j++)
                                                                 <td>
                                                                     <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
                                                                 </td>
