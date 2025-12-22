@@ -101,6 +101,58 @@ class AnalysisController extends Controller
         $itemLabels = array_keys($itemCycleTimes);
         $itemCycleTimeData = array_values($itemCycleTimes);
 
+        // Calculate Average Cycle Time per Item by User (Grouped Bar Chart)
+        // We need:
+        // 1. Labels: List of Items (Sorted, e.g., by Avg Cycle Time or Name)
+        // 2. Datasets: One per User, containing data for each Item
+        
+        // Use existing $itemLabels (sorted by global avg cycle time) as the X-axis/Y-axis base
+        $inspectorItemLabels = $itemLabels; 
+        
+        // Get all unique users from the entire table to ensure we list everyone
+        // even if they have no data in the selected range.
+        // Also sorting them alphabetically for consistent display.
+        $users = Checksheet::select('operator_initials')
+            ->distinct()
+            ->whereNotNull('operator_initials')
+            ->where('operator_initials', '!=', '')
+            ->orderBy('operator_initials')
+            ->pluck('operator_initials');
+        
+        $inspectorItemDatasets = [];
+        $colors = [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', 
+            '#858796', '#5a5c69', '#6f42c1', '#fd7e14', '#20c9a6'
+        ];
+        
+        foreach ($users as $index => $user) {
+            $userInitials = $user ?: 'Unknown';
+            $userData = [];
+            
+            foreach ($inspectorItemLabels as $itemName) {
+                // Filter checksheets for this User AND this Item
+                // Note: This might be slow if dataset is huge, but fine for monthly reports
+                $filtered = $checksheets->filter(function ($item) use ($user, $itemName) {
+                    $currentItemName = $item->item->name ?? 'Unknown Item';
+                    return $item->operator_initials == $user && $currentItemName == $itemName;
+                });
+                
+                if ($filtered->count() > 0) {
+                    $userData[] = round($filtered->avg('cycle_time'), 1);
+                } else {
+                    $userData[] = 0; // or null
+                }
+            }
+            
+            $inspectorItemDatasets[] = [
+                'label' => $userInitials,
+                'data' => $userData,
+                'backgroundColor' => $colors[$index % count($colors)],
+                'borderColor' => $colors[$index % count($colors)],
+                'borderWidth' => 1
+            ];
+        }
+
         // Prepare data for the chart
         // Sort by quantity descending for better visualization
         arsort($defectCounts);
@@ -108,7 +160,7 @@ class AnalysisController extends Controller
         $defectLabels = array_keys($defectCounts);
         $defectData = array_values($defectCounts);
 
-        return view('analysis.monthly_ng', compact('labels', 'data', 'dataPercentage', 'defectLabels', 'defectData', 'dataCycleTime', 'itemLabels', 'itemCycleTimeData'));
+        return view('analysis.monthly_ng', compact('labels', 'data', 'dataPercentage', 'defectLabels', 'defectData', 'dataCycleTime', 'itemLabels', 'itemCycleTimeData', 'inspectorItemLabels', 'inspectorItemDatasets'));
     }
 
     public function monthlyNgInProcess(Request $request)
