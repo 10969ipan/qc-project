@@ -207,9 +207,9 @@
                         <td class="align-middle d-flex align-items-center justify-content-center no-export">
                             {{-- Action Buttons for Approvals --}}
                             @php
-                                $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
-                                $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && !$checksheet->supervisor_qc;
-                                $canApproveAsst = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && !$checksheet->asst_manager_qc;
+                                $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
+                                $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && !$checksheet->supervisor_qc;
+                                $canApproveAsst = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && !$checksheet->asst_manager_qc;
                             @endphp
 
                             <div class="mr-2">
@@ -218,7 +218,7 @@
                                         <form action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="Approve (Kashift)">
-                                                <i class="fas fa-check"></i>{{ auth()->user()->role === 'admin' ? ' KS' : '' }}
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin' || auth()->user()->role === 'manager') ? ' KS' : '' }}
                                             </button>
                                         </form>
                                         <form action="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST">
@@ -235,7 +235,7 @@
                                         <form action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="Approve (SPV)">
-                                                <i class="fas fa-check"></i>{{ auth()->user()->role === 'admin' ? ' SPV' : '' }}
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin' || auth()->user()->role === 'manager') ? ' SPV' : '' }}
                                             </button>
                                         </form>
                                         <form action="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST">
@@ -252,7 +252,7 @@
                                         <form action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="Approve (AM)">
-                                                <i class="fas fa-check"></i>{{ auth()->user()->role === 'admin' ? ' AM' : '' }}
+                                                <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin' || auth()->user()->role === 'manager') ? ' AM' : '' }}
                                             </button>
                                         </form>
                                         <form action="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST">
