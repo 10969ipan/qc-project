@@ -101,6 +101,25 @@ class AnalysisController extends Controller
         $itemLabels = array_keys($itemCycleTimes);
         $itemCycleTimeData = array_values($itemCycleTimes);
 
+        // Calculate Average Cycle Time per User (Operator)
+        $userCycleTimes = [];
+        $groupedByUser = $checksheets->groupBy('operator_initials');
+
+        foreach ($groupedByUser as $user => $group) {
+            // Skip if operator_initials is null or empty
+            if (empty($user)) {
+                $user = 'Unknown';
+            }
+            $avg = $group->avg('cycle_time');
+            $userCycleTimes[$user] = round($avg, 1);
+        }
+
+        // Sort by Cycle Time descending
+        arsort($userCycleTimes);
+
+        $userLabels = array_keys($userCycleTimes);
+        $userCycleTimeData = array_values($userCycleTimes);
+
         // Prepare data for the chart
         // Sort by quantity descending for better visualization
         arsort($defectCounts);
@@ -108,7 +127,7 @@ class AnalysisController extends Controller
         $defectLabels = array_keys($defectCounts);
         $defectData = array_values($defectCounts);
 
-        return view('analysis.monthly_ng', compact('labels', 'data', 'dataPercentage', 'defectLabels', 'defectData', 'dataCycleTime', 'itemLabels', 'itemCycleTimeData'));
+        return view('analysis.monthly_ng', compact('labels', 'data', 'dataPercentage', 'defectLabels', 'defectData', 'dataCycleTime', 'itemLabels', 'itemCycleTimeData', 'userLabels', 'userCycleTimeData'));
     }
 
     public function monthlyNgInProcess(Request $request)
