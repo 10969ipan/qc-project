@@ -111,11 +111,11 @@
             <!-- Detail Cycle Time per User Chart -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per User (s)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per Item by User (s)</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-bar">
-                        <canvas id="myUserCycleChart"></canvas>
+                        <canvas id="myInspectorItemCycleChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -235,37 +235,33 @@
             }
         });
 
-        // --- Bar Chart (Avg Cycle Time per User) ---
-        var ctxUserCycle = document.getElementById("myUserCycleChart");
-        var userLabels = @json($userLabels);
-        var userCycleTimeData = @json($userCycleTimeData);
+        // --- Bar Chart (Avg Cycle Time per Item by User) ---
+        var ctxInspectorItemCycle = document.getElementById("myInspectorItemCycleChart");
+        var inspectorItemLabels = @json($inspectorItemLabels);
+        var inspectorItemDatasets = @json($inspectorItemDatasets);
 
-        var myUserCycleChart = new Chart(ctxUserCycle, {
+        // Add datalabels config to each dataset
+        inspectorItemDatasets.forEach(dataset => {
+            dataset.datalabels = {
+                color: '#fff',
+                font: { weight: 'bold', size: 10 },
+                anchor: 'center',
+                align: 'center',
+                formatter: function(value, ctx) {
+                    return value > 0 ? value + "s" : "";
+                }
+            };
+        });
+
+        var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
             type: 'bar',
             data: {
-                labels: userLabels,
-                datasets: [{
-                    label: "Avg Cycle Time (s)",
-                    backgroundColor: "#e83e8c", // Pink/Darker
-                    hoverBackgroundColor: "#c82367",
-                    borderColor: "#e83e8c",
-                    data: userCycleTimeData,
-                    datalabels: {
-                        color: '#fff',
-                        font: {
-                            weight: 'bold'
-                        },
-                        anchor: 'center',
-                        align: 'center',
-                        formatter: function(value, ctx) {
-                            return value + "s";
-                        }
-                    }
-                }],
+                labels: inspectorItemLabels,
+                datasets: inspectorItemDatasets
             },
             options: {
                 maintainAspectRatio: false,
-                indexAxis: 'y', // Horizontal
+                indexAxis: 'y', // Horizontal bars
                 layout: {
                     padding: {
                         left: 10,
@@ -288,7 +284,7 @@
                         ticks: {
                             maxTicksLimit: 20, // Allow more items
                             padding: 10,
-                            autoSkip: false // Show all names
+                            autoSkip: false // Show all item names
                         },
                         grid: {
                             color: "rgb(234, 236, 244)",
@@ -301,7 +297,12 @@
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        display: true, // Show legend for multiple users
+                        position: 'top',
+                        labels: {
+                            boxWidth: 10,
+                            padding: 10
+                        }
                     },
                     tooltip: {
                         backgroundColor: "rgb(255,255,255)",
@@ -315,7 +316,7 @@
                         borderWidth: 1,
                         xPadding: 15,
                         yPadding: 15,
-                        displayColors: false,
+                        displayColors: true,
                         intersect: false,
                         mode: 'index',
                         caretPadding: 10,
