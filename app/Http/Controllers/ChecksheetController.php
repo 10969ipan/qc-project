@@ -372,7 +372,7 @@ class ChecksheetController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = array('Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 'Inisial Operator', 'Remarks', 'Ka Shift', 'Supervisor', 'Asst Manager');
+        $columns = array('Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 'Inisial Operator', 'Remarks', 'Ka Shift', 'Supervisor', 'Asst Manager / Manager');
 
         $callback = function() use($checksheets, $columns) {
             $file = fopen('php://output', 'w');

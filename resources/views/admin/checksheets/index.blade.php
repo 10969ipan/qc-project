@@ -82,7 +82,7 @@
                         <th rowspan="2" class="align-middle">Inisial</th>
                         <th rowspan="2" class="align-middle">Kashift QC</th>
                         <th rowspan="2" class="align-middle">Supervisor QC</th>
-                        <th rowspan="2" class="align-middle">Asst. Manager QC</th>
+                        <th rowspan="2" class="align-middle">Asst. Manager / Manager QC</th>
                         <th rowspan="2" class="align-middle">Keterangan</th>
                         @if(auth()->user()->role !== 'inspector')
                         <th rowspan="2" class="no-export align-middle">Aksi</th>
@@ -164,7 +164,7 @@
                             @if($checksheet->kashift_qc === 'REJECTED')
                                 <span class="badge badge-danger">REJECTED</span>
                             @elseif($checksheet->kashift_qc)
-                                <span class="badge badge-success">APPROVED</span>
+                                <span class="badge badge-success">{{ $checksheet->kashift_qc }}</span>
                             @else
                                 <span class="badge badge-warning">PENDING</span>
                             @endif
@@ -178,7 +178,7 @@
                             @if($checksheet->supervisor_qc === 'REJECTED')
                                 <span class="badge badge-danger">REJECTED</span>
                             @elseif($checksheet->supervisor_qc)
-                                <span class="badge badge-success">APPROVED</span>
+                                <span class="badge badge-success">{{ $checksheet->supervisor_qc }}</span>
                             @else
                                 <span class="badge badge-warning">PENDING</span>
                             @endif
@@ -192,7 +192,7 @@
                             @if($checksheet->asst_manager_qc === 'REJECTED')
                                 <span class="badge badge-danger">REJECTED</span>
                             @elseif($checksheet->asst_manager_qc)
-                                <span class="badge badge-success">APPROVED</span>
+                                <span class="badge badge-success">{{ $checksheet->asst_manager_qc }}</span>
                             @else
                                 <span class="badge badge-warning">PENDING</span>
                             @endif
