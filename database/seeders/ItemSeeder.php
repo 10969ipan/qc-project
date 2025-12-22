@@ -40,7 +40,7 @@ class ItemSeeder extends Seeder
                 'name' => 'EMBLEM 3D',
                 'part_number' => '1PA - F836B - 00',
                 'customer' => 'PT. YAMAHA INDONESIA MOTOR MFG',
-                'file_path' => $basepathyiim . '-.pdf', // Placeholder or path if available
+                'file_path' => $basepathyiim . '003. PCCP Tuning Fork Mark, 3D 1PA-F836B-01.20 (Inproses Injection).pdf', // Placeholder or path if available
             ],
             [
                 'name' => 'COVER HNDL END K3VA',
