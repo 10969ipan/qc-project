@@ -113,6 +113,11 @@
                             <th>Point 1</th>
                             <th>Point 2</th>
                             <th>Point 3</th>
+                            <th>Point 4</th>
+                            <th>Point 5</th>
+                            <th>Point 6</th>
+                            <th>Point 7</th>
+                            <th>Point 8</th>
                         </tr>
                     </thead>
                     <tbody>

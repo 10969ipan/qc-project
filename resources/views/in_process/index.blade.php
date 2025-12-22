@@ -120,9 +120,14 @@
                                         <thead class="text-center" style="font-size: 0.6rem;">
                                             <tr>
                                                 <th>Cav</th>
-                                                <th>P1</th>
-                                                <th>P2</th>
-                                                <th>P3</th>
+                                                <th>Ø1</th>
+                                                <th>Ø2</th>
+                                                <th>Ø3</th>
+                                                <th>Ø4</th>
+                                                <th>Ø5</th>
+                                                <th>Ø6</th>
+                                                <th>Ø7</th>
+                                                <th>Ø8</th>
                                             </tr>
                                         </thead>
                                         <tbody>
