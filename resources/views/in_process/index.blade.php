@@ -110,7 +110,7 @@
                         <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
                         
                         {{-- Dimension Check Detail --}}
-                        <td class="align-middle p-0">
+                        <td class="align-middle p-0" data-dimensions='{{ $checksheet->dimension_check }}'>
                             @php
                                 $dimensions = json_decode($checksheet->dimension_check, true);
                             @endphp
@@ -128,8 +128,6 @@
                                                 <th>Ø6</th>
                                                 <th>Ø7</th>
                                                 <th>Ø8</th>
-                                                <th>Ø9</th>
-                                                <th>Ø10</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -339,184 +337,169 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const { jsPDF } = window.jspdf;
+document.addEventListener('DOMContentLoaded', function() {
+    const { jsPDF } = window.jspdf;
 
-        document.getElementById('exportPdfBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const doc = new jsPDF('landscape'); // Landscape to fit columns
-            
-            // Define Document Info Text
-            const docInfo = 'No. Dokumen:QC-KRW-F-0168\nTgl. Terbit:25/09/2015\nRevisi Ke:3\nTgl. Revisi:22/12/2025';
-
-            // Generate Header Table
-            doc.autoTable({
-                startY: 10,
-                head: [],
-                body: [
-                    [
-                        { content: '', styles: { minCellHeight: 25, valign: 'middle' } },
-                        { content: 'LAPORAN CHECK SHEET INPROCESS', styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                        { content: docInfo, styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
-                    ]
-                ],
-                theme: 'grid',
-                styles: {
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.1,
-                    cellPadding: 2
-                },
-                columnStyles: {
-                    0: { cellWidth: 30 }, // Logo Column
-                    1: { }, // Title Column (auto width)
-                    2: { cellWidth: 45 } // Doc Info Column
-                },
-                didDrawCell: function(data) {
-                    // Draw Logo in the first cell of the body
-                    if (data.section === 'body' && data.column.index === 0) {
-                        const img = document.getElementById('pdf-logo');
-                        if (img) {
-                            try {
-                                doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
-                            } catch (err) {
-                                console.warn('Error adding logo:', err);
-                            }
+    document.getElementById('exportPdfBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const doc = new jsPDF('landscape');
+        
+        const docInfo = 'No. Dokumen:QC-KRW-F-0004\nTgl. Terbit:25/09/2015\nRevisi Ke:3\nTgl. Revisi:30/09/2020';
+        doc.autoTable({
+            startY: 10,
+            head: [],
+            body: [
+                [
+                    { content: '', styles: { minCellHeight: 25, valign: 'middle' } },
+                    { content: 'LAPORAN CHECK SHEET INPROCESS', styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                    { content: docInfo, styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                ]
+            ],
+            theme: 'grid',
+            styles: { lineColor: [0, 0, 0], lineWidth: 0.1, cellPadding: 2 },
+            columnStyles: { 0: { cellWidth: 30 }, 1: {}, 2: { cellWidth: 45 } },
+            didDrawCell: function(data) {
+                if (data.section === 'body' && data.column.index === 0) {
+                    const img = document.getElementById('pdf-logo');
+                    if (img) {
+                        try {
+                            doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
+                        } catch (err) {
+                            console.warn('Error adding logo:', err);
                         }
                     }
                 }
-            });
-
-            // Capture the final Y position of the header table
-            const finalY = doc.lastAutoTable.finalY;
-
-            // Add Export Date below header
-            doc.setFontSize(6);
-            doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
-
-            // Clone the table to manipulate it for export (removing 'Aksi' column)
-            const originalTable = document.getElementById('checksheetTable');
-            const tableClone = originalTable.cloneNode(true);
-            
-            // Remove all elements with class 'no-export' from the clone
-            const noExportElements = tableClone.querySelectorAll('.no-export');
-            noExportElements.forEach(el => el.remove());
-
-            // Temporarily append clone to DOM to ensure correct parsing
-            tableClone.style.position = 'absolute';
-            tableClone.style.top = '-9999px';
-            tableClone.style.left = '-9999px';
-            document.body.appendChild(tableClone);
-
-            // Generate Main Data Table
-            doc.autoTable({
-                html: tableClone,
-                startY: finalY + 7,
-                theme: 'grid',
-                styles: { 
-                    fontSize: 5, 
-                    cellPadding: 1.5,
-                    valign: 'middle',
-                    halign: 'center',
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.1
-                },
-                headStyles: { 
-                    fillColor: [78, 115, 223],
-                    textColor: [255, 255, 255],
-                    valign: 'middle',
-                    halign: 'center',
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.1
-                },
-                columnStyles: {
-                    0: { cellWidth: 12 }, // Tanggal
-                    1: { cellWidth: 8 }, // Jam Before
-                    2: { cellWidth: 8 }, // Jam After
-                    3: { cellWidth: 15 }, // Cycle Time
-                    4: { cellWidth: 10 },  // Shift
-                    5: { cellWidth: 20 }, // Barang
-                    12: { cellWidth: 6 }, // Pcs
-                    13: { cellWidth: 22 }, // Jenis NG
-                    19: { cellWidth: 30 }  // Keterangan
-                },
-                didParseCell: function(data) {
-                    // Hide default text for multi-item cells to draw them manually later
-                    if (data.section === 'body' && (data.column.index === 11 || data.column.index === 12 || data.column.index === 13)) {
-                        const td = data.cell.raw;
-                        if (td && (td.querySelector('table') || td.children.length > 1)) {
-                            data.cell.text = ''; // Clear text to prevent default rendering
-                        }
-                    }
-                },
-                didDrawCell: function(data) {
-                    // --- Manual Drawing for Dimension Check Grid ---
-                    if (data.section === 'body' && data.column.index === 11) {
-                        const td = data.cell.raw;
-                        const nestedTable = td.querySelector('table');
-                        if (nestedTable) {
-                            const head = Array.from(nestedTable.querySelectorAll('thead th')).map(th => th.innerText);
-                            const body = Array.from(nestedTable.querySelectorAll('tbody tr')).map(tr => 
-                                Array.from(tr.querySelectorAll('td')).map(td => td.innerText)
-                            );
-
-                            doc.autoTable({
-                                startY: data.cell.y + 0.5,
-                                startX: data.cell.x + 0.5,
-                                head: [head],
-                                body: body,
-                                theme: 'grid',
-                                tableWidth: data.cell.width - 1,
-                                styles: {
-                                    fontSize: 4,
-                                    cellPadding: 0.5,
-                                    lineColor: [0, 0, 0],
-                                    lineWidth: 0.1,
-                                },
-                                headStyles: {
-                                    fillColor: [230, 230, 230],
-                                    textColor: [0, 0, 0],
-                                    fontStyle: 'bold',
-                                }
-                            });
-                        }
-                    }
-
-                    // --- Manual Drawing for Defects (Pcs and Jenis NG) ---
-                    if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
-                        const td = data.cell.raw; 
-                        if (td && td.children.length > 1) {
-                            const count = td.children.length;
-                            const height = data.cell.height;
-                            const step = height / count;
-                            const textNodes = Array.from(td.querySelectorAll('div'));
-                            
-                            // Draw horizontal lines between items
-                            for (let i = 1; i < count; i++) {
-                                const y = data.cell.y + (step * i);
-                                doc.setDrawColor(0, 0, 0); // Black line
-                                doc.setLineWidth(0.1);
-                                doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
-                            }
-
-                            // Draw text manually centered in each sub-cell
-                            doc.setTextColor(220, 53, 69); // Red text
-                            doc.setFontSize(5);
-                            textNodes.forEach((node, i) => {
-                                const yCenter = data.cell.y + (step * i) + (step / 2);
-                                doc.text(node.innerText, data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
-                            });
-                        }
-                    }
-                },
-                exportHiddenCells: false
-            });
-
-            // Remove the clone from DOM
-            document.body.removeChild(tableClone);
-
-            doc.save('Laporan_Checksheet_Sub_Assy_' + new Date().toISOString().slice(0,10) + '.pdf');
+            }
         });
+
+        const finalY = doc.lastAutoTable.finalY;
+        doc.setFontSize(8);
+        doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
+
+        const table = document.getElementById('checksheetTable');
+        const tableRows = table.querySelectorAll('tbody tr');
+
+        // Dynamically generate headers
+        const staticHeadStart = [
+            'No', 'Tanggal', 'Jam (Before)', 'Jam (After)', 'Cycle Time (s)',
+            'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty'
+        ];
+        const staticHeadEnd = [
+            'OK', 'NG', 'Pcs', 'Jenis NG', 'Judgment', 'Inisial',
+            'Kashift QC', 'Supervisor QC', 'Asst. Manager QC', 'Keterangan'
+        ];
+
+        const dimensionPoints = new Set();
+        tableRows.forEach(row => {
+            const dimensionsData = row.querySelector('[data-dimensions]')?.getAttribute('data-dimensions');
+            if (dimensionsData) {
+                try {
+                    const dimensions = JSON.parse(dimensionsData);
+                    Object.values(dimensions).forEach(points => {
+                        Object.keys(points).forEach(pointKey => dimensionPoints.add(pointKey));
+                    });
+                } catch (err) {}
+            }
+        });
+
+        const sortedDimensionPoints = Array.from(dimensionPoints).sort((a, b) => a - b);
+        const dimensionHeaders = sortedDimensionPoints.map(p => `Ø${p}`);
+        const finalHead = [[...staticHeadStart, 'Cavity', ...dimensionHeaders, ...staticHeadEnd]];
+
+        // Dynamically generate body
+        const body = [];
+        tableRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const rowData = {
+                no: cells[0].innerText.trim(),
+                date: cells[1].innerText.trim(),
+                timeBefore: cells[2].innerText.trim(),
+                timeAfter: cells[3].innerText.trim(),
+                cycleTime: cells[4].innerText.trim(),
+                shift: cells[5].innerText.trim(),
+                itemName: cells[6].innerText.trim(),
+                partNumber: cells[7].innerText.trim(),
+                customer: cells[8].innerText.trim(),
+                totalQty: cells[9].innerText.trim(),
+                samplingQty: cells[10].innerText.trim(),
+                totalOk: cells[12].innerText.trim(),
+                totalNg: cells[13].innerText.trim(),
+                defectPcs: Array.from(cells[14].querySelectorAll('div')).map(d => d.innerText.trim()).join('\n') || (cells[14].innerText.trim() !== '-' ? cells[14].innerText.trim() : '-'),
+                defectNames: Array.from(cells[15].querySelectorAll('div')).map(d => d.innerText.trim()).join('\n') || (cells[15].innerText.trim() !== '-' ? cells[15].innerText.trim() : '-'),
+                judgment: cells[16].innerText.trim(),
+                initials: cells[17].innerText.trim(),
+                kashift: cells[18].innerText.trim().replace(/\s+/g, ' '),
+                supervisor: cells[19].innerText.trim().replace(/\s+/g, ' '),
+                asstManager: cells[20].innerText.trim().replace(/\s+/g, ' '),
+                remarks: cells[21] ? cells[21].innerText.trim() : ''
+            };
+
+            let dimensions = null;
+            const dimensionsData = cells[11].getAttribute('data-dimensions');
+            if (dimensionsData) {
+                try { dimensions = JSON.parse(dimensionsData); } catch (e) {}
+            }
+            const hasDimensions = dimensions && typeof dimensions === 'object' && Object.keys(dimensions).length > 0;
+
+            if (hasDimensions) {
+                const cavities = Object.keys(dimensions);
+                cavities.forEach((cavity, index) => {
+                    const cavityPoints = dimensions[cavity];
+                    const dimensionValues = sortedDimensionPoints.map(p => cavityPoints[p] || '-');
+                    if (index === 0) {
+                        body.push([
+                            rowData.no, rowData.date, rowData.timeBefore, rowData.timeAfter, rowData.cycleTime,
+                            rowData.shift, rowData.itemName, rowData.partNumber, rowData.customer,
+                            rowData.totalQty, rowData.samplingQty, cavity, ...dimensionValues,
+                            rowData.totalOk, rowData.totalNg, rowData.defectPcs, rowData.defectNames,
+                            rowData.judgment, rowData.initials, rowData.kashift, rowData.supervisor,
+                            rowData.asstManager, rowData.remarks
+                        ]);
+                    } else {
+                        body.push([
+                            ...Array(staticHeadStart.length).fill(''),
+                            cavity, ...dimensionValues,
+                            ...Array(staticHeadEnd.length).fill('')
+                        ]);
+                    }
+                });
+            } else {
+                const emptyDimensions = Array(dimensionHeaders.length).fill('-');
+                body.push([
+                    rowData.no, rowData.date, rowData.timeBefore, rowData.timeAfter, rowData.cycleTime,
+                    rowData.shift, rowData.itemName, rowData.partNumber, rowData.customer,
+                    rowData.totalQty, rowData.samplingQty, '-', ...emptyDimensions,
+                    rowData.totalOk, rowData.totalNg, rowData.defectPcs, rowData.defectNames,
+                    rowData.judgment, rowData.initials, rowData.kashift, rowData.supervisor,
+                    rowData.asstManager, rowData.remarks
+                ]);
+            }
+        });
+
+        doc.autoTable({
+            head: finalHead,
+            body: body,
+            startY: finalY + 7,
+            theme: 'grid',
+            styles: {
+                fontSize: 6, cellPadding: 1, valign: 'middle', halign: 'center',
+                lineColor: [0, 0, 0], lineWidth: 0.1
+            },
+            headStyles: {
+                fillColor: [78, 115, 223], textColor: [255, 255, 255],
+                fontStyle: 'bold'
+            },
+            didDrawCell: function(data) {
+                // Handle multi-line text for defect columns
+                if (data.section === 'body' && (data.column.dataKey === 14 || data.column.dataKey === 15) && /\n/.test(data.cell.text)) {
+                    // This is handled by default line break processing in recent jspdf-autotable
+                }
+            }
+        });
+
+        doc.save('Laporan_Checksheet_InProcess_' + new Date().toISOString().slice(0, 10) + '.pdf');
     });
+});
 </script>
 @endpush
