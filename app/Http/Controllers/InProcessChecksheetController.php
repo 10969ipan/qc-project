@@ -316,7 +316,7 @@ class InProcessChecksheetController extends Controller
             $user = auth()->user();
             
             // Validate that the user is allowed to approve this type
-            if ($user->role !== 'admin') {
+            if ($user->role !== 'admin' && $user->role !== 'manager') {
                 if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
                 if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
                 if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
@@ -351,7 +351,7 @@ class InProcessChecksheetController extends Controller
             $user = auth()->user();
 
             // Validate that the user is allowed to reject this type
-            if ($user->role !== 'admin') {
+            if ($user->role !== 'admin' && $user->role !== 'manager') {
                 if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
                 if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
                 if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);

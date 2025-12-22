@@ -86,6 +86,14 @@ class DatabaseSeeder extends Seeder
             'role' => 'asst_manager',
         ]);
 
+        // Buat Akun Manager
+        User::create([
+            'name' => 'Manager User',
+            'email' => 'generalmanager@qc.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
+        ]);
+
         // Panggil ItemSeeder
         $this->call(ItemSeeder::class);
         $this->call(ItemDefectSeeder::class);
