@@ -99,11 +99,15 @@
             <!-- Detail Cycle Time per Item Chart -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per Item (s)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Cycle Time Analysis per Item</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-bar">
                         <canvas id="myItemCycleChart"></canvas>
+                    </div>
+                    <hr>
+                    <div class="text-center small">
+                        <span class="mr-2">Actual Cycle Time = Total Cycle Time / Total Check Sampling</span>
                     </div>
                 </div>
             </div>
@@ -332,29 +336,51 @@
 
         // --- Bar Chart (Avg Cycle Time per Item) ---
         var ctxItemCycle = document.getElementById("myItemCycleChart");
+        var itemStandardData = @json($itemStandardData ?? []);
+        var itemPercentageData = @json($itemPercentageData ?? []);
         
         var myItemCycleChart = new Chart(ctxItemCycle, {
             type: 'bar',
             data: {
                 labels: itemLabels,
-                datasets: [{
-                    label: "Avg Cycle Time (s)",
-                    backgroundColor: "#6f42c1", // Purple
-                    hoverBackgroundColor: "#59359a",
-                    borderColor: "#6f42c1",
-                    data: itemCycleTimeData,
-                    datalabels: {
-                        color: '#fff',
-                        font: {
-                            weight: 'bold'
-                        },
-                        anchor: 'center',
-                        align: 'center',
-                        formatter: function(value, ctx) {
-                            return value + "s";
+                datasets: [
+                    {
+                        label: "Actual Cycle Time (s)",
+                        backgroundColor: "#6f42c1", // Purple
+                        hoverBackgroundColor: "#59359a",
+                        borderColor: "#6f42c1",
+                        data: itemCycleTimeData,
+                        datalabels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold'
+                            },
+                            anchor: 'center',
+                            align: 'center',
+                            formatter: function(value, ctx) {
+                                return value + "s";
+                            }
+                        }
+                    },
+                    {
+                        label: "Standard Cycle Time (s)",
+                        backgroundColor: "#f6c23e", // Yellow
+                        hoverBackgroundColor: "#dda20a",
+                        borderColor: "#f6c23e",
+                        data: itemStandardData,
+                        datalabels: {
+                            color: '#444',
+                            font: {
+                                weight: 'bold'
+                            },
+                            anchor: 'end',
+                            align: 'end',
+                            formatter: function(value, ctx) {
+                                return value + "s";
+                            }
                         }
                     }
-                }],
+                ],
             },
             options: {
                 maintainAspectRatio: false,
@@ -394,7 +420,8 @@
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'top'
                     },
                     tooltip: {
                         backgroundColor: "rgb(255,255,255)",
@@ -408,13 +435,18 @@
                         borderWidth: 1,
                         xPadding: 15,
                         yPadding: 15,
-                        displayColors: false,
+                        displayColors: true,
                         intersect: false,
                         mode: 'index',
                         caretPadding: 10,
                         callbacks: {
                             label: function(tooltipItem) {
                                 return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
+                            },
+                            afterBody: function(tooltipItems) {
+                                var index = tooltipItems[0].dataIndex;
+                                var percentage = itemPercentageData[index];
+                                return 'Percentage (Act/Std): ' + percentage + '%';
                             }
                         }
                     }
