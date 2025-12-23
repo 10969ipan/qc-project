@@ -717,7 +717,9 @@
             if (!timerRunning) {
                 timerRunning = true;
                 $(this).removeClass('btn-success').addClass('btn-secondary').attr('disabled', true).html('<i class="fas fa-clock"></i> Running...');
-                $('#saveBtn').prop('disabled', false);
+
+                // Instead of enabling directly, check state
+                checkSaveButtonState();
                 
                 timerInterval = setInterval(function() {
                     totalSeconds++;
@@ -749,6 +751,49 @@
         // The dimension standards are now passed from the controller.
         const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
+        function checkSaveButtonState() {
+            // Check if timer is running (or has been started, implying we can save)
+            // The existing logic sets timerRunning = true when started.
+            // But we need to make sure we don't enable it if timer hasn't started.
+            if (!timerRunning) {
+                $('#saveBtn').prop('disabled', true);
+                return;
+            }
+
+            // Check if all required dimensions are filled
+            const selectedOption = $('#itemSelect').find('option:selected');
+            const itemPartNumber = selectedOption.data('part-number');
+            const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+            let allRequiredFilled = true;
+
+            if (dimensionStandards) {
+                $('input[name^="dimensions"]').each(function() {
+                    const name = $(this).attr('name');
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (!match) return;
+
+                    const point = match[2];
+                    const standard = dimensionStandards[point];
+
+                    // If a standard exists for this point, the input must not be empty
+                    if (standard) {
+                        if ($(this).val().trim() === '') {
+                            allRequiredFilled = false;
+                            return false; // Break the loop
+                        }
+                    }
+                });
+            }
+
+            // Enable save button only if timer is running AND all required fields are filled
+            if (allRequiredFilled) {
+                $('#saveBtn').prop('disabled', false);
+            } else {
+                $('#saveBtn').prop('disabled', true);
+            }
+        }
+
         function validateDimensions() {
             const selectedOption = $('#itemSelect').find('option:selected');
             const itemPartNumber = selectedOption.data('part-number');
@@ -759,6 +804,7 @@
             // If no specific standards exist for this part, clear any validation and exit.
             if (!dimensionStandards) {
                 $('input[name^="dimensions"]').removeClass('is-invalid');
+                checkSaveButtonState();
                 return;
             }
 
@@ -796,6 +842,8 @@
             if (isAnyInvalid) {
                 $('#judgmentSelect').val('NG');
             }
+
+            checkSaveButtonState();
         }
 
         $(document).on('input', 'input[name^="dimensions"]', validateDimensions);
