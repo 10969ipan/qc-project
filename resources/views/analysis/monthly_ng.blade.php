@@ -258,7 +258,7 @@
                         if (std > 0) {
                             pct = (value / std) * 100;
                         }
-                        return value + "s (" + pct.toFixed(0) + "%)";
+                        return pct.toFixed(0) + "%";
                     }
                     return "";
                 }
@@ -339,7 +339,7 @@
                                 if (std > 0) {
                                     pct = (tooltipItem.raw / std) * 100;
                                 }
-                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's (' + pct.toFixed(1) + '%)';
+                                return tooltipItem.dataset.label + ': ' + pct.toFixed(1) + '%';
                             }
                         }
                     }
