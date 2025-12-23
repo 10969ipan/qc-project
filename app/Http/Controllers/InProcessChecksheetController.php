@@ -260,7 +260,8 @@ class InProcessChecksheetController extends Controller
             'remarks' => 'nullable|string',
             'dimensions' => 'nullable|array',
             'cycle_time' => 'nullable|integer',
-            'created_time' => 'nullable|date_format:H:i',
+            'jam_before' => 'nullable|date_format:H:i',
+            'jam_after' => 'nullable|date_format:H:i',
         ]);
 
         // Process Dimensions into JSON, filtering out empty values
@@ -289,10 +290,25 @@ class InProcessChecksheetController extends Controller
             'dimension_check' => $dimensionCheck,
         ];
 
-        // Update created_at if time is provided and user is authorized (not inspector)
-        if (!empty($validated['created_time']) && auth()->user()->role !== 'inspector') {
+        // Update created_at and cycle_time if time is provided and user is authorized (not inspector)
+        if (auth()->user()->role !== 'inspector') {
             $currentDate = $checksheet->created_at->format('Y-m-d');
-            $updateData['created_at'] = \Carbon\Carbon::parse($currentDate . ' ' . $validated['created_time']);
+
+            if (!empty($validated['jam_after'])) {
+                $updateData['created_at'] = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
+            }
+
+            if (!empty($validated['jam_before']) && !empty($validated['jam_after'])) {
+                $before = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_before']);
+                $after = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
+
+                // Handle midnight crossing (e.g., 23:55 to 00:05)
+                if ($after->lessThan($before)) {
+                    $after->addDay();
+                }
+
+                $updateData['cycle_time'] = $after->diffInSeconds($before);
+            }
         }
 
         $checksheet->update($updateData);
