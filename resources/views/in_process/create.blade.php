@@ -189,6 +189,14 @@
                                                         $initial = 'GK';
                                                     } elseif (str_contains($name, 'dede')) {
                                                         $initial = 'DS';
+                                                    } elseif (str_contains($name, 'arga')) {
+                                                        $initial = 'AY';
+                                                    } elseif (str_contains($name, 'sopian')) {
+                                                        $initial = 'SH';
+                                                    } elseif (str_contains($name, 'yono')) {
+                                                        $initial = 'YS';
+                                                    } elseif (str_contains($name, 'dinar')) {
+                                                        $initial = 'DA';
                                                     }
                                                 }
                                             @endphp
