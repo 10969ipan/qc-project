@@ -118,6 +118,9 @@ class AnalysisController extends Controller
             ->where('operator_initials', '!=', '')
             ->orderBy('operator_initials')
             ->pluck('operator_initials');
+
+        // Pre-group checksheets by operator for performance
+        $checksheetsByOperator = $checksheets->groupBy('operator_initials');
         
         $inspectorItemDatasets = [];
         $colors = [
@@ -128,17 +131,24 @@ class AnalysisController extends Controller
         foreach ($users as $index => $user) {
             $userInitials = $user ?: 'Unknown';
             $userData = [];
+
+            // Get this user's checksheets (or empty if none in current filtered view)
+            // Use 'get' on collection with key, default to empty collection
+            $userChecksheets = $checksheetsByOperator->get($user, collect());
+
+            // Group by Item Name for faster lookup inside the next loop
+            $userChecksheetsByItem = $userChecksheets->groupBy(function($item) {
+                return $item->item->name ?? 'Unknown Item';
+            });
             
             foreach ($inspectorItemLabels as $itemName) {
-                // Filter checksheets for this User AND this Item
-                // Note: This might be slow if dataset is huge, but fine for monthly reports
-                $filtered = $checksheets->filter(function ($item) use ($user, $itemName) {
-                    $currentItemName = $item->item->name ?? 'Unknown Item';
-                    return $item->operator_initials == $user && $currentItemName == $itemName;
-                });
+                // Get checksheets for this User AND this Item
+                $items = $userChecksheetsByItem->get($itemName);
                 
-                if ($filtered->count() > 0) {
-                    $userData[] = round($filtered->avg('cycle_time'), 1);
+                if ($items && $items->count() > 0) {
+                    // Formula: Total Cycle Time / Total Check
+                    // using collection avg() which implements sum/count
+                    $userData[] = round($items->avg('cycle_time'), 1);
                 } else {
                     $userData[] = 0; // or null
                 }
