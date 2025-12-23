@@ -50,7 +50,7 @@
                             <a href="{{ route('in_process.index') }}" class="btn btn-secondary mr-2">Reset</a>
                             
                             @if(auth()->user()->role !== 'inspector')
-                                <a href="{{ route('in_process.export_pdf', request()->query()) }}" id="exportPdfBtn" class="btn btn-danger">
+                                <a href="#" id="exportPdfBtn" class="btn btn-danger">
                                     <i class="fas fa-file-pdf"></i> Export PDF
                                 </a>
                             @endif
@@ -367,5 +367,185 @@
 @endsection
 
 @push('scripts')
-{{-- The old client-side PDF generation script has been removed. --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const { jsPDF } = window.jspdf;
+
+        document.getElementById('exportPdfBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const doc = new jsPDF('landscape');
+
+            // Document Info from existing PDF view
+            const docInfo = 'No. Dokumen: QC-KRW-F-0004\nTgl. Terbit: 25/09/2015\nRevisi Ke: 3\nTgl. Revisi: 30/09/2020';
+
+            // Generate Header Table
+            doc.autoTable({
+                startY: 10,
+                head: [],
+                body: [
+                    [
+                        { content: '', styles: { minCellHeight: 25, valign: 'middle' } },
+                        { content: 'LAPORAN CHECK SHEET INPROCESS', styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                        { content: docInfo, styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ]
+                ],
+                theme: 'grid',
+                styles: {
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1,
+                    cellPadding: 2
+                },
+                columnStyles: {
+                    0: { cellWidth: 30 }, // Logo Column
+                    1: { }, // Title Column
+                    2: { cellWidth: 45 } // Doc Info Column
+                },
+                didDrawCell: function(data) {
+                    // Draw Logo
+                    if (data.section === 'body' && data.column.index === 0) {
+                        const img = document.getElementById('pdf-logo');
+                        if (img) {
+                            try {
+                                doc.addImage(img, 'PNG', data.cell.x + 2, data.cell.y + 2, 26, 21);
+                            } catch (err) {
+                                console.warn('Error adding logo:', err);
+                            }
+                        }
+                    }
+                }
+            });
+
+            const finalY = doc.lastAutoTable.finalY;
+            doc.setFontSize(6);
+            doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
+
+            // Clone table and remove 'Aksi' column
+            const originalTable = document.getElementById('checksheetTable');
+            const tableClone = originalTable.cloneNode(true);
+
+            const noExportElements = tableClone.querySelectorAll('.no-export');
+            noExportElements.forEach(el => el.remove());
+
+            tableClone.style.position = 'absolute';
+            tableClone.style.top = '-9999px';
+            tableClone.style.left = '-9999px';
+            document.body.appendChild(tableClone);
+
+            // Generate Main Data Table
+            doc.autoTable({
+                html: tableClone,
+                startY: finalY + 7,
+                theme: 'grid',
+                styles: {
+                    fontSize: 5,
+                    cellPadding: 1,
+                    valign: 'middle',
+                    halign: 'center',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                headStyles: {
+                    fillColor: [78, 115, 223],
+                    textColor: [255, 255, 255],
+                    valign: 'middle',
+                    halign: 'center',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                columnStyles: {
+                    0: { cellWidth: 8 },  // No
+                    1: { cellWidth: 12 }, // Tanggal
+                    2: { cellWidth: 8 },  // Jam B
+                    3: { cellWidth: 8 },  // Jam A
+                    4: { cellWidth: 8 },  // Cycle
+                    5: { cellWidth: 8 },  // Shift
+                    6: { cellWidth: 15 }, // Barang
+                    7: { cellWidth: 15 }, // Part No
+                    8: { cellWidth: 10 }, // Cust
+                    9: { cellWidth: 8 },  // Tot Qty
+                    10: { cellWidth: 8 }, // Samp Qty
+                    11: { cellWidth: 28, halign: 'left' }, // Check Dimensi
+                    12: { cellWidth: 8 }, // OK
+                    13: { cellWidth: 8 }, // NG
+                    14: { cellWidth: 6 }, // Pcs
+                    15: { cellWidth: 15 }, // Jenis NG
+                    16: { cellWidth: 10 }, // Judg
+                    17: { cellWidth: 8 }, // Inisial
+                    18: { cellWidth: 11 }, // KS
+                    19: { cellWidth: 11 }, // SPV
+                    20: { cellWidth: 11 }, // AM
+                    21: { cellWidth: 11 }, // MGR
+                    22: { cellWidth: 15 }  // Ket
+                },
+                didParseCell: function(data) {
+                    // Check Dimensi (Column 11) - Parse JSON and format text
+                    if (data.section === 'body' && data.column.index === 11) {
+                        try {
+                            const raw = data.cell.raw.getAttribute('data-dimensions');
+                            if (raw) {
+                                const dimensions = JSON.parse(raw);
+                                let text = '';
+                                if (dimensions && typeof dimensions === 'object') {
+                                    for (const [cavity, points] of Object.entries(dimensions)) {
+                                        // Simple text format: "Cav 1: Ø1=X, Ø2=Y..."
+                                        let pointsStr = [];
+                                        for (const [key, val] of Object.entries(points)) {
+                                            pointsStr.push(`Ø${key}:${val}`);
+                                        }
+                                        text += `Cav ${cavity}: ${pointsStr.join(', ')}\n`;
+                                    }
+                                }
+                                data.cell.text = text.trim();
+                            }
+                        } catch (e) {
+                            console.error('Error parsing dimensions', e);
+                        }
+                    }
+
+                    // Detail NG (Col 14, 15) - Hide default text for manual drawing if multiple lines
+                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
+                        const td = data.cell.raw;
+                        if (td && td.children.length > 1) {
+                            data.cell.styles.textColor = [255, 255, 255];
+                        }
+                    }
+                },
+                didDrawCell: function(data) {
+                    // Detail NG (Col 14, 15) - Manual Draw
+                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
+                        const td = data.cell.raw;
+                        if (td && td.children.length > 1) {
+                            const count = td.children.length;
+                            const height = data.cell.height;
+                            const step = height / count;
+                            const textArray = data.cell.text;
+
+                            for (let i = 1; i < count; i++) {
+                                const y = data.cell.y + (step * i);
+                                doc.setDrawColor(0, 0, 0);
+                                doc.setLineWidth(0.1);
+                                doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
+                            }
+
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFontSize(5);
+                            for (let i = 0; i < count; i++) {
+                                const yCenter = data.cell.y + (step * i) + (step / 2);
+                                const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
+                                doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
+                            }
+                        }
+                    }
+                },
+                exportHiddenCells: false
+            });
+
+            document.body.removeChild(tableClone);
+            doc.save('Laporan_Checksheet_Inprocess_' + new Date().toISOString().slice(0,10) + '.pdf');
+        });
+    });
+</script>
 @endpush
