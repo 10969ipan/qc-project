@@ -86,6 +86,7 @@ class AnalysisController extends Controller
 
         // Calculate Average Cycle Time per Item
         // Formula: Total Cycle Time / Total Sampling Qty
+        // OR Use Fixed Standard if available
         $itemCycleTimes = [];
         $itemTotalPcs = []; // Store total sampling qty per item
         $itemTotalSeconds = []; // Store total cycle time per item
@@ -95,11 +96,26 @@ class AnalysisController extends Controller
             $sumCycleTime = $group->sum('cycle_time');
             $sumSamplingQty = $group->sum('sampling_qty');
 
-            $avg = $sumSamplingQty > 0 ? $sumCycleTime / $sumSamplingQty : 0;
+            $calcAvg = $sumSamplingQty > 0 ? $sumCycleTime / $sumSamplingQty : 0;
 
-            // Assuming eager loaded item is available. Handle null item (soft deleted or orphan).
-            $itemName = $group->first()->item->name ?? 'Unknown Item';
-            $itemCycleTimes[$itemName] = round($avg, 1);
+            // Check for Fixed Standard
+            $item = $group->first()->item;
+            if ($item && $item->standard_cycle_time > 0) {
+                // Use fixed standard
+                $std = $item->standard_cycle_time;
+            } else {
+                // Fallback to calculated average
+                $std = $calcAvg;
+            }
+
+            $itemName = $item->name ?? 'Unknown Item';
+
+            // Store the Standard (either fixed or calculated) for the Chart Bars
+            $itemCycleTimes[$itemName] = round($std, 1);
+
+            // Store Actuals for Tooltip context
+            // "Standard" is what we compare against. "Actual Avg" is what happened.
+            // But the chart structure expects "Total Pcs" and "Total Seconds" to be displayed.
             $itemTotalPcs[$itemName] = $sumSamplingQty;
             $itemTotalSeconds[$itemName] = $sumCycleTime;
         }

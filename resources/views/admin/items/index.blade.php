@@ -45,6 +45,7 @@
                         <th>Nama Barang</th>
                         <th>Customer</th>
                         <th>No Part</th>
+                        <th>Std Cycle Time (s)</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -64,6 +65,7 @@
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->customer }}</td>
                         <td>{{ $item->part_number }}</td>
+                        <td>{{ $item->standard_cycle_time }}</td>
                         <td>
                             <a href="{{ route('admin.items.edit', $item->id) }}" class="btn btn-warning btn-sm">Edit</a>
                             <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">

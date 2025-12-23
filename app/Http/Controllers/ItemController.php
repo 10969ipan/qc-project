@@ -40,6 +40,7 @@ class ItemController extends Controller
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'defects' => 'nullable|string',
+            'standard_cycle_time' => 'nullable|integer|min:1',
         ]);
 
         $filePath = null;
@@ -61,6 +62,7 @@ class ItemController extends Controller
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
             'defects' => $defects,
+            'standard_cycle_time' => $validated['standard_cycle_time'] ?? null,
         ]);
 
         return redirect()->route('admin.items.index')->with('success', 'Barang berhasil ditambahkan.');
@@ -79,6 +81,7 @@ class ItemController extends Controller
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'defects' => 'nullable|string',
+            'standard_cycle_time' => 'nullable|integer|min:1',
         ]);
 
         if ($request->hasFile('file')) {
@@ -104,6 +107,7 @@ class ItemController extends Controller
             'part_number' => $validated['part_number'] ?? null,
             'file_path' => $item->file_path,
             'defects' => $defects,
+            'standard_cycle_time' => $validated['standard_cycle_time'] ?? null,
         ]);
 
         return redirect()->route('admin.items.index')->with('success', 'Barang berhasil diperbarui.');

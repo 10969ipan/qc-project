@@ -26,6 +26,11 @@
                 <input type="text" name="part_number" class="form-control">
             </div>
             <div class="form-group">
+                <label>Standard Cycle Time (detik)</label>
+                <input type="number" name="standard_cycle_time" class="form-control" min="1" placeholder="Contoh: 15">
+                <small class="form-text text-muted">Masukkan nilai target standar cycle time dalam satuan detik.</small>
+            </div>
+            <div class="form-group">
                 <label>List Defect (Pisahkan dengan baris baru, biarkan kosong untuk default)</label>
                 <textarea name="defects" class="form-control" rows="5" placeholder="Contoh:
 Baret

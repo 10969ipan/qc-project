@@ -17,6 +17,7 @@ class Item extends Model
         'customer',
         'part_number',
         'defects',
+        'standard_cycle_time',
     ];
 
     protected $casts = [

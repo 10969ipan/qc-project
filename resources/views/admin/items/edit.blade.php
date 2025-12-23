@@ -35,6 +35,11 @@
                 <input type="text" name="part_number" class="form-control" value="{{ $item->part_number }}">
             </div>
             <div class="form-group">
+                <label>Standard Cycle Time (detik)</label>
+                <input type="number" name="standard_cycle_time" class="form-control" value="{{ $item->standard_cycle_time }}" min="1">
+                <small class="form-text text-muted">Masukkan nilai target standar cycle time dalam satuan detik.</small>
+            </div>
+            <div class="form-group">
                 <label>List Defect (Pisahkan dengan baris baru, biarkan kosong untuk default)</label>
                 <textarea name="defects" class="form-control" rows="5">{{ $item->defects ? implode("\n", $item->defects) : '' }}</textarea>
             </div>
