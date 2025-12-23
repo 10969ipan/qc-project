@@ -36,14 +36,6 @@
                         <input type="date" name="date" id="date" class="form-control" value="{{ $checksheet->date }}" required>
                     </div>
                 </div>
-                @if(auth()->user()->role !== 'inspector')
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="created_time">Jam Input</label>
-                        <input type="time" name="created_time" id="created_time" class="form-control" value="{{ $checksheet->created_at->format('H:i') }}">
-                    </div>
-                </div>
-                @endif
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="shift">Shift</label>
@@ -55,6 +47,23 @@
                     </div>
                 </div>
             </div>
+
+            @if(auth()->user()->role !== 'inspector')
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="jam_before">Jam (Before)</label>
+                        <input type="time" name="jam_before" id="jam_before" class="form-control" value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="jam_after">Jam (After)</label>
+                        <input type="time" name="jam_after" id="jam_after" class="form-control" value="{{ $checksheet->created_at->format('H:i') }}">
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <div class="row">
                 <div class="col-md-3">
