@@ -85,14 +85,23 @@ class AnalysisController extends Controller
         }
 
         // Calculate Average Cycle Time per Item
+        // Formula: Total Cycle Time / Total Sampling Qty
         $itemCycleTimes = [];
+        $itemTotalPcs = []; // Store total sampling qty per item
+        $itemTotalSeconds = []; // Store total cycle time per item
         $groupedByItem = $checksheets->groupBy('item_id');
 
         foreach ($groupedByItem as $itemId => $group) {
-            $avg = $group->avg('cycle_time');
+            $sumCycleTime = $group->sum('cycle_time');
+            $sumSamplingQty = $group->sum('sampling_qty');
+
+            $avg = $sumSamplingQty > 0 ? $sumCycleTime / $sumSamplingQty : 0;
+
             // Assuming eager loaded item is available. Handle null item (soft deleted or orphan).
             $itemName = $group->first()->item->name ?? 'Unknown Item';
             $itemCycleTimes[$itemName] = round($avg, 1);
+            $itemTotalPcs[$itemName] = $sumSamplingQty;
+            $itemTotalSeconds[$itemName] = $sumCycleTime;
         }
 
         // Sort by Cycle Time descending
@@ -100,6 +109,13 @@ class AnalysisController extends Controller
 
         $itemLabels = array_keys($itemCycleTimes);
         $itemCycleTimeData = array_values($itemCycleTimes);
+        // Align total pcs and seconds with sorted keys
+        $sortedItemTotalPcs = [];
+        $sortedItemTotalSeconds = [];
+        foreach ($itemLabels as $label) {
+            $sortedItemTotalPcs[] = $itemTotalPcs[$label] ?? 0;
+            $sortedItemTotalSeconds[] = $itemTotalSeconds[$label] ?? 0;
+        }
 
         // Calculate Average Cycle Time per Item by User (Grouped Bar Chart)
         // We need:
@@ -138,7 +154,10 @@ class AnalysisController extends Controller
                 });
                 
                 if ($filtered->count() > 0) {
-                    $userData[] = round($filtered->avg('cycle_time'), 1);
+                    $uSumCycle = $filtered->sum('cycle_time');
+                    $uSumSampling = $filtered->sum('sampling_qty');
+                    $uAvg = $uSumSampling > 0 ? $uSumCycle / $uSumSampling : 0;
+                    $userData[] = round($uAvg, 1);
                 } else {
                     $userData[] = 0; // or null
                 }
@@ -160,7 +179,12 @@ class AnalysisController extends Controller
         $defectLabels = array_keys($defectCounts);
         $defectData = array_values($defectCounts);
 
-        return view('analysis.monthly_ng', compact('labels', 'data', 'dataPercentage', 'defectLabels', 'defectData', 'dataCycleTime', 'itemLabels', 'itemCycleTimeData', 'inspectorItemLabels', 'inspectorItemDatasets'));
+        return view('analysis.monthly_ng', compact(
+            'labels', 'data', 'dataPercentage', 'defectLabels', 'defectData',
+            'dataCycleTime', 'itemLabels', 'itemCycleTimeData',
+            'inspectorItemLabels', 'inspectorItemDatasets',
+            'sortedItemTotalPcs', 'sortedItemTotalSeconds'
+        ));
     }
 
     public function monthlyNgInProcess(Request $request)

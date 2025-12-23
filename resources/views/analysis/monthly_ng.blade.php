@@ -99,7 +99,7 @@
             <!-- Detail Cycle Time per Item Chart -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per Item (s)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Standard Cycle Time per Item (s)</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-bar">
@@ -111,7 +111,7 @@
             <!-- Detail Cycle Time per User Chart -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per Item by User (s)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">User Cycle Time vs Standard (%)</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-bar">
@@ -239,7 +239,8 @@
         var ctxInspectorItemCycle = document.getElementById("myInspectorItemCycleChart");
         var inspectorItemLabels = @json($inspectorItemLabels);
         var inspectorItemDatasets = @json($inspectorItemDatasets);
-        
+        var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
+
         // Add datalabels config to each dataset
         inspectorItemDatasets.forEach(dataset => {
             dataset.datalabels = {
@@ -248,7 +249,18 @@
                 anchor: 'center',
                 align: 'center',
                 formatter: function(value, ctx) {
-                    return value > 0 ? value + "s" : "";
+                    if (value > 0) {
+                        // ctx.dataIndex corresponds to the item index (y-axis category)
+                        // inspectorItemLabels matches itemCycleTimeDataForCalc keys
+                        var idx = ctx.dataIndex;
+                        var std = itemCycleTimeDataForCalc[idx];
+                        var pct = 0;
+                        if (std > 0) {
+                            pct = (value / std) * 100;
+                        }
+                        return value + "s (" + pct.toFixed(0) + "%)";
+                    }
+                    return "";
                 }
             };
         });
@@ -322,7 +334,12 @@
                         caretPadding: 10,
                         callbacks: {
                             label: function(tooltipItem) {
-                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
+                                var std = itemCycleTimeDataForCalc[tooltipItem.dataIndex];
+                                var pct = 0;
+                                if (std > 0) {
+                                    pct = (tooltipItem.raw / std) * 100;
+                                }
+                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's (' + pct.toFixed(1) + '%)';
                             }
                         }
                     }
@@ -332,6 +349,8 @@
 
         // --- Bar Chart (Avg Cycle Time per Item) ---
         var ctxItemCycle = document.getElementById("myItemCycleChart");
+        var sortedItemTotalPcs = @json($sortedItemTotalPcs);
+        var sortedItemTotalSeconds = @json($sortedItemTotalSeconds);
         
         var myItemCycleChart = new Chart(ctxItemCycle, {
             type: 'bar',
@@ -414,7 +433,15 @@
                         caretPadding: 10,
                         callbacks: {
                             label: function(tooltipItem) {
-                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
+                                var idx = tooltipItem.dataIndex;
+                                var pcs = sortedItemTotalPcs[idx];
+                                var secs = sortedItemTotalSeconds[idx];
+                                return [
+                                    tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's',
+                                    'Standar: ' + tooltipItem.raw + ' s/pcs', // Display "Standard: X s/pcs"
+                                    'Total Pcs: ' + pcs,
+                                    'Total Detik: ' + secs
+                                ];
                             }
                         }
                     }
