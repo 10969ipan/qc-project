@@ -6,7 +6,7 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Laporan Data Checksheet Inprocess</h1>
     <!-- Hidden Logo for PDF Export -->
-    <img src="{{ asset('master item/ipp.png') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
+    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 </div>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
