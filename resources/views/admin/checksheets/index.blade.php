@@ -223,9 +223,9 @@
                             {{-- Action Buttons for Approvals --}}
                             @php
                                 $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
-                                $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && !$checksheet->supervisor_qc;
-                                $canApproveAsst = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && !$checksheet->asst_manager_qc;
-                                $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && !$checksheet->manager_qc;
+                                $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $checksheet->kashift_qc && !$checksheet->supervisor_qc;
+                                $canApproveAsst = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && $checksheet->supervisor_qc && !$checksheet->asst_manager_qc;
+                                $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $checksheet->asst_manager_qc && !$checksheet->manager_qc;
                             @endphp
 
                             <div class="mr-2">
