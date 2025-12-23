@@ -57,10 +57,7 @@ class ItemSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            Item::updateOrCreate(
-                ['name' => $item['name']],
-                $item
-            );
+            Item::create($item);
         }
     }
 }
