@@ -22,82 +22,103 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Administrator',
             'email' => 'admin@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('admin123'),
             'role' => 'admin',
         ]);
 
         // Buat Akun Supervisor
         User::create([
             'name' => 'Ms Mida',
-            'email' => 'supervisor1@qc.com',
-            'password' => Hash::make('password'),
+            'email' => 'spvqa@qc.com',
+            'password' => Hash::make('indoplat2526'),
             'role' => 'supervisor',
         ]);
 
         User::create([
             'name' => 'Mr Arif Hidayat',
-            'email' => 'supervisor2@qc.com',
-            'password' => Hash::make('password'),
+            'email' => 'spvqc@qc.com',
+            'password' => Hash::make('indoplat2526'),
             'role' => 'supervisor',
         ]);
 
         // Buat Akun Inspector
         User::create([
             'name' => 'Irfan Arfian Kusnadi',
-            'email' => 'inspector@qc.com',
-            'password' => Hash::make('password'),
+            'email' => 'irfan@qc.com',
+            'password' => Hash::make('indoplat2526'),
             'role' => 'inspector',
         ]);
 
         User::create([
             'name' => 'Anggi Purnama',
             'email' => 'anggi@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
             'role' => 'inspector',
         ]);
 
         User::create([
             'name' => 'Gugun Kurniadi',
             'email' => 'gugun@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
             'role' => 'inspector',
         ]);
 
         User::create([
             'name' => 'Dede Supriyadi',
             'email' => 'dede@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
             'role' => 'inspector',
         ]);
 
         User::create([
             'name' => 'Arga Yudistira',
             'email' => 'arga@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
+            'role' => 'inspector',
+        ]);
+
+        User::create([
+            'name' => 'Sopian Hamdani',
+            'email' => 'sopian@qc.com',
+            'password' => Hash::make('indoplat2526'),
+            'role' => 'inspector',
+        ]);
+
+        User::create([
+            'name' => 'Yono Supriyanto',
+            'email' => 'yono@qc.com',
+            'password' => Hash::make('indoplat2526'),
+            'role' => 'inspector',
+        ]);
+
+        User::create([
+            'name' => 'Dinar Ashobar',
+            'email' => 'dinar@qc.com',
+            'password' => Hash::make('indoplat2526'),
             'role' => 'inspector',
         ]);
 
         // Buat Akun Ka. Shift
         User::create([
-            'name' => 'Ka Shift',
+            'name' => 'Mr Ahmad Jaeni',
             'email' => 'kashift@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
             'role' => 'kashift',
         ]);
 
         // Buat Akun Asst. Manager
         User::create([
-            'name' => 'Asst Manager User',
+            'name' => 'Mr Iwan Setiawan',
             'email' => 'manager@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
             'role' => 'asst_manager',
         ]);
 
         // Buat Akun Manager
         User::create([
-            'name' => 'Manager',
+            'name' => 'Ms Desti Kurniasari',
             'email' => 'generalmanager@qc.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('indoplat2526'),
             'role' => 'manager',
         ]);
 
