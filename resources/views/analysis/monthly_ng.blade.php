@@ -251,7 +251,9 @@
                 formatter: function(value, ctx) {
                     if (value > 0) {
                         // ctx.dataIndex corresponds to the item index (y-axis category)
-                        var std = itemCycleTimeDataForCalc[ctx.dataIndex];
+                        // inspectorItemLabels matches itemCycleTimeDataForCalc keys
+                        var idx = ctx.dataIndex;
+                        var std = itemCycleTimeDataForCalc[idx];
                         var pct = 0;
                         if (std > 0) {
                             pct = (value / std) * 100;
@@ -347,6 +349,8 @@
 
         // --- Bar Chart (Avg Cycle Time per Item) ---
         var ctxItemCycle = document.getElementById("myItemCycleChart");
+        var sortedItemTotalPcs = @json($sortedItemTotalPcs);
+        var sortedItemTotalSeconds = @json($sortedItemTotalSeconds);
         
         var myItemCycleChart = new Chart(ctxItemCycle, {
             type: 'bar',
@@ -429,7 +433,15 @@
                         caretPadding: 10,
                         callbacks: {
                             label: function(tooltipItem) {
-                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
+                                var idx = tooltipItem.dataIndex;
+                                var pcs = sortedItemTotalPcs[idx];
+                                var secs = sortedItemTotalSeconds[idx];
+                                return [
+                                    tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's',
+                                    'Standar: ' + tooltipItem.raw + ' s/pcs', // Display "Standard: X s/pcs"
+                                    'Total Pcs: ' + pcs,
+                                    'Total Detik: ' + secs
+                                ];
                             }
                         }
                     }
