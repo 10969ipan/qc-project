@@ -114,6 +114,8 @@
                         <td class="align-middle p-0" data-dimensions='{{ $checksheet->dimension_check }}'>
                             @php
                                 $dimensions = json_decode($checksheet->dimension_check, true);
+                                $itemPartNumber = $checksheet->item->part_number ?? '';
+                                $standards = $partDimensionStandards[$itemPartNumber] ?? [];
                             @endphp
                             @if(is_array($dimensions) && count($dimensions) > 0)
                                 <div style="max-height: 120px; overflow-y: auto; font-size: 0.7rem;">
@@ -136,7 +138,19 @@
                                                 <tr>
                                                     <td class="font-weight-bold p-1">{{ $cavity }}</td>
                                                     @for ($j = 1; $j <= 8; $j++)
-                                                        <td class="p-1">{{ $points[$j] ?? '-' }}</td>
+                                                        @php
+                                                            $val = $points[$j] ?? '-';
+                                                            $isNG = false;
+                                                            if (isset($standards[$j]) && is_numeric($val)) {
+                                                                $std = $standards[$j];
+                                                                $min = $std['size'] - $std['tolerance'];
+                                                                $max = $std['size'] + $std['tolerance'];
+                                                                if ($val < $min || $val > $max) {
+                                                                    $isNG = true;
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}">{{ $val }}</td>
                                                     @endfor
                                                 </tr>
                                             @endforeach
