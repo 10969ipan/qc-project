@@ -89,7 +89,9 @@ class InProcessChecksheetController extends Controller
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get(); 
         
-        return view('in_process.index', compact('checksheets', 'items'));
+        $partDimensionStandards = $this->partDimensionStandards;
+        
+        return view('in_process.index', compact('checksheets', 'items', 'partDimensionStandards'));
     }
 
     // Show form (updated to pass items)
