@@ -29,7 +29,7 @@
     <table class="header-table">
         <tr>
             <td class="logo">
-                <img src="{{ public_path('master item/ipp.png') }}" style="max-width: 70px;">
+                <img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 70px;">
             </td>
             <td class="title">LAPORAN CHECK SHEET INPROCESS</td>
             <td class="doc-info" style="width: 120px;">
