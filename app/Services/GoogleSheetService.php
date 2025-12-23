@@ -15,6 +15,7 @@ class GoogleSheetService
     private $sheetId;
     private $credentialsPath;
     private $resolvedSheetName = null;
+    private $userDefinedSheetName = null;
 
     public function __construct()
     {
@@ -97,6 +98,15 @@ class GoogleSheetService
     }
 
     /**
+     * Set the sheet name manually (e.g., 'Sheet2').
+     * @param string $name
+     */
+    public function setSheetName($name)
+    {
+        $this->userDefinedSheetName = $name;
+    }
+
+    /**
      * Resolve the sheet name dynamically from the spreadsheet.
      * Caches the result for the instance.
      * 
@@ -104,6 +114,10 @@ class GoogleSheetService
      */
     public function getSheetName()
     {
+        if ($this->userDefinedSheetName) {
+            return $this->userDefinedSheetName;
+        }
+
         if ($this->resolvedSheetName) {
             return $this->resolvedSheetName;
         }
