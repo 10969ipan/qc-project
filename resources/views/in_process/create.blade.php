@@ -760,34 +760,50 @@
                 return;
             }
 
-            // Check if all required dimensions are filled
+            // Check if at least one required dimension is filled
             const selectedOption = $('#itemSelect').find('option:selected');
             const itemPartNumber = selectedOption.data('part-number');
             const dimensionStandards = partDimensionStandards[itemPartNumber];
 
-            let allRequiredFilled = true;
+            let anyRequiredFilled = false;
+            let hasStandards = false;
 
             if (dimensionStandards) {
-                $('input[name^="dimensions"]').each(function() {
-                    const name = $(this).attr('name');
-                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                    if (!match) return;
+                // Check if the part has any standards defined
+                // If it's an object/array, verify it has keys/items
+                if (Object.keys(dimensionStandards).length > 0) {
+                     hasStandards = true;
+                }
 
-                    const point = match[2];
-                    const standard = dimensionStandards[point];
+                if (hasStandards) {
+                    $('input[name^="dimensions"]').each(function() {
+                        const name = $(this).attr('name');
+                        const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                        if (!match) return;
 
-                    // If a standard exists for this point, the input must not be empty
-                    if (standard) {
-                        if ($(this).val().trim() === '') {
-                            allRequiredFilled = false;
-                            return false; // Break the loop
+                        const point = match[2];
+                        const standard = dimensionStandards[point];
+
+                        // If a standard exists for this point, check if it has a value
+                        if (standard) {
+                            if ($(this).val().trim() !== '') {
+                                anyRequiredFilled = true;
+                                return false; // Break the loop, we found one
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    // No standards for this part, so dimension check is not applicable/mandatory
+                    // Treat as "filled" (or not required)
+                    anyRequiredFilled = true;
+                }
+            } else {
+                 // No standards data found at all for this part
+                 anyRequiredFilled = true;
             }
 
-            // Enable save button only if timer is running AND all required fields are filled
-            if (allRequiredFilled) {
+            // Enable save button only if timer is running AND at least one required field is filled (if standards exist)
+            if (anyRequiredFilled) {
                 $('#saveBtn').prop('disabled', false);
             } else {
                 $('#saveBtn').prop('disabled', true);
