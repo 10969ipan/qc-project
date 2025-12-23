@@ -15,84 +15,103 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Truncate users table to avoid duplicate entry errors during re-seeding
-        DB::table('users')->truncate();
+        // Users are now updated or created, no need to truncate.
 
         // Buat Akun Admin
-        User::create([
-            'name' => 'Administrator',
-            'email' => 'admin@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@qc.com'],
+            [
+                'name' => 'Administrator',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+            ]
+        );
 
         // Buat Akun Supervisor
-        User::create([
-            'name' => 'Ms Mida',
-            'email' => 'supervisor@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'supervisor',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'supervisor@qc.com'],
+            [
+                'name' => 'Ms Mida',
+                'password' => Hash::make('password'),
+                'role' => 'supervisor',
+            ]
+        );
 
         // Buat Akun Inspector
-        User::create([
-            'name' => 'Irfan Arfian Kusnadi',
-            'email' => 'inspector@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'inspector',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'inspector@qc.com'],
+            [
+                'name' => 'Irfan Arfian Kusnadi',
+                'password' => Hash::make('password'),
+                'role' => 'inspector',
+            ]
+        );
 
-        User::create([
-            'name' => 'Anggi Purnama',
-            'email' => 'anggi@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'inspector',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'anggi@qc.com'],
+            [
+                'name' => 'Anggi Purnama',
+                'password' => Hash::make('password'),
+                'role' => 'inspector',
+            ]
+        );
 
-        User::create([
-            'name' => 'Gugun Kurniadi',
-            'email' => 'gugun@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'inspector',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'gugun@qc.com'],
+            [
+                'name' => 'Gugun Kurniadi',
+                'password' => Hash::make('password'),
+                'role' => 'inspector',
+            ]
+        );
 
-        User::create([
-            'name' => 'Dede Supriyadi',
-            'email' => 'dede@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'inspector',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'dede@qc.com'],
+            [
+                'name' => 'Dede Supriyadi',
+                'password' => Hash::make('password'),
+                'role' => 'inspector',
+            ]
+        );
 
-        User::create([
-            'name' => 'Arga Yudistira',
-            'email' => 'arga@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'inspector',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'arga@qc.com'],
+            [
+                'name' => 'Arga Yudistira',
+                'password' => Hash::make('password'),
+                'role' => 'inspector',
+            ]
+        );
 
         // Buat Akun Ka. Shift
-        User::create([
-            'name' => 'Ka Shift',
-            'email' => 'kashift@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'kashift',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'kashift@qc.com'],
+            [
+                'name' => 'Ka Shift',
+                'password' => Hash::make('password'),
+                'role' => 'kashift',
+            ]
+        );
 
         // Buat Akun Asst. Manager
-        User::create([
-            'name' => 'Asst Manager User',
-            'email' => 'manager@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'asst_manager',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'manager@qc.com'],
+            [
+                'name' => 'Asst Manager User',
+                'password' => Hash::make('password'),
+                'role' => 'asst_manager',
+            ]
+        );
 
         // Buat Akun Manager
-        User::create([
-            'name' => 'Manager',
-            'email' => 'generalmanager@qc.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'generalmanager@qc.com'],
+            [
+                'name' => 'Manager',
+                'password' => Hash::make('password'),
+                'role' => 'manager',
+            ]
+        );
 
         // Panggil ItemSeeder
         $this->call(ItemSeeder::class);
