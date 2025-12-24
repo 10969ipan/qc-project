@@ -371,8 +371,8 @@
                 columnStyles: {
                     0: { cellWidth: 30 }, // Logo Column
                     1: { }, // Title Column (auto width)
-                    2: { cellWidth: 30 }, // Label Column
-                    3: { cellWidth: 30 }  // Value Column
+                    2: { }, // Label Column
+                    3: { }  // Value Column
                 },
                 didDrawCell: function(data) {
                     // Draw Logo in the first cell of the body
@@ -432,15 +432,7 @@
                     lineWidth: 0.1
                 },
                 columnStyles: {
-                    0: { cellWidth: 12 }, // Tanggal
-                    1: { cellWidth: 8 }, // Jam Before
-                    2: { cellWidth: 8 }, // Jam After
-                    3: { cellWidth: 15 }, // Cycle Time
-                    4: { cellWidth: 10 },  // Shift
-                    5: { cellWidth: 20 }, // Barang
-                    12: { cellWidth: 6 }, // Pcs
-                    13: { cellWidth: 22 }, // Jenis NG
-                    19: { cellWidth: 30 }  // Keterangan
+                    // Auto width for all columns
                 },
                 didParseCell: function(data) {
                     // Hide default text for multi-item cells in Pcs (12) and Jenis NG (13) to draw manually later

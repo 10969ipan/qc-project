@@ -425,8 +425,8 @@
                 columnStyles: {
                     0: { cellWidth: 30 }, // Logo Column
                     1: { }, // Title Column
-                    2: { cellWidth: 30 }, // Label Column
-                    3: { cellWidth: 30 }  // Value Column
+                    2: { }, // Label Column
+                    3: { }  // Value Column
                 },
                 didDrawCell: function(data) {
                     // Draw Logo
@@ -481,29 +481,7 @@
                     lineWidth: 0.1
                 },
                 columnStyles: {
-                    0: { cellWidth: 8 },  // No
-                    1: { cellWidth: 12 }, // Tanggal
-                    2: { cellWidth: 8 },  // Jam B
-                    3: { cellWidth: 8 },  // Jam A
-                    4: { cellWidth: 8 },  // Cycle
-                    5: { cellWidth: 8 },  // Shift
-                    6: { cellWidth: 15 }, // Barang
-                    7: { cellWidth: 15 }, // Part No
-                    8: { cellWidth: 10 }, // Cust
-                    9: { cellWidth: 8 },  // Tot Qty
-                    10: { cellWidth: 8 }, // Samp Qty
-                    11: { cellWidth: 28, halign: 'left' }, // Check Dimensi
-                    12: { cellWidth: 8 }, // OK
-                    13: { cellWidth: 8 }, // NG
-                    14: { cellWidth: 6 }, // Pcs
-                    15: { cellWidth: 15 }, // Jenis NG
-                    16: { cellWidth: 10 }, // Judg
-                    17: { cellWidth: 8 }, // Inisial
-                    18: { cellWidth: 11 }, // KS
-                    19: { cellWidth: 11 }, // SPV
-                    20: { cellWidth: 11 }, // AM
-                    21: { cellWidth: 11 }, // MGR
-                    22: { cellWidth: 15 }  // Ket
+                    11: { halign: 'left' } // Check Dimensi
                 },
                 didParseCell: function(data) {
                     // Check Dimensi (Column 11) - Parse JSON and format text
