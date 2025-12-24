@@ -346,33 +346,33 @@
                     [
                         { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
                         { content: 'LAPORAN CHECK SHEET OUTGOING SUB ASSY INJECTION', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                        { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: 'QC-KRW-F-0213', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: 'QC-KRW-F-0213', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ],
                     [
-                        { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: '25/03/2015', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: '25/03/2015', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ],
                     [
-                        { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ],
                     [
-                        { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: '22/12/2025', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: '22/12/2025', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ]
                 ],
                 theme: 'grid',
                 styles: {
                     lineColor: [0, 0, 0],
                     lineWidth: 0.1,
-                    cellPadding: 2
+                    cellPadding: 1.5
                 },
                 columnStyles: {
                     0: { cellWidth: 30 }, // Logo Column
                     1: { }, // Title Column (auto width)
-                    2: { cellWidth: 25 }, // Label Column
-                    3: { cellWidth: 25 }  // Value Column
+                    2: { cellWidth: 30 }, // Label Column
+                    3: { cellWidth: 30 }  // Value Column
                 },
                 didDrawCell: function(data) {
                     // Draw Logo in the first cell of the body
