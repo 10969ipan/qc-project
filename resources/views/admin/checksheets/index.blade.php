@@ -338,18 +338,24 @@
             
             const doc = new jsPDF('landscape'); // Landscape to fit columns
             
-            // Define Document Info Text
-            const docInfo = 'No. Dokumen:QC-KRW-F-0213\nTgl. Terbit:25/03/2015\nRevisi Ke:3\nTgl. Revisi:22/12/2025';
-
             // Generate Header Table
             doc.autoTable({
                 startY: 10,
                 head: [],
                 body: [
                     [
-                        { content: '', styles: { minCellHeight: 25, valign: 'middle' } },
-                        { content: 'LAPORAN CHECK SHEET OUTGOING SUB ASSY INJECTION', styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                        { content: docInfo, styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
+                        { content: 'LAPORAN CHECK SHEET OUTGOING SUB ASSY INJECTION', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                        { content: 'No. Dokumen:QC-KRW-F-0213', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ],
+                    [
+                        { content: 'Tgl. Terbit:25/03/2015', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ],
+                    [
+                        { content: 'Revisi Ke:3', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ],
+                    [
+                        { content: 'Tgl. Revisi:22/12/2025', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
                     ]
                 ],
                 theme: 'grid',

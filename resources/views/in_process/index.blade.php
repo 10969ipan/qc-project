@@ -392,18 +392,24 @@
             
             const doc = new jsPDF('landscape');
             
-            // Document Info from existing PDF view
-            const docInfo = 'No. Dokumen: QC-KRW-F-0004\nTgl. Terbit: 25/09/2015\nRevisi Ke: 3\nTgl. Revisi: 30/09/2020';
-
             // Generate Header Table
             doc.autoTable({
                 startY: 10,
                 head: [],
                 body: [
                     [
-                        { content: '', styles: { minCellHeight: 25, valign: 'middle' } },
-                        { content: 'LAPORAN CHECK SHEET INPROCESS', styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                        { content: docInfo, styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
+                        { content: 'LAPORAN CHECK SHEET INPROCESS', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                        { content: 'No. Dokumen: QC-KRW-F-0004', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ],
+                    [
+                        { content: 'Tgl. Terbit: 25/09/2015', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ],
+                    [
+                        { content: 'Revisi Ke: 3', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                    ],
+                    [
+                        { content: 'Tgl. Revisi: 30/09/2020', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
                     ]
                 ],
                 theme: 'grid',
