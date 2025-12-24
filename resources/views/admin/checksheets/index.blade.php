@@ -346,16 +346,20 @@
                     [
                         { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
                         { content: 'LAPORAN CHECK SHEET OUTGOING SUB ASSY INJECTION', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                        { content: 'No. Dokumen:QC-KRW-F-0213', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
+                        { content: 'QC-KRW-F-0213', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
                     ],
                     [
-                        { content: 'Tgl. Terbit:25/03/2015', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
+                        { content: '25/03/2015', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
                     ],
                     [
-                        { content: 'Revisi Ke:3', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
+                        { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
                     ],
                     [
-                        { content: 'Tgl. Revisi:22/12/2025', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
+                        { content: '22/12/2025', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
                     ]
                 ],
                 theme: 'grid',
@@ -367,7 +371,8 @@
                 columnStyles: {
                     0: { cellWidth: 30 }, // Logo Column
                     1: { }, // Title Column (auto width)
-                    2: { cellWidth: 45 } // Doc Info Column
+                    2: { cellWidth: 25 }, // Label Column
+                    3: { cellWidth: 25 }  // Value Column
                 },
                 didDrawCell: function(data) {
                     // Draw Logo in the first cell of the body
