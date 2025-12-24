@@ -400,20 +400,20 @@
                     [
                         { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
                         { content: 'LAPORAN CHECK SHEET INPROCESS', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                        { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: 'QC-KRW-F-0004', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: 'QC-KRW-F-0004', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ],
                     [
-                        { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: '25/09/2015', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: '25/09/2015', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ],
                     [
-                        { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ],
                     [
-                        { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 8 } },
-                        { content: '30/09/2020', styles: { halign: 'left', valign: 'middle', fontSize: 8 } }
+                        { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                        { content: '30/09/2020', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                     ]
                 ],
                 theme: 'grid',
