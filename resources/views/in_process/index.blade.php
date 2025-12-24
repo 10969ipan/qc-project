@@ -384,6 +384,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
+    // Pass standards to JS
+    const partDimensionStandards = @json($partDimensionStandards);
+
     document.addEventListener('DOMContentLoaded', function() {
         const { jsPDF } = window.jspdf;
 
@@ -484,24 +487,32 @@
                     11: { halign: 'left' } // Check Dimensi
                 },
                 didParseCell: function(data) {
-                    // Check Dimensi (Column 11) - Parse JSON and format text
+                    // Check Dimensi (Column 11) - Parse JSON to reserve space
                     if (data.section === 'body' && data.column.index === 11) {
                         try {
                             const raw = data.cell.raw.getAttribute('data-dimensions');
                             if (raw) {
                                 const dimensions = JSON.parse(raw);
-                                let text = '';
+                                // Set text to newlines to reserve height for custom drawing
+                                // We need 1 row for header + 1 row per cavity
                                 if (dimensions && typeof dimensions === 'object') {
-                                    for (const [cavity, points] of Object.entries(dimensions)) {
-                                        // Simple text format: "Cav 1: Ø1=X, Ø2=Y..."
-                                        let pointsStr = [];
-                                        for (const [key, val] of Object.entries(points)) {
-                                            pointsStr.push(`Ø${key}:${val}`);
-                                        }
-                                        text += `Cav ${cavity}: ${pointsStr.join(', ')}\n`;
+                                    let lineCount = 1; // Header
+                                    lineCount += Object.keys(dimensions).length; 
+                                    data.cell.text = Array(lineCount).fill(' ').join('\n');
+                                    
+                                    // Store data for didDrawCell
+                                    data.cell.customDimensions = dimensions;
+                                    // Get part number from column 7 (index 7)
+                                    // Note: data.row.cells is an array-like object of Cell objects
+                                    // We can try to access the text of column 7. 
+                                    // Since didParseCell runs for each cell, the row might not be fully populated yet if we are at index 11.
+                                    // However, column 7 is before 11, so it should be parsed.
+                                    if (data.row.cells[7]) {
+                                        let partNo = data.row.cells[7].text;
+                                        if (Array.isArray(partNo)) partNo = partNo.join('');
+                                        data.cell.customPartNumber = partNo.trim();
                                     }
                                 }
-                                data.cell.text = text.trim();
                             }
                         } catch (e) {
                             console.error('Error parsing dimensions', e);
@@ -517,6 +528,85 @@
                     }
                 },
                 didDrawCell: function(data) {
+                    // Check Dimensi (Column 11) - Manual Grid Draw
+                    if (data.section === 'body' && data.column.index === 11 && data.cell.customDimensions) {
+                        const dimensions = data.cell.customDimensions;
+                        const partNo = data.cell.customPartNumber;
+                        const standards = partDimensionStandards[partNo] || [];
+                        
+                        const x = data.cell.x;
+                        const y = data.cell.y;
+                        const w = data.cell.width;
+                        const h = data.cell.height;
+                        
+                        // Calculate grid
+                        const cavities = Object.keys(dimensions);
+                        const rowCount = cavities.length + 1; // +1 for Header
+                        const colCount = 9; // Cav, 1..8
+                        
+                        const rowH = h / rowCount;
+                        const colW = w / colCount;
+                        
+                        doc.setFontSize(4); // Small font for grid
+                        doc.setLineWidth(0.05);
+                        doc.setDrawColor(0, 0, 0);
+
+                        // Draw Header Row
+                        const headers = ['Cv', '1', '2', '3', '4', '5', '6', '7', '8'];
+                        headers.forEach((hdr, i) => {
+                            // Draw cell border
+                            doc.rect(x + (i * colW), y, colW, rowH);
+                            // Draw text
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(hdr, x + (i * colW) + (colW/2), y + (rowH/2), { align: 'center', baseline: 'middle' });
+                        });
+
+                        // Draw Data Rows
+                        cavities.forEach((cavity, rIndex) => {
+                            const cy = y + ((rIndex + 1) * rowH);
+                            const points = dimensions[cavity];
+                            
+                            // Col 0: Cavity Name
+                            doc.rect(x, cy, colW, rowH);
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(String(cavity), x + (colW/2), cy + (rowH/2), { align: 'center', baseline: 'middle' });
+                            
+                            // Cols 1..8: Points
+                            for (let j = 1; j <= 8; j++) {
+                                const val = points[j];
+                                const cx = x + (j * colW);
+                                
+                                doc.rect(cx, cy, colW, rowH);
+                                
+                                if (val !== undefined && val !== null) {
+                                    // Check NG
+                                    let isNG = false;
+                                    if (standards[j] && !isNaN(val)) {
+                                        const std = standards[j];
+                                        const min = std.size - std.tolerance;
+                                        const max = std.size + std.tolerance;
+                                        if (val < min || val > max) {
+                                            isNG = true;
+                                        }
+                                    }
+                                    
+                                    if (isNG) {
+                                        doc.setTextColor(255, 0, 0);
+                                    } else {
+                                        doc.setTextColor(0, 0, 0);
+                                    }
+                                    doc.text(String(val), cx + (colW/2), cy + (rowH/2), { align: 'center', baseline: 'middle' });
+                                } else {
+                                    doc.setTextColor(0, 0, 0);
+                                    doc.text('-', cx + (colW/2), cy + (rowH/2), { align: 'center', baseline: 'middle' });
+                                }
+                            }
+                        });
+                        
+                        // Prevent default text drawing (if any remains)
+                        return false; 
+                    }
+
                     // Detail NG (Col 14, 15) - Manual Draw
                     if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
                         const td = data.cell.raw; 
