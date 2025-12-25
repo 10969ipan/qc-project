@@ -56,7 +56,28 @@
                                 View Image
                             </button>
                         </td>
-                        <td class="align-middle" style="max-width: 150px; white-space: pre-wrap;">Copper: {{ $checksheet->chemical_copper ?? '-' }}, Nikel: {{ $checksheet->chemical_nikel ?? '-' }}, Eching: {{ $checksheet->chemical_eching ?? '-' }}, Abu: {{ $checksheet->chemical_abu ?? '-' }}</td>
+                        <td class="align-middle p-0">
+                            <table class="table table-bordered mb-0" style="font-size: 0.85rem;">
+                                <tbody>
+                                    <tr>
+                                        <th class="p-1">Copper</th>
+                                        <td class="p-1">{{ $checksheet->chemical_copper ?? '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="p-1">Nikel</th>
+                                        <td class="p-1">{{ $checksheet->chemical_nikel ?? '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="p-1">Eching</th>
+                                        <td class="p-1">{{ $checksheet->chemical_eching ?? '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="p-1">Abu</th>
+                                        <td class="p-1">{{ $checksheet->chemical_abu ?? '-' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
                         <td class="align-middle">{{ $checksheet->position_remark_judgment }} - {{ $checksheet->position_remark_no_lot }}</td>
                         <td class="align-middle">{{ $checksheet->result_remark }}</td>
                         <td class="align-middle">{{ $checksheet->operator_initials }}</td>
