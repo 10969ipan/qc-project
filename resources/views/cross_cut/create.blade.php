@@ -32,7 +32,6 @@
                                 <th>Result Remark</th>
                                 <th>Inisial QC</th>
                                 <th>Keterangan</th>
-                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -98,16 +97,23 @@
                                 <td class="align-middle"><input type="text" class="form-control" name="operator_initials" placeholder="Inisial"></td>
                                 <!-- Keterangan -->
                                 <td class="align-middle"><textarea class="form-control" name="keterangan" rows="3"></textarea></td>
-                                <!-- Aksi -->
-                                <td class="align-middle text-center">
-                                    <h5 class="font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                                    <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
-                                    <button type="button" class="btn btn-success btn-block mb-2" id="startTimerBtn"><i class="fas fa-play"></i> Start</button>
-                                    <button type="submit" class="btn btn-primary btn-block" id="saveBtn" disabled><i class="fas fa-save"></i> Simpan</button>
-                                </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                            <i class="fas fa-save fa-sm"></i> Simpan Data
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
