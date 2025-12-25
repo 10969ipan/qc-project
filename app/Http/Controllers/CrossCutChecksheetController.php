@@ -252,12 +252,19 @@ class CrossCutChecksheetController extends Controller
 
         $checksheets = $query->get(); // Get all results, not paginated
         
+        $itemName = null;
+        if ($request->filled('item_id')) {
+            $item = Item::find($request->item_id);
+            $itemName = $item ? $item->name : 'Item tidak diketahui';
+        }
+
         // Pass all request data to the view for filter display
         $viewData = [
             'checksheets' => $checksheets,
             'startDate' => $request->start_date,
             'endDate' => $request->end_date,
             'item_id' => $request->item_id,
+            'itemName' => $itemName,
             'approval_status' => $request->approval_status,
         ];
 

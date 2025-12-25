@@ -21,6 +21,11 @@
         .table th {
             background-color: #f2f2f2;
         }
+        .header-table { width: 100%; margin-bottom: 15px; border-collapse: collapse; }
+        .header-table td { border: 1px solid #000; padding: 5px; vertical-align: middle; }
+        .header-table .logo { width: 80px; text-align: center; }
+        .header-table .title { text-align: center; font-size: 14px; font-weight: bold; }
+        .header-table .doc-info { font-size: 9px; text-align: left; }
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -48,34 +53,41 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Laporan Data Checksheet Cross Cut</h1>
-        <p>
-            <strong>Periode:</strong>
-            @if($startDate && $endDate)
-                {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
-            @else
-                Semua Tanggal
-            @endif
-            <br>
-            <strong>Filter:</strong>
-            @php
-                $filters = [];
-                if(isset($item_id) && $item_id) {
-                    // Assuming you pass the selected item's name or can fetch it. 
-                    // For now, just showing the ID. A better way is to pass the Item object or name.
-                    // Let's assume we can get it from the first checksheet's item relationship
-                    if($checksheets->isNotEmpty()){
-                        $filters[] = "Barang: " . $checksheets->first()->item->name;
-                    }
-                }
-                if(isset($approval_status) && $approval_status) {
-                    $filters[] = "Status: " . ucfirst($approval_status);
-                }
-                echo count($filters) > 0 ? implode(' | ', $filters) : 'Tidak ada';
-            @endphp
-        </p>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td class="logo">
+                <img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 70px;">
+            </td>
+            <td class="title">LAPORAN CHECK SHEET CROSS CUT</td>
+            <td class="doc-info" style="width: 120px;">
+                No. Dokumen: QC-KRW-F-0005<br>
+                Tgl. Terbit: 01/10/2015<br>
+                Revisi Ke: 2<br>
+                Tgl. Revisi: 01/10/2020
+            </td>
+        </tr>
+    </table>
+
+    <p style="font-size: 10px;">
+        <strong>Periode:</strong>
+        @if($startDate && $endDate)
+            {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
+        @else
+            Semua Tanggal
+        @endif
+        <br>
+        <strong>Filter:</strong>
+        @php
+            $filters = [];
+            if(isset($itemName)) {
+                $filters[] = "Barang: " . $itemName;
+            }
+            if(isset($approval_status) && $approval_status) {
+                $filters[] = "Status: " . ucfirst($approval_status);
+            }
+            echo count($filters) > 0 ? implode(' | ', $filters) : 'Tidak ada';
+        @endphp
+    </p>
     <table class="table">
         <thead>
             <tr>
