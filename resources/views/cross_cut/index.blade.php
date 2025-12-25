@@ -18,11 +18,11 @@
                         <th rowspan="2" class="align-middle">No</th>
                         <th rowspan="2" class="align-middle">Tanggal Produksi</th>
                         <th rowspan="2" class="align-middle">Tanggal QC</th>
+                        <th rowspan="2" class="align-middle">Shift Produksi</th>
+                        <th rowspan="2" class="align-middle">Shift QC</th>
                         <th rowspan="2" class="align-middle">Jam Before</th>
                         <th rowspan="2" class="align-middle">Jam After</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
-                        <th rowspan="2" class="align-middle">Shift Produksi</th>
-                        <th rowspan="2" class="align-middle">Shift QC</th>
                         <th rowspan="2" class="align-middle">Item Part</th>
                         <th rowspan="2" class="align-middle">Hasil Cross Cut</th>
                         <th rowspan="2" class="align-middle">Kimia</th>
@@ -45,11 +45,11 @@
                         <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}</td>
+                        <td class="align-middle">{{ $checksheet->production_shift }}</td>
+                        <td class="align-middle">{{ $checksheet->qc_shift }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
-                        <td class="align-middle">{{ $checksheet->production_shift }}</td>
-                        <td class="align-middle">{{ $checksheet->qc_shift }}</td>
                         <td class="align-middle">{{ $checksheet->item->name }}</td>
                         <td class="align-middle">
                             <button class="btn btn-primary btn-sm view-image-btn" data-id="{{ $checksheet->id }}" data-toggle="modal" data-target="#imageModal">
@@ -217,19 +217,33 @@
         const modalImage = document.getElementById('modalImage');
         const modalItemName = document.getElementById('modalItemName');
         const modalQcDatetime = document.getElementById('modalQcDatetime');
+        // Define the URL template using Laravel's route helper
+        const urlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
 
         viewImageButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const checksheetId = this.getAttribute('data-id');
+                // Replace the placeholder with the actual ID
+                const fetchUrl = urlTemplate.replace(':id', checksheetId);
                 
-                fetch(`/checksheet/cross-cut/${checksheetId}`)
-                    .then(response => response.json())
+                fetch(fetchUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         modalImage.src = data.image_url;
                         modalItemName.textContent = `Item: ${data.item_name}`;
                         modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
                     })
-                    .catch(error => console.error('Error fetching image data:', error));
+                    .catch(error => {
+                        console.error('Error fetching image data:', error);
+                        modalImage.src = ''; // Clear image on error
+                        modalItemName.textContent = 'Gagal memuat data gambar.';
+                        modalQcDatetime.textContent = '';
+                    });
             });
         });
     });
