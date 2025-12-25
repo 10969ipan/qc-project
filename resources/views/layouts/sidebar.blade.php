@@ -71,6 +71,7 @@
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{ route('checksheet.sub_assy') }}">Checksheet Sub Assy</a>
                 <a class="collapse-item" href="{{ route('in_process.create') }}">Checksheet Inprocess</a>
+                <a class="collapse-item" href="{{ route('cross_cut.create') }}">Checksheet Cross Cut</a>
             </div>
         </div>
     </li>
@@ -88,6 +89,7 @@
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{ route('admin.checksheets.index') }}">Laporan Sub Assy</a>
                 <a class="collapse-item" href="{{ route('in_process.index') }}">Laporan Inprocess</a>
+                <a class="collapse-item" href="{{ route('cross_cut.index') }}">Laporan Cross Cut</a>
             </div>
         </div>
     </li>

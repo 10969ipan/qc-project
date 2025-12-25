@@ -8,6 +8,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ChecksheetController;
 use App\Http\Controllers\InProcessChecksheetController;
+use App\Http\Controllers\CrossCutChecksheetController;
 
 
 // Rute Default Landing Page
@@ -53,6 +54,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet/in-process', [InProcessChecksheetController::class, 'create'])->name('in_process.create');
     Route::post('/checksheet/in-process', [InProcessChecksheetController::class, 'store'])->name('in_process.store');
 
+    // Rute Checksheet Cross Cut (Input)
+    Route::get('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'create'])->name('cross_cut.create');
+    Route::post('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'store'])->name('cross_cut.store');
+    Route::get('/checksheet/cross-cut/{id}', [CrossCutChecksheetController::class, 'show'])->name('cross_cut.show');
+
+
     // Rute Analis (Shared by Admin, Supervisor, Kashift, Asst. Manager)
     Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->group(function() {
         Route::get('/analysis/monthly-ng-sub-assy', [App\Http\Controllers\AnalysisController::class, 'monthlyNgSubAssy'])->name('analysis.monthly_ng');
@@ -94,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager'])->group(function() {
          Route::get('/report/checksheets', [ChecksheetController::class, 'index'])->name('admin.checksheets.index');
          Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
+         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
     });
 
     // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager)
