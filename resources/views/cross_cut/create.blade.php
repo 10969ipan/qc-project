@@ -49,21 +49,23 @@
                 <!-- Kimia -->
                 <div class="form-group">
                     <label>Kimia</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="1" id="chemical_copper" name="chemical_copper">
-                        <label class="form-check-label" for="chemical_copper">Copper</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="1" id="chemical_nikel" name="chemical_nikel">
-                        <label class="form-check-label" for="chemical_nikel">Nikel</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="1" id="chemical_eching" name="chemical_eching">
-                        <label class="form-check-label" for="chemical_eching">Eching</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="1" id="chemical_abu" name="chemical_abu">
-                        <label class="form-check-label" for="chemical_abu">Abu</label>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="chemical_copper">Copper</label>
+                            <input type="text" class="form-control" id="chemical_copper" name="chemical_copper">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="chemical_nikel">Nikel</label>
+                            <input type="text" class="form-control" id="chemical_nikel" name="chemical_nikel">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="chemical_eching">Eching</label>
+                            <input type="text" class="form-control" id="chemical_eching" name="chemical_eching">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="chemical_abu">Abu</label>
+                            <input type="text" class="form-control" id="chemical_abu" name="chemical_abu">
+                        </div>
                     </div>
                 </div>
 

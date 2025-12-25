@@ -17,10 +17,10 @@ return new class extends Migration
             $table->dateTime('production_datetime');
             $table->dateTime('qc_datetime');
             $table->string('image_path');
-            $table->boolean('chemical_copper')->default(false);
-            $table->boolean('chemical_nikel')->default(false);
-            $table->boolean('chemical_eching')->default(false);
-            $table->boolean('chemical_abu')->default(false);
+            $table->string('chemical_copper')->nullable();
+            $table->string('chemical_nikel')->nullable();
+            $table->string('chemical_eching')->nullable();
+            $table->string('chemical_abu')->nullable();
             $table->enum('position_remark_judgment', ['OK', 'NG']);
             $table->string('position_remark_no_lot');
             $table->string('result_remark')->nullable();
