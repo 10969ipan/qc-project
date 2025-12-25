@@ -6,7 +6,6 @@ use App\Models\CrossCutChecksheet;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class CrossCutChecksheetController extends Controller
 {
@@ -253,7 +252,7 @@ class CrossCutChecksheetController extends Controller
         $startDate = $request->start_date;
         $endDate = $request->end_date;
 
-        $pdf = Pdf::loadView('cross_cut.pdf', compact('checksheets', 'startDate', 'endDate'));
+        $pdf = \Pdf::loadView('cross_cut.pdf', compact('checksheets', 'startDate', 'endDate'));
         return $pdf->stream('laporan-cross-cut.pdf');
     }
 

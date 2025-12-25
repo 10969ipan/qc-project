@@ -8,10 +8,10 @@
 </div>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Filter Data & Export</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Data Masuk</h6>
     </div>
     <div class="card-body">
-        <form action="{{ route('cross_cut.index') }}" method="GET">
+        <form action="{{ route('cross_cut.index') }}" method="GET" class="mb-4">
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
@@ -49,7 +49,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-12 text-right">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-filter"></i> Filter
                     </button>
@@ -62,14 +62,7 @@
                 </div>
             </div>
         </form>
-    </div>
-</div>
-
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Data Masuk</h6>
-    </div>
-    <div class="card-body">
+        <hr>
         <div class="table-responsive">
             <table class="table table-bordered" width="100%" cellspacing="0">
                 <thead>
