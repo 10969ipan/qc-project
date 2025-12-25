@@ -6,6 +6,7 @@ use App\Models\CrossCutChecksheet;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CrossCutChecksheetController extends Controller
 {
@@ -246,14 +247,22 @@ class CrossCutChecksheetController extends Controller
     {
         $query = CrossCutChecksheet::with('item')->latest();
 
+        // Apply all the same filters as the index page
         $this->applyFilters($query, $request);
 
-        $checksheets = $query->get();
-        $startDate = $request->start_date;
-        $endDate = $request->end_date;
+        $checksheets = $query->get(); // Get all results, not paginated
+        
+        // Pass all request data to the view for filter display
+        $viewData = [
+            'checksheets' => $checksheets,
+            'startDate' => $request->start_date,
+            'endDate' => $request->end_date,
+            'item_id' => $request->item_id,
+            'approval_status' => $request->approval_status,
+        ];
 
-        $pdf = app()->make('dompdf.wrapper')->loadView('cross_cut.pdf', compact('checksheets', 'startDate', 'endDate'));
-        return $pdf->stream('laporan-cross-cut.pdf');
+        $pdf = Pdf::loadView('cross_cut.pdf', $viewData);
+        return $pdf->setPaper('a4', 'landscape')->stream('laporan-cross-cut.pdf');
     }
 
     private function applyFilters($query, Request $request)

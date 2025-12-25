@@ -50,9 +50,31 @@
 <body>
     <div class="header">
         <h1>Laporan Data Checksheet Cross Cut</h1>
-        @if($startDate && $endDate)
-            <p>Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
-        @endif
+        <p>
+            <strong>Periode:</strong>
+            @if($startDate && $endDate)
+                {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
+            @else
+                Semua Tanggal
+            @endif
+            <br>
+            <strong>Filter:</strong>
+            @php
+                $filters = [];
+                if(isset($item_id) && $item_id) {
+                    // Assuming you pass the selected item's name or can fetch it. 
+                    // For now, just showing the ID. A better way is to pass the Item object or name.
+                    // Let's assume we can get it from the first checksheet's item relationship
+                    if($checksheets->isNotEmpty()){
+                        $filters[] = "Barang: " . $checksheets->first()->item->name;
+                    }
+                }
+                if(isset($approval_status) && $approval_status) {
+                    $filters[] = "Status: " . ucfirst($approval_status);
+                }
+                echo count($filters) > 0 ? implode(' | ', $filters) : 'Tidak ada';
+            @endphp
+        </p>
     </div>
     <table class="table">
         <thead>
