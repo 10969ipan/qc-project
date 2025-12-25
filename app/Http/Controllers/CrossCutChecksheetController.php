@@ -88,7 +88,7 @@ class CrossCutChecksheetController extends Controller
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
         return response()->json([
-            'image_url' => asset($checksheet->image_path),
+            'image_url' => url($checksheet->image_path),
             'item_name' => $checksheet->item->name,
             'qc_datetime' => $checksheet->qc_datetime,
         ]);
