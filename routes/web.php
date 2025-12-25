@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'create'])->name('cross_cut.create');
     Route::post('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'store'])->name('cross_cut.store');
     Route::get('/checksheet/cross-cut/{id}', [CrossCutChecksheetController::class, 'show'])->name('cross_cut.show');
+    Route::get('/checksheet/cross-cut/{id}/image', [CrossCutChecksheetController::class, 'serveImage'])->name('cross_cut.image');
 
 
     // Rute Analis (Shared by Admin, Supervisor, Kashift, Asst. Manager)
@@ -122,6 +123,11 @@ Route::middleware(['auth'])->group(function () {
 
          Route::post('/cross-cut-checksheets/{id}/approve/{type}', [CrossCutChecksheetController::class, 'approve'])->name('cross_cut.approve');
          Route::post('/cross-cut-checksheets/{id}/reject/{type}', [CrossCutChecksheetController::class, 'reject'])->name('cross_cut.reject');
+
+        // Cross Cut Edit, Update, Delete
+        Route::get('/cross-cut-checksheets/{id}/edit', [CrossCutChecksheetController::class, 'edit'])->name('cross_cut.edit');
+        Route::put('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'update'])->name('cross_cut.update');
+        Route::delete('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'destroy'])->name('cross_cut.destroy');
     });
 });
 

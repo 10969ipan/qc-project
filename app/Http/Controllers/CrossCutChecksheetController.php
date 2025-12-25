@@ -53,10 +53,7 @@ class CrossCutChecksheetController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time().'.'.$image->getClientOriginalExtension();
-            $image->move(public_path('cross_cut_images'), $imageName);
-            $imagePath = 'cross_cut_images/' . $imageName;
+            $imagePath = $request->file('image')->store('cross_cut_images', 'public');
         }
 
         CrossCutChecksheet::create([
@@ -88,10 +85,80 @@ class CrossCutChecksheetController extends Controller
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
         return response()->json([
-            'image_url' => url($checksheet->image_path),
+            'image_url' => route('cross_cut.image', $checksheet->id),
             'item_name' => $checksheet->item->name,
             'qc_datetime' => $checksheet->qc_datetime,
         ]);
+    }
+
+    public function serveImage($id)
+    {
+        $checksheet = CrossCutChecksheet::findOrFail($id);
+
+        if (!Storage::disk('public')->exists($checksheet->image_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($checksheet->image_path);
+    }
+
+    public function edit($id)
+    {
+        $checksheet = CrossCutChecksheet::findOrFail($id);
+        $items = Item::orderBy('name')->get();
+        return view('cross_cut.edit', compact('checksheet', 'items'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $checksheet = CrossCutChecksheet::findOrFail($id);
+
+        $validated = $request->validate([
+            'item_id' => 'required|exists:items,id',
+            'production_shift' => 'required|string|max:255',
+            'qc_shift' => 'required|string|max:255',
+            'production_datetime' => 'required|date',
+            'qc_datetime' => 'required|date',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'chemical_copper' => 'nullable|string|max:255',
+            'chemical_nikel' => 'nullable|string|max:255',
+            'chemical_eching' => 'nullable|string|max:255',
+            'chemical_abu' => 'nullable|string|max:255',
+            'position_remark_judgment' => 'required|in:OK,NG',
+            'position_remark_no_lot' => 'required|string|max:255',
+            'result_remark' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+            'cycle_time' => 'nullable|integer',
+            'operator_initials' => 'nullable|string|max:255',
+        ]);
+
+        $imagePath = $checksheet->image_path;
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($imagePath && Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            // Store new image
+            $imagePath = $request->file('image')->store('cross_cut_images', 'public');
+        }
+
+        $checksheet->update(array_merge($validated, ['image_path' => $imagePath]));
+
+        return redirect()->route('cross_cut.index')->with('success', 'Data berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $checksheet = CrossCutChecksheet::findOrFail($id);
+
+        // Delete the image from storage
+        if ($checksheet->image_path && Storage::disk('public')->exists($checksheet->image_path)) {
+            Storage::disk('public')->delete($checksheet->image_path);
+        }
+
+        $checksheet->delete();
+
+        return redirect()->route('cross_cut.index')->with('success', 'Data berhasil dihapus.');
     }
 
     public function approve(Request $request, $id, $type)

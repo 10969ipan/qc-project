@@ -173,6 +173,19 @@
                                     </form>
                                 </div>
                             @endif
+
+                            <div class="btn-group btn-group-sm mt-1" role="group">
+                                <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning" title="Edit">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <form action="{{ route('cross_cut.destroy', $checksheet->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');" style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                         @endif
                     </tr>
@@ -217,15 +230,13 @@
         const modalImage = document.getElementById('modalImage');
         const modalItemName = document.getElementById('modalItemName');
         const modalQcDatetime = document.getElementById('modalQcDatetime');
-        // Define the URL template using Laravel's route helper
-        const urlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
+        const jsonInfoUrlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
 
         viewImageButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const checksheetId = this.getAttribute('data-id');
-                // Replace the placeholder with the actual ID
-                const fetchUrl = urlTemplate.replace(':id', checksheetId);
-                
+                const fetchUrl = jsonInfoUrlTemplate.replace(':id', checksheetId);
+
                 fetch(fetchUrl)
                     .then(response => {
                         if (!response.ok) {
@@ -234,7 +245,7 @@
                         return response.json();
                     })
                     .then(data => {
-                        modalImage.src = data.image_url;
+                        modalImage.src = data.image_url; // This now points to the serveImage route
                         modalItemName.textContent = `Item: ${data.item_name}`;
                         modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
                     })
