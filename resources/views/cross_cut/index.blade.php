@@ -16,7 +16,7 @@
                 <thead>
                     <tr class="text-center">
                         <th rowspan="2" class="align-middle">No</th>
-                        <th rowspan="2" class="align-middle">Tanggal</th>
+                        <th rowspan="2" class="align-middle">Tanggal Produksi</th>
                         <th rowspan="2" class="align-middle">Jam Before</th>
                         <th rowspan="2" class="align-middle">Jam After</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
