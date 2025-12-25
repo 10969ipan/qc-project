@@ -58,9 +58,6 @@
                         <a href="{{ route('cross_cut.export_pdf', request()->query()) }}" class="btn btn-danger">
                             <i class="fas fa-file-pdf"></i> PDF
                         </a>
-                        <a href="{{ route('cross_cut.export_csv', request()->query()) }}" class="btn btn-success">
-                            <i class="fas fa-file-csv"></i> CSV
-                        </a>
                     </div>
                 </div>
             </div>

@@ -129,7 +129,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'update'])->name('cross_cut.update');
         Route::delete('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'destroy'])->name('cross_cut.destroy');
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
-        Route::get('/report/cross-cut-checksheets/export-csv', [CrossCutChecksheetController::class, 'exportCsv'])->name('cross_cut.export_csv');
     });
 });
 
