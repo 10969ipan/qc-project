@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('cross_cut_checksheets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
+            $table->string('operator_initials')->nullable();
             $table->string('production_shift');
             $table->string('qc_shift');
             $table->dateTime('production_datetime');
@@ -27,6 +28,16 @@ return new class extends Migration
             $table->string('position_remark_no_lot');
             $table->string('result_remark')->nullable();
             $table->text('keterangan')->nullable();
+            $table->integer('cycle_time')->nullable();
+            $table->string('approval_status')->nullable();
+            $table->string('kashift_qc')->nullable();
+            $table->timestamp('kashift_approved_at')->nullable();
+            $table->string('supervisor_qc')->nullable();
+            $table->timestamp('supervisor_approved_at')->nullable();
+            $table->string('asst_manager_qc')->nullable();
+            $table->timestamp('asst_manager_approved_at')->nullable();
+            $table->string('manager_qc')->nullable();
+            $table->timestamp('manager_approved_at')->nullable();
             $table->timestamps();
         });
     }
