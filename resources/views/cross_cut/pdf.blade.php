@@ -99,7 +99,6 @@
                 <th>Jam After</th>
                 <th>Cycle (s)</th>
                 <th>Item Part</th>
-                <th>Hasil Cross Cut</th>
                 <th>Kimia</th>
                 <th>Posisi Remark</th>
                 <th>Result Remark</th>
@@ -118,13 +117,6 @@
                 <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                 <td>{{ $checksheet->cycle_time ?? '-' }}</td>
                 <td class="text-left">{{ $checksheet->item->name }}</td>
-                <td>
-                    @if($checksheet->image_path)
-                        <img src="{{ public_path('storage/' . $checksheet->image_path) }}" style="max-width: 100px; max-height: 100px;">
-                    @else
-                        -
-                    @endif
-                </td>
                 <td>
                      <table class="kimia-table">
                         <tr><th>C</th><td>{{ $checksheet->chemical_copper ?? '-' }}</td></tr>

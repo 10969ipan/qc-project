@@ -5,6 +5,8 @@
 @section('content')
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Laporan Data Checksheet Cross Cut</h1>
+    <!-- Hidden Logo for PDF Export -->
+    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 </div>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
@@ -50,12 +52,12 @@
                 <div class="col-md-3 text-right">
                     <div class="form-group mb-0">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter"></i> Filter
+                            <i class="fas fa-filter"></i> Cari
                         </button>
                         <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary">
                             <i class="fas fa-undo"></i> Reset
                         </a>
-                        <a href="{{ route('cross_cut.export_pdf', request()->query()) }}" class="btn btn-danger" target="_blank">
+                        <a href="#" id="exportPdfBtn" class="btn btn-danger">
                             <i class="fas fa-file-pdf"></i> Export PDF
                         </a>
                     </div>
@@ -297,6 +299,8 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const viewImageButtons = document.querySelectorAll('.view-image-btn');
@@ -330,6 +334,131 @@
                     });
             });
         });
+
+        // PDF Export
+        const { jsPDF } = window.jspdf;
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
+
+        if (exportPdfBtn) {
+            exportPdfBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const doc = new jsPDF('landscape');
+                
+                // Header Table
+                doc.autoTable({
+                    startY: 10,
+                    head: [],
+                    body: [
+                        [
+                            { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
+                            { content: 'LAPORAN CHECKSHEET CROSS CUT', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                            { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: 'QC-KRW-F-XXXX', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ],
+                        [
+                            { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ],
+                        [
+                            { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ],
+                        [
+                            { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ]
+                    ],
+                    theme: 'grid',
+                    styles: {
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1,
+                        cellPadding: 1.5
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 30 },
+                        1: { },
+                        2: { },
+                        3: { }
+                    },
+                    didDrawCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 0) {
+                            const img = document.getElementById('pdf-logo');
+                            if (img) {
+                                try {
+                                    doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
+                                } catch (err) {
+                                    console.warn('Error adding logo:', err);
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const finalY = doc.lastAutoTable.finalY;
+                doc.setFontSize(6);
+                doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
+
+                const originalTable = document.getElementById('checksheetTable');
+                const tableClone = originalTable.cloneNode(true);
+                
+                // Remove no-export elements
+                const noExportElements = tableClone.querySelectorAll('.no-export');
+                noExportElements.forEach(el => el.remove());
+
+                // Process clone rows to flatten Kimia column
+                const kimiaCells = tableClone.querySelectorAll('.kimia-col');
+                kimiaCells.forEach(kimiaCell => {
+                    const nestedTable = kimiaCell.querySelector('table');
+                    if (nestedTable) {
+                        const trs = nestedTable.querySelectorAll('tr');
+                        let text = [];
+                        trs.forEach(tr => {
+                            const th = tr.querySelector('th');
+                            const td = tr.querySelector('td');
+                            if (th && td) {
+                                text.push(`${th.textContent.trim()}: ${td.textContent.trim()}`);
+                            }
+                        });
+                        // Use textContent to replace the entire table content
+                        kimiaCell.textContent = text.join('\n');
+                        // Ensure styles are reset if they were inherited oddly
+                        kimiaCell.style.whiteSpace = 'pre-wrap';
+                    }
+                });
+
+                tableClone.style.position = 'absolute';
+                tableClone.style.top = '-9999px';
+                tableClone.style.left = '-9999px';
+                document.body.appendChild(tableClone);
+
+                doc.autoTable({
+                    html: tableClone,
+                    startY: finalY + 7,
+                    theme: 'grid',
+                    styles: { 
+                        fontSize: 5, 
+                        cellPadding: 1,
+                        valign: 'middle',
+                        halign: 'center',
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1
+                    },
+                    headStyles: { 
+                        fillColor: [78, 115, 223],
+                        textColor: [255, 255, 255],
+                        valign: 'middle',
+                        halign: 'center',
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1
+                    },
+                    exportHiddenCells: false
+                });
+
+                document.body.removeChild(tableClone);
+                doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0,10) + '.pdf');
+            });
+        }
     });
 </script>
 @endpush
