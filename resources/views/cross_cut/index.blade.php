@@ -12,21 +12,21 @@
     </div>
     <div class="card-body">
         <form action="{{ route('cross_cut.index') }}" method="GET" class="mb-4">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="form-group">
+            <div class="row align-items-end">
+                <div class="col-md-2">
+                    <div class="form-group mb-0">
                         <label for="start_date">Tanggal Awal</label>
                         <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
+                <div class="col-md-2">
+                    <div class="form-group mb-0">
                         <label for="end_date">Tanggal Akhir</label>
                         <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="form-group mb-0">
                         <label for="item_id">Item Part</label>
                         <select id="item_id" name="item_id" class="form-control">
                             <option value="">Semua Item</option>
@@ -36,8 +36,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
+                <div class="col-md-2">
+                    <div class="form-group mb-0">
                         <label for="approval_status">Status Approval</label>
                         <select id="approval_status" name="approval_status" class="form-control">
                             <option value="">Semua Status</option>
@@ -47,18 +47,21 @@
                         </select>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 text-right">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                    <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-undo"></i> Reset
-                    </a>
-                    <a href="{{ route('cross_cut.export_pdf', request()->query()) }}" class="btn btn-danger">
-                        <i class="fas fa-file-pdf"></i> Export PDF
-                    </a>
+                <div class="col-md-3 text-right">
+                    <div class="form-group mb-0">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
+                        <a href="{{ route('cross_cut.export_pdf', request()->query()) }}" class="btn btn-danger">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                        <a href="{{ route('cross_cut.export_csv', request()->query()) }}" class="btn btn-success">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </a>
+                    </div>
                 </div>
             </div>
         </form>
@@ -264,7 +267,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth()->user()->role !== 'inspector' ? 19 : 18 }}" class="text-center">No data available</td>
+                        <td colspan="{{ auth()->user()->role !== 'inspector' ? 20 : 19 }}" class="text-center">No data available</td>
                     </tr>
                     @endforelse
                 </tbody>

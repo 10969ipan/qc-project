@@ -256,6 +256,59 @@ class CrossCutChecksheetController extends Controller
         return $pdf->stream('laporan-cross-cut.pdf');
     }
 
+    public function exportCsv(Request $request)
+    {
+        $query = CrossCutChecksheet::with('item')->latest();
+        $this->applyFilters($query, $request);
+        $checksheets = $query->get();
+
+        $filename = "cross_cut_checksheets_" . date('Y-m-d') . ".csv";
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($checksheets) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, [
+                'ID', 'Tanggal Prod.', 'Tanggal QC', 'Shift Prod.', 'Shift QC', 'Item Part', 
+                'Copper', 'Nikel', 'Eching', 'Abu', 'Posisi Judgment', 'Posisi No. Lot', 
+                'Result Remark', 'Inisial', 'Keterangan', 'Approval Status'
+            ]);
+
+            foreach ($checksheets as $checksheet) {
+                $status = 'Pending';
+                if ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED') {
+                    $status = 'Approved';
+                } elseif ($checksheet->kashift_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->manager_qc === 'REJECTED') {
+                    $status = 'Rejected';
+                }
+
+                fputcsv($file, [
+                    $checksheet->id,
+                    \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d'),
+                    \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d'),
+                    $checksheet->production_shift,
+                    $checksheet->qc_shift,
+                    $checksheet->item->name,
+                    $checksheet->chemical_copper ?? '-',
+                    $checksheet->chemical_nikel ?? '-',
+                    $checksheet->chemical_eching ?? '-',
+                    $checksheet->chemical_abu ?? '-',
+                    $checksheet->position_remark_judgment,
+                    $checksheet->position_remark_no_lot,
+                    $checksheet->result_remark ?? '-',
+                    $checksheet->operator_initials ?? '-',
+                    $checksheet->keterangan ?? '-',
+                    $status,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     private function applyFilters($query, Request $request)
     {
         if ($request->filled('start_date')) {
