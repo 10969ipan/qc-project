@@ -13,6 +13,7 @@ class CrossCutChecksheet extends Model
 
     protected $fillable = [
         'item_id',
+        'shift',
         'production_datetime',
         'qc_datetime',
         'image_path',
@@ -24,6 +25,7 @@ class CrossCutChecksheet extends Model
         'position_remark_no_lot',
         'result_remark',
         'keterangan',
+        'cycle_time',
     ];
 
     public function item()

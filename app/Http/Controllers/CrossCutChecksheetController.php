@@ -34,6 +34,7 @@ class CrossCutChecksheetController extends Controller
     {
         $validated = $request->validate([
             'item_id' => 'required|exists:items,id',
+            'shift' => 'required|string|max:255',
             'production_datetime' => 'required|date',
             'qc_datetime' => 'required|date',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -45,15 +46,20 @@ class CrossCutChecksheetController extends Controller
             'position_remark_no_lot' => 'required|string|max:255',
             'result_remark' => 'nullable|string',
             'keterangan' => 'nullable|string',
+            'cycle_time' => 'nullable|integer',
         ]);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('cross_cut_images', 'public');
+            $image = $request->file('image');
+            $imageName = time().'.'.$image->getClientOriginalExtension();
+            $image->move(public_path('cross_cut_images'), $imageName);
+            $imagePath = 'cross_cut_images/' . $imageName;
         }
 
         CrossCutChecksheet::create([
             'item_id' => $validated['item_id'],
+            'shift' => $validated['shift'],
             'production_datetime' => $validated['production_datetime'],
             'qc_datetime' => $validated['qc_datetime'],
             'image_path' => $imagePath,
@@ -65,6 +71,7 @@ class CrossCutChecksheetController extends Controller
             'position_remark_no_lot' => $validated['position_remark_no_lot'],
             'result_remark' => $validated['result_remark'],
             'keterangan' => $validated['keterangan'],
+            'cycle_time' => $validated['cycle_time'],
         ]);
 
         return redirect()->route('cross_cut.create')->with('success', 'Cross Cut Checksheet created successfully.');
@@ -77,7 +84,7 @@ class CrossCutChecksheetController extends Controller
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
         return response()->json([
-            'image_url' => Storage::url($checksheet->image_path),
+            'image_url' => asset($checksheet->image_path),
             'item_name' => $checksheet->item->name,
             'qc_datetime' => $checksheet->qc_datetime,
         ]);

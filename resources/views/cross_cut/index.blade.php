@@ -12,6 +12,7 @@
                         <tr>
                             <th>No</th>
                             <th>Item Part</th>
+                            <th>Shift</th>
                             <th>Tanggal Jam Produksi</th>
                             <th>Tanggal Jam QC</th>
                             <th>Hasil Cross Cut</th>
@@ -19,6 +20,7 @@
                             <th>Posisi Remark</th>
                             <th>Result Remark</th>
                             <th>Keterangan</th>
+                            <th>Cycle Time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -26,6 +28,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $checksheet->item->name }}</td>
+                                <td>{{ $checksheet->shift }}</td>
                                 <td>{{ $checksheet->production_datetime }}</td>
                                 <td>{{ $checksheet->qc_datetime }}</td>
                                 <td>
@@ -34,18 +37,15 @@
                                     </button>
                                 </td>
                                 <td>
-                                    @php
-                                        $chemicals = [];
-                                        if ($checksheet->chemical_copper) $chemicals[] = 'Copper';
-                                        if ($checksheet->chemical_nikel) $chemicals[] = 'Nikel';
-                                        if ($checksheet->chemical_eching) $chemicals[] = 'Eching';
-                                        if ($checksheet->chemical_abu) $chemicals[] = 'Abu';
-                                    @endphp
-                                    {{ implode(', ', $chemicals) }}
+                                    Copper: {{ $checksheet->chemical_copper ?? '-' }},
+                                    Nikel: {{ $checksheet->chemical_nikel ?? '-' }},
+                                    Eching: {{ $checksheet->chemical_eching ?? '-' }},
+                                    Abu: {{ $checksheet->chemical_abu ?? '-' }}
                                 </td>
                                 <td>{{ $checksheet->position_remark_judgment }} - {{ $checksheet->position_remark_no_lot }}</td>
                                 <td>{{ $checksheet->result_remark }}</td>
                                 <td>{{ $checksheet->keterangan }}</td>
+                                <td>{{ $checksheet->cycle_time ? $checksheet->cycle_time . 's' : '-' }}</td>
                             </tr>
                         @empty
                             <tr>
