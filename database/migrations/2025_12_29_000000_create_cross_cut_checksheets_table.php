@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('cross_cut_checksheets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
-            $table->string('shift');
+            $table->string('production_shift');
+            $table->string('qc_shift');
             $table->dateTime('production_datetime');
             $table->dateTime('qc_datetime');
             $table->string('image_path');
