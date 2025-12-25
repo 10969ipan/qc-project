@@ -11,25 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add manager approval columns to the 'checksheets' table
-        Schema::table('checksheets', function (Blueprint $table) {
-            if (!Schema::hasColumn('checksheets', 'manager_qc')) {
-                $table->string('manager_qc')->nullable()->after('asst_manager_qc');
-            }
-            if (!Schema::hasColumn('checksheets', 'manager_approved_at')) {
-                $table->timestamp('manager_approved_at')->nullable()->after('manager_qc');
-            }
-        });
+        $tables = ['checksheets', 'in_process_checksheets', 'cross_cut_checksheets'];
 
-        // Add manager approval columns to the 'in_process_checksheets' table
-        Schema::table('in_process_checksheets', function (Blueprint $table) {
-            if (!Schema::hasColumn('in_process_checksheets', 'manager_qc')) {
-                $table->string('manager_qc')->nullable()->after('asst_manager_qc');
+        foreach ($tables as $tableName) {
+            if (!Schema::hasTable($tableName)) {
+                continue;
             }
-            if (!Schema::hasColumn('in_process_checksheets', 'manager_approved_at')) {
-                $table->timestamp('manager_approved_at')->nullable()->after('manager_qc');
-            }
-        });
+
+            Schema::table($tableName, function (Blueprint $table) use ($tableName) {
+                if (!Schema::hasColumn($tableName, 'manager_qc')) {
+                    $afterColumn = Schema::hasColumn($tableName, 'asst_manager_qc') ? 'asst_manager_qc' : 'id';
+                    $table->string('manager_qc')->nullable()->after($afterColumn);
+                }
+                if (!Schema::hasColumn($tableName, 'manager_approved_at')) {
+                    $table->timestamp('manager_approved_at')->nullable()->after('manager_qc');
+                }
+            });
+        }
     }
 
     /**
@@ -37,24 +35,26 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop manager approval columns from the 'checksheets' table
-        Schema::table('checksheets', function (Blueprint $table) {
-            if (Schema::hasColumn('checksheets', 'manager_qc')) {
-                $table->dropColumn('manager_qc');
-            }
-            if (Schema::hasColumn('checksheets', 'manager_approved_at')) {
-                $table->dropColumn('manager_approved_at');
-            }
-        });
+        $tables = ['checksheets', 'in_process_checksheets', 'cross_cut_checksheets'];
 
-        // Drop manager approval columns from the 'in_process_checksheets' table
-        Schema::table('in_process_checksheets', function (Blueprint $table) {
-            if (Schema::hasColumn('in_process_checksheets', 'manager_qc')) {
-                $table->dropColumn('manager_qc');
+        foreach ($tables as $tableName) {
+            if (!Schema::hasTable($tableName)) {
+                continue;
             }
-            if (Schema::hasColumn('in_process_checksheets', 'manager_approved_at')) {
-                $table->dropColumn('manager_approved_at');
-            }
-        });
+
+            Schema::table($tableName, function (Blueprint $table) use ($tableName) {
+                $columnsToDrop = [];
+                if (Schema::hasColumn($tableName, 'manager_qc')) {
+                    $columnsToDrop[] = 'manager_qc';
+                }
+                if (Schema::hasColumn($tableName, 'manager_approved_at')) {
+                    $columnsToDrop[] = 'manager_approved_at';
+                }
+
+                if (!empty($columnsToDrop)) {
+                    $table->dropColumn($columnsToDrop);
+                }
+            });
+        }
     }
 };
