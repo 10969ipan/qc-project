@@ -29,14 +29,16 @@
                                 <th>Hasil Cross Cut</th>
                                 <th>Kimia</th>
                                 <th>Posisi Remark (Judgement / No Lot)</th>
-                                <th>Result Remark / Keterangan</th>
+                                <th>Result Remark</th>
                                 <th>Inisial QC</th>
+                                <th>Keterangan</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <!-- Item Part -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 200px;">
                                     <select class="form-control" id="item_id" name="item_id" required>
                                         <option value="">-- Select Item --</option>
                                         @foreach($items as $item)
@@ -45,15 +47,15 @@
                                     </select>
                                 </td>
                                 <!-- Tanggal & Shift Produksi / QC -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 250px;">
                                     <div class="form-group mb-2">
                                         <label>Tgl. & Shift Produksi</label>
                                         <div class="input-group">
                                             <input type="datetime-local" class="form-control" name="production_datetime" required>
                                             <select class="form-control" name="production_shift" required>
-                                                <option value="A">A</option>
-                                                <option value="B">B</option>
-                                                <option value="C">C</option>
+                                                <option value="1">Shift 1</option>
+                                                <option value="2">Shift 2</option>
+                                                <option value="3">Shift 3</option>
                                             </select>
                                         </div>
                                     </div>
@@ -62,52 +64,50 @@
                                         <div class="input-group">
                                             <input type="datetime-local" class="form-control" name="qc_datetime" required>
                                             <select class="form-control" name="qc_shift" required>
-                                                <option value="A">A</option>
-                                                <option value="B">B</option>
-                                                <option value="C">C</option>
+                                                <option value="1">Shift 1</option>
+                                                <option value="2">Shift 2</option>
+                                                <option value="3">Shift 3</option>
                                             </select>
                                         </div>
                                     </div>
                                 </td>
                                 <!-- Hasil Cross Cut (Image) -->
                                 <td class="align-middle text-center">
-                                    <label for="image">Ambil Gambar</label>
-                                    <input type="file" class="form-control-file" id="image" name="image" accept="image/*" required>
+                                    <label for="image" class="mb-2">Ambil Gambar</label>
+                                    <input type="file" class="form-control-file mb-2" id="image" name="image" accept="image/*" required>
+                                    <button type="button" id="previewBtn" class="btn btn-info btn-sm" style="display: none;">Preview Foto</button>
                                 </td>
                                 <!-- Kimia -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 200px;">
                                     <div class="form-group mb-2"><label>Copper</label><input type="text" class="form-control" name="chemical_copper"></div>
                                     <div class="form-group mb-2"><label>Nikel</label><input type="text" class="form-control" name="chemical_nikel"></div>
                                     <div class="form-group mb-2"><label>Eching</label><input type="text" class="form-control" name="chemical_eching"></div>
                                     <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control" name="chemical_abu"></div>
                                 </td>
                                 <!-- Posisi Remark -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 200px;">
                                     <div class="form-group mb-2">
                                         <label>Judgment</label>
                                         <select class="form-control" name="position_remark_judgment" required><option value="OK">OK</option><option value="NG">NG</option></select>
                                     </div>
                                     <div class="form-group mb-0"><label>No Lot</label><input type="text" class="form-control" name="position_remark_no_lot" required></div>
                                 </td>
-                                <!-- Result Remark / Keterangan -->
-                                <td class="align-middle">
-                                    <div class="form-group mb-2"><label>Result Remark</label><input type="text" class="form-control" name="result_remark"></div>
-                                    <div class="form-group mb-0"><label>Keterangan</label><textarea class="form-control" name="keterangan" rows="2"></textarea></div>
-                                </td>
+                                <!-- Result Remark -->
+                                <td class="align-middle"><input type="text" class="form-control" name="result_remark"></td>
                                 <!-- Inisial QC -->
                                 <td class="align-middle"><input type="text" class="form-control" name="operator_initials" placeholder="Inisial"></td>
+                                <!-- Keterangan -->
+                                <td class="align-middle"><textarea class="form-control" name="keterangan" rows="3"></textarea></td>
+                                <!-- Aksi -->
+                                <td class="align-middle text-center">
+                                    <h5 class="font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                                    <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+                                    <button type="button" class="btn btn-success btn-block mb-2" id="startTimerBtn"><i class="fas fa-play"></i> Start</button>
+                                    <button type="submit" class="btn btn-primary btn-block" id="saveBtn" disabled><i class="fas fa-save"></i> Simpan</button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
-                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn"><i class="fas fa-play"></i> Start</button>
-                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled><i class="fas fa-save fa-sm"></i> Simpan Data</button>
-                    </div>
                 </div>
             </form>
         </div>
@@ -142,34 +142,42 @@ document.addEventListener('DOMContentLoaded', function() {
             var reader = new FileReader();
             reader.onload = function(e) {
                 $('#previewImage').attr('src', e.target.result);
-                $('#imagePreviewModal').modal('show');
+                $('#previewBtn').show(); // Show the preview button
             }
             reader.readAsDataURL(file);
         }
+    });
+
+    $('#previewBtn').on('click', function() {
+        $('#imagePreviewModal').modal('show'); // Open the modal on button click
     });
 
     // Timer Logic
     var timerInterval = null;
     var totalSeconds = 0;
     var timerRunning = false;
+    var timerDisplay = document.getElementById('timerDisplay');
+    var cycleTimeInput = document.getElementById('cycleTimeInput');
+    var startTimerBtn = document.getElementById('startTimerBtn');
+    var saveBtn = document.getElementById('saveBtn');
 
     function updateTimerDisplay() {
         var hours = Math.floor(totalSeconds / 3600);
         var minutes = Math.floor((totalSeconds % 3600) / 60);
         var seconds = totalSeconds % 60;
         var text = [hours, minutes, seconds].map(v => v < 10 ? "0" + v : v).join(":");
-        document.getElementById('timerDisplay').textContent = text;
-        document.getElementById('cycleTimeInput').value = totalSeconds;
+        timerDisplay.textContent = text;
+        cycleTimeInput.value = totalSeconds;
     }
 
-    document.getElementById('startTimerBtn').addEventListener('click', function() {
+    startTimerBtn.addEventListener('click', function() {
         if (!timerRunning) {
             timerRunning = true;
             this.classList.remove('btn-success');
             this.classList.add('btn-secondary');
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-clock"></i> Running...';
-            document.getElementById('saveBtn').disabled = false;
+            saveBtn.disabled = false;
             
             timerInterval = setInterval(function() {
                 totalSeconds++;
@@ -182,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (timerRunning) {
             clearInterval(timerInterval);
             timerRunning = false;
-            document.getElementById('cycleTimeInput').value = totalSeconds;
+            cycleTimeInput.value = totalSeconds;
         }
     });
 });

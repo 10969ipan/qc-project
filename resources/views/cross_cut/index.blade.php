@@ -42,7 +42,7 @@
                     @forelse ($checksheets as $checksheet)
                     <tr class="text-center">
                         <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                        <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}</td>
+                        <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
