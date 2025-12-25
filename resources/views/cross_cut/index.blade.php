@@ -406,26 +406,8 @@
                 const noExportElements = tableClone.querySelectorAll('.no-export');
                 noExportElements.forEach(el => el.remove());
 
-                // Process clone rows to flatten Kimia column
-                const kimiaCells = tableClone.querySelectorAll('.kimia-col');
-                kimiaCells.forEach(kimiaCell => {
-                    const nestedTable = kimiaCell.querySelector('table');
-                    if (nestedTable) {
-                        const trs = nestedTable.querySelectorAll('tr');
-                        let text = [];
-                        trs.forEach(tr => {
-                            const th = tr.querySelector('th');
-                            const td = tr.querySelector('td');
-                            if (th && td) {
-                                text.push(`${th.textContent.trim()}: ${td.textContent.trim()}`);
-                            }
-                        });
-                        // Use textContent to replace the entire table content
-                        kimiaCell.textContent = text.join('\n');
-                        // Ensure styles are reset if they were inherited oddly
-                        kimiaCell.style.whiteSpace = 'pre-wrap';
-                    }
-                });
+                // Note: We used to flatten Kimia column here via DOM manipulation.
+                // Now we handle it via didParseCell to ensure reliability with off-screen elements.
 
                 tableClone.style.position = 'absolute';
                 tableClone.style.top = '-9999px';
@@ -451,6 +433,27 @@
                         halign: 'center',
                         lineColor: [0, 0, 0],
                         lineWidth: 0.1
+                    },
+                    didParseCell: function(data) {
+                        // Handle Kimia Column (nested table)
+                        // Checks if the raw DOM element has the class 'kimia-col'
+                        if (data.section === 'body' && data.cell.raw && data.cell.raw.classList && data.cell.raw.classList.contains('kimia-col')) {
+                            let textLines = [];
+                            const nestedTable = data.cell.raw.querySelector('table');
+                            if (nestedTable) {
+                                const trs = nestedTable.querySelectorAll('tr');
+                                trs.forEach(tr => {
+                                    const th = tr.querySelector('th');
+                                    const td = tr.querySelector('td');
+                                    // Use textContent for reliability with hidden elements
+                                    if (th && td) {
+                                        textLines.push(th.textContent.trim() + ': ' + td.textContent.trim());
+                                    }
+                                });
+                                // Assign array to cell.text; AutoTable renders array as newline-separated text
+                                data.cell.text = textLines;
+                            }
+                        }
                     },
                     exportHiddenCells: false
                 });
