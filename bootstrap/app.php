@@ -18,11 +18,4 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })
-    ->withProviders([
-        Barryvdh\DomPDF\ServiceProvider::class,
-    ])
-    ->withFacades(true, [
-        'Pdf' => Barryvdh\DomPDF\Facade\Pdf::class,
-    ])
-    ->create();
+    })->create();
