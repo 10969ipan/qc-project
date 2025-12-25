@@ -407,23 +407,23 @@
                 noExportElements.forEach(el => el.remove());
 
                 // Process clone rows to flatten Kimia column
-                const rows = tableClone.querySelectorAll('tr');
-                rows.forEach(row => {
-                    const kimiaCell = row.querySelector('.kimia-col');
-                    if (kimiaCell) {
-                        const nestedTable = kimiaCell.querySelector('table');
-                        if (nestedTable) {
-                            const trs = nestedTable.querySelectorAll('tr');
-                            let text = [];
-                            trs.forEach(tr => {
-                                const th = tr.querySelector('th');
-                                const td = tr.querySelector('td');
-                                if (th && td) {
-                                    text.push(`${th.innerText.trim()}: ${td.innerText.trim()}`);
-                                }
-                            });
-                            kimiaCell.innerText = text.join('\n');
-                        }
+                const kimiaCells = tableClone.querySelectorAll('.kimia-col');
+                kimiaCells.forEach(kimiaCell => {
+                    const nestedTable = kimiaCell.querySelector('table');
+                    if (nestedTable) {
+                        const trs = nestedTable.querySelectorAll('tr');
+                        let text = [];
+                        trs.forEach(tr => {
+                            const th = tr.querySelector('th');
+                            const td = tr.querySelector('td');
+                            if (th && td) {
+                                text.push(`${th.textContent.trim()}: ${td.textContent.trim()}`);
+                            }
+                        });
+                        // Use textContent to replace the entire table content
+                        kimiaCell.textContent = text.join('\n');
+                        // Ensure styles are reset if they were inherited oddly
+                        kimiaCell.style.whiteSpace = 'pre-wrap';
                     }
                 });
 
