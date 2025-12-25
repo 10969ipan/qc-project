@@ -17,6 +17,7 @@
                     <tr class="text-center">
                         <th rowspan="2" class="align-middle">No</th>
                         <th rowspan="2" class="align-middle">Tanggal Produksi</th>
+                        <th rowspan="2" class="align-middle">Tanggal QC</th>
                         <th rowspan="2" class="align-middle">Jam Before</th>
                         <th rowspan="2" class="align-middle">Jam After</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
@@ -43,6 +44,7 @@
                     <tr class="text-center">
                         <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}</td>
+                        <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
@@ -176,7 +178,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth()->user()->role !== 'inspector' ? 18 : 17 }}" class="text-center">No data available</td>
+                        <td colspan="{{ auth()->user()->role !== 'inspector' ? 19 : 18 }}" class="text-center">No data available</td>
                     </tr>
                     @endforelse
                 </tbody>
