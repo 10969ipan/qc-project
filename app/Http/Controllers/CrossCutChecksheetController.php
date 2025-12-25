@@ -252,7 +252,7 @@ class CrossCutChecksheetController extends Controller
         $startDate = $request->start_date;
         $endDate = $request->end_date;
 
-        $pdf = app('dompdf.wrapper')->loadView('cross_cut.pdf', compact('checksheets', 'startDate', 'endDate'));
+        $pdf = app()->make('dompdf.wrapper')->loadView('cross_cut.pdf', compact('checksheets', 'startDate', 'endDate'));
         return $pdf->stream('laporan-cross-cut.pdf');
     }
 
