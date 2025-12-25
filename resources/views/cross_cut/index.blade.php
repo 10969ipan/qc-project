@@ -8,6 +8,65 @@
 </div>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filter Data & Export</h6>
+    </div>
+    <div class="card-body">
+        <form action="{{ route('cross_cut.index') }}" method="GET">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="start_date">Tanggal Awal</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="end_date">Tanggal Akhir</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="item_id">Item Part</label>
+                        <select id="item_id" name="item_id" class="form-control">
+                            <option value="">Semua Item</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="approval_status">Status Approval</label>
+                        <select id="approval_status" name="approval_status" class="form-control">
+                            <option value="">Semua Status</option>
+                            <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ request('approval_status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            <option value="pending" {{ request('approval_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Reset
+                    </a>
+                    <a href="{{ route('cross_cut.export_pdf', request()->query()) }}" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Data Masuk</h6>
     </div>
     <div class="card-body">

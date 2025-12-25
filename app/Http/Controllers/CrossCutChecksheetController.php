@@ -6,16 +6,23 @@ use App\Models\CrossCutChecksheet;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CrossCutChecksheetController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $checksheets = CrossCutChecksheet::with('item')->latest()->paginate(10);
-        return view('cross_cut.index', compact('checksheets'));
+        $items = Item::orderBy('name')->get();
+        $query = CrossCutChecksheet::with('item')->latest();
+
+        $this->applyFilters($query, $request);
+
+        $checksheets = $query->paginate(10)->withQueryString();
+
+        return view('cross_cut.index', compact('checksheets', 'items'));
     }
 
     /**
@@ -234,5 +241,47 @@ class CrossCutChecksheetController extends Controller
         }
 
         return redirect()->route('cross_cut.index')->with('success', 'Cross Cut Checksheet rejected successfully.');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = CrossCutChecksheet::with('item')->latest();
+
+        $this->applyFilters($query, $request);
+
+        $checksheets = $query->get();
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        $pdf = Pdf::loadView('cross_cut.pdf', compact('checksheets', 'startDate', 'endDate'));
+        return $pdf->stream('laporan-cross-cut.pdf');
+    }
+
+    private function applyFilters($query, Request $request)
+    {
+        if ($request->filled('start_date')) {
+            $query->whereDate('qc_datetime', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('qc_datetime', '<=', $request->end_date);
+        }
+        if ($request->filled('item_id')) {
+            $query->where('item_id', $request->item_id);
+        }
+        if ($request->filled('approval_status')) {
+            $status = $request->approval_status;
+            if ($status == 'approved') {
+                $query->whereNotNull('supervisor_qc')->where('supervisor_qc', '!=', 'REJECTED');
+            } elseif ($status == 'rejected') {
+                $query->where(function($q) {
+                    $q->where('kashift_qc', 'REJECTED')
+                      ->orWhere('supervisor_qc', 'REJECTED')
+                      ->orWhere('asst_manager_qc', 'REJECTED')
+                      ->orWhere('manager_qc', 'REJECTED');
+                });
+            } elseif ($status == 'pending') {
+                $query->whereNull('kashift_qc');
+            }
+        }
     }
 }
