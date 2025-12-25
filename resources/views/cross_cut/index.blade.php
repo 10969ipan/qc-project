@@ -5,6 +5,8 @@
 @section('content')
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Laporan Data Checksheet Cross Cut</h1>
+    <!-- Hidden Logo for PDF Export -->
+    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 </div>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
@@ -55,8 +57,8 @@
                         <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary">
                             <i class="fas fa-undo"></i> Reset
                         </a>
-                        <a href="{{ route('cross_cut.export_pdf', request()->query()) }}" class="btn btn-danger">
-                            <i class="fas fa-file-pdf"></i> PDF
+                        <a href="#" id="exportPdfBtn" class="btn btn-danger">
+                            <i class="fas fa-file-pdf"></i> Export PDF
                         </a>
                     </div>
                 </div>
@@ -64,7 +66,7 @@
         </form>
         <hr>
         <div class="table-responsive">
-            <table class="table table-bordered" width="100%" cellspacing="0">
+            <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
                 <thead>
                     <tr class="text-center">
                         <th rowspan="2" class="align-middle">No</th>
@@ -76,7 +78,7 @@
                         <th rowspan="2" class="align-middle">Jam After</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                         <th rowspan="2" class="align-middle">Item Part</th>
-                        <th rowspan="2" class="align-middle">Hasil Cross Cut</th>
+                        <th rowspan="2" class="align-middle no-export">Hasil Cross Cut</th>
                         <th rowspan="2" class="align-middle">Kimia</th>
                         <th rowspan="2" class="align-middle">Posisi Remark</th>
                         <th rowspan="2" class="align-middle">Result Remark</th>
@@ -87,7 +89,7 @@
                         <th rowspan="2" class="align-middle">Manager QC</th>
                         <th rowspan="2" class="align-middle">Keterangan</th>
                         @if(auth()->user()->role !== 'inspector')
-                        <th rowspan="2" class="align-middle">Aksi</th>
+                        <th rowspan="2" class="align-middle no-export">Aksi</th>
                         @endif
                     </tr>
                 </thead>
@@ -103,12 +105,12 @@
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                         <td class="align-middle">{{ $checksheet->item->name }}</td>
-                        <td class="align-middle">
+                        <td class="align-middle no-export">
                             <button class="btn btn-primary btn-sm view-image-btn" data-id="{{ $checksheet->id }}" data-toggle="modal" data-target="#imageModal">
                                 View Image
                             </button>
                         </td>
-                        <td class="align-middle p-0">
+                        <td class="align-middle p-0 kimia-col">
                             <table class="table table-bordered mb-0" style="font-size: 0.85rem;">
                                 <tbody>
                                     <tr>
@@ -187,7 +189,7 @@
                         <td class="align-middle">{{ $checksheet->keterangan }}</td>
 
                         @if(auth()->user()->role !== 'inspector')
-                        <td class="align-middle">
+                        <td class="align-middle no-export">
                             @php
                                 $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
                                 $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED' && !$checksheet->supervisor_qc;
@@ -297,6 +299,8 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const viewImageButtons = document.querySelectorAll('.view-image-btn');
@@ -318,18 +322,143 @@
                         return response.json();
                     })
                     .then(data => {
-                        modalImage.src = data.image_url; // This now points to the serveImage route
+                        modalImage.src = data.image_url;
                         modalItemName.textContent = `Item: ${data.item_name}`;
                         modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
                     })
                     .catch(error => {
                         console.error('Error fetching image data:', error);
-                        modalImage.src = ''; // Clear image on error
+                        modalImage.src = '';
                         modalItemName.textContent = 'Gagal memuat data gambar.';
                         modalQcDatetime.textContent = '';
                     });
             });
         });
+
+        // PDF Export
+        const { jsPDF } = window.jspdf;
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
+
+        if (exportPdfBtn) {
+            exportPdfBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const doc = new jsPDF('landscape');
+
+                // Header Table
+                doc.autoTable({
+                    startY: 10,
+                    head: [],
+                    body: [
+                        [
+                            { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
+                            { content: 'LAPORAN CHECKSHEET CROSS CUT', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                            { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: 'QC-KRW-F-XXXX', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ],
+                        [
+                            { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ],
+                        [
+                            { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ],
+                        [
+                            { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                        ]
+                    ],
+                    theme: 'grid',
+                    styles: {
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1,
+                        cellPadding: 1.5
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 30 },
+                        1: { },
+                        2: { },
+                        3: { }
+                    },
+                    didDrawCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 0) {
+                            const img = document.getElementById('pdf-logo');
+                            if (img) {
+                                try {
+                                    doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
+                                } catch (err) {
+                                    console.warn('Error adding logo:', err);
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const finalY = doc.lastAutoTable.finalY;
+                doc.setFontSize(6);
+                doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
+
+                const originalTable = document.getElementById('checksheetTable');
+                const tableClone = originalTable.cloneNode(true);
+
+                // Remove no-export elements
+                const noExportElements = tableClone.querySelectorAll('.no-export');
+                noExportElements.forEach(el => el.remove());
+
+                // Process clone rows to flatten Kimia column
+                const rows = tableClone.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const kimiaCell = row.querySelector('.kimia-col');
+                    if (kimiaCell) {
+                        const nestedTable = kimiaCell.querySelector('table');
+                        if (nestedTable) {
+                            const trs = nestedTable.querySelectorAll('tr');
+                            let text = [];
+                            trs.forEach(tr => {
+                                const th = tr.querySelector('th');
+                                const td = tr.querySelector('td');
+                                if (th && td) {
+                                    text.push(`${th.innerText.trim()}: ${td.innerText.trim()}`);
+                                }
+                            });
+                            kimiaCell.innerText = text.join('\n');
+                        }
+                    }
+                });
+
+                tableClone.style.position = 'absolute';
+                tableClone.style.top = '-9999px';
+                tableClone.style.left = '-9999px';
+                document.body.appendChild(tableClone);
+
+                doc.autoTable({
+                    html: tableClone,
+                    startY: finalY + 7,
+                    theme: 'grid',
+                    styles: {
+                        fontSize: 5,
+                        cellPadding: 1,
+                        valign: 'middle',
+                        halign: 'center',
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1
+                    },
+                    headStyles: {
+                        fillColor: [78, 115, 223],
+                        textColor: [255, 255, 255],
+                        valign: 'middle',
+                        halign: 'center',
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.1
+                    },
+                    exportHiddenCells: false
+                });
+
+                document.body.removeChild(tableClone);
+                doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0,10) + '.pdf');
+            });
+        }
     });
 </script>
 @endpush
