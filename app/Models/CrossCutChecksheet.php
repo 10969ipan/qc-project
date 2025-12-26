@@ -13,6 +13,7 @@ class CrossCutChecksheet extends Model
 
     protected $fillable = [
         'item_id',
+        'customer',
         'production_shift',
         'qc_shift',
         'production_datetime',

@@ -41,6 +41,7 @@ class CrossCutChecksheetController extends Controller
     {
         $validated = $request->validate([
             'item_id' => 'required|exists:items,id',
+            'customer' => 'nullable|string|max:255',
             'production_shift' => 'required|string|max:255',
             'qc_shift' => 'required|string|max:255',
             'production_datetime' => 'required|date',
@@ -65,6 +66,7 @@ class CrossCutChecksheetController extends Controller
 
         CrossCutChecksheet::create([
             'item_id' => $validated['item_id'],
+            'customer' => $validated['customer'],
             'production_shift' => $validated['production_shift'],
             'qc_shift' => $validated['qc_shift'],
             'production_datetime' => $validated['production_datetime'],
@@ -122,6 +124,7 @@ class CrossCutChecksheetController extends Controller
 
         $validated = $request->validate([
             'item_id' => 'required|exists:items,id',
+            'customer' => 'nullable|string|max:255',
             'production_shift' => 'required|string|max:255',
             'qc_shift' => 'required|string|max:255',
             'production_datetime' => 'required|date',

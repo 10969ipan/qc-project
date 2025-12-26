@@ -28,6 +28,7 @@
                         <thead>
                             <tr class="text-center">
                                 <th>Item Part</th>
+                                <th>Customer</th>
                                 <th>Tanggal & Shift Produksi / QC</th>
                                 <th>Hasil Cross Cut</th>
                                 <th>Kimia</th>
@@ -44,9 +45,13 @@
                                     <select class="form-control" id="item_id" name="item_id" required>
                                         <option value="">-- Select Item --</option>
                                         @foreach($items as $item)
-                                            <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
+                                            <option value="{{ $item->id }}" data-customer="{{ $item->customer }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
                                         @endforeach
                                     </select>
+                                </td>
+                                <!-- Customer -->
+                                <td class="align-middle" style="min-width: 150px;">
+                                    <input type="text" class="form-control" name="customer" id="customer" readonly value="{{ $checksheet->customer }}">
                                 </td>
                                 <!-- Tanggal & Shift Produksi / QC -->
                                 <td class="align-middle" style="min-width: 250px;">
@@ -208,6 +213,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         cycleTimeInput.value = totalSeconds;
     });
+
+    // Auto-fill Customer based on Item Selection
+    $('#item_id').on('change', function() {
+        var selectedOption = $(this).find(':selected');
+        var customer = selectedOption.data('customer');
+        $('#customer').val(customer || '');
+    });
+
+    // Trigger change on load if value is empty (which shouldn't happen if saved, but good for fallback)
+    // But since we prefill value from DB, we don't strictly need to trigger change unless we want to sync with Item DB
+    // Let's ensure if it's empty we fetch from item
+    if ($('#customer').val() === '') {
+        var selectedOption = $('#item_id').find(':selected');
+        var customer = selectedOption.data('customer');
+        $('#customer').val(customer || '');
+    }
 });
 </script>
 @endpush

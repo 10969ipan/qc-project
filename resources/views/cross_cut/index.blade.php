@@ -78,6 +78,7 @@
                         <th rowspan="2" class="align-middle">Jam After</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                         <th rowspan="2" class="align-middle">Item Part</th>
+                        <th rowspan="2" class="align-middle">Customer</th>
                         <th rowspan="2" class="align-middle no-export">Hasil Cross Cut</th>
                         <th rowspan="2" class="align-middle">Kimia</th>
                         <th rowspan="2" class="align-middle">Posisi Remark</th>
@@ -105,6 +106,7 @@
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                         <td class="align-middle">{{ $checksheet->item->name }}</td>
+                        <td class="align-middle">{{ $checksheet->customer }}</td>
                         <td class="align-middle no-export">
                             <button class="btn btn-primary btn-sm view-image-btn" data-id="{{ $checksheet->id }}" data-toggle="modal" data-target="#imageModal">
                                 View Image
