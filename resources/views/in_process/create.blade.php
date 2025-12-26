@@ -96,7 +96,7 @@
 
                                         <!-- Check Dimensi (Cavity & Points) -->
                                         <td class="align-middle">
-                                            <table class="table table-sm table-bordered mb-0" style="min-width: 250px;">
+                                            <table class="table table-sm table-bordered mb-0" style="min-width: 800px;">
                                                 <thead class="text-center">
                                                     <tr>
                                                         <th style="width: 25%;">Cavity</th>
@@ -116,7 +116,7 @@
                                                             <td class="text-center font-weight-bold">Cav {{ $i }}</td>
                                                             @for ($j = 1; $j <= 8; $j++)
                                                                 <td>
-                                                                    <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
+                                                                    <input type="text" class="form-control" style="min-width: 80px; font-size: 16px;" name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
                                                                 </td>
                                                             @endfor
                                                         </tr>
