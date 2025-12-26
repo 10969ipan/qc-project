@@ -5,9 +5,11 @@
 @section('content')
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Manajemen Data Barang</h1>
+    @if(auth()->user()->role !== 'inspector')
     <a href="{{ route('admin.items.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
         <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Barang
     </a>
+    @endif
 </div>
 
 <div class="card shadow mb-4">
@@ -45,7 +47,9 @@
                         <th>Nama Barang</th>
                         <th>Customer</th>
                         <th>No Part</th>
+                        @if(auth()->user()->role !== 'inspector')
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -64,6 +68,7 @@
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->customer }}</td>
                         <td>{{ $item->part_number }}</td>
+                        @if(auth()->user()->role !== 'inspector')
                         <td>
                             <a href="{{ route('admin.items.edit', $item->id) }}" class="btn btn-warning btn-sm">Edit</a>
                             <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">
@@ -72,6 +77,7 @@
                                 <button type="submit" class="btn btn-danger btn-sm btn-delete">Hapus</button>
                             </form>
                         </td>
+                        @endif
                     </tr>
                     @endforeach
                 </tbody>
