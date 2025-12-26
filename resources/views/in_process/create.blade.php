@@ -72,11 +72,11 @@
                                         <td class="align-middle">
                                             <div class="form-group mb-2">
                                                 <label class="sr-only">Tanggal</label>
-                                                <input type="date" class="form-control form-control-sm" name="date" value="{{ date('Y-m-d') }}" required>
+                                                <input type="date" class="form-control" style="min-width: 150px; font-size: 16px;" name="date" value="{{ date('Y-m-d') }}" required>
                                             </div>
                                             <div class="form-group mb-0">
                                                 <label class="sr-only">Shift</label>
-                                                <select class="form-control form-control-sm" name="shift" required>
+                                                <select class="form-control" style="min-width: 100px; font-size: 16px;" name="shift" required>
                                                     <option value="1">Shift 1</option>
                                                     <option value="2">Shift 2</option>
                                                     <option value="3">Shift 3</option>
@@ -86,12 +86,12 @@
 
                                         <!-- Total Quality (Total Quantity produced) -->
                                         <td class="align-middle">
-                                            <input type="number" class="form-control text-center" name="total_qty" placeholder="0" min="0" required>
+                                            <input type="number" class="form-control text-center" style="min-width: 100px; font-size: 16px;" name="total_qty" placeholder="0" min="0" required>
                                         </td>
 
                                         <!-- Sampling Check Quantity -->
                                         <td class="align-middle">
-                                            <input type="number" class="form-control text-center" name="sampling_qty" placeholder="0" min="0" required>
+                                            <input type="number" class="form-control text-center" style="min-width: 100px; font-size: 16px;" name="sampling_qty" placeholder="0" min="0" required>
                                         </td>
 
                                         <!-- Check Dimensi (Cavity & Points) -->
@@ -135,30 +135,30 @@
                                             <small class="font-weight-bold text-secondary">Defect List (NG):</small>
                                             <div id="defectContainer">
                                                 <div class="input-group mb-2 defect-row">
-                                                    <select class="form-control defect-select" name="defect_types[]" id="defectSelect">
+                                                    <select class="form-control defect-select" style="min-width: 120px; font-size: 16px;" name="defect_types[]" id="defectSelect">
                                                         <option value="">-- Pilih Defect --</option>
                                                     </select>
-                                                    <input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;">
+                                                    <input type="number" class="form-control defect-qty" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">
                                                 </div>
                                             </div>
-                                            <button type="button" id="addDefectBtn" class="btn btn-sm btn-info mt-1" style="display: none;">
+                                            <button type="button" id="addDefectBtn" class="btn btn-info mt-1" style="display: none;">
                                                 <i class="fas fa-plus"></i> Tambah Jenis
                                             </button>
                                         </td>
 
                                         <!-- Total OK / NG -->
                                         <td class="align-middle">
-                                            <div class="input-group input-group-sm mb-2">
+                                            <div class="input-group mb-2">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text text-success font-weight-bold">OK</span>
                                                 </div>
-                                                <input type="number" class="form-control" name="total_ok" placeholder="0" min="0" required>
+                                                <input type="number" class="form-control" style="min-width: 80px; font-size: 16px;" name="total_ok" placeholder="0" min="0" required>
                                             </div>
-                                            <div class="input-group input-group-sm">
+                                            <div class="input-group">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text text-danger font-weight-bold">NG</span>
                                                 </div>
-                                                <input type="number" class="form-control" name="total_ng" placeholder="0" min="0" required>
+                                                <input type="number" class="form-control" style="min-width: 80px; font-size: 16px;" name="total_ng" placeholder="0" min="0" required>
                                             </div>
                                         </td>
 
@@ -200,7 +200,7 @@
                                                     }
                                                 }
                                             @endphp
-                                            <input type="text" class="form-control text-center" name="operator_initials" placeholder="Inisial" value="{{ $initial }}" required>
+                                            <input type="text" class="form-control text-center" style="min-width: 80px; font-size: 16px;" name="operator_initials" placeholder="Inisial" value="{{ $initial }}" required>
                                         </td>
 
                                         <!-- Keterangan -->
@@ -643,10 +643,10 @@
             if (rowCount < 4) {
                 var firstSelect = $('#defectSelect'); // The original one
                 var newRow = $('<div class="input-group mb-2 defect-row">' +
-                                '<select class="form-control defect-select" name="defect_types[]">' + 
+                                '<select class="form-control defect-select" style="min-width: 120px; font-size: 16px;" name="defect_types[]">' + 
                                 firstSelect.html() + 
                                 '</select>' +
-                                '<input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;">' +
+                                '<input type="number" class="form-control defect-qty" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
                                 '<div class="input-group-append">' +
                                 '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
                                 '</div>' +
