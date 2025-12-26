@@ -115,35 +115,37 @@
                 @php
                     $dimensions = json_decode($checksheet->dimension_check, true) ?? [];
                 @endphp
-                <table class="table table-sm table-bordered">
-                    <thead class="text-center">
-                        <tr>
-                            <th style="width: 15%;">Cavity</th>
-                            <th>Point 1</th>
-                            <th>Point 2</th>
-                            <th>Point 3</th>
-                            <th>Point 4</th>
-                            <th>Point 5</th>
-                            <th>Point 6</th>
-                            <th>Point 7</th>
-                            <th>Point 8</th>
-                            <th>Point 9</th>
-                            <th>Point 10</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for ($i = 1; $i <= 8; $i++)
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered" style="min-width: 1000px;">
+                        <thead class="text-center">
                             <tr>
-                                <td class="text-center font-weight-bold">Cav {{ $i }}</td>
-                                @for ($j = 1; $j <= 10; $j++)
-                                    <td>
-                                        <input type="text" class="form-control form-control-sm" name="dimensions[{{ $i }}][{{ $j }}]" value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="P{{ $j }}">
-                                    </td>
-                                @endfor
+                                <th style="width: 15%;">Cavity</th>
+                                <th>Point 1</th>
+                                <th>Point 2</th>
+                                <th>Point 3</th>
+                                <th>Point 4</th>
+                                <th>Point 5</th>
+                                <th>Point 6</th>
+                                <th>Point 7</th>
+                                <th>Point 8</th>
+                                <th>Point 9</th>
+                                <th>Point 10</th>
                             </tr>
-                        @endfor
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @for ($i = 1; $i <= 8; $i++)
+                                <tr>
+                                    <td class="text-center font-weight-bold">Cav {{ $i }}</td>
+                                    @for ($j = 1; $j <= 10; $j++)
+                                        <td>
+                                            <input type="text" class="form-control" style="min-width: 80px; font-size: 16px;" name="dimensions[{{ $i }}][{{ $j }}]" value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="P{{ $j }}">
+                                        </td>
+                                    @endfor
+                                </tr>
+                            @endfor
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="form-group">
