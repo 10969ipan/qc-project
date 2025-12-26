@@ -29,7 +29,8 @@ class ItemController extends Controller
 
     public function create()
     {
-        return view('admin.items.create');
+        $items = Item::paginate(10);
+        return view('admin.items.create', compact('items'));
     }
 
     public function store(Request $request)
