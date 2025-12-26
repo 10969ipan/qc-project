@@ -71,8 +71,8 @@
                     <tr class="text-center">
                         <th rowspan="2" class="align-middle">No</th>
                         <th rowspan="2" class="align-middle">Tanggal Produksi</th>
-                        <th rowspan="2" class="align-middle">Tanggal QC</th>
                         <th rowspan="2" class="align-middle">Shift Produksi</th>
+                        <th rowspan="2" class="align-middle">Tanggal QC</th>
                         <th rowspan="2" class="align-middle">Shift QC</th>
                         <th rowspan="2" class="align-middle">Jam Before</th>
                         <th rowspan="2" class="align-middle">Jam After</th>
@@ -98,8 +98,8 @@
                     <tr class="text-center">
                         <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}</td>
-                        <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}</td>
                         <td class="align-middle">{{ $checksheet->production_shift }}</td>
+                        <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}</td>
                         <td class="align-middle">{{ $checksheet->qc_shift }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                         <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
