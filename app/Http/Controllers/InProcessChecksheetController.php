@@ -241,7 +241,11 @@ class InProcessChecksheetController extends Controller
         // Allow access to edit based on sidebar role logic or generally allowed
         $checksheet = InProcessChecksheet::findOrFail($id);
         $items = Item::orderBy('name')->get();
-        return view('in_process.edit', compact('checksheet', 'items'));
+        return view('in_process.edit', [
+            'checksheet' => $checksheet,
+            'items' => $items,
+            'partDimensionStandards' => json_encode($this->partDimensionStandards)
+        ]);
     }
 
     // Update Checksheet
