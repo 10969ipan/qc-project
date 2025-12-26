@@ -49,7 +49,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
-                            <a href ="{{route('in_proccess.index')}}" class="btn btn-secondary">
+                            <a href ="{{route('in_process.index')}}" class="btn btn-secondary">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
                             <a href='#' id= "exportPdfBtn" class="btn btn-danger">
