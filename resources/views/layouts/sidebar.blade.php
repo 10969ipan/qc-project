@@ -52,8 +52,8 @@
         </a>
         <div id="collapseAnalysis" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('analysis.monthly_ng') }}">Report Sub Assy</a>
-                <a class="collapse-item" href="{{ route('analysis.monthly_ng_in_process') }}">Report Inprocess</a>
+                <a class="collapse-item" href="{{ route('analysis.monthly_ng') }}">Sub Assy</a>
+                <a class="collapse-item" href="{{ route('analysis.monthly_ng_in_process') }}">Inprocess</a>
             </div>
         </div>
     </li>
@@ -69,9 +69,9 @@
         </a>
         <div id="collapseChecksheet" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('checksheet.sub_assy') }}">Checksheet Sub Assy</a>
-                <a class="collapse-item" href="{{ route('in_process.create') }}">Checksheet Inprocess</a>
-                <a class="collapse-item" href="{{ route('cross_cut.create') }}">Checksheet Cross Cut Plating</a>
+                <a class="collapse-item" href="{{ route('checksheet.sub_assy') }}">Sub Assy</a>
+                <a class="collapse-item" href="{{ route('in_process.create') }}">Inprocess</a>
+                <a class="collapse-item" href="{{ route('cross_cut.create') }}">Cross Cut Plating</a>
             </div>
         </div>
     </li>
@@ -87,9 +87,9 @@
         </a>
         <div id="collapseReport" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('admin.checksheets.index') }}">Laporan Sub Assy</a>
-                <a class="collapse-item" href="{{ route('in_process.index') }}">Laporan Inprocess</a>
-                <a class="collapse-item" href="{{ route('cross_cut.index') }}">Laporan Cross Cut Plating</a>
+                <a class="collapse-item" href="{{ route('admin.checksheets.index') }}">Sub Assy</a>
+                <a class="collapse-item" href="{{ route('in_process.index') }}">Inprocess</a>
+                <a class="collapse-item" href="{{ route('cross_cut.index') }}">Cross Cut Plating</a>
             </div>
         </div>
     </li>
