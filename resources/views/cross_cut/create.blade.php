@@ -25,6 +25,7 @@
                         <thead>
                             <tr class="text-center">
                                 <th>Item Part</th>
+                                <th>Customer</th>
                                 <th>Tanggal & Shift Produksi / QC</th>
                                 <th>Hasil Cross Cut</th>
                                 <th>Kimia</th>
@@ -41,9 +42,13 @@
                                     <select class="form-control" id="item_id" name="item_id" required>
                                         <option value="">-- Select Item --</option>
                                         @foreach($items as $item)
-                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                            <option value="{{ $item->id }}" data-customer="{{ $item->customer }}">{{ $item->name }}</option>
                                         @endforeach
                                     </select>
+                                </td>
+                                <!-- Customer -->
+                                <td class="align-middle" style="min-width: 150px;">
+                                    <input type="text" class="form-control" name="customer" id="customer" readonly>
                                 </td>
                                 <!-- Tanggal & Shift Produksi / QC -->
                                 <td class="align-middle" style="min-width: 250px;">
@@ -198,6 +203,13 @@ document.addEventListener('DOMContentLoaded', function() {
             timerRunning = false;
             cycleTimeInput.value = totalSeconds;
         }
+    });
+
+    // Auto-fill Customer based on Item Selection
+    $('#item_id').on('change', function() {
+        var selectedOption = $(this).find(':selected');
+        var customer = selectedOption.data('customer');
+        $('#customer').val(customer || '');
     });
 });
 </script>
