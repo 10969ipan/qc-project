@@ -45,15 +45,16 @@
                                 <option value="Rejected" {{ request('approval_status') == 'Rejected' ? 'selected' : '' }}>Rejected</option>
                             </select>
                         </div>
-                        <div class="col-md-3 d-flex align-items-end justify-content-end">
-                            <button type="submit" class="btn btn-primary mr-2">Cari</button>
-                            <a href="{{ route('in_process.index') }}" class="btn btn-secondary mr-2">Reset</a>
-                            
-                            @if(auth()->user()->role !== 'inspector')
-                                <a href="#" id="exportPdfBtn" class="btn btn-danger">
-                                    <i class="fas fa-file-pdf"></i> Export PDF
-                                </a>
-                            @endif
+                        <div class="col-md-3 text-right">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Cari
+                            </button>
+                            <a href ="{{route('in_proccess.index')}}" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Reset
+                            </a>
+                            <a href='#' id= "exportPdfBtn" class="btn btn-danger">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </a>
                         </div>
                     </div>
                 </form>
