@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('role:admin,supervisor,kashift,asst_manager,manager')->except('index');
+    }
+
     public function index(Request $request)
     {
         $query = Item::query();
