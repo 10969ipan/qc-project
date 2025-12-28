@@ -346,18 +346,43 @@ class InProcessChecksheetController extends Controller
                 if ($type == 'manager' && $user->role !== 'manager') abort(403);
             }
 
-            // Assign approval based on type
+            // Validate approval order/hierarchy
             if ($type == 'kashift') {
+                // Kashift can always approve first (no prerequisite)
+                if ($checksheet->kashift_qc) {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet sudah disetujui oleh Kashift.');
+                }
                 $checksheet->kashift_qc = $user->name;
                 $checksheet->kashift_approved_at = now();
             } elseif ($type == 'supervisor') {
+                // Supervisor can only approve if Kashift has approved
+                if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
+                }
+                if ($checksheet->supervisor_qc) {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
+                }
                 $checksheet->supervisor_qc = $user->name;
                 $checksheet->supervisor_approved_at = now();
                 $checksheet->approval_status = 'Approved'; 
             } elseif ($type == 'asst_manager') {
+                // Asst Manager can only approve if Supervisor has approved
+                if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
+                }
+                if ($checksheet->asst_manager_qc) {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
+                }
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
             } elseif ($type == 'manager') {
+                // Manager can only approve if Asst Manager has approved
+                if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
+                }
+                if ($checksheet->manager_qc) {
+                    return redirect()->route('in_process.index')->with('error', 'Checksheet sudah disetujui oleh Manager.');
+                }
                 $checksheet->manager_qc = $user->name;
                 $checksheet->manager_approved_at = now();
             }
@@ -384,10 +409,19 @@ class InProcessChecksheetController extends Controller
                 if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
                 if ($type == 'manager' && $user->role !== 'manager') abort(403);
             }
+
+            // Validate rejection remarks
+            $request->validate([
+                'rejection_remarks' => 'required|string|min:10|max:500',
+            ], [
+                'rejection_remarks.required' => 'Keterangan rejection wajib diisi.',
+                'rejection_remarks.min' => 'Keterangan rejection minimal 10 karakter.',
+                'rejection_remarks.max' => 'Keterangan rejection maksimal 500 karakter.',
+            ]);
             
             if ($type == 'kashift') {
                 $checksheet->kashift_qc = 'REJECTED';
-                $checksheet->kashift_approved_at = now(); // Mark time of rejection too
+                $checksheet->kashift_approved_at = now();
                 $checksheet->approval_status = 'Rejected';
             } elseif ($type == 'supervisor') {
                 $checksheet->supervisor_qc = 'REJECTED';
@@ -403,7 +437,13 @@ class InProcessChecksheetController extends Controller
                 $checksheet->approval_status = 'Rejected';
             }
 
+            // Save rejection remarks with role prefix
+            $roleLabel = ucfirst(str_replace('_', ' ', $type));
+            $checksheet->rejection_remarks = "[{$roleLabel}] " . $request->rejection_remarks . " - " . $user->name . " (" . now()->format('d/m/Y H:i') . ")";
+
             $checksheet->save();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             return response('Error: ' . $e->getMessage(), 500);
         }
