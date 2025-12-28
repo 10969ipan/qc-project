@@ -85,7 +85,21 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager']
     Route::get('checksheets/{checksheet}/edit', [ChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::put('checksheets/{checksheet}', [ChecksheetController::class, 'update'])->name('checksheets.update');
     Route::delete('checksheets/{checksheet}', [ChecksheetController::class, 'destroy'])->name('checksheets.destroy');
+});
 
+// --- Rute Khusus Admin ---
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Admin-only Approval Override for Sub Assy
+    Route::get('checksheets/{id}/edit-approval', [ChecksheetController::class, 'editApproval'])->name('checksheets.edit_approval');
+    Route::put('checksheets/{id}/update-approval', [ChecksheetController::class, 'updateApproval'])->name('checksheets.update_approval');
+    
+    // Admin-only Approval Override for In Process
+    Route::get('in-process-checksheets/{id}/edit-approval', [InProcessChecksheetController::class, 'editApproval'])->name('in_process.edit_approval');
+    Route::put('in-process-checksheets/{id}/update-approval', [InProcessChecksheetController::class, 'updateApproval'])->name('in_process.update_approval');
+
+    // Admin-only Approval Override for Cross Cut
+    Route::get('cross-cut-checksheets/{id}/edit-approval', [CrossCutChecksheetController::class, 'editApproval'])->name('cross_cut.edit_approval');
+    Route::put('cross-cut-checksheets/{id}/update-approval', [CrossCutChecksheetController::class, 'updateApproval'])->name('cross_cut.update_approval');
 });
 
 // Laporan Checksheet Inprocess (Edit/Delete) - Without 'admin.' name prefix

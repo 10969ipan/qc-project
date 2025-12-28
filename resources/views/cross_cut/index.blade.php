@@ -255,6 +255,11 @@
                             @endif
 
                             <div class="btn-group btn-group-sm mt-1" role="group">
+                                @if(auth()->user()->role === 'admin')
+                                    <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}" class="btn btn-info" title="Edit Approval Status">
+                                        <i class="fas fa-user-check"></i>
+                                    </a>
+                                @endif
                                 <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning" title="Edit">
                                     <i class="fas fa-pencil-alt"></i>
                                 </a>

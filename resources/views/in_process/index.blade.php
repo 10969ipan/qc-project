@@ -359,6 +359,11 @@
                             {{-- Edit/Delete Actions --}}
                             {{-- Allowed for: Admin, Supervisor, Kashift, AsstManager. Not Inspector. --}}
                             <div class="btn-group btn-group-sm">
+                                @if(auth()->user()->role === 'admin')
+                                    <a href="{{ route('admin.in_process.edit_approval', $checksheet->id) }}" class="btn btn-info" title="Edit Approval Status">
+                                        <i class="fas fa-user-check"></i>
+                                    </a>
+                                @endif
                                 <a href="{{ route('in_process.edit', $checksheet->id) }}" class="btn btn-warning" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>

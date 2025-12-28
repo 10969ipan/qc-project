@@ -340,4 +340,64 @@ class CrossCutChecksheetController extends Controller
             }
         }
     }
+
+    // Show the form for admins to edit approval status
+    public function editApproval($id)
+    {
+        $checksheet = CrossCutChecksheet::findOrFail($id);
+        return view('cross_cut.edit_approval', compact('checksheet'));
+    }
+
+    // Update the approval status by admin
+    public function updateApproval(Request $request, $id)
+    {
+        $checksheet = CrossCutChecksheet::findOrFail($id);
+        $user = auth()->user(); // Admin user
+
+        $validated = $request->validate([
+            'kashift_qc' => 'required|in:Pending,Approved,Rejected',
+            'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
+            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'manager_qc' => 'required|in:Pending,Approved,Rejected',
+        ]);
+
+        // Helper function to update a single approval level
+        $updateLevel = function ($level, $status) use ($checksheet, $user) {
+            $nameField = "{$level}_qc";
+            $dateField = "{$level}_approved_at";
+
+            if ($status === 'Approved') {
+                if (is_null($checksheet->$nameField) || $checksheet->$nameField === 'REJECTED') {
+                    $checksheet->$nameField = $user->name;
+                    $checksheet->$dateField = now();
+                }
+            } elseif ($status === 'Rejected') {
+                if ($checksheet->$nameField !== 'REJECTED') {
+                    $checksheet->$nameField = 'REJECTED';
+                    $checksheet->$dateField = now();
+                }
+            } else { // Pending
+                $checksheet->$nameField = null;
+                $checksheet->$dateField = null;
+            }
+        };
+
+        $updateLevel('kashift', $validated['kashift_qc']);
+        $updateLevel('supervisor', $validated['supervisor_qc']);
+        $updateLevel('asst_manager', $validated['asst_manager_qc']);
+        $updateLevel('manager', $validated['manager_qc']);
+        
+        // Update the main approval status based on the final level
+        if ($checksheet->manager_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->kashift_qc === 'REJECTED') {
+            $checksheet->approval_status = 'Rejected';
+        } elseif ($checksheet->manager_qc) {
+            $checksheet->approval_status = 'Approved';
+        } else {
+            $checksheet->approval_status = 'Pending';
+        }
+
+        $checksheet->save();
+
+        return redirect()->route('cross_cut.index')->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+    }
 }
