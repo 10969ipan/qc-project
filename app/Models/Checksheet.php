@@ -31,6 +31,7 @@ class Checksheet extends Model
         'manager_qc',
         'manager_approved_at',
         'cycle_time',
+        'rejection_remarks',
     ];
 
     public function item()

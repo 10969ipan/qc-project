@@ -51,11 +51,7 @@ class ItemController extends Controller
 
     public function create()
     {
-        $items = Item::paginate(10);
-        return view('admin.items.create', [
-            'items' => $items,
-            'partDimensionStandards' => json_encode($this->partDimensionStandards)
-        ]);
+        return view('admin.items.create');
     }
 
     public function store(Request $request)

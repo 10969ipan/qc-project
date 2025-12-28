@@ -37,6 +37,7 @@ class CrossCutChecksheet extends Model
         'asst_manager_approved_at',
         'manager_qc',
         'manager_approved_at',
+        'rejection_remarks',
     ];
 
     public function item()

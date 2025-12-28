@@ -94,7 +94,32 @@
                                 <!-- Result Remark -->
                                 <td class="align-middle"><input type="text" class="form-control" name="result_remark"></td>
                                 <!-- Inisial QC -->
-                                <td class="align-middle"><input type="text" class="form-control" name="operator_initials" placeholder="Inisial"></td>
+                                <td class="align-middle">
+                                    @php
+                                        $initial = '';
+                                        if (auth()->check()) {
+                                            $name = strtolower(auth()->user()->name);
+                                            if (str_contains($name, 'anggi')) {
+                                                $initial = 'AP';
+                                            } elseif (str_contains($name, 'irfan')) {
+                                                $initial = 'IA';
+                                            } elseif (str_contains($name, 'gugun')) {
+                                                $initial = 'GK';
+                                            } elseif (str_contains($name, 'dede')) {
+                                                $initial = 'DS';
+                                            } elseif (str_contains($name, 'arga')) {
+                                                $initial = 'AY';
+                                            } elseif (str_contains($name, 'sopian')) {
+                                                $initial = 'SH';
+                                            } elseif (str_contains($name, 'yono')) {
+                                                $initial = 'YS';
+                                            } elseif (str_contains($name, 'dinar')) {
+                                                $initial = 'DA';
+                                            }
+                                        }
+                                    @endphp
+                                    <input type="text" class="form-control text-center" name="operator_initials" placeholder="Inisial" value="{{ $initial }}" required>
+                                </td>
                                 <!-- Keterangan -->
                                 <td class="align-middle"><textarea class="form-control" name="keterangan" rows="3"></textarea></td>
                             </tr>
