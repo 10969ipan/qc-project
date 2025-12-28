@@ -186,7 +186,16 @@
                             @endif
                         </td>
                         
-                        <td class="align-middle">{{ $checksheet->keterangan }}</td>
+                        <td class="align-middle">
+                            @if($checksheet->rejection_remarks)
+                                <div class="text-danger font-weight-bold">
+                                    <i class="fas fa-exclamation-triangle"></i> REJECTED
+                                </div>
+                                <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
+                            @else
+                                {{ $checksheet->keterangan }}
+                            @endif
+                        </td>
 
                         @if(auth()->user()->role !== 'inspector')
                         <td class="align-middle no-export">
@@ -203,10 +212,9 @@
                                         @csrf
                                         <button type="submit" class="btn btn-success" title="Approve (Kashift)"><i class="fas fa-check"></i></button>
                                     </form>
-                                    <form action="{{ route('cross_cut.reject', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger" title="Reject (Kashift)"><i class="fas fa-times"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-danger" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                             @endif
 
@@ -216,10 +224,9 @@
                                         @csrf
                                         <button type="submit" class="btn btn-success" title="Approve (SPV)"><i class="fas fa-check"></i></button>
                                     </form>
-                                     <form action="{{ route('cross_cut.reject', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger" title="Reject (SPV)"><i class="fas fa-times"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-danger" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                             @endif
 
@@ -229,10 +236,9 @@
                                         @csrf
                                         <button type="submit" class="btn btn-success" title="Approve (AM)"><i class="fas fa-check"></i></button>
                                     </form>
-                                     <form action="{{ route('cross_cut.reject', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger" title="Reject (AM)"><i class="fas fa-times"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-danger" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                             @endif
 
@@ -242,10 +248,9 @@
                                         @csrf
                                         <button type="submit" class="btn btn-success" title="Approve (MGR)"><i class="fas fa-check"></i></button>
                                     </form>
-                                     <form action="{{ route('cross_cut.reject', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger" title="Reject (MGR)"><i class="fas fa-times"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-danger" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                             @endif
 
@@ -296,6 +301,77 @@
         </div>
     </div>
 </div>
+
+<!-- Rejection Modal for each checksheet and type -->
+@foreach($checksheets as $cs)
+    @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+        @php
+            $canReject = false;
+            if ($rejectType == 'kashift' && ((auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$cs->kashift_qc)) {
+                $canReject = true;
+            } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $cs->kashift_qc && $cs->kashift_qc !== 'REJECTED' && !$cs->supervisor_qc)) {
+                $canReject = true;
+            } elseif ($rejectType == 'asst_manager' && ((auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && $cs->supervisor_qc && $cs->supervisor_qc !== 'REJECTED' && !$cs->asst_manager_qc)) {
+                $canReject = true;
+            } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $cs->asst_manager_qc && $cs->asst_manager_qc !== 'REJECTED' && !$cs->manager_qc)) {
+                $canReject = true;
+            }
+        @endphp
+        @if($canReject)
+        <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ route('cross_cut.reject', ['id' => $cs->id, 'type' => $rejectType]) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai <strong>{{ ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
+                            </div>
+                            <div class="form-group">
+                                <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
+                                    Alasan Rejection <span class="text-danger">*</span>
+                                </label>
+                                <textarea 
+                                    class="form-control @error('rejection_remarks') is-invalid @enderror" 
+                                    id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" 
+                                    name="rejection_remarks" 
+                                    rows="4" 
+                                    placeholder="Masukkan alasan rejection (minimal 10 karakter)" 
+                                    required
+                                    minlength="10"
+                                    maxlength="500">{{ old('rejection_remarks') }}</textarea>
+                                <small class="form-text text-muted">
+                                    <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
+                                </small>
+                                @error('rejection_remarks')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                <i class="fas fa-times"></i> Batal
+                            </button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-ban"></i> Tolak Checksheet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+    @endforeach
+@endforeach
+
 @endsection
 
 @push('scripts')
@@ -303,6 +379,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Character counter for rejection remarks
+        @foreach($checksheets as $cs)
+            @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+                const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
+                const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
+                if (textarea{{ $cs->id }}{{ $rejectType }}) {
+                    textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function() {
+                        charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
+                    });
+                }
+            @endforeach
+        @endforeach
         const viewImageButtons = document.querySelectorAll('.view-image-btn');
         const modalImage = document.getElementById('modalImage');
         const modalItemName = document.getElementById('modalItemName');
