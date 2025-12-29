@@ -53,7 +53,7 @@
                                         <!-- Pilihan Barang -->
                                         <td class="align-middle">
                                             <select class="form-control" name="item_id" id="itemSelect" required>
-                                                <option value="" disabled selected>-- Pilih Barang --</option>
+                                                <option value="" disabled selected style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
                                                 @foreach($items as $item)
                                                     <option value="{{ $item->id }}"
                                                             data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"

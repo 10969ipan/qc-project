@@ -29,9 +29,9 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mb-0">
-                        <label for="item_id">Filter Part/Barang</label>
+                        <label for="item_id">Filter Item Part</label>
                         <select name="item_id" class="form-control">
-                            <option value="">Semua Barang</option>
+                            <option value="">Semua Item Part</option>
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
@@ -77,9 +77,9 @@
                         <th rowspan="2" class="align-middle">Jam (After)</th>
                         <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                         <th rowspan="2" class="align-middle">Shift</th>
-                        <th rowspan="2" class="align-middle">Barang</th>
-                        <th rowspan="2" class="align-middle">Part No</th>
+                        <th rowspan="2" class="align-middle">Item Part</th>
                         <th rowspan="2" class="align-middle">Customer</th>
+                        <th rowspan="2" class="align-middle">Part No</th>
                         <th rowspan="2" class="align-middle">Total Qty</th>
                         <th rowspan="2" class="align-middle">Sampling Qty</th>
                         <th rowspan="2" class="align-middle">Check Dimensi</th>
@@ -112,8 +112,8 @@
                         <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                         <td class="align-middle">{{ $checksheet->shift }}</td>
                         <td class="align-middle">{{ $checksheet->item->name ?? '-' }}</td>
-                        <td class="align-middle">{{ $checksheet->item->part_number ?? '-' }}</td>
                         <td class="align-middle">{{ $checksheet->item->customer ?? '-' }}</td>
+                        <td class="align-middle">{{ $checksheet->item->part_number ?? '-' }}</td>
                         <td class="align-middle">{{ $checksheet->total_qty }}</td>
                         <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
                         

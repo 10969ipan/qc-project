@@ -20,8 +20,9 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="item_id">Barang</label>
+                        <label for="item_id">Item Part</label>
                         <select name="item_id" id="item_id" class="form-control" required>
+                            <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
                                     {{ $item->name }} ({{ $item->customer }})

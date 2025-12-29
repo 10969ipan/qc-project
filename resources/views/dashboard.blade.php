@@ -16,11 +16,11 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center">
-                        <img class="img-fluid px-3 px-sm-4 mt-3 mb-4" style="width: 70rem;"
-                            src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/Walpaper Dashboard.jpg') }}" alt="...">
+                        <img class="img-fluid dashboard-image px-3 px-sm-4 mt-3 mb-4"
+                            src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/Walpaper Dashboard.jpg') }}" alt="Dashboard">
                     </div>
-                    <p>Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.</p>
-                    <p>Selamat bekerja!</p>
+                    <p class="mb-2">Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.</p>
+                    <p class="mb-0">Selamat bekerja!</p>
                 </div>
             </div>
         </div>

@@ -16,16 +16,17 @@
         rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
 
 </head>
 
 <body class="bg-gradient-primary">
 
-    <div class="container">
+    <div class="container px-3">
 
         <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
 
-            <div class="col-xl-5 col-lg-6 col-md-9">
+            <div class="col-xl-5 col-lg-6 col-md-8 col-12">
 
                 <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
@@ -53,9 +54,10 @@
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
                                                 placeholder="Username" required autofocus>
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group position-relative">
                                             <input type="password" name="password" class="form-control form-control-user text-center"
                                                 id="exampleInputPassword" placeholder="Password" required>
+                                            <span toggle="#exampleInputPassword" class="fa fa-fw fa-eye field-icon toggle-password" style="position: absolute; right: 20px; top: 15px; cursor: pointer;"></span>
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small text-center">
@@ -88,6 +90,20 @@
 
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}"></script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.querySelector('.toggle-password');
+            const password = document.querySelector('#exampleInputPassword');
+
+            togglePassword.addEventListener('click', function (e) {
+                // toggle the type attribute
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                // toggle the eye slash icon
+                this.classList.toggle('fa-eye-slash');
+            });
+        });
+    </script>
 </body>
 
 </html>

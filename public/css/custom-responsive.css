@@ -1,0 +1,489 @@
+/* Custom Responsive CSS for Mobile Devices */
+
+/* Mobile First - Base Styles */
+@media (max-width: 767.98px) {
+    /* Container padding untuk mobile */
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    /* Card spacing untuk mobile */
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    /* Heading sizes untuk mobile */
+    h1, .h1 {
+        font-size: 1.5rem;
+    }
+
+    h2, .h2 {
+        font-size: 1.3rem;
+    }
+
+    h3, .h3 {
+        font-size: 1.1rem;
+    }
+
+    h4, .h4 {
+        font-size: 1rem;
+    }
+
+    /* Topbar adjustments untuk mobile */
+    .topbar {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Topbar user dropdown untuk mobile */
+    .navbar-nav .dropdown-menu {
+        right: 0;
+        left: auto;
+        min-width: 150px;
+    }
+
+    /* Topbar user name - hide di mobile kecil */
+    .topbar .d-none.d-lg-inline {
+        display: none !important;
+    }
+
+    /* Sidebar brand text size untuk mobile */
+    .sidebar-brand-text {
+        font-size: 0.9rem;
+    }
+
+    /* Content padding untuk mobile */
+    #content {
+        padding: 0;
+    }
+
+    /* Card header padding untuk mobile */
+    .card-header {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    /* Button sizes untuk mobile */
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Form controls untuk mobile */
+    .form-control, .form-control-user {
+        font-size: 16px; /* Mencegah zoom pada iOS */
+        padding: 0.75rem;
+    }
+
+    /* Table responsive wrapper */
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        font-size: 0.875rem;
+    }
+
+    /* Alert messages untuk mobile */
+    .alert {
+        font-size: 0.875rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Modal untuk mobile */
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-content {
+        border-radius: 0.35rem;
+    }
+
+    /* Footer untuk mobile */
+    footer.sticky-footer {
+        padding: 1rem 0;
+        font-size: 0.875rem;
+    }
+
+    /* Dashboard image responsive */
+    .dashboard-image {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Spacing utilities untuk mobile */
+    .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+
+    .mt-4 {
+        margin-top: 1rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Badge sizes untuk mobile */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+
+    /* Dropdown menu untuk mobile */
+    .dropdown-menu {
+        font-size: 0.875rem;
+    }
+
+    /* Nav links untuk mobile */
+    .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    /* Collapse items untuk mobile */
+    .collapse-item {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Input groups untuk mobile */
+    .input-group {
+        flex-wrap: wrap;
+    }
+
+    .input-group-prepend,
+    .input-group-append {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .input-group-prepend .btn,
+    .input-group-append .btn {
+        width: 100%;
+    }
+}
+
+/* Small Mobile Devices (max-width: 575.98px) */
+@media (max-width: 575.98px) {
+    /* Even smaller padding */
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Smaller headings */
+    h1, .h1 {
+        font-size: 1.25rem;
+    }
+
+    h2, .h2 {
+        font-size: 1.1rem;
+    }
+
+    h3, .h3 {
+        font-size: 1rem;
+    }
+
+    /* Smaller buttons */
+    .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    /* Smaller card padding */
+    .card-body {
+        padding: 0.75rem;
+    }
+
+    .card-header {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Hide less important elements */
+    .text-muted {
+        font-size: 0.75rem;
+    }
+
+    /* Table font smaller */
+    .table {
+        font-size: 0.8rem;
+    }
+
+    .table td, .table th {
+        padding: 0.5rem;
+    }
+
+    /* Sidebar brand smaller */
+    .sidebar-brand-text {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet Devices (768px - 991.98px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+}
+
+/* Ensure images are always responsive */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Fix for fixed width images */
+img[style*="width"] {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Improve touch targets pada mobile */
+@media (max-width: 767.98px) {
+    a, button, .btn, .nav-link, .collapse-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dropdown-item {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Prevent horizontal scroll */
+body {
+    overflow-x: hidden;
+}
+
+/* Improve readability pada mobile */
+@media (max-width: 767.98px) {
+    body {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    p {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* Login page responsive improvements */
+@media (max-width: 767.98px) {
+    .bg-gradient-primary {
+        padding: 1rem 0;
+    }
+
+    .card.o-hidden {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .card-body .p-5 {
+        padding: 1.5rem !important;
+    }
+
+    .form-control-user {
+        font-size: 16px; /* Mencegah zoom pada iOS */
+    }
+
+    .btn-user {
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+}
+
+/* Fix untuk form controls yang terlalu kecil di mobile */
+@media (max-width: 767.98px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        font-size: 16px !important; /* Mencegah zoom otomatis di iOS */
+    }
+}
+
+/* DataTables responsive untuk mobile */
+@media (max-width: 767.98px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.8rem;
+    }
+
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        padding: 0.25rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Form filter responsive untuk mobile */
+@media (max-width: 767.98px) {
+    .card-body form .row > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+
+    .card-body form .row > [class*="col-"]:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Button groups untuk mobile */
+    .btn-group-vertical {
+        width: 100%;
+    }
+
+    .btn-group-vertical > .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-group-vertical > .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Search form buttons untuk mobile */
+    form .d-flex.align-items-end .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    form .d-flex.align-items-end .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Action buttons di table untuk mobile */
+    .table td .btn-group,
+    .table td .btn {
+        white-space: nowrap;
+    }
+
+    /* Card header dengan button untuk mobile */
+    .d-sm-flex.align-items-center .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .d-sm-flex.align-items-center .d-none.d-sm-inline-block {
+        display: inline-block !important;
+        width: 100%;
+    }
+}
+
+/* Button spacing untuk mobile */
+@media (max-width: 575.98px) {
+    .btn + .btn {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+
+    .text-right .btn,
+    .text-md-right .btn {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: 0.5rem;
+    }
+
+    .text-right .btn:first-child,
+    .text-md-right .btn:first-child {
+        margin-top: 0;
+    }
+}
+
+/* Styling untuk Item Part Select Dropdown */
+select.form-control option[value=""]:disabled {
+    font-weight: bold !important;
+    color: #6c757d !important;
+    background-color: #f8f9fa !important;
+}
+
+select.form-control:required:invalid {
+    color: #6c757d;
+}
+
+select.form-control:required:invalid option[value=""]:disabled {
+    display: block;
+}
+
+/* Highlight untuk Item Part select saat belum dipilih */
+select#itemSelect:invalid,
+select#item_id:invalid {
+    border-color: #ced4da;
+}
+
+select#itemSelect:valid,
+select#item_id:valid {
+    border-color: #28a745;
+}
+
+/* Camera capture button styling untuk mobile */
+@media (max-width: 767.98px) {
+    #captureBtn {
+        min-height: 50px;
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    #captureBtn i {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+}
+
+/* Camera button hover effect */
+#captureBtn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+#captureBtn:active {
+    transform: scale(0.98);
+}
+
+/* File name display styling */
+#fileName {
+    word-break: break-all;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* Print styles - hide unnecessary elements pada mobile print */
+@media print {
+    .sidebar,
+    .topbar,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+}
+

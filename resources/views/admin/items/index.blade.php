@@ -6,7 +6,7 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Manajemen Data Barang</h1>
     @if(auth()->user()->role !== 'inspector')
-    <a href="{{ route('admin.items.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+    <a href="{{ route('admin.items.create') }}" class="btn btn-sm btn-primary shadow-sm mt-2 mt-sm-0">
         <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Barang
     </a>
     @endif
@@ -19,20 +19,20 @@
     <div class="card-body">
         <form action="{{ route('admin.items.index') }}" method="GET" class="mb-4">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-3 col-12 mb-3 mb-md-0">
                     <label for="name">Nama Barang</label>
                     <input type="text" name="name" class="form-control" value="{{ request('name') }}" placeholder="Cari Nama Barang...">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-12 mb-3 mb-md-0">
                     <label for="customer">Customer</label>
                     <input type="text" name="customer" class="form-control" value="{{ request('customer') }}" placeholder="Cari Customer...">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-12 mb-3 mb-md-0">
                     <label for="part_number">No Part</label>
                     <input type="text" name="part_number" class="form-control" value="{{ request('part_number') }}" placeholder="Cari No Part...">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary mr-2">Cari</button>
+                <div class="col-md-3 col-12 d-flex flex-column flex-md-row align-items-stretch align-items-md-end">
+                    <button type="submit" class="btn btn-primary mr-md-2 mb-2 mb-md-0">Cari</button>
                     <a href="{{ route('admin.items.index') }}" class="btn btn-secondary">Reset</a>
                 </div>
             </div>

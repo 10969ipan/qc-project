@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard')</title>
     <link rel="icon" href="{{ asset('master item/ipp.jpg') }}" type="image/jpeg">
 
@@ -13,6 +14,7 @@
         rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
 
 </head>
 
@@ -26,7 +28,7 @@
             <div id="content">
 
                 @include('layouts.topbar')
-                <div class="container-fluid">
+                <div class="container-fluid px-3 px-md-4 py-3 py-md-4">
 
                     {{-- Konten Utama Halaman Diletakkan di sini --}}
                     @yield('content')
@@ -128,6 +130,9 @@
                 }
             });
         });
+
+        // Catatan: Auto logout saat browser ditutup ditangani oleh config session.php
+        // dengan expire_on_close => true. Session cookie akan otomatis expire saat browser ditutup.
     </script>
 
     {{-- Tambahkan script lain yang dibutuhkan di sini --}}

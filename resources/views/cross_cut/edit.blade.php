@@ -28,6 +28,8 @@
                         <thead>
                             <tr class="text-center">
                                 <th>Item Part</th>
+                                <th>Customer</th>
+                                <th>Part No</th>
                                 <th>Tanggal & Shift Produksi / QC</th>
                                 <th>Hasil Cross Cut</th>
                                 <th>Kimia</th>
@@ -42,11 +44,24 @@
                                 <!-- Item Part -->
                                 <td class="align-middle" style="min-width: 200px;">
                                     <select class="form-control" id="item_id" name="item_id" required>
-                                        <option value="">-- Select Item --</option>
+                                        <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
                                         @foreach($items as $item)
-                                            <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
+                                            <option value="{{ $item->id }}" 
+                                                    data-customer="{{ $item->customer ?? '' }}" 
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
+                                                {{ $item->name }}
+                                            </option>
                                         @endforeach
                                     </select>
+                                </td>
+                                <!-- Customer -->
+                                <td class="align-middle">
+                                    <input type="text" class="form-control" id="customer" name="customer" value="{{ $checksheet->item->customer ?? '' }}" readonly style="background-color: #e9ecef;">
+                                </td>
+                                <!-- Part No -->
+                                <td class="align-middle">
+                                    <input type="text" class="form-control" id="part_number" name="part_number" value="{{ $checksheet->item->part_number ?? '' }}" readonly style="background-color: #e9ecef;">
                                 </td>
                                 <!-- Tanggal & Shift Produksi / QC -->
                                 <td class="align-middle" style="min-width: 250px;">
@@ -150,6 +165,26 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Update Customer and Part No when item is selected
+    $('#item_id').on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var customer = selectedOption.data('customer') || '';
+        var partNumber = selectedOption.data('part-number') || '';
+        
+        $('#customer').val(customer);
+        $('#part_number').val(partNumber);
+    });
+
+    // Initialize customer and part_number on page load
+    var selectedOption = $('#item_id').find('option:selected');
+    if (selectedOption.length && selectedOption.val()) {
+        var customer = selectedOption.data('customer') || '';
+        var partNumber = selectedOption.data('part-number') || '';
+        
+        $('#customer').val(customer || '{{ $checksheet->item->customer ?? "" }}');
+        $('#part_number').val(partNumber || '{{ $checksheet->item->part_number ?? "" }}');
+    }
+
     // Image Preview Logic
     $('#image').on('change', function(event) {
         var file = event.target.files[0];
