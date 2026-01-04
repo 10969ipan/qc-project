@@ -13,11 +13,11 @@
                         <i class="fas fa-calendar-alt fa-lg text-primary mr-2"></i>
                         <h6 class="m-0 font-weight-bold text-gray-700" id="current-date">Loading...</h6>
                     </div>
-                </div>
-                <div class="card-body">                    
                     <p class="mb-2">Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.
                     </p>
                     <p class="mb-0">Selamat bekerja!</p>
+                </div>
+                <div class="card-body">                    
                     <div class="text-center">
                         <img class="img-fluid dashboard-image px-3 px-sm-4 mt-3 mb-4"
                             src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/Walpaper Dashboard.jpg') }}"
