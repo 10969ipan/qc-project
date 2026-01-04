@@ -341,19 +341,19 @@
                 @csrf
                 <div class="form-group">
                     <input type="email" name="email" class="form-control-modern" id="exampleInputEmail"
-                        placeholder="Email Address" required autofocus>
+                        placeholder="Email Address" required autofocus value="{{ old('email', $saved_email ?? '') }}">
                 </div>
 
                 <div class="form-group">
                     <div class="password-wrapper">
                         <input type="password" name="password" class="form-control-modern" id="exampleInputPassword"
-                            placeholder="Password" required>
+                            placeholder="Password" required value="{{ $saved_password ?? '' }}">
                         <span toggle="#exampleInputPassword" class="fas fa-eye toggle-password"></span>
                     </div>
                 </div>
 
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="customCheck">
+                    <input type="checkbox" name="remember" id="customCheck" {{ (old('remember') || ($is_remembered ?? false)) ? 'checked' : '' }}>
                     <label for="customCheck">Remember Me</label>
                 </div>
 
