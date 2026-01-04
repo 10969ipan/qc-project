@@ -16,10 +16,13 @@ class Item extends Model
         'file_path',
         'customer',
         'part_number',
+        'part_number',
+        'dimension_standards',
         'defects',
     ];
 
     protected $casts = [
         'defects' => 'array',
+        'dimension_standards' => 'array',
     ];
 }

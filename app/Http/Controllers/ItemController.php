@@ -51,7 +51,8 @@ class ItemController extends Controller
 
     public function create()
     {
-        return view('admin.items.create');
+        $partDimensionStandards = $this->partDimensionStandards;
+        return view('admin.items.create', compact('partDimensionStandards'));
     }
 
     public function store(Request $request)
@@ -62,6 +63,9 @@ class ItemController extends Controller
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'defects' => 'nullable|string',
+            'dimension_points' => 'nullable|array',
+            'dimension_sizes' => 'nullable|array',
+            'dimension_tolerances' => 'nullable|array',
         ]);
 
         $filePath = null;
@@ -77,20 +81,36 @@ class ItemController extends Controller
             $defects = array_values(array_filter(array_map('trim', explode("\n", $request->defects))));
         }
 
+        $dimension_standards = null;
+        if ($request->filled('dimension_points')) {
+            $dimension_standards = [];
+            foreach ($request->dimension_points as $key => $point) {
+                if (!empty($point)) {
+                    $dimension_standards[] = [
+                        'point' => $point,
+                        'size' => $request->dimension_sizes[$key] ?? null,
+                        'tolerance' => $request->dimension_tolerances[$key] ?? null,
+                    ];
+                }
+            }
+        }
+
         Item::create([
             'name' => $validated['name'],
             'file_path' => $filePath,
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
             'defects' => $defects,
+            'dimension_standards' => $dimension_standards,
         ]);
 
-        return redirect()->route('admin.items.index')->with('success', 'Barang berhasil ditambahkan.');
+        return redirect()->route('admin.items.index')->with('success', 'Item berhasil ditambahkan.');
     }
 
     public function edit(Item $item)
     {
-        return view('admin.items.edit', compact('item'));
+        $partDimensionStandards = $this->partDimensionStandards;
+        return view('admin.items.edit', compact('item', 'partDimensionStandards'));
     }
 
     public function update(Request $request, Item $item)
@@ -101,6 +121,9 @@ class ItemController extends Controller
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'defects' => 'nullable|string',
+            'dimension_points' => 'nullable|array',
+            'dimension_sizes' => 'nullable|array',
+            'dimension_tolerances' => 'nullable|array',
         ]);
 
         if ($request->hasFile('file')) {
@@ -108,7 +131,7 @@ class ItemController extends Controller
             if ($item->file_path && file_exists(public_path($item->file_path))) {
                 unlink(public_path($item->file_path));
             }
-            
+
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('items_files'), $filename);
@@ -120,15 +143,30 @@ class ItemController extends Controller
             $defects = array_values(array_filter(array_map('trim', explode("\n", $request->defects))));
         }
 
+        $dimension_standards = null;
+        if ($request->filled('dimension_points')) {
+            $dimension_standards = [];
+            foreach ($request->dimension_points as $key => $point) {
+                if (!empty($point)) {
+                    $dimension_standards[] = [
+                        'point' => $point,
+                        'size' => $request->dimension_sizes[$key] ?? null,
+                        'tolerance' => $request->dimension_tolerances[$key] ?? null,
+                    ];
+                }
+            }
+        }
+
         $item->update([
             'name' => $validated['name'],
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
             'file_path' => $item->file_path,
             'defects' => $defects,
+            'dimension_standards' => $dimension_standards,
         ]);
 
-        return redirect()->route('admin.items.index')->with('success', 'Barang berhasil diperbarui.');
+        return redirect()->route('admin.items.index')->with('success', 'Item berhasil diperbarui.');
     }
 
     public function destroy(Item $item)
@@ -137,6 +175,6 @@ class ItemController extends Controller
             unlink(public_path($item->file_path));
         }
         $item->delete();
-        return redirect()->route('admin.items.index')->with('success', 'Barang berhasil dihapus.');
+        return redirect()->route('admin.items.index')->with('success', 'Item berhasil dihapus.');
     }
 }

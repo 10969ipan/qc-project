@@ -9,8 +9,10 @@
     <title>@yield('title', 'Dashboard')</title>
     <link rel="icon" href="{{ asset('master item/ipp.jpg') }}" type="image/jpeg">
 
-    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
+        rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
@@ -22,7 +24,7 @@
 
     <div id="wrapper">
 
-        @include('layouts.sidebar') 
+        @include('layouts.sidebar')
         <div id="content-wrapper" class="d-flex flex-column">
 
             <div id="content">
@@ -32,12 +34,12 @@
 
                     {{-- Konten Utama Halaman Diletakkan di sini --}}
                     @yield('content')
-                    
+
                 </div>
-                </div>
-            @include('layouts.footer')
             </div>
+            @include('layouts.footer')
         </div>
+    </div>
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
@@ -48,7 +50,8 @@
     </form>
 
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script
+        src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
 
@@ -91,9 +94,9 @@
                 text: @json(session('info')),
             });
         @endif
-        
+
         // Global Delete Confirmation
-        $(document).on('click', '.btn-delete', function(e) {
+        $(document).on('click', '.btn-delete', function (e) {
             e.preventDefault();
             var form = $(this).closest('form');
             Swal.fire({
@@ -113,10 +116,10 @@
         });
 
         // Logout Confirmation
-        $(document).on('click', '.btn-logout', function(e) {
+        $(document).on('click', '.btn-logout', function (e) {
             e.preventDefault();
             Swal.fire({
-                title: 'Apakah Anda yakin?',
+                title: 'Apakah Anda yakin ingin keluar?',
                 text: "Anda akan keluar dari sesi ini.",
                 icon: 'warning',
                 showCancelButton: true,
