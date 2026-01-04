@@ -10,12 +10,11 @@
                 <div class="card-header py-3 d-flex align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Selamat Datang, {{ Auth::user()->name }}!</h6>
                     <div class="d-flex align-items-center">
+                        <p class="mb-2">Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.</p>
+                        <p class="mb-0">Selamat bekerja!</p>
                         <i class="fas fa-calendar-alt fa-lg text-primary mr-2"></i>
                         <h6 class="m-0 font-weight-bold text-gray-700" id="current-date">Loading...</h6>
                     </div>
-                    <p class="mb-2">Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.
-                    </p>
-                    <p class="mb-0">Selamat bekerja!</p>
                 </div>
                 <div class="card-body">                    
                     <div class="text-center">
