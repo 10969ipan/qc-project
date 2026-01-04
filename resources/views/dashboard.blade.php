@@ -16,7 +16,7 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center">
-                        <img class="img-fluid dashboard-image px-3 px-sm-4 mt-3 mb-4" style="max-width: 150px;"
+                        <img class="img-fluid dashboard-image px-3 px-sm-4 mt-3 mb-4" style="max-width: 250px;"
                             src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/Walpaper Dashboard.jpg') }}"
                             alt="Dashboard">
                     </div>
