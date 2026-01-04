@@ -10,18 +10,19 @@
                 <div class="card-header py-3 d-flex align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Selamat Datang, {{ Auth::user()->name }}!</h6>
                     <div class="d-flex align-items-center">
-                        <p class="mb-2">Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.</p>
-                        <p class="mb-0">Selamat bekerja!</p>
                         <i class="fas fa-calendar-alt fa-lg text-primary mr-2"></i>
                         <h6 class="m-0 font-weight-bold text-gray-700" id="current-date">Loading...</h6>
                     </div>
                 </div>
-                <div class="card-body">                    
+                <div class="card-body">
                     <div class="text-center">
                         <img class="img-fluid dashboard-image px-3 px-sm-4 mt-3 mb-4"
                             src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/Walpaper Dashboard.jpg') }}"
-                            style="max-width: 100%;" alt="Dashboard">
+                            alt="Dashboard">
                     </div>
+                    <p class="mb-2">Anda telah berhasil masuk sebagai <strong>{{ ucfirst(Auth::user()->role) }}</strong>.
+                    </p>
+                    <p class="mb-0">Selamat bekerja!</p>
                 </div>
             </div>
         </div>
