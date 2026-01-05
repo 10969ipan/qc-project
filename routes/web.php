@@ -163,3 +163,14 @@ Route::middleware(['auth', 'role:inspector'])->prefix('inspector')->group(functi
     Route::get('report_qc', [ReportController::class, 'create'])->name('inspector.create_report');
     Route::post('report_qc', [ReportController::class, 'store'])->name('inspector.store_report');
 });
+// Serve storage files (alternatif symbolic link)
+Route::get('/storage/{path}', function ($path) {
+    $file = storage_path('app/public/' . $path);
+    
+    if (!file_exists($file)) {
+        abort(404);
+    }
+    
+    $mimeType = mime_content_type($file);
+    return response()->file($file, ['Content-Type' => $mimeType]);
+})->where('path', '.*')->name('storage.serve');
