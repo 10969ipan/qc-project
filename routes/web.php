@@ -192,6 +192,19 @@ Route::get('/storage/{path}', function ($path) {
         return response()->file($masterItemFile, ['Content-Type' => $mimeType]);
     }
 
+    // 4. Fallback: cek di master item/ahm/ TANPA timestamp prefix
+    // Database: items_files/1767595986_BELUM REVISI.pdf
+    // File real: master item/ahm/BELUM REVISI.pdf (tanpa timestamp)
+    if (preg_match('/^\d+_(.+)$/', $filename, $matches)) {
+        $filenameWithoutTimestamp = $matches[1];
+        $masterItemFileNoTimestamp = public_path('master item/ahm/' . $filenameWithoutTimestamp);
+
+        if (file_exists($masterItemFileNoTimestamp)) {
+            $mimeType = mime_content_type($masterItemFileNoTimestamp);
+            return response()->file($masterItemFileNoTimestamp, ['Content-Type' => $mimeType]);
+        }
+    }
+
     // File tidak ditemukan di semua lokasi
     abort(404, 'File tidak ditemukan');
 })->where('path', '.*')->name('storage.serve');
