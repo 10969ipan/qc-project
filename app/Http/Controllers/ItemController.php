@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
@@ -73,8 +72,8 @@ class ItemController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
-            // Use Storage facade with public disk
-            $filePath = $file->storeAs('items_files', $filename, 'public');
+            $file->move(public_path('items_files'), $filename);
+            $filePath = 'items_files/' . $filename;
         }
 
         $defects = null;
@@ -129,14 +128,14 @@ class ItemController extends Controller
 
         if ($request->hasFile('file')) {
             // Delete old file if exists
-            if ($item->file_path && Storage::disk('public')->exists($item->file_path)) {
-                Storage::disk('public')->delete($item->file_path);
+            if ($item->file_path && file_exists(public_path($item->file_path))) {
+                unlink(public_path($item->file_path));
             }
 
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
-            // Use Storage facade with public disk
-            $item->file_path = $file->storeAs('items_files', $filename, 'public');
+            $file->move(public_path('items_files'), $filename);
+            $item->file_path = 'items_files/' . $filename;
         }
 
         $defects = null;
@@ -172,8 +171,8 @@ class ItemController extends Controller
 
     public function destroy(Item $item)
     {
-        if ($item->file_path && Storage::disk('public')->exists($item->file_path)) {
-            Storage::disk('public')->delete($item->file_path);
+        if ($item->file_path && file_exists(public_path($item->file_path))) {
+            unlink(public_path($item->file_path));
         }
         $item->delete();
         return redirect()->route('admin.items.index')->with('success', 'Item berhasil dihapus.');

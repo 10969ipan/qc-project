@@ -17,7 +17,7 @@
                     <label>File (PDF)</label>
                     @if($item->file_path)
                         <div class="mb-2">
-                            <a href="{{ url('/storage/' . $item->file_path) }}" target="_blank" class="btn btn-sm btn-info">
+                            <a href="{{ asset($item->file_path) }}" target="_blank" class="btn btn-sm btn-info">
                                 <i class="fas fa-file-pdf"></i> Lihat PDF
                             </a>
                         </div>
