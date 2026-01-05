@@ -177,3 +177,39 @@ Route::get('/storage/master item/ahm/{filename}', function ($filename) {
     return response()->file($file, ['Content-Type' => $mimeType]);
 })->where('filename', '.*')->name('storage.master_item');
 
+// Route: Serve files dari items_files/ dengan fallback ke beberapa lokasi
+Route::get('/items_files/{filename}', function ($filename) {
+    // 1. Cek di public/items_files/ (lokasi default)
+    $publicFile = public_path('items_files/' . $filename);
+    if (file_exists($publicFile)) {
+        $mimeType = mime_content_type($publicFile);
+        return response()->file($publicFile, ['Content-Type' => $mimeType]);
+    }
+
+    // 2. Fallback: cek di storage/app/public/items_files/
+    $storageFile = storage_path('app/public/items_files/' . $filename);
+    if (file_exists($storageFile)) {
+        $mimeType = mime_content_type($storageFile);
+        return response()->file($storageFile, ['Content-Type' => $mimeType]);
+    }
+
+    // 3. Fallback: cek di master item/ahm/ (untuk file yang dipindahkan)
+    $masterFile = public_path('master item/ahm/' . $filename);
+    if (file_exists($masterFile)) {
+        $mimeType = mime_content_type($masterFile);
+        return response()->file($masterFile, ['Content-Type' => $mimeType]);
+    }
+
+    // 4. Fallback: cek tanpa timestamp prefix
+    if (preg_match('/^\d+_(.+)$/', $filename, $matches)) {
+        $filenameNoTimestamp = $matches[1];
+        $masterFileNoTimestamp = public_path('master item/ahm/' . $filenameNoTimestamp);
+
+        if (file_exists($masterFileNoTimestamp)) {
+            $mimeType = mime_content_type($masterFileNoTimestamp);
+            return response()->file($masterFileNoTimestamp, ['Content-Type' => $mimeType]);
+        }
+    }
+
+    abort(404, 'File tidak ditemukan: ' . $filename);
+})->where('filename', '.*')->name('items_files.serve');
