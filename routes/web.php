@@ -163,3 +163,17 @@ Route::middleware(['auth', 'role:inspector'])->prefix('inspector')->group(functi
     Route::get('report_qc', [ReportController::class, 'create'])->name('inspector.create_report');
     Route::post('report_qc', [ReportController::class, 'store'])->name('inspector.store_report');
 });
+
+// Temporary route: Serve files dari master item/ahm/ yang diakses via /storage/
+// Ini handle URL legacy/symbolic link yang salah di production
+Route::get('/storage/master item/ahm/{filename}', function ($filename) {
+    $file = public_path('master item/ahm/' . $filename);
+
+    if (!file_exists($file)) {
+        abort(404, 'File tidak ditemukan: ' . $filename);
+    }
+
+    $mimeType = mime_content_type($file);
+    return response()->file($file, ['Content-Type' => $mimeType]);
+})->where('filename', '.*')->name('storage.master_item');
+
