@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Report Monthly Sub Assy')
+@section('title', 'Report Monthly In-Process')
 
 @section('content')
     <div class="container-fluid">
 
         <!-- Page Heading -->
-
+        <h1 class="h3 mb-4 text-gray-800">Report Monthly In-Process</h1>
 
         <!-- Date Filter -->
         <div class="card shadow mb-4">
@@ -14,7 +14,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Filter Tanggal</h6>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('analysis.monthly_ng') }}" class="form-inline">
+                <form method="GET" action="{{ route('analysis.monthly_ng_in_process') }}" class="form-inline">
                     <div class="form-group mb-2">
                         <label for="start_date" class="mr-2">Mulai Tanggal:</label>
                         <input type="date" class="form-control mr-4" id="start_date" name="start_date"
@@ -26,7 +26,7 @@
                             value="{{ request('end_date') }}">
                     </div>
                     <button type="submit" class="btn btn-primary mb-2">Cari</button>
-                    <a href="{{ route('analysis.monthly_ng') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
+                    <a href="{{ route('analysis.monthly_ng_in_process') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
                 </form>
             </div>
         </div>
@@ -99,11 +99,23 @@
                 <!-- Detail Cycle Time per Item Chart -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Avg Cycle Time per Item (s)</h6>
+                        <h6 class="m-0 font-weight-bold text-primary">Standard Cycle Time per Item (s)</h6>
                     </div>
                     <div class="card-body">
                         <div class="chart-bar">
                             <canvas id="myItemCycleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Cycle Time per User Chart -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Kecepatan Kerja (%)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-bar">
+                            <canvas id="myInspectorItemCycleChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -223,8 +235,122 @@
                 }
             });
 
+            // --- Bar Chart (Avg Cycle Time per Item by User) ---
+            var ctxInspectorItemCycle = document.getElementById("myInspectorItemCycleChart");
+            var inspectorItemLabels = @json($inspectorItemLabels);
+            var inspectorItemDatasets = @json($inspectorItemDatasets);
+            var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
+
+            // Add datalabels config to each dataset
+            inspectorItemDatasets.forEach(dataset => {
+                dataset.datalabels = {
+                    color: '#fff',
+                    font: { weight: 'bold', size: 10 },
+                    anchor: 'center',
+                    align: 'center',
+                    formatter: function (value, ctx) {
+                        if (value > 0) {
+                            // ctx.dataIndex corresponds to the item index (y-axis category)
+                            // inspectorItemLabels matches itemCycleTimeDataForCalc keys
+                            var idx = ctx.dataIndex;
+                            var std = itemCycleTimeDataForCalc[idx];
+                            var pct = 0;
+                            if (std > 0) {
+                                pct = (value / std) * 100;
+                            }
+                            return pct.toFixed(0) + "%";
+                        }
+                        return "";
+                    }
+                };
+            });
+
+            var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
+                type: 'bar',
+                data: {
+                    labels: inspectorItemLabels,
+                    datasets: inspectorItemDatasets
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    indexAxis: 'y', // Horizontal bars
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 6
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                maxTicksLimit: 20, // Allow more items
+                                padding: 10,
+                                autoSkip: false // Show all item names
+                            },
+                            grid: {
+                                color: "rgb(234, 236, 244)",
+                                zeroLineColor: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            }
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: true, // Show legend for multiple users
+                            position: 'top',
+                            labels: {
+                                boxWidth: 10,
+                                padding: 10
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyColor: "#858796",
+                            titleMarginBottom: 10,
+                            titleColor: '#6e707e',
+                            titleFont: {
+                                size: 14,
+                            },
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            xPadding: 15,
+                            yPadding: 15,
+                            displayColors: true,
+                            intersect: false,
+                            mode: 'index',
+                            caretPadding: 10,
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    var std = itemCycleTimeDataForCalc[tooltipItem.dataIndex];
+                                    var pct = 0;
+                                    if (std > 0) {
+                                        pct = (tooltipItem.raw / std) * 100;
+                                    }
+                                    return tooltipItem.dataset.label + ': ' + pct.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             // --- Bar Chart (Avg Cycle Time per Item) ---
             var ctxItemCycle = document.getElementById("myItemCycleChart");
+            var sortedItemTotalPcs = @json($sortedItemTotalPcs);
+            var sortedItemTotalSeconds = @json($sortedItemTotalSeconds);
 
             var myItemCycleChart = new Chart(ctxItemCycle, {
                 type: 'bar',
@@ -307,7 +433,15 @@
                             caretPadding: 10,
                             callbacks: {
                                 label: function (tooltipItem) {
-                                    return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
+                                    var idx = tooltipItem.dataIndex;
+                                    var pcs = sortedItemTotalPcs[idx];
+                                    var secs = sortedItemTotalSeconds[idx];
+                                    return [
+                                        tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's',
+                                        'Standar: ' + tooltipItem.raw + ' s/pcs', // Display "Standard: X s/pcs"
+                                        'Total Pcs: ' + pcs,
+                                        'Total Detik: ' + secs
+                                    ];
                                 }
                             }
                         }
@@ -409,104 +543,6 @@
                             callbacks: {
                                 label: function (tooltipItem) {
                                     return tooltipItem.dataset.label + ': ' + tooltipItem.raw + '%';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // --- Cycle Time Chart (Trend) ---
-            var ctxCycle = document.getElementById("myCycleTimeChart");
-
-            var myCycleTimeChart = new Chart(ctxCycle, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Avg Cycle Time",
-                        lineTension: 0.3,
-                        backgroundColor: "rgba(246, 194, 62, 0.05)",
-                        borderColor: "rgba(246, 194, 62, 1)",
-                        pointRadius: 3,
-                        pointBackgroundColor: "rgba(246, 194, 62, 1)",
-                        pointBorderColor: "rgba(246, 194, 62, 1)",
-                        pointHoverRadius: 3,
-                        pointHoverBackgroundColor: "rgba(246, 194, 62, 1)",
-                        pointHoverBorderColor: "rgba(246, 194, 62, 1)",
-                        pointHitRadius: 10,
-                        pointBorderWidth: 2,
-                        data: dataCycleTime,
-                        datalabels: {
-                            align: 'end',
-                            anchor: 'end',
-                            color: '#f6c23e',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 12
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                maxTicksLimit: 5,
-                                padding: 10,
-                                callback: function (value, index, values) {
-                                    return value + 's';
-                                }
-                            },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
-                            },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
                                 }
                             }
                         }

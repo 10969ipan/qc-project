@@ -54,6 +54,7 @@
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('analysis.monthly_ng') }}">Sub Assy</a>
                     <a class="collapse-item" href="{{ route('analysis.monthly_ng_in_process') }}">Inprocess</a>
+                    <a class="collapse-item" href="{{ route('analysis.monthly_ng_cross_cut') }}">Cross Cut</a>
                 </div>
             </div>
         </li>

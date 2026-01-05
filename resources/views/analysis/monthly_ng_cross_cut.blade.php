@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Report Monthly Sub Assy')
+@section('title', 'Report Monthly Cross Cut')
 
 @section('content')
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <h1 class="h3 mb-4 text-gray-800">Report Monthly Sub Assy</h1>
+        <h1 class="h3 mb-4 text-gray-800">Report Monthly Cross Cut</h1>
 
         <!-- Date Filter -->
         <div class="card shadow mb-4">
@@ -14,7 +14,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Filter Tanggal</h6>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('analysis.monthly_ng') }}" class="form-inline">
+                <form method="GET" action="{{ route('analysis.monthly_ng_cross_cut') }}" class="form-inline">
                     <div class="form-group mb-2">
                         <label for="start_date" class="mr-2">Mulai Tanggal:</label>
                         <input type="date" class="form-control mr-4" id="start_date" name="start_date"
@@ -26,7 +26,7 @@
                             value="{{ request('end_date') }}">
                     </div>
                     <button type="submit" class="btn btn-primary mb-2">Cari</button>
-                    <a href="{{ route('analysis.monthly_ng') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
+                    <a href="{{ route('analysis.monthly_ng_cross_cut') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
                 </form>
             </div>
         </div>
@@ -78,7 +78,7 @@
                         </div>
                         <div class="mt-4 text-center small">
                             <span class="mr-2">
-                                <i class="fas fa-circle text-info"></i> Presentase NG (%)
+                                <i class="fas fa-circle text-info"></i> Persentase Status (%)
                             </span>
                         </div>
                     </div>
@@ -250,8 +250,6 @@
                     align: 'center',
                     formatter: function (value, ctx) {
                         if (value > 0) {
-                            // ctx.dataIndex corresponds to the item index (y-axis category)
-                            // inspectorItemLabels matches itemCycleTimeDataForCalc keys
                             var idx = ctx.dataIndex;
                             var std = itemCycleTimeDataForCalc[idx];
                             var pct = 0;
@@ -294,9 +292,9 @@
                         },
                         y: {
                             ticks: {
-                                maxTicksLimit: 20, // Allow more items
+                                maxTicksLimit: 20,
                                 padding: 10,
-                                autoSkip: false // Show all item names
+                                autoSkip: false
                             },
                             grid: {
                                 color: "rgb(234, 236, 244)",
@@ -309,7 +307,7 @@
                     },
                     plugins: {
                         legend: {
-                            display: true, // Show legend for multiple users
+                            display: true,
                             position: 'top',
                             labels: {
                                 boxWidth: 10,
@@ -398,9 +396,9 @@
                         },
                         y: {
                             ticks: {
-                                maxTicksLimit: 20, // Allow more items
+                                maxTicksLimit: 20,
                                 padding: 10,
-                                autoSkip: false // Show all item names
+                                autoSkip: false
                             },
                             grid: {
                                 color: "rgb(234, 236, 244)",
@@ -438,7 +436,7 @@
                                     var secs = sortedItemTotalSeconds[idx];
                                     return [
                                         tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's',
-                                        'Standar: ' + tooltipItem.raw + ' s/pcs', // Display "Standard: X s/pcs"
+                                        'Standar: ' + tooltipItem.raw + ' s/pcs',
                                         'Total Pcs: ' + pcs,
                                         'Total Detik: ' + secs
                                     ];
@@ -550,105 +548,7 @@
                 }
             });
 
-            // --- Cycle Time Chart (Trend) ---
-            var ctxCycle = document.getElementById("myCycleTimeChart");
-
-            var myCycleTimeChart = new Chart(ctxCycle, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Avg Cycle Time",
-                        lineTension: 0.3,
-                        backgroundColor: "rgba(246, 194, 62, 0.05)",
-                        borderColor: "rgba(246, 194, 62, 1)",
-                        pointRadius: 3,
-                        pointBackgroundColor: "rgba(246, 194, 62, 1)",
-                        pointBorderColor: "rgba(246, 194, 62, 1)",
-                        pointHoverRadius: 3,
-                        pointHoverBackgroundColor: "rgba(246, 194, 62, 1)",
-                        pointHoverBorderColor: "rgba(246, 194, 62, 1)",
-                        pointHitRadius: 10,
-                        pointBorderWidth: 2,
-                        data: dataCycleTime,
-                        datalabels: {
-                            align: 'end',
-                            anchor: 'end',
-                            color: '#f6c23e',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 12
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                maxTicksLimit: 5,
-                                padding: 10,
-                                callback: function (value, index, values) {
-                                    return value + 's';
-                                }
-                            },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
-                            },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    return tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // --- Bar Chart (Variants) ---
+            // --- Bar Chart (Status) ---
             var ctxBar = document.getElementById("myBarChart");
             var defectLabels = @json($defectLabels);
             var defectData = @json($defectData);
@@ -658,7 +558,7 @@
                 data: {
                     labels: defectLabels,
                     datasets: [{
-                        label: "Jumlah NG",
+                        label: "Jumlah",
                         backgroundColor: "#e74a3b", // Danger red
                         hoverBackgroundColor: "#be2617",
                         borderColor: "#e74a3b",
@@ -675,7 +575,7 @@
                 },
                 options: {
                     maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal bar chart is often better for variant names
+                    indexAxis: 'y',
                     layout: {
                         padding: {
                             left: 10,
@@ -768,7 +668,7 @@
                 },
                 options: {
                     maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal bars
+                    indexAxis: 'y',
                     layout: {
                         padding: {
                             left: 10,
