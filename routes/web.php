@@ -174,7 +174,19 @@ Route::get('/storage/{path}', function ($path) {
         return response()->file($newFile, ['Content-Type' => $mimeType]);
     }
 
-    // 2. Fallback: cek lokasi lama di public/items_files/
+    // 2. Cek jika path sudah include "master item/ahm/" (dari database)
+    // Path: master item/ahm/0101. PCCP Cover...pdf
+    // Langsung pakai path-nya tanpa modifikasi
+    if (str_starts_with($path, 'master item/ahm/')) {
+        $directFile = public_path($path);
+
+        if (file_exists($directFile)) {
+            $mimeType = mime_content_type($directFile);
+            return response()->file($directFile, ['Content-Type' => $mimeType]);
+        }
+    }
+
+    // 3. Fallback: cek lokasi lama di public/items_files/
     $oldFile = public_path($path);
 
     if (file_exists($oldFile)) {
@@ -182,7 +194,7 @@ Route::get('/storage/{path}', function ($path) {
         return response()->file($oldFile, ['Content-Type' => $mimeType]);
     }
 
-    // 3. Fallback: cek di master item/ahm/ (untuk file yang dipindahkan manual)
+    // 4. Fallback: cek di master item/ahm/ (untuk path items_files/filename.pdf)
     // Ambil filename dari path (misal: items_files/filename.pdf -> filename.pdf)
     $filename = basename($path);
     $masterItemFile = public_path('master item/ahm/' . $filename);
@@ -192,7 +204,7 @@ Route::get('/storage/{path}', function ($path) {
         return response()->file($masterItemFile, ['Content-Type' => $mimeType]);
     }
 
-    // 4. Fallback: cek di master item/ahm/ TANPA timestamp prefix
+    // 5. Fallback: cek di master item/ahm/ TANPA timestamp prefix
     // Database: items_files/1767595986_BELUM REVISI.pdf
     // File real: master item/ahm/BELUM REVISI.pdf (tanpa timestamp)
     if (preg_match('/^\d+_(.+)$/', $filename, $matches)) {
@@ -206,5 +218,5 @@ Route::get('/storage/{path}', function ($path) {
     }
 
     // File tidak ditemukan di semua lokasi
-    abort(404, 'File tidak ditemukan');
+    abort(404, 'File tidak ditemukan: ' . $path);
 })->where('path', '.*')->name('storage.serve');
