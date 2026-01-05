@@ -164,13 +164,34 @@ Route::middleware(['auth', 'role:inspector'])->prefix('inspector')->group(functi
     Route::post('report_qc', [ReportController::class, 'store'])->name('inspector.store_report');
 });
 // Serve storage files (alternatif symbolic link)
+// Support backward compatibility: cek storage baru DAN folder public lama
 Route::get('/storage/{path}', function ($path) {
-    $file = storage_path('app/public/' . $path);
-    
-    if (!file_exists($file)) {
-        abort(404);
+    // 1. Cek lokasi BARU: storage/app/public/
+    $newFile = storage_path('app/public/' . $path);
+
+    if (file_exists($newFile)) {
+        $mimeType = mime_content_type($newFile);
+        return response()->file($newFile, ['Content-Type' => $mimeType]);
     }
-    
-    $mimeType = mime_content_type($file);
-    return response()->file($file, ['Content-Type' => $mimeType]);
+
+    // 2. Fallback: cek lokasi lama di public/items_files/
+    $oldFile = public_path($path);
+
+    if (file_exists($oldFile)) {
+        $mimeType = mime_content_type($oldFile);
+        return response()->file($oldFile, ['Content-Type' => $mimeType]);
+    }
+
+    // 3. Fallback: cek di master item/ahm/ (untuk file yang dipindahkan manual)
+    // Ambil filename dari path (misal: items_files/filename.pdf -> filename.pdf)
+    $filename = basename($path);
+    $masterItemFile = public_path('master item/ahm/' . $filename);
+
+    if (file_exists($masterItemFile)) {
+        $mimeType = mime_content_type($masterItemFile);
+        return response()->file($masterItemFile, ['Content-Type' => $mimeType]);
+    }
+
+    // File tidak ditemukan di semua lokasi
+    abort(404, 'File tidak ditemukan');
 })->where('path', '.*')->name('storage.serve');
