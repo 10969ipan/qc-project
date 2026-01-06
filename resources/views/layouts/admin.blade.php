@@ -18,6 +18,169 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
 
+    <style>
+        /* Premium Sidebar Animations */
+        .sidebar .nav-item .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar .nav-item .nav-link i {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+
+        /* Icon Hover Effect */
+        .sidebar .nav-item:hover .nav-link i {
+            transform: scale(1.2) rotate(10deg);
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Link Slide & Glow Effect */
+        .sidebar .nav-item .nav-link:hover {
+            padding-left: 1.5rem !important;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff !important;
+        }
+
+        /* Active State Pulse Animation */
+        @keyframes activePulse {
+            0% {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            50% {
+                background: rgba(255, 255, 255, 0.25);
+            }
+
+            100% {
+                background: rgba(255, 255, 255, 0.15);
+            }
+        }
+
+        .sidebar .nav-item.active {
+            position: relative;
+        }
+
+        .sidebar .nav-item.active .nav-link {
+            animation: activePulse 2s infinite ease-in-out;
+            border-left: 4px solid #fff;
+            font-weight: 700;
+        }
+
+        /* Sub-menu implementation (collapse-inner) */
+        .sidebar .collapse-inner .collapse-item {
+            transition: all 0.2s ease;
+            border-left: 0 solid transparent;
+        }
+
+        .sidebar .collapse-inner .collapse-item:hover {
+            padding-left: 2rem !important;
+            border-left: 4px solid #4e73df;
+            background-color: #f8f9fc !important;
+            color: #4e73df !important;
+            transform: translateX(5px);
+        }
+
+        /* Logout Slide-out Animation */
+        .btn-logout i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-logout:hover i {
+            transform: translateX(10px) scale(1.2) !important;
+            color: #e74a3b !important;
+            text-shadow: 0 0 10px rgba(231, 74, 59, 0.4);
+        }
+
+        /* Smooth Collapse Animation */
+        .sidebar.toggled .nav-item .nav-link i {
+            transform: none !important;
+        }
+
+        /* Sidebar Brand Hover */
+        .sidebar-brand {
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-brand:hover {
+            transform: scale(1.05);
+        }
+
+        .sidebar-brand:hover .sidebar-brand-icon {
+            animation: rotateBrand 0.5s ease-in-out;
+        }
+
+        @keyframes rotateBrand {
+            0% {
+                transform: rotate(-15deg);
+            }
+
+            50% {
+                transform: rotate(15deg);
+            }
+
+            100% {
+                transform: rotate(-15deg);
+            }
+        }
+
+        /* Generic Button & Action Animations (Inspired by Login) */
+        .btn,
+        .btn-sm {
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .btn:hover,
+        .btn-sm:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .btn:active,
+        .btn-sm:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        /* Color-specific glow effects */
+        .btn-primary:hover {
+            box-shadow: 0 8px 15px rgba(78, 115, 223, 0.4) !important;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 15px rgba(28, 200, 138, 0.4) !important;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 15px rgba(231, 74, 59, 0.4) !important;
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 8px 15px rgba(246, 194, 62, 0.4) !important;
+        }
+
+        .btn-info:hover {
+            box-shadow: 0 8px 15px rgba(54, 185, 204, 0.4) !important;
+        }
+
+        /* Icon within button animation */
+        .btn i,
+        .btn-sm i {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn:hover i,
+        .btn-sm:hover i {
+            transform: scale(1.2);
+        }
+    </style>
+
 </head>
 
 <body id="page-top">
