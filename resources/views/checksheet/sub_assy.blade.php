@@ -56,7 +56,7 @@
                                                 @foreach($items as $item)
                                                     <option value="{{ $item->id }}"
                                                         data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                        data-file="{{ $item->file_path ? route('admin.items.pdf', $item->id) : '' }}"
+                                                        data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                         data-name="{{ $item->name }}"
                                                         data-description="{{ $item->description }}"
                                                         data-defects="{{ json_encode($item->defects) }}">

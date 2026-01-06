@@ -17,7 +17,7 @@
                     <label>File (PDF)</label>
                     @if($item->file_path)
                         <div class="mb-2">
-                            <a href="{{ route('admin.items.pdf', $item->id) }}" target="_blank" class="btn btn-sm btn-info">
+                            <a href="{{ route('items.pdf', $item->id) }}" target="_blank" class="btn btn-sm btn-info">
                                 <i class="fas fa-file-pdf"></i> Lihat PDF Saat Ini
                             </a>
                         </div>
@@ -41,15 +41,6 @@
 
                 <div class="form-group">
                     <label>Standar Dimensi In-Process</label>
-                    <div class="mb-2 d-flex align-items-center">
-                        <select class="form-control mr-2" id="dimension_preset">
-                            <option value="">-- Pilih Standar (Opsional) --</option>
-                            @foreach($partDimensionStandards as $key => $standards)
-                                <option value="{{ $key }}">{{ $key }}</option>
-                            @endforeach
-                        </select>
-                        <button type="button" class="btn btn-info btn-sm" id="load_preset">Load</button>
-                    </div>
                     <div class="table-responsive">
                         <table class="table table-bordered" id="dimension-table">
                             <thead>
@@ -100,18 +91,6 @@
     @push('scripts')
         <script>
             $(document).ready(function () {
-                // Add Row
-                $('.add-row').on('click', function () {
-                    var html = '';
-                    html += '<tr>';
-                    html += '<td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>';
-                    html += '<td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>';
-                    html += '<td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>';
-                    html += '<td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>';
-                    html += '</tr>';
-                    $('#dimension-table tbody').append(html);
-                });
-
                 // Remove Row
                 $(document).on('click', '.remove-row', function () {
                     // Provide a safer remove that respects existing logic but also allows clearing lines
@@ -122,49 +101,6 @@
                             icon: 'warning',
                             title: 'Peringatan',
                             text: 'Minimal satu baris harus ada.'
-                        });
-                    }
-                });
-
-                // Load Preset
-                var standardsData = @json($partDimensionStandards);
-                $('#load_preset').on('click', function () {
-                    var selectedKey = $('#dimension_preset').val();
-                    if (selectedKey && standardsData[selectedKey]) {
-                        Swal.fire({
-                            title: 'Konfirmasi Load Standar',
-                            text: "Ini akan mengganti semua data tabel dimensi saat ini. Lanjutkan?",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Ya, Lanjutkan!',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                var data = standardsData[selectedKey];
-                                var html = '';
-                                $.each(data, function (index, item) {
-                                    html += '<tr>';
-                                    html += '<td><input type="text" name="dimension_points[]" class="form-control" value="' + index + '"></td>';
-                                    html += '<td><input type="text" name="dimension_sizes[]" class="form-control" value="' + item.size + '"></td>';
-                                    html += '<td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" value="' + item.tolerance + '"></td>';
-                                    html += '<td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>';
-                                    html += '</tr>';
-                                });
-                                $('#dimension-table tbody').html(html);
-                                Swal.fire(
-                                    'Berhasil!',
-                                    'Standar dimensi telah dimuat.',
-                                    'success'
-                                )
-                            }
-                        })
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: 'Silakan pilih standar terlebih dahulu.'
                         });
                     }
                 });

@@ -7,27 +7,6 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
-    private $partDimensionStandards = [
-        '53102-K0L -D002' => [ // Corresponds to "COVER HNDL END K3VA"
-            '1' => ['size' => 5, 'tolerance' => 0.2],
-            '2' => ['size' => 10, 'tolerance' => 0.2],
-            '3' => ['size' => 10, 'tolerance' => 0.5],
-            '4' => ['size' => 20.5, 'tolerance' => 0.2],
-            '5' => ['size' => 20, 'tolerance' => 0.2],
-        ],
-        '1PA - F836B - 00' => [ // Corresponds to "EMBLEM 3D"
-            '1' => ['size' => 25, 'tolerance' => 0.2],
-            '2' => ['size' => 21, 'tolerance' => 0.4],
-            '3' => ['size' => 3.2, 'tolerance' => 0.2],
-            '4' => ['size' => 24, 'tolerance' => 0.4],
-        ],
-        '53209-K3V-N100' => [ // Corresponds to "COVER HEAD LIGHT (NATURAL)"
-            '1' => ['size' => 10, 'tolerance' => 0.2],
-            '2' => ['size' => 10, 'tolerance' => 0.2],
-            '3' => ['size' => 10, 'tolerance' => 0.2],
-            '4' => ['size' => 10, 'tolerance' => 0.2],
-        ],
-    ];
 
     public function index(Request $request)
     {
@@ -51,8 +30,7 @@ class ItemController extends Controller
 
     public function create()
     {
-        $partDimensionStandards = $this->partDimensionStandards;
-        return view('admin.items.create', compact('partDimensionStandards'));
+        return view('admin.items.create');
     }
 
     public function store(Request $request)
@@ -119,8 +97,7 @@ class ItemController extends Controller
 
     public function edit(Item $item)
     {
-        $partDimensionStandards = $this->partDimensionStandards;
-        return view('admin.items.edit', compact('item', 'partDimensionStandards'));
+        return view('admin.items.edit', compact('item'));
     }
 
     public function update(Request $request, Item $item)

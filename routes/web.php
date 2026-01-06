@@ -92,13 +92,16 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
     // Manajemen Barang (Items)
     Route::resource('items', ItemController::class);
-    Route::get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
+    // Route::get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
 
     // Laporan Checksheet (Edit/Delete)
     Route::get('checksheets/{checksheet}/edit', [ChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::put('checksheets/{checksheet}', [ChecksheetController::class, 'update'])->name('checksheets.update');
     Route::delete('checksheets/{checksheet}', [ChecksheetController::class, 'destroy'])->name('checksheets.destroy');
 });
+
+// New route for PDF access for all authenticated users
+Route::middleware(['auth'])->get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
 
 // --- Rute Khusus Admin ---
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
