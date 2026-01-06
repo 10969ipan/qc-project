@@ -129,11 +129,14 @@ class InProcessChecksheetController extends Controller
         if ($item && isset($this->partDimensionStandards[$item->part_number]) && !empty($request->dimensions)) {
             $dimensionStandards = $this->partDimensionStandards[$item->part_number];
             $isAnyInvalid = false;
+            $hasValidDimensions = false; // Track if there are any filled dimensions
+
             foreach ($request->dimensions as $cavity => $points) {
                 if (!is_array($points))
                     continue;
                 foreach ($points as $point => $value) {
                     if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
+                        $hasValidDimensions = true; // At least one dimension is filled
                         $standard = $dimensionStandards[$point];
                         $floatValue = (float) $value;
                         $lowerBound = $standard['size'] - $standard['tolerance'];
@@ -149,8 +152,13 @@ class InProcessChecksheetController extends Controller
                     break;
             }
 
-            if ($isAnyInvalid) {
-                $validated['judgment'] = 'NG';
+            // Auto-set judgment based on dimension validation
+            if ($hasValidDimensions) {
+                if ($isAnyInvalid) {
+                    $validated['judgment'] = 'NG';
+                } else {
+                    $validated['judgment'] = 'OK';
+                }
             }
         }
         // --- End Validation ---
@@ -282,6 +290,45 @@ class InProcessChecksheetController extends Controller
             }
         }
         $dimensionCheck = json_encode($filteredDimensions);
+
+        // --- Centralized Server-Side Dimension Validation (same as store) ---
+        $item = Item::find($validated['item_id']);
+        if ($item && isset($this->partDimensionStandards[$item->part_number]) && !empty($request->dimensions)) {
+            $dimensionStandards = $this->partDimensionStandards[$item->part_number];
+            $isAnyInvalid = false;
+            $hasValidDimensions = false;
+
+            foreach ($request->dimensions as $cavity => $points) {
+                if (!is_array($points))
+                    continue;
+                foreach ($points as $point => $value) {
+                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
+                        $hasValidDimensions = true;
+                        $standard = $dimensionStandards[$point];
+                        $floatValue = (float) $value;
+                        $lowerBound = $standard['size'] - $standard['tolerance'];
+                        $upperBound = $standard['size'] + $standard['tolerance'];
+
+                        if ($floatValue < $lowerBound || $floatValue > $upperBound) {
+                            $isAnyInvalid = true;
+                            break;
+                        }
+                    }
+                }
+                if ($isAnyInvalid)
+                    break;
+            }
+
+            // Auto-set judgment based on dimension validation
+            if ($hasValidDimensions) {
+                if ($isAnyInvalid) {
+                    $validated['judgment'] = 'NG';
+                } else {
+                    $validated['judgment'] = 'OK';
+                }
+            }
+        }
+        // --- End Validation ---
 
         $updateData = [
             'item_id' => $validated['item_id'],
