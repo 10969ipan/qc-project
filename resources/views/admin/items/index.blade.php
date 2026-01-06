@@ -253,7 +253,15 @@
                     }, function (reason) {
                         // PDF loading error
                         console.error(reason);
-                        alert('Error loading PDF: ' + reason);
+                        let errorMsg = 'Error loading PDF. ';
+                        if (reason.name === 'MissingPDFException') {
+                            errorMsg += 'The PDF file could not be found on the server. Please contact admin or re-upload the file.';
+                        } else {
+                            errorMsg += reason.message || reason;
+                        }
+
+                        document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                        alert(errorMsg);
                     });
                 });
             });

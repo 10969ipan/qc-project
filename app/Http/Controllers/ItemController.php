@@ -164,10 +164,10 @@ class ItemController extends Controller
             $item->file_path = 'master item/' . $customerFolder . '/' . $filename;
         } elseif ($customerChanged && $item->file_path) {
             // Customer changed but no new file uploaded - move existing file to new customer folder
-            
+
             // Resolve file path first
             $this->resolveFilePath($item);
-            
+
             $oldPath = public_path($item->file_path);
 
             if (file_exists($oldPath)) {
@@ -241,25 +241,32 @@ class ItemController extends Controller
      */
     public function servePdf($id)
     {
-        $item = Item::findOrFail($id);
+        try {
+            $item = Item::findOrFail($id);
 
-        if (!$item->file_path) {
-            abort(404, 'PDF file not found');
+            if (!$item->file_path) {
+                \Log::warning("PDF serve requested for Item ID {$id} but file_path is empty.");
+                abort(404, 'PDF file path not stored in database');
+            }
+
+            // Try to resolve the file path if it's not found at the stored location
+            $this->resolveFilePath($item);
+
+            $filePath = public_path($item->file_path);
+
+            if (!file_exists($filePath)) {
+                \Log::error("PDF file not found on server for Item ID {$id}. Attempted path: {$filePath}");
+                abort(404, 'PDF file does not exist on server');
+            }
+
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Error serving PDF for Item ID {$id}: " . $e->getMessage());
+            throw $e;
         }
-
-        // Try to resolve the file path if it's not found at the stored location
-        $this->resolveFilePath($item);
-        
-        $filePath = public_path($item->file_path);
-
-        if (!file_exists($filePath)) {
-            abort(404, 'PDF file does not exist on server');
-        }
-
-        return response()->file($filePath, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
-        ]);
     }
 
     /**
@@ -281,27 +288,27 @@ class ItemController extends Controller
         $filename = basename($item->file_path);
         // Common subdirectories for master items
         $subfolders = ['ahm', 'yimm', 'others'];
-        
+
         foreach ($subfolders as $folder) {
             $relativePath = 'master item/' . $folder . '/' . $filename;
             $candidatePath = public_path($relativePath);
-            
+
             if (file_exists($candidatePath)) {
                 // Found it! Update DB to fix future lookups
                 $item->file_path = $relativePath;
                 $item->save(); // This persists the change
-                
+
                 return $candidatePath;
             }
         }
-        
+
         // Also check root 'master item' just in case (e.g. if DB says it is in a subfolder but it is in root)
         $rootRelative = 'master item/' . $filename;
         $rootPath = public_path($rootRelative);
         if (file_exists($rootPath)) {
-             $item->file_path = $rootRelative;
-             $item->save();
-             return $rootPath;
+            $item->file_path = $rootRelative;
+            $item->save();
+            return $rootPath;
         }
 
         return null;
