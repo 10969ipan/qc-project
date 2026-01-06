@@ -13,24 +13,24 @@
         <div class="card-body">
             <form action="{{ route('cross_cut.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="start_date">Tanggal Awal</label>
-                            <input type="date" id="start_date" name="start_date" class="form-control"
+                            <label for="start_date" class="small font-weight-bold">Tanggal Awal</label>
+                            <input type="date" id="start_date" name="start_date" class="form-control form-control-sm"
                                 value="{{ request('start_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="end_date">Tanggal Akhir</label>
-                            <input type="date" id="end_date" name="end_date" class="form-control"
+                            <label for="end_date" class="small font-weight-bold">Tanggal Akhir</label>
+                            <input type="date" id="end_date" name="end_date" class="form-control form-control-sm"
                                 value="{{ request('end_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
-                            <label for="item_id">Item Part</label>
-                            <select id="item_id" name="item_id" class="form-control">
+                            <label for="item_id" class="small font-weight-bold">Item Part</label>
+                            <select id="item_id" name="item_id" class="form-control form-control-sm">
                                 <option value="">Semua Item</option>
                                 @foreach($items as $item)
                                     <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
@@ -40,10 +40,10 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="approval_status">Status Approval</label>
-                            <select id="approval_status" name="approval_status" class="form-control">
+                            <label for="approval_status" class="small font-weight-bold">Status Approval</label>
+                            <select id="approval_status" name="approval_status" class="form-control form-control-sm">
                                 <option value="">Semua Status</option>
                                 <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>
                                     Approved</option>
@@ -54,15 +54,15 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3 text-right">
+                    <div class="col-lg-3 col-md-8 col-sm-6 mb-2 text-right">
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary" style="min-width: 140px;">
+                            <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
-                            <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary" style="min-width: 140px;">
+                            <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
-                            <a href="#" id="exportPdfBtn" class="btn btn-danger" style="min-width: 140px;">
+                            <a href="#" id="exportPdfBtn" class="btn btn-danger btn-sm">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
                         </div>
@@ -490,7 +490,7 @@
                     }
                 @endforeach
             @endforeach
-                            const viewImageButtons = document.querySelectorAll('.view-image-btn');
+                                const viewImageButtons = document.querySelectorAll('.view-image-btn');
             const modalImage = document.getElementById('modalImage');
             const modalItemName = document.getElementById('modalItemName');
             const modalQcDatetime = document.getElementById('modalQcDatetime');

@@ -13,22 +13,24 @@
         <div class="card-body">
             <form action="{{ route('admin.checksheets.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="start_date">Dari Tanggal</label>
-                            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+                            <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
+                            <input type="date" name="start_date" class="form-control form-control-sm"
+                                value="{{ request('start_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="end_date">Sampai Tanggal</label>
-                            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                            <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
+                            <input type="date" name="end_date" class="form-control form-control-sm"
+                                value="{{ request('end_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
-                            <label for="item_id">Filter Item Part</label>
-                            <select name="item_id" class="form-control">
+                            <label for="item_id" class="small font-weight-bold">Filter Item Part</label>
+                            <select name="item_id" class="form-control form-control-sm">
                                 <option value="">Semua Item Part</option>
                                 @foreach($items as $item)
                                     <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
@@ -38,10 +40,10 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="approval_status">Status Approval</label>
-                            <select name="approval_status" class="form-control">
+                            <label for="approval_status" class="small font-weight-bold">Status Approval</label>
+                            <select name="approval_status" class="form-control form-control-sm">
                                 <option value="">Semua</option>
                                 <option value="Pending" {{ request('approval_status') == 'Pending' ? 'selected' : '' }}>
                                     Pending</option>
@@ -52,16 +54,15 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3 text-right">
+                    <div class="col-lg-3 col-md-8 col-sm-6 mb-2 text-right">
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary" style="min-width: 140px;">
+                            <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
-                            <a href="{{ route('admin.checksheets.index') }}" class="btn btn-secondary"
-                                style="min-width: 140px;">
+                            <a href="{{ route('admin.checksheets.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
-                            <a href='#' id="exportPdfBtn" class="btn btn-danger" style="min-width: 140px;">
+                            <a href='#' id="exportPdfBtn" class="btn btn-danger btn-sm">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
                         </div>
@@ -487,7 +488,7 @@
                     }
                 @endforeach
             @endforeach
-                                        const { jsPDF } = window.jspdf;
+                                            const { jsPDF } = window.jspdf;
 
             document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
                 e.preventDefault();

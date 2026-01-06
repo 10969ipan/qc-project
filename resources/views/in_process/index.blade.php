@@ -13,22 +13,24 @@
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="start_date">Dari Tanggal</label>
-                            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+                            <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
+                            <input type="date" name="start_date" class="form-control form-control-sm"
+                                value="{{ request('start_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="end_date">Sampai Tanggal</label>
-                            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                            <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
+                            <input type="date" name="end_date" class="form-control form-control-sm"
+                                value="{{ request('end_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
-                            <label for="item_id">Filter Item Part</label>
-                            <select name="item_id" class="form-control">
+                            <label for="item_id" class="small font-weight-bold">Filter Item Part</label>
+                            <select name="item_id" class="form-control form-control-sm">
                                 <option value="">Semua Item Part</option>
                                 @foreach($items as $item)
                                     <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
@@ -38,10 +40,10 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="approval_status">Status Approval</label>
-                            <select name="approval_status" class="form-control">
+                            <label for="approval_status" class="small font-weight-bold">Status Approval</label>
+                            <select name="approval_status" class="form-control form-control-sm">
                                 <option value="">Semua</option>
                                 <option value="Pending" {{ request('approval_status') == 'Pending' ? 'selected' : '' }}>
                                     Pending</option>
@@ -52,15 +54,15 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3 text-right">
+                    <div class="col-lg-3 col-md-8 col-sm-6 mb-2 text-right">
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary" style="min-width: 140px;">
+                            <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
-                            <a href="{{ route('in_process.index') }}" class="btn btn-secondary" style="min-width: 140px;">
+                            <a href="{{ route('in_process.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
-                            <a href='#' id="exportPdfBtn" class="btn btn-danger" style="min-width: 140px;">
+                            <a href='#' id="exportPdfBtn" class="btn btn-danger btn-sm">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
                         </div>
@@ -331,82 +333,110 @@
                                         @endphp
 
                                         @if($canApproveKashift)
-                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST" class="d-inline">
+                                            <form
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)" style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift" style="min-width: 110px;">
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
                                         @if($canApproveSupervisor)
-                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST" class="d-inline">
+                                            <form
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)" style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor" style="min-width: 110px;">
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
                                         @if($canApproveAsst)
-                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST" class="d-inline">
+                                            <form
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)" style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager" style="min-width: 110px;">
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
                                         @if($canApproveManager)
-                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST" class="d-inline">
+                                            <form
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)" style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager" style="min-width: 110px;">
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
 
                                         @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.in_process.edit_approval', $checksheet->id) }}" class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
+                                            <a href="{{ route('admin.in_process.edit_approval', $checksheet->id) }}"
+                                                class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
-                                        <a href="{{ route('in_process.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1" title="Edit" style="min-width: 110px;">
+                                        <a href="{{ route('in_process.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
+                                            title="Edit" style="min-width: 110px;">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
-                                        <form action="{{ route('in_process.destroy', $checksheet->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('in_process.destroy', $checksheet->id) }}" method="POST"
+                                            class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete" style="min-width: 110px;">
+                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-trash"></i> Hapus
                                             </button>
                                         </form>
@@ -512,7 +542,7 @@
                     }
                 @endforeach
             @endforeach
-            const { jsPDF } = window.jspdf;
+                const { jsPDF } = window.jspdf;
 
             document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
                 e.preventDefault();
