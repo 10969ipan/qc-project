@@ -56,7 +56,7 @@
                                                 @foreach($items as $item)
                                                     <option value="{{ $item->id }}"
                                                         data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                        data-file="{{ $item->file_path ? asset($item->file_path) : '' }}"
+                                                        data-file="{{ $item->file_path ? route('admin.items.pdf', $item->id) : '' }}"
                                                         data-name="{{ $item->name }}"
                                                         data-description="{{ $item->description }}"
                                                         data-defects="{{ json_encode($item->defects) }}">
@@ -398,7 +398,15 @@
                     renderPage(pageNum);
                 }, function (reason) {
                     console.error(reason);
-                    alert('Error loading PDF: ' + reason);
+                    let errorMsg = 'Error loading PDF. ';
+                    if (reason.name === 'MissingPDFException') {
+                        errorMsg += 'The PDF file could not be found on the server. Please check Master Data Items or re-upload the file.';
+                    } else {
+                        errorMsg += reason.message || reason;
+                    }
+
+                    document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                    alert(errorMsg);
                 });
             });
 
