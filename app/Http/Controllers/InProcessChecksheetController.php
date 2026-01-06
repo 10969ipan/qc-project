@@ -10,7 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class InProcessChecksheetController extends Controller
 {
-    private $partDimensionStandards = [
+    private $hardcodedStandards = [
         '53102-K0L -D002' => [ // Corresponds to "COVER HNDL END K3VA"
             '1' => ['size' => 5, 'tolerance' => 0.2],
             '2' => ['size' => 10, 'tolerance' => 0.2],
@@ -31,6 +31,38 @@ class InProcessChecksheetController extends Controller
             '4' => ['size' => 10, 'tolerance' => 0.2],
         ],
     ];
+
+    private function getConsolidatedStandards()
+    {
+        $standards = $this->hardcodedStandards;
+
+        // Get standards from database and convert to the same format
+        $dbItems = Item::whereNotNull('dimension_standards')->get();
+        foreach ($dbItems as $item) {
+            if ($item->part_number && !empty($item->dimension_standards)) {
+                $itemStandards = [];
+                foreach ($item->dimension_standards as $index => $std) {
+                    // Check if $std is an array and has size/tolerance
+                    if (is_array($std) && isset($std['size']) && isset($std['tolerance'])) {
+                        // Point indices often start at 1 in the UI, but database might be 0-based
+                        // We'll use string keys '1', '2', etc. to match the controller array format
+                        $pointKey = (string) ($index + 1);
+                        $itemStandards[$pointKey] = [
+                            'size' => (float) $std['size'],
+                            'tolerance' => (float) $std['tolerance']
+                        ];
+                    }
+                }
+
+                if (!empty($itemStandards)) {
+                    // Database standards override hardcoded ones if there's a conflict
+                    $standards[$item->part_number] = $itemStandards;
+                }
+            }
+        }
+
+        return $standards;
+    }
 
     // For Admin to view list
     public function index(Request $request)
@@ -89,7 +121,7 @@ class InProcessChecksheetController extends Controller
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get();
 
-        $partDimensionStandards = $this->partDimensionStandards;
+        $partDimensionStandards = $this->getConsolidatedStandards();
 
         return view('in_process.index', compact('checksheets', 'items', 'partDimensionStandards'));
     }
@@ -100,7 +132,7 @@ class InProcessChecksheetController extends Controller
         $items = Item::orderBy('name')->get();
         return view('in_process.create', [
             'items' => $items,
-            'partDimensionStandards' => json_encode($this->partDimensionStandards)
+            'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
         ]);
     }
 
@@ -126,8 +158,9 @@ class InProcessChecksheetController extends Controller
 
         // --- Centralized Server-Side Dimension Validation ---
         $item = Item::find($validated['item_id']);
-        if ($item && isset($this->partDimensionStandards[$item->part_number]) && !empty($request->dimensions)) {
-            $dimensionStandards = $this->partDimensionStandards[$item->part_number];
+        $allStandards = $this->getConsolidatedStandards();
+        if ($item && isset($allStandards[$item->part_number]) && !empty($request->dimensions)) {
+            $dimensionStandards = $allStandards[$item->part_number];
             $isAnyInvalid = false;
             $hasValidDimensions = false; // Track if there are any filled dimensions
 
@@ -254,7 +287,7 @@ class InProcessChecksheetController extends Controller
         return view('in_process.edit', [
             'checksheet' => $checksheet,
             'items' => $items,
-            'partDimensionStandards' => json_encode($this->partDimensionStandards)
+            'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
         ]);
     }
 
@@ -293,8 +326,9 @@ class InProcessChecksheetController extends Controller
 
         // --- Centralized Server-Side Dimension Validation (same as store) ---
         $item = Item::find($validated['item_id']);
-        if ($item && isset($this->partDimensionStandards[$item->part_number]) && !empty($request->dimensions)) {
-            $dimensionStandards = $this->partDimensionStandards[$item->part_number];
+        $allStandards = $this->getConsolidatedStandards();
+        if ($item && isset($allStandards[$item->part_number]) && !empty($request->dimensions)) {
+            $dimensionStandards = $allStandards[$item->part_number];
             $isAnyInvalid = false;
             $hasValidDimensions = false;
 

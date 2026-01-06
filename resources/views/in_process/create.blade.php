@@ -490,6 +490,7 @@
             function updateJudgment() {
                 var sampling = parseInt($('input[name="sampling_qty"]').val()) || 0;
                 var ng = parseInt($('input[name="total_ng"]').val()) || 0;
+                var isDimensiInvalid = $('.is-invalid').length > 0;
 
                 // 1. Calculate Total OK
                 if (sampling >= ng) {
@@ -506,19 +507,20 @@
 
                 // 3. Auto-Judgment Logic
                 var judgmentSelect = $('#judgmentSelect');
-                if (ng > 0 || sampling > 0) { // Only judge if there is data
-                    if (ng <= limits.acc) {
-                        judgmentSelect.val('OK');
-                    } else if (ng >= limits.rej) {
+                if (ng > 0 || sampling > 0 || isDimensiInvalid) { // Only judge if there is data
+                    if (isDimensiInvalid || ng >= limits.rej) {
                         judgmentSelect.val('NG');
+                        judgmentSelect.removeClass('text-success').addClass('text-danger');
+                    } else if (ng <= limits.acc) {
+                        judgmentSelect.val('OK');
+                        judgmentSelect.removeClass('text-danger').addClass('text-success');
                     } else {
-                        // Startling case where Acc < ng < Rej (should not happen in standard tables where Rej = Acc + 1)
-                        // But if it does, it's undecided, but usually Rej is strictly > Acc.
-                        // If Rej = Acc + 1, then ng must be either <= Acc or >= Rej.
                         judgmentSelect.val('NG'); // Fail safe
+                        judgmentSelect.removeClass('text-success').addClass('text-danger');
                     }
                 } else {
                     judgmentSelect.val('');
+                    judgmentSelect.removeClass('text-success text-danger');
                 }
             }
 
@@ -856,11 +858,11 @@
                 // If no specific standards exist for this part, clear any validation and exit.
                 if (!dimensionStandards) {
                     $('input[name^="dimensions"]').removeClass('is-invalid');
+                    updateJudgment();
                     checkSaveButtonState();
                     return;
                 }
 
-                let isAnyInvalid = false;
                 $('input[name^="dimensions"]').each(function () {
                     const name = $(this).attr('name');
                     // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
@@ -870,10 +872,11 @@
                     const point = match[2]; // The point number (e.g., '1', '2', '3').
                     // Look up the standard for the current point for the selected part.
                     const standard = dimensionStandards[point];
-                    const value = parseFloat($(this).val()); // The user-entered dimension value.
+                    const valStr = $(this).val().trim();
+                    const value = parseFloat(valStr); // The user-entered dimension value.
 
                     // Check if a standard exists for this point and the input is a valid number.
-                    if (standard && $(this).val().trim() !== '' && !isNaN(value)) {
+                    if (standard && valStr !== '' && !isNaN(value)) {
                         // Calculate the valid range.
                         const lowerBound = standard.size - standard.tolerance;
                         const upperBound = standard.size + standard.tolerance;
@@ -881,7 +884,6 @@
                         // Compare the entered value against the valid range.
                         if (value < lowerBound || value > upperBound) {
                             $(this).addClass('is-invalid');
-                            isAnyInvalid = true;
                         } else {
                             $(this).removeClass('is-invalid');
                         }
@@ -890,11 +892,8 @@
                     }
                 });
 
-                // If any dimension is invalid, automatically set the judgment to "NG".
-                if (isAnyInvalid) {
-                    $('#judgmentSelect').val('NG');
-                }
-
+                // Trigger judgment update to reflect dimension status
+                updateJudgment();
                 checkSaveButtonState();
             }
 
