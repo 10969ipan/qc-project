@@ -164,22 +164,28 @@
                                         </td>
 
                                         <!-- Total OK / NG -->
-                                        <td class="align-middle">
-                                            <div class="input-group mb-2">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text text-success font-weight-bold">OK</span>
+                                        <td class="align-middle" style="min-width: 120px;">
+                                            <div class="row no-gutters mb-1">
+                                                <div
+                                                    class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
+                                                    OK</div>
+                                                <div class="col-8">
+                                                    <input type="number"
+                                                        class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                        style="font-size: 14px;" name="total_ok" placeholder="0" min="0"
+                                                        required>
                                                 </div>
-                                                <input type="number" class="form-control"
-                                                    style="min-width: 80px; font-size: 16px;" name="total_ok"
-                                                    placeholder="0" min="0" required>
                                             </div>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text text-danger font-weight-bold">NG</span>
+                                            <div class="row no-gutters">
+                                                <div
+                                                    class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
+                                                    NG</div>
+                                                <div class="col-8">
+                                                    <input type="number"
+                                                        class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                        style="font-size: 14px;" name="total_ng" placeholder="0" min="0"
+                                                        required>
                                                 </div>
-                                                <input type="number" class="form-control"
-                                                    style="min-width: 80px; font-size: 16px;" name="total_ng"
-                                                    placeholder="0" min="0" required>
                                             </div>
                                         </td>
 

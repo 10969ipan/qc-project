@@ -488,7 +488,7 @@
                     }
                 @endforeach
             @endforeach
-                                            const { jsPDF } = window.jspdf;
+                                                            const { jsPDF } = window.jspdf;
 
             document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
                 e.preventDefault();
