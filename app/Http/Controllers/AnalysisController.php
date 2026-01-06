@@ -207,14 +207,18 @@ class AnalysisController extends Controller
     public function monthlyNgInProcess(Request $request)
     {
         // Start Query
-        $query = InProcessChecksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id')
+        $query = InProcessChecksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials')
             ->with('item')
             ->orderBy('date');
 
-        // Apply Date Filter if present
+        // Apply Date Filter if present, otherwise default to last 12 months
         if ($request->has('start_date') && $request->start_date) {
             $query->whereDate('date', '>=', $request->start_date);
+        } else {
+            // Default: last 12 months
+            $query->whereDate('date', '>=', Carbon::now()->subMonths(12));
         }
+
         if ($request->has('end_date') && $request->end_date) {
             $query->whereDate('date', '<=', $request->end_date);
         }
