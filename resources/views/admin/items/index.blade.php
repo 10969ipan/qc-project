@@ -33,10 +33,12 @@
                             placeholder="Cari No Part...">
                     </div>
                     <div class="col-md-3 col-12 d-flex flex-column flex-md-row align-items-stretch align-items-md-end">
-                        <button type="submit" class="btn btn-primary mr-md-2 mb-2 mb-md-0"><i class="fas fa-filter"></i>
-                            Cari</button>
-                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary"><i class="fas fa-undo"></i>
-                            Reset</a>
+                        <button type="submit" class="btn btn-primary mr-md-2 mb-2 mb-md-0" style="min-width: 140px;">
+                            <i class="fas fa-filter"></i> Cari
+                        </button>
+                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary" style="min-width: 140px;">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
                     </div>
                 </div>
             </form>
@@ -69,21 +71,40 @@
                                         <span class="text-muted">No File</span>
                                     @endif
                                 </td>
-                                <td>{{ $item->name }}</td>
-                                <td>{{ $item->customer }}</td>
-                                <td>{{ $item->part_number }}</td>
+                                <td class="text-nowrap">{{ $item->name }}</td>
+                                <td class="text-nowrap">{{ $item->customer }}</td>
+                                <td class="text-nowrap">{{ $item->part_number }}</td>
                                 @if(auth()->user()->role !== 'inspector')
-                                    <td>
-                                        <a href="{{ route('admin.items.edit', $item->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <td class="text-nowrap">
+                                        <a href="{{ route('admin.items.edit', $item->id) }}" class="btn btn-warning btn-sm"
+                                            style="min-width: 110px;">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
                                         <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm btn-delete">Hapus</button>
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
                                         </form>
                                     </td>
                                 @endif
                             </tr>
                         @endforeach
+                        @for($i = count($items); $i < 10; $i++)
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                @if(auth()->user()->role !== 'inspector')
+                                    <td>&nbsp;</td>
+                                @endif
+                            </tr>
+                        @endfor
                     </tbody>
                 </table>
             </div>

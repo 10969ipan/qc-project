@@ -34,7 +34,8 @@
                                 <option value="">Semua Item</option>
                                 @foreach($items as $item)
                                     <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
-                                        {{ $item->name }}</option>
+                                        {{ $item->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -55,13 +56,13 @@
                     </div>
                     <div class="col-md-3 text-right">
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" style="min-width: 140px;">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
-                            <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary" style="min-width: 140px;">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
-                            <a href="#" id="exportPdfBtn" class="btn btn-danger">
+                            <a href="#" id="exportPdfBtn" class="btn btn-danger" style="min-width: 140px;">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
                         </div>
@@ -103,10 +104,12 @@
                         @forelse ($checksheets as $checksheet)
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle">
-                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}</td>
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}
+                                </td>
                                 <td class="align-middle">{{ $checksheet->production_shift }}</td>
-                                <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->qc_shift }}</td>
                                 <td class="align-middle">
@@ -115,9 +118,9 @@
                                 <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->item->name }}</td>
-                                <td class="align-middle">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->item->part_number ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->name }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle no-export">
                                     <button class="btn btn-primary btn-sm view-image-btn" data-id="{{ $checksheet->id }}"
                                         data-toggle="modal" data-target="#imageModal">
@@ -147,57 +150,84 @@
                                     </table>
                                 </td>
                                 <td class="align-middle">{{ $checksheet->position_remark_judgment }} -
-                                    {{ $checksheet->position_remark_no_lot }}</td>
+                                    {{ $checksheet->position_remark_no_lot }}
+                                </td>
                                 <td class="align-middle">{{ $checksheet->result_remark }}</td>
                                 <td class="align-middle">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Approval Status Columns --}}
-                                <td class="align-middle">
-                                    @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
-                                    @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                <td class="align-middle text-center">
+                                    @if($checksheet->kashift_qc)
+                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->kashift_approved_at)
                                         <br><small
                                             class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
-                                <td class="align-middle">
-                                    @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
-                                    @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                <td class="align-middle text-center">
+                                    @if($checksheet->supervisor_qc)
+                                        @if($checksheet->supervisor_qc === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                        @endif
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->supervisor_approved_at)
                                         <br><small
                                             class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
-                                <td class="align-middle">
-                                    @if($checksheet->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
-                                    @elseif($checksheet->asst_manager_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                <td class="align-middle text-center">
+                                    @if($checksheet->asst_manager_qc)
+                                        @if($checksheet->asst_manager_qc === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                        @endif
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->asst_manager_approved_at)
                                         <br><small
                                             class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
-                                <td class="align-middle">
-                                    @if($checksheet->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
-                                    @elseif($checksheet->manager_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                <td class="align-middle text-center">
+                                    @if($checksheet->manager_qc)
+                                        @if($checksheet->manager_qc === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                        @endif
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->manager_approved_at)
                                         <br><small
@@ -217,7 +247,7 @@
                                 </td>
 
                                 @if(auth()->user()->role !== 'inspector')
-                                    <td class="align-middle no-export">
+                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         @php
                                             $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
                                             $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED' && !$checksheet->supervisor_qc;
@@ -226,115 +256,116 @@
                                         @endphp
 
                                         @if($canApproveKashift)
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <form
-                                                    action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="page" value="{{ request('page') }}">
-                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                    <button type="submit" class="btn btn-success" title="Approve (Kashift)">
-                                                        <i
-                                                            class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-danger" title="Reject (Kashift)"
-                                                    data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
-                                                    <i class="fas fa-times"></i>
+                                            <form
+                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
                                                 </button>
-                                            </div>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
                                         @endif
 
                                         @if($canApproveSupervisor)
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <form
-                                                    action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="page" value="{{ request('page') }}">
-                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                    <button type="submit" class="btn btn-success" title="Approve (SPV)">
-                                                        <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-danger" title="Reject (SPV)" data-toggle="modal"
-                                                    data-target="#rejectModal{{ $checksheet->id }}supervisor">
-                                                    <i class="fas fa-times"></i>
+                                            <form
+                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
                                                 </button>
-                                            </div>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
                                         @endif
 
                                         @if($canApproveAsst)
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <form
-                                                    action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="page" value="{{ request('page') }}">
-                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                    <button type="submit" class="btn btn-success" title="Approve (AM)">
-                                                        <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-danger" title="Reject (AM)" data-toggle="modal"
-                                                    data-target="#rejectModal{{ $checksheet->id }}asst_manager">
-                                                    <i class="fas fa-times"></i>
+                                            <form
+                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
                                                 </button>
-                                            </div>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
                                         @endif
 
                                         @if($canApproveManager)
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <form
-                                                    action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="page" value="{{ request('page') }}">
-                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                    <button type="submit" class="btn btn-success" title="Approve (MGR)">
-                                                        <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-danger" title="Reject (MGR)" data-toggle="modal"
-                                                    data-target="#rejectModal{{ $checksheet->id }}manager">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                        @endif
-
-                                        <div class="btn-group btn-group-sm mt-1" role="group">
-                                            @if(auth()->user()->role === 'admin')
-                                                <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}"
-                                                    class="btn btn-info" title="Edit Approval Status">
-                                                    <i class="fas fa-user-check"></i>
-                                                </a>
-                                            @endif
-                                            <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning"
-                                                title="Edit">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </a>
-                                            <form action="{{ route('cross_cut.destroy', $checksheet->id) }}" method="POST"
-                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
-                                                style="display: inline;">
+                                            <form
+                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
                                                 </button>
                                             </form>
-                                        </div>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        @endif
+
+                                        @if(auth()->user()->role === 'admin')
+                                            <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}"
+                                                class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
+                                                <i class="fas fa-user-check"></i> Status
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
+                                            title="Edit" style="min-width: 110px;">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <form action="{{ route('cross_cut.destroy', $checksheet->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
                                     </td>
                                 @endif
                             </tr>
@@ -459,7 +490,7 @@
                     }
                 @endforeach
             @endforeach
-            const viewImageButtons = document.querySelectorAll('.view-image-btn');
+                            const viewImageButtons = document.querySelectorAll('.view-image-btn');
             const modalImage = document.getElementById('modalImage');
             const modalItemName = document.getElementById('modalItemName');
             const modalQcDatetime = document.getElementById('modalQcDatetime');

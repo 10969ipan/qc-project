@@ -54,13 +54,14 @@
                     </div>
                     <div class="col-md-3 text-right">
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" style="min-width: 140px;">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
-                            <a href="{{ route('admin.checksheets.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.checksheets.index') }}" class="btn btn-secondary"
+                                style="min-width: 140px;">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
-                            <a href='#' id="exportPdfBtn" class="btn btn-danger">
+                            <a href='#' id="exportPdfBtn" class="btn btn-danger" style="min-width: 140px;">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
                         </div>
@@ -106,16 +107,16 @@
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle">{{ $checksheet->date }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->date }}</td>
                                 <td class="align-middle">
                                     {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
-                                <td class="align-middle">{{ $checksheet->item->name ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->item->part_number ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
@@ -171,13 +172,19 @@
                                 <td class="align-middle">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kashift QC --}}
-                                <td class="align-middle">
+                                <td class="align-middle text-center">
                                     @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
+                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
                                     @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->kashift_approved_at)
                                         <br><small
@@ -186,13 +193,19 @@
                                 </td>
 
                                 {{-- Supervisor QC --}}
-                                <td class="align-middle">
+                                <td class="align-middle text-center">
                                     @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
+                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
                                     @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->supervisor_approved_at)
                                         <br><small
@@ -201,13 +214,19 @@
                                 </td>
 
                                 {{-- Asst Manager QC --}}
-                                <td class="align-middle">
+                                <td class="align-middle text-center">
                                     @if($checksheet->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
+                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
                                     @elseif($checksheet->asst_manager_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->asst_manager_approved_at)
                                         <br><small
@@ -216,13 +235,19 @@
                                 </td>
 
                                 {{-- Manager QC --}}
-                                <td class="align-middle">
+                                <td class="align-middle text-center">
                                     @if($checksheet->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger">REJECTED</span>
+                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
                                     @elseif($checksheet->manager_qc)
-                                        <span class="badge badge-success">APPROVED</span>
+                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
                                     @else
-                                        <span class="badge badge-warning">PENDING</span>
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
                                     @endif
                                     @if($checksheet->manager_approved_at)
                                         <br><small
@@ -242,7 +267,7 @@
                                 </td>
 
                                 @if(auth()->user()->role !== 'inspector')
-                                    <td class="align-middle d-flex align-items-center justify-content-center no-export">
+                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         {{-- Action Buttons for Approvals --}}
                                         @php
                                             $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
@@ -251,125 +276,117 @@
                                             $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED' && !$checksheet->manager_qc;
                                         @endphp
 
-                                        <div class="mr-2">
-                                            @if($canApproveKashift)
-                                                <div class="btn-group btn-group-sm mb-1" role="group">
-                                                    <form
-                                                        action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        <input type="hidden" name="page" value="{{ request('page') }}">
-                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                        <input type="hidden" name="approval_status"
-                                                            value="{{ request('approval_status') }}">
-                                                        <button type="submit" class="btn btn-success" title="Approve (Kashift)">
-                                                            <i
-                                                                class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
-                                                        </button>
-                                                    </form>
-                                                    <button type="button" class="btn btn-danger" title="Reject (Kashift)"
-                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            @endif
-
-                                            @if($canApproveSupervisor)
-                                                <div class="btn-group btn-group-sm mb-1" role="group">
-                                                    <form
-                                                        action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        <input type="hidden" name="page" value="{{ request('page') }}">
-                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                        <input type="hidden" name="approval_status"
-                                                            value="{{ request('approval_status') }}">
-                                                        <button type="submit" class="btn btn-success" title="Approve (SPV)">
-                                                            <i
-                                                                class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
-                                                        </button>
-                                                    </form>
-                                                    <button type="button" class="btn btn-danger" title="Reject (SPV)"
-                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            @endif
-
-                                            @if($canApproveAsst)
-                                                <div class="btn-group btn-group-sm mb-1" role="group">
-                                                    <form
-                                                        action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        <input type="hidden" name="page" value="{{ request('page') }}">
-                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                        <input type="hidden" name="approval_status"
-                                                            value="{{ request('approval_status') }}">
-                                                        <button type="submit" class="btn btn-success" title="Approve (AM)">
-                                                            <i
-                                                                class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
-                                                        </button>
-                                                    </form>
-                                                    <button type="button" class="btn btn-danger" title="Reject (AM)" data-toggle="modal"
-                                                        data-target="#rejectModal{{ $checksheet->id }}asst_manager">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            @endif
-
-                                            @if($canApproveManager)
-                                                <div class="btn-group btn-group-sm mb-1" role="group">
-                                                    <form
-                                                        action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        <input type="hidden" name="page" value="{{ request('page') }}">
-                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                        <input type="hidden" name="approval_status"
-                                                            value="{{ request('approval_status') }}">
-                                                        <button type="submit" class="btn btn-success" title="Approve (MGR)">
-                                                            <i
-                                                                class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
-                                                        </button>
-                                                    </form>
-                                                    <button type="button" class="btn btn-danger" title="Reject (MGR)"
-                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        {{-- Edit/Delete Actions --}}
-                                        {{-- Allowed for: Admin, Supervisor, Kashift, AsstManager. Not Inspector. --}}
-                                        <div class="btn-group btn-group-sm">
-                                            @if(auth()->user()->role === 'admin')
-                                                <a href="{{ route('admin.checksheets.edit_approval', $checksheet->id) }}"
-                                                    class="btn btn-info" title="Edit Approval Status">
-                                                    <i class="fas fa-user-check"></i>
-                                                </a>
-                                            @endif
-                                            <a href="{{ route('admin.checksheets.edit', $checksheet->id) }}" class="btn btn-warning"
-                                                title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('admin.checksheets.destroy', $checksheet->id) }}" method="POST">
+                                        @if($canApproveKashift)
+                                            <form
+                                                action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-delete" title="Delete">
-                                                    <i class="fas fa-trash"></i>
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
                                                 </button>
                                             </form>
-                                        </div>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        @endif
+
+                                        @if($canApproveSupervisor)
+                                            <form
+                                                action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        @endif
+
+                                        @if($canApproveAsst)
+                                            <form
+                                                action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        @endif
+
+                                        @if($canApproveManager)
+                                            <form
+                                                action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        @endif
+
+                                        @if(auth()->user()->role === 'admin')
+                                            <a href="{{ route('admin.checksheets.edit_approval', $checksheet->id) }}"
+                                                class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
+                                                <i class="fas fa-user-check"></i> Status
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('admin.checksheets.edit', $checksheet->id) }}"
+                                            class="btn btn-warning btn-sm m-1" title="Edit" style="min-width: 110px;">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <form action="{{ route('admin.checksheets.destroy', $checksheet->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
                                     </td>
                                 @endif
                             </tr>
@@ -470,7 +487,7 @@
                     }
                 @endforeach
             @endforeach
-                const { jsPDF } = window.jspdf;
+                                        const { jsPDF } = window.jspdf;
 
             document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
                 e.preventDefault();

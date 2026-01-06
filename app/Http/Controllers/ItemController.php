@@ -45,7 +45,7 @@ class ItemController extends Controller
             $query->where('part_number', 'like', '%' . $request->part_number . '%');
         }
 
-        $items = $query->paginate(10);
+        $items = $query->orderBy('name', 'asc')->paginate(10);
         return view('admin.items.index', compact('items'));
     }
 
