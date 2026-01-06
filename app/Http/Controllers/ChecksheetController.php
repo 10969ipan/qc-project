@@ -217,7 +217,7 @@ class ChecksheetController extends Controller
                     $after->addDay();
                 }
 
-                $updateData['cycle_time'] = $after->diffInSeconds($before);
+                $updateData['cycle_time'] = $before->diffInSeconds($after);
             } else {
                 // If jam_before or jam_after not provided, use the form value
                 $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
