@@ -21,39 +21,39 @@ class ChecksheetController extends Controller
         if ($request->has('approval_status') && $request->approval_status != '') {
             if ($request->approval_status === 'Pending') {
                 // Pending: Explicit 'Pending' OR (Null Status AND No Supervisor Approval AND No Rejections)
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('approval_status', 'Pending')
-                      ->orWhere(function($sub) {
-                          $sub->whereNull('approval_status')
-                              ->whereNull('supervisor_qc')
-                              ->where(function($rej) {
-                                  $rej->where('kashift_qc', '!=', 'REJECTED')
-                                      ->orWhereNull('kashift_qc');
-                              });
-                      });
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('approval_status')
+                                ->whereNull('supervisor_qc')
+                                ->where(function ($rej) {
+                                    $rej->where('kashift_qc', '!=', 'REJECTED')
+                                        ->orWhereNull('kashift_qc');
+                                });
+                        });
                 });
             } elseif ($request->approval_status === 'Approved') {
                 // Approved: Explicit 'Approved' OR (Null Status AND Supervisor Approved)
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('approval_status', 'Approved')
-                      ->orWhere(function($sub) {
-                          $sub->whereNull('approval_status')
-                              ->whereNotNull('supervisor_qc')
-                              ->where('supervisor_qc', '!=', 'REJECTED');
-                      });
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('approval_status')
+                                ->whereNotNull('supervisor_qc')
+                                ->where('supervisor_qc', '!=', 'REJECTED');
+                        });
                 });
             } elseif ($request->approval_status === 'Rejected') {
                 // Rejected: Explicit 'Rejected' OR (Null Status AND Any Rejected)
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('approval_status', 'Rejected')
-                      ->orWhere(function($sub) {
-                          $sub->whereNull('approval_status')
-                              ->where(function($rej) {
-                                  $rej->where('kashift_qc', 'REJECTED')
-                                      ->orWhere('supervisor_qc', 'REJECTED')
-                                      ->orWhere('asst_manager_qc', 'REJECTED');
-                              });
-                      });
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('approval_status')
+                                ->where(function ($rej) {
+                                    $rej->where('kashift_qc', 'REJECTED')
+                                        ->orWhere('supervisor_qc', 'REJECTED')
+                                        ->orWhere('asst_manager_qc', 'REJECTED');
+                                });
+                        });
                 });
             }
         }
@@ -64,8 +64,8 @@ class ChecksheetController extends Controller
 
         $checksheets = $query->paginate(10);
         // Sort items by name to make filter dropdown cleaner
-        $items = Item::orderBy('name')->get(); 
-        
+        $items = Item::orderBy('name')->get();
+
         return view('admin.checksheets.index', compact('checksheets', 'items'));
     }
 
@@ -101,7 +101,7 @@ class ChecksheetController extends Controller
             foreach ($request->defect_types as $index => $type) {
                 if ($type) {
                     $qty = $request->defect_quantities[$index] ?? 1; // Default to 1 if missing
-                    $defects[] = ['type' => $type, 'qty' => (int)$qty];
+                    $defects[] = ['type' => $type, 'qty' => (int) $qty];
                 }
             }
         }
@@ -125,7 +125,7 @@ class ChecksheetController extends Controller
         try {
             $googleService = new GoogleSheetService();
             $item = Item::find($validated['item_id']);
-            
+
             $sheetData = [
                 $checksheet->id, // Kolom A: No (ID)
                 $validated['date'], // Kolom B: Tanggal
@@ -189,7 +189,6 @@ class ChecksheetController extends Controller
 
         $updateData = [
             'item_id' => $validated['item_id'],
-            'cycle_time' => $validated['cycle_time'] ?? null,
             'date' => $validated['date'],
             'shift' => $validated['shift'],
             'total_qty' => $validated['total_qty'],
@@ -204,22 +203,28 @@ class ChecksheetController extends Controller
         // Update created_at and cycle_time if time is provided and user is authorized (not inspector)
         if (auth()->user()->role !== 'inspector') {
             $currentDate = $checksheet->created_at->format('Y-m-d');
-            
+
             if (!empty($validated['jam_after'])) {
                 $updateData['created_at'] = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
             }
-            
+
             if (!empty($validated['jam_before']) && !empty($validated['jam_after'])) {
                 $before = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_before']);
                 $after = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
-                
+
                 // Handle midnight crossing (e.g., 23:55 to 00:05)
                 if ($after->lessThan($before)) {
                     $after->addDay();
                 }
-                
+
                 $updateData['cycle_time'] = $after->diffInSeconds($before);
+            } else {
+                // If jam_before or jam_after not provided, use the form value
+                $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
             }
+        } else {
+            // Inspector can't change time, use the form value
+            $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
         }
 
         $checksheet->update($updateData);
@@ -242,13 +247,17 @@ class ChecksheetController extends Controller
         try {
             $checksheet = Checksheet::findOrFail($id);
             $user = auth()->user();
-            
+
             // Validate that the user is allowed to approve this type
             if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
-                if ($type == 'manager' && $user->role !== 'manager') abort(403);
+                if ($type == 'kashift' && $user->role !== 'kashift')
+                    abort(403);
+                if ($type == 'supervisor' && $user->role !== 'supervisor')
+                    abort(403);
+                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
+                    abort(403);
+                if ($type == 'manager' && $user->role !== 'manager')
+                    abort(403);
             }
 
             // Validate approval order/hierarchy
@@ -269,7 +278,7 @@ class ChecksheetController extends Controller
                 }
                 $checksheet->supervisor_qc = $user->name;
                 $checksheet->supervisor_approved_at = now();
-                $checksheet->approval_status = 'Approved'; 
+                $checksheet->approval_status = 'Approved';
             } elseif ($type == 'asst_manager') {
                 // Asst Manager can only approve if Supervisor has approved
                 if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
@@ -309,10 +318,14 @@ class ChecksheetController extends Controller
 
             // Validate that the user is allowed to reject this type
             if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
-                if ($type == 'manager' && $user->role !== 'manager') abort(403);
+                if ($type == 'kashift' && $user->role !== 'kashift')
+                    abort(403);
+                if ($type == 'supervisor' && $user->role !== 'supervisor')
+                    abort(403);
+                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
+                    abort(403);
+                if ($type == 'manager' && $user->role !== 'manager')
+                    abort(403);
             }
 
             // Validate rejection remarks
@@ -323,7 +336,7 @@ class ChecksheetController extends Controller
                 'rejection_remarks.min' => 'Keterangan rejection minimal 10 karakter.',
                 'rejection_remarks.max' => 'Keterangan rejection maksimal 500 karakter.',
             ]);
-            
+
             if ($type == 'kashift') {
                 $checksheet->kashift_qc = 'REJECTED';
                 $checksheet->kashift_approved_at = now();
@@ -361,18 +374,37 @@ class ChecksheetController extends Controller
     {
         try {
             $service = new GoogleSheetService();
-            
+
             // 1. Clear Sheet
             $service->clearSheet();
 
             // 2. Prepare Data and Append in Chunks
-            
+
             // Send Header Row first
-            $headerRow = [[
-                'No', 'Tanggal', 'Jam Before', 'Jam After', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 
-                'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 
-                'Inisial Operator', 'Remarks', 'Ka Shift', 'Supervisor', 'Asst Manager', 'Manager'
-            ]];
+            $headerRow = [
+                [
+                    'No',
+                    'Tanggal',
+                    'Jam Before',
+                    'Jam After',
+                    'Cycle Time',
+                    'Shift',
+                    'Barang',
+                    'Part No',
+                    'Customer',
+                    'Total Qty',
+                    'Sampling Qty',
+                    'Total OK',
+                    'Total NG',
+                    'Judgment',
+                    'Inisial Operator',
+                    'Remarks',
+                    'Ka Shift',
+                    'Supervisor',
+                    'Asst Manager',
+                    'Manager'
+                ]
+            ];
             $service->appendRows($headerRow);
 
             $count = 0;
@@ -410,7 +442,7 @@ class ChecksheetController extends Controller
                     $service->appendRows($rows);
                     $count += count($rows);
                 });
-            
+
             return redirect()->back()->with('success', 'Sinkronisasi ke Google Sheets berhasil (' . $count . ' data).');
 
         } catch (\Exception $e) {
@@ -431,40 +463,40 @@ class ChecksheetController extends Controller
         $filename = "checksheets_export_" . date('Y-m-d_H-i-s') . ".csv";
 
         $headers = [
-            "Content-type"        => "text/csv",
+            "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
         ];
 
         $columns = array('Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 'Inisial Operator', 'Remarks', 'Ka Shift', 'Supervisor', 'Asst Manager', 'Manager');
 
-        $callback = function() use($checksheets, $columns) {
+        $callback = function () use ($checksheets, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
             foreach ($checksheets as $checksheet) {
-                $row['Tanggal']      = $checksheet->date;
-                $row['Jam Input']    = $checksheet->created_at->format('H:i');
-                $row['Cycle Time']   = $checksheet->cycle_time ?? '-';
-                $row['Shift']        = $checksheet->shift;
-                $row['Barang']       = $checksheet->item->name ?? '-';
-                $row['Part No']      = $checksheet->item->part_number ?? '-';
-                $row['Customer']     = $checksheet->item->customer ?? '-';
-                $row['Total Qty']    = $checksheet->total_qty;
+                $row['Tanggal'] = $checksheet->date;
+                $row['Jam Input'] = $checksheet->created_at->format('H:i');
+                $row['Cycle Time'] = $checksheet->cycle_time ?? '-';
+                $row['Shift'] = $checksheet->shift;
+                $row['Barang'] = $checksheet->item->name ?? '-';
+                $row['Part No'] = $checksheet->item->part_number ?? '-';
+                $row['Customer'] = $checksheet->item->customer ?? '-';
+                $row['Total Qty'] = $checksheet->total_qty;
                 $row['Sampling Qty'] = $checksheet->sampling_qty;
-                $row['Total OK']     = $checksheet->total_ok;
-                $row['Total NG']     = $checksheet->total_ng;
-                $row['Judgment']     = $checksheet->judgment;
+                $row['Total OK'] = $checksheet->total_ok;
+                $row['Total NG'] = $checksheet->total_ng;
+                $row['Judgment'] = $checksheet->judgment;
                 $row['Inisial Operator'] = $checksheet->operator_initials;
-                $row['Remarks']      = $checksheet->remarks;
-                
+                $row['Remarks'] = $checksheet->remarks;
+
                 // Export the actual approver name if available
-                $row['Ka Shift']     = $checksheet->kashift_qc ?? ''; 
-                $row['Supervisor']   = $checksheet->supervisor_qc ?? '';
+                $row['Ka Shift'] = $checksheet->kashift_qc ?? '';
+                $row['Supervisor'] = $checksheet->supervisor_qc ?? '';
                 $row['Asst Manager'] = $checksheet->asst_manager_qc ?? '';
-                $row['Manager']      = $checksheet->manager_qc ?? '';
+                $row['Manager'] = $checksheet->manager_qc ?? '';
 
                 fputcsv($file, array(
                     $row['Tanggal'],
@@ -526,7 +558,7 @@ class ChecksheetController extends Controller
                     $checksheet->$dateField = now();
                 }
             } elseif ($status === 'Rejected') {
-                 // Set to rejected only if it's not already set
+                // Set to rejected only if it's not already set
                 if ($checksheet->$nameField !== 'REJECTED') {
                     $checksheet->$nameField = 'REJECTED';
                     $checksheet->$dateField = now();
@@ -542,7 +574,7 @@ class ChecksheetController extends Controller
         $updateLevel('supervisor', $validated['supervisor_qc']);
         $updateLevel('asst_manager', $validated['asst_manager_qc']);
         $updateLevel('manager', $validated['manager_qc']);
-        
+
         // Update the main approval status based on the final level
         if ($checksheet->manager_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->kashift_qc === 'REJECTED') {
             $checksheet->approval_status = 'Rejected';
