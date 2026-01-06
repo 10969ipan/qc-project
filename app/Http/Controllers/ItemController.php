@@ -72,8 +72,18 @@ class ItemController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('items_files'), $filename);
-            $filePath = 'items_files/' . $filename;
+
+            // Determine customer folder
+            $customerFolder = $this->getCustomerFolder($validated['customer']);
+            $uploadPath = public_path('master item/' . $customerFolder);
+
+            // Create folder if not exists
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            $file->move($uploadPath, $filename);
+            $filePath = 'master item/' . $customerFolder . '/' . $filename;
         }
 
         $defects = null;
@@ -126,6 +136,9 @@ class ItemController extends Controller
             'dimension_tolerances' => 'nullable|array',
         ]);
 
+        // Check if customer has changed
+        $customerChanged = $item->customer !== $validated['customer'];
+
         if ($request->hasFile('file')) {
             // Delete old file if exists
             if ($item->file_path && file_exists(public_path($item->file_path))) {
@@ -134,8 +147,38 @@ class ItemController extends Controller
 
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('items_files'), $filename);
-            $item->file_path = 'items_files/' . $filename;
+
+            // Determine customer folder
+            $customerFolder = $this->getCustomerFolder($validated['customer']);
+            $uploadPath = public_path('master item/' . $customerFolder);
+
+            // Create folder if not exists
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            $file->move($uploadPath, $filename);
+            $item->file_path = 'master item/' . $customerFolder . '/' . $filename;
+        } elseif ($customerChanged && $item->file_path) {
+            // Customer changed but no new file uploaded - move existing file to new customer folder
+            $oldPath = public_path($item->file_path);
+
+            if (file_exists($oldPath)) {
+                $filename = basename($item->file_path);
+                $customerFolder = $this->getCustomerFolder($validated['customer']);
+                $newPath = public_path('master item/' . $customerFolder);
+
+                // Create folder if not exists
+                if (!file_exists($newPath)) {
+                    mkdir($newPath, 0755, true);
+                }
+
+                $newFilePath = $newPath . '/' . $filename;
+
+                // Move file to new location
+                rename($oldPath, $newFilePath);
+                $item->file_path = 'master item/' . $customerFolder . '/' . $filename;
+            }
         }
 
         $defects = null;
@@ -176,5 +219,25 @@ class ItemController extends Controller
         }
         $item->delete();
         return redirect()->route('admin.items.index')->with('success', 'Item berhasil dihapus.');
+    }
+
+    /**
+     * Determine the customer folder based on customer name
+     */
+    private function getCustomerFolder($customer)
+    {
+        if (!$customer) {
+            return 'others';
+        }
+
+        $customer = strtolower(trim($customer));
+
+        if (strpos($customer, 'astra honda') !== false || strpos($customer, 'ahm') !== false) {
+            return 'ahm';
+        } elseif (strpos($customer, 'yamaha') !== false || strpos($customer, 'yimm') !== false) {
+            return 'yimm';
+        }
+
+        return 'others';
     }
 }

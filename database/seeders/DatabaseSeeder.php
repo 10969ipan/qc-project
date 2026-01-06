@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(UserSeeder::class);
 
         // Panggil seeder lainnya
-        $this->call(ItemSeeder::class);
+        // ItemSeeder dihapus - data master item dikelola via admin panel
         $this->call(ItemDefectSeeder::class);
     }
 }
