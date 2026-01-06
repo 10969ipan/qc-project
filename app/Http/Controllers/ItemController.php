@@ -212,13 +212,41 @@ class ItemController extends Controller
         return redirect()->route('admin.items.index')->with('success', 'Item berhasil diperbarui.');
     }
 
-    public function destroy(Item $item)
+    public function destroy($id)
     {
+        $item = Item::findOrFail($id);
+
+        // Delete file if exists
         if ($item->file_path && file_exists(public_path($item->file_path))) {
             unlink(public_path($item->file_path));
         }
+
         $item->delete();
+
         return redirect()->route('admin.items.index')->with('success', 'Item berhasil dihapus.');
+    }
+
+    /**
+     * Serve PDF file
+     */
+    public function servePdf($id)
+    {
+        $item = Item::findOrFail($id);
+
+        if (!$item->file_path) {
+            abort(404, 'PDF file not found');
+        }
+
+        $filePath = public_path($item->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'PDF file does not exist on server');
+        }
+
+        return response()->file($filePath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+        ]);
     }
 
     /**

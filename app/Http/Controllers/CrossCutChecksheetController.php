@@ -173,50 +173,54 @@ class CrossCutChecksheetController extends Controller
         try {
             $checksheet = CrossCutChecksheet::findOrFail($id);
             $user = auth()->user();
-            
+
             if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
-                if ($type == 'manager' && $user->role !== 'manager') abort(403);
+                if ($type == 'kashift' && $user->role !== 'kashift')
+                    abort(403);
+                if ($type == 'supervisor' && $user->role !== 'supervisor')
+                    abort(403);
+                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
+                    abort(403);
+                if ($type == 'manager' && $user->role !== 'manager')
+                    abort(403);
             }
 
             // Validate approval order/hierarchy
             if ($type == 'kashift') {
                 // Kashift can always approve first (no prerequisite)
                 if ($checksheet->kashift_qc) {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet sudah disetujui oleh Kashift.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
                 }
                 $checksheet->kashift_qc = $user->name;
                 $checksheet->kashift_approved_at = now();
             } elseif ($type == 'supervisor') {
                 // Supervisor can only approve if Kashift has approved
                 if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
                 }
                 if ($checksheet->supervisor_qc) {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
                 }
                 $checksheet->supervisor_qc = $user->name;
                 $checksheet->supervisor_approved_at = now();
-                $checksheet->approval_status = 'Approved'; 
+                $checksheet->approval_status = 'Approved';
             } elseif ($type == 'asst_manager') {
                 // Asst Manager can only approve if Supervisor has approved
                 if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
                 }
                 if ($checksheet->asst_manager_qc) {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
                 }
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
             } elseif ($type == 'manager') {
                 // Manager can only approve if Asst Manager has approved
                 if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
                 }
                 if ($checksheet->manager_qc) {
-                    return redirect()->route('cross_cut.index')->with('error', 'Checksheet sudah disetujui oleh Manager.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Manager.');
                 }
                 $checksheet->manager_qc = $user->name;
                 $checksheet->manager_approved_at = now();
@@ -227,7 +231,7 @@ class CrossCutChecksheetController extends Controller
             return response('Error: ' . $e->getMessage(), 500);
         }
 
-        return redirect()->route('cross_cut.index')->with('success', 'Cross Cut Checksheet approved successfully.');
+        return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Cross Cut Checksheet approved successfully.');
     }
 
     public function reject(Request $request, $id, $type)
@@ -237,10 +241,14 @@ class CrossCutChecksheetController extends Controller
             $user = auth()->user();
 
             if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift') abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor') abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager') abort(403);
-                if ($type == 'manager' && $user->role !== 'manager') abort(403);
+                if ($type == 'kashift' && $user->role !== 'kashift')
+                    abort(403);
+                if ($type == 'supervisor' && $user->role !== 'supervisor')
+                    abort(403);
+                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
+                    abort(403);
+                if ($type == 'manager' && $user->role !== 'manager')
+                    abort(403);
             }
 
             // Validate rejection remarks
@@ -251,7 +259,7 @@ class CrossCutChecksheetController extends Controller
                 'rejection_remarks.min' => 'Keterangan rejection minimal 10 karakter.',
                 'rejection_remarks.max' => 'Keterangan rejection maksimal 500 karakter.',
             ]);
-            
+
             if ($type == 'kashift') {
                 $checksheet->kashift_qc = 'REJECTED';
                 $checksheet->kashift_approved_at = now();
@@ -281,7 +289,7 @@ class CrossCutChecksheetController extends Controller
             return response('Error: ' . $e->getMessage(), 500);
         }
 
-        return redirect()->route('cross_cut.index')->with('success', 'Cross Cut Checksheet rejected successfully.');
+        return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Cross Cut Checksheet rejected successfully.');
     }
 
     public function exportPdf(Request $request)
@@ -292,7 +300,7 @@ class CrossCutChecksheetController extends Controller
         $this->applyFilters($query, $request);
 
         $checksheets = $query->get(); // Get all results, not paginated
-        
+
         $itemName = null;
         if ($request->filled('item_id')) {
             $item = Item::find($request->item_id);
@@ -329,11 +337,11 @@ class CrossCutChecksheetController extends Controller
             if ($status == 'approved') {
                 $query->whereNotNull('supervisor_qc')->where('supervisor_qc', '!=', 'REJECTED');
             } elseif ($status == 'rejected') {
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('kashift_qc', 'REJECTED')
-                      ->orWhere('supervisor_qc', 'REJECTED')
-                      ->orWhere('asst_manager_qc', 'REJECTED')
-                      ->orWhere('manager_qc', 'REJECTED');
+                        ->orWhere('supervisor_qc', 'REJECTED')
+                        ->orWhere('asst_manager_qc', 'REJECTED')
+                        ->orWhere('manager_qc', 'REJECTED');
                 });
             } elseif ($status == 'pending') {
                 $query->whereNull('kashift_qc');
@@ -386,7 +394,7 @@ class CrossCutChecksheetController extends Controller
         $updateLevel('supervisor', $validated['supervisor_qc']);
         $updateLevel('asst_manager', $validated['asst_manager_qc']);
         $updateLevel('manager', $validated['manager_qc']);
-        
+
         // Update the main approval status based on the final level
         if ($checksheet->manager_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->kashift_qc === 'REJECTED') {
             $checksheet->approval_status = 'Rejected';
@@ -398,6 +406,6 @@ class CrossCutChecksheetController extends Controller
 
         $checksheet->save();
 
-        return redirect()->route('cross_cut.index')->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+        return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
     }
 }

@@ -301,6 +301,11 @@
                                     <div class="btn-group btn-group-sm mb-1" role="group">
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST">
                                             @csrf
+                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                             <button type="submit" class="btn btn-success" title="Approve (Kashift)">
                                                 <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
                                             </button>
@@ -315,6 +320,11 @@
                                     <div class="btn-group btn-group-sm mb-1" role="group">
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST">
                                             @csrf
+                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                             <button type="submit" class="btn btn-success" title="Approve (SPV)">
                                                 <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
                                             </button>
@@ -329,6 +339,11 @@
                                     <div class="btn-group btn-group-sm mb-1" role="group">
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST">
                                             @csrf
+                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                             <button type="submit" class="btn btn-success" title="Approve (AM)">
                                                 <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
                                             </button>
@@ -343,6 +358,11 @@
                                     <div class="btn-group btn-group-sm mb-1" role="group">
                                         <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST">
                                             @csrf
+                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                             <button type="submit" class="btn btn-success" title="Approve (MGR)">
                                                 <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
                                             </button>

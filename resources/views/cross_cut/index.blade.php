@@ -231,8 +231,15 @@
                                                     action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
                                                     method="POST">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-success" title="Approve (Kashift)"><i
-                                                            class="fas fa-check"></i></button>
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <button type="submit" class="btn btn-success" title="Approve (Kashift)">
+                                                        <i
+                                                            class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
+                                                    </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger" title="Reject (Kashift)"
                                                     data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
@@ -247,8 +254,14 @@
                                                     action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
                                                     method="POST">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-success" title="Approve (SPV)"><i
-                                                            class="fas fa-check"></i></button>
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <button type="submit" class="btn btn-success" title="Approve (SPV)">
+                                                        <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
+                                                    </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger" title="Reject (SPV)" data-toggle="modal"
                                                     data-target="#rejectModal{{ $checksheet->id }}supervisor">
@@ -263,8 +276,14 @@
                                                     action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
                                                     method="POST">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-success" title="Approve (AM)"><i
-                                                            class="fas fa-check"></i></button>
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <button type="submit" class="btn btn-success" title="Approve (AM)">
+                                                        <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
+                                                    </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger" title="Reject (AM)" data-toggle="modal"
                                                     data-target="#rejectModal{{ $checksheet->id }}asst_manager">
@@ -279,8 +298,14 @@
                                                     action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
                                                     method="POST">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-success" title="Approve (MGR)"><i
-                                                            class="fas fa-check"></i></button>
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <button type="submit" class="btn btn-success" title="Approve (MGR)">
+                                                        <i class="fas fa-check"></i>{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                                    </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger" title="Reject (MGR)" data-toggle="modal"
                                                     data-target="#rejectModal{{ $checksheet->id }}manager">

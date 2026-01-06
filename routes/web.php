@@ -92,6 +92,7 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
     // Manajemen Barang (Items)
     Route::resource('items', ItemController::class);
+    Route::get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
 
     // Laporan Checksheet (Edit/Delete)
     Route::get('checksheets/{checksheet}/edit', [ChecksheetController::class, 'edit'])->name('checksheets.edit');

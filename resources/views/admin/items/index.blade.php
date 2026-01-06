@@ -62,7 +62,7 @@
                                 <td>
                                     @if($item->file_path)
                                         <button type="button" class="btn btn-primary btn-sm view-pdf-btn" data-toggle="modal"
-                                            data-target="#pdfModal" data-src="{{ asset($item->file_path) }}">
+                                            data-target="#pdfModal" data-src="{{ route('admin.items.pdf', $item->id) }}">
                                             <i class="fas fa-file-pdf"></i> Lihat
                                         </button>
                                     @else

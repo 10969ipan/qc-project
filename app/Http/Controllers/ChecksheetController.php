@@ -264,17 +264,17 @@ class ChecksheetController extends Controller
             if ($type == 'kashift') {
                 // Kashift can always approve first (no prerequisite)
                 if ($checksheet->kashift_qc) {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet sudah disetujui oleh Kashift.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
                 }
                 $checksheet->kashift_qc = $user->name;
                 $checksheet->kashift_approved_at = now();
             } elseif ($type == 'supervisor') {
                 // Supervisor can only approve if Kashift has approved
                 if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
                 }
                 if ($checksheet->supervisor_qc) {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
                 }
                 $checksheet->supervisor_qc = $user->name;
                 $checksheet->supervisor_approved_at = now();
@@ -282,20 +282,20 @@ class ChecksheetController extends Controller
             } elseif ($type == 'asst_manager') {
                 // Asst Manager can only approve if Supervisor has approved
                 if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
                 }
                 if ($checksheet->asst_manager_qc) {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
                 }
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
             } elseif ($type == 'manager') {
                 // Manager can only approve if Asst Manager has approved
                 if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
                 }
                 if ($checksheet->manager_qc) {
-                    return redirect()->route('admin.checksheets.index')->with('error', 'Checksheet sudah disetujui oleh Manager.');
+                    return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Manager.');
                 }
                 $checksheet->manager_qc = $user->name;
                 $checksheet->manager_approved_at = now();
@@ -306,7 +306,7 @@ class ChecksheetController extends Controller
             return response('Error: ' . $e->getMessage() . ' <br><a href="/run-migration">Klik disini untuk jalankan migrasi database jika error terkait kolom hilang</a>', 500);
         }
 
-        return redirect()->route('admin.checksheets.index')->with('success', 'Data Checksheet berhasil disetujui.');
+        return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Data Checksheet berhasil disetujui.');
     }
 
     // Reject Checksheet
@@ -366,7 +366,7 @@ class ChecksheetController extends Controller
             return response('Error: ' . $e->getMessage() . ' <br><a href="/run-migration">Klik disini untuk jalankan migrasi database jika error terkait kolom hilang</a>', 500);
         }
 
-        return redirect()->route('admin.checksheets.index')->with('success', 'Data Checksheet berhasil ditolak.');
+        return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Data Checksheet berhasil ditolak.');
     }
 
     // Sync All Data to Google Sheets
@@ -586,6 +586,6 @@ class ChecksheetController extends Controller
 
         $checksheet->save();
 
-        return redirect()->route('admin.checksheets.index')->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+        return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
     }
 }
