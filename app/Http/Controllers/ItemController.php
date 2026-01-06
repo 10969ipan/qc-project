@@ -140,6 +140,9 @@ class ItemController extends Controller
         $customerChanged = $item->customer !== $validated['customer'];
 
         if ($request->hasFile('file')) {
+            // Resolve file path to ensure we're targeting the correct file
+            $this->resolveFilePath($item);
+
             // Delete old file if exists
             if ($item->file_path && file_exists(public_path($item->file_path))) {
                 unlink(public_path($item->file_path));
@@ -161,6 +164,10 @@ class ItemController extends Controller
             $item->file_path = 'master item/' . $customerFolder . '/' . $filename;
         } elseif ($customerChanged && $item->file_path) {
             // Customer changed but no new file uploaded - move existing file to new customer folder
+            
+            // Resolve file path first
+            $this->resolveFilePath($item);
+            
             $oldPath = public_path($item->file_path);
 
             if (file_exists($oldPath)) {
@@ -216,6 +223,9 @@ class ItemController extends Controller
     {
         $item = Item::findOrFail($id);
 
+        // Resolve file path to ensure we have the correct location
+        $this->resolveFilePath($item);
+
         // Delete file if exists
         if ($item->file_path && file_exists(public_path($item->file_path))) {
             unlink(public_path($item->file_path));
@@ -237,6 +247,9 @@ class ItemController extends Controller
             abort(404, 'PDF file not found');
         }
 
+        // Try to resolve the file path if it's not found at the stored location
+        $this->resolveFilePath($item);
+        
         $filePath = public_path($item->file_path);
 
         if (!file_exists($filePath)) {
@@ -247,6 +260,51 @@ class ItemController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
         ]);
+    }
+
+    /**
+     * Helper to find the actual file path, checking subdirectories if necessary.
+     * Updates the item's file_path if a corrected path is found.
+     */
+    private function resolveFilePath(Item $item)
+    {
+        if (!$item->file_path) {
+            return null;
+        }
+
+        $currentPath = public_path($item->file_path);
+        if (file_exists($currentPath)) {
+            return $currentPath;
+        }
+
+        // File not found at stored path, check subdirectories
+        $filename = basename($item->file_path);
+        // Common subdirectories for master items
+        $subfolders = ['ahm', 'yimm', 'others'];
+        
+        foreach ($subfolders as $folder) {
+            $relativePath = 'master item/' . $folder . '/' . $filename;
+            $candidatePath = public_path($relativePath);
+            
+            if (file_exists($candidatePath)) {
+                // Found it! Update DB to fix future lookups
+                $item->file_path = $relativePath;
+                $item->save(); // This persists the change
+                
+                return $candidatePath;
+            }
+        }
+        
+        // Also check root 'master item' just in case (e.g. if DB says it is in a subfolder but it is in root)
+        $rootRelative = 'master item/' . $filename;
+        $rootPath = public_path($rootRelative);
+        if (file_exists($rootPath)) {
+             $item->file_path = $rootRelative;
+             $item->save();
+             return $rootPath;
+        }
+
+        return null;
     }
 
     /**
