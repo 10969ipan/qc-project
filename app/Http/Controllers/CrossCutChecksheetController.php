@@ -106,7 +106,7 @@ class CrossCutChecksheetController extends Controller
             abort(404);
         }
 
-        return Storage::disk('public')->response($checksheet->image_path);
+        return response()->file(Storage::disk('public')->path($checksheet->image_path));
     }
 
     public function edit($id)
