@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', 'Input Data Checksheet')
+
 @section('content')
     <div class="container-fluid">
 
@@ -55,7 +57,7 @@
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-name="{{ $item->name }}"
                                                     data-description="{{ $item->description ?? '' }}">
-                                                    {{ $item->name }}
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -210,7 +212,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">STANDARD</h5>
+                    <h5 class="modal-title" id="imageModalLabel">STANDARD (Image)</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

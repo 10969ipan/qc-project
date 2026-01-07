@@ -16,14 +16,14 @@
                         <!-- Filter Tanggal -->
                         <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                             <div class="form-group mb-0">
-                                <label for="start_date" class="small font-weight-bold">Tanggal Awal</label>
+                                <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
                                 <input type="date" id="start_date" name="start_date" class="form-control form-control-sm"
                                     value="{{ request('start_date') }}">
                             </div>
                         </div>
                         <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                             <div class="form-group mb-0">
-                                <label for="end_date" class="small font-weight-bold">Tanggal Akhir</label>
+                                <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
                                 <input type="date" id="end_date" name="end_date" class="form-control form-control-sm"
                                     value="{{ request('end_date') }}">
                             </div>
@@ -785,7 +785,8 @@
                 });
             }
 
-                                        const viewImageButtons = document.querySelectorAll('.view-image-btn');
+            // View Image Modal
+            const viewImageButtons = document.querySelectorAll('.view-image-btn');
             const modalImage = document.getElementById('modalImage');
             const modalItemName = document.getElementById('modalItemName');
             const modalQcDatetime = document.getElementById('modalQcDatetime');
