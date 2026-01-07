@@ -13,55 +13,53 @@
         <div class="card-body">
             <form action="{{ route('admin.checksheets.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                    <!-- Filter Tanggal -->
+                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">
                             <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
-                            <input type="date" name="start_date" class="form-control form-control-sm"
+                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm"
                                 value="{{ request('start_date') }}">
                         </div>
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">
                             <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
-                            <input type="date" name="end_date" class="form-control form-control-sm"
+                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm"
                                 value="{{ request('end_date') }}">
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
+                    
+                    <!-- Button Cari dan Reset -->
+                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">
-                            <label for="item_id" class="small font-weight-bold">Filter Item Part</label>
-                            <select name="item_id" class="form-control form-control-sm">
-                                <option value="">Semua Item Part</option>
-                                @foreach($items as $item)
-                                    <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
-                                        {{ $item->name }} ({{ $item->part_number ?? '-' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="approval_status" class="small font-weight-bold">Status Approval</label>
-                            <select name="approval_status" class="form-control form-control-sm">
-                                <option value="">Semua</option>
-                                <option value="Pending" {{ request('approval_status') == 'Pending' ? 'selected' : '' }}>
-                                    Pending</option>
-                                <option value="Approved" {{ request('approval_status') == 'Approved' ? 'selected' : '' }}>
-                                    Approved</option>
-                                <option value="Rejected" {{ request('approval_status') == 'Rejected' ? 'selected' : '' }}>
-                                    Rejected</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-8 col-sm-6 mb-2 text-right">
-                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold d-block">&nbsp;</label>
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-filter"></i> Cari
                             </button>
                             <a href="{{ route('admin.checksheets.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- Live Search -->
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="search" class="small font-weight-bold">Pencarian</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="liveSearch" class="form-control form-control-sm" 
+                                    placeholder="Cari Item Part, Customer, Part No, Inisial...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Button Export PDF -->
+                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2 text-right">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold d-block">&nbsp;</label>
                             <a href='#' id="exportPdfBtn" class="btn btn-danger btn-sm">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
@@ -488,6 +486,39 @@
                     }
                 @endforeach
             @endforeach
+
+            // Live Search Functionality
+            const liveSearchInput = document.getElementById('liveSearch');
+            const checksheetTable = document.getElementById('checksheetTable');
+            const tableRows = checksheetTable.querySelectorAll('tbody tr');
+
+            if (liveSearchInput) {
+                liveSearchInput.addEventListener('keyup', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+
+                    tableRows.forEach(function(row) {
+                        // Get text content from relevant columns
+                        const itemPart = row.cells[6] ? row.cells[6].textContent.toLowerCase() : '';
+                        const customer = row.cells[7] ? row.cells[7].textContent.toLowerCase() : '';
+                        const partNo = row.cells[8] ? row.cells[8].textContent.toLowerCase() : '';
+                        const initials = row.cells[16] ? row.cells[16].textContent.toLowerCase() : '';
+
+                        // Check if any column contains the search term
+                        const matches = itemPart.includes(searchTerm) || 
+                                      customer.includes(searchTerm) || 
+                                      partNo.includes(searchTerm) || 
+                                      initials.includes(searchTerm);
+
+                        // Show or hide row based on match
+                        if (matches || searchTerm === '') {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
                                                             const { jsPDF } = window.jspdf;
 
             document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
