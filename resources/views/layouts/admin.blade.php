@@ -11,14 +11,162 @@
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+
+    <!-- Professional Corporate Font - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
 
     <style>
+        /* Professional Corporate Font - Inter */
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        span:not([class*="fa"]):not([class*="icon"]),
+        div:not([class*="fa"]):not([class*="icon"]),
+        a:not([class*="fa"]):not([class*="icon"]),
+        button:not([class*="fa"]):not([class*="icon"]),
+        input,
+        textarea,
+        select,
+        label,
+        td,
+        th,
+        li {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
+        }
+
+        /* Improve readability */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga' 1, 'calt' 1;
+        }
+
+        /* Headings optimization */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .h1,
+        .h2,
+        .h3,
+        .h4,
+        .h5,
+        .h6 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* Body text optimization */
+        p,
+        span,
+        div,
+        td,
+        th,
+        li {
+            font-weight: 400;
+            letter-spacing: -0.011em;
+        }
+
+        /* Bold text */
+        strong,
+        b,
+        .font-weight-bold {
+            font-weight: 600;
+        }
+
+        /* Table Header Styling - Professional Background */
+        table thead th,
+        table thead td,
+        .table thead th,
+        .table thead td {
+            background-color: #4e73df !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            border-color: #3a5bc7 !important;
+            padding: 0.75rem !important;
+            vertical-align: middle !important;
+        }
+
+        /* Input form tables (without thead) - Target first row with th */
+        table tr:first-child th,
+        .table tr:first-child th,
+        table>tr:first-child th,
+        .table>tr:first-child th {
+            background-color: #4e73df !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            border-color: #3a5bc7 !important;
+            padding: 0.75rem !important;
+            vertical-align: middle !important;
+        }
+
+        /* For tables with tbody but th in first row */
+        table tbody tr:first-child th,
+        .table tbody tr:first-child th {
+            background-color: #4e73df !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            border-color: #3a5bc7 !important;
+            padding: 0.75rem !important;
+            vertical-align: middle !important;
+        }
+
+        /* All th elements in tables (fallback) */
+        table th,
+        .table th {
+            background-color: #4e73df !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            border-color: #3a5bc7 !important;
+        }
+
+        /* Table striped rows for better readability */
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        /* Table hover effect */
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.08);
+        }
+
+        /* Table Border Enhancement - Clear but not too thick */
+        table,
+        .table {
+            border: 1.5px solid #dee2e6 !important;
+        }
+
+        table th,
+        table td,
+        .table th,
+        .table td {
+            border: 1.5px solid #dee2e6 !important;
+        }
+
+        /* Table bordered variant */
+        .table-bordered {
+            border: 1.5px solid #dee2e6 !important;
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1.5px solid #dee2e6 !important;
+        }
+
+        /* Premium Sidebar Animations */
         /* Premium Sidebar Animations */
         .sidebar .nav-item .nav-link {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
