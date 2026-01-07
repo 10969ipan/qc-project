@@ -124,27 +124,46 @@
             vertical-align: middle !important;
         }
 
-        /* All th elements in tables (fallback) */
-        table th,
-        .table th {
+        /* All th elements in tables (fallback) - EXCEPT nested tables */
+        table th:not(table table th):not(td table th):not(.table .table th),
+        .table th:not(table table th):not(td table th):not(.table .table th) {
             background-color: #4e73df !important;
             color: #ffffff !important;
             font-weight: 600 !important;
             border-color: #3a5bc7 !important;
         }
 
-        /* Exception: Nested tables (like Kimia table in Cross Cut) - No background */
-        table table th,
-        .table .table th,
+        /* MAXIMUM PRIORITY: Remove ALL blue backgrounds from nested tables */
+        /* Layer 1: Direct nested table selectors */
         td table th,
+        td table tbody th,
+        td table thead th,
         td .table th,
+        td .table tbody th,
+        td .table thead th,
+        /* Layer 2: Kimia column specific */
         .kimia-col table th,
+        .kimia-col .table th,
+        .kimia-col table tbody th,
+        .kimia-col table thead th,
+        /* Layer 3: Table within table */
+        table table th,
+        table table tbody th,
+        table table thead th,
+        .table .table th,
+        .table .table tbody th,
+        .table .table thead th,
+        /* Layer 4: tbody td combinations */
         table tbody td table th,
         .table tbody td table th,
         tbody td table th,
-        table table tbody th,
-        .table .table tbody th {
-            background-color: #f8f9fc !important;
+        tbody td table tbody th,
+        tbody td table thead th,
+        /* Layer 5: Additional specificity */
+        table.table-bordered tbody td table th,
+        .table.table-bordered tbody td table th {
+            background-color: white !important;
+            background: white !important;
             color: #5a5c69 !important;
             font-weight: 500 !important;
             border-color: #dee2e6 !important;
@@ -152,30 +171,41 @@
             padding: 0.25rem !important;
         }
 
-        /* Nested table cells */
-        table table td,
-        .table .table td,
+        /* MAXIMUM PRIORITY: Nested table cells - NO BACKGROUND */
         td table td,
+        td table tbody td,
         td .table td,
+        td .table tbody td,
         .kimia-col table td,
+        .kimia-col .table td,
+        .kimia-col table tbody td,
+        table table td,
+        table table tbody td,
+        .table .table td,
+        .table .table tbody td,
         table tbody td table td,
         .table tbody td table td,
         tbody td table td,
-        table table tbody td,
-        .table .table tbody td {
-            background-color: #ffffff !important;
+        tbody td table tbody td,
+        table.table-bordered tbody td table td,
+        .table.table-bordered tbody td table td {
+            background-color: white !important;
+            background: white !important;
             color: #5a5c69 !important;
             border-color: #dee2e6 !important;
             padding: 0.25rem !important;
         }
 
-        /* Nested table itself - ensure no blue background */
+        /* Nested table itself - FORCE white background */
         td table,
         td .table,
         .kimia-col table,
+        .kimia-col .table,
         table tbody td table,
-        .table tbody td table {
-            background-color: transparent !important;
+        .table tbody td table,
+        tbody td table {
+            background-color: white !important;
+            background: white !important;
         }
 
         /* Table striped rows for better readability */
