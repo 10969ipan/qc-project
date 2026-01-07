@@ -133,6 +133,28 @@
             border-color: #3a5bc7 !important;
         }
 
+        /* Exception: Nested tables (like Kimia table in Cross Cut) - No background */
+        table table th,
+        .table .table th,
+        td table th,
+        .kimia-col table th {
+            background-color: #f8f9fc !important;
+            color: #5a5c69 !important;
+            font-weight: 500 !important;
+            border-color: #dee2e6 !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* Nested table cells */
+        table table td,
+        .table .table td,
+        td table td,
+        .kimia-col table td {
+            background-color: #ffffff !important;
+            color: #5a5c69 !important;
+            border-color: #dee2e6 !important;
+        }
+
         /* Table striped rows for better readability */
         .table-striped tbody tr:nth-of-type(odd) {
             background-color: rgba(0, 0, 0, 0.02);
