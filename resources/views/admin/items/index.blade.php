@@ -9,7 +9,7 @@
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
             @if(auth()->user()->role !== 'inspector')
-                <a href="{{ route('admin.items.create') }}" class="btn btn-sm btn-primary shadow-sm">
+                <a href="{{ route('admin.items.create') }}" class="btn btn-lg btn-primary shadow-sm">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
                 </a>
             @endif
@@ -19,24 +19,25 @@
                 <div class="row">
                     <div class="col-md-3 col-12 mb-3 mb-md-0">
                         <label for="name">Nama Item</label>
-                        <input type="text" name="name" class="form-control" value="{{ request('name') }}"
+                        <input type="text" name="name" class="form-control form-control-sm" value="{{ request('name') }}"
                             placeholder="Cari Nama Item...">
                     </div>
                     <div class="col-md-3 col-12 mb-3 mb-md-0">
                         <label for="customer">Customer</label>
-                        <input type="text" name="customer" class="form-control" value="{{ request('customer') }}"
-                            placeholder="Cari Customer...">
+                        <input type="text" name="customer" class="form-control form-control-sm"
+                            value="{{ request('customer') }}" placeholder="Cari Customer...">
                     </div>
                     <div class="col-md-3 col-12 mb-3 mb-md-0">
                         <label for="part_number">No Part</label>
-                        <input type="text" name="part_number" class="form-control" value="{{ request('part_number') }}"
-                            placeholder="Cari No Part...">
+                        <input type="text" name="part_number" class="form-control form-control-sm"
+                            value="{{ request('part_number') }}" placeholder="Cari No Part...">
                     </div>
                     <div class="col-md-3 col-12 d-flex flex-column flex-md-row align-items-stretch align-items-md-end">
-                        <button type="submit" class="btn btn-primary mr-md-2 mb-2 mb-md-0" style="min-width: 140px;">
+                        <button type="submit" class="btn btn-primary btn-sm mr-md-2 mb-2 mb-md-0" style="min-width: 140px;">
                             <i class="fas fa-filter"></i> Cari
                         </button>
-                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary" style="min-width: 140px;">
+                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary btn-sm"
+                            style="min-width: 140px;">
                             <i class="fas fa-undo"></i> Reset
                         </a>
                     </div>
