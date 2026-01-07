@@ -51,7 +51,8 @@
 
                                         <!-- Pilihan Barang -->
                                         <td class="align-middle">
-                                            <select class="form-control" name="item_id" id="itemSelect" required>
+                                            <select class="form-control" name="item_id" id="itemSelect" required
+                                                style="min-width: 300px;">
                                                 <option value="" disabled selected
                                                     style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
                                                 @foreach($items as $item)
