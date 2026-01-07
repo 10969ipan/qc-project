@@ -137,22 +137,45 @@
         table table th,
         .table .table th,
         td table th,
-        .kimia-col table th {
+        td .table th,
+        .kimia-col table th,
+        table tbody td table th,
+        .table tbody td table th,
+        tbody td table th,
+        table table tbody th,
+        .table .table tbody th {
             background-color: #f8f9fc !important;
             color: #5a5c69 !important;
             font-weight: 500 !important;
             border-color: #dee2e6 !important;
             font-size: 0.85rem !important;
+            padding: 0.25rem !important;
         }
 
         /* Nested table cells */
         table table td,
         .table .table td,
         td table td,
-        .kimia-col table td {
+        td .table td,
+        .kimia-col table td,
+        table tbody td table td,
+        .table tbody td table td,
+        tbody td table td,
+        table table tbody td,
+        .table .table tbody td {
             background-color: #ffffff !important;
             color: #5a5c69 !important;
             border-color: #dee2e6 !important;
+            padding: 0.25rem !important;
+        }
+
+        /* Nested table itself - ensure no blue background */
+        td table,
+        td .table,
+        .kimia-col table,
+        table tbody td table,
+        .table tbody td table {
+            background-color: transparent !important;
         }
 
         /* Table striped rows for better readability */
