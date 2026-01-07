@@ -12,11 +12,13 @@ class ReportController extends Controller
         return view('qc_report');
     }
 
+    // Menampilkan dashboard inspektur
     public function showDashboard()
     {
         return view('inspector.dashboard');
     }
 
+    // Menampilkan form pembuatan report
     public function create()
     {
         return view('qc_report');

@@ -12,7 +12,7 @@ class AnalysisController extends Controller
 {
     public function monthlyNgSubAssy(Request $request)
     {
-        // Start Query
+        // Mulai Query: Mengambil data checksheet dengan relasi item, diurutkan berdasarkan tanggal
         $query = Checksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials')
             ->with('item')
             ->orderBy('date');
@@ -25,12 +25,12 @@ class AnalysisController extends Controller
             $query->whereDate('date', '<=', $request->end_date);
         }
 
-        // Fetch Data
-        // utilizing Collection methods for database-agnostic grouping (SQLite vs MySQL)
+        // Ambil Data dari database
+        // Menggunakan method Collection untuk pengelompokan (grouping) yang agnostik database (bisa untuk SQLite maupun MySQL)
         $checksheets = $query->get();
 
-        // Group by Year-Month (e.g., "2023-October")
-        // We use 'Y-m' for sorting keys properly, then we can format labels later
+        // Kelompokkan data berdasarkan Tahun-Bulan (contoh: "2023-10")
+        // Kita menggunakan format 'Y-m' agar pengurutan (sorting) berjalan dengan benar
         $grouped = $checksheets->groupBy(function ($item) {
             return Carbon::parse($item->date)->format('Y-m');
         });
@@ -41,7 +41,7 @@ class AnalysisController extends Controller
         $dataCycleTime = [];
 
         foreach ($grouped as $key => $group) {
-            // Format label to be readable, e.g., "October 2023"
+            // Format label agar mudah dibaca, contoh: "October 2023"
             $labels[] = Carbon::createFromFormat('Y-m', $key)->format('F Y');
 
             $sumNG = $group->sum('total_ng');
@@ -50,16 +50,16 @@ class AnalysisController extends Controller
 
             $data[] = $sumNG;
 
-            // Calculate Percentage (NG / Sampling)
+            // Hitung Persentase NG (NG / Sampling)
             $percentage = $sumSampling > 0 ? ($sumNG / $sumSampling) * 100 : 0;
             $dataPercentage[] = round($percentage, 2);
 
-            // Calculate Average Cycle Time
+            // Hitung Rata-rata Cycle Time
             $dataCycleTime[] = round($avgCycleTime, 1);
         }
 
-        // Calculate Defect Variants Distribution
-        // $checksheets contains all records loaded. We will parse 'defects' JSON.
+        // Menghitung Distribusi Varian Defect (NG)
+        // Variabel $checksheets berisi semua data yang dimuat. Kita akan memparsing data JSON 'defects'.
         $defectCounts = [];
 
         foreach ($checksheets as $checksheet) {
@@ -85,8 +85,8 @@ class AnalysisController extends Controller
             }
         }
 
-        // Calculate Average Cycle Time per Item
-        // Formula: Total Cycle Time / Total Sampling Qty
+        // Menghitung Rata-rata Cycle Time per Item
+        // Rumus: Total Cycle Time / Total Sampling Qty
         $itemCycleTimes = [];
         $itemTotalPcs = []; // Store total sampling qty per item
         $itemTotalSeconds = []; // Store total cycle time per item
@@ -98,7 +98,7 @@ class AnalysisController extends Controller
 
             $avg = $sumSamplingQty > 0 ? $sumCycleTime / $sumSamplingQty : 0;
 
-            // Assuming eager loaded item is available. Handle null item (soft deleted or orphan).
+            // Mengasumsikan relation 'item' sudah di-load (eager load). Menangani jika item null (terhapus).
             $itemName = $group->first()->item->name ?? 'Unknown Item';
             $itemCycleTimes[$itemName] = round($avg, 1);
             $itemTotalPcs[$itemName] = $sumSamplingQty;
@@ -118,17 +118,17 @@ class AnalysisController extends Controller
             $sortedItemTotalSeconds[] = $itemTotalSeconds[$label] ?? 0;
         }
 
-        // Calculate Average Cycle Time per Item by User (Grouped Bar Chart)
-        // We need:
-        // 1. Labels: List of Items (Sorted, e.g., by Avg Cycle Time or Name)
-        // 2. Datasets: One per User, containing data for each Item
+        // Menghitung Rata-rata Cycle Time per Item berdasarkan User (Grouped Bar Chart)
+        // Kita Membutuhkan:
+        // 1. Labels: Daftar Item (Diurutkan, misal berdasarkan Avg Cycle Time atau Nama)
+        // 2. Datasets: Satu per User, berisi data untuk setiap Item
 
         // Use existing $itemLabels (sorted by global avg cycle time) as the X-axis/Y-axis base
         $inspectorItemLabels = $itemLabels;
 
-        // Get all unique users from the entire table to ensure we list everyone
-        // even if they have no data in the selected range.
-        // Also sorting them alphabetically for consistent display.
+        // Dapatkan semua user unik dari tabel untuk memastikan semua tercatat
+        // meskipun mereka tidak memiliki data dalam rentang waktu yang dipilih.
+        // Juga mengurutkan abjad untuk tampilan yang konsisten.
         $users = Checksheet::select('operator_initials')
             ->distinct()
             ->whereNotNull('operator_initials')
@@ -206,7 +206,7 @@ class AnalysisController extends Controller
 
     public function monthlyNgInProcess(Request $request)
     {
-        // Start Query
+        // Mulai Query: Mengambil data InProcess Checksheet
         $query = InProcessChecksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials')
             ->with('item')
             ->orderBy('date');
@@ -404,8 +404,8 @@ class AnalysisController extends Controller
 
     public function monthlyNgCrossCut(Request $request)
     {
-        // Start Query - Cross Cut has different structure than other checksheets
-        // It uses qc_datetime instead of date, and position_remark_judgment (OK/NG) instead of total_ng
+        // Mulai Query - Cross Cut memiliki struktur berbeda dari checksheet lain
+        // Menggunakan 'qc_datetime' sebagai tanggal, dan 'position_remark_judgment' (OK/NG) sebagai penentu NG
         $query = CrossCutChecksheet::select('qc_datetime', 'position_remark_judgment', 'item_id', 'operator_initials', 'cycle_time')
             ->with('item')
             ->orderBy('qc_datetime');
@@ -434,7 +434,7 @@ class AnalysisController extends Controller
         foreach ($grouped as $key => $group) {
             $labels[] = Carbon::createFromFormat('Y-m', $key)->format('F Y');
 
-            // Count NG items (where position_remark_judgment = 'NG')
+            // Hitung item NG (dimana position_remark_judgment = 'NG')
             $ngCount = $group->where('position_remark_judgment', 'NG')->count();
             $totalCount = $group->count();
             $avgCycleTime = $group->avg('cycle_time');
@@ -449,8 +449,8 @@ class AnalysisController extends Controller
             $dataCycleTime[] = round($avgCycleTime, 1);
         }
 
-        // For Cross Cut, we don't have defect types like other checksheets
-        // We'll just show OK vs NG distribution
+        // Untuk Cross Cut, kita tidak memiliki tipe defect spesifik seperti checksheet lain
+        // Kita hanya menampilkan distribusi OK vs NG
         $defectCounts = [
             'NG' => $checksheets->where('position_remark_judgment', 'NG')->count(),
             'OK' => $checksheets->where('position_remark_judgment', 'OK')->count()

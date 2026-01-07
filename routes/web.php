@@ -54,7 +54,7 @@ Route::get('/debug-google-sheets', function () {
 // Rute Dashboard Utama (Untuk Semua Role)
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return view('layouts.dashboard');
     })->name('dashboard');
 
     // Rute Checksheet (Input) - Accessible by inspectors and admins? 

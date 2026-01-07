@@ -124,7 +124,7 @@
                                 <td class="align-middle no-export">
                                     <button class="btn btn-primary btn-sm view-image-btn" data-id="{{ $checksheet->id }}"
                                         data-toggle="modal" data-target="#imageModal">
-                                        View Image
+                                        <i class="fas fa-eye"></i> Lihat Foto
                                     </button>
                                 </td>
                                 <td class="align-middle p-0 kimia-col">
@@ -490,7 +490,7 @@
                     }
                 @endforeach
             @endforeach
-                                const viewImageButtons = document.querySelectorAll('.view-image-btn');
+                                    const viewImageButtons = document.querySelectorAll('.view-image-btn');
             const modalImage = document.getElementById('modalImage');
             const modalItemName = document.getElementById('modalItemName');
             const modalQcDatetime = document.getElementById('modalQcDatetime');

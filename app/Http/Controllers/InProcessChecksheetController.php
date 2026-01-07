@@ -32,11 +32,14 @@ class InProcessChecksheetController extends Controller
         ],
     ];
 
+
+
+    // Menggabungkan standar hardcoded dengan standar dari database
     private function getConsolidatedStandards()
     {
         $standards = $this->hardcodedStandards;
 
-        // Get standards from database and convert to the same format
+        // Ambil standar dari database dan konversi ke format yang sama
         $dbItems = Item::whereNotNull('dimension_standards')->get();
         foreach ($dbItems as $item) {
             if ($item->part_number && !empty($item->dimension_standards)) {
@@ -55,7 +58,7 @@ class InProcessChecksheetController extends Controller
                 }
 
                 if (!empty($itemStandards)) {
-                    // Database standards override hardcoded ones if there's a conflict
+                    // Standar dari database menimpa standar hardcoded jika ada konflik
                     $standards[$item->part_number] = $itemStandards;
                 }
             }
@@ -64,7 +67,7 @@ class InProcessChecksheetController extends Controller
         return $standards;
     }
 
-    // For Admin to view list
+    // Untuk Admin melihat daftar checksheet
     public function index(Request $request)
     {
         $query = InProcessChecksheet::with('item')->latest();
@@ -136,7 +139,7 @@ class InProcessChecksheetController extends Controller
         ]);
     }
 
-    // Store submission
+    // Simpan data (submission)
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -156,7 +159,7 @@ class InProcessChecksheetController extends Controller
             'defect_quantities' => 'nullable|array',
         ]);
 
-        // --- Centralized Server-Side Dimension Validation ---
+        // --- Validasi Dimensi Terpusat di Server-Side ---
         $item = Item::find($validated['item_id']);
         $allStandards = $this->getConsolidatedStandards();
         if ($item && isset($allStandards[$item->part_number]) && !empty($request->dimensions)) {
@@ -196,7 +199,7 @@ class InProcessChecksheetController extends Controller
         }
         // --- End Validation ---
 
-        // Process Defects into Structured JSON
+        // Proses Defect menjadi JSON terstruktur
         $defects = [];
         if ($request->has('defect_types')) {
             foreach ($request->defect_types as $index => $type) {
@@ -207,7 +210,7 @@ class InProcessChecksheetController extends Controller
             }
         }
 
-        // Process Dimensions into JSON, filtering out empty values
+        // Proses Dimensi menjadi JSON, filter nilai yang kosong
         $dimensions = $request->dimensions ?? [];
         $filteredDimensions = [];
         foreach ($dimensions as $cavity => $points) {
@@ -554,9 +557,9 @@ class InProcessChecksheetController extends Controller
             $service = app(GoogleSheetService::class);
             $service->setSheetName('Sheet2');
 
-            // 1. Clear Sheet (Note: This clears the whole sheet! Be careful if sharing with Sub Assy)
-            // Ideally InProcess should use a different Sheet/Tab ID.
-            // For now, mirroring existing logic.
+            // 1. Bersihkan Sheet (Clear Sheet)
+            // Idealnya InProcess menggunakan Sheet/Tab ID yang berbeda.
+            // Untuk saat ini, meniru logika yang ada.
             $service->clearSheet();
 
             // 2. Prepare Data and Append in Chunks
@@ -590,7 +593,7 @@ class InProcessChecksheetController extends Controller
             $service->appendRows($headerRow);
 
             $count = 0;
-            // Chunk at the database level to save memory
+            // Chunk di level database untuk menghemat memori
             InProcessChecksheet::with('item')
                 ->orderBy('date')
                 ->orderBy('created_at')
@@ -769,18 +772,18 @@ class InProcessChecksheetController extends Controller
         return $pdf->setPaper('a4', 'landscape')->stream('laporan-checksheet-inprocess.pdf');
     }
 
-    // Show the form for admins to edit approval status
+    // Tampilkan form untuk admin mengedit status approval
     public function editApproval($id)
     {
         $checksheet = InProcessChecksheet::findOrFail($id);
         return view('in_process.edit_approval', compact('checksheet'));
     }
 
-    // Update the approval status by admin
+    // Update status approval oleh admin
     public function updateApproval(Request $request, $id)
     {
         $checksheet = InProcessChecksheet::findOrFail($id);
-        $user = auth()->user(); // Admin user
+        $user = auth()->user(); // User Admin
 
         $validated = $request->validate([
             'kashift_qc' => 'required|in:Pending,Approved,Rejected',
@@ -789,7 +792,7 @@ class InProcessChecksheetController extends Controller
             'manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
-        // Helper function to update a single approval level
+        // Fungsi helper untuk update satu level approval
         $updateLevel = function ($level, $status) use ($checksheet, $user) {
             $nameField = "{$level}_qc";
             $dateField = "{$level}_approved_at";

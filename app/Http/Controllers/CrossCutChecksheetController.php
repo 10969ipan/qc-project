@@ -11,7 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class CrossCutChecksheetController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menampilkan daftar data (resource).
      */
     public function index(Request $request)
     {
@@ -26,7 +26,7 @@ class CrossCutChecksheetController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Menampilkan form untuk membuat data baru.
      */
     public function create()
     {
@@ -35,7 +35,7 @@ class CrossCutChecksheetController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Menyimpan data baru ke penyimpanan (database).
      */
     public function store(Request $request)
     {
@@ -86,7 +86,7 @@ class CrossCutChecksheetController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Menampilkan resource spesifik (detail).
      */
     public function show($id)
     {
@@ -98,6 +98,7 @@ class CrossCutChecksheetController extends Controller
         ]);
     }
 
+    // Menyajikan gambar dari storage privat/public agar aman
     public function serveImage($id)
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
@@ -141,11 +142,11 @@ class CrossCutChecksheetController extends Controller
 
         $imagePath = $checksheet->image_path;
         if ($request->hasFile('image')) {
-            // Delete old image
+            // Hapus gambar lama jika ada
             if ($imagePath && Storage::disk('public')->exists($imagePath)) {
                 Storage::disk('public')->delete($imagePath);
             }
-            // Store new image
+            // Simpan gambar baru
             $imagePath = $request->file('image')->store('cross_cut_images', 'public');
         }
 
@@ -158,7 +159,7 @@ class CrossCutChecksheetController extends Controller
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
 
-        // Delete the image from storage
+        // Hapus gambar dari storage
         if ($checksheet->image_path && Storage::disk('public')->exists($checksheet->image_path)) {
             Storage::disk('public')->delete($checksheet->image_path);
         }
@@ -185,16 +186,16 @@ class CrossCutChecksheetController extends Controller
                     abort(403);
             }
 
-            // Validate approval order/hierarchy
+            // Validasi urutan/hirarki approval
             if ($type == 'kashift') {
-                // Kashift can always approve first (no prerequisite)
+                // Kashift selalu bisa approve pertama (tidak ada prasyarat)
                 if ($checksheet->kashift_qc) {
                     return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
                 }
                 $checksheet->kashift_qc = $user->name;
                 $checksheet->kashift_approved_at = now();
             } elseif ($type == 'supervisor') {
-                // Supervisor can only approve if Kashift has approved
+                // Supervisor hanya bisa approve jika Kashift sudah approve
                 if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
                     return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
                 }
@@ -205,7 +206,7 @@ class CrossCutChecksheetController extends Controller
                 $checksheet->supervisor_approved_at = now();
                 $checksheet->approval_status = 'Approved';
             } elseif ($type == 'asst_manager') {
-                // Asst Manager can only approve if Supervisor has approved
+                // Asst Manager hanya bisa approve jika Supervisor sudah approve
                 if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
                     return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
                 }
@@ -215,7 +216,7 @@ class CrossCutChecksheetController extends Controller
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
             } elseif ($type == 'manager') {
-                // Manager can only approve if Asst Manager has approved
+                // Manager hanya bisa approve jika Asst Manager sudah approve
                 if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
                     return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
                 }
@@ -349,18 +350,18 @@ class CrossCutChecksheetController extends Controller
         }
     }
 
-    // Show the form for admins to edit approval status
+    // Tampilkan form untuk admin mengedit status approval
     public function editApproval($id)
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
         return view('cross_cut.edit_approval', compact('checksheet'));
     }
 
-    // Update the approval status by admin
+    // Update status approval oleh admin
     public function updateApproval(Request $request, $id)
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
-        $user = auth()->user(); // Admin user
+        $user = auth()->user(); // User Admin
 
         $validated = $request->validate([
             'kashift_qc' => 'required|in:Pending,Approved,Rejected',
@@ -369,7 +370,7 @@ class CrossCutChecksheetController extends Controller
             'manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
-        // Helper function to update a single approval level
+        // Fungsi helper untuk update satu level approval
         $updateLevel = function ($level, $status) use ($checksheet, $user) {
             $nameField = "{$level}_qc";
             $dateField = "{$level}_approved_at";

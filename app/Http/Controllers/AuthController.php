@@ -11,12 +11,15 @@ class AuthController extends Controller
 
     public function login()
     {
+        // Variabel untuk menampung data login yang tersimpan (Remember Me)
         $saved_email = '';
         $saved_password = '';
         $is_remembered = false;
 
+        // Cek apakah ada cookie 'login_credentials'
         if (\Illuminate\Support\Facades\Cookie::has('login_credentials')) {
             try {
+                // Decrypt dan decode data kredensial dari cookie
                 $credentials = json_decode(\Illuminate\Support\Facades\Crypt::decryptString(\Illuminate\Support\Facades\Cookie::get('login_credentials')), true);
                 if ($credentials) {
                     $saved_email = $credentials['email'];
@@ -24,7 +27,7 @@ class AuthController extends Controller
                     $is_remembered = true;
                 }
             } catch (\Exception $e) {
-                // Invalid cookie, ignore
+                // Jika cookie tidak valid, abaikan saja
             }
         }
 
@@ -40,17 +43,19 @@ class AuthController extends Controller
 
         $remember = $request->has('remember');
 
-        // Do NOT pass $remember to Auth::attempt, as we want session to expire on close
+        // JANGAN lewatkan $remember ke Auth::attempt, karena kita ingin sesi berakhir saat browser ditutup
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
             if ($remember) {
+                // Jika user mencentang 'Remember Me', simpan kredensial dalam cookie yang terenkripsi selama 30 hari
                 $cookieValue = \Illuminate\Support\Facades\Crypt::encryptString(json_encode([
                     'email' => $request->email,
                     'password' => $request->password
                 ]));
-                \Illuminate\Support\Facades\Cookie::queue('login_credentials', $cookieValue, 43200); // 30 days
+                \Illuminate\Support\Facades\Cookie::queue('login_credentials', $cookieValue, 43200); // 30 hari (43200 menit)
             } else {
+                // Jika tidak dicentang, hapus cookie kredensial jika ada
                 \Illuminate\Support\Facades\Cookie::queue(\Illuminate\Support\Facades\Cookie::forget('login_credentials'));
             }
 

@@ -10,6 +10,7 @@ class ItemController extends Controller
 
     public function index(Request $request)
     {
+        // Mulai query untuk model Item
         $query = Item::query();
 
         if ($request->has('name') && $request->name != '') {
@@ -25,14 +26,16 @@ class ItemController extends Controller
         }
 
         $items = $query->orderBy('name', 'asc')->paginate(10);
-        return view('admin.items.index', compact('items'));
+        return view('items.index', compact('items'));
     }
 
+    // Menampilkan form pembuatan item
     public function create()
     {
-        return view('admin.items.create');
+        return view('items.create');
     }
 
+    // Menyimpan item baru
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -69,6 +72,7 @@ class ItemController extends Controller
             $defects = array_values(array_filter(array_map('trim', explode("\n", $request->defects))));
         }
 
+        // Proses dimensi dan standar jika diisi
         $dimension_standards = null;
         if ($request->filled('dimension_points')) {
             $dimension_standards = [];
@@ -95,11 +99,13 @@ class ItemController extends Controller
         return redirect()->route('admin.items.index')->with('success', 'Item berhasil ditambahkan.');
     }
 
+    // Menampilkan form edit item
     public function edit(Item $item)
     {
-        return view('admin.items.edit', compact('item'));
+        return view('items.edit', compact('item'));
     }
 
+    // Update data item
     public function update(Request $request, Item $item)
     {
         $validated = $request->validate([
@@ -113,14 +119,14 @@ class ItemController extends Controller
             'dimension_tolerances' => 'nullable|array',
         ]);
 
-        // Check if customer has changed
+        // Cek apakah customer berubah (untuk memindahkan file ke folder yang sesuai)
         $customerChanged = $item->customer !== $validated['customer'];
 
         if ($request->hasFile('file')) {
-            // Resolve file path to ensure we're targeting the correct file
+            // Resolusi path file untuk memastikan kita menargetkan file yang benar
             $this->resolveFilePath($item);
 
-            // Delete old file if exists
+            // Hapus file lama jika ada
             if ($item->file_path && file_exists(public_path($item->file_path))) {
                 unlink(public_path($item->file_path));
             }
@@ -140,9 +146,9 @@ class ItemController extends Controller
             $file->move($uploadPath, $filename);
             $item->file_path = 'master item/' . $customerFolder . '/' . $filename;
         } elseif ($customerChanged && $item->file_path) {
-            // Customer changed but no new file uploaded - move existing file to new customer folder
+            // Customer berubah tapi tidak ada upload file baru - pindahkan file yang ada ke folder customer baru
 
-            // Resolve file path first
+            // Resolusi path file dulu
             $this->resolveFilePath($item);
 
             $oldPath = public_path($item->file_path);
@@ -159,7 +165,7 @@ class ItemController extends Controller
 
                 $newFilePath = $newPath . '/' . $filename;
 
-                // Move file to new location
+                // Pindahkan file ke lokasi baru
                 rename($oldPath, $newFilePath);
                 $item->file_path = 'master item/' . $customerFolder . '/' . $filename;
             }
@@ -200,10 +206,10 @@ class ItemController extends Controller
     {
         $item = Item::findOrFail($id);
 
-        // Resolve file path to ensure we have the correct location
+        // Resolusi path file untuk memastikan lokasi yang benar
         $this->resolveFilePath($item);
 
-        // Delete file if exists
+        // Hapus file jika ada
         if ($item->file_path && file_exists(public_path($item->file_path))) {
             unlink(public_path($item->file_path));
         }
@@ -214,7 +220,7 @@ class ItemController extends Controller
     }
 
     /**
-     * Serve PDF file
+     * Menyajikan file PDF
      */
     public function servePdf($id)
     {
@@ -226,7 +232,7 @@ class ItemController extends Controller
                 abort(404, 'PDF file path not stored in database');
             }
 
-            // Try to resolve the file path if it's not found at the stored location
+            // Coba resolusi path file jika tidak ditemukan di lokasi yang tersimpan
             $this->resolveFilePath($item);
 
             $filePath = public_path($item->file_path);
@@ -247,8 +253,8 @@ class ItemController extends Controller
     }
 
     /**
-     * Helper to find the actual file path, checking subdirectories if necessary.
-     * Updates the item's file_path if a corrected path is found.
+     * Helper untuk menemukan path file aktual, memeriksa subdirektori jika perlu.
+     * Mengupdate file_path item jika path yang dikoreksi ditemukan.
      */
     private function resolveFilePath(Item $item)
     {
@@ -261,9 +267,9 @@ class ItemController extends Controller
             return $currentPath;
         }
 
-        // File not found at stored path, check subdirectories
+        // File tidak ditemukan di path tersimpan, cek subdirektori
         $filename = basename($item->file_path);
-        // Common subdirectories for master items
+        // Subdirektori umum untuk master item
         $subfolders = ['ahm', 'yimm', 'others'];
 
         foreach ($subfolders as $folder) {
@@ -279,7 +285,7 @@ class ItemController extends Controller
             }
         }
 
-        // Also check root 'master item' just in case (e.g. if DB says it is in a subfolder but it is in root)
+        // Juga cek root 'master item' jaga-jaga (misal DB bilang di subfolder tapi aslinya di root)
         $rootRelative = 'master item/' . $filename;
         $rootPath = public_path($rootRelative);
         if (file_exists($rootPath)) {
@@ -292,7 +298,7 @@ class ItemController extends Controller
     }
 
     /**
-     * Determine the customer folder based on customer name
+     * Menentukan folder customer berdasarkan nama customer
      */
     private function getCustomerFolder($customer)
     {

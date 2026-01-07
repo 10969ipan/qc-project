@@ -9,7 +9,7 @@ use App\Services\GoogleSheetService;
 
 class ChecksheetController extends Controller
 {
-    // For Admin to view list
+    // Untuk Admin melihat daftar checksheet
     public function index(Request $request)
     {
         $query = Checksheet::with('item')->latest();
@@ -20,7 +20,7 @@ class ChecksheetController extends Controller
 
         if ($request->has('approval_status') && $request->approval_status != '') {
             if ($request->approval_status === 'Pending') {
-                // Pending: Explicit 'Pending' OR (Null Status AND No Supervisor Approval AND No Rejections)
+                // Pending: Eksplisit 'Pending' ATAU (Status Null DAN Tidak Ada Approval Konfirmasi Supervisor DAN Tidak Ada Rejection)
                 $query->where(function ($q) {
                     $q->where('approval_status', 'Pending')
                         ->orWhere(function ($sub) {
@@ -33,7 +33,7 @@ class ChecksheetController extends Controller
                         });
                 });
             } elseif ($request->approval_status === 'Approved') {
-                // Approved: Explicit 'Approved' OR (Null Status AND Supervisor Approved)
+                // Approved: Eksplisit 'Approved' ATAU (Status Null DAN Supervisor sudah Approve)
                 $query->where(function ($q) {
                     $q->where('approval_status', 'Approved')
                         ->orWhere(function ($sub) {
@@ -43,7 +43,7 @@ class ChecksheetController extends Controller
                         });
                 });
             } elseif ($request->approval_status === 'Rejected') {
-                // Rejected: Explicit 'Rejected' OR (Null Status AND Any Rejected)
+                // Rejected: Eksplisit 'Rejected' ATAU (Status Null DAN Ada yang Reject)
                 $query->where(function ($q) {
                     $q->where('approval_status', 'Rejected')
                         ->orWhere(function ($sub) {
@@ -66,17 +66,17 @@ class ChecksheetController extends Controller
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get();
 
-        return view('admin.checksheets.index', compact('checksheets', 'items'));
+        return view('sub_assy.index', compact('checksheets', 'items'));
     }
 
-    // Show form (updated to pass items)
+    // Tampilkan form (diupdate untuk mengirim data items)
     public function create()
     {
         $items = Item::orderBy('name')->get();
-        return view('checksheet.sub_assy', compact('items'));
+        return view('sub_assy.create', compact('items'));
     }
 
-    // Store submission
+    // Simpan data (submission)
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -95,7 +95,7 @@ class ChecksheetController extends Controller
             'defect_quantities' => 'nullable|array',
         ]);
 
-        // Process Defects into Structured JSON
+        // Proses Defect menjadi JSON terstruktur
         $defects = [];
         if ($request->has('defect_types')) {
             foreach ($request->defect_types as $index => $type) {
@@ -160,10 +160,10 @@ class ChecksheetController extends Controller
     // Edit Checksheet
     public function edit($id)
     {
-        // Allow access to edit based on sidebar role logic or generally allowed
+        // Izinkan akses edit berdasarkan logika role sidebar atau diizinkan secara umum
         $checksheet = Checksheet::findOrFail($id);
         $items = Item::orderBy('name')->get();
-        return view('admin.checksheets.edit', compact('checksheet', 'items'));
+        return view('sub_assy.edit', compact('checksheet', 'items'));
     }
 
     // Update Checksheet
@@ -200,7 +200,7 @@ class ChecksheetController extends Controller
             'remarks' => $validated['remarks'],
         ];
 
-        // Update created_at and cycle_time if time is provided and user is authorized (not inspector)
+        // Update created_at dan cycle_time jika waktu disediakan dan user punya otoritas (bukan inspector)
         if (auth()->user()->role !== 'inspector') {
             $currentDate = $checksheet->created_at->format('Y-m-d');
 
@@ -212,18 +212,18 @@ class ChecksheetController extends Controller
                 $before = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_before']);
                 $after = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
 
-                // Handle midnight crossing (e.g., 23:55 to 00:05)
+                // Menangani pergantian hari (melewati tengah malam, misal 23:55 ke 00:05)
                 if ($after->lessThan($before)) {
                     $after->addDay();
                 }
 
                 $updateData['cycle_time'] = $before->diffInSeconds($after);
             } else {
-                // If jam_before or jam_after not provided, use the form value
+                // Jika jam_before atau jam_after tidak dilampirkan, gunakan nilai dari form
                 $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
             }
         } else {
-            // Inspector can't change time, use the form value
+            // Inspector tidak bisa mengubah waktu, gunakan nilai dari form
             $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
         }
 
@@ -248,7 +248,7 @@ class ChecksheetController extends Controller
             $checksheet = Checksheet::findOrFail($id);
             $user = auth()->user();
 
-            // Validate that the user is allowed to approve this type
+            // Validasi bahwa user diizinkan untuk approve tipe ini
             if ($user->role !== 'admin') {
                 if ($type == 'kashift' && $user->role !== 'kashift')
                     abort(403);
@@ -260,16 +260,16 @@ class ChecksheetController extends Controller
                     abort(403);
             }
 
-            // Validate approval order/hierarchy
+            // Validasi urutan/hirarki approval
             if ($type == 'kashift') {
-                // Kashift can always approve first (no prerequisite)
+                // Kashift selalu bisa approve pertama (tidak ada prasyarat)
                 if ($checksheet->kashift_qc) {
                     return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
                 }
                 $checksheet->kashift_qc = $user->name;
                 $checksheet->kashift_approved_at = now();
             } elseif ($type == 'supervisor') {
-                // Supervisor can only approve if Kashift has approved
+                // Supervisor hanya bisa approve jika Kashift sudah approve
                 if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
                     return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
                 }
@@ -280,7 +280,7 @@ class ChecksheetController extends Controller
                 $checksheet->supervisor_approved_at = now();
                 $checksheet->approval_status = 'Approved';
             } elseif ($type == 'asst_manager') {
-                // Asst Manager can only approve if Supervisor has approved
+                // Asst Manager hanya bisa approve jika Supervisor sudah approve
                 if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
                     return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
                 }
@@ -290,7 +290,7 @@ class ChecksheetController extends Controller
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
             } elseif ($type == 'manager') {
-                // Manager can only approve if Asst Manager has approved
+                // Manager hanya bisa approve jika Asst Manager sudah approve
                 if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
                     return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
                 }
@@ -316,7 +316,7 @@ class ChecksheetController extends Controller
             $checksheet = Checksheet::findOrFail($id);
             $user = auth()->user();
 
-            // Validate that the user is allowed to reject this type
+            // Validasi bahwa user diizinkan untuk menolak (reject) tipe ini
             if ($user->role !== 'admin') {
                 if ($type == 'kashift' && $user->role !== 'kashift')
                     abort(403);
@@ -355,7 +355,7 @@ class ChecksheetController extends Controller
                 $checksheet->approval_status = 'Rejected';
             }
 
-            // Save rejection remarks with role prefix
+            // Simpan keterangan penolakan dengan prefix role
             $roleLabel = ucfirst(str_replace('_', ' ', $type));
             $checksheet->rejection_remarks = "[{$roleLabel}] " . $request->rejection_remarks . " - " . $user->name . " (" . now()->format('d/m/Y H:i') . ")";
 
@@ -369,18 +369,18 @@ class ChecksheetController extends Controller
         return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Data Checksheet berhasil ditolak.');
     }
 
-    // Sync All Data to Google Sheets
+    // Sinkronisasi Semua Data ke Google Sheets
     public function syncToGoogleSheets(Request $request)
     {
         try {
             $service = new GoogleSheetService();
 
-            // 1. Clear Sheet
+            // 1. Bersihkan Sheet (Clear Sheet)
             $service->clearSheet();
 
-            // 2. Prepare Data and Append in Chunks
+            // 2. Siapkan Data dan Tambahkan dalam Potongan (Chunks)
 
-            // Send Header Row first
+            // Kirim Baris Header dulu
             $headerRow = [
                 [
                     'No',
@@ -408,7 +408,7 @@ class ChecksheetController extends Controller
             $service->appendRows($headerRow);
 
             $count = 0;
-            // Chunk at the database level to save memory
+            // Chunk di level database untuk menghemat memori
             Checksheet::with('item')
                 ->orderBy('date')
                 ->orderBy('created_at')
@@ -450,7 +450,7 @@ class ChecksheetController extends Controller
         }
     }
 
-    // Export Checksheets to CSV
+    // Ekspor Checksheet ke CSV
     public function export(Request $request)
     {
         $query = Checksheet::with('item')->latest();
@@ -492,7 +492,7 @@ class ChecksheetController extends Controller
                 $row['Inisial Operator'] = $checksheet->operator_initials;
                 $row['Remarks'] = $checksheet->remarks;
 
-                // Export the actual approver name if available
+                // Ekspor nama approver aktual jika tersedia
                 $row['Ka Shift'] = $checksheet->kashift_qc ?? '';
                 $row['Supervisor'] = $checksheet->supervisor_qc ?? '';
                 $row['Asst Manager'] = $checksheet->asst_manager_qc ?? '';
@@ -526,18 +526,18 @@ class ChecksheetController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    // Show the form for admins to edit approval status
+    // Tampilkan form untuk admin mengedit status approval
     public function editApproval($id)
     {
         $checksheet = Checksheet::findOrFail($id);
-        return view('admin.checksheets.edit_approval', compact('checksheet'));
+        return view('sub_assy.edit_approval', compact('checksheet'));
     }
 
-    // Update the approval status by admin
+    // Update status approval oleh admin
     public function updateApproval(Request $request, $id)
     {
         $checksheet = Checksheet::findOrFail($id);
-        $user = auth()->user(); // Admin user
+        $user = auth()->user(); // User Admin
 
         $validated = $request->validate([
             'kashift_qc' => 'required|in:Pending,Approved,Rejected',
@@ -546,25 +546,25 @@ class ChecksheetController extends Controller
             'manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
-        // Helper function to update a single approval level
+        // Fungsi helper untuk update satu level approval
         $updateLevel = function ($level, $status) use ($checksheet, $user) {
             $nameField = "{$level}_qc";
             $dateField = "{$level}_approved_at";
 
             if ($status === 'Approved') {
-                // Set to approved only if it's not already set
+                // Set ke approved hanya jika belum diset
                 if (is_null($checksheet->$nameField) || $checksheet->$nameField === 'REJECTED') {
-                    $checksheet->$nameField = $user->name; // Use admin's name
+                    $checksheet->$nameField = $user->name; // Gunakan nama admin
                     $checksheet->$dateField = now();
                 }
             } elseif ($status === 'Rejected') {
-                // Set to rejected only if it's not already set
+                // Set ke rejected hanya jika belum diset
                 if ($checksheet->$nameField !== 'REJECTED') {
                     $checksheet->$nameField = 'REJECTED';
                     $checksheet->$dateField = now();
                 }
             } else { // Pending
-                // Clear the approval
+                // Hapus approval (reset)
                 $checksheet->$nameField = null;
                 $checksheet->$dateField = null;
             }
@@ -575,7 +575,7 @@ class ChecksheetController extends Controller
         $updateLevel('asst_manager', $validated['asst_manager_qc']);
         $updateLevel('manager', $validated['manager_qc']);
 
-        // Update the main approval status based on the final level
+        // Update status approval utama berdasarkan level akhir
         if ($checksheet->manager_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->kashift_qc === 'REJECTED') {
             $checksheet->approval_status = 'Rejected';
         } elseif ($checksheet->manager_qc) {
