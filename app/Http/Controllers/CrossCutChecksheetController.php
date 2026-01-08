@@ -175,56 +175,87 @@ class CrossCutChecksheetController extends Controller
             $checksheet = CrossCutChecksheet::findOrFail($id);
             $user = auth()->user();
 
+            // Role validation (admin can approve any level)
             if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift')
+                if ($type == 'karu_qc' && $user->role !== 'karu_qc')
+                    abort(403);
+                if ($type == 'kashift_plating' && $user->role !== 'kashift_plating')
+                    abort(403);
+                if ($type == 'supervisor_plating' && $user->role !== 'supervisor_plating')
                     abort(403);
                 if ($type == 'supervisor' && $user->role !== 'supervisor')
                     abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
+                if ($type == 'manager_plating' && $user->role !== 'manager_plating')
                     abort(403);
                 if ($type == 'manager' && $user->role !== 'manager')
                     abort(403);
             }
 
-            // Validasi urutan/hirarki approval
-            if ($type == 'kashift') {
-                // Kashift selalu bisa approve pertama (tidak ada prasyarat)
-                if ($checksheet->kashift_qc) {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
+            // New 6-level approval workflow
+            // Level 1: Karu QC
+            if ($type == 'karu_qc') {
+                if ($checksheet->karu_qc) {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet sudah disetujui oleh Karu QC.');
                 }
-                $checksheet->kashift_qc = $user->name;
-                $checksheet->kashift_approved_at = now();
-            } elseif ($type == 'supervisor') {
-                // Supervisor hanya bisa approve jika Kashift sudah approve
-                if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
+                $checksheet->karu_qc = $user->name;
+                $checksheet->karu_qc_approved_at = now();
+            }
+            // Level 2: Kashift Plating
+            elseif ($type == 'kashift_plating') {
+                if (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED') {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet harus disetujui oleh Karu QC terlebih dahulu.');
+                }
+                if ($checksheet->kashift_plating) {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet sudah disetujui oleh Kashift Plating.');
+                }
+                $checksheet->kashift_plating = $user->name;
+                $checksheet->kashift_plating_approved_at = now();
+            }
+            // Level 3: SPV Plating
+            elseif ($type == 'supervisor_plating') {
+                if (!$checksheet->kashift_plating || $checksheet->kashift_plating === 'REJECTED') {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet harus disetujui oleh Kashift Plating terlebih dahulu.');
+                }
+                if ($checksheet->supervisor_plating) {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet sudah disetujui oleh SPV Plating.');
+                }
+                $checksheet->supervisor_plating = $user->name;
+                $checksheet->supervisor_plating_approved_at = now();
+            }
+            // Level 4: SPV Quality (supervisor)
+            elseif ($type == 'supervisor') {
+                if (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED') {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet harus disetujui oleh SPV Plating terlebih dahulu.');
                 }
                 if ($checksheet->supervisor_qc) {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet sudah disetujui oleh SPV Quality.');
                 }
                 $checksheet->supervisor_qc = $user->name;
                 $checksheet->supervisor_approved_at = now();
-                $checksheet->approval_status = 'Approved';
-            } elseif ($type == 'asst_manager') {
-                // Asst Manager hanya bisa approve jika Supervisor sudah approve
+            }
+            // Level 5: Manager Plating
+            elseif ($type == 'manager_plating') {
                 if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet harus disetujui oleh SPV Quality terlebih dahulu.');
                 }
-                if ($checksheet->asst_manager_qc) {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
+                if ($checksheet->manager_plating) {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet sudah disetujui oleh Manager Plating.');
                 }
-                $checksheet->asst_manager_qc = $user->name;
-                $checksheet->asst_manager_approved_at = now();
-            } elseif ($type == 'manager') {
-                // Manager hanya bisa approve jika Asst Manager sudah approve
-                if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
+                $checksheet->manager_plating = $user->name;
+                $checksheet->manager_plating_approved_at = now();
+            }
+            // Level 6: Manager QC (final approval)
+            elseif ($type == 'manager') {
+                if (!$checksheet->manager_plating || $checksheet->manager_plating === 'REJECTED') {
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet harus disetujui oleh Manager Plating terlebih dahulu.');
                 }
                 if ($checksheet->manager_qc) {
-                    return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Manager.');
+                    return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', 'Checksheet sudah disetujui oleh Manager QC.');
                 }
                 $checksheet->manager_qc = $user->name;
                 $checksheet->manager_approved_at = now();
+                // Set approval status to Approved when final level approves
+                $checksheet->approval_status = 'Approved';
             }
 
             $checksheet->save();
@@ -232,7 +263,7 @@ class CrossCutChecksheetController extends Controller
             return response('Error: ' . $e->getMessage(), 500);
         }
 
-        return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Cross Cut Checksheet approved successfully.');
+        return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Checksheet approved successfully.');
     }
 
     public function reject(Request $request, $id, $type)
@@ -241,14 +272,19 @@ class CrossCutChecksheetController extends Controller
             $checksheet = CrossCutChecksheet::findOrFail($id);
             $user = auth()->user();
 
+            // Role validation
             if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift')
+                if ($type == 'karu_qc' && $user->role !== 'karu_qc')
+                    abort(403);
+                if ($type == 'kashift_plating' && $user->role !== 'kashift_plating')
                     abort(403);
                 if ($type == 'supervisor' && $user->role !== 'supervisor')
                     abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
+                if ($type == 'supervisor_plating' && $user->role !== 'supervisor_plating')
                     abort(403);
                 if ($type == 'manager' && $user->role !== 'manager')
+                    abort(403);
+                if ($type == 'manager_plating' && $user->role !== 'manager_plating')
                     abort(403);
             }
 
@@ -261,21 +297,30 @@ class CrossCutChecksheetController extends Controller
                 'rejection_remarks.max' => 'Keterangan rejection maksimal 500 karakter.',
             ]);
 
-            if ($type == 'kashift') {
-                $checksheet->kashift_qc = 'REJECTED';
-                $checksheet->kashift_approved_at = now();
+            // Set rejection for each level
+            if ($type == 'karu_qc') {
+                $checksheet->karu_qc = 'REJECTED';
+                $checksheet->karu_qc_approved_at = now();
+                $checksheet->approval_status = 'Rejected';
+            } elseif ($type == 'kashift_plating') {
+                $checksheet->kashift_plating = 'REJECTED';
+                $checksheet->kashift_plating_approved_at = now();
                 $checksheet->approval_status = 'Rejected';
             } elseif ($type == 'supervisor') {
                 $checksheet->supervisor_qc = 'REJECTED';
                 $checksheet->supervisor_approved_at = now();
                 $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'asst_manager') {
-                $checksheet->asst_manager_qc = 'REJECTED';
-                $checksheet->asst_manager_approved_at = now();
+            } elseif ($type == 'supervisor_plating') {
+                $checksheet->supervisor_plating = 'REJECTED';
+                $checksheet->supervisor_plating_approved_at = now();
                 $checksheet->approval_status = 'Rejected';
             } elseif ($type == 'manager') {
                 $checksheet->manager_qc = 'REJECTED';
                 $checksheet->manager_approved_at = now();
+                $checksheet->approval_status = 'Rejected';
+            } elseif ($type == 'manager_plating') {
+                $checksheet->manager_plating = 'REJECTED';
+                $checksheet->manager_plating_approved_at = now();
                 $checksheet->approval_status = 'Rejected';
             }
 
@@ -290,7 +335,7 @@ class CrossCutChecksheetController extends Controller
             return response('Error: ' . $e->getMessage(), 500);
         }
 
-        return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Cross Cut Checksheet rejected successfully.');
+        return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Checksheet rejected successfully.');
     }
 
     public function exportPdf(Request $request)
@@ -336,16 +381,20 @@ class CrossCutChecksheetController extends Controller
         if ($request->filled('approval_status')) {
             $status = $request->approval_status;
             if ($status == 'approved') {
-                $query->whereNotNull('supervisor_qc')->where('supervisor_qc', '!=', 'REJECTED');
+                // Approved means Manager QC (final level) has approved
+                $query->whereNotNull('manager_qc')->where('manager_qc', '!=', 'REJECTED');
             } elseif ($status == 'rejected') {
                 $query->where(function ($q) {
-                    $q->where('kashift_qc', 'REJECTED')
+                    $q->where('karu_qc', 'REJECTED')
+                        ->orWhere('kashift_plating', 'REJECTED')
+                        ->orWhere('supervisor_plating', 'REJECTED')
                         ->orWhere('supervisor_qc', 'REJECTED')
-                        ->orWhere('asst_manager_qc', 'REJECTED')
+                        ->orWhere('manager_plating', 'REJECTED')
                         ->orWhere('manager_qc', 'REJECTED');
                 });
             } elseif ($status == 'pending') {
-                $query->whereNull('kashift_qc');
+                // Pending means Karu QC (first level) hasn't approved yet
+                $query->whereNull('karu_qc');
             }
         }
     }
@@ -364,42 +413,51 @@ class CrossCutChecksheetController extends Controller
         $user = auth()->user(); // User Admin
 
         $validated = $request->validate([
-            'kashift_qc' => 'required|in:Pending,Approved,Rejected',
+            'karu_qc' => 'required|in:Pending,Approved,Rejected',
+            'kashift_plating' => 'required|in:Pending,Approved,Rejected',
+            'supervisor_plating' => 'required|in:Pending,Approved,Rejected',
             'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
-            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'manager_plating' => 'required|in:Pending,Approved,Rejected',
             'manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
-        // Fungsi helper untuk update satu level approval
-        $updateLevel = function ($level, $status) use ($checksheet, $user) {
-            $nameField = "{$level}_qc";
-            $dateField = "{$level}_approved_at";
-
+        // Fungsi helper untuk update approval level
+        $updateLevel = function ($field, $dateField, $status) use ($checksheet, $user) {
             if ($status === 'Approved') {
-                if (is_null($checksheet->$nameField) || $checksheet->$nameField === 'REJECTED') {
-                    $checksheet->$nameField = $user->name;
+                if (is_null($checksheet->$field) || $checksheet->$field === 'REJECTED') {
+                    $checksheet->$field = $user->name;
                     $checksheet->$dateField = now();
                 }
             } elseif ($status === 'Rejected') {
-                if ($checksheet->$nameField !== 'REJECTED') {
-                    $checksheet->$nameField = 'REJECTED';
+                if ($checksheet->$field !== 'REJECTED') {
+                    $checksheet->$field = 'REJECTED';
                     $checksheet->$dateField = now();
                 }
             } else { // Pending
-                $checksheet->$nameField = null;
+                $checksheet->$field = null;
                 $checksheet->$dateField = null;
             }
         };
 
-        $updateLevel('kashift', $validated['kashift_qc']);
-        $updateLevel('supervisor', $validated['supervisor_qc']);
-        $updateLevel('asst_manager', $validated['asst_manager_qc']);
-        $updateLevel('manager', $validated['manager_qc']);
+        // Update each level
+        $updateLevel('karu_qc', 'karu_qc_approved_at', $validated['karu_qc']);
+        $updateLevel('kashift_plating', 'kashift_plating_approved_at', $validated['kashift_plating']);
+        $updateLevel('supervisor_plating', 'supervisor_plating_approved_at', $validated['supervisor_plating']);
+        $updateLevel('supervisor_qc', 'supervisor_approved_at', $validated['supervisor_qc']);
+        $updateLevel('manager_plating', 'manager_plating_approved_at', $validated['manager_plating']);
+        $updateLevel('manager_qc', 'manager_approved_at', $validated['manager_qc']);
 
-        // Update the main approval status based on the final level
-        if ($checksheet->manager_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->kashift_qc === 'REJECTED') {
+        // Update the main approval status based on the final level (Manager QC)
+        if (
+            $checksheet->manager_qc === 'REJECTED' ||
+            $checksheet->manager_plating === 'REJECTED' ||
+            $checksheet->supervisor_qc === 'REJECTED' ||
+            $checksheet->supervisor_plating === 'REJECTED' ||
+            $checksheet->kashift_plating === 'REJECTED' ||
+            $checksheet->karu_qc === 'REJECTED'
+        ) {
             $checksheet->approval_status = 'Rejected';
-        } elseif ($checksheet->manager_qc) {
+        } elseif ($checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED') {
             $checksheet->approval_status = 'Approved';
         } else {
             $checksheet->approval_status = 'Pending';

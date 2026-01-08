@@ -9,7 +9,7 @@
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
             @if(auth()->user()->role !== 'inspector')
-                <a href="{{ route('admin.items.create') }}" class="btn btn-lg btn-primary shadow-sm">
+                <a href="{{ route('admin.items.create') }}" class="btn btn-sm btn-primary shadow-sm">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
                 </a>
             @endif

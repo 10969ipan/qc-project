@@ -128,15 +128,15 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager']
 // --- Rute Shared Read Access & Approval ---
 Route::middleware(['auth'])->group(function () {
 
-    // View Report (Admin, Supervisor, Inspector, Kashift, Asst. Manager)
-    Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager'])->group(function () {
+    // View Report (Admin, Supervisor, Inspector, Kashift, Asst. Manager, Manager, and New Roles)
+    Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating'])->group(function () {
         Route::get('/report/checksheets', [ChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
     });
 
-    // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager)
-    Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->group(function () {
+    // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager, Manager, and New Roles)
+    Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating'])->group(function () {
         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
         Route::get('/report/checksheets/export', [ChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::post('/report/checksheets/sync', [ChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');

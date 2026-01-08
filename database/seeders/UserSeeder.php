@@ -151,6 +151,64 @@ class UserSeeder extends Seeder
             ]
         );
 
-        
+        // Buat Akun Karu QC (3 users)
+        User::updateOrCreate(
+            ['email' => 'fitri@qc.com'],
+            [
+                'name' => 'Fitri',
+                'password' => Hash::make('indoplat2526'),
+                'role' => 'karu_qc',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'pipit@qc.com'],
+            [
+                'name' => 'Pipit',
+                'password' => Hash::make('indoplat2526'),
+                'role' => 'karu_qc',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'parlinah@qc.com'],
+            [
+                'name' => 'Parlinah',
+                'password' => Hash::make('indoplat2526'),
+                'role' => 'karu_qc',
+            ]
+        );
+
+        // Buat Akun Kashift Plating
+        User::updateOrCreate(
+            ['email' => 'kashiftplating@qc.com'],
+            [
+                'name' => 'Kashift Plating',
+                'password' => Hash::make('indoplat2526'),
+                'role' => 'kashift_plating',
+            ]
+        );
+
+        // Buat Akun SPV Plating
+        User::updateOrCreate(
+            ['email' => 'spvplating@qc.com'],
+            [
+                'name' => 'SPV Plating',
+                'password' => Hash::make('indoplat2526'),
+                'role' => 'supervisor_plating',
+            ]
+        );
+
+        // Buat Akun Manager Plating
+        User::updateOrCreate(
+            ['email' => 'managerplating@qc.com'],
+            [
+                'name' => 'Manager Plating',
+                'password' => Hash::make('indoplat2526'),
+                'role' => 'manager_plating',
+            ]
+        );
+
+
     }
 }

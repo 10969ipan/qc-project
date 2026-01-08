@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Report Monthly In-Process')
+@section('title', 'Report In-Process')
 
 @section('content')
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <h1 class="h3 mb-4 text-gray-800">Report Monthly In-Process</h1>
+        <h1 class="h3 mb-4 text-gray-800">Report In-Process</h1>
 
         <!-- Date Filter -->
         <div class="card shadow mb-4">

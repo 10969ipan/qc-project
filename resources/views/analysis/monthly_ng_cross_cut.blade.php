@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Report Monthly Cross Cut')
+@section('title', 'Report Cross Cut')
 
 @section('content')
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <h1 class="h3 mb-4 text-gray-800">Report Monthly Cross Cut</h1>
+        <h1 class="h3 mb-4 text-gray-800">Report Cross Cut</h1>
 
         <!-- Date Filter -->
         <div class="card shadow mb-4">

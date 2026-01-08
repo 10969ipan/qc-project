@@ -96,6 +96,16 @@
         </li>
     @endif
 
+    @if(auth()->check() && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
+        <!-- Nav Item - Cross Cut Only (For New Roles) -->
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('cross_cut.index') }}">
+                <i class="fas fa-fw fa-file-alt"></i>
+                <span>Hasil Input Cross Cut</span>
+            </a>
+        </li>
+    @endif
+
     <!-- Nav Item - Logout -->
     <li class="nav-item">
         <a class="nav-link btn-logout" href="#">
