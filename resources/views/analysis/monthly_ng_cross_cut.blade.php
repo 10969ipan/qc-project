@@ -412,7 +412,7 @@
                         }
                     }
                 }
-            });
+                });
             } // End of data check if-else
 
             // --- Bar Chart (Avg Cycle Time per Item) ---
