@@ -114,8 +114,13 @@
                         <h6 class="m-0 font-weight-bold text-primary">Kecepatan Kerja (%)</h6>
                     </div>
                     <div class="card-body">
-                        <div class="chart-bar">
-                            <canvas id="myInspectorItemCycleChart"></canvas>
+                        <div class="chart-bar" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+                            <div id="inspectorChartContainer" style="position: relative; min-height: 400px;">
+                                <canvas id="myInspectorItemCycleChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-center small text-muted">
+                            <i class="fas fa-info-circle"></i> Scroll untuk melihat semua data
                         </div>
                     </div>
                 </div>
@@ -241,6 +246,15 @@
             var inspectorItemDatasets = @json($inspectorItemDatasets);
             var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
 
+            // Calculate dynamic height based on number of data points
+            var dataCount = inspectorItemLabels.length;
+            var barHeight = 40; // Height per bar in pixels
+            var minHeight = 400; // Minimum chart height
+            var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
+
+            // Set container height dynamically
+            document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
+
             // Add datalabels config to each dataset
             inspectorItemDatasets.forEach(dataset => {
                 dataset.datalabels = {
@@ -292,9 +306,11 @@
                         },
                         y: {
                             ticks: {
-                                maxTicksLimit: 20,
                                 padding: 10,
-                                autoSkip: false
+                                autoSkip: false, // Show all labels
+                                font: {
+                                    size: 11 // Slightly smaller font for better fit
+                                }
                             },
                             grid: {
                                 color: "rgb(234, 236, 244)",
