@@ -110,17 +110,45 @@
 
                 <!-- Detail Cycle Time per User Chart -->
                 <div class="card shadow mb-4">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-primary">Kecepatan Kerja (%)</h6>
+                        <div class="small text-muted">
+                            <i class="fas fa-info-circle"></i> Persentase terhadap standar cycle time
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="chart-bar" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
-                            <div id="inspectorChartContainer" style="position: relative; min-height: 400px;">
-                                <canvas id="myInspectorItemCycleChart"></canvas>
-                            </div>
+                        <div style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-sm table-hover" id="workSpeedTable">
+                                <thead class="thead-light" style="position: sticky; top: 0; z-index: 10;">
+                                    <tr>
+                                        <th style="width: 25%;">Item</th>
+                                        <th style="width: 55%;">Kecepatan Kerja</th>
+                                        <th class="text-center" style="width: 20%;">Persentase</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workSpeedTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="mt-2 text-center small text-muted">
-                            <i class="fas fa-info-circle"></i> Scroll untuk melihat semua data
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    <small class="text-muted">
+                                        <span class="badge badge-success">●</span> ≥ 100% (Sesuai/Lebih Cepat)
+                                    </small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <small class="text-muted">
+                                        <span class="badge badge-warning">●</span> 80-99% (Perlu Perhatian)
+                                    </small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <small class="text-muted">
+                                        <span class="badge badge-danger">●</span>
+                                        < 80% (Di Bawah Standar) </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -240,519 +268,497 @@
                 }
             });
 
-            // --- Bar Chart (Avg Cycle Time per Item by User) ---
-            var ctxInspectorItemCycle = document.getElementById("myInspectorItemCycleChart");
-            var inspectorItemLabels = @json($inspectorItemLabels);
-            var inspectorItemDatasets = @json($inspectorItemDatasets);
-            var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
+            // --- Table-based Work Speed Display (Replacing Chart) ---
+                var inspectorItemLabels = @json($inspectorItemLabels);
+                var inspectorItemDatasets = @json($inspectorItemDatasets);
+                var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
 
-            // Calculate dynamic height based on number of data points
-            var dataCount = inspectorItemLabels.length;
-            var barHeight = 40; // Height per bar in pixels
-            var minHeight = 400; // Minimum chart height
-            var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
+                // Populate work speed table
+                var tableBody = document.getElementById('workSpeedTableBody');
 
-            // Set container height dynamically
-            document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
+                // Create rows for each item
+                inspectorItemLabels.forEach(function(itemLabel, idx) {
+                    var std = itemCycleTimeDataForCalc[idx];
 
-            // Add datalabels config to each dataset
-            inspectorItemDatasets.forEach(dataset => {
-                dataset.datalabels = {
-                    color: '#fff',
-                    font: { weight: 'bold', size: 10 },
-                    anchor: 'center',
-                    align: 'center',
-                    formatter: function (value, ctx) {
+                    // Create a row for this item
+                    var tr = document.createElement('tr');
+
+                    // Item name column
+                    var tdItem = document.createElement('td');
+                    tdItem.innerHTML = '<strong>' + itemLabel + '</strong><br><small class="text-muted">Standar: ' + std + 's</small>';
+                    tr.appendChild(tdItem);
+
+                    // Progress bars column
+                    var tdProgress = document.createElement('td');
+                    var progressContainer = document.createElement('div');
+                    progressContainer.style.position = 'relative';
+
+                    // Collect all inspector data for this item
+                    var inspectorData = [];
+                    inspectorItemDatasets.forEach(function(dataset) {
+                        var value = dataset.data[idx];
                         if (value > 0) {
-                            var idx = ctx.dataIndex;
-                            var std = itemCycleTimeDataForCalc[idx];
-                            var pct = 0;
-                            if (std > 0) {
-                                pct = (value / std) * 100;
-                            }
-                            return pct.toFixed(0) + "%";
+                            var pct = std > 0 ? (value / std) * 100 : 0;
+                            inspectorData.push({
+                                name: dataset.label,
+                                value: value,
+                                percentage: pct,
+                                color: dataset.backgroundColor
+                            });
                         }
-                        return "";
-                    }
-                };
-            });
+                    });
 
-            var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
-                type: 'bar',
-                data: {
-                    labels: inspectorItemLabels,
-                    datasets: inspectorItemDatasets
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal bars
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
+                    // Sort by percentage descending
+                    inspectorData.sort((a, b) => b.percentage - a.percentage);
+
+                    // Create progress bars for each inspector
+                    inspectorData.forEach(function(inspector) {
+                        var progressWrapper = document.createElement('div');
+                        progressWrapper.className = 'mb-1';
+                        progressWrapper.style.fontSize = '0.85rem';
+
+                        var inspectorLabel = document.createElement('div');
+                        inspectorLabel.className = 'd-flex justify-content-between align-items-center mb-1';
+                        inspectorLabel.innerHTML = '<span style="font-size: 0.75rem;">' + inspector.name + '</span>';
+
+                        var progressBar = document.createElement('div');
+                        progressBar.className = 'progress';
+                        progressBar.style.height = '20px';
+                        progressBar.style.backgroundColor = '#e9ecef';
+
+                        var progressFill = document.createElement('div');
+                        progressFill.className = 'progress-bar';
+                        progressFill.style.width = Math.min(inspector.percentage, 100) + '%';
+
+                        // Color coding based on performance
+                        if (inspector.percentage >= 100) {
+                            progressFill.style.backgroundColor = '#28a745'; // Success green
+                        } else if (inspector.percentage >= 80) {
+                            progressFill.style.backgroundColor = '#ffc107'; // Warning yellow
+                        } else {
+                            progressFill.style.backgroundColor = '#dc3545'; // Danger red
                         }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 6
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                padding: 10,
-                                autoSkip: false, // Show all labels
+
+                        progressFill.innerHTML = '<span style="font-size: 0.75rem; font-weight: bold; padding: 0 5px;">' + 
+                                                inspector.percentage.toFixed(1) + '%</span>';
+
+                        progressBar.appendChild(progressFill);
+                        progressWrapper.appendChild(inspectorLabel);
+                        progressWrapper.appendChild(progressBar);
+                        progressContainer.appendChild(progressWrapper);
+                    });
+
+                    tdProgress.appendChild(progressContainer);
+                    tr.appendChild(tdProgress);
+
+                    // Average percentage column
+                    var tdAvg = document.createElement('td');
+                    tdAvg.className = 'text-center align-middle';
+                    if (inspectorData.length > 0) {
+                        var avgPct = inspectorData.reduce((sum, d) => sum + d.percentage, 0) / inspectorData.length;
+                        var badgeClass = avgPct >= 100 ? 'badge-success' : (avgPct >= 80 ? 'badge-warning' : 'badge-danger');
+                        tdAvg.innerHTML = '<span class="badge ' + badgeClass + ' p-2" style="font-size: 0.9rem;">' + 
+                                         avgPct.toFixed(1) + '%</span><br><small class="text-muted">Rata-rata</small>';
+                    } else {
+                        tdAvg.innerHTML = '<span class="text-muted">-</span>';
+                    }
+                    tr.appendChild(tdAvg);
+
+                    tableBody.appendChild(tr);
+                });
+
+                // --- Bar Chart (Avg Cycle Time per Item) ---
+                var ctxItemCycle = document.getElementById("myItemCycleChart");
+                var sortedItemTotalPcs = @json($sortedItemTotalPcs);
+                var sortedItemTotalSeconds = @json($sortedItemTotalSeconds);
+
+                var myItemCycleChart = new Chart(ctxItemCycle, {
+                    type: 'bar',
+                    data: {
+                        labels: itemLabels,
+                        datasets: [{
+                            label: "Avg Cycle Time (s)",
+                            backgroundColor: "#6f42c1", // Purple
+                            hoverBackgroundColor: "#59359a",
+                            borderColor: "#6f42c1",
+                            data: itemCycleTimeData,
+                            datalabels: {
+                                color: '#fff',
                                 font: {
-                                    size: 11 // Slightly smaller font for better fit
+                                    weight: 'bold'
+                                },
+                                anchor: 'center',
+                                align: 'center',
+                                formatter: function (value, ctx) {
+                                    return value + "s";
+                                }
+                            }
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // Horizontal
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 6
                                 }
                             },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                boxWidth: 10,
-                                padding: 10
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
+                            y: {
+                                ticks: {
+                                    maxTicksLimit: 20,
+                                    padding: 10,
+                                    autoSkip: false
+                                },
+                                grid: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
                             },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: true,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    var std = itemCycleTimeDataForCalc[tooltipItem.dataIndex];
-                                    var pct = 0;
-                                    if (std > 0) {
-                                        pct = (tooltipItem.raw / std) * 100;
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleColor: '#6e707e',
+                                titleFont: {
+                                    size: 14,
+                                },
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem) {
+                                        var idx = tooltipItem.dataIndex;
+                                        var pcs = sortedItemTotalPcs[idx];
+                                        var secs = sortedItemTotalSeconds[idx];
+                                        return [
+                                            tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's',
+                                            'Standar: ' + tooltipItem.raw + ' s/pcs',
+                                            'Total Pcs: ' + pcs,
+                                            'Total Detik: ' + secs
+                                        ];
                                     }
-                                    return tooltipItem.dataset.label + ': ' + pct.toFixed(1) + '%';
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
 
-            // --- Bar Chart (Avg Cycle Time per Item) ---
-            var ctxItemCycle = document.getElementById("myItemCycleChart");
-            var sortedItemTotalPcs = @json($sortedItemTotalPcs);
-            var sortedItemTotalSeconds = @json($sortedItemTotalSeconds);
+                // --- Percentage Chart (Trend) ---
+                var ctxPerc = document.getElementById("myPercentageChart");
 
-            var myItemCycleChart = new Chart(ctxItemCycle, {
-                type: 'bar',
-                data: {
-                    labels: itemLabels,
-                    datasets: [{
-                        label: "Avg Cycle Time (s)",
-                        backgroundColor: "#6f42c1", // Purple
-                        hoverBackgroundColor: "#59359a",
-                        borderColor: "#6f42c1",
-                        data: itemCycleTimeData,
-                        datalabels: {
-                            color: '#fff',
-                            font: {
-                                weight: 'bold'
-                            },
-                            anchor: 'center',
-                            align: 'center',
-                            formatter: function (value, ctx) {
-                                return value + "s";
+                var myPercentageChart = new Chart(ctxPerc, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Persentase NG (%)",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(28, 200, 138, 0.05)",
+                            borderColor: "rgba(28, 200, 138, 1)",
+                            pointRadius: 3,
+                            pointBackgroundColor: "rgba(28, 200, 138, 1)",
+                            pointBorderColor: "rgba(28, 200, 138, 1)",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "rgba(28, 200, 138, 1)",
+                            pointHoverBorderColor: "rgba(28, 200, 138, 1)",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 2,
+                            data: dataPercentage,
+                            datalabels: {
+                                align: 'end',
+                                anchor: 'end',
+                                color: '#1cc88a',
+                                font: {
+                                    weight: 'bold'
+                                },
+                                formatter: function (value, ctx) {
+                                    return value + "%";
+                                }
                             }
-                        }
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
+                        }],
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 6
+                    options: {
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
                             }
                         },
-                        y: {
-                            ticks: {
-                                maxTicksLimit: 20,
-                                padding: 10,
-                                autoSkip: false
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 12
+                                }
                             },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
+                            y: {
+                                ticks: {
+                                    maxTicksLimit: 5,
+                                    padding: 10,
+                                    callback: function (value, index, values) {
+                                        return value + '%';
+                                    }
+                                },
+                                grid: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
                             },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    var idx = tooltipItem.dataIndex;
-                                    var pcs = sortedItemTotalPcs[idx];
-                                    var secs = sortedItemTotalSeconds[idx];
-                                    return [
-                                        tooltipItem.dataset.label + ': ' + tooltipItem.raw + 's',
-                                        'Standar: ' + tooltipItem.raw + ' s/pcs',
-                                        'Total Pcs: ' + pcs,
-                                        'Total Detik: ' + secs
-                                    ];
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleColor: '#6e707e',
+                                titleFont: {
+                                    size: 14,
+                                },
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem) {
+                                        return tooltipItem.dataset.label + ': ' + tooltipItem.raw + '%';
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
 
-            // --- Percentage Chart (Trend) ---
-            var ctxPerc = document.getElementById("myPercentageChart");
+                // --- Bar Chart (Status) ---
+                var ctxBar = document.getElementById("myBarChart");
+                var defectLabels = @json($defectLabels);
+                var defectData = @json($defectData);
 
-            var myPercentageChart = new Chart(ctxPerc, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Persentase NG (%)",
-                        lineTension: 0.3,
-                        backgroundColor: "rgba(28, 200, 138, 0.05)",
-                        borderColor: "rgba(28, 200, 138, 1)",
-                        pointRadius: 3,
-                        pointBackgroundColor: "rgba(28, 200, 138, 1)",
-                        pointBorderColor: "rgba(28, 200, 138, 1)",
-                        pointHoverRadius: 3,
-                        pointHoverBackgroundColor: "rgba(28, 200, 138, 1)",
-                        pointHoverBorderColor: "rgba(28, 200, 138, 1)",
-                        pointHitRadius: 10,
-                        pointBorderWidth: 2,
-                        data: dataPercentage,
-                        datalabels: {
-                            align: 'end',
-                            anchor: 'end',
-                            color: '#1cc88a',
-                            font: {
-                                weight: 'bold'
-                            },
-                            formatter: function (value, ctx) {
-                                return value + "%";
+                var myBarChart = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: defectLabels,
+                        datasets: [{
+                            label: "Jumlah",
+                            backgroundColor: "#e74a3b", // Danger red
+                            hoverBackgroundColor: "#be2617",
+                            borderColor: "#e74a3b",
+                            data: defectData,
+                            datalabels: {
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold'
+                                },
+                                anchor: 'center',
+                                align: 'center'
                             }
-                        }
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
+                        }],
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 12
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
                             }
                         },
-                        y: {
-                            ticks: {
-                                maxTicksLimit: 5,
-                                padding: 10,
-                                callback: function (value, index, values) {
-                                    return value + '%';
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 6
                                 }
                             },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
-                            },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    return tooltipItem.dataset.label + ': ' + tooltipItem.raw + '%';
+                            y: {
+                                ticks: {
+                                    maxTicksLimit: 10,
+                                    padding: 10,
+                                    autoSkip: false
+                                },
+                                grid: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
                                 }
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleColor: '#6e707e',
+                                titleFont: {
+                                    size: 14,
+                                },
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
                             }
                         }
                     }
-                }
-            });
+                });
 
-            // --- Bar Chart (Status) ---
-            var ctxBar = document.getElementById("myBarChart");
-            var defectLabels = @json($defectLabels);
-            var defectData = @json($defectData);
+                // --- Vertical Bar Chart (Percentage Distribution) ---
+                var ctxDist = document.getElementById("myPieChart");
 
-            var myBarChart = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: defectLabels,
-                    datasets: [{
-                        label: "Jumlah",
-                        backgroundColor: "#e74a3b", // Danger red
-                        hoverBackgroundColor: "#be2617",
-                        borderColor: "#e74a3b",
-                        data: defectData,
-                        datalabels: {
-                            color: '#fff',
-                            font: {
-                                weight: 'bold'
-                            },
-                            anchor: 'center',
-                            align: 'center'
-                        }
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 6
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                maxTicksLimit: 10,
-                                padding: 10,
-                                autoSkip: false
-                            },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
-                            },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                        }
-                    }
-                }
-            });
-
-            // --- Vertical Bar Chart (Percentage Distribution) ---
-            var ctxDist = document.getElementById("myPieChart");
-
-            var myDistChart = new Chart(ctxDist, {
-                type: 'bar',
-                data: {
-                    labels: defectLabels,
-                    datasets: [{
-                        label: "Persentase NG (%)",
-                        data: defectData,
-                        backgroundColor: "#36b9cc", // Cyan
-                        hoverBackgroundColor: "#2c9faf",
-                        borderColor: "#36b9cc",
-                        datalabels: {
-                            color: '#444',
-                            font: {
-                                weight: 'bold'
-                            },
-                            anchor: 'end',
-                            align: 'end',
-                            formatter: function (value, ctx) {
-                                let sum = 0;
-                                let dataArr = ctx.chart.data.datasets[0].data;
-                                dataArr.map(data => {
-                                    sum += data;
-                                });
-                                let percentage = (value * 100 / sum).toFixed(1) + "%";
-                                return percentage;
-                            }
-                        }
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 0
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                maxTicksLimit: 6,
-                                callback: function (value, index, values) {
-                                    return value;
-                                }
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                padding: 10,
-                                autoSkip: false
-                            },
-                            grid: {
-                                color: "rgb(234, 236, 244)",
-                                zeroLineColor: "rgb(234, 236, 244)",
-                                drawBorder: false,
-                                borderDash: [2],
-                                zeroLineBorderDash: [2]
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
-                            },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
+                var myDistChart = new Chart(ctxDist, {
+                    type: 'bar',
+                    data: {
+                        labels: defectLabels,
+                        datasets: [{
+                            label: "Persentase NG (%)",
+                            data: defectData,
+                            backgroundColor: "#36b9cc", // Cyan
+                            hoverBackgroundColor: "#2c9faf",
+                            borderColor: "#36b9cc",
+                            datalabels: {
+                                color: '#444',
+                                font: {
+                                    weight: 'bold'
+                                },
+                                anchor: 'end',
+                                align: 'end',
+                                formatter: function (value, ctx) {
                                     let sum = 0;
-                                    let dataArr = tooltipItem.chart.data.datasets[0].data;
-                                    dataArr.forEach(data => sum += data);
-                                    let percentage = (tooltipItem.raw * 100 / sum).toFixed(1) + "%";
-                                    return tooltipItem.dataset.label + ': ' + percentage;
+                                    let dataArr = ctx.chart.data.datasets[0].data;
+                                    dataArr.map(data => {
+                                        sum += data;
+                                    });
+                                    let percentage = (value * 100 / sum).toFixed(1) + "%";
+                                    return percentage;
+                                }
+                            }
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 6,
+                                    callback: function (value, index, values) {
+                                        return value;
+                                    }
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    padding: 10,
+                                    autoSkip: false
+                                },
+                                grid: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleColor: '#6e707e',
+                                titleFont: {
+                                    size: 14,
+                                },
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem) {
+                                        let sum = 0;
+                                        let dataArr = tooltipItem.chart.data.datasets[0].data;
+                                        dataArr.forEach(data => sum += data);
+                                        let percentage = (tooltipItem.raw * 100 / sum).toFixed(1) + "%";
+                                        return tooltipItem.dataset.label + ': ' + percentage;
+                                    }
                                 }
                             }
                         }
-                    }
-                },
+                    },
+                });
             });
-        });
-    </script>
+        </script>
 @endsection
