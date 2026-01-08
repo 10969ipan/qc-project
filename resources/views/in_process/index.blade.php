@@ -235,6 +235,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -256,6 +257,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -277,6 +279,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -298,6 +301,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING

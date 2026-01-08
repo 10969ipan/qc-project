@@ -28,7 +28,7 @@
                                 value="{{ request('end_date') }}">
                         </div>
                     </div>
-                    
+
                     <!-- Button Cari dan Reset -->
                     <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">
@@ -50,7 +50,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
-                                <input type="text" id="liveSearch" class="form-control form-control-sm" 
+                                <input type="text" id="liveSearch" class="form-control form-control-sm"
                                     placeholder="Cari Item Part, Customer, Part No, Inisial...">
                             </div>
                         </div>
@@ -180,6 +180,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -201,6 +202,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -222,6 +224,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -243,6 +246,7 @@
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
@@ -487,16 +491,16 @@
                 @endforeach
             @endforeach
 
-            // Live Search Functionality
-            const liveSearchInput = document.getElementById('liveSearch');
+                // Live Search Functionality
+                const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
             if (liveSearchInput) {
-                liveSearchInput.addEventListener('keyup', function() {
+                liveSearchInput.addEventListener('keyup', function () {
                     const searchTerm = this.value.toLowerCase().trim();
 
-                    tableRows.forEach(function(row) {
+                    tableRows.forEach(function (row) {
                         // Get text content from relevant columns
                         const itemPart = row.cells[6] ? row.cells[6].textContent.toLowerCase() : '';
                         const customer = row.cells[7] ? row.cells[7].textContent.toLowerCase() : '';
@@ -504,10 +508,10 @@
                         const initials = row.cells[16] ? row.cells[16].textContent.toLowerCase() : '';
 
                         // Check if any column contains the search term
-                        const matches = itemPart.includes(searchTerm) || 
-                                      customer.includes(searchTerm) || 
-                                      partNo.includes(searchTerm) || 
-                                      initials.includes(searchTerm);
+                        const matches = itemPart.includes(searchTerm) ||
+                            customer.includes(searchTerm) ||
+                            partNo.includes(searchTerm) ||
+                            initials.includes(searchTerm);
 
                         // Show or hide row based on match
                         if (matches || searchTerm === '') {
@@ -519,7 +523,7 @@
                 });
             }
 
-                                                            const { jsPDF } = window.jspdf;
+            const { jsPDF } = window.jspdf;
 
             document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
                 e.preventDefault();
