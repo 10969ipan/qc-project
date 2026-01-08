@@ -263,16 +263,31 @@
             var inspectorItemDatasets = @json($inspectorItemDatasets);
             var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
 
-            // Calculate dynamic height based on number of data points
-            var dataCount = inspectorItemLabels.length;
-            var barHeight = 50; // Increased height per bar for better visibility
-            var minHeight = 400;
-            var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
-            
-            // Set container height dynamically
-            document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
+            // Debug logging
+            console.log('Inspector Item Labels:', inspectorItemLabels);
+            console.log('Inspector Item Datasets:', inspectorItemDatasets);
+            console.log('Item Cycle Time Data:', itemCycleTimeDataForCalc);
+            console.log('Canvas Element:', ctxInspectorItemCycle);
 
-            // Color-code datasets based on performance
+            // Check if data exists
+            if (!inspectorItemLabels || inspectorItemLabels.length === 0) {
+                console.warn('No inspector item labels data available');
+                document.getElementById('inspectorChartContainer').innerHTML = 
+                    '<div class="alert alert-info text-center">Tidak ada data untuk ditampilkan. Silakan pilih range tanggal atau tambahkan data checksheet terlebih dahulu.</div>';
+                // Skip chart initialization
+            } else {
+                console.log('Data count:', inspectorItemLabels.length);
+                
+                // Calculate dynamic height based on number of data points
+                var dataCount = inspectorItemLabels.length;
+                var barHeight = 50; // Increased height per bar for better visibility
+                var minHeight = 400;
+                var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
+                
+                // Set container height dynamically
+                document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
+
+                // Color-code datasets based on performance
             inspectorItemDatasets.forEach(dataset => {
                 // Create color array for each data point
                 dataset.backgroundColor = dataset.data.map((value, idx) => {
@@ -398,6 +413,7 @@
                     }
                 }
             });
+            } // End of data check if-else
 
             // --- Bar Chart (Avg Cycle Time per Item) ---
             var ctxItemCycle = document.getElementById("myItemCycleChart");
