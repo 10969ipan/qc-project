@@ -254,6 +254,8 @@
                             intersect: false,
                             mode: 'index',
                             caretPadding: 10,
+                        }
+                    }
                 }
             });
 
@@ -272,23 +274,23 @@
             // Check if data exists
             if (!inspectorItemLabels || inspectorItemLabels.length === 0) {
                 console.warn('No inspector item labels data available');
-                document.getElementById('inspectorChartContainer').innerHTML = 
+                document.getElementById('inspectorChartContainer').innerHTML =
                     '<div class="alert alert-info text-center">Tidak ada data untuk ditampilkan. Silakan pilih range tanggal atau tambahkan data checksheet terlebih dahulu.</div>';
                 // Skip chart initialization
             } else if (!inspectorItemDatasets || inspectorItemDatasets.length === 0) {
                 console.warn('No inspector datasets available');
-                document.getElementById('inspectorChartContainer').innerHTML = 
+                document.getElementById('inspectorChartContainer').innerHTML =
                     '<div class="alert alert-info text-center">Tidak ada data operator untuk ditampilkan. Pastikan data checksheet memiliki operator_initials yang terisi.</div>';
                 // Skip chart initialization
             } else {
                 console.log('Data count:', inspectorItemLabels.length);
-                
+
                 // Calculate dynamic height based on number of data points
                 var dataCount = inspectorItemLabels.length;
                 var barHeight = 50; // Increased height per bar for better visibility
                 var minHeight = 400;
                 var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
-                
+
                 // Set container height dynamically
                 document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
 
@@ -302,12 +304,12 @@
                         if (pct >= 80) return '#ffc107'; // Yellow
                         return '#dc3545'; // Red
                     });
-                    
+
                     // Configure data labels with larger font
                     dataset.datalabels = {
                         color: '#fff',
-                        font: { 
-                            weight: 'bold', 
+                        font: {
+                            weight: 'bold',
                             size: 14 // Larger font for better visibility
                         },
                         anchor: 'center',
@@ -328,95 +330,95 @@
                 });
 
                 var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
-                type: 'bar',
-                data: {
-                    labels: inspectorItemLabels,
-                    datasets: inspectorItemDatasets
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    indexAxis: 'y', // Horizontal bars
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 30,
-                            top: 25,
-                            bottom: 10
-                        }
+                    type: 'bar',
+                    data: {
+                        labels: inspectorItemLabels,
+                        datasets: inspectorItemDatasets
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: true,
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            },
-                            ticks: {
-                                maxTicksLimit: 8,
-                                font: {
-                                    size: 11
-                                }
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // Horizontal bars
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 30,
+                                top: 25,
+                                bottom: 10
                             }
                         },
-                        y: {
-                            ticks: {
-                                padding: 10,
-                                autoSkip: false,
-                                font: {
-                                    size: 12,
-                                    weight: '500'
-                                }
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 15,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleColor: '#6e707e',
-                            titleFont: {
-                                size: 14,
-                            },
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: true,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    var std = itemCycleTimeDataForCalc[tooltipItem.dataIndex];
-                                    var pct = 0;
-                                    if (std > 0) {
-                                        pct = (tooltipItem.raw / std) * 100;
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    maxTicksLimit: 8,
+                                    font: {
+                                        size: 11
                                     }
-                                    var status = pct >= 100 ? '✓ Sesuai' : (pct >= 80 ? '⚠ Perlu Perhatian' : '✗ Di Bawah Standar');
-                                    return [
-                                        tooltipItem.dataset.label + ': ' + pct.toFixed(1) + '%',
-                                        status,
-                                        'Standar: ' + std + 's'
-                                    ];
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    padding: 10,
+                                    autoSkip: false,
+                                    font: {
+                                        size: 12,
+                                        weight: '500'
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    boxWidth: 12,
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleColor: '#6e707e',
+                                titleFont: {
+                                    size: 14,
+                                },
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: true,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem) {
+                                        var std = itemCycleTimeDataForCalc[tooltipItem.dataIndex];
+                                        var pct = 0;
+                                        if (std > 0) {
+                                            pct = (tooltipItem.raw / std) * 100;
+                                        }
+                                        var status = pct >= 100 ? '✓ Sesuai' : (pct >= 80 ? '⚠ Perlu Perhatian' : '✗ Di Bawah Standar');
+                                        return [
+                                            tooltipItem.dataset.label + ': ' + pct.toFixed(1) + '%',
+                                            status,
+                                            'Standar: ' + std + 's'
+                                        ];
+                                    }
                                 }
                             }
                         }
                     }
-                }
                 });
             } // End of data check if-else
 
@@ -809,7 +811,7 @@
                             }
                         }
                     }
-                },
+                }
             });
         });
     </script>
