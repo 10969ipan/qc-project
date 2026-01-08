@@ -275,6 +275,11 @@
                 document.getElementById('inspectorChartContainer').innerHTML = 
                     '<div class="alert alert-info text-center">Tidak ada data untuk ditampilkan. Silakan pilih range tanggal atau tambahkan data checksheet terlebih dahulu.</div>';
                 // Skip chart initialization
+            } else if (!inspectorItemDatasets || inspectorItemDatasets.length === 0) {
+                console.warn('No inspector datasets available');
+                document.getElementById('inspectorChartContainer').innerHTML = 
+                    '<div class="alert alert-info text-center">Tidak ada data operator untuk ditampilkan. Pastikan data checksheet memiliki operator_initials yang terisi.</div>';
+                // Skip chart initialization
             } else {
                 console.log('Data count:', inspectorItemLabels.length);
                 

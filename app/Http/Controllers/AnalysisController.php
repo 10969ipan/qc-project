@@ -544,6 +544,16 @@ class AnalysisController extends Controller
         $defectLabels = array_keys($defectCounts);
         $defectData = array_values($defectCounts);
 
+        // Debug logging
+        \Log::info('Cross Cut Report Data:', [
+            'total_checksheets' => $checksheets->count(),
+            'item_labels_count' => count($itemLabels),
+            'inspector_labels_count' => count($inspectorItemLabels),
+            'inspector_datasets_count' => count($inspectorItemDatasets),
+            'users_count' => $users->count(),
+            'item_cycle_time_data' => $itemCycleTimeData,
+        ]);
+
         return view('analysis.monthly_ng_cross_cut', compact(
             'labels',
             'data',
