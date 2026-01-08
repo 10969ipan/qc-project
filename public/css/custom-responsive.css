@@ -2,6 +2,7 @@
 
 /* Mobile First - Base Styles */
 @media (max-width: 767.98px) {
+
     /* Container padding untuk mobile */
     .container-fluid {
         padding-left: 0.75rem;
@@ -14,19 +15,23 @@
     }
 
     /* Heading sizes untuk mobile */
-    h1, .h1 {
+    h1,
+    .h1 {
         font-size: 1.5rem;
     }
 
-    h2, .h2 {
+    h2,
+    .h2 {
         font-size: 1.3rem;
     }
 
-    h3, .h3 {
+    h3,
+    .h3 {
         font-size: 1.1rem;
     }
 
-    h4, .h4 {
+    h4,
+    .h4 {
         font-size: 1rem;
     }
 
@@ -80,8 +85,10 @@
     }
 
     /* Form controls untuk mobile */
-    .form-control, .form-control-user {
-        font-size: 16px; /* Mencegah zoom pada iOS */
+    .form-control,
+    .form-control-user {
+        font-size: 16px;
+        /* Mencegah zoom pada iOS */
         padding: 0.75rem;
     }
 
@@ -181,6 +188,7 @@
 
 /* Small Mobile Devices (max-width: 575.98px) */
 @media (max-width: 575.98px) {
+
     /* Even smaller padding */
     .container-fluid {
         padding-left: 0.5rem;
@@ -188,15 +196,18 @@
     }
 
     /* Smaller headings */
-    h1, .h1 {
+    h1,
+    .h1 {
         font-size: 1.25rem;
     }
 
-    h2, .h2 {
+    h2,
+    .h2 {
         font-size: 1.1rem;
     }
 
-    h3, .h3 {
+    h3,
+    .h3 {
         font-size: 1rem;
     }
 
@@ -226,7 +237,8 @@
         font-size: 0.8rem;
     }
 
-    .table td, .table th {
+    .table td,
+    .table th {
         padding: 0.5rem;
     }
 
@@ -262,7 +274,12 @@ img[style*="width"] {
 
 /* Improve touch targets pada mobile */
 @media (max-width: 767.98px) {
-    a, button, .btn, .nav-link, .collapse-item {
+
+    a,
+    button,
+    .btn,
+    .nav-link,
+    .collapse-item {
         min-height: 44px;
         display: flex;
         align-items: center;
@@ -308,7 +325,8 @@ body {
     }
 
     .form-control-user {
-        font-size: 16px; /* Mencegah zoom pada iOS */
+        font-size: 16px;
+        /* Mencegah zoom pada iOS */
     }
 
     .btn-user {
@@ -319,6 +337,7 @@ body {
 
 /* Fix untuk form controls yang terlalu kecil di mobile */
 @media (max-width: 767.98px) {
+
     input[type="text"],
     input[type="email"],
     input[type="password"],
@@ -327,12 +346,14 @@ body {
     input[type="time"],
     select,
     textarea {
-        font-size: 16px !important; /* Mencegah zoom otomatis di iOS */
+        font-size: 16px !important;
+        /* Mencegah zoom otomatis di iOS */
     }
 }
 
 /* DataTables responsive untuk mobile */
 @media (max-width: 767.98px) {
+
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter,
     .dataTables_wrapper .dataTables_info,
@@ -349,11 +370,11 @@ body {
 
 /* Form filter responsive untuk mobile */
 @media (max-width: 767.98px) {
-    .card-body form .row > [class*="col-"] {
+    .card-body form .row>[class*="col-"] {
         margin-bottom: 1rem;
     }
 
-    .card-body form .row > [class*="col-"]:last-child {
+    .card-body form .row>[class*="col-"]:last-child {
         margin-bottom: 0;
     }
 
@@ -362,12 +383,12 @@ body {
         width: 100%;
     }
 
-    .btn-group-vertical > .btn {
+    .btn-group-vertical>.btn {
         width: 100%;
         margin-bottom: 0.5rem;
     }
 
-    .btn-group-vertical > .btn:last-child {
+    .btn-group-vertical>.btn:last-child {
         margin-bottom: 0;
     }
 
@@ -401,7 +422,7 @@ body {
 
 /* Button spacing untuk mobile */
 @media (max-width: 575.98px) {
-    .btn + .btn {
+    .btn+.btn {
         margin-left: 0;
         margin-top: 0.5rem;
     }
@@ -479,6 +500,7 @@ select#item_id:valid {
 
 /* Print styles - hide unnecessary elements pada mobile print */
 @media print {
+
     .sidebar,
     .topbar,
     .btn,
@@ -494,42 +516,25 @@ select#item_id:valid {
 /* Wrapper untuk table responsive dengan sticky scroll */
 .table-responsive {
     position: relative;
-    margin-bottom: 3rem; /* Space for sticky scrollbar */
+    margin-bottom: 1rem;
 }
 
-/* Sticky scroll bar container */
-.table-responsive::after {
-    content: '';
+/* Sticky scroll bar - ALWAYS VISIBLE at bottom of viewport */
+.sticky-scroll-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     height: 20px;
-    background: rgba(0, 0, 0, 0.05);
-    z-index: 1000;
-    pointer-events: none;
-    display: none; /* Hidden by default, shown via JS */
-}
-
-/* Alternative: Pure CSS sticky scroll (works on modern browsers) */
-.sticky-scroll-wrapper {
-    position: relative;
     overflow-x: auto;
     overflow-y: hidden;
-}
-
-.sticky-scroll-bar {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 20px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
-    border-top: 1px solid #dee2e6;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    z-index: 1040;
+    /* Above most content but below modals */
+    background: rgba(255, 255, 255, 0.98);
+    border-top: 2px solid #4e73df;
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1);
+    display: none;
+    /* Hidden by default, shown by JS when needed */
 }
 
 .sticky-scroll-content {
@@ -537,46 +542,52 @@ select#item_id:valid {
     /* Width will be set dynamically via JS to match table width */
 }
 
-/* Ensure scrollbars are always visible */
+/* Ensure scrollbars are always visible and styled */
 .table-responsive::-webkit-scrollbar,
 .sticky-scroll-bar::-webkit-scrollbar {
-    height: 12px;
+    height: 14px;
     -webkit-appearance: none;
 }
 
 .table-responsive::-webkit-scrollbar-track,
 .sticky-scroll-bar::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
+    background-color: #f8f9fc;
     border-radius: 10px;
 }
 
 .table-responsive::-webkit-scrollbar-thumb,
 .sticky-scroll-bar::-webkit-scrollbar-thumb {
-    background-color: #888;
+    background-color: #4e73df;
     border-radius: 10px;
-    border: 2px solid #f1f1f1;
+    border: 3px solid #f8f9fc;
 }
 
 .table-responsive::-webkit-scrollbar-thumb:hover,
 .sticky-scroll-bar::-webkit-scrollbar-thumb:hover {
-    background-color: #555;
+    background-color: #2e59d9;
 }
 
 /* For Firefox */
 .table-responsive,
 .sticky-scroll-bar {
     scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
+    scrollbar-color: #4e73df #f8f9fc;
 }
 
 /* Mobile adjustments */
 @media (max-width: 767.98px) {
     .sticky-scroll-bar {
-        height: 15px;
+        height: 16px;
+        border-top-width: 1px;
     }
-    
+
     .table-responsive::-webkit-scrollbar,
     .sticky-scroll-bar::-webkit-scrollbar {
-        height: 10px;
+        height: 12px;
     }
+}
+
+/* Ensure footer doesn't overlap sticky scroll */
+footer.sticky-footer {
+    margin-bottom: 25px;
 }

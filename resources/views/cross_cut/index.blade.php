@@ -88,10 +88,10 @@
                             <th rowspan="2" class="align-middle">Posisi Remark</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                                <th rowspan="2" class="align-middle">Kepala Regu QC</th>
+                            <th rowspan="2" class="align-middle">Kepala Regu QC</th>
                             <th rowspan="2" class="align-middle">Kepala Shift Plating</th>
                             <th rowspan="2" class="align-middle">Supervisor Quality</th>
-                                <th rowspan="2" class="align-middle">Supervisor Plating</th>
+                            <th rowspan="2" class="align-middle">Supervisor Plating</th>
                             <th rowspan="2" class="align-middle">Manager QC</th>
                             <th rowspan="2" class="align-middle">Manager Plating</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
@@ -349,9 +349,9 @@
 
                                         {{-- Level 2: Kashift Plating --}}
                                         @if($canApproveKashiftPlating)
-                                            <button type="button" class="btn btn-success btn-sm m-1"
-                                                title="Approve (Kashift Plating)" style="min-width: 110px;"
-                                                data-toggle="modal" data-target="#approveModal{{ $checksheet->id }}kashift_plating">
+                                            <button type="button" class="btn btn-success btn-sm m-1" title="Approve (Kashift Plating)"
+                                                style="min-width: 110px;" data-toggle="modal"
+                                                data-target="#approveModal{{ $checksheet->id }}kashift_plating">
                                                 <i class="fas fa-check"></i>
                                                 Approve{{ (auth()->user()->role === 'admin') ? ' KS Plt' : '' }}
                                             </button>
@@ -605,7 +605,8 @@
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <form action="{{ route('cross_cut.approve', ['id' => $cs->id, 'type' => 'kashift_plating']) }}" method="POST">
+                        <form action="{{ route('cross_cut.approve', ['id' => $cs->id, 'type' => 'kashift_plating']) }}"
+                            method="POST">
                             @csrf
                             <input type="hidden" name="page" value="{{ request('page') }}">
                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -623,8 +624,8 @@
                                     </label>
                                     <input type="text" class="form-control @error('approver_name') is-invalid @enderror"
                                         id="approver_name{{ $cs->id }}kashift_plating" name="approver_name"
-                                        placeholder="Masukkan nama Anda (minimal 3 karakter)" required minlength="3"
-                                        maxlength="100" value="{{ old('approver_name') }}">
+                                        placeholder="Masukkan nama Anda (minimal 3 karakter)" required minlength="3" maxlength="100"
+                                        value="{{ old('approver_name') }}">
                                     <small class="form-text text-muted">
                                         Masukkan nama lengkap Anda untuk konfirmasi approval
                                     </small>
@@ -667,7 +668,40 @@
                     }
                 @endforeach
             @endforeach
-                                                                    const viewImageButtons = document.querySelectorAll('.view-image-btn');
+
+                // Live Search Functionality
+                const liveSearchInput = document.getElementById('liveSearch');
+            const checksheetTable = document.getElementById('checksheetTable');
+            const tableRows = checksheetTable.querySelectorAll('tbody tr');
+
+            if (liveSearchInput) {
+                liveSearchInput.addEventListener('keyup', function () {
+                    const searchTerm = this.value.toLowerCase().trim();
+
+                    tableRows.forEach(function (row) {
+                        // Get text content from relevant columns (Cross Cut has different column indices)
+                        const itemPart = row.cells[8] ? row.cells[8].textContent.toLowerCase() : '';
+                        const customer = row.cells[9] ? row.cells[9].textContent.toLowerCase() : '';
+                        const partNo = row.cells[10] ? row.cells[10].textContent.toLowerCase() : '';
+                        const initials = row.cells[15] ? row.cells[15].textContent.toLowerCase() : '';
+
+                        // Check if any column contains the search term
+                        const matches = itemPart.includes(searchTerm) ||
+                            customer.includes(searchTerm) ||
+                            partNo.includes(searchTerm) ||
+                            initials.includes(searchTerm);
+
+                        // Show or hide row based on match
+                        if (matches || searchTerm === '') {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            const viewImageButtons = document.querySelectorAll('.view-image-btn');
             const modalImage = document.getElementById('modalImage');
             const modalItemName = document.getElementById('modalItemName');
             const modalQcDatetime = document.getElementById('modalQcDatetime');
@@ -932,8 +966,8 @@
                 @endforeach
             @endforeach
 
-                                    // Live Search Functionality
-                                    const liveSearchInput = document.getElementById('liveSearch');
+                                        // Live Search Functionality
+                                        const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
