@@ -34,7 +34,7 @@
                     </div>
                     <div class="col-md-3 col-12 d-flex flex-column flex-md-row align-items-stretch align-items-md-end">
                         <button type="submit" class="btn btn-primary btn-sm mr-md-2 mb-2 mb-md-0" style="min-width: 140px;">
-                            <i class="fas fa-filter"></i> Cari
+                            <i class="fas fa-search"></i> Cari
                         </button>
                         <a href="{{ route('admin.items.index') }}" class="btn btn-secondary btn-sm"
                             style="min-width: 140px;">

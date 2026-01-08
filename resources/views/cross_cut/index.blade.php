@@ -34,7 +34,7 @@
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
                             <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-filter"></i> Cari
+                                <i class="fas fa-search"></i> Cari
                             </button>
                             <a href="{{ route('cross_cut.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo"></i> Reset
