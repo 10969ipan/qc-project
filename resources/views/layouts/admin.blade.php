@@ -524,6 +524,9 @@
         // dengan expire_on_close => true. Session cookie akan otomatis expire saat browser ditutup.
     </script>
 
+    {{-- Sticky Horizontal Scroll --}}
+    <script src="{{ asset('js/sticky-scroll.js') }}"></script>
+
     {{-- Tambahkan script lain yang dibutuhkan di sini --}}
     @stack('scripts')
 

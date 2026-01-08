@@ -487,3 +487,96 @@ select#item_id:valid {
     }
 }
 
+/* ========================================
+   STICKY HORIZONTAL SCROLL BAR
+   ======================================== */
+
+/* Wrapper untuk table responsive dengan sticky scroll */
+.table-responsive {
+    position: relative;
+    margin-bottom: 3rem; /* Space for sticky scrollbar */
+}
+
+/* Sticky scroll bar container */
+.table-responsive::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    pointer-events: none;
+    display: none; /* Hidden by default, shown via JS */
+}
+
+/* Alternative: Pure CSS sticky scroll (works on modern browsers) */
+.sticky-scroll-wrapper {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.sticky-scroll-bar {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid #dee2e6;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sticky-scroll-content {
+    height: 1px;
+    /* Width will be set dynamically via JS to match table width */
+}
+
+/* Ensure scrollbars are always visible */
+.table-responsive::-webkit-scrollbar,
+.sticky-scroll-bar::-webkit-scrollbar {
+    height: 12px;
+    -webkit-appearance: none;
+}
+
+.table-responsive::-webkit-scrollbar-track,
+.sticky-scroll-bar::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.sticky-scroll-bar::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 10px;
+    border: 2px solid #f1f1f1;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.sticky-scroll-bar::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+/* For Firefox */
+.table-responsive,
+.sticky-scroll-bar {
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
+}
+
+/* Mobile adjustments */
+@media (max-width: 767.98px) {
+    .sticky-scroll-bar {
+        height: 15px;
+    }
+    
+    .table-responsive::-webkit-scrollbar,
+    .sticky-scroll-bar::-webkit-scrollbar {
+        height: 10px;
+    }
+}
