@@ -117,29 +117,33 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div style="max-height: 700px; overflow-y: auto; overflow-x: hidden;">
-                            <div id="inspectorChartContainer" style="position: relative; min-height: 400px;">
-                                <canvas id="myInspectorItemCycleChart"></canvas>
+                        <!-- Legend -->
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <span class="badge badge-success px-3 py-2">
+                                        <i class="fas fa-check-circle"></i> ≥ 100%
+                                    </span>
+                                    <div class="small text-muted mt-1">Sesuai/Lebih Cepat</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="badge badge-warning px-3 py-2">
+                                        <i class="fas fa-exclamation-triangle"></i> 80-99%
+                                    </span>
+                                    <div class="small text-muted mt-1">Perlu Perhatian</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="badge badge-danger px-3 py-2">
+                                        <i class="fas fa-times-circle"></i>
+                                        < 80% </span>
+                                            <div class="small text-muted mt-1">Di Bawah Standar</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <div class="row">
-                                <div class="col-md-4 text-center">
-                                    <small class="text-muted">
-                                        <span class="badge badge-success">●</span> ≥ 100% (Sesuai/Lebih Cepat)
-                                    </small>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <small class="text-muted">
-                                        <span class="badge badge-warning">●</span> 80-99% (Perlu Perhatian)
-                                    </small>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <small class="text-muted">
-                                        <span class="badge badge-danger">●</span>
-                                        < 80% (Di Bawah Standar) </small>
-                                </div>
-                            </div>
+
+                        <!-- Chart Container -->
+                        <div id="inspectorChartContainer" style="position: relative; height: 500px;">
+                            <canvas id="myInspectorItemCycleChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -259,8 +263,7 @@
                 }
             });
 
-            // --- Improved Bar Chart (Avg Cycle Time per Item by User) ---
-            var ctxInspectorItemCycle = document.getElementById("myInspectorItemCycleChart");
+            // --- Improved Performance Table (Avg Cycle Time per Item by User) ---
             var inspectorItemLabels = @json($inspectorItemLabels);
             var inspectorItemDatasets = @json($inspectorItemDatasets);
             var itemCycleTimeDataForCalc = @json($itemCycleTimeData);
@@ -269,158 +272,64 @@
             console.log('Inspector Item Labels:', inspectorItemLabels);
             console.log('Inspector Item Datasets:', inspectorItemDatasets);
             console.log('Item Cycle Time Data:', itemCycleTimeDataForCalc);
-            console.log('Canvas Element:', ctxInspectorItemCycle);
 
             // Check if data exists
             if (!inspectorItemLabels || inspectorItemLabels.length === 0) {
                 console.warn('No inspector item labels data available');
                 document.getElementById('inspectorChartContainer').innerHTML =
                     '<div class="alert alert-info text-center">Tidak ada data untuk ditampilkan. Silakan pilih range tanggal atau tambahkan data checksheet terlebih dahulu.</div>';
-                // Skip chart initialization
             } else if (!inspectorItemDatasets || inspectorItemDatasets.length === 0) {
                 console.warn('No inspector datasets available');
                 document.getElementById('inspectorChartContainer').innerHTML =
                     '<div class="alert alert-info text-center">Tidak ada data operator untuk ditampilkan. Pastikan data checksheet memiliki operator_initials yang terisi.</div>';
-                // Skip chart initialization
             } else {
                 console.log('Data count:', inspectorItemLabels.length);
 
-                // Calculate dynamic height based on number of data points
-                var dataCount = inspectorItemLabels.length;
-                var barHeight = 80; // Increased height per bar for better readability
-                var minHeight = 600;
-                var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
+                // Build table rows
+                var tableBody = document.getElementById('performanceTableBody');
+                var tableHTML = '';
 
-                // Set container height dynamically
-                document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
+                inspectorItemLabels.forEach(function (itemName, idx) {
+                    var standardTime = itemCycleTimeDataForCalc[idx];
 
-                // Color-code datasets based on performance
-                inspectorItemDatasets.forEach(dataset => {
-                    // Create color array for each data point
-                    dataset.backgroundColor = dataset.data.map((value, idx) => {
-                        var std = itemCycleTimeDataForCalc[idx];
-                        var pct = std > 0 ? (value / std) * 100 : 0;
-                        if (pct >= 100) return '#28a745'; // Green
-                        if (pct >= 80) return '#ffc107'; // Yellow
-                        return '#dc3545'; // Red
+                    // Create operator badges for this item
+                    var operatorBadges = '';
+                    inspectorItemDatasets.forEach(function (dataset) {
+                        var actualTime = dataset.data[idx];
+                        if (actualTime > 0) {
+                            var percentage = standardTime > 0 ? (actualTime / standardTime) * 100 : 0;
+                            var badgeClass = 'badge-success';
+                            var icon = 'fa-check-circle';
+
+                            if (percentage < 80) {
+                                badgeClass = 'badge-danger';
+                                icon = 'fa-times-circle';
+                            } else if (percentage < 100) {
+                                badgeClass = 'badge-warning';
+                                icon = 'fa-exclamation-triangle';
+                            }
+
+                            operatorBadges += '<span class="badge ' + badgeClass + ' mr-2 mb-2 px-3 py-2" style="font-size: 0.9rem;">' +
+                                '<i class="fas ' + icon + '"></i> ' +
+                                '<strong>' + dataset.label + '</strong>: ' + percentage.toFixed(1) + '%' +
+                                '<br><small>(' + actualTime.toFixed(1) + 's)</small>' +
+                                '</span>';
+                        }
                     });
 
-                    // Configure data labels with larger font
-                    dataset.datalabels = {
-                        color: '#fff',
-                        font: {
-                            weight: 'bold',
-                            size: 14 // Larger font for better visibility
-                        },
-                        anchor: 'center',
-                        align: 'center',
-                        formatter: function (value, ctx) {
-                            if (value > 0) {
-                                var idx = ctx.dataIndex;
-                                var std = itemCycleTimeDataForCalc[idx];
-                                var pct = 0;
-                                if (std > 0) {
-                                    pct = (value / std) * 100;
-                                }
-                                return pct.toFixed(1) + "%";
-                            }
-                            return "";
-                        }
-                    };
+                    if (operatorBadges === '') {
+                        operatorBadges = '<span class="text-muted"><i>Tidak ada data</i></span>';
+                    }
+
+                    tableHTML += '<tr>' +
+                        '<td class="align-middle"><strong>' + itemName + '</strong></td>' +
+                        '<td class="text-center align-middle"><span class="badge badge-secondary px-3 py-2">' + standardTime.toFixed(1) + 's</span></td>' +
+                        '<td class="align-middle">' + operatorBadges + '</td>' +
+                        '</tr>';
                 });
 
-                var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
-                    type: 'bar',
-                    data: {
-                        labels: inspectorItemLabels,
-                        datasets: inspectorItemDatasets
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        indexAxis: 'y', // Horizontal bars
-                        layout: {
-                            padding: {
-                                left: 15,
-                                right: 40,
-                                top: 30,
-                                bottom: 15
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: true,
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                },
-                                ticks: {
-                                    maxTicksLimit: 8,
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            },
-                            y: {
-                                ticks: {
-                                    padding: 15,
-                                    autoSkip: false,
-                                    font: {
-                                        size: 13,
-                                        weight: '500'
-                                    }
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            },
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: {
-                                    boxWidth: 12,
-                                    padding: 15,
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: "rgb(255,255,255)",
-                                bodyColor: "#858796",
-                                titleMarginBottom: 10,
-                                titleColor: '#6e707e',
-                                titleFont: {
-                                    size: 14,
-                                },
-                                borderColor: '#dddfeb',
-                                borderWidth: 1,
-                                xPadding: 15,
-                                yPadding: 15,
-                                displayColors: true,
-                                intersect: false,
-                                mode: 'index',
-                                caretPadding: 10,
-                                callbacks: {
-                                    label: function (tooltipItem) {
-                                        var std = itemCycleTimeDataForCalc[tooltipItem.dataIndex];
-                                        var pct = 0;
-                                        if (std > 0) {
-                                            pct = (tooltipItem.raw / std) * 100;
-                                        }
-                                        var status = pct >= 100 ? '✓ Sesuai' : (pct >= 80 ? '⚠ Perlu Perhatian' : '✗ Di Bawah Standar');
-                                        return [
-                                            tooltipItem.dataset.label + ': ' + pct.toFixed(1) + '%',
-                                            status,
-                                            'Standar: ' + std + 's'
-                                        ];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            } // End of data check if-else
+                tableBody.innerHTML = tableHTML;
+            }
 
             // --- Bar Chart (Avg Cycle Time per Item) ---
             var ctxItemCycle = document.getElementById("myItemCycleChart");
