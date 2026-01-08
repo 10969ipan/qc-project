@@ -288,41 +288,41 @@
                 document.getElementById('inspectorChartContainer').style.height = calculatedHeight + 'px';
 
                 // Color-code datasets based on performance
-            inspectorItemDatasets.forEach(dataset => {
-                // Create color array for each data point
-                dataset.backgroundColor = dataset.data.map((value, idx) => {
-                    var std = itemCycleTimeDataForCalc[idx];
-                    var pct = std > 0 ? (value / std) * 100 : 0;
-                    if (pct >= 100) return '#28a745'; // Green
-                    if (pct >= 80) return '#ffc107'; // Yellow
-                    return '#dc3545'; // Red
-                });
-                
-                // Configure data labels with larger font
-                dataset.datalabels = {
-                    color: '#fff',
-                    font: { 
-                        weight: 'bold', 
-                        size: 14 // Larger font for better visibility
-                    },
-                    anchor: 'center',
-                    align: 'center',
-                    formatter: function (value, ctx) {
-                        if (value > 0) {
-                            var idx = ctx.dataIndex;
-                            var std = itemCycleTimeDataForCalc[idx];
-                            var pct = 0;
-                            if (std > 0) {
-                                pct = (value / std) * 100;
+                inspectorItemDatasets.forEach(dataset => {
+                    // Create color array for each data point
+                    dataset.backgroundColor = dataset.data.map((value, idx) => {
+                        var std = itemCycleTimeDataForCalc[idx];
+                        var pct = std > 0 ? (value / std) * 100 : 0;
+                        if (pct >= 100) return '#28a745'; // Green
+                        if (pct >= 80) return '#ffc107'; // Yellow
+                        return '#dc3545'; // Red
+                    });
+                    
+                    // Configure data labels with larger font
+                    dataset.datalabels = {
+                        color: '#fff',
+                        font: { 
+                            weight: 'bold', 
+                            size: 14 // Larger font for better visibility
+                        },
+                        anchor: 'center',
+                        align: 'center',
+                        formatter: function (value, ctx) {
+                            if (value > 0) {
+                                var idx = ctx.dataIndex;
+                                var std = itemCycleTimeDataForCalc[idx];
+                                var pct = 0;
+                                if (std > 0) {
+                                    pct = (value / std) * 100;
+                                }
+                                return pct.toFixed(1) + "%";
                             }
-                            return pct.toFixed(1) + "%";
+                            return "";
                         }
-                        return "";
-                    }
-                };
-            });
+                    };
+                });
 
-            var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
+                var myInspectorItemCycleChart = new Chart(ctxInspectorItemCycle, {
                 type: 'bar',
                 data: {
                     labels: inspectorItemLabels,
