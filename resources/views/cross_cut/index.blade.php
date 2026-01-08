@@ -90,10 +90,10 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
                                 <th rowspan="2" class="align-middle">Kepala Regu QC</th>
                             <th rowspan="2" class="align-middle">Kepala Shift Plating</th>
-                            <th rowspan="2" class="align-middle">Supervisor Plating</th>
-                                <th rowspan="2" class="align-middle">Supervisor Quality</th>
-                            <th rowspan="2" class="align-middle">Manager Plating</th>
+                            <th rowspan="2" class="align-middle">Supervisor Quality</th>
+                                <th rowspan="2" class="align-middle">Supervisor Plating</th>
                             <th rowspan="2" class="align-middle">Manager QC</th>
+                            <th rowspan="2" class="align-middle">Manager Plating</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(auth()->user()->role !== 'inspector')
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
@@ -204,31 +204,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Level 3: SPV Plating --}}
-                                <td class="align-middle text-center">
-                                    @if($checksheet->supervisor_plating)
-                                        @if($checksheet->supervisor_plating === 'REJECTED')
-                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                            </span>
-                                        @else
-                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                            </span>
-                                            <br><small class="text-muted">oleh {{ $checksheet->supervisor_plating }}</small>
-                                        @endif
-                                    @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->supervisor_plating_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_plating_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Level 4: SPV Quality --}}
+                                {{-- Level 3: SPV Quality --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->supervisor_qc)
                                         @if($checksheet->supervisor_qc === 'REJECTED')
@@ -252,10 +228,10 @@
                                     @endif
                                 </td>
 
-                                {{-- Level 5: Manager Plating --}}
+                                {{-- Level 4: SPV Plating --}}
                                 <td class="align-middle text-center">
-                                    @if($checksheet->manager_plating)
-                                        @if($checksheet->manager_plating === 'REJECTED')
+                                    @if($checksheet->supervisor_plating)
+                                        @if($checksheet->supervisor_plating === 'REJECTED')
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
@@ -263,20 +239,20 @@
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
                                             </span>
-                                            <br><small class="text-muted">oleh {{ $checksheet->manager_plating }}</small>
+                                            <br><small class="text-muted">oleh {{ $checksheet->supervisor_plating }}</small>
                                         @endif
                                     @else
                                         <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
-                                    @if($checksheet->manager_plating_approved_at)
+                                    @if($checksheet->supervisor_plating_approved_at)
                                         <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_plating_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
-                                {{-- Level 6: Manager QC --}}
+                                {{-- Level 5: Manager QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->manager_qc)
                                         @if($checksheet->manager_qc === 'REJECTED')
@@ -300,6 +276,30 @@
                                     @endif
                                 </td>
 
+                                {{-- Level 6: Manager Plating --}}
+                                <td class="align-middle text-center">
+                                    @if($checksheet->manager_plating)
+                                        @if($checksheet->manager_plating === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                            <br><small class="text-muted">oleh {{ $checksheet->manager_plating }}</small>
+                                        @endif
+                                    @else
+                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                    @if($checksheet->manager_plating_approved_at)
+                                        <br><small
+                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                    @endif
+                                </td>
+
                                 <td class="align-middle">
                                     @if($checksheet->rejection_remarks)
                                         <div class="text-danger font-weight-bold">
@@ -314,12 +314,13 @@
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         @php
-                                            $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && !$checksheet->karu_qc;
-                                            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && $checksheet->karu_qc && $checksheet->karu_qc !== 'REJECTED' && !$checksheet->kashift_plating;
-                                            $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && $checksheet->kashift_plating && $checksheet->kashift_plating !== 'REJECTED' && !$checksheet->supervisor_plating;
-                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $checksheet->supervisor_plating && $checksheet->supervisor_plating !== 'REJECTED' && !$checksheet->supervisor_qc;
-                                            $canApproveManagerPlating = (auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && $checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED' && !$checksheet->manager_plating;
-                                            $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $checksheet->manager_plating && $checksheet->manager_plating !== 'REJECTED' && !$checksheet->manager_qc;
+                                            // Modified: Allow approval at any level without waiting for previous levels
+                                            $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED');
+                                            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$checksheet->kashift_plating || $checksheet->kashift_plating === 'REJECTED');
+                                            $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
+                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveManagerPlating = (auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->manager_plating || $checksheet->manager_plating === 'REJECTED');
+                                            $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
                                         @endphp
 
                                         {{-- Level 1: Karu QC --}}
@@ -348,21 +349,12 @@
 
                                         {{-- Level 2: Kashift Plating --}}
                                         @if($canApproveKashiftPlating)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'kashift_plating']) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1"
-                                                    title="Approve (Kashift Plating)" style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' KS Plt' : '' }}
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-success btn-sm m-1"
+                                                title="Approve (Kashift Plating)" style="min-width: 110px;"
+                                                data-toggle="modal" data-target="#approveModal{{ $checksheet->id }}kashift_plating">
+                                                <i class="fas fa-check"></i>
+                                                Approve{{ (auth()->user()->role === 'admin') ? ' KS Plt' : '' }}
+                                            </button>
                                             <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift Plating)"
                                                 data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift_plating"
                                                 style="min-width: 110px;">
@@ -528,17 +520,18 @@
         @foreach(['karu_qc', 'kashift_plating', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
             @php
                 $canReject = false;
-                if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && !$cs->karu_qc)) {
+                // Modified: Allow rejection at any level without waiting for previous levels
+                if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$cs->karu_qc || $cs->karu_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && $cs->karu_qc && $cs->karu_qc !== 'REJECTED' && !$cs->kashift_plating)) {
+                } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'supervisor_plating' && ((auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && $cs->kashift_plating && $cs->kashift_plating !== 'REJECTED' && !$cs->supervisor_plating)) {
+                } elseif ($rejectType == 'supervisor_plating' && ((auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$cs->supervisor_plating || $cs->supervisor_plating === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $cs->supervisor_plating && $cs->supervisor_plating !== 'REJECTED' && !$cs->supervisor_qc)) {
+                } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'manager_plating' && ((auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && $cs->supervisor_qc && $cs->supervisor_qc !== 'REJECTED' && !$cs->manager_plating)) {
+                } elseif ($rejectType == 'manager_plating' && ((auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$cs->manager_plating || $cs->manager_plating === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $cs->manager_plating && $cs->manager_plating !== 'REJECTED' && !$cs->manager_qc)) {
+                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
                     $canReject = true;
                 }
             @endphp
@@ -592,6 +585,67 @@
                 </div>
             @endif
         @endforeach
+    @endforeach
+
+    <!-- Approval Modal for Kashift Plating -->
+    @foreach($checksheets as $cs)
+        @php
+            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED');
+        @endphp
+        @if($canApproveKashiftPlating)
+            <div class="modal fade" id="approveModal{{ $cs->id }}kashift_plating" tabindex="-1" role="dialog"
+                aria-labelledby="approveModalLabel{{ $cs->id }}kashift_plating" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title" id="approveModalLabel{{ $cs->id }}kashift_plating">
+                                <i class="fas fa-check-circle mr-2"></i>Konfirmasi Approval Kepala Shift Plating
+                            </h5>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="{{ route('cross_cut.approve', ['id' => $cs->id, 'type' => 'kashift_plating']) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="page" value="{{ request('page') }}">
+                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Anda akan menyetujui checksheet ini sebagai
+                                    <strong>Kepala Shift Plating</strong>
+                                </div>
+                                <div class="form-group">
+                                    <label for="approver_name{{ $cs->id }}kashift_plating" class="font-weight-bold">
+                                        Nama User/Approver <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control @error('approver_name') is-invalid @enderror"
+                                        id="approver_name{{ $cs->id }}kashift_plating" name="approver_name"
+                                        placeholder="Masukkan nama Anda (minimal 3 karakter)" required minlength="3"
+                                        maxlength="100" value="{{ old('approver_name') }}">
+                                    <small class="form-text text-muted">
+                                        Masukkan nama lengkap Anda untuk konfirmasi approval
+                                    </small>
+                                    @error('approver_name')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    <i class="fas fa-times"></i> Batal
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Setujui Checksheet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
     @endforeach
 
 @endsection
