@@ -31,7 +31,7 @@
                                     <th>Tanggal & Shift Produksi / QC</th>
                                     <th>Hasil Cross Cut</th>
                                     <th>Kimia</th>
-                                    <th>Posisi Remark (Judgement / No Lot)</th>
+                                    <th>Posisi Remark (Judgement / No Lot QC)</th>
                                     <th>Result Remark</th>
                                     <th>Inisial QC</th>
                                     <th>Keterangan</th>
