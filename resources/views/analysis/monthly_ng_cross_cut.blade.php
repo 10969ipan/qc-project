@@ -287,8 +287,8 @@
 
                 // Calculate dynamic height based on number of data points
                 var dataCount = inspectorItemLabels.length;
-                var barHeight = 50; // Increased height per bar for better visibility
-                var minHeight = 400;
+                var barHeight = 80; // Increased height per bar for better readability
+                var minHeight = 600;
                 var calculatedHeight = Math.max(minHeight, dataCount * barHeight);
 
                 // Set container height dynamically
@@ -340,10 +340,10 @@
                         indexAxis: 'y', // Horizontal bars
                         layout: {
                             padding: {
-                                left: 10,
-                                right: 30,
-                                top: 25,
-                                bottom: 10
+                                left: 15,
+                                right: 40,
+                                top: 30,
+                                bottom: 15
                             }
                         },
                         scales: {
@@ -355,16 +355,16 @@
                                 ticks: {
                                     maxTicksLimit: 8,
                                     font: {
-                                        size: 11
+                                        size: 12
                                     }
                                 }
                             },
                             y: {
                                 ticks: {
-                                    padding: 10,
+                                    padding: 15,
                                     autoSkip: false,
                                     font: {
-                                        size: 12,
+                                        size: 13,
                                         weight: '500'
                                     }
                                 },
