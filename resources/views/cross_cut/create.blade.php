@@ -128,7 +128,7 @@
                                                 <option value="NG">NG</option>
                                             </select>
                                         </div>
-                                        <div class="form-group mb-0"><label>No Lot</label><input type="text"
+                                        <div class="form-group mb-0"><label>No Lot QC</label><input type="text"
                                                 class="form-control" name="position_remark_no_lot" required></div>
                                     </td>
                                     <!-- Result Remark -->
