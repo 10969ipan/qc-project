@@ -237,6 +237,15 @@
 
                                         <!-- Keterangan -->
                                         <td class="align-middle">
+                                            <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
+                                                <label for="nextProses" class="font-weight-bold text-danger">Next
+                                                    Proses:</label>
+                                                <select class="form-control" id="nextProses" name="next_proses">
+                                                    <option value="">-- Pilih Next Proses --</option>
+                                                    <option value="PENDING">PENDING</option>
+                                                    <option value="REPAIR">REPAIR</option>
+                                                </select>
+                                            </div>
                                             <textarea class="form-control" name="remarks" rows="4"
                                                 placeholder="Catatan tambahan..."></textarea>
                                         </td>
@@ -529,10 +538,28 @@
                     judgmentSelect.val('');
                     judgmentSelect.removeClass('text-success text-danger');
                 }
+
+                // Show/Hide Next Proses dropdown based on judgment
+                toggleNextProsesDropdown();
+            }
+
+            function toggleNextProsesDropdown() {
+                var judgment = $('#judgmentSelect').val();
+                if (judgment === 'NG') {
+                    $('#nextProsesContainer').slideDown();
+                } else {
+                    $('#nextProsesContainer').slideUp();
+                    $('#nextProses').val(''); // Reset selection
+                }
             }
 
             $('input[name="total_ng"], input[name="sampling_qty"]').on('input', function () {
                 updateJudgment();
+            });
+
+            // Also trigger on manual judgment change
+            $('#judgmentSelect').on('change', function () {
+                toggleNextProsesDropdown();
             });
 
             // Store default defects for fallback

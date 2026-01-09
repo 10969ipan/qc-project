@@ -163,8 +163,18 @@
                                             placeholder="Inisial" value="{{ $initial }}" required>
                                     </td>
                                     <!-- Keterangan -->
-                                    <td class="align-middle"><textarea class="form-control" name="keterangan"
-                                            rows="3"></textarea></td>
+                                    <td class="align-middle">
+                                        <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
+                                            <label for="nextProses" class="font-weight-bold text-danger">Next
+                                                Proses:</label>
+                                            <select class="form-control" id="nextProses" name="next_proses">
+                                                <option value="">-- Pilih Next Proses --</option>
+                                                <option value="PENDING">PENDING</option>
+                                                <option value="REPAIR">REPAIR</option>
+                                            </select>
+                                        </div>
+                                        <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -537,6 +547,25 @@
                     }, 1000);
                 }
             });
+
+            // Show/Hide Next Proses dropdown based on judgment (Cross Cut uses position_remark_judgment)
+            function toggleNextProsesDropdown() {
+                var judgment = $('select[name="position_remark_judgment"]').val();
+                if (judgment === 'NG') {
+                    $('#nextProsesContainer').slideDown();
+                } else {
+                    $('#nextProsesContainer').slideUp();
+                    $('#nextProses').val(''); // Reset selection
+                }
+            }
+
+            // Trigger on judgment change
+            $('select[name="position_remark_judgment"]').on('change', function () {
+                toggleNextProsesDropdown();
+            });
+
+            // Initialize on page load
+            toggleNextProsesDropdown();
 
             document.querySelector('form').addEventListener('submit', function () {
                 if (timerRunning) {
