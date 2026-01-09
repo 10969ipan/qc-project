@@ -453,6 +453,23 @@ class InProcessChecksheetController extends Controller
                     abort(403);
             }
 
+            // Check if this level was previously rejected, if so clear rejection remarks
+            $wasRejected = false;
+            if ($type == 'kashift' && $checksheet->kashift_qc === 'REJECTED') {
+                $wasRejected = true;
+            } elseif ($type == 'supervisor' && $checksheet->supervisor_qc === 'REJECTED') {
+                $wasRejected = true;
+            } elseif ($type == 'asst_manager' && $checksheet->asst_manager_qc === 'REJECTED') {
+                $wasRejected = true;
+            } elseif ($type == 'manager' && $checksheet->manager_qc === 'REJECTED') {
+                $wasRejected = true;
+            }
+
+            // If was rejected and now being approved, clear rejection remarks
+            if ($wasRejected) {
+                $checksheet->rejection_remarks = null;
+            }
+
             // Modified workflow - allow approval at any level without waiting for previous levels
             if ($type == 'kashift') {
                 if ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED') {
