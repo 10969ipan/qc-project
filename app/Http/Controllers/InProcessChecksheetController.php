@@ -453,41 +453,28 @@ class InProcessChecksheetController extends Controller
                     abort(403);
             }
 
-            // Validate approval order/hierarchy
+            // Modified workflow - allow approval at any level without waiting for previous levels
             if ($type == 'kashift') {
-                // Kashift can always approve first (no prerequisite)
-                if ($checksheet->kashift_qc) {
+                if ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED') {
                     return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
                 }
                 $checksheet->kashift_qc = $user->name;
                 $checksheet->kashift_approved_at = now();
             } elseif ($type == 'supervisor') {
-                // Supervisor can only approve if Kashift has approved
-                if (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Kashift terlebih dahulu.');
-                }
-                if ($checksheet->supervisor_qc) {
+                if ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED') {
                     return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
                 }
                 $checksheet->supervisor_qc = $user->name;
                 $checksheet->supervisor_approved_at = now();
                 $checksheet->approval_status = 'Approved';
             } elseif ($type == 'asst_manager') {
-                // Asst Manager can only approve if Supervisor has approved
-                if (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Supervisor terlebih dahulu.');
-                }
-                if ($checksheet->asst_manager_qc) {
+                if ($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED') {
                     return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
                 }
                 $checksheet->asst_manager_qc = $user->name;
                 $checksheet->asst_manager_approved_at = now();
             } elseif ($type == 'manager') {
-                // Manager can only approve if Asst Manager has approved
-                if (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet harus disetujui oleh Asst Manager terlebih dahulu.');
-                }
-                if ($checksheet->manager_qc) {
+                if ($checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED') {
                     return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Manager.');
                 }
                 $checksheet->manager_qc = $user->name;
