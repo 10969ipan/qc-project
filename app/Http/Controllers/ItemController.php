@@ -213,10 +213,10 @@ class ItemController extends Controller
         // Preserve pagination and filter parameters
         $queryParams = [
             'page' => $request->input('page', 1),
-            'name' => $request->input('name'),
-            'category' => $request->input('category'),
-            'customer' => $request->input('customer'),
-            'part_number' => $request->input('part_number'),
+            'name' => $request->input('filter_name'),
+            'category' => $request->input('filter_category'),
+            'customer' => $request->input('filter_customer'),
+            'part_number' => $request->input('filter_part_number'),
         ];
 
         // Remove null values

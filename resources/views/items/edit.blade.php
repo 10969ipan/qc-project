@@ -10,6 +10,10 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                <input type="hidden" name="filter_name" value="{{ request('name') }}">
+                <input type="hidden" name="filter_category" value="{{ request('category') }}">
+                <input type="hidden" name="filter_customer" value="{{ request('customer') }}">
+                <input type="hidden" name="filter_part_number" value="{{ request('part_number') }}">
                 <div class="form-group">
                     <label>Nama Item</label>
                     <input type="text" name="name" class="form-control" value="{{ $item->name }}" required>
@@ -98,7 +102,13 @@
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ route('admin.items.index') }}" class="btn btn-secondary">Batal</a>
+                <a href="{{ route('admin.items.index', [
+        'page' => request('page', 1),
+        'name' => request('name'),
+        'category' => request('category'),
+        'customer' => request('customer'),
+        'part_number' => request('part_number')
+    ]) }}" class="btn btn-secondary">Batal</a>
             </form>
         </div>
     </div>
@@ -109,13 +119,13 @@
                 // Add Row
                 $(document).on('click', '.add-row', function () {
                     var newRow = `
-                                <tr>
-                                    <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
-                                    <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
-                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
-                                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                                </tr>
-                            `;
+                                        <tr>
+                                            <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
+                                            <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
+                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
+                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                        </tr>
+                                    `;
                     $('#dimension-table tbody').append(newRow);
                 });
 
