@@ -51,7 +51,8 @@
                                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
                                 <input type="text" id="liveSearch" class="form-control form-control-sm"
-                                    placeholder="Cari Item Part, Customer, Part No, Inisial...">
+                                    placeholder="Cari Item Part, Customer, Part No, Inisial..."
+                                    value="{{ request('search') }}">
                             </div>
                         </div>
                     </div>
@@ -491,35 +492,33 @@
                 @endforeach
             @endforeach
 
-                // Live Search Functionality
-                const liveSearchInput = document.getElementById('liveSearch');
-            const checksheetTable = document.getElementById('checksheetTable');
-            const tableRows = checksheetTable.querySelectorAll('tbody tr');
+                    // Live Search Functionality - Server-side search across all pages
+                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
+                let searchTimeout;
+
                 liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.toLowerCase().trim();
+                    const searchTerm = this.value.trim();
 
-                    tableRows.forEach(function (row) {
-                        // Get text content from relevant columns
-                        const itemPart = row.cells[6] ? row.cells[6].textContent.toLowerCase() : '';
-                        const customer = row.cells[7] ? row.cells[7].textContent.toLowerCase() : '';
-                        const partNo = row.cells[8] ? row.cells[8].textContent.toLowerCase() : '';
-                        const initials = row.cells[16] ? row.cells[16].textContent.toLowerCase() : '';
+                    // Clear previous timeout
+                    clearTimeout(searchTimeout);
 
-                        // Check if any column contains the search term
-                        const matches = itemPart.includes(searchTerm) ||
-                            customer.includes(searchTerm) ||
-                            partNo.includes(searchTerm) ||
-                            initials.includes(searchTerm);
+                    // Debounce: wait 500ms after user stops typing
+                    searchTimeout = setTimeout(function () {
+                        // Get current filter values
+                        const startDate = document.getElementById('start_date').value;
+                        const endDate = document.getElementById('end_date').value;
 
-                        // Show or hide row based on match
-                        if (matches || searchTerm === '') {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
+                        // Build URL with all parameters
+                        const params = new URLSearchParams();
+                        if (searchTerm) params.append('search', searchTerm);
+                        if (startDate) params.append('start_date', startDate);
+                        if (endDate) params.append('end_date', endDate);
+
+                        // Redirect to index with search parameter
+                        window.location.href = '{{ route('admin.checksheets.index') }}?' + params.toString();
+                    }, 500);
                 });
             }
 

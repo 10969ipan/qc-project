@@ -27,12 +27,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const tableContainers = document.querySelectorAll('.table-responsive');
         let activeContainer = null;
 
-        // Find the first visible table that needs horizontal scroll
+        // Find the first table that needs horizontal scroll (ALWAYS VISIBLE - no viewport check)
         for (const container of tableContainers) {
-            const rect = container.getBoundingClientRect();
-            const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-
-            if (isVisible && container.scrollWidth > container.clientWidth) {
+            if (container.scrollWidth > container.clientWidth) {
                 activeContainer = container;
                 break;
             }
@@ -51,17 +48,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 currentTable = activeContainer;
             }
 
-            // Show sticky scroll bar
-            scrollBar.style.display = 'block';
+            // Check footer visibility and hide scroll bar if footer is in viewport
+            const footer = document.querySelector('footer.sticky-footer');
+            let shouldHide = false;
 
-            // Sync scroll events
-            scrollBar.onscroll = function () {
-                activeContainer.scrollLeft = scrollBar.scrollLeft;
-            };
+            if (footer) {
+                const footerRect = footer.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
 
-            activeContainer.onscroll = function () {
-                scrollBar.scrollLeft = activeContainer.scrollLeft;
-            };
+                // If footer is visible in viewport, hide the sticky scroll bar
+                if (footerRect.top < viewportHeight) {
+                    shouldHide = true;
+                }
+            }
+
+            // Show or hide sticky scroll bar based on footer visibility
+            if (shouldHide) {
+                scrollBar.style.display = 'none';
+            } else {
+                scrollBar.style.display = 'block';
+
+                // Sync scroll events
+                scrollBar.onscroll = function () {
+                    activeContainer.scrollLeft = scrollBar.scrollLeft;
+                };
+
+                activeContainer.onscroll = function () {
+                    scrollBar.scrollLeft = activeContainer.scrollLeft;
+                };
+            }
         } else if (stickyScrollBar) {
             // Hide if no table needs scrolling
             stickyScrollBar.style.display = 'none';

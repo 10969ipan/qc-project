@@ -51,7 +51,8 @@
                                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
                                 <input type="text" id="liveSearch" class="form-control form-control-sm"
-                                    placeholder="Cari Item Part, Customer, Part No, Inisial...">
+                                    placeholder="Cari Item Part, Customer, Part No, Inisial..."
+                                    value="{{ request('search') }}">
                             </div>
                         </div>
                     </div>
@@ -669,35 +670,33 @@
                 @endforeach
             @endforeach
 
-                // Live Search Functionality
-                const liveSearchInput = document.getElementById('liveSearch');
-            const checksheetTable = document.getElementById('checksheetTable');
-            const tableRows = checksheetTable.querySelectorAll('tbody tr');
+                    // Live Search Functionality - Server-side search across all pages
+                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
+                let searchTimeout;
+
                 liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.toLowerCase().trim();
+                    const searchTerm = this.value.trim();
 
-                    tableRows.forEach(function (row) {
-                        // Get text content from relevant columns (Cross Cut has different column indices)
-                        const itemPart = row.cells[8] ? row.cells[8].textContent.toLowerCase() : '';
-                        const customer = row.cells[9] ? row.cells[9].textContent.toLowerCase() : '';
-                        const partNo = row.cells[10] ? row.cells[10].textContent.toLowerCase() : '';
-                        const initials = row.cells[15] ? row.cells[15].textContent.toLowerCase() : '';
+                    // Clear previous timeout
+                    clearTimeout(searchTimeout);
 
-                        // Check if any column contains the search term
-                        const matches = itemPart.includes(searchTerm) ||
-                            customer.includes(searchTerm) ||
-                            partNo.includes(searchTerm) ||
-                            initials.includes(searchTerm);
+                    // Debounce: wait 500ms after user stops typing
+                    searchTimeout = setTimeout(function () {
+                        // Get current filter values
+                        const startDate = document.getElementById('start_date').value;
+                        const endDate = document.getElementById('end_date').value;
 
-                        // Show or hide row based on match
-                        if (matches || searchTerm === '') {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
+                        // Build URL with all parameters
+                        const params = new URLSearchParams();
+                        if (searchTerm) params.append('search', searchTerm);
+                        if (startDate) params.append('start_date', startDate);
+                        if (endDate) params.append('end_date', endDate);
+
+                        // Redirect to index with search parameter
+                        window.location.href = '{{ route('cross_cut.index') }}?' + params.toString();
+                    }, 500);
                 });
             }
 
@@ -966,8 +965,8 @@
                 @endforeach
             @endforeach
 
-                                        // Live Search Functionality
-                                        const liveSearchInput = document.getElementById('liveSearch');
+                                            // Live Search Functionality
+                                            const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 

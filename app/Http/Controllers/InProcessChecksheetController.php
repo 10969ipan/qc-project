@@ -120,6 +120,18 @@ class InProcessChecksheetController extends Controller
             $query->where('item_id', $request->item_id);
         }
 
+        // Live search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
+                    $itemQuery->where('name', 'like', "%{$searchTerm}%")
+                        ->orWhere('customer', 'like', "%{$searchTerm}%")
+                        ->orWhere('part_number', 'like', "%{$searchTerm}%");
+                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
+            });
+        }
+
         $checksheets = $query->paginate(10);
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get();

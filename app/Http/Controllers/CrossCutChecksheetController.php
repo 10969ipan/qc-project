@@ -413,6 +413,17 @@ class CrossCutChecksheetController extends Controller
                 $query->whereNull('karu_qc');
             }
         }
+        // Live search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
+                    $itemQuery->where('name', 'like', "%{$searchTerm}%")
+                        ->orWhere('customer', 'like', "%{$searchTerm}%")
+                        ->orWhere('part_number', 'like', "%{$searchTerm}%");
+                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
+            });
+        }
     }
 
     // Tampilkan form untuk admin mengedit status approval
