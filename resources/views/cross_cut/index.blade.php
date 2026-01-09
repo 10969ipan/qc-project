@@ -106,11 +106,11 @@
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-Y') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->production_shift }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->qc_shift }}</td>
                                 <td class="align-middle">
@@ -670,8 +670,8 @@
                 @endforeach
             @endforeach
 
-                    // Live Search Functionality - Server-side search across all pages
-                    const liveSearchInput = document.getElementById('liveSearch');
+                        // Live Search Functionality - Server-side search across all pages
+                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -965,8 +965,8 @@
                 @endforeach
             @endforeach
 
-                                            // Live Search Functionality
-                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                // Live Search Functionality
+                                                const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
