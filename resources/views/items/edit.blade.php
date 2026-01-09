@@ -9,6 +9,7 @@
             <form action="{{ route('admin.items.update', $item->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="page" value="{{ request('page', 1) }}">
                 <div class="form-group">
                     <label>Nama Item</label>
                     <input type="text" name="name" class="form-control" value="{{ $item->name }}" required>

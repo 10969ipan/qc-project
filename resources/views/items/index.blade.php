@@ -28,7 +28,8 @@
                             <option value="">Semua Kategori</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
-                                    {{ $cat->name }}</option>
+                                    {{ $cat->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -104,8 +105,8 @@
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="text-nowrap">
-                                        <a href="{{ route('admin.items.edit', $item->id) }}" class="btn btn-warning btn-sm"
-                                            style="min-width: 110px;">
+                                        <a href="{{ route('admin.items.edit', ['item' => $item->id, 'page' => request('page', 1)]) }}"
+                                            class="btn btn-warning btn-sm" style="min-width: 110px;">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
                                         <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">

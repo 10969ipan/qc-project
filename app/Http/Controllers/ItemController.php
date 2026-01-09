@@ -210,7 +210,9 @@ class ItemController extends Controller
             'dimension_standards' => $dimension_standards,
         ]);
 
-        return redirect()->route('admin.items.index')->with('success', 'Item berhasil diperbarui.');
+        // Preserve pagination page
+        $page = $request->input('page', 1);
+        return redirect()->route('admin.items.index', ['page' => $page])->with('success', 'Item berhasil diperbarui.');
     }
 
     public function destroy($id)
