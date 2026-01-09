@@ -105,13 +105,25 @@
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="text-nowrap">
-                                        <a href="{{ route('admin.items.edit', ['item' => $item->id, 'page' => request('page', 1)]) }}"
+                                        <a href="{{ route('admin.items.edit', [
+                                            'item' => $item->id, 
+                                            'page' => request('page', 1),
+                                            'name' => request('name'),
+                                            'category' => request('category'),
+                                            'customer' => request('customer'),
+                                            'part_number' => request('part_number')
+                                        ]) }}"
                                             class="btn btn-warning btn-sm" style="min-width: 110px;">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
                                         <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
+                                            <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                                            <input type="hidden" name="name" value="{{ request('name') }}">
+                                            <input type="hidden" name="category" value="{{ request('category') }}">
+                                            <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                            <input type="hidden" name="part_number" value="{{ request('part_number') }}">
                                             <button type="submit" class="btn btn-danger btn-sm"
                                                 onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
                                                 style="min-width: 110px;">

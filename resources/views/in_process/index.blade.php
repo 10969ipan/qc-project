@@ -377,6 +377,7 @@
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -399,6 +400,7 @@
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -421,6 +423,7 @@
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -443,6 +446,7 @@
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
