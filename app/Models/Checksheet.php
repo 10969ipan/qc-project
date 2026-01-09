@@ -23,6 +23,7 @@ class Checksheet extends Model
         'judgment',
         'operator_initials',
         'remarks',
+        'next_proses',
         'defects', // JSON or serialized
         'approval_status',
         'kashift_qc',

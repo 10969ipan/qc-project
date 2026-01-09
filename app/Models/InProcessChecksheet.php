@@ -23,6 +23,7 @@ class InProcessChecksheet extends Model
         'judgment',
         'operator_initials',
         'remarks',
+        'next_proses',
         'dimension_check', // New field
         'defects', // JSON or serialized
         'approval_status',

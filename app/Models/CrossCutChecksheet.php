@@ -26,6 +26,7 @@ class CrossCutChecksheet extends Model
         'position_remark_no_lot',
         'result_remark',
         'keterangan',
+        'next_proses',
         'defects',
         'total_ng',
         'sampling_qty',
