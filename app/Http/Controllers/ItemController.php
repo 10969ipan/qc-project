@@ -210,12 +210,24 @@ class ItemController extends Controller
             'dimension_standards' => $dimension_standards,
         ]);
 
-        // Preserve pagination page
-        $page = $request->input('page', 1);
-        return redirect()->route('admin.items.index', ['page' => $page])->with('success', 'Item berhasil diperbarui.');
+        // Preserve pagination and filter parameters
+        $queryParams = [
+            'page' => $request->input('page', 1),
+            'name' => $request->input('name'),
+            'category' => $request->input('category'),
+            'customer' => $request->input('customer'),
+            'part_number' => $request->input('part_number'),
+        ];
+
+        // Remove null values
+        $queryParams = array_filter($queryParams, function ($value) {
+            return !is_null($value) && $value !== '';
+        });
+
+        return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $item = Item::findOrFail($id);
 
@@ -229,7 +241,21 @@ class ItemController extends Controller
 
         $item->delete();
 
-        return redirect()->route('admin.items.index')->with('success', 'Item berhasil dihapus.');
+        // Preserve pagination and filter parameters
+        $queryParams = [
+            'page' => $request->input('page', 1),
+            'name' => $request->input('name'),
+            'category' => $request->input('category'),
+            'customer' => $request->input('customer'),
+            'part_number' => $request->input('part_number'),
+        ];
+
+        // Remove null values
+        $queryParams = array_filter($queryParams, function ($value) {
+            return !is_null($value) && $value !== '';
+        });
+
+        return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil dihapus.');
     }
 
     /**
