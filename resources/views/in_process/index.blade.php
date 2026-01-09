@@ -130,9 +130,36 @@
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
                                     @endphp
                                     @if(is_array($dimensions) && count($dimensions) > 0)
-                                        <div style="max-height: 150px; overflow-y: auto; font-size: 0.7rem;">
+                                        <div style="max-height: 170px; overflow-y: auto; font-size: 0.7rem;">
                                             <table class="table table-bordered table-sm m-0">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
+                                                    {{-- Standard Row --}}
+                                                    <tr class="bg-light" style="font-size: 0.55rem;">
+                                                        <th class="p-1">Std</th>
+                                                        @for ($j = 1; $j <= 8; $j++)
+                                                            <th class="p-1 text-muted">
+                                                                @if(isset($standards[$j]))
+                                                                    {{ $standards[$j]['size'] }}
+                                                                @else
+                                                                    -
+                                                                @endif
+                                                            </th>
+                                                        @endfor
+                                                    </tr>
+                                                    {{-- Tolerance Row --}}
+                                                    <tr class="bg-light" style="font-size: 0.55rem;">
+                                                        <th class="p-1">Tol</th>
+                                                        @for ($j = 1; $j <= 8; $j++)
+                                                            <th class="p-1 text-muted">
+                                                                @if(isset($standards[$j]))
+                                                                    ±{{ $standards[$j]['tolerance'] }}
+                                                                @else
+                                                                    -
+                                                                @endif
+                                                            </th>
+                                                        @endfor
+                                                    </tr>
+                                                    {{-- Main Header Row --}}
                                                     <tr>
                                                         <th>Cav</th>
                                                         <th>Ø1</th>
@@ -146,19 +173,6 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {{-- Standard Row --}}
-                                                    <tr class="bg-light text-center" style="font-size: 0.55rem;">
-                                                        <td class="font-weight-bold p-1">Std</td>
-                                                        @for ($j = 1; $j <= 8; $j++)
-                                                            <td class="p-1 text-muted">
-                                                                @if(isset($standards[$j]))
-                                                                    {{ $standards[$j]['size'] }}±{{ $standards[$j]['tolerance'] }}
-                                                                @else
-                                                                    -
-                                                                @endif
-                                                            </td>
-                                                        @endfor
-                                                    </tr>
                                                     {{-- Actual Measurements --}}
                                                     @foreach($dimensions as $cavity => $points)
                                                         <tr>
