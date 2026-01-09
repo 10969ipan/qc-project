@@ -134,6 +134,19 @@
     @push('scripts')
         <script>
             $(document).ready(function () {
+                // Add Row
+                $(document).on('click', '.add-row', function () {
+                    var newRow = `
+                                <tr>
+                                    <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
+                                    <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
+                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
+                                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                            `;
+                    $('#dimension-table tbody').append(newRow);
+                });
+
                 // Remove Row
                 $(document).on('click', '.remove-row', function () {
                     if ($('#dimension-table tbody tr').length > 1) {

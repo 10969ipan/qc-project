@@ -190,7 +190,9 @@
                                                                         }
                                                                     }
                                                                 @endphp
-                                                                <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}">{{ $val }}
+                                                                <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}" 
+                                                                    @if($isNG) style="color: #dc3545 !important; font-weight: bold !important;" @endif>
+                                                                    {{ $val }}
                                                                 </td>
                                                             @endfor
                                                         </tr>
