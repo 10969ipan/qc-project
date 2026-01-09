@@ -329,10 +329,11 @@
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         {{-- Action Buttons for Approvals --}}
                                         @php
-                                            $canApproveKashift = (auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$checksheet->kashift_qc;
-                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED' && !$checksheet->supervisor_qc;
-                                            $canApproveAsst = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && $checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED' && !$checksheet->asst_manager_qc;
-                                            $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED' && !$checksheet->manager_qc;
+                                            $isAdmin = auth()->user()->role === 'admin';
+                                            $canApproveKashift = (auth()->user()->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveAsst = (auth()->user()->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                            $canApproveManager = (auth()->user()->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
                                         @endphp
 
                                         @if($canApproveKashift)
@@ -460,14 +461,15 @@
     @foreach($checksheets as $cs)
         @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
+                $isAdmin = auth()->user()->role === 'admin';
                 $canReject = false;
-                if ($rejectType == 'kashift' && ((auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$cs->kashift_qc)) {
+                if ($rejectType == 'kashift' && ((auth()->user()->role === 'kashift' || $isAdmin) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $cs->kashift_qc && $cs->kashift_qc !== 'REJECTED' && !$cs->supervisor_qc)) {
+                } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'asst_manager' && ((auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && $cs->supervisor_qc && $cs->supervisor_qc !== 'REJECTED' && !$cs->asst_manager_qc)) {
+                } elseif ($rejectType == 'asst_manager' && ((auth()->user()->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $cs->asst_manager_qc && $cs->asst_manager_qc !== 'REJECTED' && !$cs->manager_qc)) {
+                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
                     $canReject = true;
                 }
             @endphp
@@ -546,8 +548,8 @@
                 @endforeach
             @endforeach
 
-                        // Live Search Functionality - Server-side search across all pages
-                        const liveSearchInput = document.getElementById('liveSearch');
+                            // Live Search Functionality - Server-side search across all pages
+                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
