@@ -94,6 +94,9 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager']
     Route::resource('items', ItemController::class);
     // Route::get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
 
+    // Manajemen Kategori
+    Route::resource('categories', App\Http\Controllers\CategoryController::class);
+
     // Laporan Checksheet (Edit/Delete)
     Route::get('checksheets/{checksheet}/edit', [ChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::put('checksheets/{checksheet}', [ChecksheetController::class, 'update'])->name('checksheets.update');

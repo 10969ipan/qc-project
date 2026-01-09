@@ -22,12 +22,22 @@
                         <input type="text" name="name" class="form-control form-control-sm" value="{{ request('name') }}"
                             placeholder="Cari Nama Item...">
                     </div>
-                    <div class="col-md-3 col-12 mb-3 mb-md-0">
+                    <div class="col-md-2 col-12 mb-3 mb-md-0">
+                        <label for="category">Kategori</label>
+                        <select name="category" class="form-control form-control-sm">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
+                                    {{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-12 mb-3 mb-md-0">
                         <label for="customer">Customer</label>
                         <input type="text" name="customer" class="form-control form-control-sm"
                             value="{{ request('customer') }}" placeholder="Cari Customer...">
                     </div>
-                    <div class="col-md-3 col-12 mb-3 mb-md-0">
+                    <div class="col-md-2 col-12 mb-3 mb-md-0">
                         <label for="part_number">No Part</label>
                         <input type="text" name="part_number" class="form-control form-control-sm"
                             value="{{ request('part_number') }}" placeholder="Cari No Part...">
@@ -51,6 +61,7 @@
                             <th>No</th>
                             <th>Standard</th>
                             <th>Nama Item</th>
+                            <th>Kategori</th>
                             <th>Customer</th>
                             <th>No Part</th>
                             @if(auth()->user()->role !== 'inspector')
@@ -73,6 +84,22 @@
                                     @endif
                                 </td>
                                 <td class="text-nowrap">{{ $item->name }}</td>
+                                <td class="text-nowrap">
+                                    @if($item->category)
+                                        @php
+                                            $badgeClass = match ($item->category->name) {
+                                                'Sub Assy' => 'badge-primary',
+                                                'Inprosess' => 'badge-success',
+                                                'Cross Cut Plating' => 'badge-warning',
+                                                'Cross Cut Painting' => 'badge-info',
+                                                default => 'badge-secondary'
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">{{ $item->category->name }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td class="text-nowrap">{{ $item->customer }}</td>
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 @if(auth()->user()->role !== 'inspector')
@@ -96,6 +123,7 @@
                         @endforeach
                         @for($i = count($items); $i < 10; $i++)
                             <tr>
+                                <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

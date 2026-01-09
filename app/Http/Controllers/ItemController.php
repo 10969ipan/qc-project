@@ -11,7 +11,7 @@ class ItemController extends Controller
     public function index(Request $request)
     {
         // Mulai query untuk model Item
-        $query = Item::query();
+        $query = Item::with('category');
 
         if ($request->has('name') && $request->name != '') {
             $query->where('name', 'like', '%' . $request->name . '%');
@@ -25,14 +25,20 @@ class ItemController extends Controller
             $query->where('part_number', 'like', '%' . $request->part_number . '%');
         }
 
+        if ($request->has('category') && $request->category != '') {
+            $query->where('category_id', $request->category);
+        }
+
         $items = $query->orderBy('name', 'asc')->paginate(10);
-        return view('items.index', compact('items'));
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('items.index', compact('items', 'categories'));
     }
 
     // Menampilkan form pembuatan item
     public function create()
     {
-        return view('items.create');
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('items.create', compact('categories'));
     }
 
     // Menyimpan item baru
@@ -40,6 +46,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'file' => 'required|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
@@ -89,6 +96,7 @@ class ItemController extends Controller
 
         Item::create([
             'name' => $validated['name'],
+            'category_id' => $validated['category_id'],
             'file_path' => $filePath,
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
@@ -102,7 +110,8 @@ class ItemController extends Controller
     // Menampilkan form edit item
     public function edit(Item $item)
     {
-        return view('items.edit', compact('item'));
+        $categories = \App\Models\Category::orderBy('name')->get();
+        return view('items.edit', compact('item', 'categories'));
     }
 
     // Update data item
@@ -110,6 +119,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'file' => 'nullable|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
@@ -192,6 +202,7 @@ class ItemController extends Controller
 
         $item->update([
             'name' => $validated['name'],
+            'category_id' => $validated['category_id'],
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
             'file_path' => $item->file_path,

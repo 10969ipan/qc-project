@@ -14,6 +14,20 @@
                     <input type="text" name="name" class="form-control" value="{{ $item->name }}" required>
                 </div>
                 <div class="form-group">
+                    <label>Kategori <span class="text-danger">*</span></label>
+                    <select name="category_id" class="form-control @error('category_id') is-invalid @enderror" required>
+                        <option value="" disabled>-- Pilih Kategori --</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ $item->category_id == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('category_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
                     <label>File (PDF)</label>
                     @if($item->file_path)
                         <div class="mb-2">

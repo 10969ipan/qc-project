@@ -144,7 +144,7 @@ class InProcessChecksheetController extends Controller
     // Show form (updated to pass items)
     public function create()
     {
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory('Inprosess')->orderBy('name')->get();
         return view('in_process.create', [
             'items' => $items,
             'partDimensionStandards' => json_encode($this->getConsolidatedStandards())

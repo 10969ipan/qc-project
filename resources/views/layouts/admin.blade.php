@@ -19,7 +19,7 @@
         rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/custom-responsive.css') }}?v={{ time() }}" rel="stylesheet">
 
     <style>
         /* Professional Corporate Font - Inter */
@@ -525,7 +525,7 @@
     </script>
 
     {{-- Sticky Horizontal Scroll --}}
-    <script src="{{ asset('js/sticky-scroll.js') }}"></script>
+    <script src="{{ asset('js/sticky-scroll.js') }}?v={{ time() }}"></script>
 
     {{-- Tambahkan script lain yang dibutuhkan di sini --}}
     @stack('scripts')

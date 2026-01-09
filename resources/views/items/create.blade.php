@@ -43,6 +43,20 @@
                     @enderror
                 </div>
                 <div class="form-group">
+                    <label>Kategori <span class="text-danger">*</span></label>
+                    <select name="category_id" class="form-control @error('category_id') is-invalid @enderror" required>
+                        <option value="" disabled selected>-- Pilih Kategori --</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('category_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
                     <label>File (PDF) <span class="text-danger">*</span></label>
                     <input type="file" name="file" class="form-control-file @error('file') is-invalid @enderror"
                         accept=".pdf" required>

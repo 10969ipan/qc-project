@@ -30,7 +30,7 @@ class CrossCutChecksheetController extends Controller
      */
     public function create()
     {
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name')->get();
         return view('cross_cut.create', compact('items'));
     }
 

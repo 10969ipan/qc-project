@@ -84,7 +84,7 @@ class ChecksheetController extends Controller
     // Tampilkan form (diupdate untuk mengirim data items)
     public function create()
     {
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory('Sub Assy')->orderBy('name')->get();
         return view('sub_assy.create', compact('items'));
     }
 

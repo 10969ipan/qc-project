@@ -37,6 +37,7 @@
             <div id="collapseMaster" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('admin.items.index') }}">Data Item</a>
+                    <a class="collapse-item" href="{{ route('admin.categories.index') }}">Kategori Item</a>
                 </div>
             </div>
         </li>
