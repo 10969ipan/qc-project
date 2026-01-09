@@ -130,7 +130,7 @@
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
                                     @endphp
                                     @if(is_array($dimensions) && count($dimensions) > 0)
-                                        <div style="max-height: 120px; overflow-y: auto; font-size: 0.7rem;">
+                                        <div style="max-height: 150px; overflow-y: auto; font-size: 0.7rem;">
                                             <table class="table table-bordered table-sm m-0">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
                                                     <tr>
@@ -146,6 +146,20 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    {{-- Standard Row --}}
+                                                    <tr class="bg-light text-center" style="font-size: 0.55rem;">
+                                                        <td class="font-weight-bold p-1">Std</td>
+                                                        @for ($j = 1; $j <= 8; $j++)
+                                                            <td class="p-1 text-muted">
+                                                                @if(isset($standards[$j]))
+                                                                    {{ $standards[$j]['size'] }}±{{ $standards[$j]['tolerance'] }}
+                                                                @else
+                                                                    -
+                                                                @endif
+                                                            </td>
+                                                        @endfor
+                                                    </tr>
+                                                    {{-- Actual Measurements --}}
                                                     @foreach($dimensions as $cavity => $points)
                                                         <tr>
                                                             <td class="font-weight-bold p-1">{{ $cavity }}</td>
