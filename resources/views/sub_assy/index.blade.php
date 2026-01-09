@@ -107,7 +107,8 @@
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle text-nowrap">{{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}</td>
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}</td>
                                 <td class="align-middle">
                                     {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
                                 </td>
@@ -266,6 +267,16 @@
                                         </div>
                                         <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
                                     @else
+                                        @if($checksheet->next_proses)
+                                            <div class="mb-1">
+                                                <span
+                                                    class="badge badge-{{ $checksheet->next_proses == 'PENDING' ? 'warning' : 'info' }} px-2 py-1">
+                                                    <i
+                                                        class="fas fa-{{ $checksheet->next_proses == 'PENDING' ? 'clock' : 'tools' }}"></i>
+                                                    {{ $checksheet->next_proses }}
+                                                </span>
+                                            </div>
+                                        @endif
                                         {{ $checksheet->remarks }}
                                     @endif
                                 </td>
@@ -494,8 +505,8 @@
                 @endforeach
             @endforeach
 
-                    // Live Search Functionality - Server-side search across all pages
-                    const liveSearchInput = document.getElementById('liveSearch');
+                        // Live Search Functionality - Server-side search across all pages
+                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
