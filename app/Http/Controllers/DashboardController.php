@@ -89,7 +89,7 @@ class DashboardController extends Controller
         });
 
         // Fetch Manual Status Overrides
-        $manualStatuses = MachineStatus::whereIn('status', ['maintenance', 'stopped'])->get();
+        $manualStatuses = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble'])->get();
         $lineStatuses = $manualStatuses->where('type', 'line')->keyBy('number');
         $machineStatuses = $manualStatuses->where('type', 'machine')->keyBy('number');
 
