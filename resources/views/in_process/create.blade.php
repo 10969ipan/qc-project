@@ -30,8 +30,10 @@
                             <label class="small font-weight-bold">Pilih Mesin</label>
                             <select name="number" class="form-control form-control-sm" required>
                                 <option value="">- Pilih Mesin -</option>
-                                @for($i = 1; $i <= 18; $i++)
-                                    <option value="{{ $i }}">MESIN-{{ $i }}</option>
+                                @for($i = 1; $i <= 19; $i++)
+                                    @if($i != 13)
+                                        <option value="{{ $i }}">MESIN-{{ $i }}</option>
+                                    @endif
                                 @endfor
                             </select>
                         </div>
@@ -41,6 +43,7 @@
                                 <option value="normal">NORMAL (Auto)</option>
                                 <option value="maintenance">GANTI MOLD/SETTING (Kuning)</option>
                                 <option value="stopped">STAND BY (Hitam)</option>
+                                <option value="trouble">TROUBLE (Merah)</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-2">
@@ -131,8 +134,10 @@
                                         <select name="code_machine" id="code_machine" class="form-control"
                                             style="min-width: 100px; font-size: 16px;" required>
                                             <option value="">Pilih Mesin</option>
-                                            @for ($i = 1; $i <= 18; $i++)
-                                                <option value="{{ $i }}">Mesin {{ $i }}</option>
+                                            @for ($i = 1; $i <= 19; $i++)
+                                                @if($i != 13)
+                                                    <option value="{{ $i }}">Mesin {{ $i }}</option>
+                                                @endif
                                             @endfor
                                         </select>
                                     </div>

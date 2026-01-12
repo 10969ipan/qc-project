@@ -12,7 +12,7 @@ class MachineStatusController extends Controller
         $request->validate([
             'type' => 'required|in:line,machine',
             'number' => 'required|integer',
-            'status' => 'required|in:normal,maintenance,stopped',
+            'status' => 'required|in:normal,maintenance,stopped,trouble',
             'description' => 'nullable|string|max:255',
         ]);
 

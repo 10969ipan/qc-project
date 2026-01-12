@@ -104,6 +104,13 @@
             box-shadow: 0 8px 15px rgba(90, 92, 105, 0.3);
         }
 
+        .status-trouble {
+            background: var(--gradient-danger);
+            color: white;
+            box-shadow: 0 8px 15px rgba(231, 74, 59, 0.4);
+            animation: pulse-red 2s infinite;
+        }
+
         .status-idle {
             background: var(--gradient-idle);
             color: #858796;
@@ -452,7 +459,7 @@
                                     $statusClass = 'status-maintenance';
                                     $isActive = false; // Hide production data
                                 } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                    $statusClass = 'status-idle'; // Use Idle style for consistency
+                                    $statusClass = 'status-stopped'; // Use stopped style for consistency
                                     $isActive = false;
                                 } elseif ($isActive) {
                                     $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
@@ -466,10 +473,16 @@
                                     <div class="unit-number">MEJA-{{ $i }}</div>
                                     
                                     @if($manualStatus && $manualStatus->status !== 'normal')
-                                        <div class="status-badge" style="background: rgba(255,255,255,0.3); margin-top: 5px; {{ $manualStatus->status === 'stopped' ? 'color: #858796; background: #eaecf4;' : '' }}">
-                                            {{ $manualStatus->status === 'stopped' ? 'IDLE' : strtoupper($manualStatus->status) }}
+                                        <div class="status-badge" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                            @if($manualStatus->status === 'maintenance')
+                                                GANTI MOLD/SETTING
+                                            @elseif($manualStatus->status === 'stopped')
+                                                STAND BY
+                                            @else
+                                                {{ strtoupper($manualStatus->status) }}
+                                            @endif
                                         </div>
-                                        <small class="{{ $manualStatus->status === 'stopped' ? 'text-muted' : 'text-white' }} small mt-1" style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        <small class="text-white small mt-1" style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
                                     @elseif($isActive)
                                         <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
                                         <div class="item-name text-center px-2">
@@ -528,8 +541,11 @@
                                 } elseif ($manualStatus && $manualStatus->status === 'stopped') {
                                     $statusClass = 'status-stopped';
                                     $isActive = false;
+                                } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                    $statusClass = 'status-trouble';
+                                    $isActive = false;
                                 } elseif ($isActive) {
-                                    $statusClass = $isNg ? 'status-active-danger' : 'status-active-info';
+                                    $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                 }
                             @endphp
                             <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
@@ -545,6 +561,8 @@
                                                 GANTI MOLD/SETTING
                                             @elseif($manualStatus->status === 'stopped')
                                                 STAND BY
+                                            @elseif($manualStatus->status === 'trouble')
+                                                TROUBLE
                                             @else
                                                 {{ strtoupper($manualStatus->status) }}
                                             @endif
