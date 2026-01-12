@@ -288,7 +288,7 @@
                         </div>
                         <div>
                             <h6 class="modern-card-title">Line Sub Assy</h6>
-                            <small class="text-muted">Monitoring Produksi Hari Ini</small>
+                            <small class="text-muted">Monitoring Produksi Sub Assy Hari Ini</small>
                         </div>
                     </div>
                     <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">
@@ -359,7 +359,7 @@
                         </div>
                         <div>
                             <h6 class="modern-card-title">Mesin In Process</h6>
-                            <small class="text-muted">Monitoring Mesin Hari Ini</small>
+                            <small class="text-muted">Monitoring Produksi Injection Hari Ini</small>
                         </div>
                     </div>
                     <span class="badge badge-info px-3 py-2 rounded-pill shadow-sm text-white">
