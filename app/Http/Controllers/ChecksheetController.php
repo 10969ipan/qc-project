@@ -12,7 +12,7 @@ class ChecksheetController extends Controller
     // Untuk Admin melihat daftar checksheet
     public function index(Request $request)
     {
-        $query = Checksheet::with('item')->latest();
+        $query = Checksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
@@ -95,6 +95,7 @@ class ChecksheetController extends Controller
             'item_id' => 'required|exists:items,id',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'line' => 'required|string', // Validasi Line
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
@@ -105,6 +106,7 @@ class ChecksheetController extends Controller
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
+            'next_proses' => 'nullable|string',
         ]);
 
         // Proses Defect menjadi JSON terstruktur
@@ -122,6 +124,7 @@ class ChecksheetController extends Controller
             'item_id' => $validated['item_id'],
             'date' => $validated['date'],
             'shift' => $validated['shift'],
+            'line' => $validated['line'], // Add line
             'total_qty' => $validated['total_qty'],
             'sampling_qty' => $validated['sampling_qty'],
             'total_ok' => $validated['total_ok'],
@@ -129,6 +132,7 @@ class ChecksheetController extends Controller
             'judgment' => $validated['judgment'],
             'operator_initials' => $validated['operator_initials'],
             'remarks' => $validated['remarks'],
+            'next_proses' => $validated['next_proses'] ?? null,
             'cycle_time' => $validated['cycle_time'] ?? null,
             'defects' => json_encode($defects),
         ]);
@@ -187,6 +191,7 @@ class ChecksheetController extends Controller
             'item_id' => 'required|exists:items,id',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'line' => 'required|string', // Validasi Line
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
@@ -197,12 +202,14 @@ class ChecksheetController extends Controller
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
+            'next_proses' => 'nullable|string',
         ]);
 
         $updateData = [
             'item_id' => $validated['item_id'],
             'date' => $validated['date'],
             'shift' => $validated['shift'],
+            'line' => $validated['line'], // Add line
             'total_qty' => $validated['total_qty'],
             'sampling_qty' => $validated['sampling_qty'],
             'total_ok' => $validated['total_ok'],
@@ -210,6 +217,7 @@ class ChecksheetController extends Controller
             'judgment' => $validated['judgment'],
             'operator_initials' => $validated['operator_initials'],
             'remarks' => $validated['remarks'],
+            'next_proses' => $validated['next_proses'] ?? null,
         ];
 
         // Update created_at dan cycle_time jika waktu disediakan dan user punya otoritas (bukan inspector)
@@ -469,7 +477,7 @@ class ChecksheetController extends Controller
     // Ekspor Checksheet ke CSV
     public function export(Request $request)
     {
-        $query = Checksheet::with('item')->latest();
+        $query = Checksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);

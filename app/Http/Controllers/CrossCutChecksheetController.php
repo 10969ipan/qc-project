@@ -16,7 +16,7 @@ class CrossCutChecksheetController extends Controller
     public function index(Request $request)
     {
         $items = Item::orderBy('name')->get();
-        $query = CrossCutChecksheet::with('item')->latest();
+        $query = CrossCutChecksheet::with('item')->orderBy('qc_datetime', 'desc')->orderBy('created_at', 'desc');
 
         $this->applyFilters($query, $request);
 
@@ -56,6 +56,7 @@ class CrossCutChecksheetController extends Controller
             'keterangan' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
             'operator_initials' => 'nullable|string|max:255',
+            'next_proses' => 'nullable|string',
         ]);
 
         $imagePath = null;
@@ -78,6 +79,7 @@ class CrossCutChecksheetController extends Controller
             'position_remark_no_lot' => $validated['position_remark_no_lot'],
             'result_remark' => $validated['result_remark'],
             'keterangan' => $validated['keterangan'],
+            'next_proses' => $validated['next_proses'] ?? null,
             'cycle_time' => $validated['cycle_time'],
             'operator_initials' => $validated['operator_initials'],
         ]);
@@ -138,6 +140,7 @@ class CrossCutChecksheetController extends Controller
             'keterangan' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
             'operator_initials' => 'nullable|string|max:255',
+            'next_proses' => 'nullable|string',
         ]);
 
         $imagePath = $checksheet->image_path;
@@ -356,7 +359,7 @@ class CrossCutChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = CrossCutChecksheet::with('item')->latest();
+        $query = CrossCutChecksheet::with('item')->orderBy('qc_datetime', 'desc')->orderBy('created_at', 'desc');
 
         // Apply all the same filters as the index page
         $this->applyFilters($query, $request);

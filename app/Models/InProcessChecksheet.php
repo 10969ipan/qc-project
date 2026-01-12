@@ -16,6 +16,7 @@ class InProcessChecksheet extends Model
         'created_at',
         'date',
         'shift',
+        'code_machine', // New field
         'total_qty',
         'sampling_qty',
         'total_ok',

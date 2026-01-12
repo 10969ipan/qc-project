@@ -524,6 +524,18 @@
         // dengan expire_on_close => true. Session cookie akan otomatis expire saat browser ditutup.
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Auto Uppercase for all text inputs and textareas
+            $(document).on('input', 'input[type="text"], textarea', function () {
+                let start = this.selectionStart;
+                let end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+            });
+        });
+    </script>
+
     {{-- Sticky Horizontal Scroll --}}
     <script src="{{ asset('js/sticky-scroll.js') }}?v={{ time() }}"></script>
 

@@ -9,8 +9,9 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ChecksheetController;
 use App\Http\Controllers\InProcessChecksheetController;
 use App\Http\Controllers\CrossCutChecksheetController;
+use App\Http\Controllers\MachineStatusController;
 
-
+Route::post('/machine-status/update', [MachineStatusController::class, 'update'])->name('machine-status.update')->middleware('auth');
 // Rute Default Landing Page
 Route::get('/', function () {
     if (Auth::check()) {
@@ -53,9 +54,7 @@ Route::get('/debug-google-sheets', function () {
 
 // Rute Dashboard Utama (Untuk Semua Role)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('layouts.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Rute Checksheet (Input) - Accessible by inspectors and admins? 
     // Assuming 'checksheet.sub_assy' is the input form.

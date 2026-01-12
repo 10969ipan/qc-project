@@ -15,226 +15,274 @@
         </div>
     @endif
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Sub Assy</h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('checksheet.store') }}" method="POST">
-                        @csrf
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
-                                <tr class="text-center">
-                                    <th rowspan="2" style="align-middle">Standard</th>
-                                    <th rowspan="2" style="align-middle">Item Part</th>
-                                    <th rowspan="2" style="align-middle">Tanggal / Shift</th>
-                                    <th rowspan="2" style="align-middle">Total Qty</th>
-                                    <th rowspan="2" style="align-middle">Sampling Qty</th>
-                                    <th rowspan="2" style="align-middle">Jenis (OK/NG) & Detail NG</th>
-                                    <th rowspan="2" style="align-middle">Total (OK/NG)</th>
-                                    <th rowspan="2" style="align-middle">Judgment</th>
-                                    <th rowspan="2" style="align-middle">Inisial QC</th>
-                                    <th rowspan="2" style="align-middle">Keterangan</th>
-                                </tr>
-                                <tbody>
-                                    <tr>
-                                        <!-- Ilustrasi Barang -->
-                                        <td class="align-middle text-center" id="imageContainer">
-                                            <div
-                                                style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                                <i class="fas fa-image fa-2x text-gray-300"></i>
-                                            </div>
-                                        </td>
-
-                                        <!-- Pilihan Barang -->
-                                        <td class="align-middle">
-                                            <select class="form-control" name="item_id" id="itemSelect" required
-                                                style="min-width: 300px;">
-                                                <option value="" disabled selected
-                                                    style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
-                                                @foreach($items as $item)
-                                                    <option value="{{ $item->id }}"
-                                                        data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                        data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
-                                                        data-name="{{ $item->name }}"
-                                                        data-description="{{ $item->description }}"
-                                                        data-defects="{{ json_encode($item->defects) }}">
-                                                        {{ $item->name }} ({{ $item->part_number ?? '-' }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-
-                                        <!-- Tanggal / Shift -->
-                                        <td class="align-middle">
-                                            <div class="form-group mb-2">
-                                                <label class="sr-only">Tanggal</label>
-                                                <input type="date" class="form-control"
-                                                    style="min-width: 150px; font-size: 16px;" name="date"
-                                                    value="{{ date('Y-m-d') }}" required>
-                                            </div>
-                                            <div class="form-group mb-0">
-                                                <label class="sr-only">Shift</label>
-                                                <select class="form-control" style="min-width: 100px; font-size: 16px;"
-                                                    name="shift" required>
-                                                    <option value="1">Shift 1</option>
-                                                    <option value="2">Shift 2</option>
-                                                    <option value="3">Shift 3</option>
-                                                </select>
-                                            </div>
-                                        </td>
-
-                                        <!-- Total Quality (Total Quantity produced) -->
-                                        <td class="align-middle">
-                                            <input type="number" class="form-control text-center"
-                                                style="min-width: 100px; font-size: 16px;" name="total_qty" placeholder="0"
-                                                min="0" required>
-                                        </td>
-
-                                        <!-- Sampling Check Quantity -->
-                                        <td class="align-middle">
-                                            <input type="number" class="form-control text-center"
-                                                style="min-width: 100px; font-size: 16px;" name="sampling_qty"
-                                                placeholder="0" min="0" required>
-                                        </td>
-
-                                        <!-- Jenis (OK/NG) & Detail Varian NG -->
-                                        <td class="align-middle">
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                                    id="checkOK">
-                                                <label class="form-check-label text-success font-weight-bold"
-                                                    for="checkOK">OK (Pass)</label>
-                                            </div>
-                                            <hr class="my-2">
-                                            <small class="font-weight-bold text-secondary">Defect List (NG):</small>
-                                            <div id="defectContainer">
-                                                <div class="input-group mb-2 defect-row">
-                                                    <select class="form-control defect-select"
-                                                        style="min-width: 120px; font-size: 16px;" name="defect_types[]"
-                                                        id="defectSelect">
-                                                        <option value="">-- Pilih Defect --</option>
-                                                    </select>
-                                                    <input type="number" class="form-control defect-qty"
-                                                        style="min-width: 80px; font-size: 16px;" name="defect_quantities[]"
-                                                        placeholder="Qty" min="1">
-                                                </div>
-                                            </div>
-                                            <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
-                                                style="display: none;">
-                                                <i class="fas fa-plus"></i> Tambah Jenis
-                                            </button>
-                                        </td>
-
-                                        <!-- Total OK / NG -->
-                                        <td class="align-middle" style="min-width: 120px;">
-                                            <div class="row no-gutters mb-1">
-                                                <div
-                                                    class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
-                                                    OK</div>
-                                                <div class="col-8">
-                                                    <input type="number"
-                                                        class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                        style="font-size: 14px;" name="total_ok" placeholder="0" min="0"
-                                                        required>
-                                                </div>
-                                            </div>
-                                            <div class="row no-gutters">
-                                                <div
-                                                    class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
-                                                    NG</div>
-                                                <div class="col-8">
-                                                    <input type="number"
-                                                        class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                        style="font-size: 14px;" name="total_ng" placeholder="0" min="0"
-                                                        required>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- Judgment -->
-                                        <td class="align-middle">
-                                            <select class="form-control font-weight-bold" name="judgment"
-                                                id="judgmentSelect" required>
-                                                <option value="" disabled selected>-- Result --</option>
-                                                <option value="OK" class="text-success">OK</option>
-                                                <option value="NG" class="text-danger">NG</option>
-                                            </select>
-                                            <div id="aql_info" class="small mt-1 font-weight-bold text-center"
-                                                style="display:none;">
-                                                <span class="text-success">Acc: <span id="acc_val">-</span></span> |
-                                                <span class="text-danger">Rej: <span id="rej_val">-</span></span>
-                                            </div>
-                                        </td>
-
-                                        <!-- Inisial Operator -->
-                                        <td class="align-middle">
-                                            @php
-                                                $initial = '';
-                                                if (auth()->check()) {
-                                                    $name = strtolower(auth()->user()->name);
-                                                    if (str_contains($name, 'anggi')) {
-                                                        $initial = 'AP';
-                                                    } elseif (str_contains($name, 'irfan')) {
-                                                        $initial = 'IA';
-                                                    } elseif (str_contains($name, 'gugun')) {
-                                                        $initial = 'GK';
-                                                    } elseif (str_contains($name, 'dede')) {
-                                                        $initial = 'DS';
-                                                    } elseif (str_contains($name, 'arga')) {
-                                                        $initial = 'AY';
-                                                    } elseif (str_contains($name, 'sopian')) {
-                                                        $initial = 'SH';
-                                                    } elseif (str_contains($name, 'yono')) {
-                                                        $initial = 'YS';
-                                                    } elseif (str_contains($name, 'dinar')) {
-                                                        $initial = 'DA';
-                                                    }
-                                                }
-                                            @endphp
-                                            <input type="text" class="form-control text-center"
-                                                style="min-width: 80px; font-size: 16px;" name="operator_initials"
-                                                placeholder="Inisial" value="{{ $initial }}" required>
-                                        </td>
-
-                                        <!-- Keterangan -->
-                                        <td class="align-middle">
-                                            <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                                <label for="nextProses" class="font-weight-bold text-danger">Next
-                                                    Proses:</label>
-                                                <select class="form-control" id="nextProses" name="next_proses">
-                                                    <option value="">-- Pilih Next Proses --</option>
-                                                    <option value="PENDING">PENDING</option>
-                                                    <option value="REPAIR">REPAIR</option>
-                                                </select>
-                                            </div>
-                                            <textarea class="form-control" name="remarks" rows="4"
-                                                placeholder="Catatan tambahan..."></textarea>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+    <div class="card shadow mb-4 border-left-warning">
+        <a href="#collapseLineStatus" class="d-block card-header py-3" data-toggle="collapse" role="button"
+            aria-expanded="true" aria-controls="collapseLineStatus">
+            <h6 class="m-0 font-weight-bold text-warning">Control Status Line (Manual)</h6>
+        </a>
+        <div class="collapse" id="collapseLineStatus">
+            <div class="card-body">
+                <form action="{{ route('machine-status.update') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="type" value="line">
+                    <div class="row align-items-end">
+                        <div class="col-md-3 mb-2">
+                            <label class="small font-weight-bold">Pilih Line</label>
+                            <select name="number" class="form-control form-control-sm" required>
+                                <option value="">- Pilih Line -</option>
+                                @for($i = 1; $i <= 15; $i++)
+                                    <option value="{{ $i }}">LINE-{{ $i }}</option>
+                                @endfor
+                            </select>
                         </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-                                <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                                <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
-
-                                <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
-                                    <i class="fas fa-play"></i> Start
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
-                                    <i class="fas fa-save fa-sm"></i> Simpan Data
-                                </button>
-                            </div>
+                        <div class="col-md-3 mb-2">
+                            <label class="small font-weight-bold">Status</label>
+                            <select name="status" class="form-control form-control-sm" required>
+                                <option value="normal">NORMAL (Auto)</option>
+                                <option value="maintenance">MAINTENANCE (Kuning)</option>
+                                <option value="stopped">IDLE (Hitam)</option>
+                            </select>
                         </div>
-                    </form>
-                </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="small font-weight-bold">Keterangan (Optional)</label>
+                            <input type="text" name="description" class="form-control form-control-sm"
+                                placeholder="Keterangan...">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button type="submit" class="btn btn-warning btn-sm btn-block">
+                                <i class="fas fa-save"></i> Update
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Sub Assy</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('checksheet.store') }}" method="POST">
+                @csrf
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
+                        <tr class="text-center">
+                            <th rowspan="2" style="align-middle">Standard</th>
+                            <th rowspan="2" style="align-middle">Item Part</th>
+                            <th rowspan="2" style="align-middle">Tanggal / Shift</th>
+                            <th rowspan="2" style="align-middle">Total Qty</th>
+                            <th rowspan="2" style="align-middle">Sampling Qty</th>
+                            <th rowspan="2" style="align-middle">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" style="align-middle">Total (OK/NG)</th>
+                            <th rowspan="2" style="align-middle">Judgment</th>
+                            <th rowspan="2" style="align-middle">Inisial QC</th>
+                            <th rowspan="2" style="align-middle">Keterangan</th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <!-- Ilustrasi Barang -->
+                                <td class="align-middle text-center" id="imageContainer">
+                                    <div
+                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                        <i class="fas fa-image fa-2x text-gray-300"></i>
+                                    </div>
+                                </td>
+
+                                <!-- Pilihan Barang -->
+                                <td class="align-middle">
+                                    <select class="form-control" name="item_id" id="itemSelect" required
+                                        style="min-width: 300px;">
+                                        <option value="" disabled selected style="font-weight: bold; color: #6c757d;">Pilih
+                                            Item Part</option>
+                                        @foreach($items as $item)
+                                            <option value="{{ $item->id }}"
+                                                data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
+                                                data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                data-name="{{ $item->name }}" data-description="{{ $item->description }}"
+                                                data-defects="{{ json_encode($item->defects) }}">
+                                                {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                <!-- Tanggal / Shift -->
+                                <td class="align-middle">
+                                    <div class="form-group mb-2">
+                                        <label class="sr-only">Tanggal</label>
+                                        <input type="date" class="form-control" style="min-width: 150px; font-size: 16px;"
+                                            name="date" value="{{ date('Y-m-d') }}" required>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="sr-only">Shift</label>
+                                        <select class="form-control" style="min-width: 100px; font-size: 16px;" name="shift"
+                                            required>
+                                            <option value="1">Shift 1</option>
+                                            <option value="2">Shift 2</option>
+                                            <option value="3">Shift 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="sr-only">Line</label>
+                                        <select name="line" id="line" class="form-control"
+                                            style="min-width: 100px; font-size: 16px;" required>
+                                            <option value="">Pilih Line</option>
+                                            @for ($i = 1; $i <= 15; $i++)
+                                                <option value="{{ $i }}">Line {{ $i }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </td>
+
+                                <!-- Total Quality (Total Quantity produced) -->
+                                <td class="align-middle">
+                                    <input type="number" class="form-control text-center"
+                                        style="min-width: 100px; font-size: 16px;" name="total_qty" placeholder="0" min="0"
+                                        required>
+                                </td>
+
+                                <!-- Sampling Check Quantity -->
+                                <td class="align-middle">
+                                    <input type="number" class="form-control text-center"
+                                        style="min-width: 100px; font-size: 16px;" name="sampling_qty" placeholder="0"
+                                        min="0" required>
+                                </td>
+
+                                <!-- Jenis (OK/NG) & Detail Varian NG -->
+                                <td class="align-middle">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
+                                            id="checkOK">
+                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
+                                            (Pass)</label>
+                                    </div>
+                                    <hr class="my-2">
+                                    <small class="font-weight-bold text-secondary">Defect List (NG):</small>
+                                    <div id="defectContainer">
+                                        <div class="input-group mb-2 defect-row">
+                                            <select class="form-control defect-select"
+                                                style="min-width: 120px; font-size: 16px;" name="defect_types[]"
+                                                id="defectSelect">
+                                                <option value="">-- Pilih Defect --</option>
+                                            </select>
+                                            <input type="number" class="form-control defect-qty"
+                                                style="min-width: 80px; font-size: 16px;" name="defect_quantities[]"
+                                                placeholder="Qty" min="1">
+                                        </div>
+                                    </div>
+                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
+                                        style="display: none;">
+                                        <i class="fas fa-plus"></i> Tambah Jenis
+                                    </button>
+                                </td>
+
+                                <!-- Total OK / NG -->
+                                <td class="align-middle" style="min-width: 120px;">
+                                    <div class="row no-gutters mb-1">
+                                        <div
+                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
+                                            OK</div>
+                                        <div class="col-8">
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
+                                        </div>
+                                    </div>
+                                    <div class="row no-gutters">
+                                        <div
+                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
+                                            NG</div>
+                                        <div class="col-8">
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Judgment -->
+                                <td class="align-middle">
+                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                        required>
+                                        <option value="" disabled selected>-- Result --</option>
+                                        <option value="OK" class="text-success">OK</option>
+                                        <option value="NG" class="text-danger">NG</option>
+                                    </select>
+                                    <div id="aql_info" class="small mt-1 font-weight-bold text-center"
+                                        style="display:none;">
+                                        <span class="text-success">Acc: <span id="acc_val">-</span></span> |
+                                        <span class="text-danger">Rej: <span id="rej_val">-</span></span>
+                                    </div>
+                                </td>
+
+                                <!-- Inisial Operator -->
+                                <td class="align-middle">
+                                    @php
+                                        $initial = '';
+                                        if (auth()->check()) {
+                                            $name = strtolower(auth()->user()->name);
+                                            if (str_contains($name, 'anggi')) {
+                                                $initial = 'AP';
+                                            } elseif (str_contains($name, 'irfan')) {
+                                                $initial = 'IA';
+                                            } elseif (str_contains($name, 'gugun')) {
+                                                $initial = 'GK';
+                                            } elseif (str_contains($name, 'dede')) {
+                                                $initial = 'DS';
+                                            } elseif (str_contains($name, 'arga')) {
+                                                $initial = 'AY';
+                                            } elseif (str_contains($name, 'sopian')) {
+                                                $initial = 'SH';
+                                            } elseif (str_contains($name, 'yono')) {
+                                                $initial = 'YS';
+                                            } elseif (str_contains($name, 'dinar')) {
+                                                $initial = 'DA';
+                                            }
+                                        }
+                                    @endphp
+                                    <input type="text" class="form-control text-center"
+                                        style="min-width: 80px; font-size: 16px;" name="operator_initials"
+                                        placeholder="Inisial" value="{{ $initial }}" required>
+                                </td>
+
+                                <!-- Keterangan -->
+                                <td class="align-middle">
+                                    <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
+                                        <label for="nextProses" class="font-weight-bold text-danger">Next
+                                            Proses:</label>
+                                        <select class="form-control" id="nextProses" name="next_proses">
+                                            <option value="">-- Pilih Next Proses --</option>
+                                            <option value="HOLD">HOLD</option>
+                                            <option value="REPAIR">REPAIR</option>
+                                        </select>
+                                    </div>
+                                    <textarea class="form-control" name="remarks" rows="4"
+                                        placeholder="Catatan tambahan..."></textarea>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                            <i class="fas fa-save fa-sm"></i> Simpan Data
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
     </div>
 
     <!-- Image Modal -->
@@ -321,6 +369,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
+
             // --- PDF.js Logic ---
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 

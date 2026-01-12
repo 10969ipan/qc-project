@@ -165,6 +165,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
     // Update Customer and Part No when item is selected
     $('#item_id').on('change', function() {
         var selectedOption = $(this).find('option:selected');

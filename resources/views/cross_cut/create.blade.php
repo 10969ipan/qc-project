@@ -169,7 +169,7 @@
                                                 Proses:</label>
                                             <select class="form-control" id="nextProses" name="next_proses">
                                                 <option value="">-- Pilih Next Proses --</option>
-                                                <option value="PENDING">PENDING</option>
+                                                <option value="HOLD">HOLD</option>
                                                 <option value="REPAIR">REPAIR</option>
                                             </select>
                                         </div>
@@ -563,6 +563,8 @@
             $('select[name="position_remark_judgment"]').on('change', function () {
                 toggleNextProsesDropdown();
             });
+
+
 
             // Initialize on page load
             toggleNextProsesDropdown();

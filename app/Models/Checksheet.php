@@ -16,6 +16,7 @@ class Checksheet extends Model
         'created_at',
         'date',
         'shift',
+        'line', // New field
         'total_qty',
         'sampling_qty',
         'total_ok',

@@ -25,7 +25,8 @@
                                 <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part
                                 </option>
                                 @foreach($items as $item)
-                                    <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }} data-part-number="{{ $item->part_number }}">
+                                    <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
+                                        data-part-number="{{ $item->part_number }}">
                                         {{ $item->name }} ({{ $item->customer }})
                                     </option>
                                 @endforeach
@@ -43,9 +44,19 @@
                         <div class="form-group">
                             <label for="shift">Shift</label>
                             <select name="shift" id="shift" class="form-control" required>
-                                <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>1</option>
-                                <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>2</option>
-                                <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>3</option>
+                                <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
+                                <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
+                                <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="code_machine">No Mesin</label>
+                            <select name="code_machine" id="code_machine" class="form-control" required>
+                                <option value="">Pilih Mesin</option>
+                                @for ($i = 1; $i <= 18; $i++)
+                                    <option value="{{ $i }}" {{ $checksheet->code_machine == $i ? 'selected' : '' }}>Mesin
+                                        {{ $i }}</option>
+                                @endfor
                             </select>
                         </div>
                     </div>
@@ -175,6 +186,8 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
+
             const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
             function getAqlLimits(sampleSize) {

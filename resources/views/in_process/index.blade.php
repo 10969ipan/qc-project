@@ -355,17 +355,17 @@
                                     @else
                                         @if($checksheet->next_proses)
                                             <div class="mb-1">
-                                                <span
-                                                    class="badge badge-{{ $checksheet->next_proses == 'PENDING' ? 'warning' : 'info' }} px-2 py-1">
-                                                    <i
-                                                        class="fas fa-{{ $checksheet->next_proses == 'PENDING' ? 'clock' : 'tools' }}"></i>
-                                                    {{ $checksheet->next_proses }}
+                                                <span class="badge badge-danger px-2 py-1">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    LABEL MERAH:
+                                                    {{ $checksheet->next_proses == 'PENDING' ? 'HOLD' : $checksheet->next_proses }}
                                                 </span>
                                             </div>
                                         @endif
                                         {{ $checksheet->remarks }}
                                     @endif
                                 </td>
+
 
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
@@ -594,8 +594,8 @@
                 @endforeach
             @endforeach
 
-                                    // Live Search Functionality - Server-side search across all pages
-                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                        // Live Search Functionality - Server-side search across all pages
+                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

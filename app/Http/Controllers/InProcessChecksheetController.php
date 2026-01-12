@@ -70,7 +70,7 @@ class InProcessChecksheetController extends Controller
     // Untuk Admin melihat daftar checksheet
     public function index(Request $request)
     {
-        $query = InProcessChecksheet::with('item')->latest();
+        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
@@ -158,6 +158,7 @@ class InProcessChecksheetController extends Controller
             'item_id' => 'required|exists:items,id',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'code_machine' => 'required|string', // Validasi Mesin
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
@@ -169,6 +170,7 @@ class InProcessChecksheetController extends Controller
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
+            'next_proses' => 'nullable|string',
         ]);
 
         // --- Validasi Dimensi Terpusat di Server-Side ---
@@ -237,6 +239,7 @@ class InProcessChecksheetController extends Controller
             'item_id' => $validated['item_id'],
             'date' => $validated['date'],
             'shift' => $validated['shift'],
+            'code_machine' => $validated['code_machine'], // Add code_machine
             'total_qty' => $validated['total_qty'],
             'sampling_qty' => $validated['sampling_qty'],
             'total_ok' => $validated['total_ok'],
@@ -247,6 +250,7 @@ class InProcessChecksheetController extends Controller
             'dimension_check' => $dimensionCheck,
             'cycle_time' => $validated['cycle_time'] ?? null,
             'defects' => json_encode($defects),
+            'next_proses' => $validated['next_proses'] ?? null,
         ]);
 
         // Kirim ke Google Sheets
@@ -315,6 +319,7 @@ class InProcessChecksheetController extends Controller
             'item_id' => 'required|exists:items,id',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'code_machine' => 'required|string', // Validasi Mesin
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
@@ -326,6 +331,7 @@ class InProcessChecksheetController extends Controller
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
+            'next_proses' => 'nullable|string',
         ]);
 
         // Process Dimensions into JSON, filtering out empty values
@@ -383,6 +389,7 @@ class InProcessChecksheetController extends Controller
             'item_id' => $validated['item_id'],
             'date' => $validated['date'],
             'shift' => $validated['shift'],
+            'code_machine' => $validated['code_machine'], // Add code_machine
             'total_qty' => $validated['total_qty'],
             'sampling_qty' => $validated['sampling_qty'],
             'total_ok' => $validated['total_ok'],
@@ -391,6 +398,7 @@ class InProcessChecksheetController extends Controller
             'operator_initials' => $validated['operator_initials'],
             'remarks' => $validated['remarks'],
             'dimension_check' => $dimensionCheck,
+            'next_proses' => $validated['next_proses'] ?? null,
         ];
 
         // Update created_at and cycle_time if time is provided and user is authorized (not inspector)
@@ -655,7 +663,7 @@ class InProcessChecksheetController extends Controller
     // Export Checksheets to CSV
     public function export(Request $request)
     {
-        $query = InProcessChecksheet::with('item')->latest();
+        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
@@ -734,7 +742,7 @@ class InProcessChecksheetController extends Controller
     public function exportPdf(Request $request)
     {
         // Reuse the query logic from the index method
-        $query = InProcessChecksheet::with('item')->latest();
+        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
