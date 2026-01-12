@@ -467,8 +467,26 @@
                             @endphp
                             <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
                                 <div class="status-item {{ $statusClass }}" 
-                                     @if($isActive) title="Part: {{ $data->item->part_number }}&#010;Item: {{ $data->item->name }}&#010;Status: {{ $data->judgment }}" @endif
-                                     @if($manualStatus && !$isActive) title="{{ ucfirst($manualStatus->status) }}: {{ $manualStatus->description }}" @endif>
+                                     onclick="showDetailModal(this)"
+                                     style="cursor: pointer;"
+                                     data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                     @if($isActive)
+                                         data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                         data-item-name="{{ $data->item->name ?? '-' }}"
+                                         data-judgment="{{ $data->judgment }}"
+                                         data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                         data-ok-count="{{ $data->total_ok ?? '-' }}"
+                                         data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                         data-operator="{{ $data->operator_initials ?? '-' }}"
+                                         data-date="{{ $data->date ?? '-' }}"
+                                         data-shift="{{ $data->shift ?? '-' }}"
+                                     @endif
+                                     @if($manualStatus && $manualStatus->status !== 'normal')
+                                         data-manual-description="{{ $manualStatus->description }}"
+                                         data-manual-by="{{ $manualStatus->created_by }}"
+                                         data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}"
+                                     @endif
+                                     title="Click untuk detail">
                                     
                                     <div class="unit-number">MEJA-{{ $i }}</div>
                                     
@@ -550,8 +568,26 @@
                             @endphp
                             <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
                                 <div class="status-item {{ $statusClass }}" 
-                                     @if($isActive) title="Part: {{ $data->item->part_number }}&#010;Item: {{ $data->item->name }}&#010;Status: {{ $data->judgment }}" @endif
-                                     @if($manualStatus && !$isActive) title="{{ ucfirst($manualStatus->status) }}: {{ $manualStatus->description }}" @endif>
+                                     onclick="showDetailModal(this)"
+                                     style="cursor: pointer;"
+                                     data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                     @if($isActive)
+                                         data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                         data-item-name="{{ $data->item->name ?? '-' }}"
+                                         data-judgment="{{ $data->judgment }}"
+                                         data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                         data-ok-count="{{ $data->total_ok ?? '-' }}"
+                                         data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                         data-operator="{{ $data->operator_initials ?? '-' }}"
+                                         data-date="{{ $data->date ?? '-' }}"
+                                         data-shift="{{ $data->shift ?? '-' }}"
+                                     @endif
+                                     @if($manualStatus && $manualStatus->status !== 'normal')
+                                         data-manual-description="{{ $manualStatus->description }}"
+                                         data-manual-by="{{ $manualStatus->created_by }}"
+                                         data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}"
+                                     @endif
+                                     title="Click untuk detail">
                                     
                                     <div class="unit-number">MESIN-{{ $i }}</div>
                                     
@@ -589,7 +625,148 @@
     </div>
     @endif
 
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="detailModalLabel">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <span id="modalUnitName"></span>
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Function to show detail modal
+        function showDetailModal(element) {
+            const card = element.closest('.status-item');
+            if (!card) return;
+
+            const unitName = card.querySelector('.unit-number')?.textContent || 'Unknown';
+            const partNumber = card.dataset.partNumber || '-';
+            const itemName = card.dataset.itemName || '-';
+            const judgment = card.dataset.judgment || '-';
+            const totalQty = card.dataset.totalQty || '-';
+            const okCount = card.dataset.okCount || '-';
+            const ngCount = card.dataset.ngCount || '-';
+            const operator = card.dataset.operator || '-';
+            const date = card.dataset.date || '-';
+            const shift = card.dataset.shift || '-';
+            const status = card.dataset.status || 'idle';
+            const manualDescription = card.dataset.manualDescription || '';
+            const manualBy = card.dataset.manualBy || '';
+            const manualUpdated = card.dataset.manualUpdated || '';
+
+            // Set modal title
+            document.getElementById('modalUnitName').textContent = unitName;
+
+            // Build modal content
+            let content = '';
+
+            if (status === 'active') {
+                // Active production data
+                content = `
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-primary mb-2">
+                            <i class="fas fa-box mr-2"></i>Part Information
+                        </h6>
+                        <div class="pl-4">
+                            <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
+                            <p class="mb-0"><strong>Item Name:</strong> ${itemName}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-primary mb-2">
+                            <i class="fas fa-chart-bar mr-2"></i>Production Data
+                        </h6>
+                        <div class="pl-4">
+                            <p class="mb-1"><strong>Total Qty:</strong> ${totalQty}</p>
+                            <div class="row">
+                                <div class="col-6">
+                                    <span class="badge badge-success">OK: ${okCount}</span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="badge badge-danger">NG: ${ngCount}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-primary mb-2">
+                            <i class="fas fa-clipboard-check mr-2"></i>Quality Check
+                        </h6>
+                        <div class="pl-4">
+                            <p class="mb-1">
+                                <strong>Judgment:</strong> 
+                                <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span>
+                            </p>
+                            <p class="mb-1"><strong>Operator:</strong> ${operator}</p>
+                            <p class="mb-0"><strong>Date:</strong> ${date} | <strong>Shift:</strong> ${shift}</p>
+                        </div>
+                    </div>
+                `;
+            } else if (status === 'maintenance' || status === 'stopped' || status === 'trouble') {
+                // Manual status
+                let statusBadge = '';
+                let statusIcon = '';
+                if (status === 'maintenance') {
+                    statusBadge = '<span class="badge badge-warning">GANTI MOLD/SETTING</span>';
+                    statusIcon = '<i class="fas fa-tools mr-2"></i>';
+                } else if (status === 'stopped') {
+                    statusBadge = '<span class="badge badge-dark">STAND BY</span>';
+                    statusIcon = '<i class="fas fa-pause-circle mr-2"></i>';
+                } else if (status === 'trouble') {
+                    statusBadge = '<span class="badge badge-danger">TROUBLE</span>';
+                    statusIcon = '<i class="fas fa-exclamation-triangle mr-2"></i>';
+                }
+
+                content = `
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-warning mb-2">
+                            ${statusIcon}Manual Status
+                        </h6>
+                        <div class="pl-4">
+                            <p class="mb-2"><strong>Status:</strong> ${statusBadge}</p>
+                            <p class="mb-1"><strong>Description:</strong> ${manualDescription || 'No description'}</p>
+                            <p class="mb-1"><strong>Set by:</strong> ${manualBy}</p>
+                            <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Idle status
+                content = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-moon fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">Status: IDLE</h6>
+                        <p class="text-muted mb-0">No production data available</p>
+                    </div>
+                `;
+            }
+
+            // Set modal content
+            document.getElementById('modalBody').innerHTML = content;
+
+            // Show modal
+            $('#detailModal').modal('show');
+        }
+
         function updateDateTime() {
             const now = new Date();
 
