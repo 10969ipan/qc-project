@@ -31,7 +31,7 @@
                             <select name="number" class="form-control form-control-sm" required>
                                 <option value="">- Pilih Mesin -</option>
                                 @for($i = 1; $i <= 19; $i++)
-                                    @if($i != 13)
+                                    @if($i != 11 && $i != 13)
                                         <option value="{{ $i }}">MESIN-{{ $i }}</option>
                                     @endif
                                 @endfor
@@ -135,7 +135,7 @@
                                             style="min-width: 100px; font-size: 16px;" required>
                                             <option value="">Pilih Mesin</option>
                                             @for ($i = 1; $i <= 19; $i++)
-                                                @if($i != 13)
+                                                @if($i != 11 && $i != 13)
                                                     <option value="{{ $i }}">Mesin {{ $i }}</option>
                                                 @endif
                                             @endfor

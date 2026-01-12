@@ -475,6 +475,7 @@
                                          data-item-name="{{ $data->item->name ?? '-' }}"
                                          data-judgment="{{ $data->judgment }}"
                                          data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                         data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                          data-ok-count="{{ $data->total_ok ?? '-' }}"
                                          data-ng-count="{{ $data->total_ng ?? '-' }}"
                                          data-operator="{{ $data->operator_initials ?? '-' }}"
@@ -540,7 +541,7 @@
                 <div class="card-body bg-light" style="background: #fdfdfe;">
                     <div class="row px-2">
                         @for ($i = 1; $i <= 19; $i++)
-                            @if($i == 13)
+                            @if($i == 11 || $i == 13)
                                 @continue
                             @endif
                             @php
@@ -576,6 +577,7 @@
                                          data-item-name="{{ $data->item->name ?? '-' }}"
                                          data-judgment="{{ $data->judgment }}"
                                          data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                         data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                          data-ok-count="{{ $data->total_ok ?? '-' }}"
                                          data-ng-count="{{ $data->total_ng ?? '-' }}"
                                          data-operator="{{ $data->operator_initials ?? '-' }}"
@@ -661,6 +663,7 @@
             const itemName = card.dataset.itemName || '-';
             const judgment = card.dataset.judgment || '-';
             const totalQty = card.dataset.totalQty || '-';
+            const samplingQty = card.dataset.samplingQty || '-';
             const okCount = card.dataset.okCount || '-';
             const ngCount = card.dataset.ngCount || '-';
             const operator = card.dataset.operator || '-';
@@ -692,26 +695,19 @@
 
                     <div class="mb-3">
                         <h6 class="font-weight-bold text-primary mb-2">
-                            <i class="fas fa-chart-bar mr-2"></i>Production Data
-                        </h6>
-                        <div class="pl-4">
-                            <p class="mb-1"><strong>Total Qty:</strong> ${totalQty}</p>
-                            <div class="row">
-                                <div class="col-6">
-                                    <span class="badge badge-success">OK: ${okCount}</span>
-                                </div>
-                                <div class="col-6">
-                                    <span class="badge badge-danger">NG: ${ngCount}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <h6 class="font-weight-bold text-primary mb-2">
                             <i class="fas fa-clipboard-check mr-2"></i>Quality Check
                         </h6>
                         <div class="pl-4">
+                            <p class="mb-1"><strong>Total Qty:</strong> ${totalQty}</p>
+                            <p class="mb-2"><strong>Sampling Qty:</strong> ${samplingQty}</p>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <span class="badge badge-success">Sampling OK: ${okCount}</span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="badge badge-danger">Sampling NG: ${ngCount}</span>
+                                </div>
+                            </div>
                             <p class="mb-1">
                                 <strong>Judgment:</strong> 
                                 <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span>
