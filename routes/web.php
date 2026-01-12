@@ -96,6 +96,10 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager']
     // Manajemen Kategori
     Route::resource('categories', App\Http\Controllers\CategoryController::class);
 
+    // Manajemen Laporan Bulanan
+    Route::resource('monthly-reports', App\Http\Controllers\MonthlyReportController::class);
+    Route::post('monthly-reports/{id}/set-active', [App\Http\Controllers\MonthlyReportController::class, 'setActive'])->name('monthly_reports.set_active');
+
     // Laporan Checksheet (Edit/Delete)
     Route::get('checksheets/{checksheet}/edit', [ChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::put('checksheets/{checksheet}', [ChecksheetController::class, 'update'])->name('checksheets.update');
@@ -104,6 +108,7 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager']
 
 // New route for PDF access for all authenticated users
 Route::middleware(['auth'])->get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
+Route::middleware(['auth'])->get('monthly-reports/{id}/pdf', [App\Http\Controllers\MonthlyReportController::class, 'servePdf'])->name('monthly_reports.pdf');
 
 // --- Rute Khusus Admin ---
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {

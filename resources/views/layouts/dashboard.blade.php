@@ -194,6 +194,101 @@
             transform: translateY(-5px);
             box-shadow: var(--shadow-hover);
         }
+
+        /* Responsive Design for Small Screens */
+        @media (max-width: 768px) {
+            .welcome-modern {
+                padding: 1rem !important;
+                margin-bottom: 1rem !important;
+                border-radius: 16px !important;
+            }
+
+            .welcome-modern h4 {
+                font-size: 1.1rem !important;
+            }
+
+            .welcome-modern p {
+                font-size: 0.8rem !important;
+            }
+
+            #current-date {
+                font-size: 0.9rem !important;
+            }
+
+            .stat-card-modern {
+                padding: 0.75rem !important;
+                border-radius: 16px !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .stat-card-modern .h3 {
+                font-size: 1.5rem !important;
+            }
+
+            .stat-card-modern .text-xs {
+                font-size: 0.7rem !important;
+            }
+
+            .modern-card {
+                border-radius: 16px !important;
+            }
+
+            .modern-card-header {
+                padding: 1rem !important;
+            }
+
+            .modern-card-title {
+                font-size: 0.95rem !important;
+            }
+
+            .status-item {
+                min-height: 90px !important;
+                padding: 0.5rem !important;
+            }
+
+            .unit-number {
+                font-size: 0.85rem !important;
+            }
+
+            .part-number {
+                font-size: 0.65rem !important;
+            }
+
+            .item-name {
+                font-size: 0.6rem !important;
+            }
+
+            .status-badge {
+                font-size: 0.55rem !important;
+                padding: 2px 8px !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .welcome-modern {
+                padding: 0.75rem !important;
+            }
+
+            .welcome-modern h4 {
+                font-size: 1rem !important;
+            }
+
+            .stat-card-modern {
+                padding: 0.5rem !important;
+            }
+
+            .stat-card-modern .h3 {
+                font-size: 1.25rem !important;
+            }
+
+            .status-item {
+                min-height: 80px !important;
+            }
+
+            .unit-number {
+                font-size: 0.75rem !important;
+            }
+        }
     </style>
 
     <!-- Welcome Section -->
@@ -221,6 +316,51 @@
             </div>
         </div>
     </div>
+
+    @if(isset($activeReport))
+    <!-- Monthly Report Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header bg-gradient-primary text-white py-2 px-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-pdf mr-2" style="font-size: 1.1rem;"></i>
+                        <div>
+                            <h6 class="mb-0 font-weight-bold d-none d-md-block">{{ $activeReport->title }}</h6>
+                            <h6 class="mb-0 font-weight-bold d-md-none">Laporan Bulanan</h6>
+                            <small class="d-block" style="opacity: 0.85; font-size: 0.75rem;">{{ $activeReport->period }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="pdf-container" style="position: relative; width: 100%; height: 600px; background: #f8f9fc;">
+                        <iframe 
+                            src="{{ route('monthly_reports.pdf', $activeReport->id) }}#toolbar=0&navpanes=0&scrollbar=0&view=FitH" 
+                            style="width: 100%; height: 100%; border: none;"
+                            title="Laporan Bulanan PDF"
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Responsive PDF Viewer */
+        @media (max-width: 768px) {
+            .pdf-container {
+                height: 450px !important;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .pdf-container {
+                height: 350px !important;
+            }
+        }
+    </style>
+    @endif
 
     @if(isset($combinedStats))
     <!-- Stats Cards Section -->
@@ -368,7 +508,10 @@
                 </div>
                 <div class="card-body bg-light" style="background: #fdfdfe;">
                     <div class="row px-2">
-                        @for ($i = 1; $i <= 18; $i++)
+                        @for ($i = 1; $i <= 19; $i++)
+                            @if($i == 13)
+                                @continue
+                            @endif
                             @php
                                 $data = $activeMachines->get($i);
                                 $manualStatus = $machineStatuses->get($i);

@@ -97,6 +97,9 @@ class DashboardController extends Controller
         $runningLinesCount = $activeLines->count() - $activeLines->keys()->intersect($lineStatuses->keys())->count();
         $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->keys())->count();
 
-        return view('layouts.dashboard', compact('combinedStats', 'activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount'));
+        // Fetch active monthly report for dashboard display
+        $activeReport = \App\Models\MonthlyReport::where('is_active', true)->first();
+
+        return view('layouts.dashboard', compact('combinedStats', 'activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount', 'activeReport'));
     }
 }

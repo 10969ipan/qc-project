@@ -38,6 +38,7 @@
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('admin.items.index') }}">Data Item</a>
                     <a class="collapse-item" href="{{ route('admin.categories.index') }}">Kategori Item</a>
+                    <a class="collapse-item" href="{{ route('admin.monthly-reports.index') }}">Laporan Bulanan</a>
                 </div>
             </div>
         </li>
