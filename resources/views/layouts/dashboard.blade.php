@@ -481,6 +481,7 @@
                                          data-operator="{{ $data->operator_initials ?? '-' }}"
                                          data-date="{{ $data->date ?? '-' }}"
                                          data-shift="{{ $data->shift ?? '-' }}"
+                                         data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
                                      @endif
                                      @if($manualStatus && $manualStatus->status !== 'normal')
                                          data-manual-description="{{ $manualStatus->description }}"
@@ -583,6 +584,7 @@
                                          data-operator="{{ $data->operator_initials ?? '-' }}"
                                          data-date="{{ $data->date ?? '-' }}"
                                          data-shift="{{ $data->shift ?? '-' }}"
+                                         data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
                                      @endif
                                      @if($manualStatus && $manualStatus->status !== 'normal')
                                          data-manual-description="{{ $manualStatus->description }}"
@@ -669,6 +671,7 @@
             const operator = card.dataset.operator || '-';
             const date = card.dataset.date || '-';
             const shift = card.dataset.shift || '-';
+            const time = card.dataset.time || '-';
             const status = card.dataset.status || 'idle';
             const manualDescription = card.dataset.manualDescription || '';
             const manualBy = card.dataset.manualBy || '';
@@ -713,7 +716,7 @@
                                 <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span>
                             </p>
                             <p class="mb-1"><strong>QC:</strong> ${operator}</p>
-                            <p class="mb-0"><strong>Date:</strong> ${date} | <strong>Shift:</strong> ${shift}</p>
+                            <p class="mb-0"><strong>Date:</strong> ${date} | <strong>Time:</strong> ${time} | <strong>Shift:</strong> ${shift}</p>
                         </div>
                     </div>
                 `;
