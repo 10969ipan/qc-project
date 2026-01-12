@@ -323,7 +323,7 @@
                                      @if($isActive) title="Part: {{ $data->item->part_number }}&#010;Item: {{ $data->item->name }}&#010;Status: {{ $data->judgment }}" @endif
                                      @if($manualStatus && !$isActive) title="{{ ucfirst($manualStatus->status) }}: {{ $manualStatus->description }}" @endif>
                                     
-                                    <div class="unit-number">LINE-{{ $i }}</div>
+                                    <div class="unit-number">MEJA-{{ $i }}</div>
                                     
                                     @if($manualStatus && $manualStatus->status !== 'normal')
                                         <div class="status-badge" style="background: rgba(255,255,255,0.3); margin-top: 5px; {{ $manualStatus->status === 'stopped' ? 'color: #858796; background: #eaecf4;' : '' }}">
