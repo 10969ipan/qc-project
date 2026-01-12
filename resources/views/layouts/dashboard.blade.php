@@ -131,7 +131,7 @@
         }
 
         .part-number {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -144,7 +144,7 @@
         }
 
         .item-name {
-            font-size: 0.7rem;
+            font-size: 0.55rem;
             font-weight: 400;
             opacity: 0.8;
             line-height: 1.2;
@@ -157,16 +157,23 @@
 
         .status-badge {
             margin-top: 6px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 3px 10px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 4px 12px;
             border-radius: 20px;
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(4px);
         }
 
+        .status-badge-manual {
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            letter-spacing: 0.02em;
+        }
+
         .status-idle .unit-number { opacity: 0.4; font-size: 1.2rem; }
-        .status-idle .item-name { font-size: 0.7rem; }
+        .status-idle .item-name { font-size: 0.6rem; }
 
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(231, 74, 59, 0.4); }
@@ -493,7 +500,7 @@
                                     <div class="unit-number">MEJA-{{ $i }}</div>
                                     
                                     @if($manualStatus && $manualStatus->status !== 'normal')
-                                        <div class="status-badge" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                        <div class="status-badge status-badge-manual" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
                                             @if($manualStatus->status === 'maintenance')
                                                 GANTI MOLD/SETTING
                                             @elseif($manualStatus->status === 'stopped')
@@ -596,7 +603,7 @@
                                     <div class="unit-number">MESIN-{{ $i }}</div>
                                     
                                     @if($manualStatus && $manualStatus->status !== 'normal')
-                                        <div class="status-badge" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                        <div class="status-badge status-badge-manual" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
                                             @if($manualStatus->status === 'maintenance')
                                                 GANTI MOLD/SETTING
                                             @elseif($manualStatus->status === 'stopped')
