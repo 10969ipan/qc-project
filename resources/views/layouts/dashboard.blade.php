@@ -712,7 +712,7 @@
                                 <strong>Judgment:</strong> 
                                 <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span>
                             </p>
-                            <p class="mb-1"><strong>Operator:</strong> ${operator}</p>
+                            <p class="mb-1"><strong>QC:</strong> ${operator}</p>
                             <p class="mb-0"><strong>Date:</strong> ${date} | <strong>Shift:</strong> ${shift}</p>
                         </div>
                     </div>
