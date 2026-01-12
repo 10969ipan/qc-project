@@ -308,7 +308,7 @@
                 <div class="row align-items-center position-relative" style="z-index: 2;">
                     <div class="col-lg-8">
                         <h4 class="font-weight-bold mb-1">Selamat Datang, {{ Auth::user()->name }}! </h4>
-                        <p class="mb-0" style="opacity: 0.9; font-size: 0.9rem;">Quality Control Department</p>
+                        <p class="mb-0" style="opacity: 0.9; font-size: 0.9rem;">Quality Department</p>
                         <div class="mt-3">
                             <span class="badge badge-light text-primary px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
                                 <i class="fas fa-user-tag mr-1"></i> {{ ucfirst(Auth::user()->role) }}
