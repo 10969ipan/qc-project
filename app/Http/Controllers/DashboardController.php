@@ -95,7 +95,7 @@ class DashboardController extends Controller
 
         // Calculate Running Counts (Active - Overridden)
         $runningLinesCount = $activeLines->count() - $activeLines->keys()->intersect($lineStatuses->keys())->count();
-        $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->keys())->count();
+        $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble'])->keys())->count();
 
         // Fetch active monthly report for dashboard display
         $activeReport = \App\Models\MonthlyReport::where('is_active', true)->first();

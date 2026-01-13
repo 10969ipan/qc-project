@@ -45,7 +45,20 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request) {
+                    $exists = Item::where('name', $value)
+                        ->where('part_number', $request->part_number)
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Item dengan nama dan part number yang sama sudah ada.');
+                    }
+                },
+            ],
             'category_id' => 'required|exists:categories,id',
             'file' => 'required|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
@@ -118,7 +131,21 @@ class ItemController extends Controller
     public function update(Request $request, Item $item)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request, $item) {
+                    $exists = Item::where('name', $value)
+                        ->where('part_number', $request->part_number)
+                        ->where('id', '!=', $item->id)
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Item dengan nama dan part number yang sama sudah ada.');
+                    }
+                },
+            ],
             'category_id' => 'required|exists:categories,id',
             'file' => 'nullable|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
