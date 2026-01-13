@@ -25,6 +25,10 @@ class ItemController extends Controller
             $query->where('part_number', 'like', '%' . $request->part_number . '%');
         }
 
+        if ($request->has('sap_code') && $request->sap_code != '') {
+            $query->where('sap_code', 'like', '%' . $request->sap_code . '%');
+        }
+
         if ($request->has('category') && $request->category != '') {
             $query->where('category_id', $request->category);
         }
@@ -63,6 +67,19 @@ class ItemController extends Controller
             'file' => 'required|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
+            'sap_code' => [
+                'nullable',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (!empty($value)) {
+                        $exists = Item::where('sap_code', $value)->exists();
+                        if ($exists) {
+                            $fail('Kode SAP sudah digunakan oleh item lain.');
+                        }
+                    }
+                },
+            ],
             'defects' => 'nullable|string',
             'dimension_points' => 'nullable|array',
             'dimension_sizes' => 'nullable|array',
@@ -113,6 +130,7 @@ class ItemController extends Controller
             'file_path' => $filePath,
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
+            'sap_code' => $validated['sap_code'] ?? null,
             'defects' => $defects,
             'dimension_standards' => $dimension_standards,
         ]);
@@ -150,6 +168,21 @@ class ItemController extends Controller
             'file' => 'nullable|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
+            'sap_code' => [
+                'nullable',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) use ($request, $item) {
+                    if (!empty($value)) {
+                        $exists = Item::where('sap_code', $value)
+                            ->where('id', '!=', $item->id)
+                            ->exists();
+                        if ($exists) {
+                            $fail('Kode SAP sudah digunakan oleh item lain.');
+                        }
+                    }
+                },
+            ],
             'defects' => 'nullable|string',
             'dimension_points' => 'nullable|array',
             'dimension_sizes' => 'nullable|array',
@@ -232,6 +265,7 @@ class ItemController extends Controller
             'category_id' => $validated['category_id'],
             'customer' => $validated['customer'],
             'part_number' => $validated['part_number'] ?? null,
+            'sap_code' => $validated['sap_code'] ?? null,
             'file_path' => $item->file_path,
             'defects' => $defects,
             'dimension_standards' => $dimension_standards,

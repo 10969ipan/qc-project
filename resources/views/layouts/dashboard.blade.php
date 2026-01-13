@@ -556,6 +556,15 @@
                                 $data = $activeMachines->get($i);
                                 $manualStatus = $machineStatuses->get($i);
 
+                                // Machine Tonnage Mapping
+                                $machineTonnage = [
+                                    1 => 'TONASE=850', 2 => 'TONASE=650', 3 => 'TONASE=650', 4 => 'TONASE=650',
+                                    5 => 'TONASE=550', 6 => 'TONASE=450', 7 => 'TONASE=360', 8 => 'TONASE=210',
+                                    9 => 'TONASE=210', 10 => 'TONASE=160', 12 => 'TONASE=80', 14 => 'TONASE=120',
+                                    15 => 'TONASE=160', 16 => 'TONASE=180', 17 => 'TONASE=180', 18 => 'TONASE=120', 19 => 'TONASE=160',
+                                ];
+                                $tonnage = $machineTonnage[$i] ?? '-';
+
                                 // Default State
                                 $isActive = $data ? true : false;
                                 $isNg = $isActive && $data->judgment === 'NG';
@@ -601,7 +610,11 @@
                                      title="Click untuk detail">
                                     
                                     <div class="unit-number">MESIN-{{ $i }}</div>
+
+                                    <small class="text-white" style="font-size: 0.65rem; opacity: 0.85; font-weight: 600;">{{ $tonnage }}</small>
+
                                     
+
                                     @if($manualStatus && $manualStatus->status !== 'normal')
                                         <div class="status-badge status-badge-manual" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
                                             @if($manualStatus->status === 'maintenance')

@@ -81,6 +81,7 @@
                             <th rowspan="2" class="align-middle">Jam Before</th>
                             <th rowspan="2" class="align-middle">Jam After</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            <th rowspan="2" class="align-middle">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Part No</th>
@@ -119,6 +120,7 @@
                                 <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
@@ -312,7 +314,8 @@
                                             <div class="mb-1">
                                                 <span class="badge badge-danger px-2 py-1">
                                                     <i class="fas fa-exclamation-circle"></i>
-                                                    LABEL MERAH: {{ $checksheet->next_proses == 'PENDING' ? 'HOLD' : $checksheet->next_proses }}
+                                                    LABEL MERAH:
+                                                    {{ $checksheet->next_proses == 'PENDING' ? 'HOLD' : $checksheet->next_proses }}
                                                 </span>
                                             </div>
                                         @endif
@@ -678,8 +681,8 @@
                 @endforeach
             @endforeach
 
-                                // Live Search Functionality - Server-side search across all pages
-                                const liveSearchInput = document.getElementById('liveSearch');
+                                    // Live Search Functionality - Server-side search across all pages
+                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -973,8 +976,8 @@
                 @endforeach
             @endforeach
 
-                                                        // Live Search Functionality
-                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                            // Live Search Functionality
+                                                            const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 

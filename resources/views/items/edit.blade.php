@@ -53,6 +53,15 @@
                     <input type="text" name="part_number" class="form-control" value="{{ $item->part_number }}">
                 </div>
                 <div class="form-group">
+                    <label>Kode SAP</label>
+                    <input type="text" name="sap_code" class="form-control @error('sap_code') is-invalid @enderror"
+                        value="{{ $item->sap_code }}" placeholder="Opsional">
+                    <small class="text-muted">Kode SAP harus unique jika diisi</small>
+                    @error('sap_code')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
                     <label>List Defect (Pisahkan dengan baris baru, biarkan kosong untuk default)</label>
                     <textarea name="defects" class="form-control"
                         rows="5">{{ $item->defects ? implode("\n", $item->defects) : '' }}</textarea>
@@ -119,13 +128,13 @@
                 // Add Row
                 $(document).on('click', '.add-row', function () {
                     var newRow = `
-                                        <tr>
-                                            <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
-                                            <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
-                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
-                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                    `;
+                                                <tr>
+                                                    <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
+                                                    <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
+                                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
+                                                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                                </tr>
+                                            `;
                     $('#dimension-table tbody').append(newRow);
                 });
 

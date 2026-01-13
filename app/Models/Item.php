@@ -17,7 +17,7 @@ class Item extends Model
         'file_path',
         'customer',
         'part_number',
-        'part_number',
+        'sap_code',
         'dimension_standards',
         'defects',
     ];

@@ -17,12 +17,12 @@
         <div class="card-body">
             <form action="{{ route('admin.items.index') }}" method="GET" class="mb-4">
                 <div class="row">
-                    <div class="col-md-3 col-12 mb-3 mb-md-0">
+                    <div class="col-md-3 col-12 mb-3">
                         <label for="name">Nama Item</label>
                         <input type="text" name="name" class="form-control form-control-sm" value="{{ request('name') }}"
                             placeholder="Cari Nama Item...">
                     </div>
-                    <div class="col-md-2 col-12 mb-3 mb-md-0">
+                    <div class="col-md-2 col-12 mb-3">
                         <label for="category">Kategori</label>
                         <select name="category" class="form-control form-control-sm">
                             <option value="">Semua Kategori</option>
@@ -33,23 +33,31 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2 col-12 mb-3 mb-md-0">
+                    <div class="col-md-2 col-12 mb-3">
                         <label for="customer">Customer</label>
                         <input type="text" name="customer" class="form-control form-control-sm"
                             value="{{ request('customer') }}" placeholder="Cari Customer...">
                     </div>
-                    <div class="col-md-2 col-12 mb-3 mb-md-0">
+                    <div class="col-md-2 col-12 mb-3">
                         <label for="part_number">No Part</label>
                         <input type="text" name="part_number" class="form-control form-control-sm"
                             value="{{ request('part_number') }}" placeholder="Cari No Part...">
                     </div>
-                    <div class="col-md-3 col-12 d-flex flex-column flex-md-row align-items-stretch align-items-md-end">
-                        <button type="submit" class="btn btn-primary btn-sm mr-md-2 mb-2 mb-md-0" style="min-width: 140px;">
+                    <div class="col-md-2 col-12 mb-3">
+                        <label for="sap_code">Kode SAP</label>
+                        <input type="text" name="sap_code" class="form-control form-control-sm"
+                            value="{{ request('sap_code') }}" placeholder="Cari Kode SAP...">
+                    </div>
+                    <div class="col-md-1 col-12 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary btn-sm btn-block">
                             <i class="fas fa-search"></i> Cari
                         </button>
-                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary btn-sm"
-                            style="min-width: 140px;">
-                            <i class="fas fa-undo"></i> Reset
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-undo"></i> Reset Filter
                         </a>
                     </div>
                 </div>
@@ -65,6 +73,7 @@
                             <th>Kategori</th>
                             <th>Customer</th>
                             <th>No Part</th>
+                            <th>Kode SAP</th>
                             @if(auth()->user()->role !== 'inspector')
                                 <th>Aksi</th>
                             @endif
@@ -103,39 +112,40 @@
                                 </td>
                                 <td class="text-nowrap">{{ $item->customer }}</td>
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
+                                <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
                                 @if(auth()->user()->role !== 'inspector')
-                                    <td class="text-nowrap">
-                                        <a href="{{ route('admin.items.edit', [
-                                            'item' => $item->id, 
-                                            'page' => request('page', 1),
-                                            'name' => request('name'),
-                                            'category' => request('category'),
-                                            'customer' => request('customer'),
-                                            'part_number' => request('part_number')
-                                        ]) }}"
-                                            class="btn btn-warning btn-sm" style="min-width: 110px;">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <input type="hidden" name="page" value="{{ request('page', 1) }}">
-                                            <input type="hidden" name="name" value="{{ request('name') }}">
-                                            <input type="hidden" name="category" value="{{ request('category') }}">
-                                            <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                            <input type="hidden" name="part_number" value="{{ request('part_number') }}">
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <a href="{{ route('admin.items.edit', [
+                                        'item' => $item->id,
+                                        'page' => request('page', 1),
+                                        'name' => request('name'),
+                                        'category' => request('category'),
+                                        'customer' => request('customer'),
+                                        'part_number' => request('part_number')
+                                    ]) }}" class="btn btn-warning btn-sm" style="min-width: 110px;">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </a>
+                                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                                                            <input type="hidden" name="name" value="{{ request('name') }}">
+                                                            <input type="hidden" name="category" value="{{ request('category') }}">
+                                                            <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                            <input type="hidden" name="part_number" value="{{ request('part_number') }}">
+                                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                                onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
+                                                                style="min-width: 110px;">
+                                                                <i class="fas fa-trash"></i> Hapus
+                                                            </button>
+                                                        </form>
+                                                    </td>
                                 @endif
                             </tr>
                         @endforeach
                         @for($i = count($items); $i < 10; $i++)
                             <tr>
+                                <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

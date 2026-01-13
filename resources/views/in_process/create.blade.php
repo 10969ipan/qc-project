@@ -96,21 +96,33 @@
 
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
-                                    <select class="form-control" name="item_id" id="itemSelect" required
-                                        style="min-width: 300px;">
-                                        <option value="" disabled selected style="font-weight: bold; color: #6c757d;">Pilih
-                                            Item Part</option>
-                                        @foreach($items as $item)
-                                            <option value="{{ $item->id }}"
-                                                data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
-                                                data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
-                                                data-description="{{ $item->description }}"
-                                                data-defects="{{ json_encode($item->defects) }}">
-                                                {{ $item->name }} ({{ $item->part_number ?? '-' }})
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <div class="form-group mb-2">
+                                        <label class="font-weight-bold">Kode SAP</label>
+                                        <input type="text" class="form-control" id="sapCodeInput"
+                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <small class="text-muted">Auto-select item berdasarkan SAP code</small>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold">Item Part</label>
+                                        <select class="form-control" name="item_id" id="itemSelect" required
+                                            style="min-width: 300px;">
+                                            <option value="" disabled selected style="font-weight: bold; color: #6c757d;">
+                                                Pilih
+                                                Item Part</option>
+                                            @foreach($items as $item)
+                                                <option value="{{ $item->id }}"
+                                                    data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
+                                                    data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
+                                                    data-description="{{ $item->description }}"
+                                                    data-defects="{{ json_encode($item->defects) }}"
+                                                    data-sap-code="{{ $item->sap_code ?? '' }}">
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                    {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </td>
 
                                 <!-- Tanggal / Shift -->
@@ -706,6 +718,32 @@
                 }
 
                 calculateTotalNG();
+            });
+
+            // SAP Code Auto-Selection Logic
+            $('#sapCodeInput').on('input', function () {
+                var sapCode = $(this).val().trim();
+
+                if (sapCode.length >= 1) {
+                    // Find matching item by SAP code
+                    var matchedOption = $('#itemSelect option').filter(function () {
+                        var itemSapCode = $(this).data('sap-code');
+                        return itemSapCode && itemSapCode.toString().toLowerCase() === sapCode.toLowerCase();
+                    });
+
+                    if (matchedOption.length > 0) {
+                        // Auto-select the matched item
+                        $('#itemSelect').val(matchedOption.val()).trigger('change');
+                        // Visual feedback
+                        $('#sapCodeInput').removeClass('is-invalid').addClass('is-valid');
+                    } else {
+                        // No match found
+                        $('#sapCodeInput').removeClass('is-valid').addClass('is-invalid');
+                    }
+                } else {
+                    // Clear validation classes when input is empty
+                    $('#sapCodeInput').removeClass('is-valid is-invalid');
+                }
             });
 
             // Zoom Logic (Image)
