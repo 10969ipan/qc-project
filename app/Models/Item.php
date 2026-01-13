@@ -5,6 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property int $category_id
+ * @property string|null $file_path
+ * @property string|null $customer
+ * @property string|null $part_number
+ * @property string|null $sap_code
+ * @property array|null $dimension_standards
+ * @property array|null $defects
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property-read \App\Models\Category $category
+ */
 class Item extends Model
 {
     use HasFactory;

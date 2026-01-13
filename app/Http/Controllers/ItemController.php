@@ -148,15 +148,16 @@ class ItemController extends Controller
     // Update data item
     public function update(Request $request, Item $item)
     {
+        $itemId = $item->id;
         $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) use ($request, $item) {
+                function ($attribute, $value, $fail) use ($request, $itemId) {
                     $exists = Item::where('name', $value)
                         ->where('part_number', $request->part_number)
-                        ->where('id', '!=', $item->id)
+                        ->where('id', '!=', $itemId)
                         ->exists();
 
                     if ($exists) {
@@ -172,10 +173,10 @@ class ItemController extends Controller
                 'nullable',
                 'string',
                 'max:100',
-                function ($attribute, $value, $fail) use ($request, $item) {
+                function ($attribute, $value, $fail) use ($request, $itemId) {
                     if (!empty($value)) {
                         $exists = Item::where('sap_code', $value)
-                            ->where('id', '!=', $item->id)
+                            ->where('id', '!=', $itemId)
                             ->exists();
                         if ($exists) {
                             $fail('Kode SAP sudah digunakan oleh item lain.');

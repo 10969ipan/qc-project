@@ -489,6 +489,7 @@
                                          data-date="{{ $data->date ?? '-' }}"
                                          data-shift="{{ $data->shift ?? '-' }}"
                                          data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+
                                      @endif
                                      @if($manualStatus && $manualStatus->status !== 'normal')
                                          data-manual-description="{{ $manualStatus->description }}"
@@ -558,10 +559,10 @@
 
                                 // Machine Tonnage Mapping
                                 $machineTonnage = [
-                                    1 => 'TONASE=850', 2 => 'TONASE=650', 3 => 'TONASE=650', 4 => 'TONASE=650',
-                                    5 => 'TONASE=550', 6 => 'TONASE=450', 7 => 'TONASE=360', 8 => 'TONASE=210',
-                                    9 => 'TONASE=210', 10 => 'TONASE=160', 12 => 'TONASE=80', 14 => 'TONASE=120',
-                                    15 => 'TONASE=160', 16 => 'TONASE=180', 17 => 'TONASE=180', 18 => 'TONASE=120', 19 => 'TONASE=160',
+                                    1 => '850', 2 => '650', 3 => '650', 4 => '650',
+                                    5 => '550', 6 => '450', 7 => '360', 8 => '210',
+                                    9 => '210', 10 => '160', 12 => '80', 14 => '120',
+                                    15 => '160', 16 => '180', 17 => '180', 18 => '120', 19 => '160',
                                 ];
                                 $tonnage = $machineTonnage[$i] ?? '-';
 
@@ -601,6 +602,9 @@
                                          data-date="{{ $data->date ?? '-' }}"
                                          data-shift="{{ $data->shift ?? '-' }}"
                                          data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+
+                                     data-tonnage="{{ $tonnage }}"
+
                                      @endif
                                      @if($manualStatus && $manualStatus->status !== 'normal')
                                          data-manual-description="{{ $manualStatus->description }}"
@@ -609,11 +613,8 @@
                                      @endif
                                      title="Click untuk detail">
                                     
-                                    <div class="unit-number">MESIN-{{ $i }}</div>
-
-                                    <small class="text-white" style="font-size: 0.65rem; opacity: 0.85; font-weight: 600;">{{ $tonnage }}</small>
-
                                     
+                                    <div class="unit-number">MESIN-{{ $i }}</div>
 
                                     @if($manualStatus && $manualStatus->status !== 'normal')
                                         <div class="status-badge status-badge-manual" style="background: rgba(255,255,255,0.3); margin-top: 5px;">
@@ -692,6 +693,7 @@
             const date = card.dataset.date || '-';
             const shift = card.dataset.shift || '-';
             const time = card.dataset.time || '-';
+            const tonnage = card.dataset.tonnage || '-';
             const status = card.dataset.status || 'idle';
             const manualDescription = card.dataset.manualDescription || '';
             const manualBy = card.dataset.manualBy || '';
@@ -712,7 +714,8 @@
                         </h6>
                         <div class="pl-4">
                             <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
-                            <p class="mb-0"><strong>Item Name:</strong> ${itemName}</p>
+                            <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
+                            <p class="mb-0"><strong>Machine Tonnage:</strong> ${tonnage}</p>
                         </div>
                     </div>
 
