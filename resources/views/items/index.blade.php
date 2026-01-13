@@ -16,15 +16,15 @@
         </div>
         <div class="card-body">
             <form action="{{ route('admin.items.index') }}" method="GET" class="mb-4">
-                <div class="row">
-                    <div class="col-md-3 col-12 mb-3">
-                        <label for="name">Nama Item</label>
-                        <input type="text" name="name" class="form-control form-control-sm" value="{{ request('name') }}"
-                            placeholder="Cari Nama Item...">
+                <div class="row align-items-end">
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+                        <label for="name" class="font-weight-bold">Nama Item</label>
+                        <input type="text" name="name" class="form-control form-control-sm shadow-sm"
+                            value="{{ request('name') }}" placeholder="Cari Nama Item...">
                     </div>
-                    <div class="col-md-2 col-12 mb-3">
-                        <label for="category">Kategori</label>
-                        <select name="category" class="form-control form-control-sm">
+                    <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                        <label for="category" class="font-weight-bold">Kategori</label>
+                        <select name="category" class="form-control form-control-sm shadow-sm">
                             <option value="">Semua Kategori</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
@@ -33,32 +33,32 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2 col-12 mb-3">
-                        <label for="customer">Customer</label>
-                        <input type="text" name="customer" class="form-control form-control-sm"
+                    <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                        <label for="customer" class="font-weight-bold">Customer</label>
+                        <input type="text" name="customer" class="form-control form-control-sm shadow-sm"
                             value="{{ request('customer') }}" placeholder="Cari Customer...">
                     </div>
-                    <div class="col-md-2 col-12 mb-3">
-                        <label for="part_number">No Part</label>
-                        <input type="text" name="part_number" class="form-control form-control-sm"
+                    <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                        <label for="part_number" class="font-weight-bold">No Part</label>
+                        <input type="text" name="part_number" class="form-control form-control-sm shadow-sm"
                             value="{{ request('part_number') }}" placeholder="Cari No Part...">
                     </div>
-                    <div class="col-md-2 col-12 mb-3">
-                        <label for="sap_code">Kode SAP</label>
-                        <input type="text" name="sap_code" class="form-control form-control-sm"
-                            value="{{ request('sap_code') }}" placeholder="Cari Kode SAP...">
+                    <div class="col-xl-1 col-lg-4 col-md-6 col-sm-6 mb-3">
+                        <label for="sap_code" class="font-weight-bold">Kode SAP</label>
+                        <input type="text" name="sap_code" class="form-control form-control-sm shadow-sm"
+                            value="{{ request('sap_code') }}" placeholder="Kode SAP...">
                     </div>
-                    <div class="col-md-1 col-12 mb-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary btn-sm btn-block">
-                            <i class="fas fa-search"></i> Cari
-                        </button>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <a href="{{ route('admin.items.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-undo"></i> Reset Filter
-                        </a>
+                    <div class="col-xl-2 col-lg-4 col-md-12 mb-3">
+                        <label class="d-none d-xl-block">&nbsp;</label>
+                        <div class="d-flex">
+                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1 mr-2 shadow-sm">
+                                <i class="fas fa-search"></i> Cari
+                            </button>
+                            <a href="{{ route('admin.items.index') }}"
+                                class="btn btn-secondary btn-sm flex-grow-1 shadow-sm">
+                                <i class="fas fa-undo"></i> Reset
+                            </a>
+                        </div>
                     </div>
                 </div>
             </form>
