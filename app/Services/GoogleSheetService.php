@@ -23,10 +23,10 @@ class GoogleSheetService
         $this->credentialsPath = $this->resolveCredentialsPath();
 
         $this->client = new Client();
-        
+
         // Configure Guzzle Client to ignore SSL errors if needed (matching original code's behavior)
         $this->client->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
-        
+
         if (!file_exists($this->credentialsPath)) {
             $cwd = getcwd();
             throw new \Exception("Credentials file not found. Checked: '{$this->credentialsPath}'. Current Dir: '$cwd'. Tips: Pastikan file 'google-credentials.json' ada di folder 'storage/app/'.");
@@ -43,7 +43,7 @@ class GoogleSheetService
             // Replace literal \n and \r with actual characters or remove them
             $key = str_replace(['\\n', '\\r'], ["\n", ""], $key);
             $authConfig['private_key'] = $key;
-            
+
             // Validate the key format if OpenSSL is available
             if (extension_loaded('openssl')) {
                 // Suppress warnings to capture error via openssl_error_string
@@ -54,8 +54,9 @@ class GoogleSheetService
                         $errorMsg .= " OpenSSL: " . $msg;
                     }
                     // Clear error buffer
-                    while(openssl_error_string()){}
-                    
+                    while (openssl_error_string()) {
+                    }
+
                     throw new \Exception($errorMsg);
                 }
             }
@@ -74,7 +75,7 @@ class GoogleSheetService
     private function resolveCredentialsPath()
     {
         $configuredPath = config('services.google.sheets_credentials_path');
-        
+
         // List of paths to check
         $pathsToCheck = [
             $configuredPath,
@@ -156,14 +157,14 @@ class GoogleSheetService
             $body = new ValueRange([
                 'values' => [$values]
             ]);
-            
+
             $params = [
                 'valueInputOption' => 'USER_ENTERED'
             ];
-            
+
             $range = $this->getSheetName() . '!A1';
             $this->service->spreadsheets_values->append($this->sheetId, $range, $body, $params);
-            
+
             return true;
         } catch (\Exception $e) {
             throw new \Exception("Google Sheets Append Error: " . $e->getMessage());
@@ -187,7 +188,7 @@ class GoogleSheetService
         try {
             $requestBody = new ClearValuesRequest();
             $this->service->spreadsheets_values->clear($this->sheetId, $range, $requestBody);
-            
+
             return true;
         } catch (\Exception $e) {
             throw new \Exception("Google Sheets Clear Error: " . $e->getMessage());
@@ -208,17 +209,41 @@ class GoogleSheetService
             $body = new ValueRange([
                 'values' => $rows
             ]);
-            
+
             $params = [
                 'valueInputOption' => 'USER_ENTERED'
             ];
-            
+
             $range = $this->getSheetName() . '!A1';
             $this->service->spreadsheets_values->append($this->sheetId, $range, $body, $params);
-            
+
             return true;
         } catch (\Exception $e) {
             throw new \Exception("Google Sheets Append Rows Error: " . $e->getMessage());
         }
     }
+
+    /**
+     * Get data from a specific sheet and range.
+     * @param string $sheetName The name of the sheet (e.g., 'Sheet3')
+     * @param string $range The range to read (e.g., 'A1:N7')
+     * @return array The data from the sheet
+     */
+    public function getSheetData($sheetName, $range)
+    {
+        if (!$this->sheetId) {
+            throw new \Exception("Google Sheet ID is not configured.");
+        }
+
+        try {
+            $fullRange = $sheetName . '!' . $range;
+            $response = $this->service->spreadsheets_values->get($this->sheetId, $fullRange);
+            $values = $response->getValues();
+
+            return $values ?? [];
+        } catch (\Exception $e) {
+            throw new \Exception("Google Sheets Read Error: " . $e->getMessage());
+        }
+    }
 }
+

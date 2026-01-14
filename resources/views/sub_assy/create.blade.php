@@ -18,7 +18,7 @@
     <div class="card shadow mb-4 border-left-warning">
         <a href="#collapseLineStatus" class="d-block card-header py-3" data-toggle="collapse" role="button"
             aria-expanded="true" aria-controls="collapseLineStatus">
-            <h6 class="m-0 font-weight-bold text-warning">Control Status Line (Manual)</h6>
+            <h6 class="m-0 font-weight-bold text-warning">Control Status Meja (Manual)</h6>
         </a>
         <div class="collapse" id="collapseLineStatus">
             <div class="card-body">
@@ -27,11 +27,11 @@
                     <input type="hidden" name="type" value="line">
                     <div class="row align-items-end">
                         <div class="col-md-3 mb-2">
-                            <label class="small font-weight-bold">Pilih Line</label>
+                            <label class="small font-weight-bold">Pilih Meja</label>
                             <select name="number" class="form-control form-control-sm" required>
-                                <option value="">- Pilih Line -</option>
+                                <option value="">- Pilih Meja -</option>
                                 @for($i = 1; $i <= 15; $i++)
-                                    <option value="{{ $i }}">LINE-{{ $i }}</option>
+                                    <option value="{{ $i }}">MEJA-{{ $i }}</option>
                                 @endfor
                             </select>
                         </div>
@@ -137,12 +137,12 @@
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
-                                        <label class="sr-only">Line</label>
+                                        <label class="sr-only">Meja</label>
                                         <select name="line" id="line" class="form-control"
                                             style="min-width: 100px; font-size: 16px;" required>
-                                            <option value="">Pilih Line</option>
+                                            <option value="">Pilih Meja</option>
                                             @for ($i = 1; $i <= 15; $i++)
-                                                <option value="{{ $i }}">Line {{ $i }}</option>
+                                                <option value="{{ $i }}">Meja {{ $i }}</option>
                                             @endfor
                                         </select>
                                     </div>

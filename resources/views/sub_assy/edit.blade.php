@@ -50,11 +50,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="line">Line</label>
+                            <label for="line">Meja</label>
                             <select name="line" id="line" class="form-control" required>
-                                <option value="">Pilih Link</option>
+                                <option value="">Pilih Meja</option>
                                 @for ($i = 1; $i <= 15; $i++)
-                                    <option value="{{ $i }}" {{ $checksheet->line == $i ? 'selected' : '' }}>Line {{ $i }}
+                                    <option value="{{ $i }}" {{ $checksheet->line == $i ? 'selected' : '' }}>Meja {{ $i }}
                                     </option>
                                 @endfor
                             </select>
