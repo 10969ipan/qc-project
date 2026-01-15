@@ -18,6 +18,11 @@ class CrossCutChecksheetController extends Controller
         $items = Item::orderBy('name')->get();
         $query = CrossCutChecksheet::with('item')->orderBy('qc_datetime', 'desc')->orderBy('created_at', 'desc');
 
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
+
         $this->applyFilters($query, $request);
 
         $checksheets = $query->paginate(10)->withQueryString();
@@ -31,7 +36,10 @@ class CrossCutChecksheetController extends Controller
     public function create()
     {
         $items = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name')->get();
-        return view('cross_cut.create', compact('items'));
+        $now = now();
+        $defaultDateTime = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d\TH:i') : $now->format('Y-m-d\TH:i');
+
+        return view('cross_cut.create', compact('items', 'defaultDateTime'));
     }
 
     /**
@@ -65,6 +73,7 @@ class CrossCutChecksheetController extends Controller
         }
 
         CrossCutChecksheet::create([
+            'plant' => auth()->user()->plant,
             'item_id' => $validated['item_id'],
             'production_shift' => $validated['production_shift'],
             'qc_shift' => $validated['qc_shift'],
@@ -112,9 +121,46 @@ class CrossCutChecksheetController extends Controller
         return response()->file(Storage::disk('public')->path($checksheet->image_path));
     }
 
+    // Get checksheet data for image modal
+    public function getData($id)
+    {
+        $query = CrossCutChecksheet::with('item');
+
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+
+        $checksheet = $query->findOrFail($id);
+
+        return response()->json([
+            'image_path' => $checksheet->image_path,
+            'item_name' => $checksheet->item->name ?? null,
+            'customer' => $checksheet->item->customer ?? null,
+            'part_number' => $checksheet->item->part_number ?? null,
+            'sap_code' => $checksheet->item->sap_code ?? null,
+            'production_date' => $checksheet->production_datetime ? \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-Y H:i') : null,
+            'qc_date' => $checksheet->qc_datetime ? \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y H:i') : null,
+            'production_shift' => $checksheet->production_shift,
+            'qc_shift' => $checksheet->qc_shift,
+            'chemical_copper' => $checksheet->chemical_copper,
+            'chemical_nikel' => $checksheet->chemical_nikel,
+            'chemical_eching' => $checksheet->chemical_eching,
+            'chemical_abu' => $checksheet->chemical_abu,
+            'position_remark_judgment' => $checksheet->position_remark_judgment,
+            'position_remark_no_lot' => $checksheet->position_remark_no_lot,
+            'result_remark' => $checksheet->result_remark,
+            'operator_initials' => $checksheet->operator_initials,
+        ]);
+    }
+
     public function edit($id)
     {
-        $checksheet = CrossCutChecksheet::findOrFail($id);
+        $query = CrossCutChecksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
+
         $items = Item::orderBy('name')->get();
         return view('cross_cut.edit', compact('checksheet', 'items'));
     }
@@ -160,22 +206,28 @@ class CrossCutChecksheetController extends Controller
 
     public function destroy($id)
     {
-        $checksheet = CrossCutChecksheet::findOrFail($id);
+        $query = CrossCutChecksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
 
-        // Hapus gambar dari storage
-        if ($checksheet->image_path && Storage::disk('public')->exists($checksheet->image_path)) {
+        if ($checksheet->image_path) {
             Storage::disk('public')->delete($checksheet->image_path);
         }
-
         $checksheet->delete();
 
-        return redirect()->route('cross_cut.index')->with('success', 'Data berhasil dihapus.');
+        return redirect()->route('cross_cut.index')->with('success', 'Data Cross Cut berhasil dihapus.');
     }
 
     public function approve(Request $request, $id, $type)
     {
         try {
-            $checksheet = CrossCutChecksheet::findOrFail($id);
+            $query = CrossCutChecksheet::query();
+            if (auth()->user()->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+            $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
             // Role validation (admin can approve any level)
@@ -288,7 +340,11 @@ class CrossCutChecksheetController extends Controller
     public function reject(Request $request, $id, $type)
     {
         try {
-            $checksheet = CrossCutChecksheet::findOrFail($id);
+            $query = CrossCutChecksheet::query();
+            if (auth()->user()->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+            $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
             // Role validation

@@ -1,9 +1,10 @@
 @extends('layouts.admin')
 
 @section('content')
+    <x-plant-header title="Edit Data Checksheet Inprocess" :plant="request('plant')" />
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Edit Data Checksheet Inprocess</h1>
-        <a href="{{ route('in_process.index') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+        <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
         </a>
     </div>
@@ -13,9 +14,10 @@
             <h6 class="m-0 font-weight-bold text-primary">Form Edit Checksheet Inprocess</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('in_process.update', $checksheet->id) }}" method="POST">
+            <form action="{{ route('in_process.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
 
                 <div class="row">
                     <div class="col-md-6">
@@ -134,7 +136,7 @@
                 <div class="form-group">
                     <label>Check Dimensi</label>
                     @php
-                        $dimensions = json_decode($checksheet->dimension_check, true) ?? [];
+                        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
                     @endphp
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered" style="min-width: 1000px;">
@@ -168,6 +170,22 @@
                                 @endfor
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
+                    <div class="form-group">
+                        <label for="next_proses" class="text-danger font-weight-bold">Next Proses</label>
+                        <select name="next_proses" id="next_proses" class="form-control">
+                            <option value="">-- Pilih Next Proses --</option>
+                            <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
+                            <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR</option>
+                            <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
+                            <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR</option>
+                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR']))
+                                <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                            @endif
+                        </select>
                     </div>
                 </div>
 
@@ -228,6 +246,18 @@
                         judgmentSelect.val('NG');
                         judgmentSelect.removeClass('text-success').addClass('text-danger');
                     }
+                // Show/Hide Next Proses dropdown based on judgment
+                toggleNextProses();
+            }
+
+            function toggleNextProses() {
+                const judgment = $('#judgment').val();
+                const container = $('#nextProsesContainer');
+                if (judgment === 'NG') {
+                    container.slideDown();
+                } else {
+                    container.slideUp();
+                    $('#next_proses').val('');
                 }
             }
 

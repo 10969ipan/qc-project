@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class CrossCutChecksheet extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'cross_cut_checksheets';
 
     protected $fillable = [
+        'plant',
         'item_id',
         'production_shift',
         'qc_shift',
@@ -50,6 +51,12 @@ class CrossCutChecksheet extends Model
         'manager_plating',
         'manager_plating_approved_at',
         'rejection_remarks',
+    ];
+
+    protected $casts = [
+        'defects' => 'array',
+        'production_datetime' => 'datetime',
+        'qc_datetime' => 'datetime',
     ];
 
     public function item()

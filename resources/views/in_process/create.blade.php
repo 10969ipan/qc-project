@@ -3,6 +3,7 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
+    <x-plant-header title="Input Data Checksheet" :plant="request('plant')" />
 
 
 
@@ -31,7 +32,7 @@
                             <select name="number" class="form-control form-control-sm" required>
                                 <option value="">- Pilih Mesin -</option>
                                 @for($i = 1; $i <= 19; $i++)
-                                    @if($i != 11 && $i != 13)
+                                    @if($i != 10 && $i != 13)
                                         <option value="{{ $i }}">MESIN-{{ $i }}</option>
                                     @endif
                                 @endfor
@@ -69,6 +70,7 @@
         <div class="card-body">
             <form action="{{ route('in_process.store') }}" method="POST">
                 @csrf
+                <input type="hidden" name="plant" value="{{ auth()->user()->plant }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
@@ -130,7 +132,7 @@
                                     <div class="form-group mb-2">
                                         <label class="sr-only">Tanggal</label>
                                         <input type="date" class="form-control" style="min-width: 150px; font-size: 16px;"
-                                            name="date" value="{{ date('Y-m-d') }}" required>
+                                            name="date" value="{{ $defaultDate }}" required>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="sr-only">Shift</label>
@@ -147,7 +149,7 @@
                                             style="min-width: 100px; font-size: 16px;" required>
                                             <option value="">Pilih Mesin</option>
                                             @for ($i = 1; $i <= 19; $i++)
-                                                @if($i != 11 && $i != 13)
+                                                @if($i != 10 && $i != 13)
                                                     <option value="{{ $i }}">Mesin {{ $i }}</option>
                                                 @endif
                                             @endfor
@@ -271,32 +273,9 @@
 
                                 <!-- Inisial Operator -->
                                 <td class="align-middle">
-                                    @php
-                                        $initial = '';
-                                        if (auth()->check()) {
-                                            $name = strtolower(auth()->user()->name);
-                                            if (str_contains($name, 'anggi')) {
-                                                $initial = 'AP';
-                                            } elseif (str_contains($name, 'irfan')) {
-                                                $initial = 'IA';
-                                            } elseif (str_contains($name, 'gugun')) {
-                                                $initial = 'GK';
-                                            } elseif (str_contains($name, 'dede')) {
-                                                $initial = 'DS';
-                                            } elseif (str_contains($name, 'arga')) {
-                                                $initial = 'AY';
-                                            } elseif (str_contains($name, 'sopian')) {
-                                                $initial = 'SH';
-                                            } elseif (str_contains($name, 'yono')) {
-                                                $initial = 'YS';
-                                            } elseif (str_contains($name, 'dinar')) {
-                                                $initial = 'DA';
-                                            }
-                                        }
-                                    @endphp
                                     <input type="text" class="form-control text-center"
                                         style="min-width: 80px; font-size: 16px;" name="operator_initials"
-                                        placeholder="Inisial" value="{{ $initial }}" required>
+                                        placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
                                 </td>
 
                                 <!-- Keterangan -->
@@ -306,7 +285,9 @@
                                             Proses:</label>
                                         <select class="form-control" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih Next Proses --</option>
-                                            <option value="HOLD">HOLD</option>
+                                            <option value="CRUSHING">CRUSHING</option>
+                                            <option value="SORTIR">SORTIR</option>
+                                            <option value="FINISHING">FINISHING</option>
                                             <option value="REPAIR">REPAIR</option>
                                         </select>
                                     </div>

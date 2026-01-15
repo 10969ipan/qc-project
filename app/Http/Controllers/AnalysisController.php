@@ -12,10 +12,16 @@ class AnalysisController extends Controller
 {
     public function monthlyNgSubAssy(Request $request)
     {
+        $plant = $request->get('plant');
         // Mulai Query: Mengambil data checksheet dengan relasi item, diurutkan berdasarkan tanggal
-        $query = Checksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials')
+        $query = Checksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials', 'plant')
             ->with('item')
             ->orderBy('date');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
 
         // Apply Date Filter if present
         if ($request->has('start_date') && $request->start_date) {
@@ -66,7 +72,7 @@ class AnalysisController extends Controller
             // Assuming 'defects' is stored as JSON string in database based on ChecksheetController@store
             // and it is NOT cast to array in the model.
             if (!empty($checksheet->defects)) {
-                $defectsList = json_decode($checksheet->defects, true);
+                $defectsList = is_string($checksheet->defects) ? json_decode($checksheet->defects, true) : $checksheet->defects;
 
                 if (is_array($defectsList)) {
                     foreach ($defectsList as $defect) {
@@ -200,16 +206,23 @@ class AnalysisController extends Controller
             'inspectorItemLabels',
             'inspectorItemDatasets',
             'sortedItemTotalPcs',
-            'sortedItemTotalSeconds'
+            'sortedItemTotalSeconds',
+            'plant'
         ));
     }
 
     public function monthlyNgInProcess(Request $request)
     {
+        $plant = $request->get('plant');
         // Mulai Query: Mengambil data InProcess Checksheet
-        $query = InProcessChecksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials')
+        $query = InProcessChecksheet::select('date', 'total_ng', 'defects', 'sampling_qty', 'cycle_time', 'item_id', 'operator_initials', 'plant')
             ->with('item')
             ->orderBy('date');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
 
         // Apply Date Filter if present, otherwise default to last 12 months
         if ($request->has('start_date') && $request->start_date) {
@@ -264,7 +277,7 @@ class AnalysisController extends Controller
             // Assuming 'defects' is stored as JSON string in database based on ChecksheetController@store
             // and it is NOT cast to array in the model.
             if (!empty($checksheet->defects)) {
-                $defectsList = json_decode($checksheet->defects, true);
+                $defectsList = is_string($checksheet->defects) ? json_decode($checksheet->defects, true) : $checksheet->defects;
 
                 if (is_array($defectsList)) {
                     foreach ($defectsList as $defect) {
@@ -398,17 +411,24 @@ class AnalysisController extends Controller
             'inspectorItemLabels',
             'inspectorItemDatasets',
             'sortedItemTotalPcs',
-            'sortedItemTotalSeconds'
+            'sortedItemTotalSeconds',
+            'plant'
         ));
     }
 
     public function monthlyNgCrossCut(Request $request)
     {
+        $plant = $request->get('plant');
         // Mulai Query - Cross Cut memiliki struktur berbeda dari checksheet lain
         // Menggunakan 'qc_datetime' sebagai tanggal, dan 'position_remark_judgment' (OK/NG) sebagai penentu NG
-        $query = CrossCutChecksheet::select('qc_datetime', 'position_remark_judgment', 'item_id', 'operator_initials', 'cycle_time')
+        $query = CrossCutChecksheet::select('qc_datetime', 'position_remark_judgment', 'item_id', 'operator_initials', 'cycle_time', 'plant')
             ->with('item')
             ->orderBy('qc_datetime');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
 
         // Apply Date Filter if present
         if ($request->has('start_date') && $request->start_date) {
@@ -566,7 +586,8 @@ class AnalysisController extends Controller
             'inspectorItemLabels',
             'inspectorItemDatasets',
             'sortedItemTotalPcs',
-            'sortedItemTotalSeconds'
+            'sortedItemTotalSeconds',
+            'plant'
         ));
     }
 }

@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Checksheet extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'checksheets';
 
     protected $fillable = [
+        'plant',
         'item_id',
         'created_at',
         'date',
@@ -34,6 +35,11 @@ class Checksheet extends Model
         'manager_approved_at',
         'cycle_time',
         'rejection_remarks',
+    ];
+
+    protected $casts = [
+        'defects' => 'array',
+        'date' => 'date',
     ];
 
     public function item()

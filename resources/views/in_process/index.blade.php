@@ -3,6 +3,7 @@
 @section('title', 'Laporan Data Checksheet Inprocess')
 
 @section('content')
+    <x-plant-header title="Laporan Data Checksheet In-Process" :plant="request()->get('plant')" />
     <!-- Hidden Logo for PDF Export -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
@@ -13,6 +14,23 @@
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
+                    @if(auth()->user()->role === 'admin')
+                        <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                            <div class="form-group mb-0">
+                                <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
+                                <select name="plant" id="plant_select" class="form-control form-control-sm border-primary"
+                                    onchange="this.form.submit()">
+                                    <option value="" {{ !request('plant') ? 'selected' : '' }}>All Plants</option>
+                                    <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
+                                    </option>
+                                    <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                                </select>
+                            </div>
+                        </div>
+                    @else
+                        <input type="hidden" name="plant" value="{{ request('plant') }}">
+                    @endif
+
                     <!-- Filter Tanggal -->
                     <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">
@@ -36,7 +54,8 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-search"></i> Cari
                             </button>
-                            <a href="{{ route('in_process.index') }}" class="btn btn-secondary btn-sm">
+                            <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}"
+                                class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo"></i> Reset
                             </a>
                         </div>
@@ -126,9 +145,9 @@
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
 
                                 {{-- Dimension Check Detail --}}
-                                <td class="align-middle p-0" data-dimensions='{{ $checksheet->dimension_check }}'>
+                                <td class="align-middle p-0" data-dimensions='@json($checksheet->dimension_check)'>
                                     @php
-                                        $dimensions = json_decode($checksheet->dimension_check, true);
+                                        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
                                         $itemPartNumber = $checksheet->item->part_number ?? '';
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
                                     @endphp
@@ -212,7 +231,7 @@
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 
                                 @php
-                                    $defectsData = json_decode($checksheet->defects, true);
+                                    $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
                                     $pcsLines = [];
                                     $nameLines = [];
 
@@ -359,12 +378,17 @@
                                             <div class="mb-1">
                                                 <span class="badge badge-danger px-2 py-1">
                                                     <i class="fas fa-exclamation-circle"></i>
-                                                    LABEL MERAH:
-                                                    {{ $checksheet->next_proses == 'PENDING' ? 'HOLD' : $checksheet->next_proses }}
+                                                    LABEL MERAH: {{ $checksheet->next_proses }}
                                                 </span>
+                                                <br>
+                                                @if(!str_contains($checksheet->remarks ?? '', '[SORTIR_CLOSED]'))
+                                                    <span class="text-danger small font-weight-bold ml-1">
+                                                        <i class="fas fa-clock"></i> STATUS: OPEN
+                                                    </span>
+                                                @endif
                                             </div>
                                         @endif
-                                        {{ $checksheet->remarks }}
+                                        {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->remarks)) !!}
                                     @endif
                                 </td>
 
@@ -405,7 +429,7 @@
                                         @endif
                                         @if($canApproveSupervisor)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -428,7 +452,7 @@
                                         @endif
                                         @if($canApproveAsst)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager', 'plant' => request('plant')]) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -451,7 +475,7 @@
                                         @endif
                                         @if($canApproveManager)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
+                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -483,8 +507,9 @@
                                             title="Edit" style="min-width: 110px;">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
-                                        <form action="{{ route('in_process.destroy', $checksheet->id) }}" method="POST"
-                                            class="d-inline">
+                                        <form
+                                            action="{{ route('in_process.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                            method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
@@ -534,7 +559,9 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <form action="{{ route('in_process.reject', ['id' => $cs->id, 'type' => $rejectType]) }}" method="POST">
+                            <form
+                                action="{{ route('in_process.reject', ['id' => $cs->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
+                                method="POST">
                                 @csrf
                                 <div class="modal-body">
                                     <div class="alert alert-warning">
@@ -596,8 +623,8 @@
                 @endforeach
             @endforeach
 
-                                                            // Live Search Functionality - Server-side search across all pages
-                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

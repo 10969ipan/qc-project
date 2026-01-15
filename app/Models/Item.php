@@ -21,11 +21,12 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Item extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'items';
 
     protected $fillable = [
+        'plant',
         'name',
         'category_id',
         'file_path',

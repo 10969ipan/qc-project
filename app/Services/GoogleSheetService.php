@@ -24,8 +24,9 @@ class GoogleSheetService
 
         $this->client = new Client();
 
-        // Configure Guzzle Client to ignore SSL errors if needed (matching original code's behavior)
-        $this->client->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+        // Configure Guzzle Client: allow SSL verification to be toggled via .env (default: true)
+        $verifySsl = env('GOOGLE_SHEETS_SSL_VERIFY', true);
+        $this->client->setHttpClient(new \GuzzleHttp\Client(['verify' => $verifySsl]));
 
         if (!file_exists($this->credentialsPath)) {
             $cwd = getcwd();

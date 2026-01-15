@@ -3,6 +3,7 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
+    <x-plant-header title="Input Data Cross Cut Plating" :plant="request('plant')" />
     <div class="container-fluid">
 
 
@@ -22,6 +23,7 @@
             <div class="card-body">
                 <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="plant" value="{{ auth()->user()->plant }}">
                     <div class="table-responsive">
                         <table class="table table-bordered" width="100%" cellspacing="0">
                             <thead>
@@ -80,7 +82,7 @@
                                             <label>Tgl. & Shift Produksi</label>
                                             <div class="input-group">
                                                 <input type="datetime-local" class="form-control" name="production_datetime"
-                                                    required>
+                                                    value="{{ $defaultDateTime }}" required>
                                                 <select class="form-control" name="production_shift" required>
                                                     <option value="1">Shift 1</option>
                                                     <option value="2">Shift 2</option>
@@ -92,7 +94,7 @@
                                             <label>Tgl. & Shift QC</label>
                                             <div class="input-group">
                                                 <input type="datetime-local" class="form-control" name="qc_datetime"
-                                                    required>
+                                                    value="{{ $defaultDateTime }}" required>
                                                 <select class="form-control" name="qc_shift" required>
                                                     <option value="1">Shift 1</option>
                                                     <option value="2">Shift 2</option>
@@ -148,31 +150,8 @@
                                     </td>
                                     <!-- Inisial QC -->
                                     <td class="align-middle">
-                                        @php
-                                            $initial = '';
-                                            if (auth()->check()) {
-                                                $name = strtolower(auth()->user()->name);
-                                                if (str_contains($name, 'anggi')) {
-                                                    $initial = 'AP';
-                                                } elseif (str_contains($name, 'irfan')) {
-                                                    $initial = 'IA';
-                                                } elseif (str_contains($name, 'gugun')) {
-                                                    $initial = 'GK';
-                                                } elseif (str_contains($name, 'dede')) {
-                                                    $initial = 'DS';
-                                                } elseif (str_contains($name, 'arga')) {
-                                                    $initial = 'AY';
-                                                } elseif (str_contains($name, 'sopian')) {
-                                                    $initial = 'SH';
-                                                } elseif (str_contains($name, 'yono')) {
-                                                    $initial = 'YS';
-                                                } elseif (str_contains($name, 'dinar')) {
-                                                    $initial = 'DA';
-                                                }
-                                            }
-                                        @endphp
                                         <input type="text" class="form-control text-center" name="operator_initials"
-                                            placeholder="Inisial" value="{{ $initial }}" required>
+                                            placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
                                     </td>
                                     <!-- Keterangan -->
                                     <td class="align-middle">
@@ -181,7 +160,9 @@
                                                 Proses:</label>
                                             <select class="form-control" id="nextProses" name="next_proses">
                                                 <option value="">-- Pilih Next Proses --</option>
-                                                <option value="HOLD">HOLD</option>
+                                                <option value="CRUSHING">CRUSHING</option>
+                                                <option value="SORTIR">SORTIR</option>
+                                                <option value="FINISHING">FINISHING</option>
                                                 <option value="REPAIR">REPAIR</option>
                                             </select>
                                         </div>

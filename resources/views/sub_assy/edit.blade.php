@@ -1,9 +1,10 @@
 @extends('layouts.admin')
 
 @section('content')
+    <x-plant-header title="Edit Data Checksheet" :plant="request('plant')" />
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Edit Data Checksheet</h1>
-        <a href="{{ route('admin.checksheets.index') }}"
+        <a href="{{ route('admin.checksheets.index', ['plant' => request('plant')]) }}"
             class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
         </a>
@@ -14,9 +15,12 @@
             <h6 class="m-0 font-weight-bold text-primary">Form Edit Checksheet</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.checksheets.update', $checksheet->id) }}" method="POST">
+            <form
+                action="{{ route('admin.checksheets.update', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
+                method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
 
                 <div class="row">
                     <div class="col-md-6">
@@ -49,14 +53,21 @@
                                 <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
                             </select>
                         </div>
+                        @php
+                            $plant = strtolower(auth()->user()->plant ?? $checksheet->plant ?? '');
+                            $tableOptions = range(1, 15);
+                            if ($plant === 'jakarta') {
+                                $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
+                            }
+                        @endphp
                         <div class="form-group">
                             <label for="line">Meja</label>
                             <select name="line" id="line" class="form-control" required>
                                 <option value="">Pilih Meja</option>
-                                @for ($i = 1; $i <= 15; $i++)
+                                @foreach ($tableOptions as $i)
                                     <option value="{{ $i }}" {{ $checksheet->line == $i ? 'selected' : '' }}>Meja {{ $i }}
                                     </option>
-                                @endfor
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -131,6 +142,26 @@
                     </div>
                 </div>
 
+                <div id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
+                    <div class="form-group">
+                        <label for="next_proses" class="text-danger font-weight-bold">Next Proses</label>
+                        <select name="next_proses" id="next_proses" class="form-control">
+                            <option value="">-- Pilih Next Proses --</option>
+                            <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING
+                            </option>
+                            <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR
+                            </option>
+                            <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>
+                                FINISHING</option>
+                            <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
+                            </option>
+                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR']))
+                                <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                            @endif
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="remarks">Keterangan</label>
                     <textarea name="remarks" id="remarks" class="form-control"
@@ -142,3 +173,24 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const judgmentSelect = document.getElementById('judgment');
+            const nextProsesContainer = document.getElementById('nextProsesContainer');
+            const nextProsesSelect = document.getElementById('next_proses');
+
+            function toggleNextProses() {
+                if (judgmentSelect.value === 'NG') {
+                    $(nextProsesContainer).slideDown();
+                } else {
+                    $(nextProsesContainer).slideUp();
+                    nextProsesSelect.value = '';
+                }
+            }
+
+            judgmentSelect.addEventListener('change', toggleNextProses);
+        });
+    </script>
+@endpush

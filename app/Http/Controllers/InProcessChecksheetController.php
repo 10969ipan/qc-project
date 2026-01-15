@@ -67,10 +67,14 @@ class InProcessChecksheetController extends Controller
         return $standards;
     }
 
-    // Untuk Admin melihat daftar checksheet
     public function index(Request $request)
     {
         $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
@@ -132,7 +136,7 @@ class InProcessChecksheetController extends Controller
             });
         }
 
-        $checksheets = $query->paginate(10);
+        $checksheets = $query->paginate(10)->withQueryString();
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get();
 
@@ -145,8 +149,12 @@ class InProcessChecksheetController extends Controller
     public function create()
     {
         $items = Item::byCategory('Inprosess')->orderBy('name')->get();
+        $now = now();
+        $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
+
         return view('in_process.create', [
             'items' => $items,
+            'defaultDate' => $defaultDate,
             'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
         ]);
     }
@@ -236,10 +244,11 @@ class InProcessChecksheetController extends Controller
         $dimensionCheck = json_encode($filteredDimensions);
 
         $checksheet = InProcessChecksheet::create([
+            'plant' => auth()->user()->plant,
             'item_id' => $validated['item_id'],
             'date' => $validated['date'],
             'shift' => $validated['shift'],
-            'code_machine' => $validated['code_machine'], // Add code_machine
+            'code_machine' => $validated['code_machine'],
             'total_qty' => $validated['total_qty'],
             'sampling_qty' => $validated['sampling_qty'],
             'total_ok' => $validated['total_ok'],
@@ -300,8 +309,12 @@ class InProcessChecksheetController extends Controller
     // Edit Checksheet
     public function edit($id)
     {
-        // Allow access to edit based on sidebar role logic or generally allowed
-        $checksheet = InProcessChecksheet::findOrFail($id);
+        $query = InProcessChecksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
+
         $items = Item::orderBy('name')->get();
         return view('in_process.edit', [
             'checksheet' => $checksheet,
@@ -436,17 +449,24 @@ class InProcessChecksheetController extends Controller
     // Delete Checksheet
     public function destroy($id)
     {
-        $checksheet = InProcessChecksheet::findOrFail($id);
+        $query = InProcessChecksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
         $checksheet->delete();
 
         return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
     }
 
-    // Approve Checksheet
     public function approve(Request $request, $id, $type)
     {
         try {
-            $checksheet = InProcessChecksheet::findOrFail($id);
+            $query = InProcessChecksheet::query();
+            if (auth()->user()->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+            $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
             // Validate that the user is allowed to approve this type
@@ -518,7 +538,11 @@ class InProcessChecksheetController extends Controller
     public function reject(Request $request, $id, $type)
     {
         try {
-            $checksheet = InProcessChecksheet::findOrFail($id);
+            $query = InProcessChecksheet::query();
+            if (auth()->user()->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+            $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
             // Validate that the user is allowed to reject this type

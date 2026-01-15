@@ -10,9 +10,16 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::withCount('items')->orderBy('name')->paginate(10);
+        $query = Category::withCount('items');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->plant);
+        }
+
+        $categories = $query->orderBy('name')->paginate(10)->withQueryString();
         return view('categories.index', compact('categories'));
     }
 
@@ -43,6 +50,9 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
+        if (auth()->user()->role === 'admin') {
+            $category = Category::withoutGlobalScope('plant')->findOrFail($category->id);
+        }
         return view('categories.edit', compact('category'));
     }
 
@@ -51,6 +61,10 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
+        if (auth()->user()->role === 'admin') {
+            $category = Category::withoutGlobalScope('plant')->findOrFail($category->id);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
         ]);
@@ -63,16 +77,15 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Request $request, $id)
     {
-        // Check if category has items
-        if ($category->items()->count() > 0) {
-            return redirect()->route('admin.categories.index')
-                ->with('error', 'Kategori tidak dapat dihapus karena masih memiliki ' . $category->items()->count() . ' item.');
+        $query = Category::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
         }
+        $category = $query->findOrFail($id);
 
         $category->delete();
-
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dihapus.');
+        return redirect()->route('categories.index', $request->only('plant'))->with('success', 'Kategori berhasil dihapus.');
     }
 }

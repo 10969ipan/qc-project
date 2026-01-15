@@ -3,6 +3,7 @@
 @section('title', 'Edit Data Cross Cut')
 
 @section('content')
+    <x-plant-header title="Edit Data Cross Cut" :plant="request('plant')" />
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Checksheet Cross Cut</h1>
 
@@ -20,9 +21,10 @@
             <h6 class="m-0 font-weight-bold text-primary">Edit Data Checksheet Cross Cut</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('cross_cut.update', $checksheet->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('cross_cut.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" cellspacing="0">
                         <thead>
@@ -120,7 +122,24 @@
                                 <!-- Inisial QC -->
                                 <td class="align-middle"><input type="text" class="form-control" name="operator_initials" placeholder="Inisial" value="{{ $checksheet->operator_initials }}"></td>
                                 <!-- Keterangan -->
-                                <td class="align-middle"><textarea class="form-control" name="keterangan" rows="3">{{ $checksheet->keterangan }}</textarea></td>
+                                <td class="align-middle">
+                                    <div id="nextProsesContainer" style="display: {{ $checksheet->position_remark_judgment == 'NG' ? 'block' : 'none' }};">
+                                        <div class="form-group mb-2">
+                                            <label class="text-danger font-weight-bold">Next Proses</label>
+                                            <select name="next_proses" id="next_proses" class="form-control">
+                                                <option value="">-- Pilih Next Proses --</option>
+                                                <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
+                                                <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR</option>
+                                                <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
+                                                <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR</option>
+                                                @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR']))
+                                                    <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <textarea class="form-control" name="keterangan" rows="3">{{ $checksheet->keterangan }}</textarea>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -244,6 +263,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         cycleTimeInput.value = totalSeconds;
     });
+
+    // Next Proses logic
+    const judgmentSelect = document.querySelector('select[name="position_remark_judgment"]');
+    const nextProsesContainer = document.getElementById('nextProsesContainer');
+    const nextProsesSelect = document.getElementById('next_proses');
+
+    function toggleNextProses() {
+        if (judgmentSelect.value === 'NG') {
+            $(nextProsesContainer).slideDown();
+        } else {
+            $(nextProsesContainer).slideUp();
+            nextProsesSelect.value = '';
+        }
+    }
+
+    judgmentSelect.addEventListener('change', toggleNextProses);
 });
 </script>
 @endpush

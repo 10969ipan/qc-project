@@ -10,8 +10,12 @@ class ItemController extends Controller
 
     public function index(Request $request)
     {
-        // Mulai query untuk model Item
         $query = Item::with('category');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->plant);
+        }
 
         if ($request->has('name') && $request->name != '') {
             $query->where('name', 'like', '%' . $request->name . '%');
@@ -33,7 +37,7 @@ class ItemController extends Controller
             $query->where('category_id', $request->category);
         }
 
-        $items = $query->orderBy('name', 'asc')->paginate(10);
+        $items = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
         $categories = \App\Models\Category::orderBy('name')->get();
         return view('items.index', compact('items', 'categories'));
     }
@@ -141,6 +145,11 @@ class ItemController extends Controller
     // Menampilkan form edit item
     public function edit(Item $item)
     {
+        // For admin to edit items from any plant
+        if (auth()->user()->role === 'admin') {
+            $item = Item::withoutGlobalScope('plant')->findOrFail($item->id);
+        }
+
         $categories = \App\Models\Category::orderBy('name')->get();
         return view('items.edit', compact('item', 'categories'));
     }
@@ -148,6 +157,9 @@ class ItemController extends Controller
     // Update data item
     public function update(Request $request, Item $item)
     {
+        if (auth()->user()->role === 'admin') {
+            $item = Item::withoutGlobalScope('plant')->findOrFail($item->id);
+        }
         $itemId = $item->id;
         $validated = $request->validate([
             'name' => [
@@ -291,7 +303,11 @@ class ItemController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $item = Item::findOrFail($id);
+        $query = Item::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $item = $query->findOrFail($id);
 
         // Resolusi path file untuk memastikan lokasi yang benar
         $this->resolveFilePath($item);
@@ -310,6 +326,7 @@ class ItemController extends Controller
             'category' => $request->input('category'),
             'customer' => $request->input('customer'),
             'part_number' => $request->input('part_number'),
+            'plant' => $request->input('plant'),
         ];
 
         // Remove null values

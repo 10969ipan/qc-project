@@ -175,7 +175,7 @@
                     <td>{{ $checksheet->sampling_qty }}</td>
 
                     <td style="padding: 0;">
-                        @php $dimensions = json_decode($checksheet->dimension_check, true); @endphp
+                        @php $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true); @endphp
                         @if(is_array($dimensions) && count($dimensions) > 0)
                             <table class="dimension-table">
                                 <thead>
@@ -215,7 +215,7 @@
                     <td class="text-danger">{{ $checksheet->total_ng }}</td>
 
                     @php
-                        $defectsData = json_decode($checksheet->defects, true);
+                        $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
                         $pcsLines = [];
                         $nameLines = [];
                         if (is_array($defectsData)) {

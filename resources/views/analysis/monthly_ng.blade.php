@@ -6,7 +6,7 @@
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <h1 class="h3 mb-4 text-gray-800">Report Sub Assy</h1>
+        <x-plant-header title="Report Sub Assy" :plant="$plant" />
 
         <!-- Date Filter -->
         <div class="card shadow mb-4">
@@ -26,7 +26,8 @@
                             value="{{ request('end_date') }}">
                     </div>
                     <button type="submit" class="btn btn-primary mb-2">Cari</button>
-                    <a href="{{ route('analysis.monthly_ng') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
+                    <a href="{{ route('analysis.monthly_ng', ['plant' => $plant]) }}"
+                        class="btn btn-secondary mb-2 ml-2">Reset</a>
                 </form>
             </div>
         </div>

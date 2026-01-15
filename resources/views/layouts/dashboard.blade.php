@@ -320,6 +320,17 @@
                 font-size: 0.75rem !important;
             }
         }
+
+        /* Pie Chart Styling */
+        .chart-pie {
+            position: relative;
+            height: 15rem;
+        }
+
+        .chart-pie canvas {
+            height: 100% !important;
+            width: 100% !important;
+        }
     </style>
 
     <!-- Welcome Section -->
@@ -355,59 +366,140 @@
 
 
     @if(isset($combinedStats))
-        <!-- Stats Cards Section -->
+        <!-- Stats Cards Section with Pie Chart -->
         <div class="row mb-5">
             <div class="col-12 mb-3">
                 <h5 class="font-weight-bold text-gray-800 ml-1"
                     style="border-left: 4px solid #4e73df; padding-left: 12px; letter-spacing: 0.5px;">OVERVIEW APPROVAL QC</h5>
             </div>
 
-
-            <!-- Pending -->
-            <div class="col-xl-4 col-md-4 mb-3">
-                <div class="stat-card-modern" style="border-left-color: #f6c23e;">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Approval</div>
-                            <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $combinedStats['pending'] }}</div>
+            <!-- Pie Chart -->
+            <div class="col-xl-6 col-lg-6 mb-3">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Status Approval Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie pt-4">
+                            <canvas id="approvalPieChart"></canvas>
                         </div>
-                        <div class="icon-circle bg-warning text-white" style="width: 40px; height: 40px; font-size: 1rem;">
-                            <i class="fas fa-hourglass-half"></i>
+                        <div class="mt-4 text-center small">
+                            <span class="mr-3">
+                                <i class="fas fa-circle text-warning"></i> Pending
+                            </span>
+                            <span class="mr-3">
+                                <i class="fas fa-circle text-success"></i> Approved
+                            </span>
+                            <span class="mr-3">
+                                <i class="fas fa-circle text-danger"></i> Rejected
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Approved -->
-            <div class="col-xl-4 col-md-4 mb-3">
-                <div class="stat-card-modern" style="border-left-color: #1cc88a;">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Approved</div>
-                            <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $combinedStats['approved'] }}</div>
-                        </div>
-                        <div class="icon-circle bg-success text-white" style="width: 40px; height: 40px; font-size: 1rem;">
-                            <i class="fas fa-check"></i>
+            <!-- Stats Summary Cards -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="row">
+                    <!-- Pending -->
+                    <div class="col-12 mb-3">
+                        <div class="stat-card-modern" style="border-left-color: #f6c23e;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Approval
+                                    </div>
+                                    <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $combinedStats['pending'] }}</div>
+                                </div>
+                                <div class="icon-circle bg-warning text-white"
+                                    style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="fas fa-hourglass-half"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Rejected -->
-            <div class="col-xl-4 col-md-4 mb-3">
-                <div class="stat-card-modern" style="border-left-color: #e74a3b;">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected</div>
-                            <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $combinedStats['rejected'] }}</div>
+                    <!-- Approved -->
+                    <div class="col-12 mb-3">
+                        <div class="stat-card-modern" style="border-left-color: #1cc88a;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Approved</div>
+                                    <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $combinedStats['approved'] }}</div>
+                                </div>
+                                <div class="icon-circle bg-success text-white"
+                                    style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="icon-circle bg-danger text-white" style="width: 40px; height: 40px; font-size: 1rem;">
-                            <i class="fas fa-times"></i>
+                    </div>
+
+                    <!-- Rejected -->
+                    <div class="col-12 mb-3">
+                        <div class="stat-card-modern" style="border-left-color: #e74a3b;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected</div>
+                                    <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $combinedStats['rejected'] }}</div>
+                                </div>
+                                <div class="icon-circle bg-danger text-white"
+                                    style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        @push('scripts')
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+            <script
+                src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+            <script>
+                // Approval Pie Chart
+                var ctx = document.getElementById("approvalPieChart");
+                var approvalPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pending', 'Approved', 'Rejected'],
+                        datasets: [{
+                            data: [{{ $combinedStats['pending'] }}, {{ $combinedStats['approved'] }}, {{ $combinedStats['rejected'] }}],
+                            backgroundColor: ['#f6c23e', '#1cc88a', '#e74a3b'],
+                            hoverBackgroundColor: ['#f4b619', '#17a673', '#d52a1a'],
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                displayColors: false,
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (context) {
+                                        var label = context.label || '';
+                                        var value = context.parsed || 0;
+                                        var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        var percentage = ((value / total) * 100).toFixed(1);
+                                        return label + ': ' + value + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                });
+            </script>
+        @endpush
     @endif
 
     <!-- Production Status Section -->
@@ -415,6 +507,13 @@
         <!-- Sub Assy Lines -->
         <div class="col-xl-6 col-lg-12 mb-5">
             <div class="modern-card h-100">
+                @php
+                    $plant = strtolower(auth()->user()->plant ?? request('plant') ?? '');
+                    $tableOptions = range(1, 15);
+                    if ($plant === 'jakarta') {
+                        $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
+                    }
+                @endphp
                 <div class="modern-card-header">
                     <div class="d-flex align-items-center">
                         <div class="icon-circle bg-primary text-white mr-3"
@@ -432,7 +531,7 @@
                 </div>
                 <div class="card-body bg-light" style="background: #fdfdfe;">
                     <div class="row px-2">
-                        @for ($i = 1; $i <= 15; $i++)
+                        @foreach ($tableOptions as $i)
                             @php
                                 $data = $activeLines->get($i);
                                 $manualStatus = $lineStatuses->get($i);
@@ -499,7 +598,7 @@
                                     @endif
                                 </div>
                             </div>
-                        @endfor
+                         @endforeach
                     </div>
                 </div>
             </div>
@@ -526,7 +625,7 @@
                 <div class="card-body bg-light" style="background: #fdfdfe;">
                     <div class="row px-2">
                         @for ($i = 1; $i <= 19; $i++)
-                            @if($i == 11 || $i == 13)
+                            @if($i == 10 || $i == 13)
                                 @continue
                             @endif
                             @php
@@ -544,7 +643,7 @@
                                     7 => '360',
                                     8 => '210',
                                     9 => '210',
-                                    10 => '160',
+                                    11 => '160',
                                     12 => '80',
                                     14 => '120',
                                     15 => '160',
@@ -687,80 +786,48 @@
             let content = '';
 
             if (status === 'active') {
-                // Active production data
                 content = `
-                                                                        <div class="mb-3">
-                                                                            <h6 class="font-weight-bold text-primary mb-2">
-                                                                                <i class="fas fa-box mr-2"></i>Part Information
-                                                                            </h6>
-                                                                            <div class="pl-4">
-                                                                                <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
-                                                                                <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
-                                                                                <p class="mb-0"><strong>Machine Tonnage:</strong> ${tonnage}</p>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="mb-3">
-                                                                            <h6 class="font-weight-bold text-primary mb-2">
-                                                                                <i class="fas fa-clipboard-check mr-2"></i>Quality Check
-                                                                            </h6>
-                                                                            <div class="pl-4">
-                                                                                <p class="mb-1"><strong>Total Qty:</strong> ${totalQty}</p>
-                                                                                <p class="mb-2"><strong>Sampling Qty:</strong> ${samplingQty}</p>
-                                                                                <div class="row mb-2">
-                                                                                    <div class="col-6">
-                                                                                        <span class="badge badge-success">Sampling OK: ${okCount}</span>
-                                                                                    </div>
-                                                                                    <div class="col-6">
-                                                                                        <span class="badge badge-danger">Sampling NG: ${ngCount}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <p class="mb-1">
-                                                                                    <strong>Judgment:</strong> 
-                                                                                    <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span>
-                                                                                </p>
-                                                                                <p class="mb-1"><strong>QC:</strong> ${operator}</p>
-                                                                                <p class="mb-0"><strong>Date:</strong> ${date} | <strong>Time:</strong> ${time} | <strong>Shift:</strong> ${shift}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    `;
-            } else if (status === 'maintenance' || status === 'stopped' || status === 'trouble') {
-                // Manual status
-                let statusBadge = '';
-                let statusIcon = '';
-                if (status === 'maintenance') {
-                    statusBadge = '<span class="badge badge-warning">GANTI MOLD/SETTING</span>';
-                    statusIcon = '<i class="fas fa-tools mr-2"></i>';
-                } else if (status === 'stopped') {
-                    statusBadge = '<span class="badge badge-dark">STAND BY</span>';
-                    statusIcon = '<i class="fas fa-pause-circle mr-2"></i>';
-                } else if (status === 'trouble') {
-                    statusBadge = '<span class="badge badge-danger">TROUBLE</span>';
-                    statusIcon = '<i class="fas fa-exclamation-triangle mr-2"></i>';
-                }
-
+                                            <div class="mb-3">
+                                                <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-box mr-2"></i>Part Info</h6>
+                                                <div class="pl-4">
+                                                    <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
+                                                    <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
+                                                    <p class="mb-0"><strong>Tonnage:</strong> ${tonnage}</p>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-clipboard-check mr-2"></i>QC Check</h6>
+                                                <div class="pl-4">
+                                                    <p class="mb-1"><strong>Sampling:</strong> ${samplingQty} / ${totalQty}</p>
+                                                    <div class="row mb-2">
+                                                        <div class="col-6"><span class="badge badge-success w-100">OK: ${okCount}</span></div>
+                                                        <div class="col-6"><span class="badge badge-danger w-100">NG: ${ngCount}</span></div>
+                                                    </div>
+                                                    <p class="mb-1"><strong>Judgment:</strong> <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span></p>
+                                                    <p class="mb-1"><strong>QC:</strong> ${operator}</p>
+                                                    <p class="mb-0"><strong>Time:</strong> ${date} | ${time} | Shift ${shift}</p>
+                                                </div>
+                                            </div>`;
+            } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
+                let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
+                let color = status === 'maintenance' ? 'warning' : (status === 'stopped' ? 'dark' : 'danger');
                 content = `
-                                                                        <div class="mb-3">
-                                                                            <h6 class="font-weight-bold text-warning mb-2">
-                                                                                ${statusIcon}Manual Status
-                                                                            </h6>
-                                                                            <div class="pl-4">
-                                                                                <p class="mb-2"><strong>Status:</strong> ${statusBadge}</p>
-                                                                                <p class="mb-1"><strong>Description:</strong> ${manualDescription || 'No description'}</p>
-                                                                                <p class="mb-1"><strong>Set by:</strong> ${manualBy}</p>
-                                                                                <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    `;
+                                            <div class="mb-3">
+                                                <h6 class="font-weight-bold text-${color} mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Manual Status</h6>
+                                                <div class="pl-4">
+                                                    <p class="mb-2"><strong>Status:</strong> <span class="badge badge-${color}">${badge}</span></p>
+                                                    <p class="mb-1"><strong>Desc:</strong> ${manualDescription || '-'}</p>
+                                                    <p class="mb-1"><strong>By:</strong> ${manualBy}</p>
+                                                    <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
+                                                </div>
+                                            </div>`;
             } else {
-                // Idle status
                 content = `
-                                                                        <div class="text-center py-4">
-                                                                            <i class="fas fa-moon fa-3x text-muted mb-3"></i>
-                                                                            <h6 class="text-muted">Status: IDLE</h6>
-                                                                            <p class="text-muted mb-0">No production data available</p>
-                                                                        </div>
-                                                                    `;
+                                            <div class="text-center py-4">
+                                                <i class="fas fa-moon fa-3x text-muted mb-3"></i>
+                                                <h6 class="text-muted">Status: IDLE</h6>
+                                                <p class="text-muted mb-0">No production data available</p>
+                                            </div>`;
             }
 
             // Set modal content

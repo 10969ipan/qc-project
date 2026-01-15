@@ -11,6 +11,12 @@
             <form action="{{ route('admin.categories.store') }}" method="POST">
                 @csrf
                 <div class="form-group">
+                    <label>Plant</label>
+                    <input type="text" class="form-control bg-light"
+                        value="{{ strtoupper(auth()->user()->plant ?? 'KARAWANG') }}" readonly>
+                    <small class="text-muted">Kategori akan otomatis didaftarkan untuk plant ini.</small>
+                </div>
+                <div class="form-group">
                     <label>Nama Kategori <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                         value="{{ old('name') }}" required placeholder="Contoh: Sub Assy">

@@ -19,196 +19,91 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        // Buat Akun Admin
-        User::updateOrCreate(
-            ['email' => 'admin@qc.com'],
-            [
-                'name' => 'Administrator',
-                'password' => Hash::make('admin123'),
-                'role' => 'admin',
-            ]
-        );
+        $defaultPassword = env('DEFAULT_QC_PASSWORD', 'indoplat2526');
+        $adminPassword = env('ADMIN_QC_PASSWORD', 'admin123');
 
-        // Buat Akun Supervisor
-        User::updateOrCreate(
-            ['email' => 'spvqa@qc.com'],
-            [
-                'name' => 'Mida Herdiyani',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'supervisor',
-            ]
-        );
+        $users = [
+            // Admin (access to both plants)
+            ['name' => 'Administrator', 'email' => 'admin@qc.com', 'role' => 'admin', 'plant' => 'karawang', 'password' => $adminPassword],
 
-        User::updateOrCreate(
-            ['email' => 'spvqc@qc.com'],
-            [
-                'name' => 'Arief Hidayat',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'supervisor',
-            ]
-        );
+            // ===== PLANT KARAWANG =====
+            // Supervisor
+            ['name' => 'Mida Herdiyani', 'email' => 'spvqa@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Arief Hidayat', 'email' => 'spvqc@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        // Buat Akun Inspector
-        User::updateOrCreate(
-            ['email' => 'irfan@qc.com'],
-            [
-                'name' => 'Irfan Arfian Kusnadi',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Inspector (Karawang)
+            ['name' => 'Irfan Arfian Kusnadi', 'email' => 'irfan@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Anggi Purnama', 'email' => 'anggi@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Gugun Kurniadi', 'email' => 'gugun@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Dede Supriyadi', 'email' => 'dede@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Arga Yudistira', 'email' => 'arga@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Sopian Handani', 'email' => 'sopian@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Yono Supriatno', 'email' => 'yono@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Dinar Ashobar', 'email' => 'dinar@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'anggi@qc.com'],
-            [
-                'name' => 'Anggi Purnama',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Ka. Shift (Karawang)
+            ['name' => 'Ahmad Jaeni', 'email' => 'kashift@qc.com', 'role' => 'kashift', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'gugun@qc.com'],
-            [
-                'name' => 'Gugun Kurniadi',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Asst. Manager (Karawang)
+            ['name' => 'Iwan Setiawan', 'email' => 'manager@qc.com', 'role' => 'asst_manager', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'dede@qc.com'],
-            [
-                'name' => 'Dede Supriyadi',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Manager (Karawang)
+            ['name' => 'Desti Kurniasari', 'email' => 'generalmanager@qc.com', 'role' => 'manager', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'arga@qc.com'],
-            [
-                'name' => 'Arga Yudistira',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Karu QC (Karawang)
+            ['name' => 'Fitri', 'email' => 'fitri@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Pipit', 'email' => 'pipit@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Parlinah', 'email' => 'parlinah@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'sopian@qc.com'],
-            [
-                'name' => 'Sopian Handani',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Kashift Plating (Karawang)
+            ['name' => 'Kashift Plating', 'email' => 'kashiftplating@qc.com', 'role' => 'kashift_plating', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'yono@qc.com'],
-            [
-                'name' => 'Yono Supriatno',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // SPV Plating (Karawang)
+            ['name' => 'SPV Plating', 'email' => 'spvplating@qc.com', 'role' => 'supervisor_plating', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        User::updateOrCreate(
-            ['email' => 'dinar@qc.com'],
-            [
-                'name' => 'Dinar Ashobar',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'inspector',
-            ]
-        );
+            // Manager Plating (Karawang)
+            ['name' => 'Manager Plating', 'email' => 'managerplating@qc.com', 'role' => 'manager_plating', 'plant' => 'karawang', 'password' => $defaultPassword],
 
-        // Buat Akun Ka. Shift
-        User::updateOrCreate(
-            ['email' => 'kashift@qc.com'],
-            [
-                'name' => 'Ahmad Jaeni',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'kashift',
-            ]
-        );
+            // ===== PLANT JAKARTA =====
+            // Supervisor Jakarta
+            ['name' => 'Masuli', 'email' => 'masuli.jkt@qc.com', 'role' => 'supervisor', 'plant' => 'jakarta', 'password' => $defaultPassword],
 
-        // Buat Akun Asst. Manager
-        User::updateOrCreate(
-            ['email' => 'manager@qc.com'],
-            [
-                'name' => 'Iwan Setiawan',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'asst_manager',
-            ]
-        );
+            // Kepala Regu Jakarta
+            ['name' => 'Marsiah', 'email' => 'marsiah.jkt@qc.com', 'role' => 'karu_qc', 'plant' => 'jakarta', 'password' => $defaultPassword],
 
-        // Buat Akun Manager
-        User::updateOrCreate(
-            ['email' => 'generalmanager@qc.com'],
-            [
-                'name' => 'Desti Kurniasari',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'manager',
-            ]
-        );
+            // In-Process Jakarta
+            ['name' => 'Afrin Wibowo', 'email' => 'afrin.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Anggriyani', 'email' => 'anggriyani.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Okah Retno Amriani', 'email' => 'okah.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'M. Miftahul Ulum', 'email' => 'ulum.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Ilham Aldi Pratama', 'email' => 'ilham.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Tri Rahmadhani', 'email' => 'tri.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
 
-        // Buat Akun Karu QC (3 users)
-        User::updateOrCreate(
-            ['email' => 'fitri@qc.com'],
-            [
-                'name' => 'Fitri',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'karu_qc',
-            ]
-        );
+            // Sub Assy Jakarta
+            ['name' => 'Sabrina Kurniawati', 'email' => 'sabrina.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Ririn Eka Prasetia', 'email' => 'ririn.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Syadina Juhro', 'email' => 'syadina.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+        ];
 
-        User::updateOrCreate(
-            ['email' => 'pipit@qc.com'],
-            [
-                'name' => 'Pipit',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'karu_qc',
-            ]
-        );
+        foreach ($users as $userData) {
+            $user = User::where('email', $userData['email'])->first();
 
-        User::updateOrCreate(
-            ['email' => 'parlinah@qc.com'],
-            [
-                'name' => 'Parlinah',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'karu_qc',
-            ]
-        );
-
-        // Buat Akun Kashift Plating
-        User::updateOrCreate(
-            ['email' => 'kashiftplating@qc.com'],
-            [
-                'name' => 'Kashift Plating',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'kashift_plating',
-            ]
-        );
-
-        // Buat Akun SPV Plating
-        User::updateOrCreate(
-            ['email' => 'spvplating@qc.com'],
-            [
-                'name' => 'SPV Plating',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'supervisor_plating',
-            ]
-        );
-
-        // Buat Akun Manager Plating
-        User::updateOrCreate(
-            ['email' => 'managerplating@qc.com'],
-            [
-                'name' => 'Manager Plating',
-                'password' => Hash::make('indoplat2526'),
-                'role' => 'manager_plating',
-            ]
-        );
-
-
+            if ($user) {
+                // Jangan update password jika user sudah ada (agar tidak tertimpa ke default)
+                $user->update([
+                    'name' => $userData['name'],
+                    'role' => $userData['role'],
+                    'plant' => $userData['plant'],
+                ]);
+            } else {
+                User::create([
+                    'name' => $userData['name'],
+                    'email' => $userData['email'],
+                    'password' => Hash::make($userData['password']),
+                    'role' => $userData['role'],
+                    'plant' => $userData['plant'],
+                ]);
+            }
+        }
     }
 }

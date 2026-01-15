@@ -3,6 +3,7 @@
 @section('title', 'Kategori Item')
 
 @section('content')
+    <x-plant-header title="Master Data Kategori" :plant="request()->get('plant')" />
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Kategori</h6>
@@ -13,6 +14,21 @@
             @endif
         </div>
         <div class="card-body">
+            @if(auth()->user()->role === 'admin')
+                <form action="{{ route('admin.categories.index') }}" method="GET" class="mb-4">
+                    <div class="row align-items-end">
+                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+                            <label for="plant_select" class="font-weight-bold">Plant Context</label>
+                            <select name="plant" id="plant_select" class="form-control form-control-sm shadow-sm"
+                                onchange="this.form.submit()">
+                                <option value="" {{ !request('plant') ? 'selected' : '' }}>Semua Plant</option>
+                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
+                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            @endif
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }}
@@ -38,6 +54,7 @@
                             <th>No</th>
                             <th>Nama Kategori</th>
                             <th>Jumlah Item</th>
+                            <th>Plant</th>
                             @if(auth()->user()->role !== 'inspector')
                                 <th>Aksi</th>
                             @endif
@@ -50,6 +67,11 @@
                                 <td>{{ $category->name }}</td>
                                 <td>
                                     <span class="badge badge-info">{{ $category->items_count }} item</span>
+                                </td>
+                                <td>
+                                    <span class="badge {{ $category->plant === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
+                                        {{ strtoupper($category->plant) }}
+                                    </span>
                                 </td>
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="text-nowrap">

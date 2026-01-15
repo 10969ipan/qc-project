@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ChecksheetController;
 use App\Http\Controllers\InProcessChecksheetController;
@@ -69,6 +68,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'store'])->name('cross_cut.store');
     Route::get('/checksheet/cross-cut/{id}', [CrossCutChecksheetController::class, 'show'])->name('cross_cut.show');
     Route::get('/checksheet/cross-cut/{id}/image', [CrossCutChecksheetController::class, 'serveImage'])->name('cross_cut.image');
+    Route::get('/cross_cut/{id}/data', [CrossCutChecksheetController::class, 'getData'])->name('cross_cut.data');
+
+    // Rute Sortir (Input)
+    Route::get('/checksheet/sortir', [App\Http\Controllers\SortirChecksheetController::class, 'create'])->name('sortir.create');
+    Route::post('/checksheet/sortir', [App\Http\Controllers\SortirChecksheetController::class, 'store'])->name('sortir.store');
 
 
     // Rute Analis (Shared by Admin, Supervisor, Kashift, Asst. Manager)
@@ -140,6 +144,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/checksheets', [ChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
+        Route::get('/report/sortir-checksheets', [App\Http\Controllers\SortirChecksheetController::class, 'index'])->name('sortir.index');
     });
 
     // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager, Manager, and New Roles)
@@ -166,11 +171,15 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'update'])->name('cross_cut.update');
         Route::delete('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'destroy'])->name('cross_cut.destroy');
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
+
+        // Sortir Approval, Rejection, Edit, Update, Delete, Export
+        Route::post('/sortir-checksheets/{id}/approve/{type}', [App\Http\Controllers\SortirChecksheetController::class, 'approve'])->name('sortir.approve');
+        Route::post('/sortir-checksheets/{id}/reject/{type}', [App\Http\Controllers\SortirChecksheetController::class, 'reject'])->name('sortir.reject');
+        Route::get('/sortir-checksheets/{id}/edit', [App\Http\Controllers\SortirChecksheetController::class, 'edit'])->name('sortir.edit');
+        Route::put('/sortir-checksheets/{id}', [App\Http\Controllers\SortirChecksheetController::class, 'update'])->name('sortir.update');
+        Route::delete('/sortir-checksheets/{id}', [App\Http\Controllers\SortirChecksheetController::class, 'destroy'])->name('sortir.destroy');
+        Route::get('/report/sortir-checksheets/export', [App\Http\Controllers\SortirChecksheetController::class, 'export'])->name('sortir.export');
     });
 });
 
-// --- Rute Khusus Inspector ---
-Route::middleware(['auth', 'role:inspector'])->prefix('inspector')->group(function () {
-    Route::get('report_qc', [ReportController::class, 'create'])->name('inspector.create_report');
-    Route::post('report_qc', [ReportController::class, 'store'])->name('inspector.store_report');
-});
+

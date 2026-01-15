@@ -12,6 +12,10 @@
                 @csrf
                 @method('PUT')
                 <div class="form-group">
+                    <label>Plant</label>
+                    <input type="text" class="form-control bg-light" value="{{ strtoupper($category->plant) }}" readonly>
+                </div>
+                <div class="form-group">
                     <label>Nama Kategori <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                         value="{{ old('name', $category->name) }}" required>

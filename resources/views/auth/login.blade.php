@@ -26,7 +26,10 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
+            background-color: #4e73df;
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
         }
 
         .login-container {
@@ -36,7 +39,7 @@
             justify-content: center;
             background-color: #4e73df;
             position: relative;
-            overflow: hidden;
+            padding: 2rem 1rem;
         }
 
         @keyframes float {
@@ -63,6 +66,7 @@
             max-width: 440px;
             position: relative;
             z-index: 1;
+            margin: auto;
         }
 
         @keyframes floatCard {
@@ -254,23 +258,22 @@
             margin-bottom: 0;
         }
 
-        /* Responsive Design */
+        /* Responsive Design Upgrades */
         @media (max-width: 767.98px) {
+            .login-container {
+                padding: 1.5rem 1rem;
+            }
+
             .login-card {
-                padding: 2rem 1.5rem;
-                margin: 1rem;
+                padding: 2.25rem 1.75rem;
                 border-radius: 20px;
             }
 
             .login-icon {
                 width: 100px;
                 height: 100px;
-                margin-bottom: 1rem;
+                margin-bottom: 1.25rem;
                 padding: 12px;
-            }
-
-            .login-icon i {
-                font-size: 2rem;
             }
 
             .login-title {
@@ -278,37 +281,63 @@
             }
 
             .login-subtitle {
-                font-size: 0.875rem;
-            }
-
-            .form-control-modern {
-                padding: 0.875rem 1rem;
-                font-size: 16px;
-                /* Prevent zoom on iOS */
-            }
-
-            .btn-login {
-                padding: 0.875rem;
+                font-size: 0.9rem;
             }
         }
 
-        @media (max-width: 575.98px) {
+        @media (max-width: 480px) {
             .login-card {
                 padding: 1.75rem 1.25rem;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             }
 
             .login-icon {
-                width: 90px;
-                height: 90px;
-                padding: 10px;
-            }
-
-            .login-icon i {
-                font-size: 1.75rem;
+                width: 85px;
+                height: 85px;
             }
 
             .login-title {
                 font-size: 1.35rem;
+            }
+
+            .form-control-modern {
+                padding: 0.85rem 1rem;
+                font-size: 16px;
+                /* iOS zoom prevention */
+            }
+        }
+
+        /* Landscape orientation handling for mobile */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .login-container {
+                padding: 1rem;
+                align-items: flex-start;
+            }
+
+            .login-card {
+                padding: 1.5rem;
+            }
+
+            .login-header {
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                text-align: left;
+            }
+
+            .login-icon {
+                width: 60px;
+                height: 60px;
+                margin: 0 1.5rem 0 0;
+            }
+
+            .login-title {
+                font-size: 1.25rem;
+                margin-bottom: 0;
+            }
+
+            .form-group {
+                margin-bottom: 1rem;
             }
         }
     </style>
@@ -327,7 +356,7 @@
                 <p class="login-subtitle">Silakan login untuk melanjutkan</p>
             </div>
 
-            @if ($errors->any())
+            @if (isset($errors) && $errors instanceof \Illuminate\Support\ViewErrorBag && $errors->any())
                 <div class="alert-modern">
                     <ul>
                         @foreach ($errors->all() as $error)

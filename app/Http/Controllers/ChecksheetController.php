@@ -9,10 +9,14 @@ use App\Services\GoogleSheetService;
 
 class ChecksheetController extends Controller
 {
-    // Untuk Admin melihat daftar checksheet
     public function index(Request $request)
     {
         $query = Checksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+
+        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
@@ -74,7 +78,7 @@ class ChecksheetController extends Controller
             });
         }
 
-        $checksheets = $query->paginate(10);
+        $checksheets = $query->paginate(10)->withQueryString();
         // Sort items by name to make filter dropdown cleaner
         $items = Item::orderBy('name')->get();
 
@@ -85,7 +89,10 @@ class ChecksheetController extends Controller
     public function create()
     {
         $items = Item::byCategory('Sub Assy')->orderBy('name')->get();
-        return view('sub_assy.create', compact('items'));
+        $now = now();
+        $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
+
+        return view('sub_assy.create', compact('items', 'defaultDate'));
     }
 
     // Simpan data (submission)
@@ -121,6 +128,7 @@ class ChecksheetController extends Controller
         }
 
         $checksheet = Checksheet::create([
+            'plant' => auth()->user()->plant,
             'item_id' => $validated['item_id'],
             'date' => $validated['date'],
             'shift' => $validated['shift'],
@@ -176,8 +184,12 @@ class ChecksheetController extends Controller
     // Edit Checksheet
     public function edit($id)
     {
-        // Izinkan akses edit berdasarkan logika role sidebar atau diizinkan secara umum
-        $checksheet = Checksheet::findOrFail($id);
+        $query = Checksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
+
         $items = Item::orderBy('name')->get();
         return view('sub_assy.edit', compact('checksheet', 'items'));
     }
@@ -249,13 +261,28 @@ class ChecksheetController extends Controller
 
         $checksheet->update($updateData);
 
-        return redirect()->route('admin.checksheets.index')->with('success', 'Data Checksheet berhasil diperbarui.');
+        return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+    }
+
+    private function getApprovalMapping($type)
+    {
+        $mapping = [
+            'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Kashift'],
+            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
+            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
+            'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
+        ];
+        return $mapping[$type] ?? null;
     }
 
     // Delete Checksheet
     public function destroy($id)
     {
-        $checksheet = Checksheet::findOrFail($id);
+        $query = Checksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
         $checksheet->delete();
 
         return redirect()->route('admin.checksheets.index')->with('success', 'Data Checksheet berhasil dihapus.');
@@ -264,8 +291,16 @@ class ChecksheetController extends Controller
     // Approve Checksheet
     public function approve(Request $request, $id, $type)
     {
+        $map = $this->getApprovalMapping($type);
+        if (!$map)
+            abort(404);
+
+        $query = Checksheet::query();
+        if (auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
         try {
-            $checksheet = Checksheet::findOrFail($id);
+            $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
             // Validasi bahwa user diizinkan untuk approve tipe ini
@@ -333,11 +368,14 @@ class ChecksheetController extends Controller
         return redirect()->route('admin.checksheets.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Data Checksheet berhasil disetujui.');
     }
 
-    // Reject Checksheet
     public function reject(Request $request, $id, $type)
     {
         try {
-            $checksheet = Checksheet::findOrFail($id);
+            $query = Checksheet::query();
+            if (auth()->user()->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+            $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
             // Validasi bahwa user diizinkan untuk menolak (reject) tipe ini

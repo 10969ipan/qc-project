@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class InProcessChecksheet extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'in_process_checksheets';
 
     protected $fillable = [
+        'plant',
         'item_id',
         'created_at',
         'date',
@@ -38,6 +39,12 @@ class InProcessChecksheet extends Model
         'manager_approved_at',
         'cycle_time',
         'rejection_remarks',
+    ];
+
+    protected $casts = [
+        'defects' => 'array',
+        'dimension_check' => 'array',
+        'date' => 'date',
     ];
 
     public function item()

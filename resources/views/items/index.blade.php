@@ -3,6 +3,7 @@
 @section('title', 'Master Data Items')
 
 @section('content')
+    <x-plant-header title="Master Data Items" :plant="request()->get('plant')" />
 
 
     <div class="card shadow mb-4">
@@ -43,11 +44,22 @@
                         <input type="text" name="part_number" class="form-control form-control-sm shadow-sm"
                             value="{{ request('part_number') }}" placeholder="Cari No Part...">
                     </div>
-                    <div class="col-xl-1 col-lg-4 col-md-6 col-sm-6 mb-3">
+                    <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
                         <label for="sap_code" class="font-weight-bold">Kode SAP</label>
                         <input type="text" name="sap_code" class="form-control form-control-sm shadow-sm"
                             value="{{ request('sap_code') }}" placeholder="Kode SAP...">
                     </div>
+                    @if(auth()->user()->role === 'admin')
+                        <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                            <label for="plant_select" class="font-weight-bold">Plant</label>
+                            <select name="plant" id="plant_select" class="form-control form-control-sm shadow-sm"
+                                onchange="this.form.submit()">
+                                <option value="" {{ !request('plant') ? 'selected' : '' }}>Semua Plant</option>
+                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
+                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                            </select>
+                        </div>
+                    @endif
                     <div class="col-xl-2 col-lg-4 col-md-12 mb-3">
                         <label class="d-none d-xl-block">&nbsp;</label>
                         <div class="d-flex">
@@ -74,6 +86,7 @@
                             <th>Customer</th>
                             <th>No Part</th>
                             <th>Kode SAP</th>
+                            <th>Plant</th>
                             @if(auth()->user()->role !== 'inspector')
                                 <th>Aksi</th>
                             @endif
@@ -113,6 +126,11 @@
                                 <td class="text-nowrap">{{ $item->customer }}</td>
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
+                                <td>
+                                    <span class="badge {{ $item->plant === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
+                                        {{ strtoupper($item->plant) }}
+                                    </span>
+                                </td>
                                 @if(auth()->user()->role !== 'inspector')
                                                     <td class="text-nowrap">
                                                         <a href="{{ route('admin.items.edit', [

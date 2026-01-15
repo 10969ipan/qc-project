@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Category extends Model
 {
-    protected $fillable = ['name'];
+    use \App\Traits\HasPlantFilter;
+    protected $fillable = ['plant', 'name'];
 
     /**
      * Get the items for the category.
