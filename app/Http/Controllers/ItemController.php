@@ -17,6 +17,11 @@ class ItemController extends Controller
             $query->withoutGlobalScope('plant')->where('plant', $request->plant);
         }
 
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $request->merge(['plant' => auth()->user()->plant]);
+        }
+
         if ($request->has('name') && $request->name != '') {
             $query->where('name', 'like', '%' . $request->name . '%');
         }

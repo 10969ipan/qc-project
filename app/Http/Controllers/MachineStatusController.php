@@ -18,6 +18,7 @@ class MachineStatusController extends Controller
 
         MachineStatus::updateOrCreate(
             [
+                'plant' => auth()->user()->plant,
                 'type' => $request->type,
                 'number' => $request->number,
             ],

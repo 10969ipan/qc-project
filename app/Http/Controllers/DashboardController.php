@@ -8,68 +8,56 @@ use App\Models\Checksheet; // Sub Assy
 use App\Models\CrossCutChecksheet;
 use App\Models\MachineStatus;
 use App\Services\GoogleSheetService;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // --- Karu / Kashift Level ---
-        $karuStats = [
-            'pending' => 0,
-            'approved' => 0,
-            'rejected' => 0,
-        ];
+        $plant = auth()->user()->plant;
+        $recentDate = now()->subDays(1)->toDateString();
 
-        // In Process (kashift_qc)
-        $karuStats['pending'] += InProcessChecksheet::whereNull('kashift_qc')->count();
-        $karuStats['approved'] += InProcessChecksheet::whereNotNull('kashift_qc')->where('kashift_qc', '!=', 'REJECTED')->count();
-        $karuStats['rejected'] += InProcessChecksheet::where('kashift_qc', 'REJECTED')->count();
+        // Initialize combined stats
+        $combinedStats = ['pending' => 0, 'approved' => 0, 'rejected' => 0];
 
-        // Sub Assy (kashift_qc) - Model is Checksheet
-        $karuStats['pending'] += Checksheet::whereNull('kashift_qc')->count();
-        $karuStats['approved'] += Checksheet::whereNotNull('kashift_qc')->where('kashift_qc', '!=', 'REJECTED')->count();
-        $karuStats['rejected'] += Checksheet::where('kashift_qc', 'REJECTED')->count();
+        // Helper to update stats
+        $updateStat = function (&$stats, $value) {
+            if ($value === 'REJECTED') {
+                $stats['rejected']++;
+            } elseif (!empty($value)) {
+                $stats['approved']++;
+            } else {
+                $stats['pending']++;
+            }
+        };
 
-        // Cross Cut (karu_qc)
-        $karuStats['pending'] += CrossCutChecksheet::whereNull('karu_qc')->count();
-        $karuStats['approved'] += CrossCutChecksheet::whereNotNull('karu_qc')->where('karu_qc', '!=', 'REJECTED')->count();
-        $karuStats['rejected'] += CrossCutChecksheet::where('karu_qc', 'REJECTED')->count();
+        $processModel = function ($modelClass) use (&$combinedStats, $updateStat) {
+            $table = (new $modelClass)->getTable();
 
+            // Fetch ALL data without any filters (Date or Plant)
+            $items = $modelClass::get();
+            $hasKaru = Schema::hasColumn($table, 'karu_qc');
 
-        // --- Supervisor Level ---
-        $spvStats = [
-            'pending' => 0,
-            'approved' => 0,
-            'rejected' => 0,
-        ];
+            foreach ($items as $item) {
+                // Karu
+                if ($hasKaru) {
+                    $updateStat($combinedStats, $item->karu_qc);
+                }
+                // Kashift
+                $updateStat($combinedStats, $item->kashift_qc);
+                // Supervisor
+                $updateStat($combinedStats, $item->supervisor_qc);
+            }
+        };
 
-        // In Process (supervisor_qc)
-        $spvStats['pending'] += InProcessChecksheet::whereNull('supervisor_qc')->count();
-        $spvStats['approved'] += InProcessChecksheet::whereNotNull('supervisor_qc')->where('supervisor_qc', '!=', 'REJECTED')->count();
-        $spvStats['rejected'] += InProcessChecksheet::where('supervisor_qc', 'REJECTED')->count();
-
-        // Sub Assy (supervisor_qc)
-        $spvStats['pending'] += Checksheet::whereNull('supervisor_qc')->count();
-        $spvStats['approved'] += Checksheet::whereNotNull('supervisor_qc')->where('supervisor_qc', '!=', 'REJECTED')->count();
-        $spvStats['rejected'] += Checksheet::where('supervisor_qc', 'REJECTED')->count();
-
-        // Cross Cut (supervisor_qc)
-        $spvStats['pending'] += CrossCutChecksheet::whereNull('supervisor_qc')->count();
-        $spvStats['approved'] += CrossCutChecksheet::whereNotNull('supervisor_qc')->where('supervisor_qc', '!=', 'REJECTED')->count();
-        $spvStats['rejected'] += CrossCutChecksheet::where('supervisor_qc', 'REJECTED')->count();
-
-        // --- Combine Stats ---
-        $combinedStats = [
-            'pending' => $karuStats['pending'] + $spvStats['pending'],
-            'approved' => $karuStats['approved'] + $spvStats['approved'],
-            'rejected' => $karuStats['rejected'] + $spvStats['rejected'],
-        ];
+        $processModel(InProcessChecksheet::class);
+        $processModel(Checksheet::class);
+        $processModel(CrossCutChecksheet::class);
 
         // --- Production Monitoring ---
-        // Active Sub Assy Lines (1-15) - Get Latest per Line
+        // Active Sub Assy Lines - Get Latest from last 48 hours
         $activeLinesRaw = Checksheet::with('item')
-            ->whereDate('date', now()->today())
+            ->whereDate('date', '>=', $recentDate)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -78,9 +66,9 @@ class DashboardController extends Controller
             return [(int) $item->line => $item];
         });
 
-        // Active In Process Machines (1-18) - Get Latest per Machine
+        // Active In Process Machines - Get Latest from last 48 hours
         $activeMachinesRaw = InProcessChecksheet::with('item')
-            ->whereDate('date', now()->today())
+            ->whereDate('date', '>=', $recentDate)
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -89,7 +77,7 @@ class DashboardController extends Controller
             return [(int) $item->code_machine => $item];
         });
 
-        // Fetch Manual Status Overrides
+        // Fetch Manual Status Overrides (trait handles plant)
         $manualStatuses = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble'])->get();
         $lineStatuses = $manualStatuses->where('type', 'line')->keyBy('number');
         $machineStatuses = $manualStatuses->where('type', 'machine')->keyBy('number');
@@ -98,8 +86,7 @@ class DashboardController extends Controller
         $runningLinesCount = $activeLines->count() - $activeLines->keys()->intersect($lineStatuses->keys())->count();
         $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble'])->keys())->count();
 
-
-        // Fetch active monthly report for dashboard display
+        // Fetch active monthly report
         $activeReport = \App\Models\MonthlyReport::where('is_active', true)->first();
 
         return view('layouts.dashboard', compact('combinedStats', 'activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount', 'activeReport'));

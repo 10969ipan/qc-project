@@ -47,42 +47,36 @@
                         </div>
                     </div>
 
-                    <!-- Button Cari dan Reset -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                    <!-- Buttons: Cari, Reset, Export -->
+                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-search"></i> Cari
-                            </button>
-                            <a href="{{ route('cross_cut.index', ['plant' => request('plant')]) }}"
-                                class="btn btn-secondary btn-sm">
-                                <i class="fas fa-undo"></i> Reset
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Live Search -->
-                    <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Pencarian</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" class="form-control form-control-sm"
-                                    placeholder="Cari Item Part, Customer, Part No, Inisial..."
-                                    value="{{ request('search') }}">
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
+                                    <i class="fas fa-search"></i> Cari
+                                </button>
+                                <a href="{{ route('cross_cut.index', ['plant' => request('plant')]) }}"
+                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    <i class="fas fa-undo"></i> Reset
+                                </a>
+                                <button type="button" id="exportPdfBtn" class="btn btn-danger btn-sm" title="Export to PDF">
+                                    <i class="fas fa-file-pdf"></i> Export
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Button Export PDF -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2 text-right">
+                    <!-- Live Search -->
+                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <a href="#" id="exportPdfBtn" class="btn btn-danger btn-sm">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </a>
+                            <label for="search" class="small font-weight-bold">Live Search</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
+                                    value="{{ request('search') }}">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -192,7 +186,7 @@
                                             <br><small class="text-muted">oleh {{ $checksheet->karu_qc }}</small>
                                         @endif
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -216,7 +210,7 @@
                                             <br><small class="text-muted">oleh {{ $checksheet->kashift_plating }}</small>
                                         @endif
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -240,7 +234,7 @@
                                             <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
                                         @endif
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -264,7 +258,7 @@
                                             <br><small class="text-muted">oleh {{ $checksheet->supervisor_plating }}</small>
                                         @endif
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -288,7 +282,7 @@
                                             <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
                                         @endif
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -312,7 +306,7 @@
                                             <br><small class="text-muted">oleh {{ $checksheet->manager_plating }}</small>
                                         @endif
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -775,313 +769,313 @@
                 @endforeach
             @endforeach
 
-                                                                                    // Image Modal Handler
-                const imageModal = document.getElementById('imageModal');
-                const viewImageBtns = document.querySelectorAll('.view-image-btn');
+                                                                                                // Image Modal Handler
+                            const imageModal = document.getElementById('imageModal');
+            const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
-                viewImageBtns.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const checksheetId = this.getAttribute('data-id');
-                        loadChecksheetImage(checksheetId);
-                    });
+            viewImageBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const checksheetId = this.getAttribute('data-id');
+                    loadChecksheetImage(checksheetId);
                 });
+            });
 
-                function loadChecksheetImage(id) {
-                    const imageContainer = document.getElementById('imageContainer');
-                    const detailsContainer = document.getElementById('detailsContainer');
-                    const downloadBtn = document.getElementById('downloadImageBtn');
+            function loadChecksheetImage(id) {
+                const imageContainer = document.getElementById('imageContainer');
+                const detailsContainer = document.getElementById('detailsContainer');
+                const downloadBtn = document.getElementById('downloadImageBtn');
 
-                    // Show loading state
-                    imageContainer.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>';
-                    detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center"><em>Loading...</em></td></tr>';
+                // Show loading state
+                imageContainer.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>';
+                detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center"><em>Loading...</em></td></tr>';
 
-                    // Fetch checksheet data
-                    fetch(`/cross_cut/${id}/data`)
-                        .then(response => response.json())
-                        .then(data => {
-                            // Display image
-                            if (data.image_path) {
-                                const imagePath = `/storage/${data.image_path}`;
-                                imageContainer.innerHTML = `
-                                    <img src="${imagePath}" 
-                                         class="img-fluid rounded shadow" 
-                                         alt="Cross Cut Image"
-                                         style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                         onclick="window.open('${imagePath}', '_blank')">
-                                `;
-                                downloadBtn.href = imagePath;
-                                downloadBtn.style.display = 'inline-block';
-                            } else {
-                                imageContainer.innerHTML = `
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                                        Tidak ada gambar untuk checksheet ini
-                                    </div>
-                                `;
-                                downloadBtn.style.display = 'none';
+                // Fetch checksheet data
+                fetch(`/cross_cut/${id}/data`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display image
+                        if (data.image_path) {
+                            const imagePath = `/storage/${data.image_path}`;
+                            imageContainer.innerHTML = `
+                                                <img src="${imagePath}" 
+                                                     class="img-fluid rounded shadow" 
+                                                     alt="Cross Cut Image"
+                                                     style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                     onclick="window.open('${imagePath}', '_blank')">
+                                            `;
+                            downloadBtn.href = imagePath;
+                            downloadBtn.style.display = 'inline-block';
+                        } else {
+                            imageContainer.innerHTML = `
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                    Tidak ada gambar untuk checksheet ini
+                                                </div>
+                                            `;
+                            downloadBtn.style.display = 'none';
+                        }
+
+                        // Display details
+                        const details = `
+                                            <tr>
+                                                <th class="text-nowrap">Item Part:</th>
+                                                <td>${data.item_name || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Customer:</th>
+                                                <td>${data.customer || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Part No:</th>
+                                                <td>${data.part_number || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Kode SAP:</th>
+                                                <td>${data.sap_code || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Tanggal Produksi:</th>
+                                                <td>${data.production_date || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Tanggal QC:</th>
+                                                <td>${data.qc_date || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Shift Prod./QC:</th>
+                                                <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Kimia Copper:</th>
+                                                <td>${data.chemical_copper || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Kimia Nikel:</th>
+                                                <td>${data.chemical_nikel || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Kimia Eching:</th>
+                                                <td>${data.chemical_eching || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Kimia Abu:</th>
+                                                <td>${data.chemical_abu || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Posisi Remark:</th>
+                                                <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Result Remark:</th>
+                                                <td>${data.result_remark || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-nowrap">Operator:</th>
+                                                <td>${data.operator_initials || '-'}</td>
+                                            </tr>
+                                        `;
+                        detailsContainer.innerHTML = details;
+                    })
+                    .catch(error => {
+                        console.error('Error loading image:', error);
+                        imageContainer.innerHTML = `
+                                            <div class="alert alert-danger">
+                                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                                Gagal memuat gambar. Silakan coba lagi.
+                                            </div>
+                                        `;
+                        detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
+                    });
+            }
+
+            // Live Search Functionality - Server-side search across all pages
+            const liveSearchInput = document.getElementById('liveSearch');
+
+            if (liveSearchInput) {
+                let searchTimeout;
+
+                liveSearchInput.addEventListener('keyup', function () {
+                    const searchTerm = this.value.trim();
+
+                    // Clear previous timeout
+                    clearTimeout(searchTimeout);
+
+                    // Debounce: wait 500ms after user stops typing
+                    searchTimeout = setTimeout(function () {
+                        // Get current filter values
+                        const startDate = document.getElementById('start_date').value;
+                        const endDate = document.getElementById('end_date').value;
+
+                        // Build URL with all parameters
+                        const params = new URLSearchParams();
+                        if (searchTerm) params.append('search', searchTerm);
+                        if (startDate) params.append('start_date', startDate);
+                        if (endDate) params.append('end_date', endDate);
+
+                        // Redirect to index with search parameter
+                        window.location.href = '{{ route('cross_cut.index') }}?' + params.toString();
+                    }, 500);
+                });
+            }
+
+            const viewImageButtons = document.querySelectorAll('.view-image-btn');
+            const modalImage = document.getElementById('modalImage');
+            const modalItemName = document.getElementById('modalItemName');
+            const modalQcDatetime = document.getElementById('modalQcDatetime');
+            const jsonInfoUrlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
+
+            viewImageButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const checksheetId = this.getAttribute('data-id');
+                    const fetchUrl = jsonInfoUrlTemplate.replace(':id', checksheetId);
+
+                    fetch(fetchUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
                             }
-
-                            // Display details
-                            const details = `
-                                <tr>
-                                    <th class="text-nowrap">Item Part:</th>
-                                    <td>${data.item_name || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Customer:</th>
-                                    <td>${data.customer || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Part No:</th>
-                                    <td>${data.part_number || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Kode SAP:</th>
-                                    <td>${data.sap_code || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Tanggal Produksi:</th>
-                                    <td>${data.production_date || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Tanggal QC:</th>
-                                    <td>${data.qc_date || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Shift Prod./QC:</th>
-                                    <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Kimia Copper:</th>
-                                    <td>${data.chemical_copper || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Kimia Nikel:</th>
-                                    <td>${data.chemical_nikel || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Kimia Eching:</th>
-                                    <td>${data.chemical_eching || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Kimia Abu:</th>
-                                    <td>${data.chemical_abu || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Posisi Remark:</th>
-                                    <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Result Remark:</th>
-                                    <td>${data.result_remark || '-'}</td>
-                                </tr>
-                                <tr>
-                                    <th class="text-nowrap">Operator:</th>
-                                    <td>${data.operator_initials || '-'}</td>
-                                </tr>
-                            `;
-                            detailsContainer.innerHTML = details;
+                            return response.json();
+                        })
+                        .then(data => {
+                            modalImage.src = data.image_url;
+                            modalItemName.textContent = `Item: ${data.item_name}`;
+                            modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
                         })
                         .catch(error => {
-                            console.error('Error loading image:', error);
-                            imageContainer.innerHTML = `
-                                <div class="alert alert-danger">
-                                    <i class="fas fa-exclamation-circle mr-2"></i>
-                                    Gagal memuat gambar. Silakan coba lagi.
-                                </div>
-                            `;
-                            detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
+                            console.error('Error fetching image data:', error);
+                            modalImage.src = '';
+                            modalItemName.textContent = 'Gagal memuat data gambar.';
+                            modalQcDatetime.textContent = '';
                         });
-                }
-
-                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                    const liveSearchInput = document.getElementById('liveSearch');
-
-                if (liveSearchInput) {
-                    let searchTimeout;
-
-                    liveSearchInput.addEventListener('keyup', function () {
-                        const searchTerm = this.value.trim();
-
-                        // Clear previous timeout
-                        clearTimeout(searchTimeout);
-
-                        // Debounce: wait 500ms after user stops typing
-                        searchTimeout = setTimeout(function () {
-                            // Get current filter values
-                            const startDate = document.getElementById('start_date').value;
-                            const endDate = document.getElementById('end_date').value;
-
-                            // Build URL with all parameters
-                            const params = new URLSearchParams();
-                            if (searchTerm) params.append('search', searchTerm);
-                            if (startDate) params.append('start_date', startDate);
-                            if (endDate) params.append('end_date', endDate);
-
-                            // Redirect to index with search parameter
-                            window.location.href = '{{ route('cross_cut.index') }}?' + params.toString();
-                        }, 500);
-                    });
-                }
-
-                const viewImageButtons = document.querySelectorAll('.view-image-btn');
-                const modalImage = document.getElementById('modalImage');
-                const modalItemName = document.getElementById('modalItemName');
-                const modalQcDatetime = document.getElementById('modalQcDatetime');
-                const jsonInfoUrlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
-
-                viewImageButtons.forEach(button => {
-                    button.addEventListener('click', function () {
-                        const checksheetId = this.getAttribute('data-id');
-                        const fetchUrl = jsonInfoUrlTemplate.replace(':id', checksheetId);
-
-                        fetch(fetchUrl)
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('Network response was not ok');
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                modalImage.src = data.image_url;
-                                modalItemName.textContent = `Item: ${data.item_name}`;
-                                modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
-                            })
-                            .catch(error => {
-                                console.error('Error fetching image data:', error);
-                                modalImage.src = '';
-                                modalItemName.textContent = 'Gagal memuat data gambar.';
-                                modalQcDatetime.textContent = '';
-                            });
-                    });
                 });
+            });
 
-                // PDF Export
-                const { jsPDF } = window.jspdf;
-                const exportPdfBtn = document.getElementById('exportPdfBtn');
+            // PDF Export
+            const { jsPDF } = window.jspdf;
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
 
-                if (exportPdfBtn) {
-                    exportPdfBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
 
-                        const doc = new jsPDF('landscape');
+                    const doc = new jsPDF('landscape');
 
-                        // Header Table
-                        doc.autoTable({
-                            startY: 10,
-                            head: [],
-                            body: [
-                                [
-                                    { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
-                                    { content: 'LAPORAN CHECKSHEET CROSS CUT', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                                    { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                    { content: 'QC-KRW-F-XXXX', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                                ],
-                                [
-                                    { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                    { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                                ],
-                                [
-                                    { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                    { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                                ],
-                                [
-                                    { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                    { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                                ]
+                    // Header Table
+                    doc.autoTable({
+                        startY: 10,
+                        head: [],
+                        body: [
+                            [
+                                { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
+                                { content: 'LAPORAN CHECKSHEET CROSS CUT', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
+                                { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                                { content: 'QC-KRW-F-XXXX', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
                             ],
-                            theme: 'grid',
-                            styles: {
-                                lineColor: [0, 0, 0],
-                                lineWidth: 0.1,
-                                cellPadding: 1.5
-                            },
-                            columnStyles: {
-                                0: { cellWidth: 30 },
-                                1: {},
-                                2: {},
-                                3: {}
-                            },
-                            didDrawCell: function (data) {
-                                if (data.section === 'body' && data.column.index === 0) {
-                                    const img = document.getElementById('pdf-logo');
-                                    if (img) {
-                                        try {
-                                            doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
-                                        } catch (err) {
-                                            console.warn('Error adding logo:', err);
-                                        }
+                            [
+                                { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                                { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                            ],
+                            [
+                                { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                                { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                            ],
+                            [
+                                { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
+                                { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
+                            ]
+                        ],
+                        theme: 'grid',
+                        styles: {
+                            lineColor: [0, 0, 0],
+                            lineWidth: 0.1,
+                            cellPadding: 1.5
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 30 },
+                            1: {},
+                            2: {},
+                            3: {}
+                        },
+                        didDrawCell: function (data) {
+                            if (data.section === 'body' && data.column.index === 0) {
+                                const img = document.getElementById('pdf-logo');
+                                if (img) {
+                                    try {
+                                        doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
+                                    } catch (err) {
+                                        console.warn('Error adding logo:', err);
                                     }
                                 }
                             }
-                        });
-
-                        const finalY = doc.lastAutoTable.finalY;
-                        doc.setFontSize(6);
-                        doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
-
-                        const originalTable = document.getElementById('checksheetTable');
-                        const tableClone = originalTable.cloneNode(true);
-
-                        // Remove no-export elements
-                        const noExportElements = tableClone.querySelectorAll('.no-export');
-                        noExportElements.forEach(el => el.remove());
-
-                        // Process clone rows to flatten Kimia column
-                        const kimiaCells = tableClone.querySelectorAll('.kimia-col');
-                        kimiaCells.forEach(kimiaCell => {
-                            const nestedTable = kimiaCell.querySelector('table');
-                            if (nestedTable) {
-                                const trs = nestedTable.querySelectorAll('tr');
-                                let text = [];
-                                trs.forEach(tr => {
-                                    const th = tr.querySelector('th');
-                                    const td = tr.querySelector('td');
-                                    if (th && td) {
-                                        text.push(`${th.textContent.trim()}: ${td.textContent.trim()}`);
-                                    }
-                                });
-                                // Use textContent to replace the entire table content
-                                kimiaCell.textContent = text.join('\n');
-                                // Ensure styles are reset if they were inherited oddly
-                                kimiaCell.style.whiteSpace = 'pre-wrap';
-                            }
-                        });
-
-                        tableClone.style.position = 'absolute';
-                        tableClone.style.top = '-9999px';
-                        tableClone.style.left = '-9999px';
-                        document.body.appendChild(tableClone);
-
-                        doc.autoTable({
-                            html: tableClone,
-                            startY: finalY + 7,
-                            theme: 'grid',
-                            styles: {
-                                fontSize: 5,
-                                cellPadding: 1,
-                                valign: 'middle',
-                                halign: 'center',
-                                lineColor: [0, 0, 0],
-                                lineWidth: 0.1
-                            },
-                            headStyles: {
-                                fillColor: [78, 115, 223],
-                                textColor: [255, 255, 255],
-                                valign: 'middle',
-                                halign: 'center',
-                                lineColor: [0, 0, 0],
-                                lineWidth: 0.1
-                            },
-                            exportHiddenCells: false
-                        });
-
-                        document.body.removeChild(tableClone);
-                        doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
+                        }
                     });
-                }
-            });
-        </script>
+
+                    const finalY = doc.lastAutoTable.finalY;
+                    doc.setFontSize(6);
+                    doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
+
+                    const originalTable = document.getElementById('checksheetTable');
+                    const tableClone = originalTable.cloneNode(true);
+
+                    // Remove no-export elements
+                    const noExportElements = tableClone.querySelectorAll('.no-export');
+                    noExportElements.forEach(el => el.remove());
+
+                    // Process clone rows to flatten Kimia column
+                    const kimiaCells = tableClone.querySelectorAll('.kimia-col');
+                    kimiaCells.forEach(kimiaCell => {
+                        const nestedTable = kimiaCell.querySelector('table');
+                        if (nestedTable) {
+                            const trs = nestedTable.querySelectorAll('tr');
+                            let text = [];
+                            trs.forEach(tr => {
+                                const th = tr.querySelector('th');
+                                const td = tr.querySelector('td');
+                                if (th && td) {
+                                    text.push(`${th.textContent.trim()}: ${td.textContent.trim()}`);
+                                }
+                            });
+                            // Use textContent to replace the entire table content
+                            kimiaCell.textContent = text.join('\n');
+                            // Ensure styles are reset if they were inherited oddly
+                            kimiaCell.style.whiteSpace = 'pre-wrap';
+                        }
+                    });
+
+                    tableClone.style.position = 'absolute';
+                    tableClone.style.top = '-9999px';
+                    tableClone.style.left = '-9999px';
+                    document.body.appendChild(tableClone);
+
+                    doc.autoTable({
+                        html: tableClone,
+                        startY: finalY + 7,
+                        theme: 'grid',
+                        styles: {
+                            fontSize: 5,
+                            cellPadding: 1,
+                            valign: 'middle',
+                            halign: 'center',
+                            lineColor: [0, 0, 0],
+                            lineWidth: 0.1
+                        },
+                        headStyles: {
+                            fillColor: [78, 115, 223],
+                            textColor: [255, 255, 255],
+                            valign: 'middle',
+                            halign: 'center',
+                            lineColor: [0, 0, 0],
+                            lineWidth: 0.1
+                        },
+                        exportHiddenCells: false
+                    });
+
+                    document.body.removeChild(tableClone);
+                    doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
+                });
+            }
+        });
+    </script>
 @endpush
 
 <!-- Image Modal -->
@@ -1189,8 +1183,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                        // Live Search Functionality
-                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                    // Live Search Functionality
+                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 

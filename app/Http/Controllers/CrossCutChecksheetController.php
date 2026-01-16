@@ -9,7 +9,25 @@ use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class CrossCutChecksheetController extends Controller
-{
+    use \App\Traits\HasChecksheetApproval;
+
+    protected function getModelClass()
+    {
+        return \App\Models\CrossCutChecksheet::class;
+    }
+
+    protected function getApprovalMapping($type)
+    {
+        $mappings = [
+            'karu_qc' => ['field' => 'karu_qc', 'time' => 'karu_qc_approved_at', 'label' => 'Karu QC'],
+            'kashift_plating' => ['field' => 'kashift_plating', 'time' => 'kashift_plating_approved_at', 'label' => 'Kashift Plating'],
+            'supervisor_plating' => ['field' => 'supervisor_plating', 'time' => 'supervisor_plating_approved_at', 'label' => 'Supervisor Plating'],
+            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'], // Mapped 'supervisor' to 'supervisor_qc'
+            'manager_plating' => ['field' => 'manager_plating', 'time' => 'manager_plating_approved_at', 'label' => 'Manager Plating'],
+            'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager QC'],
+        ];
+        return $mappings[$type] ?? null;
+    }
     /**
      * Menampilkan daftar data (resource).
      */
@@ -21,6 +39,11 @@ class CrossCutChecksheetController extends Controller
         // Admin can switch plants via query parameter, others are locked via HasPlantFilter
         if (auth()->user()->role === 'admin' && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
+
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $request->merge(['plant' => auth()->user()->plant]);
         }
 
         $this->applyFilters($query, $request);
@@ -337,81 +360,7 @@ class CrossCutChecksheetController extends Controller
         return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Checksheet approved successfully.');
     }
 
-    public function reject(Request $request, $id, $type)
-    {
-        try {
-            $query = CrossCutChecksheet::query();
-            if (auth()->user()->role === 'admin') {
-                $query->withoutGlobalScope('plant');
-            }
-            $checksheet = $query->findOrFail($id);
-            $user = auth()->user();
 
-            // Role validation
-            if ($user->role !== 'admin') {
-                if ($type == 'karu_qc' && $user->role !== 'karu_qc')
-                    abort(403);
-                if ($type == 'kashift_plating' && $user->role !== 'kashift_plating')
-                    abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor')
-                    abort(403);
-                if ($type == 'supervisor_plating' && $user->role !== 'supervisor_plating')
-                    abort(403);
-                if ($type == 'manager' && $user->role !== 'manager')
-                    abort(403);
-                if ($type == 'manager_plating' && $user->role !== 'manager_plating')
-                    abort(403);
-            }
-
-            // Validate rejection remarks
-            $request->validate([
-                'rejection_remarks' => 'required|string|min:10|max:500',
-            ], [
-                'rejection_remarks.required' => 'Keterangan rejection wajib diisi.',
-                'rejection_remarks.min' => 'Keterangan rejection minimal 10 karakter.',
-                'rejection_remarks.max' => 'Keterangan rejection maksimal 500 karakter.',
-            ]);
-
-            // Set rejection for each level
-            if ($type == 'karu_qc') {
-                $checksheet->karu_qc = 'REJECTED';
-                $checksheet->karu_qc_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'kashift_plating') {
-                $checksheet->kashift_plating = 'REJECTED';
-                $checksheet->kashift_plating_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'supervisor') {
-                $checksheet->supervisor_qc = 'REJECTED';
-                $checksheet->supervisor_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'supervisor_plating') {
-                $checksheet->supervisor_plating = 'REJECTED';
-                $checksheet->supervisor_plating_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'manager') {
-                $checksheet->manager_qc = 'REJECTED';
-                $checksheet->manager_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'manager_plating') {
-                $checksheet->manager_plating = 'REJECTED';
-                $checksheet->manager_plating_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            }
-
-            // Save rejection remarks with role prefix
-            $roleLabel = ucfirst(str_replace('_', ' ', $type));
-            $checksheet->rejection_remarks = "[{$roleLabel}] " . $request->rejection_remarks . " - " . $user->name . " (" . now()->format('d/m/Y H:i') . ")";
-
-            $checksheet->save();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->withErrors($e->errors())->withInput();
-        } catch (\Exception $e) {
-            return response('Error: ' . $e->getMessage(), 500);
-        }
-
-        return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Checksheet rejected successfully.');
-    }
 
     public function exportPdf(Request $request)
     {

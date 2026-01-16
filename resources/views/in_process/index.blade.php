@@ -47,42 +47,36 @@
                         </div>
                     </div>
 
-                    <!-- Button Cari dan Reset -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                    <!-- Buttons: Cari, Reset, Export -->
+                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-search"></i> Cari
-                            </button>
-                            <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}"
-                                class="btn btn-secondary btn-sm">
-                                <i class="fas fa-undo"></i> Reset
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Live Search -->
-                    <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Pencarian</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" class="form-control form-control-sm"
-                                    placeholder="Cari Item Part, Customer, Part No, Inisial..."
-                                    value="{{ request('search') }}">
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
+                                    <i class="fas fa-search"></i> Cari
+                                </button>
+                                <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}"
+                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    <i class="fas fa-undo"></i> Reset
+                                </a>
+                                <button type="button" id="exportPdfBtn" class="btn btn-danger btn-sm" title="Export to PDF">
+                                    <i class="fas fa-file-pdf"></i> Export
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Button Export PDF -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2 text-right">
+                    <!-- Live Search -->
+                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <a href='#' id="exportPdfBtn" class="btn btn-danger btn-sm">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </a>
+                            <label for="search" class="small font-weight-bold">Live Search</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
+                                    value="{{ request('search') }}">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -291,7 +285,7 @@
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -313,7 +307,7 @@
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -335,7 +329,7 @@
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -357,7 +351,7 @@
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
                                     @else
-                                        <span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -623,8 +617,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

@@ -10,7 +10,52 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 
 class SortirChecksheetController extends Controller
-{
+    use \App\Traits\HasChecksheetApproval;
+    use \App\Traits\HasChecksheetExport;
+
+    protected function getModelClass()
+    {
+        return \App\Models\SortirChecksheet::class;
+    }
+
+    protected function getExportHeaders()
+    {
+        return ['Date', 'Shift', 'Line', 'Item', 'Part Number', 'Source', 'Total Qty', 'Sampling', 'OK', 'NG', 'Judgment', 'Operator', 'Kashift QC', 'Supervisor QC', 'Asst. Manager QC', 'Manager QC'];
+    }
+
+    protected function mapExportRow($c)
+    {
+        return [
+            $c->date instanceof \Carbon\Carbon ? $c->date->format('Y-m-d') : $c->date,
+            $c->shift,
+            $c->line ?? '-',
+            $c->item->name ?? '-',
+            $c->item->part_number ?? '-',
+            strtoupper(str_replace('_', ' ', $c->source_type)),
+            $c->total_qty,
+            $c->sampling_qty,
+            $c->total_ok,
+            $c->total_ng,
+            $c->judgment,
+            $c->operator_initials ?? '-',
+            $c->kashift_qc ?? 'PENDING',
+            $c->supervisor_qc ?? 'PENDING',
+            $c->asst_manager_qc ?? 'PENDING',
+            $c->manager_qc ?? 'PENDING',
+        ];
+    }
+
+    /**
+     * Override approval mapping for Sortir specific columns
+     */
+    protected function getApprovalMapping($type)
+    {
+        $mappings = [
+            'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_qc_time', 'label' => 'Kashift QC'],
+            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_qc_time', 'label' => 'Supervisor QC'],
+        ];
+        return $mappings[$type] ?? null;
+    }
     public function index(Request $request)
     {
         $query = SortirChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
@@ -18,6 +63,11 @@ class SortirChecksheetController extends Controller
         // Admin can switch plants via query parameter, others are locked via HasPlantFilter
         if (auth()->user()->role === 'admin' && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
+
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $request->merge(['plant' => auth()->user()->plant]);
         }
 
         $this->applyFilters($query, $request);
@@ -220,157 +270,5 @@ class SortirChecksheetController extends Controller
 
         return redirect()->route('sortir.index', $this->getFilterParams($request, true))
             ->with('success', 'Data Sortir berhasil dihapus.');
-    }
-
-    public function approve(Request $request, $id, $type)
-    {
-        $map = $this->getApprovalMapping($type);
-        if (!$map)
-            abort(404);
-
-        $query = SortirChecksheet::query();
-        if (auth()->user()->role === 'admin') {
-            $query->withoutGlobalScope('plant');
-        }
-        $checksheet = $query->findOrFail($id);
-        $user = auth()->user();
-
-        if ($user->role !== 'admin' && $user->role !== $type) {
-            abort(403);
-        }
-
-        $field = $map['field'];
-        $timeField = $map['time'];
-
-        if ($checksheet->$field && $checksheet->$field !== 'REJECTED') {
-            return redirect()->route('sortir.index', $request->query())->with('error', "Checksheet sudah disetujui oleh {$map['label']}.");
-        }
-
-        if ($checksheet->$field === 'REJECTED') {
-            $checksheet->rejection_remarks = null;
-        }
-
-        $checksheet->$field = $user->name;
-        $checksheet->$timeField = now();
-        $checksheet->save();
-
-        return redirect()->route('sortir.index', $request->query())->with('success', 'Sortir Checksheet approved successfully.');
-    }
-
-    public function reject(Request $request, $id, $type)
-    {
-        $map = $this->getApprovalMapping($type);
-        if (!$map)
-            abort(404);
-
-        $query = SortirChecksheet::query();
-        if (auth()->user()->role === 'admin') {
-            $query->withoutGlobalScope('plant');
-        }
-        $checksheet = $query->findOrFail($id);
-        $user = auth()->user();
-
-        if ($user->role !== 'admin' && $user->role !== $type) {
-            abort(403);
-        }
-
-        $request->validate(['rejection_remarks' => 'required|string|min:5']);
-
-        $field = $map['field'];
-        $timeField = $map['time'];
-
-        $checksheet->$field = 'REJECTED';
-        $checksheet->$timeField = now();
-        $checksheet->rejection_remarks = $request->rejection_remarks;
-        $checksheet->save();
-
-        return redirect()->route('sortir.index', $request->query())->with('success', 'Sortir Checksheet rejected.');
-    }
-
-    public function export(Request $request)
-    {
-        $query = SortirChecksheet::with('item')->orderBy('date', 'desc');
-        $this->applyFilters($query, $request);
-        $checksheets = $query->get();
-
-        $filename = 'sortir_checksheets_' . date('Ymd_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function () use ($checksheets) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['Date', 'Shift', 'Line', 'Item', 'Part Number', 'Source', 'Total Qty', 'Sampling', 'OK', 'NG', 'Judgment', 'Operator', 'Kashift QC', 'Supervisor QC', 'Asst. Manager QC', 'Manager QC']);
-
-            foreach ($checksheets as $c) {
-                fputcsv($file, [
-                    $c->date instanceof \Carbon\Carbon ? $c->date->format('Y-m-d') : $c->date,
-                    $c->shift,
-                    $c->line ?? '-',
-                    $c->item->name ?? '-',
-                    $c->item->part_number ?? '-',
-                    strtoupper(str_replace('_', ' ', $c->source_type)),
-                    $c->total_qty,
-                    $c->sampling_qty,
-                    $c->total_ok,
-                    $c->total_ng,
-                    $c->judgment,
-                    $c->operator_initials ?? '-',
-                    $c->kashift_qc ?? 'PENDING',
-                    $c->supervisor_qc ?? 'PENDING',
-                    $c->asst_manager_qc ?? 'PENDING',
-                    $c->manager_qc ?? 'PENDING',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    private function applyFilters($query, Request $request)
-    {
-        if ($request->filled('start_date'))
-            $query->whereDate('date', '>=', $request->start_date);
-        if ($request->filled('end_date'))
-            $query->whereDate('date', '<=', $request->end_date);
-
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereHas('item', function ($iq) use ($searchTerm) {
-                    $iq->where('name', 'like', "%{$searchTerm}%")
-                        ->orWhere('customer', 'like', "%{$searchTerm}%")
-                        ->orWhere('part_number', 'like', "%{$searchTerm}%");
-                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
-            });
-        }
-    }
-
-    private function getApprovalMapping($type)
-    {
-        $mappings = [
-            'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_qc_time', 'label' => 'Kashift QC'],
-            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_qc_time', 'label' => 'Supervisor QC'],
-        ];
-        return $mappings[$type] ?? null;
-    }
-
-    private function getFilterParams(Request $request, $isDestroy = false)
-    {
-        $params = [
-            'page' => $request->input('page', 1),
-            'plant' => $request->input('plant')
-        ];
-        $filterKeys = $isDestroy ? ['start_date', 'end_date', 'search'] : ['filter_start_date' => 'start_date', 'filter_end_date' => 'end_date', 'filter_search' => 'search'];
-
-        foreach ($filterKeys as $reqKey => $paramKey) {
-            $val = $request->input(is_numeric($reqKey) ? $paramKey : $reqKey);
-            if ($val)
-                $params[$paramKey] = $val;
-        }
-        return $params;
     }
 }
