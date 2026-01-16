@@ -21,9 +21,27 @@
                 <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Cross Cut</h6>
             </div>
             <div class="card-body">
+                <!-- Plant Selector for Admin -->
+                @if(auth()->user()->role === 'admin')
+                    <form method="GET" action="{{ route('cross_cut.create') }}" class="mb-3">
+                        <div class="form-group row">
+                            <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
+                            <div class="col-sm-4">
+                                <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
+                                    <option value="">-- Semua Plant --</option>
+                                    <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
+                                    </option>
+                                    <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                                </select>
+                                <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
+                            </div>
+                        </div>
+                    </form>
+                @endif
+
                 <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <input type="hidden" name="plant" value="{{ auth()->user()->plant }}">
+                    <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
                     <div class="table-responsive">
                         <table class="table table-bordered" width="100%" cellspacing="0">
                             <thead>

@@ -152,9 +152,17 @@ class ChecksheetController extends Controller
     }
 
     // Tampilkan form (diupdate untuk mengirim data items)
-    public function create()
+    public function create(Request $request)
     {
-        $items = Item::byCategory('Sub Assy')->orderBy('name')->get();
+        $query = Item::byCategory('Sub Assy')->orderBy('name');
+
+        // Filter items based on plant context
+        // If user is Admin and has selected a plant via query param
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->where('plant', $request->query('plant'));
+        }
+
+        $items = $query->get();
         $now = now();
         $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
 

@@ -26,9 +26,26 @@
             </h6>
         </div>
         <div class="card-body">
+            <!-- Plant Selector for Admin -->
+            @if(auth()->user()->role === 'admin')
+                <form method="GET" action="{{ route('sortir.create') }}" class="mb-3">
+                    <div class="form-group row">
+                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
+                        <div class="col-sm-4">
+                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
+                                <option value="">-- Semua Plant --</option>
+                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
+                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                            </select>
+                            <small class="text-muted">Pilih plant untuk memfilter daftar item NG.</small>
+                        </div>
+                    </div>
+                </form>
+            @endif
+
             <form action="{{ route('sortir.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="plant" value="{{ auth()->user()->plant }}">
+                <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
                 <input type="hidden" name="source_type" id="sourceType">
                 <input type="hidden" name="source_id" id="sourceId">
 
@@ -336,14 +353,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                        <div class="input-group mb-2 defect-row">
-                                                            <input type="text" class="form-control" style="min-width: 120px; font-size: 16px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                            <input type="number" class="form-control" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                            <div class="input-group-append">
-                                                                <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                            <div class="input-group mb-2 defect-row">
+                                                                <input type="text" class="form-control" style="min-width: 120px; font-size: 16px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                <input type="number" class="form-control" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                <div class="input-group-append">
+                                                                    <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    `;
+                                                        `;
                 $('#defectContainer').append(newRow);
             });
 

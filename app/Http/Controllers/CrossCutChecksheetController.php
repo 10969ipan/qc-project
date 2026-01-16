@@ -57,9 +57,16 @@ class CrossCutChecksheetController extends Controller
     /**
      * Menampilkan form untuk membuat data baru.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $items = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name')->get();
+        $query = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name');
+
+        // Filter items based on plant context
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->where('plant', $request->query('plant'));
+        }
+
+        $items = $query->get();
         $now = now();
         $defaultDateTime = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d\TH:i') : $now->format('Y-m-d\TH:i');
 

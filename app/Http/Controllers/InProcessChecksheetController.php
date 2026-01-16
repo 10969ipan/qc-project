@@ -219,9 +219,16 @@ class InProcessChecksheetController extends Controller
     }
 
     // Show form (updated to pass items)
-    public function create()
+    public function create(Request $request)
     {
-        $items = Item::byCategory('Inprosess')->orderBy('name')->get();
+        $query = Item::byCategory('Inprosess')->orderBy('name');
+
+        // Filter items based on plant context
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $query->where('plant', $request->query('plant'));
+        }
+
+        $items = $query->get();
         $now = now();
         $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
 

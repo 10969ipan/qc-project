@@ -79,7 +79,7 @@ class SortirChecksheetController extends Controller
         return view('sortir.index', compact('checksheets', 'items'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         // Get already processed source IDs to exclude them from dropdown
         $processedSourceIds = SortirChecksheet::select('source_type', 'source_id')
@@ -88,11 +88,27 @@ class SortirChecksheetController extends Controller
             ->map(fn($items) => $items->pluck('source_id')->toArray())
             ->toArray();
 
+        $plant = $request->query('plant');
+        $isAdminAndHasPlant = auth()->user()->role === 'admin' && $request->has('plant');
+
+        // Helper to apply plant filter
+        $applyPlantFilter = function ($query) use ($isAdminAndHasPlant, $plant) {
+            if ($isAdminAndHasPlant) {
+                // If the model uses HasPlantFilter, we might need withoutGlobalScope if we were using it,
+                // but for Admin HasPlantFilter usually bypasses itself or we need to explicitly filter.
+                // Assuming Admin usually sees all, so we restrict it here.
+                // The models likely have 'plant' column.
+                $query->where('plant', $plant);
+            }
+        };
+
         // Get NG items from Sub Assy
-        $ngItemsSubAssy = Checksheet::where('judgment', 'NG')
+        $querySubAssy = Checksheet::where('judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['sub_assy'] ?? [])
-            ->with('item')
-            ->get()
+            ->with('item');
+        $applyPlantFilter($querySubAssy);
+
+        $ngItemsSubAssy = $querySubAssy->get()
             ->map(fn($c) => [
                 'item_id' => $c->item_id,
                 'item_name' => $c->item->name,
@@ -106,10 +122,12 @@ class SortirChecksheetController extends Controller
             ->toArray();
 
         // Get NG items from In-Process
-        $ngItemsInProcess = InProcessChecksheet::where('judgment', 'NG')
+        $queryInProcess = InProcessChecksheet::where('judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['in_process'] ?? [])
-            ->with('item')
-            ->get()
+            ->with('item');
+        $applyPlantFilter($queryInProcess);
+
+        $ngItemsInProcess = $queryInProcess->get()
             ->map(fn($c) => [
                 'item_id' => $c->item_id,
                 'item_name' => $c->item->name,
@@ -123,10 +141,12 @@ class SortirChecksheetController extends Controller
             ->toArray();
 
         // Get NG items from Cross Cut
-        $ngItemsCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
+        $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['cross_cut'] ?? [])
-            ->with('item')
-            ->get()
+            ->with('item');
+        $applyPlantFilter($queryCrossCut);
+
+        $ngItemsCrossCut = $queryCrossCut->get()
             ->map(fn($c) => [
                 'item_id' => $c->item_id,
                 'item_name' => $c->item->name ?? '-',
@@ -271,5 +291,72 @@ class SortirChecksheetController extends Controller
 
         return redirect()->route('sortir.index', $this->getFilterParams($request, true))
             ->with('success', 'Data Sortir berhasil dihapus.');
+    }
+
+    protected function applyFilters($query, Request $request)
+    {
+        if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        }
+
+        if ($request->has('approval_status') && $request->approval_status != '') {
+            if ($request->approval_status === 'Pending') {
+                $query->where(function ($q) {
+                    $q->where('approval_status', 'Pending')
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('approval_status')
+                                ->whereNull('supervisor_qc')
+                                ->where(function ($rej) {
+                                    $rej->where('kashift_qc', '!=', 'REJECTED')
+                                        ->orWhereNull('kashift_qc');
+                                });
+                        });
+                });
+            } elseif ($request->approval_status === 'Approved') {
+                $query->where(function ($q) {
+                    $q->where('approval_status', 'Approved')
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('approval_status')
+                                ->whereNotNull('supervisor_qc')
+                                ->where('supervisor_qc', '!=', 'REJECTED');
+                        });
+                });
+            } elseif ($request->approval_status === 'Rejected') {
+                $query->where(function ($q) {
+                    $q->where('approval_status', 'Rejected')
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('approval_status')
+                                ->where(function ($rej) {
+                                    $rej->where('kashift_qc', 'REJECTED')
+                                        ->orWhere('supervisor_qc', 'REJECTED')
+                                        ->orWhere('asst_manager_qc', 'REJECTED');
+                                });
+                        });
+                });
+            }
+        }
+
+        if ($request->has('item_id') && $request->item_id != '') {
+            $query->where('item_id', $request->item_id);
+        }
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
+                    $itemQuery->where('name', 'like', "%{$searchTerm}%")
+                        ->orWhere('part_number', 'like', "%{$searchTerm}%");
+                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
+            });
+        }
+    }
+
+    protected function getFilterParams(Request $request, $ignorePage = false)
+    {
+        $params = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        if (!$ignorePage && $request->has('page')) {
+            $params['page'] = $request->page;
+        }
+        return $params;
     }
 }
