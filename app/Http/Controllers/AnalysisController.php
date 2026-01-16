@@ -23,6 +23,12 @@ class AnalysisController extends Controller
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
         }
 
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $plant = auth()->user()->plant;
+            $request->merge(['plant' => $plant]);
+        }
+
         // Apply Date Filter if present
         if ($request->has('start_date') && $request->start_date) {
             $query->whereDate('date', '>=', $request->start_date);
@@ -222,6 +228,12 @@ class AnalysisController extends Controller
         // Admin can switch plants via query parameter, others are locked via HasPlantFilter
         if (auth()->user()->role === 'admin' && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
+
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $plant = auth()->user()->plant;
+            $request->merge(['plant' => $plant]);
         }
 
         // Apply Date Filter if present, otherwise default to last 12 months
@@ -428,6 +440,12 @@ class AnalysisController extends Controller
         // Admin can switch plants via query parameter, others are locked via HasPlantFilter
         if (auth()->user()->role === 'admin' && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
+
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $plant = auth()->user()->plant;
+            $request->merge(['plant' => $plant]);
         }
 
         // Apply Date Filter if present

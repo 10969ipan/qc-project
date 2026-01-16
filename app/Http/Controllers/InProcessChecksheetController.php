@@ -10,6 +10,74 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class InProcessChecksheetController extends Controller
 {
+    use \App\Traits\HasChecksheetApproval;
+    use \App\Traits\HasChecksheetExport;
+
+    protected function getModelClass()
+    {
+        return \App\Models\InProcessChecksheet::class;
+    }
+
+    protected function getGoogleSheetName()
+    {
+        return 'Sheet2';
+    }
+
+    protected function getExportHeaders()
+    {
+        return [
+            'No',
+            'Tanggal',
+            'Jam Before',
+            'Jam After',
+            'Cycle Time',
+            'Shift',
+            'Barang',
+            'Part No',
+            'Customer',
+            'Total Qty',
+            'Sampling Qty',
+            'Total OK',
+            'Total NG',
+            'Judgment',
+            'Inisial Operator',
+            'Remarks',
+            'Check Dimensi',
+            'Ka Shift',
+            'Supervisor',
+            'Asst Manager',
+            'Manager'
+        ];
+    }
+
+    protected function mapExportRow($c)
+    {
+        return [
+            $c->id,
+            $c->date,
+            $c->created_at->copy()->subSeconds($c->cycle_time ?? 0)->format('H:i:s'),
+            $c->created_at->format('H:i:s'),
+            $c->cycle_time ?? '-',
+            $c->shift,
+            $c->item->name ?? '-',
+            $c->item->part_number ?? '-',
+            $c->item->customer ?? '-',
+            $c->total_qty,
+            $c->sampling_qty,
+            $c->total_ok,
+            $c->total_ng,
+            $c->judgment,
+            $c->operator_initials,
+            $c->remarks ?? '-',
+            $c->dimension_check ?? '-',
+            // Approvals
+            $c->kashift_qc === 'REJECTED' ? 'REJECTED' : ($c->kashift_qc ?? ''),
+            $c->supervisor_qc === 'REJECTED' ? 'REJECTED' : ($c->supervisor_qc ?? ''),
+            $c->asst_manager_qc === 'REJECTED' ? 'REJECTED' : ($c->asst_manager_qc ?? ''),
+            $c->manager_qc === 'REJECTED' ? 'REJECTED' : ($c->manager_qc ?? '')
+        ];
+    }
+
     private $hardcodedStandards = [
         '53102-K0L -D002' => [ // Corresponds to "COVER HNDL END K3VA"
             '1' => ['size' => 5, 'tolerance' => 0.2],
@@ -74,6 +142,11 @@ class InProcessChecksheetController extends Controller
         // Admin can switch plants via query parameter, others are locked via HasPlantFilter
         if (auth()->user()->role === 'admin' && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
+        }
+
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $request->merge(['plant' => auth()->user()->plant]);
         }
 
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
@@ -459,308 +532,9 @@ class InProcessChecksheetController extends Controller
         return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
     }
 
-    public function approve(Request $request, $id, $type)
-    {
-        try {
-            $query = InProcessChecksheet::query();
-            if (auth()->user()->role === 'admin') {
-                $query->withoutGlobalScope('plant');
-            }
-            $checksheet = $query->findOrFail($id);
-            $user = auth()->user();
 
-            // Validate that the user is allowed to approve this type
-            if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift')
-                    abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor')
-                    abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
-                    abort(403);
-                if ($type == 'manager' && $user->role !== 'manager')
-                    abort(403);
-            }
 
-            // Check if this level was previously rejected, if so clear rejection remarks
-            $wasRejected = false;
-            if ($type == 'kashift' && $checksheet->kashift_qc === 'REJECTED') {
-                $wasRejected = true;
-            } elseif ($type == 'supervisor' && $checksheet->supervisor_qc === 'REJECTED') {
-                $wasRejected = true;
-            } elseif ($type == 'asst_manager' && $checksheet->asst_manager_qc === 'REJECTED') {
-                $wasRejected = true;
-            } elseif ($type == 'manager' && $checksheet->manager_qc === 'REJECTED') {
-                $wasRejected = true;
-            }
 
-            // If was rejected and now being approved, clear rejection remarks
-            if ($wasRejected) {
-                $checksheet->rejection_remarks = null;
-            }
-
-            // Modified workflow - allow approval at any level without waiting for previous levels
-            if ($type == 'kashift') {
-                if ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Kashift.');
-                }
-                $checksheet->kashift_qc = $user->name;
-                $checksheet->kashift_approved_at = now();
-            } elseif ($type == 'supervisor') {
-                if ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Supervisor.');
-                }
-                $checksheet->supervisor_qc = $user->name;
-                $checksheet->supervisor_approved_at = now();
-                $checksheet->approval_status = 'Approved';
-            } elseif ($type == 'asst_manager') {
-                if ($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Asst Manager.');
-                }
-                $checksheet->asst_manager_qc = $user->name;
-                $checksheet->asst_manager_approved_at = now();
-            } elseif ($type == 'manager') {
-                if ($checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED') {
-                    return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('error', 'Checksheet sudah disetujui oleh Manager.');
-                }
-                $checksheet->manager_qc = $user->name;
-                $checksheet->manager_approved_at = now();
-            }
-
-            $checksheet->save();
-        } catch (\Exception $e) {
-            return response('Error: ' . $e->getMessage(), 500);
-        }
-
-        return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Data Checksheet Inprocess berhasil disetujui.');
-    }
-
-    // Reject Checksheet
-    public function reject(Request $request, $id, $type)
-    {
-        try {
-            $query = InProcessChecksheet::query();
-            if (auth()->user()->role === 'admin') {
-                $query->withoutGlobalScope('plant');
-            }
-            $checksheet = $query->findOrFail($id);
-            $user = auth()->user();
-
-            // Validate that the user is allowed to reject this type
-            if ($user->role !== 'admin') {
-                if ($type == 'kashift' && $user->role !== 'kashift')
-                    abort(403);
-                if ($type == 'supervisor' && $user->role !== 'supervisor')
-                    abort(403);
-                if ($type == 'asst_manager' && $user->role !== 'asst_manager')
-                    abort(403);
-                if ($type == 'manager' && $user->role !== 'manager')
-                    abort(403);
-            }
-
-            // Validate rejection remarks
-            $request->validate([
-                'rejection_remarks' => 'required|string|min:10|max:500',
-            ], [
-                'rejection_remarks.required' => 'Keterangan rejection wajib diisi.',
-                'rejection_remarks.min' => 'Keterangan rejection minimal 10 karakter.',
-                'rejection_remarks.max' => 'Keterangan rejection maksimal 500 karakter.',
-            ]);
-
-            if ($type == 'kashift') {
-                $checksheet->kashift_qc = 'REJECTED';
-                $checksheet->kashift_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'supervisor') {
-                $checksheet->supervisor_qc = 'REJECTED';
-                $checksheet->supervisor_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'asst_manager') {
-                $checksheet->asst_manager_qc = 'REJECTED';
-                $checksheet->asst_manager_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($type == 'manager') {
-                $checksheet->manager_qc = 'REJECTED';
-                $checksheet->manager_approved_at = now();
-                $checksheet->approval_status = 'Rejected';
-            }
-
-            // Save rejection remarks with role prefix
-            $roleLabel = ucfirst(str_replace('_', ' ', $type));
-            $checksheet->rejection_remarks = "[{$roleLabel}] " . $request->rejection_remarks . " - " . $user->name . " (" . now()->format('d/m/Y H:i') . ")";
-
-            $checksheet->save();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->withErrors($e->errors())->withInput();
-        } catch (\Exception $e) {
-            return response('Error: ' . $e->getMessage(), 500);
-        }
-
-        return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Data Checksheet Inprocess berhasil ditolak.');
-    }
-
-    // Sync All Data to Google Sheets
-    public function syncToGoogleSheets(Request $request)
-    {
-        try {
-            $service = app(GoogleSheetService::class);
-            $service->setSheetName('Sheet2');
-
-            // 1. Bersihkan Sheet (Clear Sheet)
-            // Idealnya InProcess menggunakan Sheet/Tab ID yang berbeda.
-            // Untuk saat ini, meniru logika yang ada.
-            $service->clearSheet();
-
-            // 2. Prepare Data and Append in Chunks
-
-            // Send Header Row first
-            $headerRow = [
-                [
-                    'No',
-                    'Tanggal',
-                    'Jam Before',
-                    'Jam After',
-                    'Cycle Time',
-                    'Shift',
-                    'Barang',
-                    'Part No',
-                    'Customer',
-                    'Total Qty',
-                    'Sampling Qty',
-                    'Total OK',
-                    'Total NG',
-                    'Judgment',
-                    'Inisial Operator',
-                    'Remarks',
-                    'Check Dimensi',
-                    'Ka Shift',
-                    'Supervisor',
-                    'Asst Manager',
-                    'Manager'
-                ]
-            ];
-            $service->appendRows($headerRow);
-
-            $count = 0;
-            // Chunk di level database untuk menghemat memori
-            InProcessChecksheet::with('item')
-                ->orderBy('date')
-                ->orderBy('created_at')
-                ->chunk(500, function ($checksheets) use ($service, &$count) {
-                    $rows = [];
-                    foreach ($checksheets as $c) {
-                        $rows[] = [
-                            $c->id,
-                            $c->date,
-                            $c->created_at->copy()->subSeconds($c->cycle_time ?? 0)->format('H:i:s'),
-                            $c->created_at->format('H:i:s'),
-                            $c->cycle_time ?? '-',
-                            $c->shift,
-                            $c->item->name ?? '-',
-                            $c->item->part_number ?? '-',
-                            $c->item->customer ?? '-',
-                            $c->total_qty,
-                            $c->sampling_qty,
-                            $c->total_ok,
-                            $c->total_ng,
-                            $c->judgment,
-                            $c->operator_initials,
-                            $c->remarks ?? '-',
-                            $c->dimension_check ?? '-',
-                            // Approvals
-                            $c->kashift_qc === 'REJECTED' ? 'REJECTED' : ($c->kashift_qc ?? ''),
-                            $c->supervisor_qc === 'REJECTED' ? 'REJECTED' : ($c->supervisor_qc ?? ''),
-                            $c->asst_manager_qc === 'REJECTED' ? 'REJECTED' : ($c->asst_manager_qc ?? ''),
-                            $c->manager_qc === 'REJECTED' ? 'REJECTED' : ($c->manager_qc ?? '')
-                        ];
-                    }
-                    $service->appendRows($rows);
-                    $count += count($rows);
-                });
-
-            return redirect()->back()->with('success', 'Sinkronisasi ke Google Sheets berhasil (' . $count . ' data).');
-
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal Sinkronisasi: ' . $e->getMessage());
-        }
-    }
-
-    // Export Checksheets to CSV
-    public function export(Request $request)
-    {
-        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
-
-        if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
-        }
-
-        $checksheets = $query->get();
-        $filename = "in_process_checksheets_export_" . date('Y-m-d_H-i-s') . ".csv";
-
-        $headers = [
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        ];
-
-        $columns = array('Tanggal', 'Jam Input', 'Cycle Time', 'Shift', 'Barang', 'Part No', 'Customer', 'Total Qty', 'Sampling Qty', 'Total OK', 'Total NG', 'Judgment', 'Inisial Operator', 'Remarks', 'Check Dimensi', 'Ka Shift', 'Supervisor', 'Asst Manager', 'Manager');
-
-        $callback = function () use ($checksheets, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($checksheets as $checksheet) {
-                $row['Tanggal'] = $checksheet->date;
-                $row['Jam Input'] = $checksheet->created_at->format('H:i');
-                $row['Cycle Time'] = $checksheet->cycle_time ?? '-';
-                $row['Shift'] = $checksheet->shift;
-                $row['Barang'] = $checksheet->item->name ?? '-';
-                $row['Part No'] = $checksheet->item->part_number ?? '-';
-                $row['Customer'] = $checksheet->item->customer ?? '-';
-                $row['Total Qty'] = $checksheet->total_qty;
-                $row['Sampling Qty'] = $checksheet->sampling_qty;
-                $row['Total OK'] = $checksheet->total_ok;
-                $row['Total NG'] = $checksheet->total_ng;
-                $row['Judgment'] = $checksheet->judgment;
-                $row['Inisial Operator'] = $checksheet->operator_initials;
-                $row['Remarks'] = $checksheet->remarks;
-                $row['Check Dimensi'] = $checksheet->dimension_check;
-
-                // Export the actual approver name if available
-                $row['Ka Shift'] = $checksheet->kashift_qc ?? '';
-                $row['Supervisor'] = $checksheet->supervisor_qc ?? '';
-                $row['Asst Manager'] = $checksheet->asst_manager_qc ?? '';
-                $row['Manager'] = $checksheet->manager_qc ?? '';
-
-                fputcsv($file, array(
-                    $row['Tanggal'],
-                    $row['Jam Input'],
-                    $row['Cycle Time'],
-                    $row['Shift'],
-                    $row['Barang'],
-                    $row['Part No'],
-                    $row['Customer'],
-                    $row['Total Qty'],
-                    $row['Sampling Qty'],
-                    $row['Total OK'],
-                    $row['Total NG'],
-                    $row['Judgment'],
-                    $row['Inisial Operator'],
-                    $row['Remarks'],
-                    $row['Check Dimensi'],
-                    $row['Ka Shift'],
-                    $row['Supervisor'],
-                    $row['Asst Manager'],
-                    $row['Manager']
-                ));
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 
     // Export Checksheets to PDF
     public function exportPdf(Request $request)

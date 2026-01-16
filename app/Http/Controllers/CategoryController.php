@@ -19,6 +19,11 @@ class CategoryController extends Controller
             $query->withoutGlobalScope('plant')->where('plant', $request->plant);
         }
 
+        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        if (auth()->user()->role === 'inspector') {
+            $request->merge(['plant' => auth()->user()->plant]);
+        }
+
         $categories = $query->orderBy('name')->paginate(10)->withQueryString();
         return view('categories.index', compact('categories'));
     }

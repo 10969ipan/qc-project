@@ -20,7 +20,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // <--- Tambahkan ini
+        'role',
+        'plant',
     ];
 
     /**
@@ -45,7 +46,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    
+
     // Helper untuk cek role
     public function hasRole($role)
     {
