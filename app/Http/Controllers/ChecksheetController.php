@@ -14,7 +14,7 @@ class ChecksheetController extends Controller
 
     protected function getModelClass()
     {
-        return \App\Models\Checksheet::class;
+        return Checksheet::class;
     }
 
     protected function getExportHeaders()

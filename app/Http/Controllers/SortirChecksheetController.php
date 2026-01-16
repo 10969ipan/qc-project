@@ -16,7 +16,7 @@ class SortirChecksheetController extends Controller
 
     protected function getModelClass()
     {
-        return \App\Models\SortirChecksheet::class;
+        return SortirChecksheet::class;
     }
 
     protected function getExportHeaders()

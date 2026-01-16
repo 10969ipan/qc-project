@@ -14,7 +14,7 @@ class CrossCutChecksheetController extends Controller
 
     protected function getModelClass()
     {
-        return \App\Models\CrossCutChecksheet::class;
+        return CrossCutChecksheet::class;
     }
 
     protected function getApprovalMapping($type)
