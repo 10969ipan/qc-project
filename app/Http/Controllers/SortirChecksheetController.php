@@ -292,7 +292,6 @@ class SortirChecksheetController extends Controller
         return redirect()->route('sortir.index', $this->getFilterParams($request, true))
             ->with('success', 'Data Sortir berhasil dihapus.');
     }
-
     protected function applyFilters($query, Request $request)
     {
         if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
