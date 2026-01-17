@@ -101,7 +101,7 @@
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th rowspan="2" class="align-middle">Kashift QC</th>
+                            <th rowspan="2" class="align-middle"><x-approval-label level="kashift" /></th>
                             <th rowspan="2" class="align-middle">Supervisor QC</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
