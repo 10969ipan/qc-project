@@ -66,11 +66,13 @@ class CrossCutChecksheetController extends Controller
         $query = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name');
 
         // Filter items based on plant context
-        // Filter items based on plant context
+        // Strict filter for non-admins/supervisors
         $user = auth()->user();
-        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+        $allowedRoles = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating'];
 
-        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
+        if (!in_array($user->role, $allowedRoles)) {
+            $query->where('plant', $user->plant);
+        } elseif ($request->has('plant')) {
             $query->where('plant', $request->query('plant'));
         }
 

@@ -111,11 +111,14 @@ class SubAssyChecksheetController extends Controller
         $query = Item::byCategory('Sub Assy')->orderBy('name');
 
         // Filter items based on plant context
-        // If user is Admin or SPV Jakarta and has selected a plant via query param
+        // Filter items based on plant context
+        // Strict filter for non-admins/supervisors (e.g. Kashift, Karu)
         $user = auth()->user();
-        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+        $allowedRoles = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating'];
 
-        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
+        if (!in_array($user->role, $allowedRoles)) {
+            $query->where('plant', $user->plant);
+        } elseif ($request->has('plant')) {
             $query->where('plant', $request->query('plant'));
         }
 
@@ -134,10 +137,10 @@ class SubAssyChecksheetController extends Controller
             fn($checksheet) => $this->mapExportRow($checksheet)
         );
 
-        if ($result['google_sheets_success']) {
-            return redirect()->back()->with('success', 'Data Checksheet berhasil disimpan & terkirim ke Google Sheets.');
+        if ($result['checksheet']) {
+            return redirect()->back()->with('success', 'Data Checksheet berhasil disimpan (Local Only).');
         } else {
-            return redirect()->back()->with('success', 'Data tersimpan lokal, namun GAGAL kirim ke Google Sheets. Error: ' . $result['error']);
+            return redirect()->back()->with('error', 'Gagal menyimpan data.');
         }
     }
 

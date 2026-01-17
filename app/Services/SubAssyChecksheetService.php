@@ -98,9 +98,10 @@ class SubAssyChecksheetService extends BaseService
             DB::commit();
 
             // Try to send to Google Sheets
-            $googleSheetsSuccess = false;
+            $googleSheetsSuccess = false; // Disabled by user request
             $error = null;
 
+            /*
             try {
                 $sheetData = $mapExportRow($checksheet);
                 $this->googleSheetService->appendRow($sheetData);
@@ -109,6 +110,7 @@ class SubAssyChecksheetService extends BaseService
                 Log::error('Gagal kirim ke Google Sheets: ' . $e->getMessage());
                 $error = $e->getMessage();
             }
+            */
 
             return [
                 'checksheet' => $checksheet,

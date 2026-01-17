@@ -235,9 +235,10 @@ class InProcessChecksheetService extends BaseService
             DB::commit();
 
             // Try to send to Google Sheets
-            $googleSheetsSuccess = false;
+            $googleSheetsSuccess = false; // Disabled by user request
             $error = null;
 
+            /*
             try {
                 $this->googleSheetService->setSheetName('Sheet2');
                 $sheetData = $mapExportRow($checksheet);
@@ -247,6 +248,7 @@ class InProcessChecksheetService extends BaseService
                 Log::error('Gagal kirim ke Google Sheets: ' . $e->getMessage());
                 $error = $e->getMessage();
             }
+            */
 
             return [
                 'checksheet' => $checksheet,

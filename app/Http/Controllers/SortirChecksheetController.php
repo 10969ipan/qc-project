@@ -83,6 +83,15 @@ class SortirChecksheetController extends Controller
     public function create(Request $request)
     {
         $filters = $request->only(['plant']);
+
+        // Strict filter for non-admins/supervisors
+        $user = auth()->user();
+        $allowedRoles = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating'];
+
+        if (!in_array($user->role, $allowedRoles)) {
+            $filters['plant'] = $user->plant;
+        }
+
         $ngItems = $this->sortirService->getAvailableNgItems($filters);
 
         $now = now();
