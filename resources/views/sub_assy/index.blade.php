@@ -103,10 +103,10 @@
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th rowspan="2" class="align-middle">Kashift QC</th>
-                            <th rowspan="2" class="align-middle">Supervisor QC</th>
-                            <th rowspan="2" class="align-middle">Asst. Manager QC</th>
-                            <th rowspan="2" class="align-middle">Manager QC</th>
+                            <th rowspan="2" class="align-middle"><x-approval-label level="kashift" /></th>
+                            <th rowspan="2" class="align-middle"><x-approval-label level="supervisor" /></th>
+                            <th rowspan="2" class="align-middle"><x-approval-label level="asst_manager" /></th>
+                            <th rowspan="2" class="align-middle"><x-approval-label level="manager" /></th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(auth()->user()->role !== 'inspector')
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
@@ -527,8 +527,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
