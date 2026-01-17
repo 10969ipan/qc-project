@@ -50,27 +50,14 @@ class ItemController extends Controller
         return view('items.create', compact('categories', 'currentPlant'));
     }
 
-    // Menyimpan item baru
     public function store(StoreItemRequest $request)
     {
         $data = $request->validated();
 
-        // Determine plant context
-        // Admin can create items for specific plant via query parameter
-        // Otherwise use authenticated user's plant
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
-            $data['plant'] = $request->get('plant');
-        } else {
-            $data['plant'] = auth()->user()->plant;
-        }
-
         $this->itemService->createItem($data);
 
         // Redirect back to the same plant view
-        $queryParams = [];
-        if (isset($data['plant'])) {
-            $queryParams['plant'] = $data['plant'];
-        }
+        $queryParams = ['plant' => $data['plant']];
 
         return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil ditambahkan.');
     }

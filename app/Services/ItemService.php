@@ -135,6 +135,7 @@ class ItemService extends BaseService
             $item->update([
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
+                'plant' => $data['plant'] ?? $item->plant,
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,

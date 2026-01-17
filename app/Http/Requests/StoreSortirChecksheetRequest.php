@@ -16,6 +16,7 @@ class StoreSortirChecksheetRequest extends FormRequest
         return [
             'item_id' => 'required|exists:items,id',
             'source_type' => 'required|in:sub_assy,in_process,cross_cut',
+            'plant' => 'required|in:karawang,jakarta',
             'source_id' => 'required|integer',
             'date' => 'required|date',
             'shift' => 'required|string',

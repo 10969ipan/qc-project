@@ -279,6 +279,8 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <br><small class="text-muted">oleh
+                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                     @elseif($checksheet->kashift_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -301,6 +303,8 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <br><small class="text-muted">oleh
+                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                     @elseif($checksheet->supervisor_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -323,6 +327,8 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <br><small class="text-muted">oleh
+                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                     @elseif($checksheet->asst_manager_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -345,6 +351,8 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <br><small class="text-muted">oleh
+                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                     @elseif($checksheet->manager_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -392,10 +400,15 @@
                                         {{-- Action Buttons for Approvals --}}
                                         @php
                                             $isAdmin = auth()->user()->role === 'admin';
-                                            $canApproveKashift = (auth()->user()->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveAsst = (auth()->user()->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                            $canApproveManager = (auth()->user()->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
+                                            $user = auth()->user();
+                                            $isJakarta = $user->plant === 'jakarta';
+                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
                                         @endphp
 
                                         @if($canApproveKashift)
@@ -412,7 +425,7 @@
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' KS' : '' }}
+                                                    Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? ' KR' : '') }}
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
@@ -528,15 +541,19 @@
     @foreach($checksheets as $cs)
         @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
-                $isAdmin = auth()->user()->role === 'admin';
+                $user = auth()->user();
+                $isAdmin = $user->role === 'admin';
+                $isJakarta = $user->plant === 'jakarta';
+                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
                 $canReject = false;
-                if ($rejectType == 'kashift' && ((auth()->user()->role === 'kashift' || $isAdmin) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
+                if ($rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
+                } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'asst_manager' && ((auth()->user()->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED'))) {
+                } elseif ($rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
+                } elseif ($rejectType == 'manager' && (($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
                     $canReject = true;
                 }
             @endphp
@@ -617,8 +634,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

@@ -45,7 +45,7 @@
 
             <form action="{{ route('sortir.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
                 <input type="hidden" name="source_type" id="sourceType">
                 <input type="hidden" name="source_id" id="sourceId">
 
@@ -93,19 +93,18 @@
                                 <!-- Tanggal / Shift -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <input type="date" class="form-control" style="min-width: 150px; font-size: 16px;"
-                                            name="date" value="{{ $defaultDate }}" required>
+                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
+                                            value="{{ $defaultDate }}" required>
                                     </div>
                                     <div class="form-group mb-2">
-                                        <select class="form-control" style="min-width: 100px; font-size: 16px;" name="shift"
-                                            required>
+                                        <select class="form-control" style="min-width: 80px;" name="shift" required>
                                             <option value="1">Shift 1</option>
                                             <option value="2">Shift 2</option>
                                             <option value="3">Shift 3</option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
-                                        <select name="line" class="form-control" style="min-width: 100px; font-size: 16px;">
+                                        <select name="line" class="form-control" style="min-width: 80px;">
                                             <option value="">Pilih Meja (Optional)</option>
                                             @foreach ($tableOptions as $i)
                                                 <option value="{{ $i }}">Meja {{ $i }}</option>
@@ -116,16 +115,14 @@
 
                                 <!-- Total Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center"
-                                        style="min-width: 100px; font-size: 16px;" name="total_qty" placeholder="0" min="0"
-                                        required>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="total_qty" placeholder="0" min="0" required>
                                 </td>
 
                                 <!-- Sampling Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center"
-                                        style="min-width: 100px; font-size: 16px;" name="sampling_qty" placeholder="0"
-                                        min="0" required>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="sampling_qty" placeholder="0" min="0" required>
                                 </td>
 
                                 <!-- Jenis (OK/NG) & Detail NG -->
@@ -140,12 +137,10 @@
                                     <small class="font-weight-bold text-secondary">Defect List (NG):</small>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <input type="text" class="form-control"
-                                                style="min-width: 120px; font-size: 16px;" name="defect_types[]"
-                                                placeholder="Jenis Defect">
-                                            <input type="number" class="form-control"
-                                                style="min-width: 80px; font-size: 16px;" name="defect_quantities[]"
-                                                placeholder="Qty" min="1">
+                                            <input type="text" class="form-control" style="min-width: 100px;"
+                                                name="defect_types[]" placeholder="Jenis Defect">
+                                            <input type="number" class="form-control" style="min-width: 60px;"
+                                                name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
                                     <button type="button" id="addDefectBtn" class="btn btn-info btn-sm mt-1">
@@ -194,9 +189,9 @@
 
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center"
-                                        style="min-width: 80px; font-size: 16px;" name="operator_initials"
-                                        placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
+                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                        name="operator_initials" placeholder="Inisial"
+                                        value="{{ auth()->user()->initials ?? '' }}" required>
                                 </td>
 
                                 <!-- Keterangan -->
@@ -353,14 +348,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                            <div class="input-group mb-2 defect-row">
-                                                                <input type="text" class="form-control" style="min-width: 120px; font-size: 16px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                <input type="number" class="form-control" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
-                                                                </div>
-                                                            </div>
-                                                        `;
+                                                                        <div class="input-group mb-2 defect-row">
+                                                                        <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                        <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                        <div class="input-group-append">
+                                                                            <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                        </div>
+                                                                    </div>
+                                                                `;
                 $('#defectContainer').append(newRow);
             });
 

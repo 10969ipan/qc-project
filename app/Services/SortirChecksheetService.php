@@ -132,7 +132,7 @@ class SortirChecksheetService extends BaseService
             }
 
             $sortir = SortirChecksheet::create(array_merge($data, [
-                'plant' => auth()->user()->plant,
+                'plant' => $data['plant'] ?? auth()->user()->plant,
                 'defects' => json_encode($defects)
             ]));
 

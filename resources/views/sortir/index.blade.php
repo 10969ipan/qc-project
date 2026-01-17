@@ -104,7 +104,7 @@
                             <th rowspan="2" class="align-middle"><x-approval-label level="kashift" /></th>
                             <th rowspan="2" class="align-middle">Supervisor QC</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
                             @endif
                         </tr>
@@ -203,6 +203,10 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        @if($checksheet->kashift_qc_time)
+                                            <br><small class="text-muted">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</small>
+                                        @endif
                                     @elseif($checksheet->kashift_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -225,6 +229,10 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        @if($checksheet->supervisor_qc_time)
+                                            <br><small class="text-muted">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</small>
+                                        @endif
                                     @elseif($checksheet->supervisor_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -250,12 +258,17 @@
                                     {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> CLOSE</span>', e($checksheet->remarks ?? '-')) !!}
                                 </td>
 
-                                @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 300px;">
                                         @php
                                             $isAdmin = auth()->user()->role === 'admin';
-                                            $canApproveKashift = (auth()->user()->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED');
+                                            $user = auth()->user();
+                                            $isJakarta = $user->plant === 'jakarta';
+                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED');
                                         @endphp
 
                                         @if($canApproveKashift)
@@ -268,7 +281,8 @@
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
-                                                    <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' KS' : '' }}
+                                                    <i class="fas fa-check"></i>
+                                                    Approve{{ $isAdmin ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? ' KR' : '') }}
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal"
@@ -318,8 +332,13 @@
                             @foreach(['kashift', 'supervisor'] as $rejectType)
                                 @php
                                     $isAdmin = auth()->user()->role === 'admin';
+                                    $user = auth()->user();
+                                    $isJakarta = $user->plant === 'jakarta';
+                                    $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                    $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
                                     $canReject = false;
-                                    if ($rejectType == 'kashift' && ($isAdmin || auth()->user()->role == 'kashift'))
+                                    if ($rejectType == 'kashift' && ($isAdmin || $user->role == 'kashift' || $isSpvJakarta || $isKaruJakarta))
                                         $canReject = true;
                                     elseif ($rejectType == 'supervisor' && ($isAdmin || auth()->user()->role == 'supervisor'))
                                         $canReject = true;

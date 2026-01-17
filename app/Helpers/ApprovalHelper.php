@@ -67,3 +67,52 @@ if (!function_exists('getApprovalLabelShort')) {
         return $labels[strtolower($plant)][$level] ?? $labels['karawang'][$level];
     }
 }
+
+if (!function_exists('getRoleDisplayName')) {
+    /**
+     * Get display name for a role
+     * 
+     * @param string $role
+     * @return string
+     */
+    function getRoleDisplayName(string $role): string
+    {
+        $roles = [
+            'admin' => 'Administrator',
+            'inspector' => 'Inspector QC',
+            'karu_qc' => 'Kepala Regu',
+            'supervisor' => 'Supervisor QC',
+            'asst_manager' => 'Asst Manager QC',
+            'manager' => 'Manager QC',
+            'kashift_plating' => 'Kashift Plating',
+            'supervisor_plating' => 'Supervisor Plating',
+            'manager_plating' => 'Manager Plating',
+            'kashift' => 'Kashift QC',
+        ];
+
+        return $roles[strtolower($role)] ?? ucfirst(str_replace('_', ' ', $role));
+    }
+}
+
+if (!function_exists('getRejectorName')) {
+    /**
+     * Parse rejector name from rejection remarks
+     * Remarks Format: [Role] Reason - Name (Date)
+     * 
+     * @param string|null $remarks
+     * @return string|null
+     */
+    function getRejectorName(?string $remarks): ?string
+    {
+        if (!$remarks)
+            return null;
+
+        // Pattern to match " - Name (Date)" at the end
+        // Example: ... - John Doe (17/01/2026 20:04)
+        if (preg_match('/ - (.*?) \(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}\)$/', $remarks, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+}

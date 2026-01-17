@@ -27,7 +27,6 @@
         src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <style>
-       
         /* Professional Corporate Font - Inter */
         body,
         h1,
@@ -407,6 +406,74 @@
         .btn:hover i,
         .btn-sm:hover i {
             transform: scale(1.2);
+        }
+
+        /* --- COMPACT UI MODE (User Requested) --- */
+        /* Reduce font sizes and padding for dense information display */
+
+        /* Form Inputs */
+        .form-control {
+            font-size: 0.85rem !important;
+            /* Smaller text */
+            padding: 0.3rem 0.5rem !important;
+            /* Smaller padding */
+            height: auto !important;
+            /* Let height adjust to content */
+            min-height: calc(1.5em + 0.5rem + 2px);
+        }
+
+        select.form-control {
+            padding-right: 1.5rem !important;
+            /* Space for arrow */
+        }
+
+        .form-control-sm {
+            font-size: 0.75rem !important;
+            padding: 0.2rem 0.4rem !important;
+            min-height: calc(1.25em + 0.4rem + 2px);
+        }
+
+        /* Buttons */
+        .btn {
+            font-size: 0.85rem !important;
+            padding: 0.3rem 0.6rem !important;
+        }
+
+        .btn-sm {
+            font-size: 0.75rem !important;
+            padding: 0.2rem 0.4rem !important;
+        }
+
+        /* Tables */
+        table th,
+        table td,
+        .table th,
+        .table td {
+            padding: 0.35rem 0.5rem !important;
+            /* Tighter cells */
+            font-size: 0.8rem !important;
+            /* Smaller table text */
+        }
+
+        /* Labels */
+        label {
+            font-size: 0.8rem !important;
+            margin-bottom: 0.2rem !important;
+        }
+
+        /* Input Groups */
+        .input-group-text {
+            padding: 0.3rem 0.5rem !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* Adjust layout spacing */
+        .card-body {
+            padding: 1rem !important;
+        }
+
+        .form-group {
+            margin-bottom: 0.5rem !important;
         }
     </style>
 

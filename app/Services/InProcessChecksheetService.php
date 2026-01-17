@@ -216,7 +216,7 @@ class InProcessChecksheetService extends BaseService
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
 
             $checksheet = InProcessChecksheet::create([
-                'plant' => auth()->user()->plant,
+                'plant' => $data['plant'] ?? auth()->user()->plant,
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],

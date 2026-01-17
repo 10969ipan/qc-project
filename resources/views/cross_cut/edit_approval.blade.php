@@ -30,7 +30,7 @@
                 <div class="row">
                     <!-- Level 1: Karu QC -->
                     <div class="form-group col-md-4">
-                        <label for="karu_qc">Status Karu QC</label>
+                        <label for="karu_qc">Status Kepala Regu</label>
                         <select name="karu_qc" id="karu_qc" class="form-control">
                             <option value="Pending" @if(is_null($checksheet->karu_qc)) selected @endif>Pending</option>
                             <option value="Approved" @if($checksheet->karu_qc && $checksheet->karu_qc !== 'REJECTED')

@@ -41,6 +41,7 @@ class UpdateItemRequest extends FormRequest
                 },
             ],
             'category_id' => 'required|exists:categories,id',
+            'plant' => 'required|in:karawang,jakarta',
             'file' => 'nullable|mimes:pdf|max:5120', // Max 5MB
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',

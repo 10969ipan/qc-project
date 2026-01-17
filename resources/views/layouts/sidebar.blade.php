@@ -32,7 +32,7 @@
 
     @php
         // Roles that can VIEW all plants (for reports/laporan) - EXCLUDES inspector
-        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'karu_qc', 'supervisor', 'asst_manager', 'manager']);
+        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager']);
 
         // Roles that can INPUT in all plants - EXCLUDES inspector (they can only input in their own plant)
         $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'karu_qc', 'supervisor', 'asst_manager', 'manager']);
@@ -166,7 +166,7 @@
         </li>
     @endif
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'inspector' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))
+    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'inspector' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager' || auth()->user()->role === 'karu_qc'))
         <!-- Nav Item - Laporan (Viewing) -->
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLaporan"
@@ -214,7 +214,7 @@
 
 
 
-    @if(auth()->check() && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
+    @if(auth()->check() && auth()->user()->plant !== 'jakarta' && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
         <!-- Nav Item - Cross Cut Only (For Plating Roles) -->
         <li class="nav-item">
             <a class="nav-link" href="{{ route('cross_cut.index') }}">

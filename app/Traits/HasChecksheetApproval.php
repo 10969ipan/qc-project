@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 trait HasChecksheetApproval
 {
@@ -41,19 +42,30 @@ trait HasChecksheetApproval
 
             // validation: check if user owns the role or is admin
             if ($user->role !== 'admin') {
-                // simple check: if role matches type exactly (e.g. 'kashift' == 'kashift')
-                // OR if the precise mapping key is complex, we might need custom logic.
-                // ideally, the route {type} matches the user role name.
-                // but 'kashift_plating' logic in CrossCut might need care.
+                $modelClass = $this->getModelClass();
 
-                // For standard QC, type matches role usually. 
-                // If standard logic fails, controller should override or we use loose check:
-                if (strpos($type, $user->role) === false && $user->role !== 'admin') {
-                    // e.g. role 'kashift_plating' vs type 'kashift_plating' -> ok
-                    // role 'kashift' vs type 'kashift' -> ok
-                    if ($type !== $user->role) {
-                        abort(403);
+                // 1. Block Jakarta users from approving Cross Cut (Karawang only)
+                if (strpos($modelClass, 'CrossCutChecksheet') !== false && $user->plant === 'jakarta') {
+                    abort(403, 'User Jakarta tidak memiliki akses approval untuk Cross Cut.');
+                }
+
+                $isAllowed = false;
+
+                // Standard role match (e.g. kashift role for kashift type)
+                if ($type === $user->role || ($user->role !== '' && strpos($type, $user->role) !== false)) {
+                    $isAllowed = true;
+                }
+
+                // 2. Special case: Jakarta 'karu_qc' or 'supervisor' can approve 'kashift' level
+                // acting as 'Kepala Regu' for Sub Assy and In Process
+                if ($user->plant === 'jakarta' && $type === 'kashift') {
+                    if ($user->role === 'karu_qc' || $user->role === 'supervisor') {
+                        $isAllowed = true;
                     }
+                }
+
+                if (!$isAllowed) {
+                    abort(403);
                 }
             }
 
@@ -77,7 +89,9 @@ trait HasChecksheetApproval
             // Set global approval status if Supervisor approves (Standard logic)
             // Or usually Supervisor approval triggers 'Approved' status in simplified flow
             if ($type === 'supervisor' || $type === 'supervisor_plating') {
-                $checksheet->approval_status = 'Approved';
+                if (Schema::hasColumn($checksheet->getTable(), 'approval_status')) {
+                    $checksheet->approval_status = 'Approved';
+                }
             }
 
             // Logic khusus Sortir / Lainnya jika semua verified bisa ditaruh di sini atau override
@@ -116,8 +130,28 @@ trait HasChecksheetApproval
             $user = auth()->user();
 
             // validation
-            if ($user->role !== 'admin' && $type !== $user->role) {
-                abort(403);
+            if ($user->role !== 'admin') {
+                $modelClass = $this->getModelClass();
+
+                // Block Jakarta users from rejecting Cross Cut
+                if (strpos($modelClass, 'CrossCutChecksheet') !== false && $user->plant === 'jakarta') {
+                    abort(403, 'User Jakarta tidak memiliki akses rejection untuk Cross Cut.');
+                }
+
+                $isAllowed = false;
+                if ($type === $user->role || ($user->role !== '' && strpos($type, $user->role) !== false)) {
+                    $isAllowed = true;
+                }
+
+                if ($user->plant === 'jakarta' && $type === 'kashift') {
+                    if ($user->role === 'karu_qc' || $user->role === 'supervisor') {
+                        $isAllowed = true;
+                    }
+                }
+
+                if (!$isAllowed) {
+                    abort(403);
+                }
             }
 
             $field = $map['field'];
@@ -125,7 +159,9 @@ trait HasChecksheetApproval
 
             $checksheet->$field = 'REJECTED';
             $checksheet->$timeField = now();
-            $checksheet->approval_status = 'Rejected';
+            if (Schema::hasColumn($checksheet->getTable(), 'approval_status')) {
+                $checksheet->approval_status = 'Rejected';
+            }
 
             // Save remarks
             $roleLabel = $map['label'];

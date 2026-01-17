@@ -92,7 +92,7 @@
 
             <form action="{{ route('checksheet.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
@@ -151,13 +151,12 @@
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
                                         <label class="sr-only">Tanggal</label>
-                                        <input type="date" class="form-control" style="min-width: 150px; font-size: 16px;"
-                                            name="date" value="{{ $defaultDate }}" required>
+                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
+                                            value="{{ $defaultDate }}" required>
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="sr-only">Shift</label>
-                                        <select class="form-control" style="min-width: 100px; font-size: 16px;" name="shift"
-                                            required>
+                                        <select class="form-control" style="min-width: 80px;" name="shift" required>
                                             <option value="1">Shift 1</option>
                                             <option value="2">Shift 2</option>
                                             <option value="3">Shift 3</option>
@@ -165,8 +164,8 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="sr-only">Meja</label>
-                                        <select name="line" id="line" class="form-control"
-                                            style="min-width: 100px; font-size: 16px;" required>
+                                        <select name="line" id="line" class="form-control" style="min-width: 80px;"
+                                            required>
                                             <option value="">Pilih Meja</option>
                                             @foreach ($tableOptions as $i)
                                                 <option value="{{ $i }}">Meja {{ $i }}</option>
@@ -177,16 +176,14 @@
 
                                 <!-- Total Quality (Total Quantity produced) -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center"
-                                        style="min-width: 100px; font-size: 16px;" name="total_qty" placeholder="0" min="0"
-                                        required>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="total_qty" placeholder="0" min="0" required>
                                 </td>
 
                                 <!-- Sampling Check Quantity -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center"
-                                        style="min-width: 100px; font-size: 16px;" name="sampling_qty" placeholder="0"
-                                        min="0" required>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="sampling_qty" placeholder="0" min="0" required>
                                 </td>
 
                                 <!-- Jenis (OK/NG) & Detail Varian NG -->
@@ -201,14 +198,12 @@
                                     <small class="font-weight-bold text-secondary">Defect List (NG):</small>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select"
-                                                style="min-width: 120px; font-size: 16px;" name="defect_types[]"
-                                                id="defectSelect">
+                                            <select class="form-control defect-select" style="min-width: 100px;"
+                                                name="defect_types[]" id="defectSelect">
                                                 <option value="">-- Pilih Defect --</option>
                                             </select>
-                                            <input type="number" class="form-control defect-qty"
-                                                style="min-width: 80px; font-size: 16px;" name="defect_quantities[]"
-                                                placeholder="Qty" min="1">
+                                            <input type="number" class="form-control defect-qty" style="min-width: 60px;"
+                                                name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
                                     <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
@@ -258,9 +253,9 @@
 
                                 <!-- Inisial Operator -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center"
-                                        style="min-width: 80px; font-size: 16px;" name="operator_initials"
-                                        placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
+                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                        name="operator_initials" placeholder="Inisial"
+                                        value="{{ auth()->user()->initials ?? '' }}" required>
                                 </td>
 
                                 <!-- Keterangan -->
@@ -769,10 +764,10 @@
                 if (rowCount < 4) {
                     var firstSelect = $('#defectSelect'); // The original one
                     var newRow = $('<div class="input-group mb-2 defect-row">' +
-                        '<select class="form-control defect-select" style="min-width: 120px; font-size: 16px;" name="defect_types[]">' +
+                        '<select class="form-control defect-select" style="min-width: 100px;" name="defect_types[]">' +
                         firstSelect.html() +
                         '</select>' +
-                        '<input type="number" class="form-control defect-qty" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                        '<input type="number" class="form-control defect-qty" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
                         '<div class="input-group-append">' +
                         '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
                         '</div>' +

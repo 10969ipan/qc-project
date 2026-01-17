@@ -179,6 +179,8 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
+                                            <br><small class="text-muted">oleh
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -203,6 +205,8 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
+                                            <br><small class="text-muted">oleh
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -227,6 +231,8 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
+                                            <br><small class="text-muted">oleh
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -251,6 +257,8 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
+                                            <br><small class="text-muted">oleh
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -275,6 +283,8 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
+                                            <br><small class="text-muted">oleh
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -299,307 +309,371 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
-                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                            </span>
-                                            <br><small class="text-muted">oleh {{ $checksheet->manager_plating }}</small>
-                                        @endif
+                                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                                        </span>
+                                                        <br><small class="text-muted">oleh {{ $checksheet->manager_plating }}</small>
+                                                    @endif
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->manager_plating_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                <td class="align-middle">
-                                    @if($checksheet->rejection_remarks)
-                                        <div class="text-danger font-weight-bold">
-                                            <i class="fas fa-exclamation-triangle"></i> REJECTED
-                                        </div>
-                                        <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
-                                    @else
-                                        @if($checksheet->next_proses)
-                                            <div class="mb-1">
-                                                <span class="badge badge-danger px-2 py-1">
-                                                    <i class="fas fa-exclamation-circle"></i>
-                                                    LABEL MERAH: {{ $checksheet->next_proses }}
+                                                <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                                    <i class="fas fa-clock mr-1"></i> PENDING
                                                 </span>
-                                                <br>
-                                                @if(!str_contains($checksheet->keterangan ?? '', '[SORTIR_CLOSED]'))
-                                                    <span class="text-danger small font-weight-bold ml-1">
-                                                        <i class="fas fa-clock"></i> STATUS: OPEN
-                                                    </span>
+                                            @endif
+                                            @if($checksheet->manager_plating_approved_at)
+                                                <br><small
+                                                    class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                            @endif
+                                        </td>
+
+                                        <td class="align-middle">
+                                            @if($checksheet->rejection_remarks)
+                                                <div class="text-danger font-weight-bold">
+                                                    <i class="fas fa-exclamation-triangle"></i> REJECTED
+                                                </div>
+                                                <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
+                                            @else
+                                                @if($checksheet->next_proses)
+                                                    <div class="mb-1">
+                                                        <span class="badge badge-danger px-2 py-1">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            LABEL MERAH: {{ $checksheet->next_proses }}
+                                                        </span>
+                                                        <br>
+                                                        @if(!str_contains($checksheet->keterangan ?? '', '[SORTIR_CLOSED]'))
+                                                            <span class="text-danger small font-weight-bold ml-1">
+                                                                <i class="fas fa-clock"></i> STATUS: OPEN
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                 @endif
-                                            </div>
-                                        @endif
-                                        {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->keterangan)) !!}
-                                    @endif
-                                </td>
+                                                {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->keterangan)) !!}
+                                            @endif
+                                        </td>
 
-                                @if(auth()->user()->role !== 'inspector')
-                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
-                                        @php
-                                            // Modified: Allow approval at any level without waiting for previous levels
-                                            $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED');
-                                            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$checksheet->kashift_plating || $checksheet->kashift_plating === 'REJECTED');
-                                            $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
-                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveManagerPlating = (auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->manager_plating || $checksheet->manager_plating === 'REJECTED');
-                                            $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
-                                        @endphp
+                                        @if(auth()->user()->role !== 'inspector')
+                                            <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                                @php
+                                                    // Modified: Allow approval at any level without waiting for previous levels
+                                                    $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED');
+                                                    $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$checksheet->kashift_plating || $checksheet->kashift_plating === 'REJECTED');
+                                                    $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
+                                                    $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                                    $canApproveManagerPlating = (auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->manager_plating || $checksheet->manager_plating === 'REJECTED');
+                                                    $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
+                                                @endphp
 
-                                        {{-- Level 1: Karu QC --}}
-                                        @if($canApproveKaruQc)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'karu_qc', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Karu QC)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' Karu' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Karu QC)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                {{-- Level 1: Karu QC --}}
+                                                @if($canApproveKaruQc)
+                                                    <form
+                                                        action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'karu_qc', 'plant' => request('plant')]) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="page" value="{{ request('page') }}">
+                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                        <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kepala Regu)"
+                                                            style="min-width: 110px;">
+                                                            <i class="fas fa-check"></i>
+                                                            Approve{{ (auth()->user()->role === 'admin') ? ' KR' : '' }}
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kepala Regu)"
+                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                @endif
 
-                                        {{-- Level 2: Kashift Plating --}}
-                                        @if($canApproveKashiftPlating)
-                                            <button type="button" class="btn btn-success btn-sm m-1" title="Approve (Kashift Plating)"
-                                                style="min-width: 110px;" data-toggle="modal"
-                                                data-target="#approveModal{{ $checksheet->id }}kashift_plating">
-                                                <i class="fas fa-check"></i>
-                                                Approve{{ (auth()->user()->role === 'admin') ? ' KS Plt' : '' }}
-                                            </button>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift_plating"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                {{-- Level 2: Kashift Plating --}}
+                                                @if($canApproveKashiftPlating)
+                                                    <button type="button" class="btn btn-success btn-sm m-1" title="Approve (Kashift Plating)"
+                                                        style="min-width: 110px;" data-toggle="modal"
+                                                        data-target="#approveModal{{ $checksheet->id }}kashift_plating">
+                                                        <i class="fas fa-check"></i>
+                                                        Approve{{ (auth()->user()->role === 'admin') ? ' KS Plt' : '' }}
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift Plating)"
+                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift_plating"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                @endif
 
-                                        {{-- Level 3: SPV Quality --}}
-                                        @if($canApproveSupervisor)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Quality)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV Q' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV Quality)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                {{-- Level 3: SPV Quality --}}
+                                                @if($canApproveSupervisor)
+                                                    <form
+                                                        action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="page" value="{{ request('page') }}">
+                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                        <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Quality)"
+                                                            style="min-width: 110px;">
+                                                            <i class="fas fa-check"></i>
+                                                            Approve{{ (auth()->user()->role === 'admin') ? ' SPV Q' : '' }}
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV Quality)"
+                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                @endif
 
-                                        {{-- Level 4: SPV Plating --}}
-                                        @if($canApproveSupervisorPlating)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor_plating', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Plating)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV P' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor_plating"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                {{-- Level 4: SPV Plating --}}
+                                                @if($canApproveSupervisorPlating)
+                                                    <form
+                                                        action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor_plating', 'plant' => request('plant')]) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="page" value="{{ request('page') }}">
+                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                        <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Plating)"
+                                                            style="min-width: 110px;">
+                                                            <i class="fas fa-check"></i>
+                                                            Approve{{ (auth()->user()->role === 'admin') ? ' SPV P' : '' }}
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV Plating)"
+                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor_plating"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                @endif
 
-                                        {{-- Level 5: Manager QC --}}
-                                        @if($canApproveManager)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR Q' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager QC)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                {{-- Level 5: Manager QC --}}
+                                                @if($canApproveManager)
+                                                    <form
+                                                        action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="page" value="{{ request('page') }}">
+                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                        <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)"
+                                                            style="min-width: 110px;">
+                                                            <i class="fas fa-check"></i>
+                                                            Approve{{ (auth()->user()->role === 'admin') ? ' MGR Q' : '' }}
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager QC)"
+                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                @endif
 
-                                        {{-- Level 6: Manager Plating --}}
-                                        @if($canApproveManagerPlating)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager_plating', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1"
-                                                    title="Approve (Manager Plating)" style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR P' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager_plating"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                {{-- Level 6: Manager Plating --}}
+                                                @if($canApproveManagerPlating)
+                                                    <form
+                                                        action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager_plating', 'plant' => request('plant')]) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="page" value="{{ request('page') }}">
+                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                        <button type="submit" class="btn btn-success btn-sm m-1"
+                                                            title="Approve (Manager Plating)" style="min-width: 110px;">
+                                                            <i class="fas fa-check"></i>
+                                                            Approve{{ (auth()->user()->role === 'admin') ? ' MGR P' : '' }}
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager Plating)"
+                                                        data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager_plating"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                @endif
 
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}"
-                                                class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
+                                                @if(auth()->user()->role === 'admin')
+                                                    <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}"
+                                                        class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
+                                                        <i class="fas fa-user-check"></i> Status
+                                                    </a>
+                                                @endif
+                                                <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
+                                                    title="Edit" style="min-width: 110px;">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                                <form
+                                                    action="{{ route('cross_cut.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                    method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            </td>
                                         @endif
-                                        <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
-                                            title="Edit" style="min-width: 110px;">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <form
-                                            action="{{ route('cross_cut.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </td>
-                                @endif
-                            </tr>
+                                    </tr>
                         @empty
-                            <tr>
-                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 22 : 21 }}" class="text-center">No data
-                                    available</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-4">
-                {{ $checksheets->withQueryString()->links() }}
-            </div>
-        </div>
-    </div>
-
-    <!-- Image Modal -->
-    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">Cross Cut Image</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                                <tr>
+                                    <td colspan="{{ auth()->user()->role !== 'inspector' ? 22 : 21 }}" class="text-center">No data
+                                        available</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="modalImage" src="" class="img-fluid" alt="Cross Cut Image">
-                    <p id="modalItemName" class="mt-2"></p>
-                    <p id="modalQcDatetime"></p>
+                <div class="mt-4">
+                    {{ $checksheets->withQueryString()->links() }}
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Rejection Modal for each checksheet and type -->
-    @foreach($checksheets as $cs)
-        @foreach(['karu_qc', 'kashift_plating', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
+        <!-- Image Modal -->
+        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">Cross Cut Image</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img id="modalImage" src="" class="img-fluid" alt="Cross Cut Image">
+                        <p id="modalItemName" class="mt-2"></p>
+                        <p id="modalQcDatetime"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rejection Modal for each checksheet and type -->
+        @foreach($checksheets as $cs)
+            @foreach(['karu_qc', 'kashift_plating', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
+                @php
+                    $canReject = false;
+                    // Modified: Allow rejection at any level without waiting for previous levels
+                    if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$cs->karu_qc || $cs->karu_qc === 'REJECTED'))) {
+                        $canReject = true;
+                    } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED'))) {
+                        $canReject = true;
+                    } elseif ($rejectType == 'supervisor_plating' && ((auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$cs->supervisor_plating || $cs->supervisor_plating === 'REJECTED'))) {
+                        $canReject = true;
+                    } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
+                        $canReject = true;
+                    } elseif ($rejectType == 'manager_plating' && ((auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$cs->manager_plating || $cs->manager_plating === 'REJECTED'))) {
+                        $canReject = true;
+                    } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
+                        $canReject = true;
+                    }
+                @endphp
+                @if($canReject)
+                    <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
+                        aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content border-0 shadow-lg">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                                    </h5>
+                                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <form
+                                    action="{{ route('cross_cut.reject', ['id' => $cs->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
+                                    method="POST">
+                                    @csrf
+                                    <div class="modal-body">
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
+                                            <strong>{{ ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
+                                                Alasan Rejection <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
+                                                id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
+                                                placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
+                                                maxlength="500">{{ old('rejection_remarks') }}</textarea>
+                                            <small class="form-text text-muted">
+                                                <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
+                                            </small>
+                                            @error('rejection_remarks')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                            <i class="fas fa-times"></i> Batal
+                                        </button>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-ban"></i> Tolak Checksheet
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
+        @endforeach
+
+        <!-- Approval Modal for Kashift Plating -->
+        @foreach($checksheets as $cs)
             @php
-                $canReject = false;
-                // Modified: Allow rejection at any level without waiting for previous levels
-                if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$cs->karu_qc || $cs->karu_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'supervisor_plating' && ((auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$cs->supervisor_plating || $cs->supervisor_plating === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'manager_plating' && ((auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$cs->manager_plating || $cs->manager_plating === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
-                    $canReject = true;
-                }
+                $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED');
             @endphp
-            @if($canReject)
-                <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
-                    aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
+            @if($canApproveKashiftPlating)
+                <div class="modal fade" id="approveModal{{ $cs->id }}kashift_plating" tabindex="-1" role="dialog"
+                    aria-labelledby="approveModalLabel{{ $cs->id }}kashift_plating" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered" role="document">
                         <div class="modal-content border-0 shadow-lg">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title" id="approveModalLabel{{ $cs->id }}kashift_plating">
+                                    <i class="fas fa-check-circle mr-2"></i>Konfirmasi Approval Kepala Shift Plating
                                 </h5>
                                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <form
-                                action="{{ route('cross_cut.reject', ['id' => $cs->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
+                            <form action="{{ route('cross_cut.approve', ['id' => $cs->id, 'type' => 'kashift_plating']) }}"
                                 method="POST">
                                 @csrf
+                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                 <div class="modal-body">
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                        <strong>{{ ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> Anda akan menyetujui checksheet ini sebagai
+                                        <strong>Kepala Shift Plating</strong>
                                     </div>
                                     <div class="form-group">
-                                        <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
-                                            Alasan Rejection <span class="text-danger">*</span>
+                                        <label for="approver_name{{ $cs->id }}kashift_plating" class="font-weight-bold">
+                                            Nama User/Approver <span class="text-danger">*</span>
                                         </label>
-                                        <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
-                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
-                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
-                                            maxlength="500">{{ old('rejection_remarks') }}</textarea>
+                                        <input type="text" class="form-control @error('approver_name') is-invalid @enderror"
+                                            id="approver_name{{ $cs->id }}kashift_plating" name="approver_name"
+                                            placeholder="Masukkan nama Anda (minimal 3 karakter)" required minlength="3" maxlength="100"
+                                            value="{{ old('approver_name') }}">
                                         <small class="form-text text-muted">
-                                            <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
+                                            Masukkan nama lengkap Anda untuk konfirmasi approval
                                         </small>
-                                        @error('rejection_remarks')
+                                        @error('approver_name')
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -608,8 +682,8 @@
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                         <i class="fas fa-times"></i> Batal
                                     </button>
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-ban"></i> Tolak Checksheet
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Setujui Checksheet
                                     </button>
                                 </div>
                             </form>
@@ -618,136 +692,73 @@
                 </div>
             @endif
         @endforeach
-    @endforeach
 
-    <!-- Approval Modal for Kashift Plating -->
-    @foreach($checksheets as $cs)
-        @php
-            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED');
-        @endphp
-        @if($canApproveKashiftPlating)
-            <div class="modal fade" id="approveModal{{ $cs->id }}kashift_plating" tabindex="-1" role="dialog"
-                aria-labelledby="approveModalLabel{{ $cs->id }}kashift_plating" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="approveModalLabel{{ $cs->id }}kashift_plating">
-                                <i class="fas fa-check-circle mr-2"></i>Konfirmasi Approval Kepala Shift Plating
-                            </h5>
-                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="{{ route('cross_cut.approve', ['id' => $cs->id, 'type' => 'kashift_plating']) }}"
-                            method="POST">
-                            @csrf
-                            <input type="hidden" name="page" value="{{ request('page') }}">
-                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                            <div class="modal-body">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> Anda akan menyetujui checksheet ini sebagai
-                                    <strong>Kepala Shift Plating</strong>
-                                </div>
-                                <div class="form-group">
-                                    <label for="approver_name{{ $cs->id }}kashift_plating" class="font-weight-bold">
-                                        Nama User/Approver <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" class="form-control @error('approver_name') is-invalid @enderror"
-                                        id="approver_name{{ $cs->id }}kashift_plating" name="approver_name"
-                                        placeholder="Masukkan nama Anda (minimal 3 karakter)" required minlength="3" maxlength="100"
-                                        value="{{ old('approver_name') }}">
-                                    <small class="form-text text-muted">
-                                        Masukkan nama lengkap Anda untuk konfirmasi approval
-                                    </small>
-                                    @error('approver_name')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                    <i class="fas fa-times"></i> Batal
-                                </button>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-check"></i> Setujui Checksheet
-                                </button>
-                            </div>
-                        </form>
+        {{-- Image Modal --}}
+        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-font-weight-bold" id="imageModalLabel">
+                            <i class="fas fa-image mr-2"></i>Detail Cross Cut Checksheet
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                </div>
-            </div>
-        @endif
-    @endforeach
-
-    {{-- Image Modal --}}
-    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-font-weight-bold" id="imageModalLabel">
-                        <i class="fas fa-image mr-2"></i>Detail Cross Cut Checksheet
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        {{-- Image Section --}}
-                        <div class="col-md-7">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h6 class="m-0 font-weight-bold text-primary">
-                                        <i class="fas fa-camera mr-2"></i>Hasil Cross Cut
-                                    </h6>
-                                </div>
-                                <div class="card-body text-center p-2">
-                                    <div id="imageContainer"
-                                        style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="sr-only">Loading...</span>
+                    <div class="modal-body">
+                        <div class="row">
+                            {{-- Image Section --}}
+                            <div class="col-md-7">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-light">
+                                        <h6 class="m-0 font-weight-bold text-primary">
+                                            <i class="fas fa-camera mr-2"></i>Hasil Cross Cut
+                                        </h6>
+                                    </div>
+                                    <div class="card-body text-center p-2">
+                                        <div id="imageContainer"
+                                            style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="sr-only">Loading...</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {{-- Details Section --}}
-                        <div class="col-md-5">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h6 class="m-0 font-weight-bold text-primary">
-                                        <i class="fas fa-info-circle mr-2"></i>Informasi Checksheet
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-sm table-borderless">
-                                        <tbody id="detailsContainer">
-                                            <tr>
-                                                <td colspan="2" class="text-center"><em>Loading...</em></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                            {{-- Details Section --}}
+                            <div class="col-md-5">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-light">
+                                        <h6 class="m-0 font-weight-bold text-primary">
+                                            <i class="fas fa-info-circle mr-2"></i>Informasi Checksheet
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm table-borderless">
+                                            <tbody id="detailsContainer">
+                                                <tr>
+                                                    <td colspan="2" class="text-center"><em>Loading...</em></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-1"></i>Tutup
-                    </button>
-                    <a href="#" id="downloadImageBtn" class="btn btn-primary" download>
-                        <i class="fas fa-download mr-1"></i>Download Gambar
-                    </a>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Tutup
+                        </button>
+                        <a href="#" id="downloadImageBtn" class="btn btn-primary" download>
+                            <i class="fas fa-download mr-1"></i>Download Gambar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 @endsection
 
@@ -769,8 +780,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                    // Image Modal Handler
-                                const imageModal = document.getElementById('imageModal');
+                                                                                                            // Image Modal Handler
+                                        const imageModal = document.getElementById('imageModal');
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
             viewImageBtns.forEach(btn => {
@@ -797,93 +808,93 @@
                         if (data.image_path) {
                             const imagePath = `/storage/${data.image_path}`;
                             imageContainer.innerHTML = `
-                                                    <img src="${imagePath}" 
-                                                         class="img-fluid rounded shadow" 
-                                                         alt="Cross Cut Image"
-                                                         style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                         onclick="window.open('${imagePath}', '_blank')">
-                                                `;
+                                                            <img src="${imagePath}" 
+                                                                 class="img-fluid rounded shadow" 
+                                                                 alt="Cross Cut Image"
+                                                                 style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                                 onclick="window.open('${imagePath}', '_blank')">
+                                                        `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
                         } else {
                             imageContainer.innerHTML = `
-                                                    <div class="alert alert-warning">
-                                                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                        Tidak ada gambar untuk checksheet ini
-                                                    </div>
-                                                `;
+                                                            <div class="alert alert-warning">
+                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                Tidak ada gambar untuk checksheet ini
+                                                            </div>
+                                                        `;
                             downloadBtn.style.display = 'none';
                         }
 
                         // Display details
                         const details = `
-                                                <tr>
-                                                    <th class="text-nowrap">Item Part:</th>
-                                                    <td>${data.item_name || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Customer:</th>
-                                                    <td>${data.customer || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Part No:</th>
-                                                    <td>${data.part_number || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Kode SAP:</th>
-                                                    <td>${data.sap_code || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Tanggal Produksi:</th>
-                                                    <td>${data.production_date || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Tanggal QC:</th>
-                                                    <td>${data.qc_date || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Shift Prod./QC:</th>
-                                                    <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Kimia Copper:</th>
-                                                    <td>${data.chemical_copper || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Kimia Nikel:</th>
-                                                    <td>${data.chemical_nikel || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Kimia Eching:</th>
-                                                    <td>${data.chemical_eching || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Kimia Abu:</th>
-                                                    <td>${data.chemical_abu || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Posisi Remark:</th>
-                                                    <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Result Remark:</th>
-                                                    <td>${data.result_remark || '-'}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="text-nowrap">Operator:</th>
-                                                    <td>${data.operator_initials || '-'}</td>
-                                                </tr>
-                                            `;
+                                                        <tr>
+                                                            <th class="text-nowrap">Item Part:</th>
+                                                            <td>${data.item_name || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Customer:</th>
+                                                            <td>${data.customer || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Part No:</th>
+                                                            <td>${data.part_number || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Kode SAP:</th>
+                                                            <td>${data.sap_code || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Tanggal Produksi:</th>
+                                                            <td>${data.production_date || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Tanggal QC:</th>
+                                                            <td>${data.qc_date || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Shift Prod./QC:</th>
+                                                            <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Kimia Copper:</th>
+                                                            <td>${data.chemical_copper || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Kimia Nikel:</th>
+                                                            <td>${data.chemical_nikel || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Kimia Eching:</th>
+                                                            <td>${data.chemical_eching || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Kimia Abu:</th>
+                                                            <td>${data.chemical_abu || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Posisi Remark:</th>
+                                                            <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Result Remark:</th>
+                                                            <td>${data.result_remark || '-'}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="text-nowrap">Operator:</th>
+                                                            <td>${data.operator_initials || '-'}</td>
+                                                        </tr>
+                                                    `;
                         detailsContainer.innerHTML = details;
                     })
                     .catch(error => {
                         console.error('Error loading image:', error);
                         imageContainer.innerHTML = `
-                                                <div class="alert alert-danger">
-                                                    <i class="fas fa-exclamation-circle mr-2"></i>
-                                                    Gagal memuat gambar. Silakan coba lagi.
-                                                </div>
-                                            `;
+                                                        <div class="alert alert-danger">
+                                                            <i class="fas fa-exclamation-circle mr-2"></i>
+                                                            Gagal memuat gambar. Silakan coba lagi.
+                                                        </div>
+                                                    `;
                         detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
@@ -1183,8 +1194,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                        // Live Search Functionality
-                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                // Live Search Functionality
+                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 

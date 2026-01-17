@@ -81,7 +81,7 @@ class CrossCutChecksheetService extends BaseService
             }
 
             $checksheet = CrossCutChecksheet::create([
-                'plant' => auth()->user()->plant,
+                'plant' => $data['plant'] ?? auth()->user()->plant,
                 'item_id' => $data['item_id'],
                 'production_shift' => $data['production_shift'],
                 'qc_shift' => $data['qc_shift'],
@@ -289,6 +289,10 @@ class CrossCutChecksheetService extends BaseService
 
             // Role validation
             if ($user->role !== 'admin') {
+                if ($user->plant === 'jakarta') {
+                    throw new \Exception('User Jakarta tidak memiliki akses approval untuk Cross Cut.', 403);
+                }
+
                 $allowedRole = $type;
                 if ($type === 'supervisor')
                     $allowedRole = 'supervisor';

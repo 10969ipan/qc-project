@@ -16,7 +16,8 @@ trait HasPlantFilter
                 $role = Auth::user()->role;
                 $userPlant = Auth::user()->plant;
 
-                if ($role !== 'admin') {
+                $exemptRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
+                if (!in_array($role, $exemptRoles)) {
                     // SPV Plant Jakarta sees ALL data
                     $isSpvJakarta = ($role === 'supervisor' || $role === 'supervisor_plating') && $userPlant === 'jakarta';
 

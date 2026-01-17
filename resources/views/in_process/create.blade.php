@@ -2,337 +2,331 @@
 
 @section('title', 'Input Data Checksheet')
 
-    @section('content')
-        <x-plant-header title="Input Data Checksheet" :plant="request('plant')" />
+@section('content')
+    <x-plant-header title="Input Data Checksheet" :plant="request('plant')" />
 
 
 
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        @endif
-
-        <div class="card shadow mb-4 border-left-info">
-            <a href="#collapseMachineStatus" class="d-block card-header py-3" data-toggle="collapse" role="button"
-                aria-expanded="true" aria-controls="collapseMachineStatus">
-                <h6 class="m-0 font-weight-bold text-info">Control Status Mesin (Manual)</h6>
-            </a>
-            <div class="collapse" id="collapseMachineStatus">
-                <div class="card-body">
-                    <form action="{{ route('machine-status.update') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="type" value="machine">
-                        <div class="row align-items-end">
-                            <div class="col-md-3 mb-2">
-                                <label class="small font-weight-bold">Pilih Mesin</label>
-                                <select name="number" class="form-control form-control-sm" required>
-                                    <option value="">- Pilih Mesin -</option>
-                                    @for($i = 1; $i <= 19; $i++)
-                                        @if($i != 10 && $i != 13)
-                                            <option value="{{ $i }}">MESIN-{{ $i }}</option>
-                                        @endif
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="small font-weight-bold">Status</label>
-                                <select name="status" class="form-control form-control-sm" required>
-                                    <option value="normal">NORMAL (Auto)</option>
-                                    <option value="maintenance">GANTI MOLD/SETTING (Kuning)</option>
-                                    <option value="stopped">STAND BY (Hitam)</option>
-                                    <option value="trouble">TROUBLE (Merah)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <label class="small font-weight-bold">Keterangan (Optional)</label>
-                                <input type="text" name="description" class="form-control form-control-sm"
-                                    placeholder="Keterangan...">
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <button type="submit" class="btn btn-info btn-sm btn-block">
-                                    <i class="fas fa-save"></i> Update
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
+    @endif
 
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Inprocess</h6>
-            </div>
+    <div class="card shadow mb-4 border-left-info">
+        <a href="#collapseMachineStatus" class="d-block card-header py-3" data-toggle="collapse" role="button"
+            aria-expanded="true" aria-controls="collapseMachineStatus">
+            <h6 class="m-0 font-weight-bold text-info">Control Status Mesin (Manual)</h6>
+        </a>
+        <div class="collapse" id="collapseMachineStatus">
             <div class="card-body">
-                <!-- Plant Selector for Admin -->
-                @if(auth()->user()->role === 'admin')
-                    <form method="GET" action="{{ route('in_process.create') }}" class="mb-3">
-                        <div class="form-group row">
-                            <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
-                            <div class="col-sm-4">
-                                <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
-                                    <option value="">-- Semua Plant --</option>
-                                    <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
-                                    <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                                </select>
-                                <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
-                            </div>
-                        </div>
-                    </form>
-                @endif
-
-                <form action="{{ route('in_process.store') }}" method="POST">
+                <form action="{{ route('machine-status.update') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
-                            <tr class="text-center">
-                                <th rowspan="2" style="align-middle">Standard</th>
-                                <th rowspan="2" style="align-middle">Item Part</th>
-                                <th rowspan="2" style="align-middle">Tanggal / Shift</th>
-                                <th rowspan="2" style="align-middle">Total Qty</th>
-                                <th rowspan="2" style="align-middle">Sampling Qty</th>
-                                <th rowspan="2" style="align-middle">Check Dimensi</th>
-                                <th rowspan="2" style="align-middle">Jenis (OK/NG) & Detail NG</th>
-                                <th rowspan="2" style="align-middle">Total (OK/NG)</th>
-                                <th rowspan="2" style="align-middle">Judgment</th>
-                                <th rowspan="2" style="align-middle">Inisial QC</th>
-                                <th rowspan="2" style="align-middle">Keterangan</th>
-                            </tr>
-                            <tbody>
-                                <tr>
-                                    <!-- Ilustrasi Barang -->
-                                    <td class="align-middle text-center" id="imageContainer">
-                                        <div
-                                            style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                            <i class="fas fa-image fa-2x text-gray-300"></i>
-                                        </div>
-                                    </td>
-
-                                    <!-- Pilihan Barang -->
-                                    <td class="align-middle">
-                                        <div class="form-group mb-2">
-                                            <label class="font-weight-bold">Kode SAP</label>
-                                            <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Ketik Kode SAP..." style="min-width: 200px;">
-                                            <small class="text-muted">Auto-select item berdasarkan SAP code</small>
-                                        </div>
-                                        <div class="form-group mb-0">
-                                            <label class="font-weight-bold">Item Part</label>
-                                            <select class="form-control" name="item_id" id="itemSelect" required
-                                                style="min-width: 300px;">
-                                                <option value="" disabled selected style="font-weight: bold; color: #6c757d;">
-                                                    Pilih
-                                                    Item Part</option>
-                                                @foreach($items as $item)
-                                                    <option value="{{ $item->id }}"
-                                                        data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                        data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
-                                                        data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
-                                                        data-description="{{ $item->description }}"
-                                                        data-defects="{{ json_encode($item->defects) }}"
-                                                        data-sap-code="{{ $item->sap_code ?? '' }}">
-                                                        {{ $item->name }} ({{ $item->part_number ?? '-' }})
-                                                        {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td>
-
-                                    <!-- Tanggal / Shift -->
-                                    <td class="align-middle">
-                                        <div class="form-group mb-2">
-                                            <label class="sr-only">Tanggal</label>
-                                            <input type="date" class="form-control" style="min-width: 150px; font-size: 16px;"
-                                                name="date" value="{{ $defaultDate }}" required>
-                                        </div>
-                                        <div class="form-group mb-0">
-                                            <label class="sr-only">Shift</label>
-                                            <select class="form-control" style="min-width: 100px; font-size: 16px;" name="shift"
-                                                required>
-                                                <option value="1">Shift 1</option>
-                                                <option value="2">Shift 2</option>
-                                                <option value="3">Shift 3</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group mt-2">
-                                            <label class="sr-only">No Mesin</label>
-                                            <select name="code_machine" id="code_machine" class="form-control"
-                                                style="min-width: 100px; font-size: 16px;" required>
-                                                <option value="">Pilih Mesin</option>
-                                                @for ($i = 1; $i <= 19; $i++)
-                                                    @if($i != 10 && $i != 13)
-                                                        <option value="{{ $i }}">Mesin {{ $i }}</option>
-                                                    @endif
-                                                @endfor
-                                            </select>
-                                        </div>
-                                    </td>
-
-                                    <!-- Total Quality (Total Quantity produced) -->
-                                    <td class="align-middle">
-                                        <input type="number" class="form-control text-center"
-                                            style="min-width: 100px; font-size: 16px;" name="total_qty" placeholder="0" min="0"
-                                            required>
-                                    </td>
-
-                                    <!-- Sampling Check Quantity -->
-                                    <td class="align-middle">
-                                        <input type="number" class="form-control text-center"
-                                            style="min-width: 100px; font-size: 16px;" name="sampling_qty" placeholder="0"
-                                            min="0" required>
-                                    </td>
-
-                                    <!-- Check Dimensi (Cavity & Points) -->
-                                    <td class="align-middle">
-                                        <table class="table table-sm table-bordered mb-0" style="min-width: 800px;">
-                                            <thead class="text-center">
-                                                <tr>
-                                                    <th style="width: 25%;">Cavity</th>
-                                                    <th>Point 1</th>
-                                                    <th>Point 2</th>
-                                                    <th>Point 3</th>
-                                                    <th>Point 4</th>
-                                                    <th>Point 5</th>
-                                                    <th>Point 6</th>
-                                                    <th>Point 7</th>
-                                                    <th>Point 8</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @for ($i = 1; $i <= 8; $i++)
-                                                    <tr>
-                                                        <td class="text-center font-weight-bold">Cav {{ $i }}</td>
-                                                        @for ($j = 1; $j <= 8; $j++)
-                                                            <td>
-                                                                <input type="text" class="form-control"
-                                                                    style="min-width: 80px; font-size: 16px;"
-                                                                    name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
-                                                            </td>
-                                                        @endfor
-                                                    </tr>
-                                                @endfor
-                                            </tbody>
-                                        </table>
-                                    </td>
-
-                                    <!-- Jenis (OK/NG) & Detail Varian NG -->
-                                    <td class="align-middle">
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                                id="checkOK">
-                                            <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
-                                                (Pass)</label>
-                                        </div>
-                                        <hr class="my-2">
-                                        <small class="font-weight-bold text-secondary">Defect List (NG):</small>
-                                        <div id="defectContainer">
-                                            <div class="input-group mb-2 defect-row">
-                                                <select class="form-control defect-select"
-                                                    style="min-width: 120px; font-size: 16px;" name="defect_types[]"
-                                                    id="defectSelect">
-                                                    <option value="">-- Pilih Defect --</option>
-                                                </select>
-                                                <input type="number" class="form-control defect-qty"
-                                                    style="min-width: 80px; font-size: 16px;" name="defect_quantities[]"
-                                                    placeholder="Qty" min="1">
-                                            </div>
-                                        </div>
-                                        <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
-                                            style="display: none;">
-                                            <i class="fas fa-plus"></i> Tambah Jenis
-                                        </button>
-                                    </td>
-
-                                    <!-- Total OK / NG -->
-                                    <td class="align-middle" style="min-width: 120px;">
-                                        <div class="row no-gutters mb-1">
-                                            <div
-                                                class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
-                                                OK</div>
-                                            <div class="col-8">
-                                                <input type="number"
-                                                    class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                    style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
-                                            </div>
-                                        </div>
-                                        <div class="row no-gutters">
-                                            <div
-                                                class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
-                                                NG</div>
-                                            <div class="col-8">
-                                                <input type="number"
-                                                    class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                    style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <!-- Judgment -->
-                                    <td class="align-middle">
-                                        <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
-                                            required>
-                                            <option value="" disabled selected>-- Result --</option>
-                                            <option value="OK" class="text-success">OK</option>
-                                            <option value="NG" class="text-danger">NG</option>
-                                        </select>
-                                        <div id="aql_info" class="small mt-1 font-weight-bold text-center"
-                                            style="display:none;">
-                                            <span class="text-success">Acc: <span id="acc_val">-</span></span> |
-                                            <span class="text-danger">Rej: <span id="rej_val">-</span></span>
-                                        </div>
-                                    </td>
-
-                                    <!-- Inisial Operator -->
-                                    <td class="align-middle">
-                                        <input type="text" class="form-control text-center"
-                                            style="min-width: 80px; font-size: 16px;" name="operator_initials"
-                                            placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
-                                    </td>
-
-                                    <!-- Keterangan -->
-                                    <td class="align-middle">
-                                        <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                            <label for="nextProses" class="font-weight-bold text-danger">Next
-                                                Proses:</label>
-                                            <select class="form-control" id="nextProses" name="next_proses">
-                                                <option value="">-- Pilih Next Proses --</option>
-                                                <option value="CRUSHING">CRUSHING</option>
-                                                <option value="SORTIR">SORTIR</option>
-                                                <option value="FINISHING">FINISHING</option>
-                                                <option value="REPAIR">REPAIR</option>
-                                            </select>
-                                        </div>
-                                        <textarea class="form-control" name="remarks" rows="4"
-                                            placeholder="Catatan tambahan..."></textarea>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-                            <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                            <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
-
-                            <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
-                                <i class="fas fa-play"></i> Start
-                            </button>
-                            <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
-                                <i class="fas fa-save fa-sm"></i> Simpan Data
+                    <input type="hidden" name="type" value="machine">
+                    <div class="row align-items-end">
+                        <div class="col-md-3 mb-2">
+                            <label class="small font-weight-bold">Pilih Mesin</label>
+                            <select name="number" class="form-control form-control-sm" required>
+                                <option value="">- Pilih Mesin -</option>
+                                @for($i = 1; $i <= 19; $i++)
+                                    @if($i != 10 && $i != 13)
+                                        <option value="{{ $i }}">MESIN-{{ $i }}</option>
+                                    @endif
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label class="small font-weight-bold">Status</label>
+                            <select name="status" class="form-control form-control-sm" required>
+                                <option value="normal">NORMAL (Auto)</option>
+                                <option value="maintenance">GANTI MOLD/SETTING (Kuning)</option>
+                                <option value="stopped">STAND BY (Hitam)</option>
+                                <option value="trouble">TROUBLE (Merah)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="small font-weight-bold">Keterangan (Optional)</label>
+                            <input type="text" name="description" class="form-control form-control-sm"
+                                placeholder="Keterangan...">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button type="submit" class="btn btn-info btn-sm btn-block">
+                                <i class="fas fa-save"></i> Update
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-    
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Inprocess</h6>
+        </div>
+        <div class="card-body">
+            <!-- Plant Selector for Admin -->
+            @if(auth()->user()->role === 'admin')
+                <form method="GET" action="{{ route('in_process.create') }}" class="mb-3">
+                    <div class="form-group row">
+                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
+                        <div class="col-sm-4">
+                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
+                                <option value="">-- Semua Plant --</option>
+                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
+                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                            </select>
+                            <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
+                        </div>
+                    </div>
+                </form>
+            @endif
+
+            <form action="{{ route('in_process.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
+                        <tr class="text-center">
+                            <th rowspan="2" style="align-middle">Standard</th>
+                            <th rowspan="2" style="align-middle">Item Part</th>
+                            <th rowspan="2" style="align-middle">Tanggal / Shift</th>
+                            <th rowspan="2" style="align-middle">Total Qty</th>
+                            <th rowspan="2" style="align-middle">Sampling Qty</th>
+                            <th rowspan="2" style="align-middle">Check Dimensi</th>
+                            <th rowspan="2" style="align-middle">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" style="align-middle">Total (OK/NG)</th>
+                            <th rowspan="2" style="align-middle">Judgment</th>
+                            <th rowspan="2" style="align-middle">Inisial QC</th>
+                            <th rowspan="2" style="align-middle">Keterangan</th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <!-- Ilustrasi Barang -->
+                                <td class="align-middle text-center" id="imageContainer">
+                                    <div
+                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                        <i class="fas fa-image fa-2x text-gray-300"></i>
+                                    </div>
+                                </td>
+
+                                <!-- Pilihan Barang -->
+                                <td class="align-middle">
+                                    <div class="form-group mb-2">
+                                        <label class="font-weight-bold">Kode SAP</label>
+                                        <input type="text" class="form-control" id="sapCodeInput"
+                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <small class="text-muted">Auto-select item berdasarkan SAP code</small>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold">Item Part</label>
+                                        <select class="form-control" name="item_id" id="itemSelect" required
+                                            style="min-width: 300px;">
+                                            <option value="" disabled selected style="font-weight: bold; color: #6c757d;">
+                                                Pilih
+                                                Item Part</option>
+                                            @foreach($items as $item)
+                                                <option value="{{ $item->id }}"
+                                                    data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
+                                                    data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
+                                                    data-description="{{ $item->description }}"
+                                                    data-defects="{{ json_encode($item->defects) }}"
+                                                    data-sap-code="{{ $item->sap_code ?? '' }}">
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                    {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </td>
+
+                                <!-- Tanggal / Shift -->
+                                <td class="align-middle">
+                                    <div class="form-group mb-2">
+                                        <label class="sr-only">Tanggal</label>
+                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
+                                            value="{{ $defaultDate }}" required>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="sr-only">Shift</label>
+                                        <select class="form-control" style="min-width: 80px;" name="shift" required>
+                                            <option value="1">Shift 1</option>
+                                            <option value="2">Shift 2</option>
+                                            <option value="3">Shift 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label class="sr-only">No Mesin</label>
+                                        <select name="code_machine" id="code_machine" class="form-control"
+                                            style="min-width: 80px;" required>
+                                            <option value="">Pilih Mesin</option>
+                                            @for ($i = 1; $i <= 19; $i++)
+                                                @if($i != 10 && $i != 13)
+                                                    <option value="{{ $i }}">Mesin {{ $i }}</option>
+                                                @endif
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </td>
+
+                                <!-- Total Quality (Total Quantity produced) -->
+                                <td class="align-middle">
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="total_qty" placeholder="0" min="0" required>
+                                </td>
+
+                                <!-- Sampling Check Quantity -->
+                                <td class="align-middle">
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="sampling_qty" placeholder="0" min="0" required>
+                                </td>
+
+                                <!-- Check Dimensi (Cavity & Points) -->
+                                <td class="align-middle">
+                                    <table class="table table-sm table-bordered mb-0" style="min-width: 800px;">
+                                        <thead class="text-center">
+                                            <tr>
+                                                <th style="width: 25%;">Cavity</th>
+                                                <th>Point 1</th>
+                                                <th>Point 2</th>
+                                                <th>Point 3</th>
+                                                <th>Point 4</th>
+                                                <th>Point 5</th>
+                                                <th>Point 6</th>
+                                                <th>Point 7</th>
+                                                <th>Point 8</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for ($i = 1; $i <= 8; $i++)
+                                                <tr>
+                                                    <td class="text-center font-weight-bold">Cav {{ $i }}</td>
+                                                    @for ($j = 1; $j <= 8; $j++)
+                                                        <td>
+                                                            <input type="text" class="form-control" style="min-width: 50px;"
+                                                                name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
+                                                        </td>
+                                                    @endfor
+                                                </tr>
+                                            @endfor
+                                        </tbody>
+                                    </table>
+                                </td>
+
+                                <!-- Jenis (OK/NG) & Detail Varian NG -->
+                                <td class="align-middle">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
+                                            id="checkOK">
+                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
+                                            (Pass)</label>
+                                    </div>
+                                    <hr class="my-2">
+                                    <small class="font-weight-bold text-secondary">Defect List (NG):</small>
+                                    <div id="defectContainer">
+                                        <div class="input-group mb-2 defect-row">
+                                            <select class="form-control defect-select" style="min-width: 100px;"
+                                                name="defect_types[]" id="defectSelect">
+                                                <option value="">-- Pilih Defect --</option>
+                                            </select>
+                                            <input type="number" class="form-control defect-qty" style="min-width: 60px;"
+                                                name="defect_quantities[]" placeholder="Qty" min="1">
+                                        </div>
+                                    </div>
+                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
+                                        style="display: none;">
+                                        <i class="fas fa-plus"></i> Tambah Jenis
+                                    </button>
+                                </td>
+
+                                <!-- Total OK / NG -->
+                                <td class="align-middle" style="min-width: 120px;">
+                                    <div class="row no-gutters mb-1">
+                                        <div
+                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
+                                            OK</div>
+                                        <div class="col-8">
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
+                                        </div>
+                                    </div>
+                                    <div class="row no-gutters">
+                                        <div
+                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
+                                            NG</div>
+                                        <div class="col-8">
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Judgment -->
+                                <td class="align-middle">
+                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                        required>
+                                        <option value="" disabled selected>-- Result --</option>
+                                        <option value="OK" class="text-success">OK</option>
+                                        <option value="NG" class="text-danger">NG</option>
+                                    </select>
+                                    <div id="aql_info" class="small mt-1 font-weight-bold text-center"
+                                        style="display:none;">
+                                        <span class="text-success">Acc: <span id="acc_val">-</span></span> |
+                                        <span class="text-danger">Rej: <span id="rej_val">-</span></span>
+                                    </div>
+                                </td>
+
+                                <!-- Inisial Operator -->
+                                <td class="align-middle">
+                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                        name="operator_initials" placeholder="Inisial"
+                                        value="{{ auth()->user()->initials ?? '' }}" required>
+                                </td>
+
+                                <!-- Keterangan -->
+                                <td class="align-middle">
+                                    <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
+                                        <label for="nextProses" class="font-weight-bold text-danger">Next
+                                            Proses:</label>
+                                        <select class="form-control" id="nextProses" name="next_proses">
+                                            <option value="">-- Pilih Next Proses --</option>
+                                            <option value="CRUSHING">CRUSHING</option>
+                                            <option value="SORTIR">SORTIR</option>
+                                            <option value="FINISHING">FINISHING</option>
+                                            <option value="REPAIR">REPAIR</option>
+                                        </select>
+                                    </div>
+                                    <textarea class="form-control" name="remarks" rows="4"
+                                        placeholder="Catatan tambahan..."></textarea>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                            <i class="fas fa-save fa-sm"></i> Simpan Data
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Image Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
         aria-hidden="true">
@@ -803,10 +797,10 @@
                 if (rowCount < 4) {
                     var firstSelect = $('#defectSelect'); // The original one
                     var newRow = $('<div class="input-group mb-2 defect-row">' +
-                        '<select class="form-control defect-select" style="min-width: 120px; font-size: 16px;" name="defect_types[]">' +
+                        '<select class="form-control defect-select" style="min-width: 100px;" name="defect_types[]">' +
                         firstSelect.html() +
                         '</select>' +
-                        '<input type="number" class="form-control defect-qty" style="min-width: 80px; font-size: 16px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                        '<input type="number" class="form-control defect-qty" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
                         '<div class="input-group-append">' +
                         '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
                         '</div>' +

@@ -39,7 +39,7 @@
 
             <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" cellspacing="0">
                         <thead>
@@ -65,11 +65,11 @@
                                     </div>
                                 </td>
                                 <!-- Item Part -->
-                                <td class="align-middle" style="min-width: 200px;">
+                                <td class="align-middle" style="min-width: 150px;">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold">Kode SAP</label>
                                         <input type="text" class="form-control" id="sapCodeInput"
-                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                            placeholder="Ketik Kode SAP..." style="min-width: 150px;">
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
                                     </div>
                                     <div class="form-group mb-0">
@@ -92,7 +92,7 @@
                                     </div>
                                 </td>
                                 <!-- Tanggal & Shift Produksi / QC -->
-                                <td class="align-middle" style="min-width: 250px;">
+                                <td class="align-middle" style="min-width: 180px;">
                                     <div class="form-group mb-2">
                                         <label>Tgl. & Shift Produksi</label>
                                         <div class="input-group">
@@ -138,7 +138,7 @@
                                     <small id="fileName" class="text-muted d-block"></small>
                                 </td>
                                 <!-- Kimia -->
-                                <td class="align-middle" style="min-width: 200px;">
+                                <td class="align-middle" style="min-width: 150px;">
                                     <div class="form-group mb-2"><label>Copper</label><input type="text"
                                             class="form-control" name="chemical_copper"></div>
                                     <div class="form-group mb-2"><label>Nikel</label><input type="text" class="form-control"
@@ -149,7 +149,7 @@
                                             name="chemical_abu"></div>
                                 </td>
                                 <!-- Posisi Remark -->
-                                <td class="align-middle" style="min-width: 200px;">
+                                <td class="align-middle" style="min-width: 120px;">
                                     <div class="form-group mb-2">
                                         <label>Judgment</label>
                                         <select class="form-control" name="position_remark_judgment" required>
