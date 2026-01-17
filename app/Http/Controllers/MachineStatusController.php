@@ -2,33 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\MachineStatus;
+use App\Services\MachineStatusService;
+use App\Http\Requests\UpdateMachineStatusRequest;
 
 class MachineStatusController extends Controller
 {
-    public function update(Request $request)
+    protected $machineStatusService;
+
+    public function __construct(MachineStatusService $machineStatusService)
     {
-        $request->validate([
-            'type' => 'required|in:line,machine',
-            'number' => 'required|integer',
-            'status' => 'required|in:normal,maintenance,stopped,trouble',
-            'description' => 'nullable|string|max:255',
-        ]);
+        $this->machineStatusService = $machineStatusService;
+    }
 
-        MachineStatus::updateOrCreate(
-            [
-                'plant' => auth()->user()->plant,
-                'type' => $request->type,
-                'number' => $request->number,
-            ],
-            [
-                'status' => $request->status,
-                'description' => $request->description,
-                'created_by' => auth()->user()->name
-            ]
-        );
-
+    public function update(UpdateMachineStatusRequest $request)
+    {
+        $this->machineStatusService->updateStatus($request->validated());
         return back()->with('success', 'Status updated successfully!');
     }
 }

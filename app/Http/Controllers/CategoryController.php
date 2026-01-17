@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Services\CategoryService;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 
 class CategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Category::withCount('items');
-
-        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
-            $query->withoutGlobalScope('plant')->where('plant', $request->plant);
-        }
-
-        // For inspector, we explicitly override the request plant to their own plant for UI consistency
         if (auth()->user()->role === 'inspector') {
             $request->merge(['plant' => auth()->user()->plant]);
         }
 
-        $categories = $query->orderBy('name')->paginate(10)->withQueryString();
+        $categories = $this->categoryService->getFilteredCategories($request->only('plant'));
         return view('categories.index', compact('categories'));
     }
 
@@ -39,43 +40,27 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-        ]);
-
-        Category::create($validated);
-
+        $this->categoryService->createCategory($request->validated());
         return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Category $category)
+    public function edit($id)
     {
-        if (auth()->user()->role === 'admin') {
-            $category = Category::withoutGlobalScope('plant')->findOrFail($category->id);
-        }
+        $category = $this->categoryService->findCategory($id);
         return view('categories.edit', compact('category'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, $id)
     {
-        if (auth()->user()->role === 'admin') {
-            $category = Category::withoutGlobalScope('plant')->findOrFail($category->id);
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-        ]);
-
-        $category->update($validated);
-
+        $this->categoryService->updateCategory($id, $request->validated());
         return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui.');
     }
 
@@ -84,13 +69,7 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $query = Category::query();
-        if (auth()->user()->role === 'admin') {
-            $query->withoutGlobalScope('plant');
-        }
-        $category = $query->findOrFail($id);
-
-        $category->delete();
+        $this->categoryService->deleteCategory($id);
         return redirect()->route('categories.index', $request->only('plant'))->with('success', 'Kategori berhasil dihapus.');
     }
 }
