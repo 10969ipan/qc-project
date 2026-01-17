@@ -142,7 +142,7 @@ trait HasChecksheetApproval
 
     /**
      * Must be implemented by Controller to return the Model class name
-     * e.g. return \App\Models\Checksheet::class;
+     * e.g. return \App\Models\SubAssyChecksheet::class;
      */
     abstract protected function getModelClass();
 }

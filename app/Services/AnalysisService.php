@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Checksheet;
+use App\Models\SubAssyChecksheet;
 use App\Models\InProcessChecksheet;
 use App\Models\CrossCutChecksheet;
 use Carbon\Carbon;
@@ -75,7 +75,7 @@ class AnalysisService extends BaseService
     {
         switch ($type) {
             case 'sub_assy':
-                return Checksheet::class;
+                return SubAssyChecksheet::class;
             case 'in_process':
                 return InProcessChecksheet::class;
             case 'cross_cut':

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Checksheet;
+use App\Models\SubAssyChecksheet;
 use App\Models\Item;
-use App\Services\ChecksheetService;
-use App\Http\Requests\StoreChecksheetRequest;
-use App\Http\Requests\UpdateChecksheetRequest;
+use App\Services\SubAssyChecksheetService;
+use App\Http\Requests\StoreSubAssyChecksheetRequest;
+use App\Http\Requests\UpdateSubAssyChecksheetRequest;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 
@@ -17,14 +17,14 @@ class SubAssyChecksheetController extends Controller
 
     protected $checksheetService;
 
-    public function __construct(ChecksheetService $checksheetService)
+    public function __construct(SubAssyChecksheetService $checksheetService)
     {
         $this->checksheetService = $checksheetService;
     }
 
     protected function getModelClass()
     {
-        return Checksheet::class;
+        return SubAssyChecksheet::class;
     }
 
     protected function getExportHeaders()
@@ -124,7 +124,7 @@ class SubAssyChecksheetController extends Controller
     }
 
     // Simpan data (submission)
-    public function store(StoreChecksheetRequest $request)
+    public function store(StoreSubAssyChecksheetRequest $request)
     {
         $result = $this->checksheetService->createChecksheet(
             $request->validated(),
@@ -141,7 +141,7 @@ class SubAssyChecksheetController extends Controller
     // Edit Checksheet
     public function edit($id)
     {
-        $query = Checksheet::query();
+        $query = SubAssyChecksheet::query();
         if (auth()->user()->role === 'admin') {
             $query->withoutGlobalScope('plant');
         }
@@ -152,7 +152,7 @@ class SubAssyChecksheetController extends Controller
     }
 
     // Update Checksheet
-    public function update(UpdateChecksheetRequest $request, $id)
+    public function update(UpdateSubAssyChecksheetRequest $request, $id)
     {
         $this->checksheetService->updateChecksheet($id, $request->validated());
         return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Checksheet berhasil diperbarui.');
@@ -168,7 +168,7 @@ class SubAssyChecksheetController extends Controller
     // Tampilkan form untuk admin mengedit status approval
     public function editApproval($id)
     {
-        $checksheet = Checksheet::findOrFail($id);
+        $checksheet = SubAssyChecksheet::findOrFail($id);
         return view('sub_assy.edit_approval', compact('checksheet'));
     }
 

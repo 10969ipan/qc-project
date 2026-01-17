@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Checksheet extends Model
+class SubAssyChecksheet extends Model
 {
     use HasFactory, \App\Traits\HasPlantFilter;
 

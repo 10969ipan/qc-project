@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Checksheet;
+use App\Models\SubAssyChecksheet;
 use App\Models\InProcessChecksheet;
 use App\Models\CrossCutChecksheet;
 use Illuminate\Http\Request;

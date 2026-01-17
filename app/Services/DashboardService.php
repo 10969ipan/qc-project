@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\InProcessChecksheet;
-use App\Models\Checksheet;
+use App\Models\SubAssyChecksheet;
 use App\Models\CrossCutChecksheet;
 use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
@@ -39,7 +39,7 @@ class DashboardService extends BaseService
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0];
 
         $this->processModelStats(InProcessChecksheet::class, $stats);
-        $this->processModelStats(Checksheet::class, $stats);
+        $this->processModelStats(SubAssyChecksheet::class, $stats);
         $this->processModelStats(CrossCutChecksheet::class, $stats);
 
         return $stats;
@@ -76,7 +76,7 @@ class DashboardService extends BaseService
     private function getProductionMonitoring(string $recentDate): array
     {
         // Active Sub Assy Lines
-        $activeLines = Checksheet::with('item')
+        $activeLines = SubAssyChecksheet::with('item')
             ->whereDate('date', '>=', $recentDate)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc')
@@ -85,7 +85,7 @@ class DashboardService extends BaseService
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
 
         // Active In Process Machines
-        $activeMachines = InProcessChecksheet::with('item')
+        $activeMachines = InProcessSubAssyChecksheet::with('item')
             ->whereDate('date', '>=', $recentDate)
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc')

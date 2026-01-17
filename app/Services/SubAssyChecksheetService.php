@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Checksheet;
+use App\Models\SubAssyChecksheet;
 use App\Models\Item;
 use App\Services\GoogleSheetService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class ChecksheetService extends BaseService
+class SubAssyChecksheetService extends BaseService
 {
     protected $googleSheetService;
 
@@ -25,7 +25,7 @@ class ChecksheetService extends BaseService
      */
     public function getFilteredChecksheets(array $filters)
     {
-        $query = Checksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = SubAssyChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Admin and SPV Jakarta can switch plants
         $user = auth()->user();
@@ -70,7 +70,7 @@ class ChecksheetService extends BaseService
      * 
      * @param array $data
      * @param callable $mapExportRow
-     * @return array ['checksheet' => Checksheet, 'google_sheets_success' => bool, 'error' => string|null]
+     * @return array ['checksheet' => SubAssyChecksheet, 'google_sheets_success' => bool, 'error' => string|null]
      */
     public function createChecksheet(array $data, callable $mapExportRow): array
     {
@@ -80,7 +80,7 @@ class ChecksheetService extends BaseService
             $defects = $this->processDefects($data);
 
             // Create checksheet
-            $checksheet = Checksheet::create([
+            $checksheet = SubAssyChecksheet::create([
                 'plant' => auth()->user()->plant,
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
@@ -129,13 +129,13 @@ class ChecksheetService extends BaseService
      * 
      * @param int $id
      * @param array $data
-     * @return Checksheet
+     * @return SubAssyChecksheet
      */
-    public function updateChecksheet(int $id, array $data): Checksheet
+    public function updateChecksheet(int $id, array $data): SubAssyChecksheet
     {
         DB::beginTransaction();
         try {
-            $checksheet = Checksheet::findOrFail($id);
+            $checksheet = SubAssyChecksheet::findOrFail($id);
 
             $updateData = [
                 'item_id' => $data['item_id'],
@@ -197,7 +197,7 @@ class ChecksheetService extends BaseService
     {
         DB::beginTransaction();
         try {
-            $query = Checksheet::query();
+            $query = SubAssyChecksheet::query();
             if (auth()->user()->role === 'admin') {
                 $query->withoutGlobalScope('plant');
             }
@@ -217,13 +217,13 @@ class ChecksheetService extends BaseService
      * 
      * @param int $id
      * @param array $data
-     * @return Checksheet
+     * @return SubAssyChecksheet
      */
-    public function updateApprovalStatus(int $id, array $data): Checksheet
+    public function updateApprovalStatus(int $id, array $data): SubAssyChecksheet
     {
         DB::beginTransaction();
         try {
-            $checksheet = Checksheet::findOrFail($id);
+            $checksheet = SubAssyChecksheet::findOrFail($id);
             $user = auth()->user();
 
             // Update each approval level
@@ -324,13 +324,13 @@ class ChecksheetService extends BaseService
     /**
      * Update single approval level
      * 
-     * @param Checksheet $checksheet
+     * @param SubAssyChecksheet $checksheet
      * @param string $level
      * @param string $status
      * @param \App\Models\User $user
      * @return void
      */
-    private function updateApprovalLevel(Checksheet $checksheet, string $level, string $status, $user): void
+    private function updateApprovalLevel(SubAssyChecksheet $checksheet, string $level, string $status, $user): void
     {
         $nameField = "{$level}_qc";
         $dateField = "{$level}_approved_at";

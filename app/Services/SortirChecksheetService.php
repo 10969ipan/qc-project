@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\SortirChecksheet;
-use App\Models\Checksheet;
+use App\Models\SubAssyChecksheet;
 use App\Models\InProcessChecksheet;
 use App\Models\CrossCutChecksheet;
 use App\Models\Item;
@@ -82,7 +82,7 @@ class SortirChecksheetService extends BaseService
         $shouldFilterByPlant = !empty($plant);
 
         // Sub Assy
-        $querySubAssy = Checksheet::where('judgment', 'NG')
+        $querySubAssy = SubAssyChecksheet::where('judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['sub_assy'] ?? [])
             ->with('item');
         if ($shouldFilterByPlant)
@@ -184,7 +184,7 @@ class SortirChecksheetService extends BaseService
         $source = null;
 
         if ($sourceType === 'sub_assy') {
-            $source = Checksheet::find($sourceId);
+            $source = SubAssyChecksheet::find($sourceId);
         } elseif ($sourceType === 'in_process') {
             $source = InProcessChecksheet::find($sourceId);
         } elseif ($sourceType === 'cross_cut') {
