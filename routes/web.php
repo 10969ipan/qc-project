@@ -20,36 +20,7 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-// Helper route to run migrations
-Route::get('/run-migration', function () {
-    Artisan::call('migrate', ['--force' => true]);
-    return nl2br(Artisan::output());
-});
-
 // Helper route to debug Google Sheets integration
-Route::get('/debug-google-sheets', function () {
-    try {
-        $service = new \App\Services\GoogleSheetService();
-        $service->appendRow([
-            'TEST DATE',
-            'TEST TIME',
-            'TEST SHIFT',
-            'ITEM',
-            'PART',
-            'CUST',
-            100,
-            10,
-            90,
-            10,
-            'OK',
-            'TESTER',
-            'DEBUG ROW'
-        ]);
-        return "<h1>Success!</h1><p>Baris data dummy berhasil dikirim ke Google Sheet. Silakan cek spreadsheet Anda.</p>";
-    } catch (\Exception $e) {
-        return "<h1>Failed!</h1><p>Error: " . $e->getMessage() . "</p><p>Stack Trace: " . $e->getTraceAsString() . "</p>";
-    }
-});
 
 // Rute Dashboard Utama (Untuk Semua Role)
 Route::middleware(['auth'])->group(function () {
