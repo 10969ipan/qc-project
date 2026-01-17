@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\InProcessChecksheet;
 use App\Models\Item;
+use App\Services\InProcessChecksheetService;
+use App\Http\Requests\StoreInProcessChecksheetRequest;
+use App\Http\Requests\UpdateInProcessChecksheetRequest;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -12,6 +15,13 @@ class InProcessChecksheetController extends Controller
 {
     use \App\Traits\HasChecksheetApproval;
     use \App\Traits\HasChecksheetExport;
+
+    protected $inProcessService;
+
+    public function __construct(InProcessChecksheetService $inProcessService)
+    {
+        $this->inProcessService = $inProcessService;
+    }
 
     protected function getModelClass()
     {
@@ -102,120 +112,30 @@ class InProcessChecksheetController extends Controller
 
 
 
-    // Menggabungkan standar hardcoded dengan standar dari database
+    // Get consolidated standards from service
     private function getConsolidatedStandards()
     {
-        $standards = $this->hardcodedStandards;
-
-        // Ambil standar dari database dan konversi ke format yang sama
-        $dbItems = Item::whereNotNull('dimension_standards')->get();
-        foreach ($dbItems as $item) {
-            if ($item->part_number && !empty($item->dimension_standards)) {
-                $itemStandards = [];
-                foreach ($item->dimension_standards as $index => $std) {
-                    // Check if $std is an array and has size/tolerance
-                    if (is_array($std) && isset($std['size']) && isset($std['tolerance'])) {
-                        // Point indices often start at 1 in the UI, but database might be 0-based
-                        // We'll use string keys '1', '2', etc. to match the controller array format
-                        $pointKey = (string) ($index + 1);
-                        $itemStandards[$pointKey] = [
-                            'size' => (float) $std['size'],
-                            'tolerance' => (float) $std['tolerance']
-                        ];
-                    }
-                }
-
-                if (!empty($itemStandards)) {
-                    // Standar dari database menimpa standar hardcoded jika ada konflik
-                    $standards[$item->part_number] = $itemStandards;
-                }
-            }
-        }
-
-        return $standards;
+        return $this->inProcessService->getConsolidatedStandards();
     }
 
     public function index(Request $request)
     {
-        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
-
-        // Admin and SPV Jakarta can switch plants via query parameter
-        $user = auth()->user();
-        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
-
-        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
-            $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
-        }
-
-        // For inspector, we explicitly override the request plant to their own plant for UI consistency
+        // For inspector, override request plant to their own plant for UI consistency
         if (auth()->user()->role === 'inspector') {
             $request->merge(['plant' => auth()->user()->plant]);
         }
 
-        if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
-        }
+        $filters = [
+            'plant' => $request->get('plant'),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'approval_status' => $request->approval_status,
+            'item_id' => $request->item_id,
+            'search' => $request->search,
+        ];
 
-        if ($request->has('approval_status') && $request->approval_status != '') {
-            if ($request->approval_status === 'Pending') {
-                // Pending: Explicit 'Pending' OR (Null Status AND No Supervisor Approval AND No Rejections)
-                $query->where(function ($q) {
-                    $q->where('approval_status', 'Pending')
-                        ->orWhere(function ($sub) {
-                            $sub->whereNull('approval_status')
-                                ->whereNull('supervisor_qc')
-                                ->where(function ($rej) {
-                                    $rej->where('kashift_qc', '!=', 'REJECTED')
-                                        ->orWhereNull('kashift_qc');
-                                });
-                        });
-                });
-            } elseif ($request->approval_status === 'Approved') {
-                // Approved: Explicit 'Approved' OR (Null Status AND Supervisor Approved)
-                $query->where(function ($q) {
-                    $q->where('approval_status', 'Approved')
-                        ->orWhere(function ($sub) {
-                            $sub->whereNull('approval_status')
-                                ->whereNotNull('supervisor_qc')
-                                ->where('supervisor_qc', '!=', 'REJECTED');
-                        });
-                });
-            } elseif ($request->approval_status === 'Rejected') {
-                // Rejected: Explicit 'Rejected' OR (Null Status AND Any Rejected)
-                $query->where(function ($q) {
-                    $q->where('approval_status', 'Rejected')
-                        ->orWhere(function ($sub) {
-                            $sub->whereNull('approval_status')
-                                ->where(function ($rej) {
-                                    $rej->where('kashift_qc', 'REJECTED')
-                                        ->orWhere('supervisor_qc', 'REJECTED')
-                                        ->orWhere('asst_manager_qc', 'REJECTED');
-                                });
-                        });
-                });
-            }
-        }
-
-        if ($request->has('item_id') && $request->item_id != '') {
-            $query->where('item_id', $request->item_id);
-        }
-
-        // Live search filter
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
-                    $itemQuery->where('name', 'like', "%{$searchTerm}%")
-                        ->orWhere('customer', 'like', "%{$searchTerm}%")
-                        ->orWhere('part_number', 'like', "%{$searchTerm}%");
-                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        $checksheets = $query->paginate(10)->withQueryString();
-        // Sort items by name to make filter dropdown cleaner
+        $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();
-
         $partDimensionStandards = $this->getConsolidatedStandards();
 
         return view('in_process.index', compact('checksheets', 'items', 'partDimensionStandards'));
