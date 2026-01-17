@@ -300,8 +300,6 @@
             </form>
         </div>
     </div>
-    </div>
-    </div>
 
     <!-- Image Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"

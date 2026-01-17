@@ -15,7 +15,7 @@ class InProcessChecksheetController extends Controller
 
     protected function getModelClass()
     {
-        return \App\Models\InProcessChecksheet::class;
+        return InProcessChecksheet::class;
     }
 
     protected function getGoogleSheetName()
@@ -139,8 +139,11 @@ class InProcessChecksheetController extends Controller
     {
         $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
-        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+        // Admin and SPV Jakarta can switch plants via query parameter
+        $user = auth()->user();
+        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+
+        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
         }
 
@@ -224,7 +227,11 @@ class InProcessChecksheetController extends Controller
         $query = Item::byCategory('Inprosess')->orderBy('name');
 
         // Filter items based on plant context
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+        // Filter items based on plant context
+        $user = auth()->user();
+        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+
+        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
             $query->where('plant', $request->query('plant'));
         }
 

@@ -74,8 +74,11 @@ class ChecksheetController extends Controller
     {
         $query = Checksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
-        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+        // Admin and SPV Jakarta can switch plants
+        $user = auth()->user();
+        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+
+        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
         }
 
@@ -157,8 +160,11 @@ class ChecksheetController extends Controller
         $query = Item::byCategory('Sub Assy')->orderBy('name');
 
         // Filter items based on plant context
-        // If user is Admin and has selected a plant via query param
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+        // If user is Admin or SPV Jakarta and has selected a plant via query param
+        $user = auth()->user();
+        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+
+        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
             $query->where('plant', $request->query('plant'));
         }
 

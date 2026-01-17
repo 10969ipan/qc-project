@@ -61,8 +61,11 @@ class SortirChecksheetController extends Controller
     {
         $query = SortirChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
-        // Admin can switch plants via query parameter, others are locked via HasPlantFilter
-        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+        // Admin and SPV Jakarta can switch plants via query parameter
+        $user = auth()->user();
+        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+
+        if (($user->role === 'admin' || $isSpvJakarta) && $request->has('plant')) {
             $query->withoutGlobalScope('plant')->where('plant', $request->get('plant'));
         }
 
@@ -89,11 +92,13 @@ class SortirChecksheetController extends Controller
             ->toArray();
 
         $plant = $request->query('plant');
-        $isAdminAndHasPlant = auth()->user()->role === 'admin' && $request->has('plant');
+        $user = auth()->user();
+        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
+        $shouldFilterByPlant = ($user->role === 'admin' || $isSpvJakarta) && $request->has('plant');
 
         // Helper to apply plant filter
-        $applyPlantFilter = function ($query) use ($isAdminAndHasPlant, $plant) {
-            if ($isAdminAndHasPlant) {
+        $applyPlantFilter = function ($query) use ($shouldFilterByPlant, $plant) {
+            if ($shouldFilterByPlant) {
                 // If the model uses HasPlantFilter, we might need withoutGlobalScope if we were using it,
                 // but for Admin HasPlantFilter usually bypasses itself or we need to explicitly filter.
                 // Assuming Admin usually sees all, so we restrict it here.

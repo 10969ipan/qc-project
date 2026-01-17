@@ -14,7 +14,7 @@
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    @if(auth()->user()->role === 'admin')
+                    @if(auth()->user()->role === 'admin' || (in_array(auth()->user()->role, ['supervisor', 'supervisor_plating']) && auth()->user()->plant === 'jakarta'))
                         <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                             <div class="form-group mb-0">
                                 <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
@@ -617,8 +617,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

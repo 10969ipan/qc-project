@@ -17,7 +17,12 @@ trait HasPlantFilter
                 $userPlant = Auth::user()->plant;
 
                 if ($role !== 'admin') {
-                    $query->where($query->getModel()->getTable() . '.plant', $userPlant);
+                    // SPV Plant Jakarta sees ALL data
+                    $isSpvJakarta = ($role === 'supervisor' || $role === 'supervisor_plating') && $userPlant === 'jakarta';
+
+                    if (!$isSpvJakarta) {
+                        $query->where($query->getModel()->getTable() . '.plant', $userPlant);
+                    }
                 }
             }
         });

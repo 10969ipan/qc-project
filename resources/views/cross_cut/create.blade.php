@@ -4,208 +4,204 @@
 
 @section('content')
     <x-plant-header title="Input Data Cross Cut Plating" :plant="request('plant')" />
-    <div class="container-fluid">
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
 
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        @endif
-
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Cross Cut</h6>
-            </div>
-            <div class="card-body">
-                <!-- Plant Selector for Admin -->
-                @if(auth()->user()->role === 'admin')
-                    <form method="GET" action="{{ route('cross_cut.create') }}" class="mb-3">
-                        <div class="form-group row">
-                            <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
-                            <div class="col-sm-4">
-                                <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
-                                    <option value="">-- Semua Plant --</option>
-                                    <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
-                                    </option>
-                                    <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                                </select>
-                                <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
-                            </div>
-                        </div>
-                    </form>
-                @endif
-
-                <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
-                            <thead>
-                                <tr class="text-center">
-                                    <th>Standard</th>
-                                    <th>Item Part</th>
-                                    <th>Tanggal & Shift Produksi / QC</th>
-                                    <th>Hasil Cross Cut</th>
-                                    <th>Kimia</th>
-                                    <th>Posisi Remark (Judgement / No Lot QC)</th>
-                                    <th>Result Remark</th>
-                                    <th>Inisial QC</th>
-                                    <th>Keterangan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <!-- Standard -->
-                                    <td class="align-middle text-center" id="imageContainer">
-                                        <div
-                                            style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                            <i class="fas fa-image fa-2x text-gray-300"></i>
-                                        </div>
-                                    </td>
-                                    <!-- Item Part -->
-                                    <td class="align-middle" style="min-width: 200px;">
-                                        <div class="form-group mb-2">
-                                            <label class="font-weight-bold">Kode SAP</label>
-                                            <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Ketik Kode SAP..." style="min-width: 200px;">
-                                            <small class="text-muted">Auto-select item berdasarkan SAP code</small>
-                                        </div>
-                                        <div class="form-group mb-0">
-                                            <label class="font-weight-bold">Item Part</label>
-                                            <select class="form-control" id="item_id" name="item_id" required>
-                                                <option value="" disabled selected
-                                                    style="font-weight: bold; color: #6c757d;">
-                                                    Pilih Item Part</option>
-                                                @foreach($items as $item)
-                                                    <option value="{{ $item->id }}"
-                                                        data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                        data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
-                                                        data-name="{{ $item->name }}"
-                                                        data-description="{{ $item->description ?? '' }}"
-                                                        data-sap-code="{{ $item->sap_code ?? '' }}">
-                                                        {{ $item->name }} ({{ $item->part_number ?? '-' }})
-                                                        {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td>
-                                    <!-- Tanggal & Shift Produksi / QC -->
-                                    <td class="align-middle" style="min-width: 250px;">
-                                        <div class="form-group mb-2">
-                                            <label>Tgl. & Shift Produksi</label>
-                                            <div class="input-group">
-                                                <input type="datetime-local" class="form-control" name="production_datetime"
-                                                    value="{{ $defaultDateTime }}" required>
-                                                <select class="form-control" name="production_shift" required>
-                                                    <option value="1">Shift 1</option>
-                                                    <option value="2">Shift 2</option>
-                                                    <option value="3">Shift 3</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="form-group mb-0">
-                                            <label>Tgl. & Shift QC</label>
-                                            <div class="input-group">
-                                                <input type="datetime-local" class="form-control" name="qc_datetime"
-                                                    value="{{ $defaultDateTime }}" required>
-                                                <select class="form-control" name="qc_shift" required>
-                                                    <option value="1">Shift 1</option>
-                                                    <option value="2">Shift 2</option>
-                                                    <option value="3">Shift 3</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <!-- Hasil Cross Cut (Image) -->
-                                    <td class="align-middle text-center">
-                                        <label for="image" class="mb-2 d-block">Ambil Gambar</label>
-                                        <!-- Hidden file input -->
-                                        <input type="file" class="d-none" id="image" name="image" accept="image/*"
-                                            capture="environment" required>
-                                        <!-- Custom button untuk trigger file input -->
-                                        <button type="button" class="btn btn-primary btn-block mb-2" id="captureBtn">
-                                            <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih
-                                                Foto</span>
-                                        </button>
-                                        <!-- Preview button -->
-                                        <button type="button" id="previewBtn" class="btn btn-info btn-sm btn-block"
-                                            style="display: none;">
-                                            <i class="fas fa-eye"></i> Preview Foto
-                                        </button>
-                                        <!-- File name display -->
-                                        <small id="fileName" class="text-muted d-block"></small>
-                                    </td>
-                                    <!-- Kimia -->
-                                    <td class="align-middle" style="min-width: 200px;">
-                                        <div class="form-group mb-2"><label>Copper</label><input type="text"
-                                                class="form-control" name="chemical_copper"></div>
-                                        <div class="form-group mb-2"><label>Nikel</label><input type="text"
-                                                class="form-control" name="chemical_nikel"></div>
-                                        <div class="form-group mb-2"><label>Eching</label><input type="text"
-                                                class="form-control" name="chemical_eching"></div>
-                                        <div class="form-group mb-0"><label>Abu</label><input type="text"
-                                                class="form-control" name="chemical_abu"></div>
-                                    </td>
-                                    <!-- Posisi Remark -->
-                                    <td class="align-middle" style="min-width: 200px;">
-                                        <div class="form-group mb-2">
-                                            <label>Judgment</label>
-                                            <select class="form-control" name="position_remark_judgment" required>
-                                                <option value="OK">OK</option>
-                                                <option value="NG">NG</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group mb-0"><label>No Lot QC</label><input type="text"
-                                                class="form-control" name="position_remark_no_lot" required></div>
-                                    </td>
-                                    <!-- Result Remark -->
-                                    <td class="align-middle"><input type="text" class="form-control" name="result_remark">
-                                    </td>
-                                    <!-- Inisial QC -->
-                                    <td class="align-middle">
-                                        <input type="text" class="form-control text-center" name="operator_initials"
-                                            placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
-                                    </td>
-                                    <!-- Keterangan -->
-                                    <td class="align-middle">
-                                        <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                            <label for="nextProses" class="font-weight-bold text-danger">Next
-                                                Proses:</label>
-                                            <select class="form-control" id="nextProses" name="next_proses">
-                                                <option value="">-- Pilih Next Proses --</option>
-                                                <option value="CRUSHING">CRUSHING</option>
-                                                <option value="SORTIR">SORTIR</option>
-                                                <option value="FINISHING">FINISHING</option>
-                                                <option value="REPAIR">REPAIR</option>
-                                            </select>
-                                        </div>
-                                        <textarea class="form-control" name="keterangan" rows="3"></textarea>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-                            <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                            <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
-
-                            <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
-                                <i class="fas fa-play"></i> Start
-                            </button>
-                            <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
-                                <i class="fas fa-save fa-sm"></i> Simpan Data
-                            </button>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Cross Cut</h6>
+        </div>
+        <div class="card-body">
+            <!-- Plant Selector for Admin -->
+            @if(auth()->user()->role === 'admin')
+                <form method="GET" action="{{ route('cross_cut.create') }}" class="mb-3">
+                    <div class="form-group row">
+                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
+                        <div class="col-sm-4">
+                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
+                                <option value="">-- Semua Plant --</option>
+                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
+                                </option>
+                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
+                            </select>
+                            <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
                         </div>
                     </div>
                 </form>
-            </div>
+            @endif
+
+            <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="plant" value="{{ auth()->user()->plant ?? request('plant') }}">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr class="text-center">
+                                <th>Standard</th>
+                                <th>Item Part</th>
+                                <th>Tanggal & Shift Produksi / QC</th>
+                                <th>Hasil Cross Cut</th>
+                                <th>Kimia</th>
+                                <th>Posisi Remark (Judgement / No Lot QC)</th>
+                                <th>Result Remark</th>
+                                <th>Inisial QC</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <!-- Standard -->
+                                <td class="align-middle text-center" id="imageContainer">
+                                    <div
+                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                        <i class="fas fa-image fa-2x text-gray-300"></i>
+                                    </div>
+                                </td>
+                                <!-- Item Part -->
+                                <td class="align-middle" style="min-width: 200px;">
+                                    <div class="form-group mb-2">
+                                        <label class="font-weight-bold">Kode SAP</label>
+                                        <input type="text" class="form-control" id="sapCodeInput"
+                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <small class="text-muted">Auto-select item berdasarkan SAP code</small>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold">Item Part</label>
+                                        <select class="form-control" id="item_id" name="item_id" required>
+                                            <option value="" disabled selected style="font-weight: bold; color: #6c757d;">
+                                                Pilih Item Part</option>
+                                            @foreach($items as $item)
+                                                <option value="{{ $item->id }}"
+                                                    data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
+                                                    data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-name="{{ $item->name }}"
+                                                    data-description="{{ $item->description ?? '' }}"
+                                                    data-sap-code="{{ $item->sap_code ?? '' }}">
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                    {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </td>
+                                <!-- Tanggal & Shift Produksi / QC -->
+                                <td class="align-middle" style="min-width: 250px;">
+                                    <div class="form-group mb-2">
+                                        <label>Tgl. & Shift Produksi</label>
+                                        <div class="input-group">
+                                            <input type="datetime-local" class="form-control" name="production_datetime"
+                                                value="{{ $defaultDateTime }}" required>
+                                            <select class="form-control" name="production_shift" required>
+                                                <option value="1">Shift 1</option>
+                                                <option value="2">Shift 2</option>
+                                                <option value="3">Shift 3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label>Tgl. & Shift QC</label>
+                                        <div class="input-group">
+                                            <input type="datetime-local" class="form-control" name="qc_datetime"
+                                                value="{{ $defaultDateTime }}" required>
+                                            <select class="form-control" name="qc_shift" required>
+                                                <option value="1">Shift 1</option>
+                                                <option value="2">Shift 2</option>
+                                                <option value="3">Shift 3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!-- Hasil Cross Cut (Image) -->
+                                <td class="align-middle text-center">
+                                    <label for="image" class="mb-2 d-block">Ambil Gambar</label>
+                                    <!-- Hidden file input -->
+                                    <input type="file" class="d-none" id="image" name="image" accept="image/*"
+                                        capture="environment" required>
+                                    <!-- Custom button untuk trigger file input -->
+                                    <button type="button" class="btn btn-primary btn-block mb-2" id="captureBtn">
+                                        <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih
+                                            Foto</span>
+                                    </button>
+                                    <!-- Preview button -->
+                                    <button type="button" id="previewBtn" class="btn btn-info btn-sm btn-block"
+                                        style="display: none;">
+                                        <i class="fas fa-eye"></i> Preview Foto
+                                    </button>
+                                    <!-- File name display -->
+                                    <small id="fileName" class="text-muted d-block"></small>
+                                </td>
+                                <!-- Kimia -->
+                                <td class="align-middle" style="min-width: 200px;">
+                                    <div class="form-group mb-2"><label>Copper</label><input type="text"
+                                            class="form-control" name="chemical_copper"></div>
+                                    <div class="form-group mb-2"><label>Nikel</label><input type="text" class="form-control"
+                                            name="chemical_nikel"></div>
+                                    <div class="form-group mb-2"><label>Eching</label><input type="text"
+                                            class="form-control" name="chemical_eching"></div>
+                                    <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control"
+                                            name="chemical_abu"></div>
+                                </td>
+                                <!-- Posisi Remark -->
+                                <td class="align-middle" style="min-width: 200px;">
+                                    <div class="form-group mb-2">
+                                        <label>Judgment</label>
+                                        <select class="form-control" name="position_remark_judgment" required>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0"><label>No Lot QC</label><input type="text"
+                                            class="form-control" name="position_remark_no_lot" required></div>
+                                </td>
+                                <!-- Result Remark -->
+                                <td class="align-middle"><input type="text" class="form-control" name="result_remark">
+                                </td>
+                                <!-- Inisial QC -->
+                                <td class="align-middle">
+                                    <input type="text" class="form-control text-center" name="operator_initials"
+                                        placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
+                                </td>
+                                <!-- Keterangan -->
+                                <td class="align-middle">
+                                    <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
+                                        <label for="nextProses" class="font-weight-bold text-danger">Next
+                                            Proses:</label>
+                                        <select class="form-control" id="nextProses" name="next_proses">
+                                            <option value="">-- Pilih Next Proses --</option>
+                                            <option value="CRUSHING">CRUSHING</option>
+                                            <option value="SORTIR">SORTIR</option>
+                                            <option value="FINISHING">FINISHING</option>
+                                            <option value="REPAIR">REPAIR</option>
+                                        </select>
+                                    </div>
+                                    <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                            <i class="fas fa-save fa-sm"></i> Simpan Data
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
