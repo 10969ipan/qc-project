@@ -227,81 +227,16 @@ class InProcessChecksheetController extends Controller
 
 
 
-
-
     // Export Checksheets to PDF
     public function exportPdf(Request $request)
     {
-        $filters = [
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'approval_status' => $request->approval_status,
-            'item_id' => $request->item_id,
-        ];
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'plant']);
 
-        // We use a separate query for export to get all results without pagination
-        // But we reuse the service's filtering logic if possible, or just build it here since export is a specific concern
-        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
-
-        // Apply same filters as service
-        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
-            $query->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
-        }
-
-        if (!empty($filters['approval_status'])) {
-            // Need to expose filter logic or just re-duplicate for export specifically
-            // For now, I'll use the service if I can adapt it, but export usually wants a collection, not paginator.
-            // I'll keep the duplication minimal by calling a private query builder if needed, but for now simple duplication is safer.
-            $this->applyOldFilterLogic($query, $filters['approval_status']);
-        }
-
-        if (!empty($filters['item_id'])) {
-            $query->where('item_id', $filters['item_id']);
-        }
-
-        $checksheets = $query->get();
+        $checksheets = $this->inProcessService->buildFilteredQuery($filters)->get();
         $items = Item::orderBy('name')->get();
 
         $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request'));
         return $pdf->setPaper('a4', 'landscape')->stream('laporan-checksheet-inprocess.pdf');
-    }
-
-    private function applyOldFilterLogic($query, $status)
-    {
-        if ($status === 'Pending') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Pending')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->whereNull('supervisor_qc')
-                            ->where(function ($rej) {
-                                $rej->where('kashift_qc', '!=', 'REJECTED')
-                                    ->orWhereNull('kashift_qc');
-                            });
-                    });
-            });
-        } elseif ($status === 'Approved') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Approved')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->whereNotNull('supervisor_qc')
-                            ->where('supervisor_qc', '!=', 'REJECTED');
-                    });
-            });
-        } elseif ($status === 'Rejected') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Rejected')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->where(function ($rej) {
-                                $rej->where('kashift_qc', 'REJECTED')
-                                    ->orWhere('supervisor_qc', 'REJECTED')
-                                    ->orWhere('asst_manager_qc', 'REJECTED');
-                            });
-                    });
-            });
-        }
     }
 
     // Tampilkan form untuk admin mengedit status approval

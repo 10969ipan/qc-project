@@ -81,6 +81,17 @@ class InProcessChecksheetService extends BaseService
      */
     public function getFilteredChecksheets(array $filters)
     {
+        return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
+    }
+
+    /**
+     * Build the filtered query
+     * 
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function buildFilteredQuery(array $filters)
+    {
         $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         $user = auth()->user();
@@ -113,7 +124,7 @@ class InProcessChecksheetService extends BaseService
             });
         }
 
-        return $query->paginate(10)->withQueryString();
+        return $query;
     }
 
     /**
