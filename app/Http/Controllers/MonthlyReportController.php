@@ -3,23 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\MonthlyReport;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Services\MonthlyReportService;
+use App\Http\Requests\StoreMonthlyReportRequest;
+use App\Http\Requests\UpdateMonthlyReportRequest;
 
 class MonthlyReportController extends Controller
 {
+    protected $reportService;
+
+    public function __construct(MonthlyReportService $reportService)
+    {
+        $this->reportService = $reportService;
+    }
+
     /**
      * Display a listing of monthly reports
      */
     public function index()
     {
-        $reports = MonthlyReport::with('creator')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->get();
-
+        $reports = $this->reportService->getAllReports();
         return view('admin.monthly_reports.index', compact('reports'));
     }
 
@@ -34,42 +36,15 @@ class MonthlyReportController extends Controller
     /**
      * Store a newly created monthly report
      */
-    public function store(Request $request)
+    public function store(StoreMonthlyReportRequest $request)
     {
-        $request->validate([
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2100',
-            'title' => 'required|string|max:255',
-            'pdf_file' => 'required|file|mimes:pdf|max:10240', // 10MB max
-        ]);
-
-        // Handle PDF upload
-        if ($request->hasFile('pdf_file')) {
-            $file = $request->file('pdf_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('monthly_reports', $filename, 'public');
-
-            // If "set as active" is checked, deactivate all other reports
-            $isActive = $request->has('is_active');
-            if ($isActive) {
-                MonthlyReport::where('is_active', true)->update(['is_active' => false]);
-            }
-
-            // Create the report
-            MonthlyReport::create([
-                'month' => $request->month,
-                'year' => $request->year,
-                'title' => $request->title,
-                'file_path' => $path,
-                'is_active' => $isActive,
-                'created_by' => Auth::id(),
-            ]);
-
+        try {
+            $this->reportService->createReport($request->validated(), $request->file('pdf_file'));
             return redirect()->route('admin.monthly-reports.index')
                 ->with('success', 'Laporan bulanan berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menambahkan laporan: ' . $e->getMessage());
         }
-
-        return back()->with('error', 'Gagal mengupload file PDF.');
     }
 
     /**
@@ -84,47 +59,15 @@ class MonthlyReportController extends Controller
     /**
      * Update the specified monthly report
      */
-    public function update(Request $request, $id)
+    public function update(UpdateMonthlyReportRequest $request, $id)
     {
-        $report = MonthlyReport::findOrFail($id);
-
-        $request->validate([
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2100',
-            'title' => 'required|string|max:255',
-            'pdf_file' => 'nullable|file|mimes:pdf|max:10240',
-        ]);
-
-        // Handle PDF replacement
-        if ($request->hasFile('pdf_file')) {
-            // Delete old file
-            if (Storage::disk('public')->exists($report->file_path)) {
-                Storage::disk('public')->delete($report->file_path);
-            }
-
-            // Upload new file
-            $file = $request->file('pdf_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('monthly_reports', $filename, 'public');
-            $report->file_path = $path;
+        try {
+            $this->reportService->updateReport($id, $request->validated(), $request->file('pdf_file'));
+            return redirect()->route('admin.monthly-reports.index')
+                ->with('success', 'Laporan bulanan berhasil diperbarui!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal memperbarui laporan: ' . $e->getMessage());
         }
-
-        // Update basic info
-        $report->month = $request->month;
-        $report->year = $request->year;
-        $report->title = $request->title;
-
-        // Handle active status
-        $isActive = $request->has('is_active');
-        if ($isActive && !$report->is_active) {
-            MonthlyReport::where('is_active', true)->update(['is_active' => false]);
-        }
-        $report->is_active = $isActive;
-
-        $report->save();
-
-        return redirect()->route('admin.monthly-reports.index')
-            ->with('success', 'Laporan bulanan berhasil diperbarui!');
     }
 
     /**
@@ -132,17 +75,13 @@ class MonthlyReportController extends Controller
      */
     public function destroy($id)
     {
-        $report = MonthlyReport::findOrFail($id);
-
-        // Delete PDF file
-        if (Storage::disk('public')->exists($report->file_path)) {
-            Storage::disk('public')->delete($report->file_path);
+        try {
+            $this->reportService->deleteReport($id);
+            return redirect()->route('admin.monthly-reports.index')
+                ->with('success', 'Laporan bulanan berhasil dihapus!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus laporan: ' . $e->getMessage());
         }
-
-        $report->delete();
-
-        return redirect()->route('admin.monthly-reports.index')
-            ->with('success', 'Laporan bulanan berhasil dihapus!');
     }
 
     /**
@@ -168,17 +107,12 @@ class MonthlyReportController extends Controller
      */
     public function setActive($id)
     {
-        DB::transaction(function () use ($id) {
-            // Deactivate all reports
-            MonthlyReport::where('is_active', true)->update(['is_active' => false]);
-
-            // Activate selected report
-            $report = MonthlyReport::findOrFail($id);
-            $report->is_active = true;
-            $report->save();
-        });
-
-        return redirect()->route('admin.monthly-reports.index')
-            ->with('success', 'Laporan berhasil diatur sebagai laporan aktif di dashboard!');
+        try {
+            $this->reportService->setActive($id);
+            return redirect()->route('admin.monthly-reports.index')
+                ->with('success', 'Laporan berhasil diatur sebagai laporan aktif di dashboard!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengatur laporan aktif: ' . $e->getMessage());
+        }
     }
 }
