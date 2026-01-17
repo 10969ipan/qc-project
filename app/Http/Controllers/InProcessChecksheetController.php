@@ -167,150 +167,23 @@ class InProcessChecksheetController extends Controller
     }
 
     // Simpan data (submission)
-    public function store(Request $request)
+    public function store(StoreInProcessChecksheetRequest $request)
     {
-        $validated = $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'date' => 'required|date',
-            'shift' => 'required|string',
-            'code_machine' => 'required|string', // Validasi Mesin
-            'total_qty' => 'required|integer|min:0',
-            'sampling_qty' => 'required|integer|min:0',
-            'total_ok' => 'required|integer|min:0',
-            'total_ng' => 'required|integer|min:0',
-            'judgment' => 'required|in:OK,NG',
-            'operator_initials' => 'nullable|string',
-            'remarks' => 'nullable|string',
-            'dimensions' => 'nullable|array',
-            'cycle_time' => 'nullable|integer',
-            'defect_types' => 'nullable|array',
-            'defect_quantities' => 'nullable|array',
-            'next_proses' => 'nullable|string',
-        ]);
-
-        // --- Validasi Dimensi Terpusat di Server-Side ---
-        $item = Item::find($validated['item_id']);
-        $allStandards = $this->getConsolidatedStandards();
-        if ($item && isset($allStandards[$item->part_number]) && !empty($request->dimensions)) {
-            $dimensionStandards = $allStandards[$item->part_number];
-            $isAnyInvalid = false;
-            $hasValidDimensions = false; // Track if there are any filled dimensions
-
-            foreach ($request->dimensions as $cavity => $points) {
-                if (!is_array($points))
-                    continue;
-                foreach ($points as $point => $value) {
-                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
-                        $hasValidDimensions = true; // At least one dimension is filled
-                        $standard = $dimensionStandards[$point];
-                        $floatValue = (float) $value;
-                        $lowerBound = $standard['size'] - $standard['tolerance'];
-                        $upperBound = $standard['size'] + $standard['tolerance'];
-
-                        if ($floatValue < $lowerBound || $floatValue > $upperBound) {
-                            $isAnyInvalid = true;
-                            break;
-                        }
-                    }
-                }
-                if ($isAnyInvalid)
-                    break;
-            }
-
-            // Auto-set judgment based on dimension validation
-            if ($hasValidDimensions) {
-                if ($isAnyInvalid) {
-                    $validated['judgment'] = 'NG';
-                } else {
-                    $validated['judgment'] = 'OK';
-                }
-            }
-        }
-        // --- End Validation ---
-
-        // Proses Defect menjadi JSON terstruktur
-        $defects = [];
-        if ($request->has('defect_types')) {
-            foreach ($request->defect_types as $index => $type) {
-                if ($type) {
-                    $qty = $request->defect_quantities[$index] ?? 1; // Default to 1 if missing
-                    $defects[] = ['type' => $type, 'qty' => (int) $qty];
-                }
-            }
-        }
-
-        // Proses Dimensi menjadi JSON, filter nilai yang kosong
-        $dimensions = $request->dimensions ?? [];
-        $filteredDimensions = [];
-        foreach ($dimensions as $cavity => $points) {
-            $filteredPoints = array_filter($points, fn($value) => $value !== null && $value !== '');
-            if (!empty($filteredPoints)) {
-                $filteredDimensions[$cavity] = $filteredPoints;
-            }
-        }
-        $dimensionCheck = json_encode($filteredDimensions);
-
-        $checksheet = InProcessChecksheet::create([
-            'plant' => auth()->user()->plant,
-            'item_id' => $validated['item_id'],
-            'date' => $validated['date'],
-            'shift' => $validated['shift'],
-            'code_machine' => $validated['code_machine'],
-            'total_qty' => $validated['total_qty'],
-            'sampling_qty' => $validated['sampling_qty'],
-            'total_ok' => $validated['total_ok'],
-            'total_ng' => $validated['total_ng'],
-            'judgment' => $validated['judgment'],
-            'operator_initials' => $validated['operator_initials'],
-            'remarks' => $validated['remarks'],
-            'dimension_check' => $dimensionCheck,
-            'cycle_time' => $validated['cycle_time'] ?? null,
-            'defects' => json_encode($defects),
-            'next_proses' => $validated['next_proses'] ?? null,
-        ]);
-
-        // Kirim ke Google Sheets
         try {
-            $googleService = app(GoogleSheetService::class);
-            $googleService->setSheetName('Sheet2');
-            $item = Item::find($validated['item_id']);
+            $result = $this->inProcessService->createChecksheet(
+                $request->validated(),
+                [$this, 'mapExportRow']
+            );
 
-            $sheetData = [
-                $checksheet->id, // Kolom A: No (ID)
-                $validated['date'], // Kolom B: Tanggal
-                $checksheet->created_at->copy()->subSeconds($validated['cycle_time'] ?? 0)->format('H:i:s'), // Kolom C: Jam Before
-                $checksheet->created_at->format('H:i:s'), // Kolom D: Jam After
-                $validated['cycle_time'] ?? '-', // Kolom E: Cycle Time
-                $validated['shift'], // Kolom F: Shift
-                $item ? $item->name : '-', // Kolom G: Barang
-                $item ? $item->part_number : '-', // Kolom G: Part No
-                $item ? $item->customer : '-', // Kolom H: Customer
-                $validated['total_qty'], // Kolom I: Total Qty
-                $validated['sampling_qty'], // Kolom J: Sampling Qty
-                $validated['total_ok'], // Kolom K: Total OK
-                $validated['total_ng'], // Kolom L: Total NG
-                $validated['judgment'], // Kolom M: Judgment
-                $validated['operator_initials'], // Kolom N: Operator
-                isset($validated['remarks']) ? $validated['remarks'] : '-', // Kolom O: Remarks
-                $validated['dimension_check'] ?? '-', // Kolom P: Check Dimensi
-            ];
+            $message = 'Data Checksheet Inprocess berhasil disimpan & terkirim ke Google Sheets.';
+            if (!$result['google_sheets_success']) {
+                $message = 'Data Checksheet Inprocess berhasil disimpan lokal, namun GAGAL kirim ke Google Sheets. Error: ' . $result['error'];
+            }
 
-            // Kirim ke Google Sheets
-            // Note: Since the columns might differ from Sub Assy, appending might be tricky if they share the same sheet.
-            // Assuming we use the same sheet service which appends to the default sheet.
-            // If InProcess needs a separate sheet or tab, additional configuration in GoogleSheetService would be needed.
-            // For now, I'll append, but be aware of column misalignment if mixed with Sub Assy.
-            // However, the prompt implies a separate structure, but `GoogleSheetService` seems to use a single sheet ID.
-            // I'll proceed with appending but adding the new column at the end.
-
-            $googleService->appendRow($sheetData);
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            // Log error tapi jangan gagalkan simpan database
-            \Illuminate\Support\Facades\Log::error('Gagal kirim ke Google Sheets: ' . $e->getMessage());
-            return redirect()->back()->with('success', 'Data Checksheet Inprocess berhasil disimpan lokal, namun GAGAL kirim ke Google Sheets. Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('success', 'Data Checksheet Inprocess berhasil disimpan & terkirim ke Google Sheets.');
     }
 
     // Edit Checksheet
@@ -331,139 +204,25 @@ class InProcessChecksheetController extends Controller
     }
 
     // Update Checksheet
-    public function update(Request $request, $id)
+    public function update(UpdateInProcessChecksheetRequest $request, $id)
     {
-        $checksheet = InProcessChecksheet::findOrFail($id);
-
-        $validated = $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'date' => 'required|date',
-            'shift' => 'required|string',
-            'code_machine' => 'required|string', // Validasi Mesin
-            'total_qty' => 'required|integer|min:0',
-            'sampling_qty' => 'required|integer|min:0',
-            'total_ok' => 'required|integer|min:0',
-            'total_ng' => 'required|integer|min:0',
-            'judgment' => 'required|in:OK,NG',
-            'operator_initials' => 'nullable|string',
-            'remarks' => 'nullable|string',
-            'dimensions' => 'nullable|array',
-            'cycle_time' => 'nullable|integer',
-            'jam_before' => 'nullable|date_format:H:i',
-            'jam_after' => 'nullable|date_format:H:i',
-            'next_proses' => 'nullable|string',
-        ]);
-
-        // Process Dimensions into JSON, filtering out empty values
-        $dimensions = $request->dimensions ?? [];
-        $filteredDimensions = [];
-        foreach ($dimensions as $cavity => $points) {
-            $filteredPoints = array_filter($points, fn($value) => $value !== null && $value !== '');
-            if (!empty($filteredPoints)) {
-                $filteredDimensions[$cavity] = $filteredPoints;
-            }
+        try {
+            $this->inProcessService->updateChecksheet($id, $request->validated());
+            return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
-        $dimensionCheck = json_encode($filteredDimensions);
-
-        // --- Centralized Server-Side Dimension Validation (same as store) ---
-        $item = Item::find($validated['item_id']);
-        $allStandards = $this->getConsolidatedStandards();
-        if ($item && isset($allStandards[$item->part_number]) && !empty($request->dimensions)) {
-            $dimensionStandards = $allStandards[$item->part_number];
-            $isAnyInvalid = false;
-            $hasValidDimensions = false;
-
-            foreach ($request->dimensions as $cavity => $points) {
-                if (!is_array($points))
-                    continue;
-                foreach ($points as $point => $value) {
-                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
-                        $hasValidDimensions = true;
-                        $standard = $dimensionStandards[$point];
-                        $floatValue = (float) $value;
-                        $lowerBound = $standard['size'] - $standard['tolerance'];
-                        $upperBound = $standard['size'] + $standard['tolerance'];
-
-                        if ($floatValue < $lowerBound || $floatValue > $upperBound) {
-                            $isAnyInvalid = true;
-                            break;
-                        }
-                    }
-                }
-                if ($isAnyInvalid)
-                    break;
-            }
-
-            // Auto-set judgment based on dimension validation
-            if ($hasValidDimensions) {
-                if ($isAnyInvalid) {
-                    $validated['judgment'] = 'NG';
-                } else {
-                    $validated['judgment'] = 'OK';
-                }
-            }
-        }
-        // --- End Validation ---
-
-        $updateData = [
-            'item_id' => $validated['item_id'],
-            'date' => $validated['date'],
-            'shift' => $validated['shift'],
-            'code_machine' => $validated['code_machine'], // Add code_machine
-            'total_qty' => $validated['total_qty'],
-            'sampling_qty' => $validated['sampling_qty'],
-            'total_ok' => $validated['total_ok'],
-            'total_ng' => $validated['total_ng'],
-            'judgment' => $validated['judgment'],
-            'operator_initials' => $validated['operator_initials'],
-            'remarks' => $validated['remarks'],
-            'dimension_check' => $dimensionCheck,
-            'next_proses' => $validated['next_proses'] ?? null,
-        ];
-
-        // Update created_at and cycle_time if time is provided and user is authorized (not inspector)
-        if (auth()->user()->role !== 'inspector') {
-            $currentDate = $checksheet->created_at->format('Y-m-d');
-
-            if (!empty($validated['jam_after'])) {
-                $updateData['created_at'] = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
-            }
-
-            if (!empty($validated['jam_before']) && !empty($validated['jam_after'])) {
-                $before = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_before']);
-                $after = \Carbon\Carbon::parse($currentDate . ' ' . $validated['jam_after']);
-
-                // Handle midnight crossing (e.g., 23:55 to 00:05)
-                if ($after->lessThan($before)) {
-                    $after->addDay();
-                }
-
-                $updateData['cycle_time'] = $before->diffInSeconds($after);
-            } else {
-                // If jam_before or jam_after not provided, use the form value
-                $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
-            }
-        } else {
-            // Inspector can't change time, use the form value
-            $updateData['cycle_time'] = $validated['cycle_time'] ?? null;
-        }
-
-        $checksheet->update($updateData);
-
-        return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
     }
 
     // Delete Checksheet
     public function destroy($id)
     {
-        $query = InProcessChecksheet::query();
-        if (auth()->user()->role === 'admin') {
-            $query->withoutGlobalScope('plant');
+        try {
+            $this->inProcessService->deleteChecksheet($id);
+            return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
-        $checksheet = $query->findOrFail($id);
-        $checksheet->delete();
-
-        return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
     }
 
 
@@ -473,59 +232,76 @@ class InProcessChecksheetController extends Controller
     // Export Checksheets to PDF
     public function exportPdf(Request $request)
     {
-        // Reuse the query logic from the index method
+        $filters = [
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'approval_status' => $request->approval_status,
+            'item_id' => $request->item_id,
+        ];
+
+        // We use a separate query for export to get all results without pagination
+        // But we reuse the service's filtering logic if possible, or just build it here since export is a specific concern
         $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
-        if ($request->has(['start_date', 'end_date']) && $request->start_date && $request->end_date) {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        // Apply same filters as service
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $query->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
         }
 
-        if ($request->has('approval_status') && $request->approval_status != '') {
-            if ($request->approval_status === 'Pending') {
-                $query->where(function ($q) {
-                    $q->where('approval_status', 'Pending')
-                        ->orWhere(function ($sub) {
-                            $sub->whereNull('approval_status')
-                                ->whereNull('supervisor_qc')
-                                ->where(function ($rej) {
-                                    $rej->where('kashift_qc', '!=', 'REJECTED')
-                                        ->orWhereNull('kashift_qc');
-                                });
-                        });
-                });
-            } elseif ($request->approval_status === 'Approved') {
-                $query->where(function ($q) {
-                    $q->where('approval_status', 'Approved')
-                        ->orWhere(function ($sub) {
-                            $sub->whereNull('approval_status')
-                                ->whereNotNull('supervisor_qc')
-                                ->where('supervisor_qc', '!=', 'REJECTED');
-                        });
-                });
-            } elseif ($request->approval_status === 'Rejected') {
-                $query->where(function ($q) {
-                    $q->where('approval_status', 'Rejected')
-                        ->orWhere(function ($sub) {
-                            $sub->whereNull('approval_status')
-                                ->where(function ($rej) {
-                                    $rej->where('kashift_qc', 'REJECTED')
-                                        ->orWhere('supervisor_qc', 'REJECTED')
-                                        ->orWhere('asst_manager_qc', 'REJECTED');
-                                });
-                        });
-                });
-            }
+        if (!empty($filters['approval_status'])) {
+            // Need to expose filter logic or just re-duplicate for export specifically
+            // For now, I'll use the service if I can adapt it, but export usually wants a collection, not paginator.
+            // I'll keep the duplication minimal by calling a private query builder if needed, but for now simple duplication is safer.
+            $this->applyOldFilterLogic($query, $filters['approval_status']);
         }
 
-        if ($request->has('item_id') && $request->item_id != '') {
-            $query->where('item_id', $request->item_id);
+        if (!empty($filters['item_id'])) {
+            $query->where('item_id', $filters['item_id']);
         }
 
-        $checksheets = $query->get(); // Get all results, not paginated
+        $checksheets = $query->get();
         $items = Item::orderBy('name')->get();
 
         $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request'));
         return $pdf->setPaper('a4', 'landscape')->stream('laporan-checksheet-inprocess.pdf');
+    }
+
+    private function applyOldFilterLogic($query, $status)
+    {
+        if ($status === 'Pending') {
+            $query->where(function ($q) {
+                $q->where('approval_status', 'Pending')
+                    ->orWhere(function ($sub) {
+                        $sub->whereNull('approval_status')
+                            ->whereNull('supervisor_qc')
+                            ->where(function ($rej) {
+                                $rej->where('kashift_qc', '!=', 'REJECTED')
+                                    ->orWhereNull('kashift_qc');
+                            });
+                    });
+            });
+        } elseif ($status === 'Approved') {
+            $query->where(function ($q) {
+                $q->where('approval_status', 'Approved')
+                    ->orWhere(function ($sub) {
+                        $sub->whereNull('approval_status')
+                            ->whereNotNull('supervisor_qc')
+                            ->where('supervisor_qc', '!=', 'REJECTED');
+                    });
+            });
+        } elseif ($status === 'Rejected') {
+            $query->where(function ($q) {
+                $q->where('approval_status', 'Rejected')
+                    ->orWhere(function ($sub) {
+                        $sub->whereNull('approval_status')
+                            ->where(function ($rej) {
+                                $rej->where('kashift_qc', 'REJECTED')
+                                    ->orWhere('supervisor_qc', 'REJECTED')
+                                    ->orWhere('asst_manager_qc', 'REJECTED');
+                            });
+                    });
+            });
+        }
     }
 
     // Tampilkan form untuk admin mengedit status approval
@@ -538,9 +314,6 @@ class InProcessChecksheetController extends Controller
     // Update status approval oleh admin
     public function updateApproval(Request $request, $id)
     {
-        $checksheet = InProcessChecksheet::findOrFail($id);
-        $user = auth()->user(); // User Admin
-
         $validated = $request->validate([
             'kashift_qc' => 'required|in:Pending,Approved,Rejected',
             'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
@@ -548,43 +321,11 @@ class InProcessChecksheetController extends Controller
             'manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
-        // Fungsi helper untuk update satu level approval
-        $updateLevel = function ($level, $status) use ($checksheet, $user) {
-            $nameField = "{$level}_qc";
-            $dateField = "{$level}_approved_at";
-
-            if ($status === 'Approved') {
-                if (is_null($checksheet->$nameField) || $checksheet->$nameField === 'REJECTED') {
-                    $checksheet->$nameField = $user->name;
-                    $checksheet->$dateField = now();
-                }
-            } elseif ($status === 'Rejected') {
-                if ($checksheet->$nameField !== 'REJECTED') {
-                    $checksheet->$nameField = 'REJECTED';
-                    $checksheet->$dateField = now();
-                }
-            } else { // Pending
-                $checksheet->$nameField = null;
-                $checksheet->$dateField = null;
-            }
-        };
-
-        $updateLevel('kashift', $validated['kashift_qc']);
-        $updateLevel('supervisor', $validated['supervisor_qc']);
-        $updateLevel('asst_manager', $validated['asst_manager_qc']);
-        $updateLevel('manager', $validated['manager_qc']);
-
-        // Update the main approval status based on the final level
-        if ($checksheet->manager_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->kashift_qc === 'REJECTED') {
-            $checksheet->approval_status = 'Rejected';
-        } elseif ($checksheet->manager_qc) {
-            $checksheet->approval_status = 'Approved';
-        } else {
-            $checksheet->approval_status = 'Pending';
+        try {
+            $this->inProcessService->updateApprovalStatus($id, $validated);
+            return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }
-
-        $checksheet->save();
-
-        return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
     }
 }
