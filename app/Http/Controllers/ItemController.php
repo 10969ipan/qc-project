@@ -40,17 +40,39 @@ class ItemController extends Controller
     }
 
     // Menampilkan form pembuatan item
-    public function create()
+    public function create(Request $request)
     {
         $categories = \App\Models\Category::orderBy('name')->get();
-        return view('items.create', compact('categories'));
+
+        // Determine current plant context
+        $currentPlant = $request->get('plant', auth()->user()->plant);
+
+        return view('items.create', compact('categories', 'currentPlant'));
     }
 
     // Menyimpan item baru
     public function store(StoreItemRequest $request)
     {
-        $this->itemService->createItem($request->validated());
-        return redirect()->route('admin.items.index')->with('success', 'Item berhasil ditambahkan.');
+        $data = $request->validated();
+
+        // Determine plant context
+        // Admin can create items for specific plant via query parameter
+        // Otherwise use authenticated user's plant
+        if (auth()->user()->role === 'admin' && $request->has('plant')) {
+            $data['plant'] = $request->get('plant');
+        } else {
+            $data['plant'] = auth()->user()->plant;
+        }
+
+        $this->itemService->createItem($data);
+
+        // Redirect back to the same plant view
+        $queryParams = [];
+        if (isset($data['plant'])) {
+            $queryParams['plant'] = $data['plant'];
+        }
+
+        return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil ditambahkan.');
     }
 
     // Menampilkan form edit item
@@ -77,6 +99,7 @@ class ItemController extends Controller
             'category' => $request->input('filter_category'),
             'customer' => $request->input('filter_customer'),
             'part_number' => $request->input('filter_part_number'),
+            'plant' => $request->input('plant'), // Add plant parameter
         ];
 
         // Remove null values

@@ -10,7 +10,8 @@
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
             @if(auth()->user()->role !== 'inspector')
-                <a href="{{ route('admin.items.create') }}" class="btn btn-sm btn-primary shadow-sm">
+                <a href="{{ route('admin.items.create', ['plant' => request('plant')]) }}"
+                    class="btn btn-sm btn-primary shadow-sm">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
                 </a>
             @endif
@@ -139,11 +140,13 @@
                                         'name' => request('name'),
                                         'category' => request('category'),
                                         'customer' => request('customer'),
-                                        'part_number' => request('part_number')
+                                        'part_number' => request('part_number'),
+                                        'plant' => request('plant')
                                     ]) }}" class="btn btn-warning btn-sm" style="min-width: 110px;">
                                                             <i class="fas fa-edit"></i> Edit
                                                         </a>
-                                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST" class="d-inline">
+                                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
+                                                            class="d-inline delete-form">
                                                             @csrf
                                                             @method('DELETE')
                                                             <input type="hidden" name="page" value="{{ request('page', 1) }}">
@@ -151,8 +154,8 @@
                                                             <input type="hidden" name="category" value="{{ request('category') }}">
                                                             <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                             <input type="hidden" name="part_number" value="{{ request('part_number') }}">
-                                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                                onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="button" class="btn btn-danger btn-sm delete-btn"
                                                                 style="min-width: 110px;">
                                                                 <i class="fas fa-trash"></i> Hapus
                                                             </button>
@@ -353,6 +356,34 @@
 
                         document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
                         alert(errorMsg);
+                    });
+                });
+            });
+        </script>
+
+        {{-- SweetAlert for Delete Confirmation --}}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Handle delete button clicks
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const form = this.closest('form');
+
+                        Swal.fire({
+                            title: 'Apakah Anda yakin?',
+                            text: "Data item ini akan dihapus permanen!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Ya, Hapus!',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
                     });
                 });
             });

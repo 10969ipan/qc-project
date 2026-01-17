@@ -71,6 +71,7 @@ class ItemService extends BaseService
 
             // Create item
             $item = Item::create([
+                'plant' => $data['plant'] ?? auth()->user()->plant, // Use provided plant or fallback to user's plant
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
                 'file_path' => $filePath,
