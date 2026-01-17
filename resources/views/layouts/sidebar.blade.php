@@ -31,11 +31,11 @@
     </div>
 
     @php
-        // Roles that can VIEW all plants (for reports/laporan) - EXCLUDES inspector
-        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager']);
+        // Roles that can VIEW all plants (for reports/laporan) - EXCLUDES inspector and plating roles logic if specific strictness needed, but request asked for specific roles
+        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
 
-        // Roles that can INPUT in all plants - EXCLUDES inspector (they can only input in their own plant)
-        $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'karu_qc', 'supervisor', 'asst_manager', 'manager']);
+        // Roles that can INPUT in all plants - EXCLUDES inspector
+        $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
     @endphp
 
     @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))

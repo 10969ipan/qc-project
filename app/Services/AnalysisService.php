@@ -53,8 +53,8 @@ class AnalysisService extends BaseService
 
         $query->with('item')->orderBy($dateField);
 
-        if (auth()->user()->role === 'admin' && !empty($filters['plant'])) {
-            $query->withoutGlobalScope('plant')->where('plant', $filters['plant']);
+        if (!empty($filters['plant'])) {
+            $query->where('plant', $filters['plant']);
         }
 
         if (!empty($filters['start_date'])) {

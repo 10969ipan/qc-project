@@ -82,8 +82,11 @@ class SubAssyChecksheetController extends Controller
 
     public function index(Request $request)
     {
-        // For inspector, override request plant to their own plant for UI consistency
-        if (auth()->user()->role === 'inspector') {
+        // For restricted roles (inspector, plating), override request plant to their own plant
+        // Admin, Manager, Asst Manager, Supervisor, Kashift are trusted to switch plants via menu
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+
+        if (in_array(auth()->user()->role, $restrictedRoles)) {
             $request->merge(['plant' => auth()->user()->plant]);
         }
 

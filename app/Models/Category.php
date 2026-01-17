@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Category extends Model
 {
+    use \App\Traits\HasPlantFilter;
+
     protected $fillable = ['plant', 'name'];
 
     /**

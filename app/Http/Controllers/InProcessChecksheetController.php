@@ -120,8 +120,10 @@ class InProcessChecksheetController extends Controller
 
     public function index(Request $request)
     {
-        // For inspector, override request plant to their own plant for UI consistency
-        if (auth()->user()->role === 'inspector') {
+        // For restricted roles (inspector, plating), override request plant to their own plant
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+
+        if (in_array(auth()->user()->role, $restrictedRoles)) {
             $request->merge(['plant' => auth()->user()->plant]);
         }
 

@@ -30,11 +30,9 @@ class CrossCutChecksheetService extends BaseService
     {
         $query = CrossCutChecksheet::with('item')->orderBy('qc_datetime', 'desc')->orderBy('created_at', 'desc');
 
-        $user = auth()->user();
-        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
-
-        if (($user->role === 'admin' || $isSpvJakarta) && isset($filters['plant'])) {
-            $query->withoutGlobalScope('plant')->where('plant', $filters['plant']);
+        // Apply plant filter if present
+        if (isset($filters['plant'])) {
+            $query->where('plant', $filters['plant']);
         }
 
         if (!empty($filters['start_date'])) {

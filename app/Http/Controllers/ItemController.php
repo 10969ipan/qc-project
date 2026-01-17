@@ -19,7 +19,7 @@ class ItemController extends Controller
 
     public function index(Request $request)
     {
-        // For inspector, override request plant to their own plant for UI consistency
+        // For restricted roles (inspector), override request plant to their own plant
         if (auth()->user()->role === 'inspector') {
             $request->merge(['plant' => auth()->user()->plant]);
         }

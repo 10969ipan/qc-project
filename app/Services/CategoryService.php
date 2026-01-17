@@ -14,8 +14,8 @@ class CategoryService extends BaseService
     {
         $query = Category::withCount('items')->orderBy('name');
 
-        if (auth()->user()->role === 'admin' && !empty($filters['plant'])) {
-            $query->withoutGlobalScope('plant')->where('plant', $filters['plant']);
+        if (!empty($filters['plant'])) {
+            $query->where('plant', $filters['plant']);
         }
 
         return $query->paginate(10)->withQueryString();

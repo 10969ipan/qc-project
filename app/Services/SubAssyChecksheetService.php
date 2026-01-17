@@ -27,12 +27,9 @@ class SubAssyChecksheetService extends BaseService
     {
         $query = SubAssyChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
-        // Admin and SPV Jakarta can switch plants
-        $user = auth()->user();
-        $isSpvJakarta = ($user->role === 'supervisor' || $user->role === 'supervisor_plating') && $user->plant === 'jakarta';
-
-        if (($user->role === 'admin' || $isSpvJakarta) && isset($filters['plant'])) {
-            $query->withoutGlobalScope('plant')->where('plant', $filters['plant']);
+        // Apply plant filter if present (Global scope handles restrictions for non-exempt roles)
+        if (isset($filters['plant'])) {
+            $query->where('plant', $filters['plant']);
         }
 
         // Date range filter

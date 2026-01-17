@@ -16,14 +16,10 @@ trait HasPlantFilter
                 $role = Auth::user()->role;
                 $userPlant = Auth::user()->plant;
 
-                $exemptRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
-                if (!in_array($role, $exemptRoles)) {
-                    // SPV Plant Jakarta sees ALL data
-                    $isSpvJakarta = ($role === 'supervisor' || $role === 'supervisor_plating') && $userPlant === 'jakarta';
+                $exemptRoles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc'];
 
-                    if (!$isSpvJakarta) {
-                        $query->where($query->getModel()->getTable() . '.plant', $userPlant);
-                    }
+                if (!in_array($role, $exemptRoles)) {
+                    $query->where($query->getModel()->getTable() . '.plant', $userPlant);
                 }
             }
         });

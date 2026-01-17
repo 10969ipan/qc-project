@@ -18,9 +18,9 @@ class ItemService extends BaseService
     {
         $query = Item::with('category');
 
-        // Admin can switch plants via query parameter
-        if (auth()->user()->role === 'admin' && isset($filters['plant'])) {
-            $query->withoutGlobalScope('plant')->where('plant', $filters['plant']);
+        // Apply plant filter if present
+        if (isset($filters['plant'])) {
+            $query->where('plant', $filters['plant']);
         }
 
         // Apply search filters
