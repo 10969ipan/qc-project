@@ -10,7 +10,7 @@ use App\Http\Requests\UpdateChecksheetRequest;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 
-class ChecksheetController extends Controller
+class SubAssyChecksheetController extends Controller
 {
     use \App\Traits\HasChecksheetApproval;
     use \App\Traits\HasChecksheetExport;

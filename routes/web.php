@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemController;
-use App\Http\Controllers\ChecksheetController;
+use App\Http\Controllers\SubAssyChecksheetController;
 use App\Http\Controllers\InProcessChecksheetController;
 use App\Http\Controllers\CrossCutChecksheetController;
 use App\Http\Controllers\MachineStatusController;
@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Rute Checksheet (Input) - Accessible by inspectors and admins? 
     // Assuming 'checksheet.sub_assy' is the input form.
-    Route::get('/checksheet/sub-assy', [ChecksheetController::class, 'create'])->name('checksheet.sub_assy');
+    Route::get('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'create'])->name('checksheet.sub_assy');
 
     // Rute Checksheet Inprocess (Input)
     Route::get('/checksheet/in-process', [InProcessChecksheetController::class, 'create'])->name('in_process.create');
@@ -81,7 +81,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/analysis/monthly-ng-in-process', [App\Http\Controllers\AnalysisController::class, 'monthlyNgInProcess'])->name('analysis.monthly_ng_in_process');
         Route::get('/analysis/monthly-ng-cross-cut', [App\Http\Controllers\AnalysisController::class, 'monthlyNgCrossCut'])->name('analysis.monthly_ng_cross_cut');
     });
-    Route::post('/checksheet/sub-assy', [ChecksheetController::class, 'store'])->name('checksheet.store');
+    Route::post('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'store'])->name('checksheet.store');
 });
 
 // Rute Otentikasi
@@ -105,9 +105,9 @@ Route::middleware(['auth', 'role:admin,supervisor,kashift,asst_manager,manager']
     Route::post('monthly-reports/{id}/set-active', [App\Http\Controllers\MonthlyReportController::class, 'setActive'])->name('monthly_reports.set_active');
 
     // Laporan Checksheet (Edit/Delete)
-    Route::get('checksheets/{checksheet}/edit', [ChecksheetController::class, 'edit'])->name('checksheets.edit');
-    Route::put('checksheets/{checksheet}', [ChecksheetController::class, 'update'])->name('checksheets.update');
-    Route::delete('checksheets/{checksheet}', [ChecksheetController::class, 'destroy'])->name('checksheets.destroy');
+    Route::get('checksheets/{checksheet}/edit', [SubAssyChecksheetController::class, 'edit'])->name('checksheets.edit');
+    Route::put('checksheets/{checksheet}', [SubAssyChecksheetController::class, 'update'])->name('checksheets.update');
+    Route::delete('checksheets/{checksheet}', [SubAssyChecksheetController::class, 'destroy'])->name('checksheets.destroy');
 });
 
 // New route for PDF access for all authenticated users
@@ -117,8 +117,8 @@ Route::middleware(['auth'])->get('monthly-reports/{id}/pdf', [App\Http\Controlle
 // --- Rute Khusus Admin ---
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     // Admin-only Approval Override for Sub Assy
-    Route::get('checksheets/{id}/edit-approval', [ChecksheetController::class, 'editApproval'])->name('checksheets.edit_approval');
-    Route::put('checksheets/{id}/update-approval', [ChecksheetController::class, 'updateApproval'])->name('checksheets.update_approval');
+    Route::get('checksheets/{id}/edit-approval', [SubAssyChecksheetController::class, 'editApproval'])->name('checksheets.edit_approval');
+    Route::put('checksheets/{id}/update-approval', [SubAssyChecksheetController::class, 'updateApproval'])->name('checksheets.update_approval');
 
     // Admin-only Approval Override for In Process
     Route::get('in-process-checksheets/{id}/edit-approval', [InProcessChecksheetController::class, 'editApproval'])->name('in_process.edit_approval');
@@ -141,7 +141,7 @@ Route::middleware(['auth'])->group(function () {
 
     // View Report (Admin, Supervisor, Inspector, Kashift, Asst. Manager, Manager, and New Roles)
     Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating'])->group(function () {
-        Route::get('/report/checksheets', [ChecksheetController::class, 'index'])->name('admin.checksheets.index');
+        Route::get('/report/checksheets', [SubAssyChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
         Route::get('/report/sortir-checksheets', [App\Http\Controllers\SortirChecksheetController::class, 'index'])->name('sortir.index');
@@ -150,15 +150,15 @@ Route::middleware(['auth'])->group(function () {
     // Actions & Export (Admin, Supervisor, Kashift, Asst. Manager, Manager, and New Roles)
     Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating'])->group(function () {
         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
-        Route::get('/report/checksheets/export', [ChecksheetController::class, 'export'])->name('admin.checksheets.export');
-        Route::post('/report/checksheets/sync', [ChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
+        Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
+        Route::post('/report/checksheets/sync', [SubAssyChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
 
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');
         Route::post('/report/in-process-checksheets/sync', [InProcessChecksheetController::class, 'syncToGoogleSheets'])->name('in_process.sync');
 
         // Approval Actions
-        Route::post('/checksheets/{id}/approve/{type}', [ChecksheetController::class, 'approve'])->name('admin.checksheets.approve');
-        Route::post('/checksheets/{id}/reject/{type}', [ChecksheetController::class, 'reject'])->name('admin.checksheets.reject');
+        Route::post('/checksheets/{id}/approve/{type}', [SubAssyChecksheetController::class, 'approve'])->name('admin.checksheets.approve');
+        Route::post('/checksheets/{id}/reject/{type}', [SubAssyChecksheetController::class, 'reject'])->name('admin.checksheets.reject');
 
         Route::post('/in-process-checksheets/{id}/approve/{type}', [InProcessChecksheetController::class, 'approve'])->name('in_process.approve');
         Route::post('/in-process-checksheets/{id}/reject/{type}', [InProcessChecksheetController::class, 'reject'])->name('in_process.reject');
