@@ -9,7 +9,7 @@ class SubAssyChecksheet extends Model
 {
     use HasFactory, \App\Traits\HasPlantFilter;
 
-    protected $table = 'checksheets';
+    protected $table = 'sub_assy_checksheets';
 
     protected $fillable = [
         'plant',

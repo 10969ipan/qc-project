@@ -85,7 +85,7 @@ class DashboardService extends BaseService
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
 
         // Active In Process Machines
-        $activeMachines = InProcessSubAssyChecksheet::with('item')
+        $activeMachines = InProcessChecksheet::with('item')
             ->whereDate('date', '>=', $recentDate)
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc')
