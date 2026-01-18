@@ -100,24 +100,33 @@ class ItemController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $this->itemService->deleteItem($id);
+        try {
+            $this->itemService->deleteItem($id);
 
-        // Preserve pagination and filter parameters
-        $queryParams = [
-            'page' => $request->input('page', 1),
-            'name' => $request->input('name'),
-            'category' => $request->input('category'),
-            'customer' => $request->input('customer'),
-            'part_number' => $request->input('part_number'),
-            'plant' => $request->input('plant'),
-        ];
+            // Preserve pagination and filter parameters
+            $queryParams = [
+                'page' => $request->input('page', 1),
+                'name' => $request->input('name'),
+                'category' => $request->input('category'),
+                'customer' => $request->input('customer'),
+                'part_number' => $request->input('part_number'),
+                'plant' => $request->input('plant'),
+            ];
 
-        // Remove null values
-        $queryParams = array_filter($queryParams, function ($value) {
-            return !is_null($value) && $value !== '';
-        });
+            // Remove null values
+            $queryParams = array_filter($queryParams, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
 
-        return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil dihapus.');
+            return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil dihapus.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == '23000') {
+                return redirect()->back()->with('error', 'Gagal menghapus! Item ini sedang digunakan dalam data laporan (Sub Assy/In Process, dll). Hapus data laporannya terlebih dahulu jika ingin menghapus Item ini.');
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus item: ' . $e->getMessage());
+        }
     }
 
     /**
