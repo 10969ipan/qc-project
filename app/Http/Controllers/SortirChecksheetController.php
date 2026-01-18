@@ -84,11 +84,14 @@ class SortirChecksheetController extends Controller
     {
         $filters = $request->only(['plant']);
 
-        // Strict filter for non-admins/supervisors
+        // Filter based on plant context
         $user = auth()->user();
-        $allowedRoles = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating'];
 
-        if (!in_array($user->role, $allowedRoles)) {
+        // Roles that can switch between plants via request parameter
+        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager'];
+
+        if (!in_array($user->role, $canSwitchPlants)) {
+            // Inspector and other restricted roles: always filter by their own plant
             $filters['plant'] = $user->plant;
         }
 

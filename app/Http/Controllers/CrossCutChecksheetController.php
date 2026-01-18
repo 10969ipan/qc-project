@@ -66,14 +66,19 @@ class CrossCutChecksheetController extends Controller
         $query = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name');
 
         // Filter items based on plant context
-        // Strict filter for non-admins/supervisors
         $user = auth()->user();
-        $allowedRoles = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating'];
 
-        if (!in_array($user->role, $allowedRoles)) {
+        // Roles that can switch between plants via request parameter
+        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager'];
+
+        if (in_array($user->role, $canSwitchPlants)) {
+            // These roles can filter by request plant parameter
+            if ($request->has('plant')) {
+                $query->where('plant', $request->query('plant'));
+            }
+        } else {
+            // Inspector and other restricted roles: always filter by their own plant
             $query->where('plant', $user->plant);
-        } elseif ($request->has('plant')) {
-            $query->where('plant', $request->query('plant'));
         }
 
         $items = $query->get();

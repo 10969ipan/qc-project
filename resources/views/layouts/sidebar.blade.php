@@ -34,7 +34,7 @@
         // Roles that can VIEW all plants (for reports/laporan) - EXCLUDES inspector and plating roles logic if specific strictness needed, but request asked for specific roles
         $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
 
-        // Roles that can INPUT in all plants - EXCLUDES inspector
+        // Roles that can INPUT in all plants - EXCLUDES inspector (they can only input in their own plant)
         $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
     @endphp
 

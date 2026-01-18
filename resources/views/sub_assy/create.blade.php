@@ -90,6 +90,19 @@
                 </form>
             @endif
 
+            {{-- DEBUG INFO - Temporary for troubleshooting --}}
+            @if(isset($debugInfo))
+                <div class="alert alert-info">
+                    <strong>Debug Info:</strong><br>
+                    User Role: {{ $debugInfo['user_role'] }}<br>
+                    User Plant: {{ $debugInfo['user_plant'] }}<br>
+                    Request Plant: {{ $debugInfo['request_plant'] ?? 'null' }}<br>
+                    Items Found: {{ $debugInfo['items_count'] }}<br>
+                    <strong>SQL:</strong> <code style="font-size: 11px;">{{ $debugInfo['sql'] ?? 'N/A' }}</code><br>
+                    <strong>Bindings:</strong> {{ json_encode($debugInfo['bindings'] ?? []) }}
+                </div>
+            @endif
+
             <form action="{{ route('checksheet.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">

@@ -21,11 +21,6 @@ class AnalysisController extends Controller
     {
         $filters = $request->only(['plant', 'start_date', 'end_date']);
 
-        if (auth()->user()->role === 'inspector') {
-            $filters['plant'] = auth()->user()->plant;
-            $request->merge(['plant' => $filters['plant']]);
-        }
-
         $analysisData = $this->analysisService->getMonthlyAnalysis('sub_assy', $filters);
         $plant = $filters['plant'] ?? null;
 
@@ -36,11 +31,6 @@ class AnalysisController extends Controller
     {
         $filters = $request->only(['plant', 'start_date', 'end_date']);
 
-        if (auth()->user()->role === 'inspector') {
-            $filters['plant'] = auth()->user()->plant;
-            $request->merge(['plant' => $filters['plant']]);
-        }
-
         $analysisData = $this->analysisService->getMonthlyAnalysis('in_process', $filters);
         $plant = $filters['plant'] ?? null;
 
@@ -50,11 +40,6 @@ class AnalysisController extends Controller
     public function monthlyNgCrossCut(Request $request)
     {
         $filters = $request->only(['plant', 'start_date', 'end_date']);
-
-        if (auth()->user()->role === 'inspector') {
-            $filters['plant'] = auth()->user()->plant;
-            $request->merge(['plant' => $filters['plant']]);
-        }
 
         $analysisData = $this->analysisService->getMonthlyAnalysis('cross_cut', $filters);
         $plant = $filters['plant'] ?? null;

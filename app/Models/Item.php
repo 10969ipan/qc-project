@@ -62,7 +62,7 @@ class Item extends Model
         if (is_array($category)) {
             // If array of category names, get IDs first
             if (is_string($category[0] ?? null)) {
-                $categoryIds = Category::whereIn('name', $category)->pluck('id');
+                $categoryIds = Category::withoutGlobalScope('plant')->whereIn('name', $category)->pluck('id');
                 return $query->whereIn('category_id', $categoryIds);
             }
             // If array of IDs
@@ -71,7 +71,7 @@ class Item extends Model
 
         // If category name (string)
         if (is_string($category)) {
-            $categoryId = Category::where('name', $category)->value('id');
+            $categoryId = Category::withoutGlobalScope('plant')->where('name', $category)->value('id');
             return $query->where('category_id', $categoryId);
         }
 

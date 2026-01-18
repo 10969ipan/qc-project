@@ -108,25 +108,49 @@ class SubAssyChecksheetController extends Controller
     // Tampilkan form (diupdate untuk mengirim data items)
     public function create(Request $request)
     {
-        $query = Item::byCategory('Sub Assy')->orderBy('name');
-
-        // Filter items based on plant context
-        // Filter items based on plant context
-        // Strict filter for non-admins/supervisors (e.g. Kashift, Karu)
         $user = auth()->user();
-        $allowedRoles = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating'];
 
-        if (!in_array($user->role, $allowedRoles)) {
-            $query->where('plant', $user->plant);
-        } elseif ($request->has('plant')) {
-            $query->where('plant', $request->query('plant'));
+        // Roles that can switch between plants via request parameter
+        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager'];
+
+        // IMPORTANT: Inspector role is NOT in exemptRoles of HasPlantFilter trait,
+        // so global scope already filters by plant. We need to remove it to prevent double filtering.
+        if (!in_array($user->role, $canSwitchPlants)) {
+            // Inspector: remove global scope and apply manual filter
+            $query = Item::withoutGlobalScope('plant')
+                ->byCategory('Sub Assy')
+                ->where('plant', $user->plant)
+                ->orderBy('name');
+        } else {
+            // Admin/Manager/Supervisor: use normal query
+            $query = Item::byCategory('Sub Assy')->orderBy('name');
+
+            // Filter by request plant parameter if provided
+            if ($request->has('plant')) {
+                $query->where('plant', $request->query('plant'));
+            }
         }
 
+        // DEBUG INFO - capture BEFORE get() because get() resets the query
+        $debugSql = $query->toSql();
+        $debugBindings = $query->getBindings();
+
         $items = $query->get();
+
+        // DEBUG INFO - temporary for troubleshooting
+        $debugInfo = [
+            'user_role' => $user->role,
+            'user_plant' => $user->plant,
+            'request_plant' => $request->query('plant'),
+            'items_count' => $items->count(),
+            'sql' => $debugSql,
+            'bindings' => $debugBindings,
+        ];
+
         $now = now();
         $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
 
-        return view('sub_assy.create', compact('items', 'defaultDate'));
+        return view('sub_assy.create', compact('items', 'defaultDate', 'debugInfo'));
     }
 
     // Simpan data (submission)

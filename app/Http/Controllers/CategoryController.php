@@ -21,9 +21,6 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        if (auth()->user()->role === 'inspector') {
-            $request->merge(['plant' => auth()->user()->plant]);
-        }
 
         $categories = $this->categoryService->getFilteredCategories($request->only('plant'));
         return view('categories.index', compact('categories'));

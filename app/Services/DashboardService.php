@@ -8,7 +8,6 @@ use App\Models\CrossCutChecksheet;
 use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Collection;
 
 class DashboardService extends BaseService
 {
@@ -19,8 +18,6 @@ class DashboardService extends BaseService
      */
     public function getDashboardData(): array
     {
-        $recentDate = now()->subDays(1)->toDateString();
-
         $combinedStats = $this->calculateApprovalStats();
 
         $statsJakarta = null;
@@ -36,13 +33,11 @@ class DashboardService extends BaseService
             $statsJakarta = $this->calculateApprovalStats('jakarta');
             $statsKarawang = $this->calculateApprovalStats('karawang');
 
-            $productionJakarta = $this->getProductionMonitoring($recentDate, 'jakarta');
-            $productionKarawang = $this->getProductionMonitoring($recentDate, 'karawang');
+            $productionJakarta = $this->getProductionMonitoring('jakarta');
+            $productionKarawang = $this->getProductionMonitoring('karawang');
         }
 
-        $productionMonitoring = $this->getProductionMonitoring($recentDate); // Default (request/user scoped via Global Scope usually, or if Admin without scope)
-        // Note: For admin, default getProductionMonitoring fetches everything if no scope applied.
-        // We'll trust the modified getProductionMonitoring to handle plant filtering if passed.
+        $productionMonitoring = $this->getProductionMonitoring(); // Default
 
         $activeReport = MonthlyReport::where('is_active', true)->first();
 
@@ -54,9 +49,6 @@ class DashboardService extends BaseService
         );
     }
 
-    /**
-     * Calculate global approval statistics
-     */
     /**
      * Calculate global approval statistics
      */
@@ -82,13 +74,7 @@ class DashboardService extends BaseService
             $query->where('plant', $plant);
         }
 
-        // Optimization: Use separate counts instead of loading all models
-        // However, logic below counts individual columns (Karu, Kashift, SPV). 
-        // A single checksheet can contribute to multiple 'pending' or 'approved' counts?
-        // Let's stick to the existing logic structure but optimize the query if possible, 
-        // OR just keep iterating but over filtered set.
-        // For safety and preserving exact original logic (which iterates columns):
-
+        // Count individual columns (Karu, Kashift, SPV). 
         $items = $query->get();
         $hasKaru = Schema::hasColumn($table, 'karu_qc');
 
@@ -114,20 +100,30 @@ class DashboardService extends BaseService
     /**
      * Get production monitoring data
      */
-    private function getProductionMonitoring(string $recentDate, ?string $plant = null): array
+    private function getProductionMonitoring(?string $plant = null): array
     {
-        // Define query modifier for plant
-        $applyPlant = function ($query) use ($plant) {
-            if ($plant) {
-                // Determine table name from query model
-                // Use a trait or manually check. Since we use `with`, we are on the model builder.
-                $query->where('plant', $plant);
-            }
-        };
+        $now = now();
+        $hour = $now->hour;
 
-        // Active Sub Assy Lines
+        // Determine current production date and shift
+        // Day starts at 07:00
+        $currentProductionDate = ($hour < 7) ? $now->copy()->subDay()->toDateString() : $now->toDateString();
+
+        if ($hour >= 7 && $hour < 15) {
+            $currentShift = 1;
+            $shiftStartTime = \Carbon\Carbon::parse($currentProductionDate . ' 07:00:00');
+        } elseif ($hour >= 15 && $hour < 23) {
+            $currentShift = 2;
+            $shiftStartTime = \Carbon\Carbon::parse($currentProductionDate . ' 15:00:00');
+        } else {
+            $currentShift = 3;
+            $shiftStartTime = \Carbon\Carbon::parse($currentProductionDate . ' 23:00:00');
+        }
+
+        // Active Sub Assy Lines - Filter by current shift and date
         $linesQuery = SubAssyChecksheet::with('item')
-            ->whereDate('date', '>=', $recentDate)
+            ->whereDate('date', $currentProductionDate)
+            ->where('shift', $currentShift)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
 
@@ -138,9 +134,10 @@ class DashboardService extends BaseService
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
 
-        // Active In Process Machines
+        // Active In Process Machines - Filter by current shift and date
         $machinesQuery = InProcessChecksheet::with('item')
-            ->whereDate('date', '>=', $recentDate)
+            ->whereDate('date', $currentProductionDate)
+            ->where('shift', $currentShift)
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc');
 
@@ -151,8 +148,10 @@ class DashboardService extends BaseService
             ->unique('code_machine')
             ->mapWithKeys(fn($item) => [(int) $item->code_machine => $item]);
 
-        // Status Overrides
-        $statusQuery = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble']);
+        // Status Overrides - Filter by shift start time to reset automatically when shift changes
+        $statusQuery = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble'])
+            ->where('updated_at', '>=', $shiftStartTime);
+
         if ($plant)
             $statusQuery->where('plant', $plant);
 
