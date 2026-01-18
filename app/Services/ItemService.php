@@ -19,7 +19,7 @@ class ItemService extends BaseService
         $query = Item::with('category');
 
         // Apply plant filter if present
-        if (isset($filters['plant'])) {
+        if (!empty($filters['plant'])) {
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 

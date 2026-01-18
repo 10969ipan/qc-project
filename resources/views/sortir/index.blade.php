@@ -14,7 +14,7 @@
         <div class="card-body">
             <form action="{{ route('sortir.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    @if(auth()->user()->role === 'admin' || (in_array(auth()->user()->role, ['supervisor', 'supervisor_plating']) && optional(auth()->user()->plant)->code === 'jakarta'))
+                    @if(auth()->user()->role === 'admin')
                         <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                             <div class="form-group mb-0">
                                 <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
@@ -30,6 +30,20 @@
                     @else
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
+
+                    <!-- Live Search -->
+                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="search" class="small font-weight-bold">Pencarian</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
+                                    value="{{ request('search') }}">
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Filter Tanggal -->
                     <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
@@ -62,20 +76,6 @@
                                 <button type="button" id="exportPdfBtn" class="btn btn-danger btn-sm" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Live Search -->
-                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Live Search</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
-                                    value="{{ request('search') }}">
                             </div>
                         </div>
                     </div>

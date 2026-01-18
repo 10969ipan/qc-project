@@ -79,8 +79,8 @@ class Item extends Model
 
         // If category name (string)
         if (is_string($category) && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $category)) {
-            $categoryId = Category::withoutGlobalScope('plant')->where('name', $category)->value('id');
-            return $query->where('category_id', $categoryId);
+            $categoryIds = Category::withoutGlobalScope('plant')->where('name', $category)->pluck('id');
+            return $query->whereIn('category_id', $categoryIds);
         }
 
         // If category ID (UUID string)

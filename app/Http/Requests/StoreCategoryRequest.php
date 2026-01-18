@@ -13,8 +13,17 @@ class StoreCategoryRequest extends FormRequest
 
     public function rules(): array
     {
+        $plantId = auth()->user()->plant_id;
+
         return [
-            'name' => 'required|string|max:255|unique:categories,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('categories')->where(function ($query) use ($plantId) {
+                    return $query->where('plant_id', $plantId);
+                }),
+            ],
         ];
     }
 }

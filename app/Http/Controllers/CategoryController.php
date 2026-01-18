@@ -21,10 +21,8 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        // Define restricted roles (e.g., 'user', 'viewer')
-        $restrictedRoles = ['user', 'viewer']; // You might want to define this globally or in a config
-
-        if (auth()->check() && in_array(auth()->user()->role, $restrictedRoles)) {
+        // For non-admin users, force filtering by their assigned plant
+        if (auth()->check() && auth()->user()->role !== 'admin') {
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 

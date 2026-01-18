@@ -43,10 +43,24 @@ class ItemController extends Controller
     // Menampilkan form pembuatan item
     public function create(Request $request)
     {
-        $categories = \App\Models\Category::orderBy('name')->get();
-
         // Determine current plant context
-        $currentPlant = $request->get('plant', auth()->user()->plant);
+        $plantIdentifier = $request->get('plant');
+        $plantId = null;
+
+        if ($plantIdentifier) {
+            $plantId = \App\Models\Plant::resolveId($plantIdentifier);
+        } elseif (auth()->user()->plant_id) {
+            $plantId = auth()->user()->plant_id;
+        }
+
+        $categoriesQuery = \App\Models\Category::orderBy('name');
+
+        if ($plantId) {
+            $categoriesQuery->where('plant_id', $plantId);
+        }
+
+        $categories = $categoriesQuery->get();
+        $currentPlant = $request->get('plant', auth()->user()->plant); // Keep for view compatibility if needed, though simpler refactor possible
 
         return view('items.create', compact('categories', 'currentPlant'));
     }
@@ -71,7 +85,19 @@ class ItemController extends Controller
             $item = Item::withoutGlobalScope('plant')->findOrFail($item->id);
         }
 
-        $categories = \App\Models\Category::orderBy('name')->get();
+        // Filter categories by the item's plant (or user's plant if new/fallback)
+        $plantId = $item->plant ?? auth()->user()->plant_id; // Using relationship for Item plant ID retrieval if possible, or assume explicit check needed
+
+        // Safety check if $item->plant is object or ID. BelongsTo returns object.
+        // But referencing property gives object. $item->plant_id gives ID.
+        $targetPlantId = $item->plant_id ?? auth()->user()->plant_id;
+
+        $categoriesQuery = \App\Models\Category::orderBy('name');
+        if ($targetPlantId) {
+            $categoriesQuery->where('plant_id', $targetPlantId);
+        }
+        $categories = $categoriesQuery->get();
+
         return view('items.edit', compact('item', 'categories'));
     }
 

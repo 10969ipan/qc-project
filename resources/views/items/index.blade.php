@@ -19,7 +19,7 @@
         <div class="card-body">
             <form action="{{ route('admin.items.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+                    <div class="col-xl-2 col-lg-4 col-md-6 col-sm-12 mb-3">
                         <label for="name" class="font-weight-bold">Nama Item</label>
                         <input type="text" name="name" class="form-control form-control-sm shadow-sm"
                             value="{{ request('name') }}" placeholder="Cari Nama Item...">
@@ -60,18 +60,21 @@
                                 <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
                             </select>
                         </div>
+                    @else
+                        {{-- Preserve plant parameter for non-admin users --}}
+                        @if(request('plant'))
+                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                        @endif
                     @endif
-                    <div class="col-xl-2 col-lg-4 col-md-12 mb-3">
+                    <div class="col-xl-2 col-lg-4 col-md-6 col-sm-12 mb-3">
                         <label class="d-none d-xl-block">&nbsp;</label>
-                        <div class="d-flex">
-                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1 mr-2 shadow-sm">
-                                <i class="fas fa-search"></i> Cari
-                            </button>
-                            <a href="{{ route('admin.items.index') }}"
-                                class="btn btn-secondary btn-sm flex-grow-1 shadow-sm">
-                                <i class="fas fa-undo"></i> Reset
-                            </a>
-                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm mr-2 shadow-sm">
+                            <i class="fas fa-search"></i> Cari
+                        </button>
+                        <a href="{{ route('admin.items.index', ['plant' => request('plant')]) }}"
+                            class="btn btn-secondary btn-sm shadow-sm">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
                     </div>
                 </div>
             </form>

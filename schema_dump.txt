@@ -1,0 +1,11 @@
+CREATE TABLE `categories` (
+  `id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `plant_id` char(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `categories_name_plant_unique` (`name`,`plant_id`),
+  KEY `categories_plant_id_foreign` (`plant_id`),
+  CONSTRAINT `categories_plant_id_foreign` FOREIGN KEY (`plant_id`) REFERENCES `plants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

@@ -146,7 +146,7 @@ class InProcessChecksheetController extends Controller
     // Show form (updated to pass items)
     public function create(Request $request)
     {
-        $query = Item::byCategory('Inprosess')->orderBy('name');
+        $query = Item::byCategory('INPROSES')->orderBy('name');
 
         // Filter items based on plant context
         $user = auth()->user();
