@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 trait HasChecksheetApproval
 {
@@ -45,7 +46,7 @@ trait HasChecksheetApproval
                 $modelClass = $this->getModelClass();
 
                 // 1. Block Jakarta users from approving Cross Cut (Karawang only)
-                if (strpos($modelClass, 'CrossCutChecksheet') !== false && $user->plant === 'jakarta') {
+                if (strpos($modelClass, 'CrossCutChecksheet') !== false && strtolower(optional($user->plant)->code) === 'jakarta') {
                     abort(403, 'User Jakarta tidak memiliki akses approval untuk Cross Cut.');
                 }
 
@@ -58,7 +59,7 @@ trait HasChecksheetApproval
 
                 // 2. Special case: Jakarta 'karu_qc' or 'supervisor' can approve 'kashift' level
                 // acting as 'Kepala Regu' for Sub Assy and In Process
-                if ($user->plant === 'jakarta' && $type === 'kashift') {
+                if (strtolower(optional($user->plant)->code) === 'jakarta' && $type === 'kashift') {
                     if ($user->role === 'karu_qc' || $user->role === 'supervisor') {
                         $isAllowed = true;
                     }
@@ -128,13 +129,14 @@ trait HasChecksheetApproval
         try {
             $checksheet = $query->findOrFail($id);
             $user = auth()->user();
+            $user = auth()->user();
 
             // validation
             if ($user->role !== 'admin') {
                 $modelClass = $this->getModelClass();
 
                 // Block Jakarta users from rejecting Cross Cut
-                if (strpos($modelClass, 'CrossCutChecksheet') !== false && $user->plant === 'jakarta') {
+                if (strpos($modelClass, 'CrossCutChecksheet') !== false && strtolower(optional($user->plant)->code) === 'jakarta') {
                     abort(403, 'User Jakarta tidak memiliki akses rejection untuk Cross Cut.');
                 }
 
@@ -143,7 +145,7 @@ trait HasChecksheetApproval
                     $isAllowed = true;
                 }
 
-                if ($user->plant === 'jakarta' && $type === 'kashift') {
+                if (strtolower(optional($user->plant)->code) === 'jakarta' && $type === 'kashift') {
                     if ($user->role === 'karu_qc' || $user->role === 'supervisor') {
                         $isAllowed = true;
                     }

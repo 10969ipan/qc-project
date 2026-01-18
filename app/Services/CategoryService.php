@@ -32,7 +32,7 @@ class CategoryService extends BaseService
     /**
      * Update category
      */
-    public function updateCategory(int $id, array $data): Category
+    public function updateCategory(string $id, array $data): Category
     {
         $category = $this->findCategory($id);
         $category->update($data);
@@ -42,7 +42,7 @@ class CategoryService extends BaseService
     /**
      * Delete category
      */
-    public function deleteCategory(int $id): bool
+    public function deleteCategory(string $id): bool
     {
         $category = $this->findCategory($id);
         return $category->delete();
@@ -51,7 +51,7 @@ class CategoryService extends BaseService
     /**
      * Helper to find category with admin override
      */
-    public function findCategory(int $id): Category
+    public function findCategory(string $id): Category
     {
         $query = Category::query();
         if (auth()->user()->role === 'admin') {

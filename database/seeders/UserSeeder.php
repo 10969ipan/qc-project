@@ -28,32 +28,32 @@ class UserSeeder extends Seeder
 
             // ===== PLANT KARAWANG =====
             // Supervisor
-            ['name' => 'Mida Herdiyani', 'email' => 'spvqa@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Arief Hidayat', 'email' => 'spvqc@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Mida Herdiyani', 'email' => 'spvqa@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Mida'],
+            ['name' => 'Arief Hidayat', 'email' => 'spvqc@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Arief'],
 
             // Inspector (Karawang)
-            ['name' => 'Irfan Arfian Kusnadi', 'email' => 'irfan@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Anggi Purnama', 'email' => 'anggi@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Gugun Kurniadi', 'email' => 'gugun@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Dede Supriyadi', 'email' => 'dede@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Arga Yudistira', 'email' => 'arga@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Sopian Handani', 'email' => 'sopian@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Yono Supriatno', 'email' => 'yono@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Dinar Ashobar', 'email' => 'dinar@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Irfan Arfian Kusnadi', 'email' => 'irfan@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'ia'],
+            ['name' => 'Anggi Purnama', 'email' => 'anggi@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'ap'],
+            ['name' => 'Gugun Kurniadi', 'email' => 'gugun@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'gk'],
+            ['name' => 'Dede Supriyadi', 'email' => 'dede@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'ds'],
+            ['name' => 'Arga Yudistira', 'email' => 'arga@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'ay'],
+            ['name' => 'Sopian Handani', 'email' => 'sopian@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'sh'],
+            ['name' => 'Yono Supriatno', 'email' => 'yono@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'ys'],
+            ['name' => 'Dinar Ashobar', 'email' => 'dinar@qc.com', 'role' => 'inspector', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'da'],
 
             // Ka. Shift (Karawang)
-            ['name' => 'Ahmad Jaeni', 'email' => 'kashift@qc.com', 'role' => 'kashift', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Ahmad Jaeni', 'email' => 'kashift@qc.com', 'role' => 'kashift', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Ahmad'],
 
             // Asst. Manager (Karawang)
-            ['name' => 'Iwan Setiawan', 'email' => 'manager@qc.com', 'role' => 'asst_manager', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Iwan Setiawan', 'email' => 'manager@qc.com', 'role' => 'asst_manager', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Iwan'],
 
             // Manager (Karawang)
-            ['name' => 'Desti Kurniasari', 'email' => 'generalmanager@qc.com', 'role' => 'manager', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Desti Kurniasari', 'email' => 'generalmanager@qc.com', 'role' => 'manager', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Desti'],
 
             // Karu QC (Karawang)
-            ['name' => 'Fitri', 'email' => 'fitri@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Pipit', 'email' => 'pipit@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword],
-            ['name' => 'Parlinah', 'email' => 'parlinah@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword],
+            ['name' => 'Fitri', 'email' => 'fitri@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Fitri'],
+            ['name' => 'Pipit', 'email' => 'pipit@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Pipit'],
+            ['name' => 'Parlinah', 'email' => 'parlinah@qc.com', 'role' => 'karu_qc', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Parlinah'],
 
             // Kashift Plating (Karawang)
             ['name' => 'Kashift Plating', 'email' => 'kashiftplating@qc.com', 'role' => 'kashift_plating', 'plant' => 'karawang', 'password' => $defaultPassword],
@@ -66,23 +66,23 @@ class UserSeeder extends Seeder
 
             // ===== PLANT JAKARTA =====
             // Supervisor Jakarta
-            ['name' => 'Masuli', 'email' => 'masuli.jkt@qc.com', 'role' => 'supervisor', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Masuli', 'email' => 'masuli.jkt@qc.com', 'role' => 'supervisor', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'Masuli'],
 
             // Kepala Regu Jakarta
-            ['name' => 'Marsiah', 'email' => 'marsiah.jkt@qc.com', 'role' => 'karu_qc', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Marsiah', 'email' => 'marsiah.jkt@qc.com', 'role' => 'karu_qc', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'Marsiah'],
 
             // In-Process Jakarta
-            ['name' => 'Afrin Wibowo', 'email' => 'afrin.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'Anggriyani', 'email' => 'anggriyani.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'Okah Retno Amriani', 'email' => 'okah.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'M. Miftahul Ulum', 'email' => 'ulum.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'Ilham Aldi Pratama', 'email' => 'ilham.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'Tri Rahmadhani', 'email' => 'tri.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Afrin Wibowo', 'email' => 'afrin.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'af'],
+            ['name' => 'Anggriyani', 'email' => 'anggriyani.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'ay'],
+            ['name' => 'Okah Retno Amriani', 'email' => 'okah.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'or'],
+            ['name' => 'M. Miftahul Ulum', 'email' => 'ulum.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'um'],
+            ['name' => 'Ilham Aldi Pratama', 'email' => 'ilham.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'ip'],
+            ['name' => 'Tri Rahmadhani', 'email' => 'tri.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'tr'],
 
             // Sub Assy Jakarta
-            ['name' => 'Sabrina Kurniawati', 'email' => 'sabrina.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'Ririn Eka Prasetia', 'email' => 'ririn.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
-            ['name' => 'Syadina Juhro', 'email' => 'syadina.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword],
+            ['name' => 'Sabrina Kurniawati', 'email' => 'sabrina.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'sb'],
+            ['name' => 'Ririn Eka Prasetia', 'email' => 'ririn.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'rr'],
+            ['name' => 'Syadina Juhro', 'email' => 'syadina.jkt@qc.com', 'role' => 'inspector', 'plant' => 'jakarta', 'password' => $defaultPassword, 'initials' => 'sj'],
         ];
 
         foreach ($users as $userData) {
@@ -97,6 +97,7 @@ class UserSeeder extends Seeder
                     'name' => $userData['name'],
                     'role' => $userData['role'],
                     'plant_id' => $plantId,
+                    'initials' => $userData['initials'] ?? null,
                 ]);
             } else {
                 // Create new user
@@ -106,6 +107,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make($userData['password']),
                     'role' => $userData['role'],
                     'plant_id' => $plantId,
+                    'initials' => $userData['initials'] ?? null,
                 ]);
             }
         }

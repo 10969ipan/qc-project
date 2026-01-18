@@ -424,7 +424,7 @@
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
-                                                    Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? ' KR' : '') }}
+                                                    Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
@@ -575,7 +575,7 @@
                                 <div class="modal-body">
                                     <div class="alert alert-warning">
                                         <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                        <strong>{{ ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
+                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
                                     </div>
                                     <div class="form-group">
                                         <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
@@ -632,8 +632,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

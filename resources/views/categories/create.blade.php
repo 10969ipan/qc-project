@@ -13,7 +13,7 @@
                 <div class="form-group">
                     <label>Plant</label>
                     <input type="text" class="form-control bg-light"
-                        value="{{ strtoupper(auth()->user()->plant ?? 'KARAWANG') }}" readonly>
+                        value="{{ strtoupper(optional(auth()->user()->plant)->name ?? 'KARAWANG') }}" readonly>
                     <small class="text-muted">Kategori akan otomatis didaftarkan untuk plant ini.</small>
                 </div>
                 <div class="form-group">

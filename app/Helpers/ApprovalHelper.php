@@ -8,11 +8,16 @@ if (!function_exists('getApprovalLabel')) {
      * @param string|null $plant
      * @return string
      */
-    function getApprovalLabel(string $level, ?string $plant = null): string
+    function getApprovalLabel(string $level, $plant = null): string
     {
         // If no plant specified, use current request plant or auth user plant
         if (!$plant) {
             $plant = request('plant') ?? auth()->user()->plant ?? 'karawang';
+        }
+
+        // If plant is an object (Eloquent Model), get the code or name
+        if (is_object($plant)) {
+            $plant = $plant->code ?? $plant->name ?? 'karawang';
         }
 
         $labels = [
@@ -23,7 +28,7 @@ if (!function_exists('getApprovalLabel')) {
                 'manager' => 'Manager QC',
             ],
             'jakarta' => [
-                'kashift' => 'Kepala Regu QC',  // Different for Jakarta
+                'kashift' => 'Kepala Regu', // Requested: Karu/Kepala Regu
                 'supervisor' => 'Supervisor QC',
                 'asst_manager' => 'Asst Manager QC',
                 'manager' => 'Manager QC',
@@ -39,14 +44,19 @@ if (!function_exists('getApprovalLabelShort')) {
      * Get short approval label based on plant and level
      * 
      * @param string $level
-     * @param string|null $plant
+     * @param string|mixed $plant
      * @return string
      */
-    function getApprovalLabelShort(string $level, ?string $plant = null): string
+    function getApprovalLabelShort(string $level, $plant = null): string
     {
         // If no plant specified, use current request plant or auth user plant
         if (!$plant) {
             $plant = request('plant') ?? auth()->user()->plant ?? 'karawang';
+        }
+
+        // If plant is an object (Eloquent Model), get the code or name
+        if (is_object($plant)) {
+            $plant = $plant->code ?? $plant->name ?? 'karawang';
         }
 
         $labels = [
@@ -57,7 +67,7 @@ if (!function_exists('getApprovalLabelShort')) {
                 'manager' => 'Manager',
             ],
             'jakarta' => [
-                'kashift' => 'Kepala Regu',  // Different for Jakarta
+                'kashift' => 'Kepala Regu',  // Requested: Karu/Kepala Regu
                 'supervisor' => 'Supervisor',
                 'asst_manager' => 'Asst Manager',
                 'manager' => 'Manager',

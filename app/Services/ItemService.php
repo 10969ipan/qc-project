@@ -97,7 +97,7 @@ class ItemService extends BaseService
      * @param array $data
      * @return Item
      */
-    public function updateItem(int $id, array $data): Item
+    public function updateItem(string $id, array $data): Item
     {
         DB::beginTransaction();
         try {
@@ -158,7 +158,7 @@ class ItemService extends BaseService
      * @param int $id
      * @return bool
      */
-    public function deleteItem(int $id): bool
+    public function deleteItem(string $id): bool
     {
         DB::beginTransaction();
         try {

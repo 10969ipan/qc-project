@@ -13,7 +13,8 @@
                 @method('PUT')
                 <div class="form-group">
                     <label>Plant</label>
-                    <input type="text" class="form-control bg-light" value="{{ strtoupper($category->plant) }}" readonly>
+                    <input type="text" class="form-control bg-light"
+                        value="{{ strtoupper(optional($category->plant)->name) }}" readonly>
                 </div>
                 <div class="form-group">
                     <label>Nama Kategori <span class="text-danger">*</span></label>

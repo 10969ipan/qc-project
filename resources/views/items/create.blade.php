@@ -38,10 +38,13 @@
         <div class="card-body">
             <form action="{{ route('admin.items.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="plant" value="{{ $currentPlant }}">
+                <input type="hidden" name="plant"
+                    value="{{ is_object($currentPlant) ? strtolower($currentPlant->code) : strtolower($currentPlant) }}">
                 <div class="form-group">
                     <label>Plant</label>
-                    <input type="text" class="form-control bg-light" value="{{ strtoupper($currentPlant) }}" readonly>
+                    <input type="text" class="form-control bg-light"
+                        value="{{ is_object($currentPlant) ? strtoupper($currentPlant->name) : strtoupper($currentPlant) }}"
+                        readonly>
                     <small class="text-muted">Item akan otomatis didaftarkan untuk plant ini.</small>
                 </div>
                 <div class="form-group">
@@ -156,13 +159,13 @@
                 // Add Row
                 $(document).on('click', '.add-row', function () {
                     var newRow = `
-                                                                <tr>
-                                                                    <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
-                                                                    <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
-                                                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
-                                                                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                                                                </tr>
-                                                            `;
+                                                                        <tr>
+                                                                            <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
+                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
+                                                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
+                                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                                                        </tr>
+                                                                    `;
                     $('#dimension-table tbody').append(newRow);
                 });
 

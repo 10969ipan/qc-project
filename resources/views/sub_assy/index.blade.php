@@ -103,7 +103,12 @@
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th rowspan="2" class="align-middle"><x-approval-label level="kashift" /></th>
+                            <th rowspan="2" class="align-middle">
+                                @php
+                                    $plantContext = strtolower(request('plant') ?? optional(auth()->user()->plant)->code ?? 'karawang');
+                                @endphp
+                                {{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
+                            </th>
                             <th rowspan="2" class="align-middle"><x-approval-label level="supervisor" /></th>
                             <th rowspan="2" class="align-middle"><x-approval-label level="asst_manager" /></th>
                             <th rowspan="2" class="align-middle"><x-approval-label level="manager" /></th>
@@ -310,16 +315,27 @@
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         {{-- Action Buttons for Approvals --}}
-                                        $isJakarta = optional($user->plant)->code === 'jakarta';
+                                        @php
+                                            $user = auth()->user();
+                                            $isAdmin = $user->role === 'admin';
+                                            $isJakarta = optional($user->plant)->code === 'jakarta';
+                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                        $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
-                                        $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                        $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
-                                        (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                        $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
-                                        (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                        $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
-                                        $checksheet->manager_qc === 'REJECTED');
+
+
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
+                                                $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
+                                                (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
+                                                (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
+                                                $checksheet->manager_qc === 'REJECTED');
+
+                                            // Determine Acronym for Kashift button
+                                            $plantContext = request('plant') ?? optional($user->plant)->code ?? 'karawang';
+                                            $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
                                         @endphp
 
                                         @if($canApproveKashift)
@@ -335,7 +351,7 @@
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
-                                                    Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? ' KR' : '') }}
+                                                    Approve{{ $kashiftAcronym }}
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
@@ -453,7 +469,7 @@
             @php
                 $user = auth()->user();
                 $isAdmin = $user->role === 'admin';
-                $isJakarta = $user->plant === 'jakarta';
+                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
                 $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                 $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
                 $canReject = false;
@@ -487,7 +503,7 @@
                                 <div class="modal-body">
                                     <div class="alert alert-warning">
                                         <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                        <strong>{{ ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
+                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
                                     </div>
                                     <div class="form-group">
                                         <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
@@ -541,8 +557,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -558,12 +574,14 @@
                         // Get current filter values
                         const startDate = document.getElementById('start_date').value;
                         const endDate = document.getElementById('end_date').value;
+                        const plant = document.querySelector('[name="plant"]')?.value;
 
                         // Build URL with all parameters
                         const params = new URLSearchParams();
                         if (searchTerm) params.append('search', searchTerm);
                         if (startDate) params.append('start_date', startDate);
                         if (endDate) params.append('end_date', endDate);
+                        if (plant) params.append('plant', plant);
 
                         // Redirect to index with search parameter
                         window.location.href = '{{ route('admin.checksheets.index') }}?' + params.toString();

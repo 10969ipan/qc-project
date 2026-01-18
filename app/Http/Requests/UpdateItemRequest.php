@@ -22,7 +22,8 @@ class UpdateItemRequest extends FormRequest
      */
     public function rules(): array
     {
-        $itemId = $this->route('item');
+        $item = $this->route('item');
+        $itemId = $item instanceof Item ? $item->id : $item;
 
         return [
             'name' => [

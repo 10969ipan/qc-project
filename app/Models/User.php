@@ -22,6 +22,7 @@ class User extends Authenticatable
         'password',
         'role',
         'plant_id',
+        'initials',
     ];
 
     /**
@@ -53,6 +54,22 @@ class User extends Authenticatable
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    // Accessor untuk inisial nama
+    // Menggunakan value dari DB jika ada, jika tidak generate dari nama
+    public function getInitialsAttribute($value)
+    {
+        if ($value) {
+            return strtoupper($value); // Selalu return uppercase agar rapi di laporan
+        }
+
+        $words = explode(' ', $this->name);
+        $initials = '';
+        foreach ($words as $word) {
+            $initials .= strtoupper(substr($word, 0, 1));
+        }
+        return $initials;
     }
 
     // Helper untuk cek role
