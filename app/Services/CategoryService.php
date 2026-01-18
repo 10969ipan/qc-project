@@ -15,7 +15,7 @@ class CategoryService extends BaseService
         $query = Category::withCount('items')->orderBy('name');
 
         if (!empty($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         return $query->paginate(10)->withQueryString();

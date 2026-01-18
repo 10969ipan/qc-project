@@ -9,11 +9,24 @@ class MachineStatus extends Model
     use \App\Traits\HasPlantFilter;
 
     protected $fillable = [
-        'plant',
+        'plant_id',
         'type',
         'number',
         'status',
         'description',
         'created_by'
     ];
+
+    public function item()
+    {
+        return $this->belongsTo(Item::class);
+    }
+
+    /**
+     * Get the plant that owns the status.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
 }

@@ -12,7 +12,7 @@ class InProcessChecksheet extends Model
     protected $table = 'in_process_checksheets';
 
     protected $fillable = [
-        'plant',
+        'plant_id',
         'item_id',
         'created_at',
         'date',
@@ -50,5 +50,13 @@ class InProcessChecksheet extends Model
     public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    /**
+     * Get the plant that owns the checksheet.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
     }
 }

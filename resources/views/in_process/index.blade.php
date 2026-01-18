@@ -14,7 +14,7 @@
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    @if(auth()->user()->role === 'admin' || (in_array(auth()->user()->role, ['supervisor', 'supervisor_plating']) && auth()->user()->plant === 'jakarta'))
+                    @if(auth()->user()->role === 'admin' || (in_array(auth()->user()->role, ['supervisor', 'supervisor_plating']) && optional(auth()->user()->plant)->code === 'jakarta'))
                         <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                             <div class="form-group mb-0">
                                 <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
@@ -398,17 +398,16 @@
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         {{-- Action Buttons for Approvals --}}
-                                        @php
-                                            $isAdmin = auth()->user()->role === 'admin';
-                                            $user = auth()->user();
-                                            $isJakarta = $user->plant === 'jakarta';
-                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+                                        $isJakarta = optional($user->plant)->code === 'jakarta';
 
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
+                                        $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
+                                        $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                        $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
+                                        (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                        $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
+                                        (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                        $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
+                                        $checksheet->manager_qc === 'REJECTED');
                                         @endphp
 
                                         @if($canApproveKashift)
@@ -540,22 +539,21 @@
     <!-- Rejection Modal for each checksheet and type -->
     @foreach($checksheets as $cs)
         @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-            @php
-                $user = auth()->user();
-                $isAdmin = $user->role === 'admin';
-                $isJakarta = $user->plant === 'jakarta';
-                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
-                $canReject = false;
-                if ($rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'manager' && (($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
-                    $canReject = true;
-                }
+            $isJakarta = optional($user->plant)->code === 'jakarta';
+            $canReject = false;
+            if ($rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) &&
+            (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
+            $canReject = true;
+            } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc ||
+            $cs->supervisor_qc === 'REJECTED'))) {
+            $canReject = true;
+            } elseif ($rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc ||
+            $cs->asst_manager_qc === 'REJECTED'))) {
+            $canReject = true;
+            } elseif ($rejectType == 'manager' && (($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc
+            === 'REJECTED'))) {
+            $canReject = true;
+            }
             @endphp
             @if($canReject)
                 <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
@@ -634,8 +632,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

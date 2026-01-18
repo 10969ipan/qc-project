@@ -13,6 +13,17 @@ use Illuminate\Http\Request;
 abstract class BaseService
 {
     /**
+     * Resolve a plant identifier to a UUID string.
+     * 
+     * @param mixed $identifier
+     * @return string|null
+     */
+    protected function resolvePlantId($identifier)
+    {
+        return \App\Models\Plant::resolveId($identifier);
+    }
+
+    /**
      * Apply common filters to query
      * 
      * @param Builder $query

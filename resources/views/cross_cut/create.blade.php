@@ -39,7 +39,7 @@
 
             <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" cellspacing="0">
                         <thead>

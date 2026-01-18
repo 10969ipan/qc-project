@@ -70,9 +70,10 @@ class SortirChecksheetController extends Controller
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
 
         if (in_array(auth()->user()->role, $restrictedRoles)) {
-            $request->merge(['plant' => auth()->user()->plant]);
+            $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
+        $plantFilter = $request->get('plant');
         $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
         $checksheets = $this->sortirService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();

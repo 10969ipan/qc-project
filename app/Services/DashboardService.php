@@ -56,22 +56,22 @@ class DashboardService extends BaseService
     {
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0];
         // Use override if provided, otherwise check request or auth user
-        $plant = $plantOverride ?? request('plant') ?? auth()->user()->plant;
+        $plantId = $this->resolvePlantId($plantOverride ?? request('plant') ?? auth()->user()->plant_id);
 
-        $this->processModelStats(InProcessChecksheet::class, $stats, $plant);
-        $this->processModelStats(SubAssyChecksheet::class, $stats, $plant);
-        $this->processModelStats(CrossCutChecksheet::class, $stats, $plant);
+        $this->processModelStats(InProcessChecksheet::class, $stats, $plantId);
+        $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId);
+        $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId);
 
         return $stats;
     }
 
-    private function processModelStats(string $modelClass, array &$stats, ?string $plant = null): void
+    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null): void
     {
         $table = (new $modelClass)->getTable();
         $query = $modelClass::query();
 
-        if ($plant) {
-            $query->where('plant', $plant);
+        if ($plantId) {
+            $query->where($query->getModel()->getTable() . '.plant_id', $plantId);
         }
 
         // Count individual columns (Karu, Kashift, SPV). 
@@ -100,10 +100,12 @@ class DashboardService extends BaseService
     /**
      * Get production monitoring data
      */
-    private function getProductionMonitoring(?string $plant = null): array
+    private function getProductionMonitoring(?string $plantIdentifier = null): array
     {
         $now = now();
         $hour = $now->hour;
+
+        $plantId = $this->resolvePlantId($plantIdentifier ?? request('plant') ?? auth()->user()->plant_id);
 
         // Determine current production date and shift
         // Day starts at 07:00
@@ -127,8 +129,8 @@ class DashboardService extends BaseService
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
 
-        if ($plant)
-            $linesQuery->where('plant', $plant);
+        if ($plantId)
+            $linesQuery->where('plant_id', $plantId);
 
         $activeLines = $linesQuery->get()
             ->unique('line')
@@ -141,8 +143,8 @@ class DashboardService extends BaseService
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc');
 
-        if ($plant)
-            $machinesQuery->where('plant', $plant);
+        if ($plantId)
+            $machinesQuery->where('plant_id', $plantId);
 
         $activeMachines = $machinesQuery->get()
             ->unique('code_machine')
@@ -152,8 +154,8 @@ class DashboardService extends BaseService
         $statusQuery = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble'])
             ->where('updated_at', '>=', $shiftStartTime);
 
-        if ($plant)
-            $statusQuery->where('plant', $plant);
+        if ($plantId)
+            $statusQuery->where('plant_id', $plantId);
 
         $manualStatuses = $statusQuery->get();
         $lineStatuses = $manualStatuses->where('type', 'line')->keyBy('number');

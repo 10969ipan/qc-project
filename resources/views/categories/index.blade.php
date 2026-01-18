@@ -69,8 +69,9 @@
                                     <span class="badge badge-info">{{ $category->items_count }} item</span>
                                 </td>
                                 <td>
-                                    <span class="badge {{ $category->plant === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
-                                        {{ strtoupper($category->plant) }}
+                                    <span
+                                        class="badge {{ optional($category->plant)->code === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
+                                        {{ strtoupper(optional($category->plant)->name ?? '-') }}
                                     </span>
                                 </td>
                                 @if(auth()->user()->role !== 'inspector')

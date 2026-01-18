@@ -7,8 +7,7 @@ use Illuminate\Support\Str;
 
 class Plant extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use \App\Traits\HasUuid;
 
     protected $fillable = [
         'name',
@@ -17,23 +16,36 @@ class Plant extends Model
         'is_active',
     ];
 
+    /**
+     * Resolve a plant identifier to a UUID.
+     * 
+     * @param mixed $identifier
+     * @return string|null
+     */
+    public static function resolveId($identifier)
+    {
+        if (empty($identifier))
+            return null;
+
+        // If it's already a UUID string
+        if (is_string($identifier) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
+            return $identifier;
+        }
+
+        // If it's a model instance
+        if ($identifier instanceof self) {
+            return $identifier->id;
+        }
+
+        // If it's a name or code (case insensitive)
+        return self::where('name', 'like', $identifier)
+            ->orWhere('code', 'like', $identifier)
+            ->value('id');
+    }
+
     protected $casts = [
         'is_active' => 'boolean',
     ];
-
-    /**
-     * Boot function to auto-generate UUID
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = Str::uuid()->toString();
-            }
-        });
-    }
 
     /**
      * Get all users for this plant

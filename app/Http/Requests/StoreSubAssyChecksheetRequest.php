@@ -23,7 +23,7 @@ class StoreSubAssyChecksheetRequest extends FormRequest
     {
         return [
             'item_id' => 'required|exists:items,id',
-            'plant' => 'required|in:karawang,jakarta',
+            'plant' => 'required',
             'date' => 'required|date',
             'shift' => 'required|string',
             'line' => 'required|string',

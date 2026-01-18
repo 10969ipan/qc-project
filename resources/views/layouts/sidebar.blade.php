@@ -7,7 +7,8 @@
         </div>
         <div class="sidebar-brand-text mx-3">QC Apps
             @if(auth()->check() && auth()->user()->plant)
-                <br><small class="text-white-50" style="font-size: 0.7rem;">{{ strtoupper(auth()->user()->plant) }}</small>
+                <br><small class="text-white-50"
+                    style="font-size: 0.7rem;">{{ strtoupper(auth()->user()->plant->name) }}</small>
             @endif
         </div>
     </a>
@@ -48,7 +49,7 @@
             </a>
             <div id="collapseMaster" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    @if($canInputAllPlants || auth()->user()->plant === 'jakarta')
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#masterJakarta" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Jakarta
@@ -62,7 +63,7 @@
                                 href="{{ route('admin.monthly-reports.index', ['plant' => 'jakarta']) }}">Laporan Bulanan</a>
                         </div>
                     @endif
-                    @if($canInputAllPlants || auth()->user()->plant === 'karawang')
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#masterKarawang" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Karawang
@@ -91,7 +92,7 @@
             </a>
             <div id="collapseReport" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    @if($canInputAllPlants || auth()->user()->plant === 'jakarta')
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#reportJakarta" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Jakarta
@@ -103,7 +104,7 @@
                                 href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'jakarta']) }}">Inprocess</a>
                         </div>
                     @endif
-                    @if($canInputAllPlants || auth()->user()->plant === 'karawang')
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#reportKarawang" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Karawang
@@ -133,7 +134,7 @@
             <div id="collapseChecksheet" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
                     {{-- Inspector can only input in their own plant, management can input in all plants --}}
-                    @if($canInputAllPlants || auth()->user()->plant === 'jakarta')
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#checksheetJakarta" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Jakarta
@@ -146,7 +147,7 @@
                             <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                         </div>
                     @endif
-                    @if($canInputAllPlants || auth()->user()->plant === 'karawang')
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#checksheetKarawang" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Karawang
@@ -177,7 +178,7 @@
             <div id="collapseLaporan" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
                     {{-- Inspector can view all plants' reports --}}
-                    @if($canViewAllPlants || auth()->user()->plant === 'jakarta')
+                    @if($canViewAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#laporanJakarta" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Jakarta
@@ -190,7 +191,7 @@
                             <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
                         </div>
                     @endif
-                    @if($canViewAllPlants || auth()->user()->plant === 'karawang')
+                    @if($canViewAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                         <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
                             data-target="#laporanKarawang" aria-expanded="false">
                             <i class="fas fa-building mr-2"></i> Plant Karawang
@@ -214,7 +215,7 @@
 
 
 
-    @if(auth()->check() && auth()->user()->plant !== 'jakarta' && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
+    @if(auth()->check() && (auth()->user()->plant && auth()->user()->plant->code !== 'jakarta') && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
         <!-- Nav Item - Cross Cut Only (For Plating Roles) -->
         <li class="nav-item">
             <a class="nav-link" href="{{ route('cross_cut.index') }}">

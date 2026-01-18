@@ -88,20 +88,24 @@ class UserSeeder extends Seeder
         foreach ($users as $userData) {
             $user = User::where('email', $userData['email'])->first();
 
+            // Resolve plant name to UUID
+            $plantId = \App\Models\Plant::resolveId($userData['plant']);
+
             if ($user) {
-                // Jangan update password jika user sudah ada (agar tidak tertimpa ke default)
+                // Update existing user (don't update password to preserve custom passwords)
                 $user->update([
                     'name' => $userData['name'],
                     'role' => $userData['role'],
-                    'plant' => $userData['plant'],
+                    'plant_id' => $plantId,
                 ]);
             } else {
+                // Create new user
                 User::create([
                     'name' => $userData['name'],
                     'email' => $userData['email'],
                     'password' => Hash::make($userData['password']),
                     'role' => $userData['role'],
-                    'plant' => $userData['plant'],
+                    'plant_id' => $plantId,
                 ]);
             }
         }

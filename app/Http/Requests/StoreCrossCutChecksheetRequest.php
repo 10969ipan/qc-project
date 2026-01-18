@@ -15,7 +15,7 @@ class StoreCrossCutChecksheetRequest extends FormRequest
     {
         return [
             'item_id' => 'required|exists:items,id',
-            'plant' => 'required|in:karawang,jakarta',
+            'plant' => 'required',
             'date' => 'required|date',
             'production_shift' => 'required|string|max:255',
             'qc_shift' => 'required|string|max:255',

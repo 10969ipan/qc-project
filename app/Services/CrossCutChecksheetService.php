@@ -32,7 +32,7 @@ class CrossCutChecksheetService extends BaseService
 
         // Apply plant filter if present
         if (isset($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         if (!empty($filters['start_date'])) {
@@ -79,7 +79,7 @@ class CrossCutChecksheetService extends BaseService
             }
 
             $checksheet = CrossCutChecksheet::create([
-                'plant' => $data['plant'] ?? auth()->user()->plant,
+                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'item_id' => $data['item_id'],
                 'production_shift' => $data['production_shift'],
                 'qc_shift' => $data['qc_shift'],

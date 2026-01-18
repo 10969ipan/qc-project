@@ -48,10 +48,17 @@ class CrossCutChecksheetController extends Controller
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
 
         if (in_array(auth()->user()->role, $restrictedRoles)) {
-            $request->merge(['plant' => auth()->user()->plant]);
+            $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'search']);
+        $filters = [
+            'plant' => $request->get('plant'),
+            'start_date' => $request->get('start_date'),
+            'end_date' => $request->get('end_date'),
+            'item_id' => $request->get('item_id'),
+            'approval_status' => $request->get('approval_status'),
+            'search' => $request->get('search'),
+        ];
         $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();
 
@@ -74,11 +81,11 @@ class CrossCutChecksheetController extends Controller
         if (in_array($user->role, $canSwitchPlants)) {
             // These roles can filter by request plant parameter
             if ($request->has('plant')) {
-                $query->where('plant', $request->query('plant'));
+                $query->where('plant_id', \App\Models\Plant::resolveId($request->query('plant')));
             }
         } else {
-            // Inspector and other restricted roles: always filter by their own plant
-            $query->where('plant', $user->plant);
+            // Inspector: strictly follow user's assigned plant_id
+            $query->where('plant_id', $user->plant_id);
         }
 
         $items = $query->get();

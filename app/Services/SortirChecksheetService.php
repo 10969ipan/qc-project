@@ -34,7 +34,7 @@ class SortirChecksheetService extends BaseService
 
         // Apply plant filter if present
         if (isset($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
@@ -76,15 +76,16 @@ class SortirChecksheetService extends BaseService
             ->map(fn($items) => $items->pluck('source_id')->toArray())
             ->toArray();
 
-        $plant = $filters['plant'] ?? null;
-        $shouldFilterByPlant = !empty($plant);
+        $plantId = $this->resolvePlantId($filters['plant'] ?? null);
+        $shouldFilterByPlant = !empty($plantId);
 
         // Sub Assy
         $querySubAssy = SubAssyChecksheet::where('judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['sub_assy'] ?? [])
             ->with('item');
-        if ($shouldFilterByPlant)
-            $querySubAssy->withoutGlobalScope('plant')->where('plant', $plant);
+        if ($shouldFilterByPlant) {
+            $querySubAssy->withoutGlobalScope('plant')->where('plant_id', $plantId);
+        }
 
         $ngSubAssy = $querySubAssy->get()->map(fn($c) => $this->mapNgItem($c, 'sub_assy'));
 
@@ -92,8 +93,9 @@ class SortirChecksheetService extends BaseService
         $queryInProcess = InProcessChecksheet::where('judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['in_process'] ?? [])
             ->with('item');
-        if ($shouldFilterByPlant)
-            $queryInProcess->withoutGlobalScope('plant')->where('plant', $plant);
+        if ($shouldFilterByPlant) {
+            $queryInProcess->withoutGlobalScope('plant')->where('plant_id', $plantId);
+        }
 
         $ngInProcess = $queryInProcess->get()->map(fn($c) => $this->mapNgItem($c, 'in_process'));
 
@@ -101,8 +103,9 @@ class SortirChecksheetService extends BaseService
         $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
             ->whereNotIn('id', $processedSourceIds['cross_cut'] ?? [])
             ->with('item');
-        if ($shouldFilterByPlant)
-            $queryCrossCut->withoutGlobalScope('plant')->where('plant', $plant);
+        if ($shouldFilterByPlant) {
+            $queryCrossCut->withoutGlobalScope('plant')->where('plant_id', $plantId);
+        }
 
         $ngCrossCut = $queryCrossCut->get()->map(fn($c) => $this->mapNgItem($c, 'cross_cut'));
 
@@ -130,7 +133,7 @@ class SortirChecksheetService extends BaseService
             }
 
             $sortir = SortirChecksheet::create(array_merge($data, [
-                'plant' => $data['plant'] ?? auth()->user()->plant,
+                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'defects' => json_encode($defects)
             ]));
 

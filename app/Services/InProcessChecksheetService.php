@@ -96,7 +96,7 @@ class InProcessChecksheetService extends BaseService
 
         // Apply plant filter if present
         if (isset($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
@@ -214,7 +214,7 @@ class InProcessChecksheetService extends BaseService
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
 
             $checksheet = InProcessChecksheet::create([
-                'plant' => $data['plant'] ?? auth()->user()->plant,
+                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],

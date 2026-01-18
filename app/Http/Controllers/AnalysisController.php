@@ -21,6 +21,10 @@ class AnalysisController extends Controller
     {
         $filters = $request->only(['plant', 'start_date', 'end_date']);
 
+        $restrictedRoles = ['viewer', 'encoder'];
+        if (in_array(auth()->user()->role, $restrictedRoles)) {
+            $request->merge(['plant' => auth()->user()->plant_id]);
+        }
         $analysisData = $this->analysisService->getMonthlyAnalysis('sub_assy', $filters);
         $plant = $filters['plant'] ?? null;
 

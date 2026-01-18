@@ -29,7 +29,7 @@ class SubAssyChecksheetService extends BaseService
 
         // Apply plant filter if present (Global scope handles restrictions for non-exempt roles)
         if (isset($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         // Date range filter
@@ -78,7 +78,7 @@ class SubAssyChecksheetService extends BaseService
 
             // Create checksheet
             $checksheet = SubAssyChecksheet::create([
-                'plant' => $data['plant'] ?? auth()->user()->plant,
+                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],

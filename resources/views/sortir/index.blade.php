@@ -14,7 +14,7 @@
         <div class="card-body">
             <form action="{{ route('sortir.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    @if(auth()->user()->role === 'admin' || (in_array(auth()->user()->role, ['supervisor', 'supervisor_plating']) && auth()->user()->plant === 'jakarta'))
+                    @if(auth()->user()->role === 'admin' || (in_array(auth()->user()->role, ['supervisor', 'supervisor_plating']) && optional(auth()->user()->plant)->code === 'jakarta'))
                         <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                             <div class="form-group mb-0">
                                 <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
@@ -203,9 +203,11 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        <br><small class="text-muted">oleh
+                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @if($checksheet->kashift_qc_time)
-                                            <br><small class="text-muted">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</small>
+                                            <br><small
+                                                class="text-muted">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</small>
                                         @endif
                                     @elseif($checksheet->kashift_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
@@ -229,9 +231,11 @@
                                         <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        <br><small class="text-muted">oleh
+                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @if($checksheet->supervisor_qc_time)
-                                            <br><small class="text-muted">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</small>
+                                            <br><small
+                                                class="text-muted">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</small>
                                         @endif
                                     @elseif($checksheet->supervisor_qc)
                                         <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
@@ -263,7 +267,7 @@
                                         @php
                                             $isAdmin = auth()->user()->role === 'admin';
                                             $user = auth()->user();
-                                            $isJakarta = $user->plant === 'jakarta';
+                                            $isJakarta = optional($user->plant)->code === 'jakarta';
                                             $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
@@ -333,7 +337,7 @@
                                 @php
                                     $isAdmin = auth()->user()->role === 'admin';
                                     $user = auth()->user();
-                                    $isJakarta = $user->plant === 'jakarta';
+                                    $isJakarta = optional($user->plant)->code === 'jakarta';
                                     $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                     $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 

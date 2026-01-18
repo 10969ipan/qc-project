@@ -12,14 +12,14 @@ trait HasPlantFilter
     protected static function bootHasPlantFilter()
     {
         static::addGlobalScope('plant', function ($query) {
-            if (Auth::check() && Auth::user()->plant) {
+            if (Auth::check() && Auth::user()->plant_id) {
                 $role = Auth::user()->role;
-                $userPlant = Auth::user()->plant;
+                $userPlantId = Auth::user()->plant_id;
 
                 $exemptRoles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc'];
 
                 if (!in_array($role, $exemptRoles)) {
-                    $query->where($query->getModel()->getTable() . '.plant', $userPlant);
+                    $query->where($query->getModel()->getTable() . '.plant_id', $userPlantId);
                 }
             }
         });

@@ -6,7 +6,7 @@
     <x-plant-header title="Input Data Checksheet" :plant="request('plant')" />
 
     @php
-        $plant = strtolower(auth()->user()->plant ?? request('plant') ?? '');
+        $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
         $tableOptions = range(1, 15);
         if ($plant === 'jakarta') {
             $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -90,22 +90,11 @@
                 </form>
             @endif
 
-            {{-- DEBUG INFO - Temporary for troubleshooting --}}
-            @if(isset($debugInfo))
-                <div class="alert alert-info">
-                    <strong>Debug Info:</strong><br>
-                    User Role: {{ $debugInfo['user_role'] }}<br>
-                    User Plant: {{ $debugInfo['user_plant'] }}<br>
-                    Request Plant: {{ $debugInfo['request_plant'] ?? 'null' }}<br>
-                    Items Found: {{ $debugInfo['items_count'] }}<br>
-                    <strong>SQL:</strong> <code style="font-size: 11px;">{{ $debugInfo['sql'] ?? 'N/A' }}</code><br>
-                    <strong>Bindings:</strong> {{ json_encode($debugInfo['bindings'] ?? []) }}
-                </div>
-            @endif
+
 
             <form action="{{ route('checksheet.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">

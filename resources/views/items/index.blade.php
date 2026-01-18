@@ -128,8 +128,9 @@
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
                                 <td>
-                                    <span class="badge {{ $item->plant === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
-                                        {{ strtoupper($item->plant) }}
+                                    <span
+                                        class="badge {{ optional($item->plant)->code === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
+                                        {{ strtoupper(optional($item->plant)->name ?? '-') }}
                                     </span>
                                 </td>
                                 @if(auth()->user()->role !== 'inspector')

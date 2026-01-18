@@ -43,7 +43,7 @@ class AnalysisService extends BaseService
         $dateField = ($type === 'cross_cut') ? 'qc_datetime' : 'date';
         $model = $this->getModelForType($type);
 
-        $query = $model::select($dateField, 'item_id', 'operator_initials', 'cycle_time', 'plant');
+        $query = $model::select($dateField, 'item_id', 'operator_initials', 'cycle_time', 'plant_id');
 
         if ($type === 'cross_cut') {
             $query->addSelect('position_remark_judgment');
@@ -54,7 +54,7 @@ class AnalysisService extends BaseService
         $query->with('item')->orderBy($dateField);
 
         if (!empty($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         if (!empty($filters['start_date'])) {

@@ -5,7 +5,7 @@
 @section('content')
     <x-plant-header title="Input Data Sortir" :plant="request('plant')" />
     @php
-        $plant = strtolower(auth()->user()->plant ?? request('plant') ?? '');
+        $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
         $tableOptions = range(1, 15);
         if ($plant === 'jakarta') {
             $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -45,7 +45,7 @@
 
             <form action="{{ route('sortir.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <input type="hidden" name="source_type" id="sourceType">
                 <input type="hidden" name="source_id" id="sourceId">
 
@@ -348,14 +348,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                        <div class="input-group mb-2 defect-row">
-                                                                        <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                        <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                        <div class="input-group-append">
-                                                                            <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                            <div class="input-group mb-2 defect-row">
+                                                                            <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                            <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                            <div class="input-group-append">
+                                                                                <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                `;
+                                                                    `;
                 $('#defectContainer').append(newRow);
             });
 

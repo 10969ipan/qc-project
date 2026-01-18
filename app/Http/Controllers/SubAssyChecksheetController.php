@@ -87,11 +87,13 @@ class SubAssyChecksheetController extends Controller
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
 
         if (in_array(auth()->user()->role, $restrictedRoles)) {
-            $request->merge(['plant' => auth()->user()->plant]);
+            $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
+        $plantFilter = $request->get('plant');
+
         $filters = [
-            'plant' => $request->get('plant'),
+            'plant' => $plantFilter,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
@@ -115,20 +117,16 @@ class SubAssyChecksheetController extends Controller
 
         // IMPORTANT: Inspector role is NOT in exemptRoles of HasPlantFilter trait,
         // so global scope already filters by plant. We need to remove it to prevent double filtering.
-        if (!in_array($user->role, $canSwitchPlants)) {
-            // Inspector: remove global scope and apply manual filter
-            $query = Item::withoutGlobalScope('plant')
-                ->byCategory('Sub Assy')
-                ->where('plant', $user->plant)
-                ->orderBy('name');
-        } else {
-            // Admin/Manager/Supervisor: use normal query
-            $query = Item::byCategory('Sub Assy')->orderBy('name');
+        $query = Item::byCategory('Sub Assy')->orderBy('name');
 
-            // Filter by request plant parameter if provided
+        if (in_array($user->role, $canSwitchPlants)) {
+            // Admin/Manager/Supervisor: use normal query, filter by request plant_id if provided
             if ($request->has('plant')) {
-                $query->where('plant', $request->query('plant'));
+                $query->where('plant_id', \App\Models\Plant::resolveId($request->query('plant')));
             }
+        } else {
+            // Inspector: strictly follow user's assigned plant_id
+            $query->where('plant_id', $user->plant_id);
         }
 
         // DEBUG INFO - capture BEFORE get() because get() resets the query

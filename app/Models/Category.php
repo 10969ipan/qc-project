@@ -11,9 +11,17 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Category extends Model
 {
-    use \App\Traits\HasPlantFilter;
+    use \App\Traits\HasPlantFilter, \App\Traits\HasUuid;
 
-    protected $fillable = ['plant', 'name'];
+    protected $fillable = ['plant_id', 'name'];
+
+    /**
+     * Get the plant that owns the category.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
 
     /**
      * Get the items for the category.

@@ -20,7 +20,7 @@ class ItemService extends BaseService
 
         // Apply plant filter if present
         if (isset($filters['plant'])) {
-            $query->where('plant', $filters['plant']);
+            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         // Apply search filters
@@ -71,7 +71,7 @@ class ItemService extends BaseService
 
             // Create item
             $item = Item::create([
-                'plant' => $data['plant'] ?? auth()->user()->plant, // Use provided plant or fallback to user's plant
+                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
                 'file_path' => $filePath,
@@ -135,7 +135,7 @@ class ItemService extends BaseService
             $item->update([
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
-                'plant' => $data['plant'] ?? $item->plant,
+                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? $item->plant_id),
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,

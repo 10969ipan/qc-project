@@ -87,7 +87,7 @@
 
             <form action="{{ route('in_process.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant }}">
+                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">

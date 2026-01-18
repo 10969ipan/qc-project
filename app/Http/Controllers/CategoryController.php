@@ -21,6 +21,12 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
+        // Define restricted roles (e.g., 'user', 'viewer')
+        $restrictedRoles = ['user', 'viewer']; // You might want to define this globally or in a config
+
+        if (auth()->check() && in_array(auth()->user()->role, $restrictedRoles)) {
+            $request->merge(['plant' => auth()->user()->plant_id]);
+        }
 
         $categories = $this->categoryService->getFilteredCategories($request->only('plant'));
         return view('categories.index', compact('categories'));

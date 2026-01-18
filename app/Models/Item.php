@@ -21,12 +21,12 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Item extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter;
+    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasUuid;
 
     protected $table = 'items';
 
     protected $fillable = [
-        'plant',
+        'plant_id',
         'name',
         'category_id',
         'file_path',
@@ -51,17 +51,25 @@ class Item extends Model
     }
 
     /**
+     * Get the plant that owns the item.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
+    }
+
+    /**
      * Scope a query to filter items by category.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string|array|int  $category
+     * @param  string|array|string  $category
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeByCategory($query, $category)
     {
         if (is_array($category)) {
             // If array of category names, get IDs first
-            if (is_string($category[0] ?? null)) {
+            if (count($category) > 0 && is_string($category[0])) {
                 $categoryIds = Category::withoutGlobalScope('plant')->whereIn('name', $category)->pluck('id');
                 return $query->whereIn('category_id', $categoryIds);
             }
@@ -70,12 +78,12 @@ class Item extends Model
         }
 
         // If category name (string)
-        if (is_string($category)) {
+        if (is_string($category) && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $category)) {
             $categoryId = Category::withoutGlobalScope('plant')->where('name', $category)->value('id');
             return $query->where('category_id', $categoryId);
         }
 
-        // If category ID (int)
+        // If category ID (UUID string)
         return $query->where('category_id', $category);
     }
 }

@@ -10,7 +10,7 @@ class SortirChecksheet extends Model
     use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $fillable = [
-        'plant',
+        'plant_id',
         'item_id',
         'source_type',
         'source_id',
@@ -50,7 +50,15 @@ class SortirChecksheet extends Model
 
     public function item()
     {
-        return $this->belongsTo(\App\Models\Item::class);
+        return $this->belongsTo(Item::class);
+    }
+
+    /**
+     * Get the plant that owns the checksheet.
+     */
+    public function plant()
+    {
+        return $this->belongsTo(Plant::class);
     }
 
     public function sourceChecksheet()

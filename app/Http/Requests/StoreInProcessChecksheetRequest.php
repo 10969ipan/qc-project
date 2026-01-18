@@ -15,7 +15,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
     {
         return [
             'item_id' => 'required|exists:items,id',
-            'plant' => 'required|in:karawang,jakarta',
+            'plant' => 'required', // Can be Name, Code, or UUID
             'date' => 'required|date',
             'shift' => 'required|string',
             'code_machine' => 'required|string',
