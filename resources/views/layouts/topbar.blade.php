@@ -14,7 +14,8 @@
                 aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-bell fa-fw fa-lg"></i>
                 <!-- Counter - Alerts -->
-                <span class="badge badge-danger badge-counter d-none" id="notification-badge" style="margin-top: -5px; margin-right: -2px;">0</span>
+                <span class="badge badge-danger badge-counter d-none" id="notification-badge"
+                    style="margin-top: -5px; margin-right: -2px;">0</span>
             </a>
             <!-- Dropdown - Alerts -->
             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -26,8 +27,15 @@
                     <!-- Notifications will be loaded here -->
                     <div class="text-center p-3 small text-muted">Loading...</div>
                 </div>
-                <a class="dropdown-item text-center small text-gray-500" href="#" id="mark-all-read">Mark All as
-                    Read</a>
+                <div class="d-flex justify-content-between border-top">
+                    <a class="dropdown-item text-center small text-gray-500 flex-grow-1" href="#" id="mark-all-read">
+                        <i class="fas fa-check-double mr-1"></i> Tandai Dibaca
+                    </a>
+                    <a class="dropdown-item text-center small text-danger flex-grow-1 border-left" href="#"
+                        id="clear-all-notifications">
+                        <i class="fas fa-trash mr-1"></i> Hapus Semua
+                    </a>
+                </div>
             </div>
         </li>
 
@@ -65,7 +73,13 @@
 
             function fetchNotifications() {
                 fetch('{{ route('notifications.index') }}')
-                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status === 419) {
+                            window.location.reload();
+                            return;
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         updateBadge(data.unread_count);
                         renderNotifications(data.notifications);
@@ -108,19 +122,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                    <div class="mr-3">
-                                        <div class="icon-circle ${iconClass}">
-                                            <i class="${icon} text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">${timeAgo}</div>
-                                        <span class="${unreadClass}">${notif.title}</span>
-                                        <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                    </div>
-                                </a>
-                            `;
+                                                    <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                        <div class="mr-3">
+                                                            <div class="icon-circle ${iconClass}">
+                                                                <i class="${icon} text-white"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="small text-gray-500">${timeAgo}</div>
+                                                            <span class="${unreadClass}">${notif.title}</span>
+                                                            <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                        </div>
+                                                    </a>
+                                                `;
                 }).join('');
 
                 // Add click events to mark as read
@@ -141,6 +155,10 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
+                }).then(response => {
+                    if (response.status === 419) {
+                        window.location.reload();
+                    }
                 }).catch(error => console.error('Error marking read:', error));
             }
 
@@ -154,7 +172,47 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
-                }).then(() => fetchNotifications());
+                }).then(response => {
+                    if (response.status === 419) {
+                        window.location.reload();
+                        return;
+                    }
+                    fetchNotifications();
+                });
+            });
+
+            // Clear All Notifications Handler
+            const clearAllBtn = document.getElementById('clear-all-notifications');
+            clearAllBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                fetch('{{ route('notifications.clear-all') }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (response.status === 419) {
+                            // CSRF token expired, refresh page
+                            window.location.reload();
+                            return;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.success) {
+                            fetchNotifications();
+                            // Close the dropdown menu
+                            const dropdown = document.getElementById('alertsDropdown');
+                            if (dropdown) {
+                                $(dropdown).dropdown('hide');
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error clearing notifications:', error));
             });
 
             function formatTimeAgo(date) {

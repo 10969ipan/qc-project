@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 
 class ShiftHelper
 {
@@ -28,7 +29,7 @@ class ShiftHelper
      */
     public static function isHalfDay($date)
     {
-        return Carbon::parse($date)->dayOfWeek === Carbon::SATURDAY;
+        return Carbon::parse($date)->dayOfWeek === CarbonInterface::SATURDAY;
     }
 
     /**
@@ -78,7 +79,7 @@ class ShiftHelper
     {
         $date = Carbon::parse($productionDate)->format('Y-m-d');
 
-        if ($dayOfWeek === Carbon::SATURDAY) {
+        if ($dayOfWeek === CarbonInterface::SATURDAY) {
             switch ($shift) {
                 case 1:
                     return Carbon::parse($date . ' 07:00:00');

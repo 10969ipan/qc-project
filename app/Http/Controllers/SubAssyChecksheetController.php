@@ -124,7 +124,7 @@ class SubAssyChecksheetController extends Controller
         if (in_array($user->role, $canSwitchPlants)) {
             // Admin/Manager/Supervisor: use normal query, filter by request plant_id if provided
             if ($request->has('plant')) {
-                $query->where('plant_id', \App\Models\Plant::resolveId($request->query('plant')));
+                $query->where('plant_id', Plant::resolveId($request->query('plant')));
             }
         } else {
             // Inspector: strictly follow user's assigned plant_id

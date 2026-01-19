@@ -606,6 +606,29 @@
                 this.value = this.value.toUpperCase();
                 this.setSelectionRange(start, end);
             });
+
+            // Global 419 Handler for jQuery AJAX
+            $.ajaxSetup({
+                error: function (jqXHR, textStatus, errorThrown) {
+                    if (jqXHR.status === 419) {
+                        window.location.reload();
+                    }
+                }
+            });
+
+            // Global 419 Handler for Fetch API
+            const originalFetch = window.fetch;
+            window.fetch = function () {
+                return originalFetch.apply(this, arguments)
+                    .then(async response => {
+                        if (response.status === 419) {
+                            window.location.reload();
+                            // Keep the promise pending so downstream .then() doesn't execute with broken state
+                            return new Promise(() => { });
+                        }
+                        return response;
+                    });
+            };
         });
     </script>
 

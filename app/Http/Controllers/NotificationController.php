@@ -65,4 +65,20 @@ class NotificationController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Clear all notifications (delete permanently)
+     */
+    public function clearAll()
+    {
+        $user = auth()->user();
+
+        // Delete all notifications visible to this user (personal + global)
+        Notification::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->orWhereNull('user_id');
+        })->delete();
+
+        return response()->json(['success' => true, 'message' => 'Semua notifikasi berhasil dihapus']);
+    }
 }
