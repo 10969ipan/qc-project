@@ -8,6 +8,7 @@ use App\Services\CrossCutChecksheetService;
 use App\Http\Requests\StoreCrossCutChecksheetRequest;
 use App\Http\Requests\UpdateCrossCutChecksheetRequest;
 use Illuminate\Http\Request;
+use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -89,10 +90,12 @@ class CrossCutChecksheetController extends Controller
         }
 
         $items = $query->get();
-        $now = now();
-        $defaultDateTime = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d\TH:i') : $now->format('Y-m-d\TH:i');
 
-        return view('cross_cut.create', compact('items', 'defaultDateTime'));
+        $now = now();
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
+
+        return view('cross_cut.create', compact('items', 'defaultDate', 'defaultShift'));
     }
 
     /**

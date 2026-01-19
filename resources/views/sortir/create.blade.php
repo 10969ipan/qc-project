@@ -98,9 +98,12 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <select class="form-control" style="min-width: 80px;" name="shift" required>
-                                            <option value="1">Shift 1</option>
-                                            <option value="2">Shift 2</option>
-                                            <option value="3">Shift 3</option>
+                                            <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
+                                            </option>
+                                            <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
+                                            </option>
+                                            <option value="3" {{ ($defaultShift ?? 1) == 3 ? 'selected' : '' }}>Shift 3
+                                            </option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -348,14 +351,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                            <div class="input-group mb-2 defect-row">
-                                                                            <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                            <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                            <div class="input-group-append">
-                                                                                <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                <div class="input-group mb-2 defect-row">
+                                                                                <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                <div class="input-group-append">
+                                                                                    <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                    `;
+                                                                        `;
                 $('#defectContainer').append(newRow);
             });
 

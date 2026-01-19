@@ -158,19 +158,14 @@
                                     </div>
                                     <div class="form-group mb-2">
                                         <label class="sr-only">Shift</label>
-                                        @php
-                                            $hour = now()->hour;
-                                            $defaultShift = 1;
-                                            if ($hour >= 15 && $hour < 23) {
-                                                $defaultShift = 2;
-                                            } elseif ($hour >= 23 || $hour < 7) {
-                                                $defaultShift = 3;
-                                            }
-                                        @endphp
+
                                         <select class="form-control" style="min-width: 80px;" name="shift" required>
-                                            <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
-                                            <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
-                                            <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
+                                            <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
+                                            </option>
+                                            <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
+                                            </option>
+                                            <option value="3" {{ ($defaultShift ?? 1) == 3 ? 'selected' : '' }}>Shift 3
+                                            </option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">

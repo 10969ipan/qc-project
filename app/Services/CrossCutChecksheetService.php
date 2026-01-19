@@ -4,11 +4,19 @@ namespace App\Services;
 
 use App\Models\CrossCutChecksheet;
 use App\Models\Item;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class CrossCutChecksheetService extends BaseService
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Get filtered checksheets with pagination
      * 
@@ -100,6 +108,10 @@ class CrossCutChecksheetService extends BaseService
             ]);
 
             DB::commit();
+
+            // Notifications
+            $this->notificationService->notifyApprovalRequest($checksheet, 'Cross Cut');
+
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();

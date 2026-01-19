@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SortirChecksheet;
 use App\Models\Item;
+use App\Helpers\ShiftHelper;
 use App\Services\SortirChecksheetService;
 use App\Http\Requests\StoreSortirChecksheetRequest;
 use App\Http\Requests\UpdateSortirChecksheetRequest;
@@ -99,9 +100,10 @@ class SortirChecksheetController extends Controller
         $ngItems = $this->sortirService->getAvailableNgItems($filters);
 
         $now = now();
-        $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
 
-        return view('sortir.create', compact('ngItems', 'defaultDate'));
+        return view('sortir.create', compact('ngItems', 'defaultDate', 'defaultShift'));
     }
 
     public function store(StoreSortirChecksheetRequest $request)

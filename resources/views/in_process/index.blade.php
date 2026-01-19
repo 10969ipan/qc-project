@@ -392,16 +392,21 @@
                                 @if(auth()->user()->role !== 'inspector')
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         {{-- Action Buttons for Approvals --}}
-                                        $isJakarta = optional($user->plant)->code === 'jakarta';
+                                        @php
+                                            $user = auth()->user();
+                                            $isAdmin = $user->role === 'admin';
+                                            $isJakarta = optional($user->plant)->code === 'jakarta';
+                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                        $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
-                                        $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                        $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
-                                        (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                        $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
-                                        (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                        $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
-                                        $checksheet->manager_qc === 'REJECTED');
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
+                                                $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
+                                                (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
+                                                (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
+                                                $checksheet->manager_qc === 'REJECTED');
                                         @endphp
 
                                         @if($canApproveKashift)
@@ -639,8 +644,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

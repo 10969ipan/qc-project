@@ -9,6 +9,7 @@ use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
 use App\Models\CustomerClaim;
 use App\Models\Plant;
+use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardService extends BaseService
@@ -109,20 +110,12 @@ class DashboardService extends BaseService
 
         $plantId = $this->resolvePlantId($plantIdentifier ?? request('plant') ?? auth()->user()->plant_id);
 
-        // Determine current production date and shift
-        // Day starts at 07:00
-        $currentProductionDate = ($hour < 7) ? $now->copy()->subDay()->toDateString() : $now->toDateString();
+        $plantId = $this->resolvePlantId($plantIdentifier ?? request('plant') ?? auth()->user()->plant_id);
 
-        if ($hour >= 7 && $hour < 15) {
-            $currentShift = 1;
-            $shiftStartTime = \Carbon\Carbon::parse($currentProductionDate . ' 07:00:00');
-        } elseif ($hour >= 15 && $hour < 23) {
-            $currentShift = 2;
-            $shiftStartTime = \Carbon\Carbon::parse($currentProductionDate . ' 15:00:00');
-        } else {
-            $currentShift = 3;
-            $shiftStartTime = \Carbon\Carbon::parse($currentProductionDate . ' 23:00:00');
-        }
+        // Determine current production date and shift using ShiftHelper
+        $currentProductionDate = ShiftHelper::getProductionDate($now);
+        $currentShift = ShiftHelper::getShift($now);
+        $shiftStartTime = ShiftHelper::getShiftStartTime($currentProductionDate, $currentShift, $now->dayOfWeek);
 
         // Active Sub Assy Lines - Filter by current shift and date
         $linesQuery = SubAssyChecksheet::with('item')

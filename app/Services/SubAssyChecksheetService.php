@@ -4,17 +4,19 @@ namespace App\Services;
 
 use App\Models\SubAssyChecksheet;
 use App\Models\Item;
-use App\Services\GoogleSheetService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SubAssyChecksheetService extends BaseService
 {
     protected $googleSheetService;
+    protected $notificationService;
 
-    public function __construct(GoogleSheetService $googleSheetService)
+    public function __construct(GoogleSheetService $googleSheetService, NotificationService $notificationService)
     {
         $this->googleSheetService = $googleSheetService;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -97,8 +99,14 @@ class SubAssyChecksheetService extends BaseService
 
             DB::commit();
 
+            // Notifications
+            if ($checksheet->total_ng > 0) {
+                $this->notificationService->notifyNGFinding($checksheet, 'Sub Assy');
+            }
+            $this->notificationService->notifyApprovalRequest($checksheet, 'Sub Assy');
+
             // Try to send to Google Sheets
-            $googleSheetsSuccess = false; // Disabled by user request
+            $googleSheetsSuccess = false;
             $error = null;
 
             /*

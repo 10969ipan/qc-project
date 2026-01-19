@@ -7,10 +7,18 @@ use App\Models\SubAssyChecksheet;
 use App\Models\InProcessChecksheet;
 use App\Models\CrossCutChecksheet;
 use App\Models\Item;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 
 class SortirChecksheetService extends BaseService
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Get filtered sortir checksheets with pagination
      * 
@@ -140,6 +148,10 @@ class SortirChecksheetService extends BaseService
             $this->closeSource($data['source_type'], $data['source_id']);
 
             DB::commit();
+
+            // Notifications
+            $this->notificationService->notifyApprovalRequest($sortir, 'Sortir');
+
             return $sortir;
         } catch (\Exception $e) {
             DB::rollBack();

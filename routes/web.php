@@ -29,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
     require __DIR__ . '/checksheets.php';
     require __DIR__ . '/management.php';
     require __DIR__ . '/analysis.php';
+
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 });
 
 

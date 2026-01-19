@@ -7,6 +7,8 @@ use App\Models\Item;
 use App\Services\SubAssyChecksheetService;
 use App\Http\Requests\StoreSubAssyChecksheetRequest;
 use App\Http\Requests\UpdateSubAssyChecksheetRequest;
+use App\Models\Plant;
+use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 
@@ -145,8 +147,11 @@ class SubAssyChecksheetController extends Controller
             'bindings' => $debugBindings,
         ];
 
+        $items = $query->get();
+
         $now = now();
-        $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
 
         return view('sub_assy.create', compact('items', 'defaultDate', 'debugInfo'));
     }

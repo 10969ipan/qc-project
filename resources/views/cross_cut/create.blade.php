@@ -96,24 +96,30 @@
                                     <div class="form-group mb-2">
                                         <label>Tgl. & Shift Produksi</label>
                                         <div class="input-group">
-                                            <input type="datetime-local" class="form-control" name="production_datetime"
-                                                value="{{ $defaultDateTime }}" required>
+                                            <input type="date" class="form-control" name="production_date"
+                                                value="{{ $defaultDate }}" required>
                                             <select class="form-control" name="production_shift" required>
-                                                <option value="1">Shift 1</option>
-                                                <option value="2">Shift 2</option>
-                                                <option value="3">Shift 3</option>
+                                                <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
+                                                </option>
+                                                <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
+                                                </option>
+                                                <option value="3" {{ ($defaultShift ?? 1) == 3 ? 'selected' : '' }}>Shift 3
+                                                </option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label>Tgl. & Shift QC</label>
                                         <div class="input-group">
-                                            <input type="datetime-local" class="form-control" name="qc_datetime"
-                                                value="{{ $defaultDateTime }}" required>
+                                            <input type="date" class="form-control" name="qc_date"
+                                                value="{{ $defaultDate }}" required>
                                             <select class="form-control" name="qc_shift" required>
-                                                <option value="1">Shift 1</option>
-                                                <option value="2">Shift 2</option>
-                                                <option value="3">Shift 3</option>
+                                                <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
+                                                </option>
+                                                <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
+                                                </option>
+                                                <option value="3" {{ ($defaultShift ?? 1) == 3 ? 'selected' : '' }}>Shift 3
+                                                </option>
                                             </select>
                                         </div>
                                     </div>

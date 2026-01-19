@@ -171,6 +171,24 @@ trait HasChecksheetApproval
 
             $checksheet->save();
 
+            // Trigger notification to inspectors
+            try {
+                $notificationService = app(\App\Services\NotificationService::class);
+                $typeLabel = 'Checksheet';
+                if (strpos($modelClass, 'SubAssy') !== false)
+                    $typeLabel = 'Sub Assy';
+                if (strpos($modelClass, 'InProcess') !== false)
+                    $typeLabel = 'In Process';
+                if (strpos($modelClass, 'CrossCut') !== false)
+                    $typeLabel = 'Cross Cut';
+                if (strpos($modelClass, 'Sortir') !== false)
+                    $typeLabel = 'Sortir';
+
+                $notificationService->notifyRejection($checksheet, $typeLabel, $user->name);
+            } catch (\Exception $ne) {
+                Log::error('Gagal kirim notifikasi rejection: ' . $ne->getMessage());
+            }
+
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }

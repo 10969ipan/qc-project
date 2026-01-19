@@ -5,19 +5,22 @@ namespace App\Services;
 use App\Models\InProcessChecksheet;
 use App\Models\Item;
 use App\Services\GoogleSheetService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class InProcessChecksheetService extends BaseService
 {
     protected $googleSheetService;
+    protected $notificationService;
     protected $hardcodedStandards;
 
-    public function __construct(GoogleSheetService $googleSheetService)
+    public function __construct(GoogleSheetService $googleSheetService, NotificationService $notificationService)
     {
         $this->googleSheetService = $googleSheetService;
+        $this->notificationService = $notificationService;
 
-        // Hardcoded dimension standards
+        // Hardcoded dimension standards -- ... rest of standards ...
         $this->hardcodedStandards = [
             '53102-K0L -D002' => [
                 '1' => ['size' => 5, 'tolerance' => 0.2],
@@ -205,7 +208,7 @@ class InProcessChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             // Validate dimensions and auto-set judgment
-            $data = $this->validateDimensions($data, $data['item_id']);
+            $data = $this->validateDimensions($data, (int) $data['item_id']);
 
             // Process defects
             $defects = $this->processDefects($data);
@@ -234,8 +237,14 @@ class InProcessChecksheetService extends BaseService
 
             DB::commit();
 
+            // Notifications
+            if ($checksheet->total_ng > 0) {
+                $this->notificationService->notifyNGFinding($checksheet, 'In Process');
+            }
+            $this->notificationService->notifyApprovalRequest($checksheet, 'In Process');
+
             // Try to send to Google Sheets
-            $googleSheetsSuccess = false; // Disabled by user request
+            $googleSheetsSuccess = false;
             $error = null;
 
             /*

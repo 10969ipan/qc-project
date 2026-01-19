@@ -9,6 +9,7 @@ use App\Http\Requests\StoreInProcessChecksheetRequest;
 use App\Http\Requests\UpdateInProcessChecksheetRequest;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
+use App\Helpers\ShiftHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class InProcessChecksheetController extends Controller
@@ -166,11 +167,13 @@ class InProcessChecksheetController extends Controller
 
         $items = $query->get();
         $now = now();
-        $defaultDate = ($now->hour < 7) ? $now->copy()->subDay()->format('Y-m-d') : $now->format('Y-m-d');
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
 
         return view('in_process.create', [
             'items' => $items,
             'defaultDate' => $defaultDate,
+            'defaultShift' => $defaultShift,
             'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
         ]);
     }
@@ -181,7 +184,7 @@ class InProcessChecksheetController extends Controller
         try {
             $result = $this->inProcessService->createChecksheet(
                 $request->validated(),
-                [$this, 'mapExportRow']
+                fn($c) => $this->mapExportRow($c)
             );
 
             $message = 'Data Checksheet Inprocess berhasil disimpan (Local Only).';
