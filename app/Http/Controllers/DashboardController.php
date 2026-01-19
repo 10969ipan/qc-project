@@ -25,6 +25,21 @@ class DashboardController extends Controller
         }
 
         $data = $this->dashboardService->getDashboardData();
+
+        // Customer Claim Data
+        $claimYear = $request->get('year', 'combined');
+        $claimData = $this->dashboardService->getCustomerClaimData($claimYear);
+        $data['claimData'] = $claimData;
+
         return view('layouts.dashboard', $data);
+    }
+
+    /**
+     * AJAX endpoint for Customer Claim data
+     */
+    public function getCustomerClaimData(Request $request)
+    {
+        $data = $this->dashboardService->getCustomerClaimData($request->year);
+        return response()->json($data);
     }
 }

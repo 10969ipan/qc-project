@@ -80,6 +80,29 @@
                 </div>
             </div>
         </li>
+
+        <!-- Nav Item - Claim Customer -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClaim" aria-expanded="true"
+                aria-controls="collapseClaim">
+                <i class="fas fa-fw fa-exclamation-triangle"></i>
+                <span>Claim Customer</span>
+            </a>
+            <div id="collapseClaim" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
+                        <a class="collapse-item" href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">
+                            <i class="fas fa-building mr-2"></i> Plant Jakarta
+                        </a>
+                    @endif
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
+                        <a class="collapse-item" href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">
+                            <i class="fas fa-industry mr-2"></i> Plant Karawang
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </li>
     @endif
 
     @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))

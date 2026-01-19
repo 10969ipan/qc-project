@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MonthlyReportController;
+use App\Http\Controllers\CustomerClaimController;
 
 Route::middleware(['auth'])->group(function () {
     // Master Data Management (Admin & Staff)
@@ -17,6 +18,11 @@ Route::middleware(['auth'])->group(function () {
         // Monthly Reports
         Route::resource('monthly-reports', MonthlyReportController::class);
         Route::post('monthly-reports/{id}/set-active', [MonthlyReportController::class, 'setActive'])->name('monthly_reports.set_active');
+
+        // Customer Claims
+        Route::get('customer-claims/yearly', [CustomerClaimController::class, 'yearly'])->name('customer-claims.yearly');
+        Route::post('customer-claims/yearly', [CustomerClaimController::class, 'storeYearly'])->name('customer-claims.store-yearly');
+        Route::resource('customer-claims', CustomerClaimController::class);
     });
 
     // Public/Shared Access to Master Files

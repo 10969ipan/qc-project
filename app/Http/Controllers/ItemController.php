@@ -35,7 +35,24 @@ class ItemController extends Controller
         ];
 
         $items = $this->itemService->getFilteredItems($filters);
-        $categories = \App\Models\Category::orderBy('name')->get();
+
+        // Filter categories by plant context
+        $plantIdentifier = $request->plant;
+        $plantId = null;
+
+        if ($plantIdentifier) {
+            $plantId = \App\Models\Plant::resolveId($plantIdentifier);
+        } elseif (auth()->user()->plant_id) {
+            $plantId = auth()->user()->plant_id;
+        }
+
+        $categoriesQuery = \App\Models\Category::orderBy('name');
+
+        if ($plantId) {
+            $categoriesQuery->where('plant_id', $plantId);
+        }
+
+        $categories = $categoriesQuery->get();
 
         return view('items.index', compact('items', 'categories'));
     }

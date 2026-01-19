@@ -5,7 +5,12 @@
         {{ $title }}
         @if($plant)
             @php
-                $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : strtolower($plant);
+                if (is_object($plant)) {
+                    $plantCode = $plant->code;
+                } else {
+                    $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+                }
+                $plantCode = strtolower($plantCode);
             @endphp
             <span class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} ml-2" style="font-size: 0.9rem;">
                 <i class="fas fa-building mr-1"></i>

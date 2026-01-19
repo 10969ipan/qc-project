@@ -7,6 +7,8 @@ use App\Models\SubAssyChecksheet;
 use App\Models\CrossCutChecksheet;
 use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
+use App\Models\CustomerClaim;
+use App\Models\Plant;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardService extends BaseService
@@ -166,5 +168,198 @@ class DashboardService extends BaseService
         $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble'])->keys())->count();
 
         return compact('activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount');
+    }
+
+    /**
+     * Get Customer Claim data for CanvasJS chart
+     * 
+     * @param int|null $year
+     * @return array
+     */
+    public function getCustomerClaimData($year = null)
+    {
+        if (!$year || $year === 'combined') {
+            return $this->getCombinedClaimData();
+        }
+
+        if ($year === 'all') {
+            return $this->getYearlyClaimTrend();
+        }
+
+        $year = $year ?? date('Y');
+        $claims = CustomerClaim::withoutGlobalScope('plant')
+            ->where('year', $year)
+            ->orderBy('month', 'asc')
+            ->get();
+
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+
+        $labels = [];
+        $jakartaPpm = [];
+        $karawangPpm = [];
+        $targets = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $labels[] = \Carbon\Carbon::createFromDate($year, $m, 1)->format('M');
+            $jkt = $claims->where('month', $m)->where('plant_id', $jakartaPlantId)->first();
+            $krw = $claims->where('month', $m)->where('plant_id', $karawangPlantId)->first();
+
+            // Get target from any record in that month, or default to 0
+            $target = ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
+
+            $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
+            $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $targets[] = (float) $target;
+        }
+
+        return [
+            'year' => $year,
+            'labels' => $labels,
+            'jakarta' => $jakartaPpm,
+            'karawang' => $karawangPpm,
+            'target' => $targets,
+            'is_yearly' => false
+        ];
+    }
+
+    /**
+     * Get yearly average trend for customer claims
+     */
+    private function getYearlyClaimTrend()
+    {
+        // Get last 5 years
+        $currentYear = (int) date('Y');
+        $years = range($currentYear - 4, $currentYear);
+
+        $jakartaPlant = Plant::where('code', 'jakarta')->first();
+        $karawangPlant = Plant::where('code', 'karawang')->first();
+
+        $labels = [];
+        $jakartaPpm = [];
+        $karawangPpm = [];
+        $targets = [];
+
+        foreach ($years as $year) {
+            $labels[] = (string) $year;
+
+            // Jakarta average for the year
+            $jktData = CustomerClaim::withoutGlobalScope('plant')
+                ->where('plant_id', $jakartaPlant->id ?? null)
+                ->where('year', $year)
+                ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target')
+                ->first();
+
+            $jakartaPpm[] = $jktData->avg_ppm ? round($jktData->avg_ppm, 2) : 0;
+
+            // Karawang average for the year
+            $krwData = CustomerClaim::withoutGlobalScope('plant')
+                ->where('plant_id', $karawangPlant->id ?? null)
+                ->where('year', $year)
+                ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target')
+                ->first();
+
+            $karawangPpm[] = $krwData->avg_ppm ? round($krwData->avg_ppm, 2) : 0;
+
+            // Use average target between plants or from one if other is missing
+            $target = 0;
+            if ($jktData->avg_target && $krwData->avg_target) {
+                $target = ($jktData->avg_target + $krwData->avg_target) / 2;
+            } else {
+                $target = $jktData->avg_target ?: ($krwData->avg_target ?: 0);
+            }
+            $targets[] = round($target, 2);
+        }
+
+        return [
+            'year' => 'all',
+            'labels' => $labels,
+            'jakarta' => $jakartaPpm,
+            'karawang' => $karawangPpm,
+            'target' => $targets,
+            'is_yearly' => true
+        ];
+    }
+
+    /**
+     * Get combined historical (yearly) and current (monthly) data.
+     */
+    public function getCombinedClaimData()
+    {
+        $currentYear = (int) date('Y');
+        $monthlyYear = $currentYear;
+
+        // Smart detect: If current year is empty and it's early (Jan-Mar), 
+        // use previous year for the monthly section
+        $hasCurrentYearData = CustomerClaim::withoutGlobalScope('plant')
+            ->where('year', $currentYear)
+            ->exists();
+
+        if (!$hasCurrentYearData && date('n') <= 3) {
+            $hasPrevYearData = CustomerClaim::withoutGlobalScope('plant')
+                ->where('year', $currentYear - 1)
+                ->exists();
+            if ($hasPrevYearData) {
+                $monthlyYear = $currentYear - 1;
+            }
+        }
+
+        $historicalYears = range(2022, $monthlyYear - 1);
+
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+
+        $labels = [];
+        $jakartaPpm = [];
+        $karawangPpm = [];
+        $targets = [];
+
+        // 1. Get Historical Yearly Data (Month = 0)
+        foreach ($historicalYears as $year) {
+            $labels[] = (string) $year;
+
+            $jkt = CustomerClaim::withoutGlobalScope('plant')
+                ->where('year', $year)
+                ->where('month', 0)
+                ->where('plant_id', $jakartaPlantId)
+                ->first();
+
+            $krw = CustomerClaim::withoutGlobalScope('plant')
+                ->where('year', $year)
+                ->where('month', 0)
+                ->where('plant_id', $karawangPlantId)
+                ->first();
+
+            $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
+            $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $targets[] = (float) ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
+        }
+
+        // 2. Get Current Year Monthly Data (Month 1-12)
+        $monthlyYearClaims = CustomerClaim::withoutGlobalScope('plant')
+            ->where('year', $monthlyYear)
+            ->where('month', '>', 0)
+            ->get();
+
+        for ($m = 1; $m <= 12; $m++) {
+            $labels[] = \Carbon\Carbon::createFromDate($monthlyYear, $m, 1)->format('M');
+
+            $jkt = $monthlyYearClaims->where('month', $m)->where('plant_id', $jakartaPlantId)->first();
+            $krw = $monthlyYearClaims->where('month', $m)->where('plant_id', $karawangPlantId)->first();
+
+            $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
+            $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $targets[] = (float) ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
+        }
+
+        return [
+            'year' => 'combined',
+            'active_year' => $monthlyYear,
+            'labels' => $labels,
+            'jakarta' => $jakartaPpm,
+            'karawang' => $karawangPpm,
+            'target' => $targets,
+            'is_yearly' => false // Using monthly-style rendering but with custom labels
+        ];
     }
 }
