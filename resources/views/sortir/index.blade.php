@@ -92,7 +92,18 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th rowspan="2" class="align-middle">
                                 @php
-                                    $plantContext = strtolower(request('plant') ?? optional(auth()->user()->plant)->code ?? 'karawang');
+                                    $requestPlant = request('plant');
+                                    $userPlantCode = optional(auth()->user()->plant)->code;
+
+                                    // If request plant exists, resolve it to plant code (could be UUID or code)
+                                    if (!empty($requestPlant)) {
+                                        $plant = \App\Models\Plant::where('code', $requestPlant)
+                                            ->orWhere('id', $requestPlant)
+                                            ->first();
+                                        $plantContext = strtolower($plant?->code ?? $requestPlant);
+                                    } else {
+                                        $plantContext = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
+                                    }
                                 @endphp
                                 {{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
                             </th>
@@ -261,7 +272,7 @@
                                         @php
                                             $isAdmin = auth()->user()->role === 'admin';
                                             $user = auth()->user();
-                                            $isJakarta = optional($user->plant)->code === 'jakarta';
+                                            $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
                                             $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
@@ -331,7 +342,7 @@
                                 @php
                                     $isAdmin = auth()->user()->role === 'admin';
                                     $user = auth()->user();
-                                    $isJakarta = optional($user->plant)->code === 'jakarta';
+                                    $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
                                     $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                     $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 

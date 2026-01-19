@@ -208,8 +208,10 @@ class SortirChecksheetService extends BaseService
             $remarksField = ($sourceType === 'cross_cut') ? 'keterangan' : 'remarks';
             if (!str_contains($source->$remarksField ?? '', $statusMsg)) {
                 $source->$remarksField = trim(($source->$remarksField ?? '') . ' ' . $statusMsg);
-                $source->save();
             }
+            // Clear next_proses field since sortir is now complete
+            $source->next_proses = null;
+            $source->save();
         }
     }
 

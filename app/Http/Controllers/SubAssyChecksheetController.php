@@ -131,29 +131,13 @@ class SubAssyChecksheetController extends Controller
             $query->where('plant_id', $user->plant_id);
         }
 
-        // DEBUG INFO - capture BEFORE get() because get() resets the query
-        $debugSql = $query->toSql();
-        $debugBindings = $query->getBindings();
-
-        $items = $query->get();
-
-        // DEBUG INFO - temporary for troubleshooting
-        $debugInfo = [
-            'user_role' => $user->role,
-            'user_plant' => $user->plant,
-            'request_plant' => $request->query('plant'),
-            'items_count' => $items->count(),
-            'sql' => $debugSql,
-            'bindings' => $debugBindings,
-        ];
-
         $items = $query->get();
 
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('sub_assy.create', compact('items', 'defaultDate', 'debugInfo'));
+        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift'));
     }
 
     // Simpan data (submission)

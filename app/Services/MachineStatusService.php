@@ -13,7 +13,7 @@ class MachineStatusService extends BaseService
     {
         return MachineStatus::updateOrCreate(
             [
-                'plant' => auth()->user()->plant,
+                'plant_id' => auth()->user()->plant_id,
                 'type' => $data['type'],
                 'number' => $data['number'],
             ],

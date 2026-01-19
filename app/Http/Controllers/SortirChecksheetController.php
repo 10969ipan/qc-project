@@ -94,7 +94,7 @@ class SortirChecksheetController extends Controller
 
         if (!in_array($user->role, $canSwitchPlants)) {
             // Inspector and other restricted roles: always filter by their own plant
-            $filters['plant'] = $user->plant;
+            $filters['plant'] = $user->plant_id;
         }
 
         $ngItems = $this->sortirService->getAvailableNgItems($filters);

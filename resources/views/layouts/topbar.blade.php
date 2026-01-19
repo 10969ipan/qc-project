@@ -122,19 +122,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                                    <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                        <div class="mr-3">
-                                                            <div class="icon-circle ${iconClass}">
-                                                                <i class="${icon} text-white"></i>
+                                                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                            <div class="mr-3">
+                                                                <div class="icon-circle ${iconClass}">
+                                                                    <i class="${icon} text-white"></i>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div>
-                                                            <div class="small text-gray-500">${timeAgo}</div>
-                                                            <span class="${unreadClass}">${notif.title}</span>
-                                                            <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                        </div>
-                                                    </a>
-                                                `;
+                                                            <div>
+                                                                <div class="small text-gray-500">${timeAgo}</div>
+                                                                <span class="${unreadClass}">${notif.title}</span>
+                                                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                            </div>
+                                                        </a>
+                                                    `;
                 }).join('');
 
                 // Add click events to mark as read
@@ -229,9 +229,96 @@
                 return `${day}-${month}-${year}`;
             }
 
-            // Initial fetch and poll
+            // --- Optimization: Visibility & Tab Sync ---
+            let pollingInterval = null;
+            const POLLING_TIME = 30000;
+            const channel = window.BroadcastChannel ? new BroadcastChannel('notification_sync') : null;
+
+            // Leader Election Logic (Simple: First one to claim it or last one active)
+            let isLeader = false;
+            let lastFetchTime = 0;
+
+            if (channel) {
+                channel.onmessage = (event) => {
+                    if (event.data.type === 'NOTIF_UPDATE') {
+                        // Received update from leader tab
+                        updateBadge(event.data.unread_count);
+                        renderNotifications(event.data.notifications);
+                        lastFetchTime = Date.now();
+                    } else if (event.data.type === 'CLAIM_LEADER') {
+                        // Another tab wants to be leader
+                        isLeader = false;
+                        stopPolling();
+                    }
+                };
+            }
+
+            function startPolling() {
+                if (pollingInterval) return;
+
+                // If there's a channel, try to be leader
+                if (channel) {
+                    isLeader = true;
+                    channel.postMessage({ type: 'CLAIM_LEADER' });
+                }
+
+                pollingInterval = setInterval(() => {
+                    if (document.visibilityState === 'visible' && (!channel || isLeader)) {
+                        fetchNotifications();
+                    }
+                }, POLLING_TIME);
+            }
+
+            function stopPolling() {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            function fetchNotifications() {
+                fetch('{{ route('notifications.index') }}')
+                    .then(response => {
+                        if (response.status === 419) {
+                            window.location.reload();
+                            return;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateBadge(data.unread_count);
+                        renderNotifications(data.notifications);
+                        lastFetchTime = Date.now();
+
+                        // Sync with other tabs
+                        if (channel && isLeader) {
+                            channel.postMessage({
+                                type: 'NOTIF_UPDATE',
+                                unread_count: data.unread_count,
+                                notifications: data.notifications
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error fetching notifications:', error));
+            }
+
+            // Page Visibility Handling
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    // Refresh if more than POLLING_TIME has passed while hidden
+                    if (Date.now() - lastFetchTime > POLLING_TIME) {
+                        fetchNotifications();
+                    }
+                    startPolling();
+                } else {
+                    // Optional: stop polling completely when hidden if not leader
+                    // or keep leader polling to sync others
+                }
+            });
+
+            // Initial fetch and start
             fetchNotifications();
-            setInterval(fetchNotifications, 30000);
+            startPolling();
         });
     </script>
     <style>
