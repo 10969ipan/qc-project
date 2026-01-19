@@ -50,21 +50,9 @@
                         <input type="text" name="sap_code" class="form-control form-control-sm shadow-sm"
                             value="{{ request('sap_code') }}" placeholder="Kode SAP...">
                     </div>
-                    @if(auth()->user()->role === 'admin')
-                        <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
-                            <label for="plant_select" class="font-weight-bold">Plant</label>
-                            <select name="plant" id="plant_select" class="form-control form-control-sm shadow-sm"
-                                onchange="this.form.submit()">
-                                <option value="" {{ !request('plant') ? 'selected' : '' }}>Semua Plant</option>
-                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
-                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                            </select>
-                        </div>
-                    @else
-                        {{-- Preserve plant parameter for non-admin users --}}
-                        @if(request('plant'))
-                            <input type="hidden" name="plant" value="{{ request('plant') }}">
-                        @endif
+                    {{-- Preserve plant parameter for all users --}}
+                    @if(request('plant'))
+                        <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
                     <div class="col-xl-2 col-lg-4 col-md-6 col-sm-12 mb-3">
                         <label class="d-none d-xl-block">&nbsp;</label>

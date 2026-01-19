@@ -372,7 +372,7 @@
                     titleFontSize: 14,
                     labelFontSize: 12,
                     suffix: "s",
-                    maximum: 30,
+                    maximum: 500,
                     gridThickness: 1,
                     gridColor: "#f0f0f0"
                 },

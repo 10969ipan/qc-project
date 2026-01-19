@@ -14,22 +14,11 @@
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    @if(auth()->user()->role === 'admin')
-                        <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                            <div class="form-group mb-0">
-                                <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
-                                <select name="plant" id="plant_select" class="form-control form-control-sm border-primary"
-                                    onchange="this.form.submit()">
-                                    <option value="" {{ !request('plant') ? 'selected' : '' }}>All Plants</option>
-                                    <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
-                                    </option>
-                                    <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                                </select>
-                            </div>
-                        </div>
-                    @else
+                    {{-- Preserve plant parameter for all users --}}
+                    @if(request('plant'))
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
+
 
                     <!-- Live Search -->
                     <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
@@ -104,7 +93,12 @@
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th rowspan="2" class="align-middle"><x-approval-label level="kashift" /></th>
+                            <th rowspan="2" class="align-middle">
+                                @php
+                                    $plantContext = strtolower(request('plant') ?? optional(auth()->user()->plant)->code ?? 'karawang');
+                                @endphp
+                                {{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
+                            </th>
                             <th rowspan="2" class="align-middle">Supervisor QC</th>
                             <th rowspan="2" class="align-middle">Asst. Manager QC</th>
                             <th rowspan="2" class="align-middle">Manager QC</th>
@@ -645,8 +639,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

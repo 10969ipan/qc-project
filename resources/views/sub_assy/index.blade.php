@@ -14,22 +14,11 @@
         <div class="card-body">
             <form action="{{ route('admin.checksheets.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    @if(auth()->user()->role === 'admin')
-                        <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                            <div class="form-group mb-0">
-                                <label for="plant_select" class="small font-weight-bold text-primary">Plant Context</label>
-                                <select name="plant" id="plant_select" class="form-control form-control-sm border-primary"
-                                    onchange="this.form.submit()">
-                                    <option value="" {{ !request('plant') ? 'selected' : '' }}>All Plants</option>
-                                    <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
-                                    </option>
-                                    <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                                </select>
-                            </div>
-                        </div>
-                    @else
+                    {{-- Preserve plant parameter for all users --}}
+                    @if(request('plant'))
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
+
 
                     <!-- Filter Tanggal -->
                     <!-- Live Search -->
@@ -560,8 +549,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
