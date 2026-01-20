@@ -34,6 +34,7 @@
                 <form action="{{ route('machine-status.update') }}" method="POST">
                     @csrf
                     <input type="hidden" name="type" value="line">
+                    <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                     <div class="row align-items-end">
                         <div class="col-md-3 mb-2">
                             <label class="small font-weight-bold">Pilih Meja</label>

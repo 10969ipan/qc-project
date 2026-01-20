@@ -149,7 +149,10 @@ class SubAssyChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
-            return redirect()->back()->with('success', 'Data Checksheet berhasil disimpan (Local Only).');
+            // Preserve plant parameter in redirect
+            $plantParam = $request->input('plant') ?? auth()->user()->plant_id;
+            return redirect()->route('checksheet.sub_assy', ['plant' => $plantParam])
+                ->with('success', 'Data Checksheet berhasil disimpan (Local Only).');
         } else {
             return redirect()->back()->with('error', 'Gagal menyimpan data.');
         }
