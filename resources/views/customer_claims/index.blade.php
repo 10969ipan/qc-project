@@ -3,7 +3,7 @@
 @section('title', 'Data Claim Customer')
 
 @section('content')
-    <x-plant-header title="Data Claim Customer Quality Department" :plant="request()->get('plant')" />
+    <x-plant-header title="Data Claim Customer Quality" :plant="request()->get('plant')" />
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
