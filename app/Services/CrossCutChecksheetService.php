@@ -68,6 +68,11 @@ class CrossCutChecksheetService extends BaseService
             });
         }
 
+        // ID filter (for direct links from Sortir)
+        if (!empty($filters['id'])) {
+            $query->where('id', $filters['id']);
+        }
+
         return $query;
     }
 

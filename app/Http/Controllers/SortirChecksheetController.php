@@ -75,7 +75,7 @@ class SortirChecksheetController extends Controller
         }
 
         $plantFilter = $request->get('plant');
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type']);
         $checksheets = $this->sortirService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();
 
@@ -155,7 +155,7 @@ class SortirChecksheetController extends Controller
 
     protected function getFilterParams(Request $request, $ignorePage = false)
     {
-        $params = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $params = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type']);
         if (!$ignorePage && $request->has('page')) {
             $params['page'] = $request->page;
         }

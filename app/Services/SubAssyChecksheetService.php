@@ -49,6 +49,11 @@ class SubAssyChecksheetService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        // Next Process filter
+        if (!empty($filters['next_proses'])) {
+            $query->where('next_proses', $filters['next_proses']);
+        }
+
         // Live search filter
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
@@ -59,6 +64,11 @@ class SubAssyChecksheetService extends BaseService
                         ->orWhere('part_number', 'like', "%{$searchTerm}%");
                 })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
             });
+        }
+
+        // ID filter (for direct links from Sortir)
+        if (!empty($filters['id'])) {
+            $query->where('id', $filters['id']);
         }
 
         return $query->paginate(10)->withQueryString();

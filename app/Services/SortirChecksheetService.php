@@ -57,6 +57,10 @@ class SortirChecksheetService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        if (!empty($filters['source_type'])) {
+            $query->where('source_type', $filters['source_type']);
+        }
+
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
             $query->where(function ($q) use ($searchTerm) {
@@ -89,6 +93,7 @@ class SortirChecksheetService extends BaseService
 
         // Sub Assy
         $querySubAssy = SubAssyChecksheet::where('judgment', 'NG')
+            ->where('next_proses', 'SORTIR')
             ->whereNotIn('id', $processedSourceIds['sub_assy'] ?? [])
             ->with('item');
         if ($shouldFilterByPlant) {
@@ -99,6 +104,7 @@ class SortirChecksheetService extends BaseService
 
         // In Process
         $queryInProcess = InProcessChecksheet::where('judgment', 'NG')
+            ->where('next_proses', 'SORTIR')
             ->whereNotIn('id', $processedSourceIds['in_process'] ?? [])
             ->with('item');
         if ($shouldFilterByPlant) {
@@ -109,6 +115,7 @@ class SortirChecksheetService extends BaseService
 
         // Cross Cut
         $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
+            ->where('next_proses', 'SORTIR')
             ->whereNotIn('id', $processedSourceIds['cross_cut'] ?? [])
             ->with('item');
         if ($shouldFilterByPlant) {

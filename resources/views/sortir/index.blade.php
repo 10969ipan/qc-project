@@ -34,6 +34,19 @@
                         </div>
                     </div>
 
+                    <!-- Filter Sumber -->
+                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="source_type" class="small font-weight-bold">Sumber</label>
+                            <select name="source_type" id="source_type" class="form-control form-control-sm">
+                                <option value="">Semua Sumber</option>
+                                <option value="sub_assy" {{ request('source_type') == 'sub_assy' ? 'selected' : '' }}>SUB ASSY</option>
+                                <option value="in_process" {{ request('source_type') == 'in_process' ? 'selected' : '' }}>IN PROCESS</option>
+                                <option value="cross_cut" {{ request('source_type') == 'cross_cut' ? 'selected' : '' }}>CROSS CUT</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Filter Tanggal -->
                     <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">

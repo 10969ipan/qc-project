@@ -100,6 +100,8 @@ class SubAssyChecksheetController extends Controller
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
             'item_id' => $request->item_id,
+            'next_proses' => $request->next_proses,
+            'id' => $request->id,
             'search' => $request->search,
         ];
 

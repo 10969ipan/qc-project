@@ -35,6 +35,8 @@
                         </div>
                     </div>
 
+
+
                     <!-- Filter Tanggal -->
                     <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
                         <div class="form-group mb-0">
@@ -560,8 +562,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

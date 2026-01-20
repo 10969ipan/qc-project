@@ -58,6 +58,7 @@ class CrossCutChecksheetController extends Controller
             'end_date' => $request->get('end_date'),
             'item_id' => $request->get('item_id'),
             'approval_status' => $request->get('approval_status'),
+            'id' => $request->get('id'),
             'search' => $request->get('search'),
         ];
         $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
