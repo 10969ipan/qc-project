@@ -191,11 +191,19 @@ class CrossCutChecksheetController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $this->crossCutService->deleteChecksheet($id);
-            return redirect()->route('cross_cut.index')->with('success', 'Data Cross Cut berhasil dihapus.');
+
+            // Preserve plant parameter when redirecting back
+            $redirectParams = [];
+            if ($request->has('plant')) {
+                $redirectParams['plant'] = $request->input('plant');
+            }
+
+            return redirect()->route('cross_cut.index', $redirectParams)
+                ->with('success', 'Data Cross Cut berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }

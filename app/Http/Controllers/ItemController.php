@@ -173,19 +173,29 @@ class ItemController extends Controller
     }
 
     /**
-     * Menyajikan file PDF
+     * Menyajikan file PDF tertentu berdasarkan index
      */
-    public function servePdf($id)
+    public function servePdf($id, $index = 0)
     {
         try {
-            $item = Item::findOrFail($id);
+            $item = Item::withoutGlobalScope('plant')->findOrFail($id);
 
-            if (!$item->file_path) {
-                \Log::warning("PDF serve requested for Item ID {$id} but file_path is empty.");
-                abort(404, 'PDF file path not stored in database');
+            // Fetch from file_paths if available, otherwise fallback to legacy file_path
+            $filePaths = $item->file_paths;
+            $targetPath = null;
+
+            if (!empty($filePaths) && isset($filePaths[$index])) {
+                $targetPath = $filePaths[$index];
+            } elseif ($index == 0 && $item->file_path) {
+                $targetPath = $item->file_path;
             }
 
-            $filePath = public_path($item->file_path);
+            if (!$targetPath) {
+                \Log::warning("PDF serve requested for Item ID {$id} index {$index} but path is empty.");
+                abort(404, 'PDF file path not found');
+            }
+
+            $filePath = public_path($targetPath);
 
             if (!file_exists($filePath)) {
                 \Log::error("PDF file not found on server for Item ID {$id}. Attempted path: {$filePath}");
@@ -199,6 +209,19 @@ class ItemController extends Controller
         } catch (\Exception $e) {
             \Log::error("Error serving PDF for Item ID {$id}: " . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * Menghapus PDF tertentu dari item
+     */
+    public function deletePdf(Request $request, $id, $index)
+    {
+        try {
+            $this->itemService->deleteItemPdf($id, $index);
+            return response()->json(['success' => true, 'message' => 'PDF berhasil dihapus.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus PDF: ' . $e->getMessage()], 500);
         }
     }
 }

@@ -82,49 +82,91 @@ class SortirChecksheetService extends BaseService
      */
     public function getAvailableNgItems(array $filters = [])
     {
-        $processedSourceIds = SortirChecksheet::select('source_type', 'source_id')
+        // Get sum of sorted qty per source (source_type + source_id)
+        $sortedQtyBySource = SortirChecksheet::selectRaw('source_type, source_id, SUM(total_qty) as sorted_qty')
+            ->groupBy('source_type', 'source_id')
             ->get()
             ->groupBy('source_type')
-            ->map(fn($items) => $items->pluck('source_id')->toArray())
+            ->map(fn($items) => $items->keyBy('source_id')->map(fn($item) => (int) $item->sorted_qty)->toArray())
             ->toArray();
 
         $plantId = $this->resolvePlantId($filters['plant'] ?? null);
         $shouldFilterByPlant = !empty($plantId);
 
-        // Sub Assy
+        // Sub Assy - Include all NG items with any next_proses value
         $querySubAssy = SubAssyChecksheet::where('judgment', 'NG')
-            ->where('next_proses', 'SORTIR')
-            ->whereNotIn('id', $processedSourceIds['sub_assy'] ?? [])
+            ->whereNotNull('next_proses')
             ->with('item');
         if ($shouldFilterByPlant) {
             $querySubAssy->withoutGlobalScope('plant')->where('plant_id', $plantId);
         }
+        $ngSubAssy = $querySubAssy->get()
+            ->map(fn($c) => $this->mapNgItemWithQty($c, 'sub_assy', $sortedQtyBySource))
+            ->filter(fn($item) => $item['remaining_qty'] > 0);
 
-        $ngSubAssy = $querySubAssy->get()->map(fn($c) => $this->mapNgItem($c, 'sub_assy'));
-
-        // In Process
+        // In Process - Include all NG items with any next_proses value
         $queryInProcess = InProcessChecksheet::where('judgment', 'NG')
-            ->where('next_proses', 'SORTIR')
-            ->whereNotIn('id', $processedSourceIds['in_process'] ?? [])
+            ->whereNotNull('next_proses')
             ->with('item');
         if ($shouldFilterByPlant) {
             $queryInProcess->withoutGlobalScope('plant')->where('plant_id', $plantId);
         }
+        $ngInProcess = $queryInProcess->get()
+            ->map(fn($c) => $this->mapNgItemWithQty($c, 'in_process', $sortedQtyBySource))
+            ->filter(fn($item) => $item['remaining_qty'] > 0);
 
-        $ngInProcess = $queryInProcess->get()->map(fn($c) => $this->mapNgItem($c, 'in_process'));
-
-        // Cross Cut
+        // Cross Cut - Include all NG items with any next_proses value
         $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
-            ->where('next_proses', 'SORTIR')
-            ->whereNotIn('id', $processedSourceIds['cross_cut'] ?? [])
+            ->whereNotNull('next_proses')
             ->with('item');
         if ($shouldFilterByPlant) {
             $queryCrossCut->withoutGlobalScope('plant')->where('plant_id', $plantId);
         }
-
-        $ngCrossCut = $queryCrossCut->get()->map(fn($c) => $this->mapNgItem($c, 'cross_cut'));
+        $ngCrossCut = $queryCrossCut->get()
+            ->map(fn($c) => $this->mapNgItemWithQty($c, 'cross_cut', $sortedQtyBySource))
+            ->filter(fn($item) => $item['remaining_qty'] > 0);
 
         return collect(array_merge($ngSubAssy->toArray(), $ngInProcess->toArray(), $ngCrossCut->toArray()));
+    }
+
+    /**
+     * Map NG item with qty tracking information
+     * 
+     * @param mixed $c
+     * @param string $type
+     * @param array $sortedQtyBySource
+     * @return array
+     */
+    private function mapNgItemWithQty($c, string $type, array $sortedQtyBySource): array
+    {
+        $date = $c->date ?? $c->qc_datetime;
+        $shift = $c->shift ?? $c->qc_shift;
+
+        // Get total qty from source checksheet
+        $totalQty = (int) ($c->total_qty ?? 0);
+
+        // Get sorted qty from sortir checksheets for this source
+        $sortedQty = (int) ($sortedQtyBySource[$type][$c->id] ?? 0);
+
+        // Calculate remaining qty
+        $remainingQty = max(0, $totalQty - $sortedQty);
+
+        return [
+            'item_id' => $c->item_id,
+            'item_name' => $c->item->name ?? '-',
+            'part_number' => $c->item->part_number ?? '-',
+            'sap_code' => $c->item->sap_code ?? '',
+            'source_type' => $type,
+            'source_id' => $c->id,
+            'date' => ($date instanceof \Carbon\Carbon) ? $date->format('d-m-Y') : \Carbon\Carbon::parse($date)->format('d-m-Y'),
+            'shift' => $shift,
+            'next_proses' => $c->next_proses ?? '',
+            'total_qty' => $totalQty,
+            'sorted_qty' => $sortedQty,
+            'remaining_qty' => $remainingQty,
+            'file_path' => $c->item->file_path ?? null,
+            'file_paths' => $c->item->file_paths ?? ($c->item->file_path ? [$c->item->file_path] : []),
+        ];
     }
 
     /**
@@ -152,7 +194,8 @@ class SortirChecksheetService extends BaseService
                 'defects' => json_encode($defects)
             ]));
 
-            $this->closeSource($data['source_type'], $data['source_id']);
+            // Check if all qty has been sorted, then close source
+            $this->checkAndCloseSource($data['source_type'], $data['source_id']);
 
             DB::commit();
 
@@ -192,15 +235,14 @@ class SortirChecksheetService extends BaseService
     }
 
     /**
-     * Mark source as closed for sortir
+     * Check if all qty has been sorted and close source if complete
      * 
      * @param string $sourceType
      * @param int $sourceId
      * @return void
      */
-    private function closeSource(string $sourceType, int $sourceId): void
+    private function checkAndCloseSource(string $sourceType, int $sourceId): void
     {
-        $statusMsg = '[SORTIR_CLOSED]';
         $source = null;
 
         if ($sourceType === 'sub_assy') {
@@ -211,40 +253,34 @@ class SortirChecksheetService extends BaseService
             $source = CrossCutChecksheet::find($sourceId);
         }
 
-        if ($source) {
+        if (!$source) {
+            return;
+        }
+
+        // Get total qty from source
+        $totalQty = (int) ($source->total_qty ?? 0);
+
+        // Get total sorted qty for this source
+        $sortedQty = (int) SortirChecksheet::where('source_type', $sourceType)
+            ->where('source_id', $sourceId)
+            ->sum('total_qty');
+
+        // Only close if all qty has been sorted
+        if ($sortedQty >= $totalQty) {
+            $statusMsg = '[SORTIR_CLOSED]';
             $remarksField = ($sourceType === 'cross_cut') ? 'keterangan' : 'remarks';
+
             if (!str_contains($source->$remarksField ?? '', $statusMsg)) {
                 $source->$remarksField = trim(($source->$remarksField ?? '') . ' ' . $statusMsg);
             }
+
             // Clear next_proses field since sortir is now complete
             $source->next_proses = null;
             $source->save();
         }
     }
 
-    /**
-     * Map NG item to uniform structure
-     * 
-     * @param mixed $c
-     * @param string $type
-     * @return array
-     */
-    private function mapNgItem($c, string $type): array
-    {
-        $date = $c->date ?? $c->qc_datetime;
-        $shift = $c->shift ?? $c->qc_shift;
 
-        return [
-            'item_id' => $c->item_id,
-            'item_name' => $c->item->name ?? '-',
-            'part_number' => $c->item->part_number ?? '-',
-            'sap_code' => $c->item->sap_code ?? '',
-            'source_type' => $type,
-            'source_id' => $c->id,
-            'date' => ($date instanceof \Carbon\Carbon) ? $date->format('Y-m-d') : \Carbon\Carbon::parse($date)->format('Y-m-d'),
-            'shift' => $shift,
-        ];
-    }
 
     /**
      * Apply approval status filter

@@ -91,11 +91,39 @@
                 </form>
             @endif
 
+            @php
+                $currentPlant = strtolower(request('plant') ?? optional(auth()->user()->plant)->code ?? '');
+                $isJakarta = ($currentPlant === 'jakarta');
+            @endphp
 
+            {{-- Check Type Selector - Only for Jakarta Plant --}}
+            @if($isJakarta)
+                <div class="alert alert-info mb-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label class="font-weight-bold mb-0"><i class="fas fa-clipboard-check"></i> Tipe Pengecekan:</label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-outline-primary active" id="labelSampling">
+                                    <input type="radio" name="check_type_option" id="checkTypeSampling" value="sampling"
+                                        checked>
+                                    <i class="fas fa-chart-pie"></i> Sampling (AQL 0.65)
+                                </label>
+                                <label class="btn btn-outline-success" id="labelFullcheck">
+                                    <input type="radio" name="check_type_option" id="checkTypeFullcheck" value="fullcheck">
+                                    <i class="fas fa-check-double"></i> Fullcheck (Export) - 100%
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <form action="{{ route('checksheet.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="check_type" id="checkTypeInput" value="sampling">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
@@ -139,6 +167,7 @@
                                                 <option value="{{ $item->id }}"
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-name="{{ $item->name }}" data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
@@ -353,23 +382,34 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="d-flex justify-content-center mb-2 align-items-center">
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="prevPage">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span id="pageInfo" class="mr-2">Page 1 of ?</span>
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="nextPage">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="border-left pl-2 ml-2">
-                            <button type="button" class="btn btn-primary btn-sm mr-2" id="pdfZoomIn">
-                                <i class="fas fa-search-plus"></i> Zoom In
+                    <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
+                        <div class="mr-3 mb-2">
+                            <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
+                                <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
                             </button>
-                            <button type="button" class="btn btn-secondary btn-sm mr-2" id="pdfZoomReset">
-                                <i class="fas fa-sync-alt"></i> Reset
+                            <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
+                            <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
+                                <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
+                            </button>
+                        </div>
+                        <div class="mr-3 mb-2 border-left pl-3">
+                            <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="pageInfo" class="mx-2">Page 1 of ?</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="border-left pl-3 mb-2">
+                            <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                             <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
-                                <i class="fas fa-search-minus"></i> Zoom Out
+                                <i class="fas fa-search-minus"></i>
                             </button>
                         </div>
                     </div>
@@ -387,9 +427,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
-
-            // --- PDF.js Logic ---
+            // === INPUT LOCK UNTIL START ===
+            // Disable all form inputs until Start button is clicked
+            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            formInputs.prop('disabled', true);
+            $('form').addClass('inputs-locked');
+            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
             let pdfDoc = null;
@@ -461,21 +504,21 @@
                 queueRenderPage(pageNum);
             });
 
-            // Trigger PDF Modal from dynamic button (delegated event)
-            $(document).on('click', '.view-pdf-btn', function () {
-                const url = $(this).data('src');
+            let currentPdfIndex = 0;
+            let totalPdfFiles = 0;
+            let currentItemId = null;
 
-                // Reset state
+            function loadPdf(itemId, index) {
+                const url = `/items/${itemId}/pdf/${index}`;
+                
+                // Reset page state for new PDF
                 pdfDoc = null;
                 pageNum = 1;
-                scale = 1.0;
+                // scale = 1.0; // Keep scale if zooming across files? Usually better to reset.
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 document.getElementById('pageInfo').textContent = 'Loading...';
+                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
 
-                // Show modal
-                $('#pdfModal').modal('show');
-
-                // Load PDF
                 pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
                     pdfDoc = pdfDoc_;
                     document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
@@ -484,14 +527,38 @@
                     console.error(reason);
                     let errorMsg = 'Error loading PDF. ';
                     if (reason.name === 'MissingPDFException') {
-                        errorMsg += 'The PDF file could not be found on the server. Please check Master Data Items or re-upload the file.';
+                        errorMsg += 'The PDF file could not be found on the server.';
                     } else {
                         errorMsg += reason.message || reason;
                     }
-
                     document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
                     alert(errorMsg);
                 });
+            }
+
+            document.getElementById('prevPdf').addEventListener('click', function () {
+                if (currentPdfIndex <= 0) return;
+                currentPdfIndex--;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            document.getElementById('nextPdf').addEventListener('click', function () {
+                if (currentPdfIndex >= totalPdfFiles - 1) return;
+                currentPdfIndex++;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            // Trigger PDF Modal from dynamic button (delegated event)
+            $(document).on('click', '.view-pdf-btn', function () {
+                currentItemId = $(this).data('id');
+                totalPdfFiles = $(this).data('count');
+                currentPdfIndex = 0;
+
+                // Show modal
+                $('#pdfModal').modal('show');
+                
+                // Load first PDF
+                loadPdf(currentItemId, currentPdfIndex);
             });
 
             // --- Existing Logic ---
@@ -528,10 +595,25 @@
                 // Fallback for very small custom samples
                 return { acc: 0, rej: 1 };
             }
+            // Check Type handling (Fullcheck vs Sampling)
+            var isFullcheckMode = false;
+
+            // Listen for check type changes
+            $('input[name="check_type_option"]').on('change', function () {
+                isFullcheckMode = ($(this).val() === 'fullcheck');
+                $('#checkTypeInput').val($(this).val());
+
+                // Recalculate sampling qty based on current total_qty
+                var lotSize = parseInt($('input[name="total_qty"]').val()) || 0;
+                if (lotSize > 0) {
+                    var sampleSize = isFullcheckMode ? lotSize : getSampleSize(lotSize);
+                    $('input[name="sampling_qty"]').val(sampleSize).trigger('input');
+                }
+            });
 
             $('input[name="total_qty"]').on('input', function () {
                 var lotSize = parseInt($(this).val()) || 0;
-                var sampleSize = getSampleSize(lotSize);
+                var sampleSize = isFullcheckMode ? lotSize : getSampleSize(lotSize);
                 $('input[name="sampling_qty"]').val(sampleSize).trigger('input');
             });
 
@@ -620,8 +702,13 @@
                 // Request said "tampilkan juga" (display also). 
                 // Given the small space (100x100), maybe show an icon that opens the PDF modal.
 
-                if (fileUrl) {
-                    htmlContent += '<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-src="' + fileUrl + '"><i class="fas fa-file-pdf"></i> PDF</button>';
+                if (selectedOption.data('files')) {
+                    var files = selectedOption.data('files');
+                    if (files.length > 0) {
+                        htmlContent += '<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="' + selectedOption.val() + '" data-count="' + files.length + '"><i class="fas fa-file-pdf"></i> PDF (' + files.length + ')</button>';
+                    }
+                } else if (fileUrl) {
+                    htmlContent += '<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="' + selectedOption.val() + '" data-count="1"><i class="fas fa-file-pdf"></i> PDF</button>';
                 }
 
                 if (imageUrl) {
@@ -847,6 +934,10 @@
                     $(this).removeClass('btn-success').addClass('btn-secondary').attr('disabled', true).html('<i class="fas fa-clock"></i> Running...');
                     $('#saveBtn').prop('disabled', false);
 
+                    // === UNLOCK ALL INPUTS ===
+                    formInputs.prop('disabled', false);
+                    $('form').removeClass('inputs-locked');
+
                     timerInterval = setInterval(function () {
                         totalSeconds++;
                         updateTimerDisplay();
@@ -855,7 +946,23 @@
             });
 
             // Stop timer on form submit
-            $('form').on('submit', function () {
+            $('form').on('submit', function (e) {
+                // Validate: If NG, next_proses must be selected
+                var judgment = $('#judgmentSelect').val();
+                var nextProses = $('#nextProses').val();
+
+                if (judgment === 'NG' && !nextProses) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Next Proses Wajib Dipilih',
+                        text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    $('#nextProses').focus();
+                    return false;
+                }
+
                 if (timerRunning) {
                     clearInterval(timerInterval);
                     timerRunning = false;

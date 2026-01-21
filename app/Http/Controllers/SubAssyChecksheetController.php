@@ -181,10 +181,18 @@ class SubAssyChecksheetController extends Controller
     }
 
     // Delete Checksheet
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $this->checksheetService->deleteChecksheet($id);
-        return redirect()->route('admin.checksheets.index')->with('success', 'Data Checksheet berhasil dihapus.');
+
+        // Preserve plant parameter when redirecting back
+        $redirectParams = [];
+        if ($request->has('plant')) {
+            $redirectParams['plant'] = $request->input('plant');
+        }
+
+        return redirect()->route('admin.checksheets.index', $redirectParams)
+            ->with('success', 'Data Checksheet berhasil dihapus.');
     }
 
     // Tampilkan form untuk admin mengedit status approval

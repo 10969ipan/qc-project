@@ -43,7 +43,8 @@ class UpdateItemRequest extends FormRequest
             ],
             'category_id' => 'required|exists:categories,id',
             'plant' => 'required|string',
-            'file' => 'nullable|mimes:pdf|max:5120', // Max 5MB
+            'files' => 'nullable|array',
+            'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'sap_code' => [

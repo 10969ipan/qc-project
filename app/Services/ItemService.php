@@ -57,10 +57,12 @@ class ItemService extends BaseService
     {
         DB::beginTransaction();
         try {
-            // Handle file upload
-            $filePath = null;
-            if (isset($data['file'])) {
-                $filePath = $this->handleItemFileUpload($data['file'], $data['customer'] ?? null);
+            // Handle multi-file upload
+            $filePaths = [];
+            if (isset($data['files'])) {
+                foreach ($data['files'] as $file) {
+                    $filePaths[] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+                }
             }
 
             // Process defects
@@ -74,7 +76,8 @@ class ItemService extends BaseService
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
-                'file_path' => $filePath,
+                'file_path' => $filePaths[0] ?? null, // Fallback for legacy
+                'file_paths' => $filePaths,
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
@@ -109,20 +112,22 @@ class ItemService extends BaseService
             }
 
             $customerChanged = $item->customer !== ($data['customer'] ?? null);
+            $filePaths = $item->file_paths ?? [];
 
-            // Handle file upload or customer change
-            if (isset($data['file'])) {
-                // Resolve file path before deletion
-                $this->resolveFilePath($item);
+            // Handle file upload
+            if (isset($data['files'])) {
+                foreach ($data['files'] as $file) {
+                    $filePaths[] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+                }
+            }
 
-                // Delete old file
-                $this->deleteFile($item->file_path);
-
-                // Upload new file
-                $item->file_path = $this->handleItemFileUpload($data['file'], $data['customer'] ?? null);
-            } elseif ($customerChanged && $item->file_path) {
-                // Customer changed but no new file - move existing file
-                $item->file_path = $this->moveFileToCustomerFolder($item, $data['customer'] ?? null);
+            // If customer changed, move all existing files
+            if ($customerChanged && !empty($filePaths)) {
+                $newFilePaths = [];
+                foreach ($filePaths as $path) {
+                    $newFilePaths[] = $this->moveFilePathToCustomerFolder($path, $data['customer'] ?? null);
+                }
+                $filePaths = $newFilePaths;
             }
 
             // Process defects
@@ -139,7 +144,8 @@ class ItemService extends BaseService
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
-                'file_path' => $item->file_path,
+                'file_path' => $filePaths[0] ?? null,
+                'file_paths' => $filePaths,
                 'defects' => $defects,
                 'dimension_standards' => $dimensionStandards,
             ]);
@@ -168,9 +174,14 @@ class ItemService extends BaseService
             }
             $item = $query->findOrFail($id);
 
-            // Resolve and delete file
-            $this->resolveFilePath($item);
-            $this->deleteFile($item->file_path);
+            // Delete all associated files
+            if (!empty($item->file_paths)) {
+                foreach ($item->file_paths as $path) {
+                    $this->deleteFile($path);
+                }
+            } elseif ($item->file_path) {
+                $this->deleteFile($item->file_path);
+            }
 
             $item->delete();
 
@@ -206,20 +217,18 @@ class ItemService extends BaseService
     }
 
     /**
-     * Move file to new customer folder
+     * Move a single file path to new customer folder
      * 
-     * @param Item $item
+     * @param string $path
      * @param string|null $newCustomer
      * @return string
      */
-    private function moveFileToCustomerFolder(Item $item, ?string $newCustomer): string
+    private function moveFilePathToCustomerFolder(string $path, ?string $newCustomer): string
     {
-        $this->resolveFilePath($item);
-
-        $oldPath = public_path($item->file_path);
+        $oldPath = public_path($path);
 
         if (file_exists($oldPath)) {
-            $filename = basename($item->file_path);
+            $filename = basename($path);
             $customerFolder = $this->getCustomerFolder($newCustomer);
             $newPath = public_path('master item/' . $customerFolder);
 
@@ -233,7 +242,32 @@ class ItemService extends BaseService
             return 'master item/' . $customerFolder . '/' . $filename;
         }
 
-        return $item->file_path;
+        return $path;
+    }
+
+    /**
+     * Delete a single PDF from an item
+     * 
+     * @param string $id
+     * @param int $index
+     * @return void
+     */
+    public function deleteItemPdf(string $id, int $index): void
+    {
+        $item = Item::withoutGlobalScope('plant')->findOrFail($id);
+        $filePaths = $item->file_paths;
+
+        if (isset($filePaths[$index])) {
+            $pathToDelete = $filePaths[$index];
+            $this->deleteFile($pathToDelete);
+
+            array_splice($filePaths, $index, 1);
+
+            $item->update([
+                'file_paths' => $filePaths,
+                'file_path' => $filePaths[0] ?? null
+            ]);
+        }
     }
 
     /**

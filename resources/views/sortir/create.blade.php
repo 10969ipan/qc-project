@@ -11,14 +11,6 @@
             $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
         }
     @endphp
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -52,6 +44,7 @@
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" cellspacing="0">
                         <tr class="text-center">
+                            <th rowspan="2" style="width: 120px;">Standard</th>
                             <th rowspan="2">Item Part (NG)</th>
                             <th rowspan="2">Tanggal / Shift</th>
                             <th rowspan="2">Total Qty</th>
@@ -64,6 +57,13 @@
                         </tr>
                         <tbody>
                             <tr>
+                                <!-- Standard (PDF) -->
+                                <td class="align-middle text-center" id="imageContainer">
+                                    <div
+                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                        <i class="fas fa-image fa-2x text-gray-300"></i>
+                                    </div>
+                                </td>
                                 <!-- Item Part (NG Only) -->
                                 <td class="align-middle">
                                     <div class="form-group mb-0">
@@ -76,17 +76,24 @@
                                                     data-source-type="{{ $ngItem['source_type'] }}"
                                                     data-source-id="{{ $ngItem['source_id'] }}"
                                                     data-source-date="{{ $ngItem['date'] }}"
-                                                    data-source-shift="{{ $ngItem['shift'] }}">
+                                                    data-source-shift="{{ $ngItem['shift'] }}"
+                                                    data-remaining-qty="{{ $ngItem['remaining_qty'] }}"
+                                                    data-files="{{ json_encode($ngItem['file_paths'] ?? ($ngItem['file_path'] ? [$ngItem['file_path']] : [])) }}">
                                                     {{ $ngItem['item_name'] }} ({{ $ngItem['part_number'] }})
                                                     - {{ strtoupper(str_replace('_', ' ', $ngItem['source_type'])) }}
-                                                    - {{ $ngItem['date'] }} Shift {{ $ngItem['shift'] }}
-                                                    @if($ngItem['sap_code'])
-                                                        - SAP: {{ $ngItem['sap_code'] }}
+                                                    @if(!empty($ngItem['next_proses']))
+                                                        [{{ $ngItem['next_proses'] }}]
                                                     @endif
+                                                    - {{ $ngItem['date'] }} Shift {{ $ngItem['shift'] }}
+                                                    | Total: {{ number_format($ngItem['total_qty']) }} pcs
+                                                    @if($ngItem['sorted_qty'] > 0)
+                                                        | Sudah: {{ number_format($ngItem['sorted_qty']) }}
+                                                    @endif
+                                                    | Sisa: {{ number_format($ngItem['remaining_qty']) }} pcs
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <small class="text-muted">Hanya menampilkan item dengan status NG</small>
+                                        <small class="text-muted">Hanya menampilkan item NG dengan sisa qty > 0</small>
                                     </div>
                                 </td>
 
@@ -232,11 +239,195 @@
             </form>
         </div>
     </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Standard PDF Viewer</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
+                        <div class="mr-3 mb-2">
+                            <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
+                                <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
+                            <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
+                                <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
+                            </button>
+                        </div>
+                        <div class="mr-3 mb-2 border-left pl-3">
+                            <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="pageInfo" class="mx-2">Page 1 of ?</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="border-left pl-3 mb-2">
+                            <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">
+                        <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+            let pdfDoc = null;
+            let pageNum = 1;
+            let pageRendering = false;
+            let pageNumPending = null;
+            let scale = 1.0;
+            const canvas = document.getElementById('the-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function renderPage(num) {
+                pageRendering = true;
+                pdfDoc.getPage(num).then(function (page) {
+                    const viewport = page.getViewport({ scale: scale });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+                    const renderTask = page.render(renderContext);
+
+                    renderTask.promise.then(function () {
+                        pageRendering = false;
+                        if (pageNumPending !== null) {
+                            renderPage(pageNumPending);
+                            pageNumPending = null;
+                        }
+                    });
+                });
+                document.getElementById('pageInfo').textContent = 'Page ' + num + ' of ' + pdfDoc.numPages;
+            }
+
+            function queueRenderPage(num) {
+                if (pageRendering) {
+                    pageNumPending = num;
+                } else {
+                    renderPage(num);
+                }
+            }
+
+            document.getElementById('prevPage').addEventListener('click', function () {
+                if (pageNum <= 1) return;
+                pageNum--;
+                queueRenderPage(pageNum);
+            });
+
+            document.getElementById('nextPage').addEventListener('click', function () {
+                if (pageNum >= pdfDoc.numPages) return;
+                pageNum++;
+                queueRenderPage(pageNum);
+            });
+
+            document.getElementById('pdfZoomIn').addEventListener('click', function () {
+                scale += 0.25;
+                queueRenderPage(pageNum);
+            });
+
+            document.getElementById('pdfZoomOut').addEventListener('click', function () {
+                if (scale > 0.25) {
+                    scale -= 0.25;
+                    queueRenderPage(pageNum);
+                }
+            });
+
+            document.getElementById('pdfZoomReset').addEventListener('click', function () {
+                scale = 1.0;
+                queueRenderPage(pageNum);
+            });
+
+            let currentPdfIndex = 0;
+            let totalPdfFiles = 0;
+            let currentItemId = null;
+
+            function loadPdf(itemId, index) {
+                const url = `/items/${itemId}/pdf/${index}`;
+
+                pdfDoc = null;
+                pageNum = 1;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('pageInfo').textContent = 'Loading...';
+                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
+
+                pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+                    pdfDoc = pdfDoc_;
+                    document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
+                    renderPage(pageNum);
+                }, function (reason) {
+                    console.error(reason);
+                    let errorMsg = 'Error loading PDF. ';
+                    if (reason.name === 'MissingPDFException') {
+                        errorMsg += 'The PDF file could not be found on the server.';
+                    } else {
+                        errorMsg += reason.message || reason;
+                    }
+                    document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                    alert(errorMsg);
+                });
+            }
+
+            document.getElementById('prevPdf').addEventListener('click', function () {
+                if (currentPdfIndex <= 0) return;
+                currentPdfIndex--;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            document.getElementById('nextPdf').addEventListener('click', function () {
+                if (currentPdfIndex >= totalPdfFiles - 1) return;
+                currentPdfIndex++;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            $(document).on('click', '.view-pdf-btn', function () {
+                currentItemId = $(this).data('id');
+                totalPdfFiles = $(this).data('count');
+                currentPdfIndex = 0;
+                $('#pdfModal').modal('show');
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            // === INPUT LOCK UNTIL START ===
+            // Disable all form inputs until Start button is clicked
+            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            formInputs.prop('disabled', true);
+
+            // Add visual indicator that inputs are locked
+            $('form').addClass('inputs-locked');
+
+            // Style for locked state (optional visual feedback)
+            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
+
             // AQL 0.65 Logic (Similar to In-Process)
             // In Sortir, we usually sort 100% of the NG lot.
             function getSampleSize(lotSize) {
@@ -341,24 +532,83 @@
                 $('input[name="total_ng"]').val(totalNG).trigger('input');
             });
 
-            // Auto-fill source type and source id when item is selected
+            // Auto-fill source type, source id, and total_qty when item is selected
             $('#ngItemSelect').on('change', function () {
                 var selectedOption = $(this).find('option:selected');
                 $('#sourceType').val(selectedOption.data('source-type'));
                 $('#sourceId').val(selectedOption.data('source-id'));
+
+                // Update Image/PDF Container
+                var files = selectedOption.data('files');
+                var itemId = selectedOption.val();
+                var container = $('#imageContainer');
+
+                if (files && files.length > 0) {
+                    container.html('<button type="button" class="btn btn-danger btn-sm view-pdf-btn" data-id="' + itemId + '" data-count="' + files.length + '"><i class="fas fa-file-pdf"></i> View PDF (' + files.length + ')</button>');
+                } else {
+                    container.html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+                }
+
+                // Auto-fill total_qty with remaining qty and set max limit
+                var remainingQty = parseInt(selectedOption.data('remaining-qty')) || 0;
+                var totalQtyInput = $('input[name="total_qty"]');
+                totalQtyInput.val(remainingQty);
+                totalQtyInput.attr('max', remainingQty);
+
+                // Also update sampling_qty, total_ok, total_ng
+                $('input[name="sampling_qty"]').val(remainingQty);
+                $('input[name="total_ok"]').val(remainingQty);
+                $('input[name="total_ng"]').val(0);
+                $('#checkOK').prop('checked', true);
+                updateJudgment();
+            });
+
+            // Validate total_qty doesn't exceed remaining qty - show confirmation
+            $('input[name="total_qty"]').on('change', function () {
+                var input = $(this);
+                var max = parseInt(input.attr('max')) || 0;
+                var val = parseInt(input.val()) || 0;
+                if (max > 0 && val > max) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Qty Melebihi Sisa',
+                        html: 'Qty yang diinput (<b>' + val + ' pcs</b>) melebihi sisa qty tercatat (<b>' + max + ' pcs</b>).<br><br>Apakah Anda yakin ingin melanjutkan?',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, Lanjutkan',
+                        cancelButtonText: 'Reset ke Sisa Qty'
+                    }).then((result) => {
+                        if (!result.isConfirmed) {
+                            // User chose to reset
+                            input.val(max);
+                            // Update dependent fields
+                            $('input[name="sampling_qty"]').val(max);
+                            $('input[name="total_ok"]').val(max);
+                            $('input[name="total_ng"]').val(0);
+                            updateJudgment();
+                        } else {
+                            // User chose to continue, update dependent fields with new value
+                            $('input[name="sampling_qty"]').val(val);
+                            $('input[name="total_ok"]').val(val);
+                            $('input[name="total_ng"]').val(0);
+                            updateJudgment();
+                        }
+                    });
+                }
             });
 
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                <div class="input-group mb-2 defect-row">
-                                                                                <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                <div class="input-group-append">
-                                                                                    <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
-                                                                                </div>
-                                                                            </div>
-                                                                        `;
+                                                                                                                        <div class="input-group mb-2 defect-row">
+                                                                                                                        <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                        <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                        <div class="input-group-append">
+                                                                                                                            <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                `;
                 $('#defectContainer').append(newRow);
             });
 
@@ -390,6 +640,10 @@
                     $(this).html('<i class="fas fa-clock"></i> Running...');
                     $('#saveBtn').prop('disabled', false);
 
+                    // === UNLOCK ALL INPUTS ===
+                    formInputs.prop('disabled', false);
+                    $('form').removeClass('inputs-locked');
+
                     timerInterval = setInterval(function () {
                         totalSeconds++;
                         updateTimerDisplay();
@@ -412,7 +666,23 @@
                 toggleNextProsesDropdown();
             });
 
-            $('form').on('submit', function () {
+            $('form').on('submit', function (e) {
+                // Validate: If NG, next_proses must be selected
+                var judgment = $('#judgmentSelect').val();
+                var nextProses = $('#nextProses').val();
+
+                if (judgment === 'NG' && !nextProses) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Next Proses Wajib Dipilih',
+                        text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    $('#nextProses').focus();
+                    return false;
+                }
+
                 if (timerRunning) {
                     clearInterval(timerInterval);
                     timerRunning = false;

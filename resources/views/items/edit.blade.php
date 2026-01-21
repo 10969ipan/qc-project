@@ -40,15 +40,58 @@
                 </div>
                 <div class="form-group">
                     <label>File (PDF)</label>
-                    @if($item->file_path)
-                        <div class="mb-2">
-                            <a href="{{ route('items.pdf', $item->id) }}" target="_blank" class="btn btn-sm btn-info">
-                                <i class="fas fa-file-pdf"></i> Lihat PDF Saat Ini
-                            </a>
-                        </div>
-                    @endif
-                    <input type="file" name="file" class="form-control-file">
-                    <small class="text-muted">Biarkan kosong jika tidak ingin mengubah file</small>
+                    <div id="pdf-list" class="mb-3">
+                        @if($item->file_paths && count($item->file_paths) > 0)
+                            @foreach($item->file_paths as $index => $path)
+                                <div class="d-flex align-items-center mb-2 p-2 border rounded bg-light pdf-item"
+                                    data-index="{{ $index }}">
+                                    <div class="mr-3">
+                                        <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="small font-weight-bold text-truncate" style="max-width: 300px;">
+                                            {{ basename($path) }}
+                                        </div>
+                                        <a href="{{ route('items.pdf', ['id' => $item->id, 'index' => $index]) }}" target="_blank"
+                                            class="badge badge-info mt-1">
+                                            <i class="fas fa-eye"></i> Lihat PDF
+                                        </a>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-danger delete-pdf-btn" data-id="{{ $item->id }}"
+                                        data-index="{{ $index }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            @endforeach
+                        @elseif($item->file_path)
+                            <div class="d-flex align-items-center mb-2 p-2 border rounded bg-light pdf-item" data-index="0">
+                                <div class="mr-3">
+                                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                </div>
+                                <div class="flex-grow-1 text-truncate">
+                                    <div class="small font-weight-bold">{{ basename($item->file_path) }}</div>
+                                    <a href="{{ route('items.pdf', $item->id) }}" target="_blank" class="badge badge-info mt-1">
+                                        <i class="fas fa-eye"></i> Lihat PDF
+                                    </a>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger delete-pdf-btn" data-id="{{ $item->id }}"
+                                    data-index="0">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        @else
+                            <p class="text-muted small">Belum ada file PDF.</p>
+                        @endif
+                    </div>
+
+                    <label class="small font-weight-bold">Tambah File PDF Baru:</label>
+                    <input type="file" name="files[]" class="form-control-file @error('files.*') is-invalid @enderror"
+                        accept=".pdf" multiple>
+                    <small class="text-muted">Format: PDF, Maksimal 10MB per file. Anda bisa memilih lebih dari satu file
+                        sekaligus.</small>
+                    @error('files.*')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="form-group">
                     <label>Customer</label>
@@ -134,13 +177,13 @@
                 // Add Row
                 $(document).on('click', '.add-row', function () {
                     var newRow = `
-                                                                        <tr>
-                                                                            <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
-                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
-                                                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
-                                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                                                                        </tr>
-                                                                    `;
+                                                                                        <tr>
+                                                                                            <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
+                                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
+                                                                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
+                                                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                                                                        </tr>
+                                                                                    `;
                     $('#dimension-table tbody').append(newRow);
                 });
 
@@ -156,6 +199,57 @@
                             text: 'Minimal satu baris harus ada.'
                         });
                     }
+                });
+                // Delete PDF
+                $(document).on('click', '.delete-pdf-btn', function () {
+                    var btn = $(this);
+                    var id = btn.data('id');
+                    var index = btn.data('index');
+
+                    Swal.fire({
+                        title: 'Apakah Anda yakin?',
+                        text: "File PDF ini akan dihapus permanen!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: `/admin/items/${id}/pdf/${index}`,
+                                type: 'DELETE',
+                                data: {
+                                    _token: '{{ csrf_token() }}'
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        Swal.fire(
+                                            'Terhapus!',
+                                            response.message,
+                                            'success'
+                                        ).then(() => {
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire(
+                                            'Gagal!',
+                                            response.message,
+                                            'error'
+                                        );
+                                    }
+                                },
+                                error: function (xhr) {
+                                    Swal.fire(
+                                        'Gagal!',
+                                        'Terjadi kesalahan saat menghapus file.',
+                                        'error'
+                                    );
+                                }
+                            });
+                        }
+                    });
                 });
             });
         </script>

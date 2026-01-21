@@ -71,10 +71,14 @@
                 </div>
                 <div class="form-group">
                     <label>File (PDF) <span class="text-danger">*</span></label>
-                    <input type="file" name="file" class="form-control-file @error('file') is-invalid @enderror"
-                        accept=".pdf" required>
-                    <small class="text-muted">Format: PDF, Maksimal 5MB</small>
-                    @error('file')
+                    <input type="file" name="files[]" class="form-control-file @error('files') is-invalid @enderror"
+                        accept=".pdf" multiple required>
+                    <small class="text-muted">Format: PDF, Maksimal 10MB per file. Anda bisa memilih lebih dari satu
+                        file.</small>
+                    @error('files')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                    @error('files.*')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
@@ -159,13 +163,13 @@
                 // Add Row
                 $(document).on('click', '.add-row', function () {
                     var newRow = `
-                                                                        <tr>
-                                                                            <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
-                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
-                                                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
-                                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
-                                                                        </tr>
-                                                                    `;
+                                                                                <tr>
+                                                                                    <td><input type="text" name="dimension_points[]" class="form-control" placeholder="Contoh: 1, A"></td>
+                                                                                    <td><input type="text" name="dimension_sizes[]" class="form-control" placeholder="Contoh: 10.5"></td>
+                                                                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control" placeholder="Contoh: 0.1"></td>
+                                                                                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button></td>
+                                                                                </tr>
+                                                                            `;
                     $('#dimension-table tbody').append(newRow);
                 });
 

@@ -133,10 +133,12 @@
                                                 <option value="{{ $item->id }}"
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
                                                     data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
-                                                    data-sap-code="{{ $item->sap_code ?? '' }}">
+                                                    data-sap-code="{{ $item->sap_code ?? '' }}"
+                                                    data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
                                                 </option>
@@ -381,23 +383,34 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="d-flex justify-content-center mb-2 align-items-center">
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="prevPage">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span id="pageInfo" class="mr-2">Page 1 of ?</span>
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="nextPage">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="border-left pl-2 ml-2">
-                            <button type="button" class="btn btn-primary btn-sm mr-2" id="pdfZoomIn">
-                                <i class="fas fa-search-plus"></i> Zoom In
+                    <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
+                        <div class="mr-3 mb-2">
+                            <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
+                                <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
                             </button>
-                            <button type="button" class="btn btn-secondary btn-sm mr-2" id="pdfZoomReset">
-                                <i class="fas fa-sync-alt"></i> Reset
+                            <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
+                            <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
+                                <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
+                            </button>
+                        </div>
+                        <div class="mr-3 mb-2 border-left pl-3">
+                            <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="pageInfo" class="mx-2">Page 1 of ?</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="border-left pl-3 mb-2">
+                            <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                             <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
-                                <i class="fas fa-search-minus"></i> Zoom Out
+                                <i class="fas fa-search-minus"></i>
                             </button>
                         </div>
                     </div>
@@ -415,7 +428,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
+            // === INPUT LOCK UNTIL START ===
+            // Disable all form inputs until Start button is clicked
+            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            formInputs.prop('disabled', true);
+            $('form').addClass('inputs-locked');
+            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // --- PDF.js Logic ---
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -489,21 +507,19 @@
                 queueRenderPage(pageNum);
             });
 
-            // Trigger PDF Modal from dynamic button (delegated event)
-            $(document).on('click', '.view-pdf-btn', function () {
-                const url = $(this).data('src');
+            let currentPdfIndex = 0;
+            let totalPdfFiles = 0;
+            let currentItemId = null;
 
-                // Reset state
+            function loadPdf(itemId, index) {
+                const url = `/items/${itemId}/pdf/${index}`;
+                
                 pdfDoc = null;
                 pageNum = 1;
-                scale = 1.0;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 document.getElementById('pageInfo').textContent = 'Loading...';
+                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
 
-                // Show modal
-                $('#pdfModal').modal('show');
-
-                // Load PDF
                 pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
                     pdfDoc = pdfDoc_;
                     document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
@@ -512,15 +528,41 @@
                     console.error(reason);
                     let errorMsg = 'Error loading PDF. ';
                     if (reason.name === 'MissingPDFException') {
-                        errorMsg += 'The PDF file could not be found on the server. Please check Master Data Items or re-upload the file.';
+                        errorMsg += 'The PDF file could not be found on the server.';
                     } else {
                         errorMsg += reason.message || reason;
                     }
-
                     document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
                     alert(errorMsg);
                 });
+            }
+
+            document.getElementById('prevPdf').addEventListener('click', function () {
+                if (currentPdfIndex <= 0) return;
+                currentPdfIndex--;
+                loadPdf(currentItemId, currentPdfIndex);
             });
+
+            document.getElementById('nextPdf').addEventListener('click', function () {
+                if (currentPdfIndex >= totalPdfFiles - 1) return;
+                currentPdfIndex++;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            // Trigger PDF Modal from dynamic button (delegated event)
+            $(document).on('click', '.view-pdf-btn', function () {
+                currentItemId = $(this).data('id');
+                totalPdfFiles = $(this).data('count');
+                currentPdfIndex = 0;
+
+                // Show modal
+                $('#pdfModal').modal('show');
+                
+                // Load first PDF
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            // Trigger PDF Modal from dynamic button (delegated event) - Legacy support removed in replace
 
             // --- Existing Logic ---
             // AQL 0.65 Logic
@@ -634,11 +676,11 @@
                 { value: 'dimension', text: 'Dimensi' }
             ];
 
-            // Update Image/PDF and Defects on Select Change
             $('#itemSelect').change(function () {
                 var selectedOption = $(this).find('option:selected');
                 var imageUrl = selectedOption.data('image');
-                var fileUrl = selectedOption.data('file');
+                var files = selectedOption.data('files');
+                var itemId = selectedOption.val();
                 var name = selectedOption.data('name');
                 var description = selectedOption.data('description');
                 var defectsData = selectedOption.data('defects');
@@ -646,12 +688,8 @@
                 var container = $('#imageContainer');
                 var htmlContent = '';
 
-                // Prioritize PDF if available, or show both, or toggle. 
-                // Request said "tampilkan juga" (display also). 
-                // Given the small space (100x100), maybe show an icon that opens the PDF modal.
-
-                if (fileUrl) {
-                    htmlContent += '<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-src="' + fileUrl + '"><i class="fas fa-file-pdf"></i> PDF</button>';
+                if (files && files.length > 0) {
+                    htmlContent += '<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="' + itemId + '" data-count="' + files.length + '"><i class="fas fa-file-pdf"></i> PDF (' + files.length + ')</button>';
                 }
 
                 if (imageUrl) {
@@ -665,7 +703,7 @@
                         'data-description="' + description + '">';
                 }
 
-                if (!fileUrl && !imageUrl) {
+                if ((!files || files.length === 0) && !imageUrl) {
                     htmlContent = '<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>';
                 }
 
@@ -876,6 +914,10 @@
                     timerRunning = true;
                     $(this).removeClass('btn-success').addClass('btn-secondary').attr('disabled', true).html('<i class="fas fa-clock"></i> Running...');
 
+                    // === UNLOCK ALL INPUTS ===
+                    formInputs.prop('disabled', false);
+                    $('form').removeClass('inputs-locked');
+
                     // Instead of enabling directly, check state
                     checkSaveButtonState();
 
@@ -887,7 +929,23 @@
             });
 
             // Stop timer on form submit
-            $('form').on('submit', function () {
+            $('form[action*="store"]').on('submit', function (e) {
+                // Validate: If NG, next_proses must be selected
+                var judgment = $('#judgmentSelect').val();
+                var nextProses = $('#nextProses').val();
+
+                if (judgment === 'NG' && !nextProses) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Next Proses Wajib Dipilih',
+                        text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    $('#nextProses').focus();
+                    return false;
+                }
+
                 if (timerRunning) {
                     clearInterval(timerInterval);
                     timerRunning = false;

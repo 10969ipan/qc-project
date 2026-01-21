@@ -39,7 +39,8 @@ class StoreItemRequest extends FormRequest
             ],
             'category_id' => 'required|exists:categories,id',
             'plant' => 'required',
-            'file' => 'required|mimes:pdf|max:5120', // Max 5MB
+            'files' => 'required|array|min:1',
+            'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'sap_code' => [

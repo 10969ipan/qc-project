@@ -30,6 +30,7 @@ class Item extends Model
         'name',
         'category_id',
         'file_path',
+        'file_paths',
         'customer',
         'part_number',
         'sap_code',
@@ -40,6 +41,7 @@ class Item extends Model
     protected $casts = [
         'defects' => 'array',
         'dimension_standards' => 'array',
+        'file_paths' => 'array',
     ];
 
     /**

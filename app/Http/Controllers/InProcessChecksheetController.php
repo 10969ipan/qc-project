@@ -206,11 +206,19 @@ class InProcessChecksheetController extends Controller
     }
 
     // Delete Checksheet
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $this->inProcessService->deleteChecksheet($id);
-            return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
+
+            // Preserve plant parameter when redirecting back
+            $redirectParams = [];
+            if ($request->has('plant')) {
+                $redirectParams['plant'] = $request->input('plant');
+            }
+
+            return redirect()->route('in_process.index', $redirectParams)
+                ->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }

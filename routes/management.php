@@ -11,6 +11,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
         // Items
         Route::resource('items', ItemController::class);
+        Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
 
         // Categories
         Route::resource('categories', CategoryController::class);
@@ -26,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Public/Shared Access to Master Files
-    Route::get('items/{id}/pdf', [ItemController::class, 'servePdf'])->name('items.pdf');
+    Route::get('items/{id}/pdf/{index?}', [ItemController::class, 'servePdf'])->name('items.pdf');
+
     Route::get('monthly-reports/{id}/pdf', [MonthlyReportController::class, 'servePdf'])->name('monthly_reports.pdf');
 });
