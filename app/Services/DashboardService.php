@@ -44,10 +44,15 @@ class DashboardService extends BaseService
 
         $activeReport = MonthlyReport::where('is_active', true)->first();
 
+        // NG Rate Data for Charts
+        $ngRateData = $this->getNgRateData();
+
+        $currentPlant = auth()->user()->plant?->name ?? 'unknown';
+
         // Merge everything. 
         // We nest the plant-specific production data to avoid collision with standard 'activeLines' etc.
         return array_merge(
-            compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang'),
+            compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant'),
             $productionMonitoring
         );
     }
@@ -354,5 +359,73 @@ class DashboardService extends BaseService
             'target' => $targets,
             'is_yearly' => false // Using monthly-style rendering but with custom labels
         ];
+    }
+
+    /**
+     * Get Daily NG Rate Data for Spline Charts
+     */
+    public function getNgRateData(): array
+    {
+        $days = 30;
+        $endDate = now()->endOfDay();
+        $startDate = now()->subDays($days - 1)->startOfDay();
+
+        $dates = [];
+        for ($i = 0; $i < $days; $i++) {
+            $dates[] = now()->subDays($days - 1 - $i)->format('Y-m-d');
+        }
+
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+
+        return [
+            'labels' => $dates,
+            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process']),
+            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut']),
+        ];
+    }
+
+    private function getPlantNgRate($plantId, $start, $end, $dates, $types): array
+    {
+        $result = [];
+        foreach ($types as $type) {
+            $data = [];
+            $records = [];
+
+            if ($type === 'sub_assy') {
+                $records = SubAssyChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+            } elseif ($type === 'in_process') {
+                $records = InProcessChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+            } elseif ($type === 'cross_cut') {
+                $records = CrossCutChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('production_datetime', [$start, $end])
+                    ->selectRaw('DATE(production_datetime) as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy('group_date');
+            }
+
+            foreach ($dates as $date) {
+                $rec = $records->get($date);
+                if ($rec && $rec->total > 0) {
+                    $data[] = round(($rec->ng / $rec->total) * 100, 2);
+                } else {
+                    $data[] = 0;
+                }
+            }
+            $result[$type] = $data;
+        }
+
+        return $result;
     }
 }

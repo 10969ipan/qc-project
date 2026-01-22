@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('calibration_tool_schedules', function (Blueprint $table) {
+            $table->string('pr_number')->nullable()->after('schedule_date');
+            $table->date('pr_date')->nullable()->after('pr_number');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('calibration_tool_schedules', function (Blueprint $table) {
+            $table->dropColumn(['pr_number', 'pr_date']);
+        });
+    }
+};

@@ -520,4 +520,33 @@ class CalibrationController extends Controller
         return redirect()->route('calibration.verifications.index', ['plant' => $request->get('plant', 'jakarta')])
             ->with('success', 'Data Verifikasi berhasil dihapus.');
     }
+
+    public function updatePr(Request $request)
+    {
+        $request->validate([
+            'schedule_id' => 'required|exists:calibration_tool_schedules,id',
+            'pr_number' => 'nullable|string',
+        ]);
+
+        $schedule = \App\Models\CalibrationToolSchedule::findOrFail($request->schedule_id);
+
+        if (empty($request->pr_number)) {
+            $schedule->pr_number = null;
+            $schedule->pr_date = null;
+        } else {
+            // If PR Number is changed or new, set the PR Date to today
+            if ($schedule->pr_number !== $request->pr_number) {
+                $schedule->pr_date = now();
+            }
+            $schedule->pr_number = $request->pr_number;
+        }
+
+        $schedule->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PR berhasil diperbarui.',
+            'pr_date' => $schedule->pr_date ? $schedule->pr_date->format('d/m/Y') : '-'
+        ]);
+    }
 }

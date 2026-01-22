@@ -26,8 +26,8 @@ class CalibrationTool extends Model
     ];
 
     protected $casts = [
-        'tanggal_beli' => 'date:Y-m-d',
-        'schedule_planning' => 'date:Y-m-d',
+        'tanggal_beli' => 'date',
+        'schedule_planning' => 'date',
     ];
 
     public function plant()
@@ -144,10 +144,13 @@ class CalibrationTool extends Model
                 $displayDate = $v ? $v->tanggal_verifikasi : $s->schedule_date;
 
                 $results[] = (object) [
+                    'id' => $s->id,
                     'schedule_date' => $displayDate,
                     'status' => $v ? 'OK' : 'Belum Verifikasi',
                     'is_ok' => (bool) $v,
-                    'verification' => $v
+                    'verification' => $v,
+                    'pr_number' => $s->pr_number,
+                    'pr_date' => $s->pr_date,
                 ];
             }
         }

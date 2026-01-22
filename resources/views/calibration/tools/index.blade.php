@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 
 @section('content')
+    <style>
+        .last-child-no-border:last-child {
+            border-bottom: none !important;
+        }
+
+        .whitespace-nowrap {
+            white-space: nowrap;
+        }
+    </style>
     <div class="container-fluid">
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Master Data Alat - Plant {{ strtoupper($plantCode) }}</h1>
@@ -94,6 +103,7 @@
                             <th class="align-middle">RIWAYAT KALIBRASI</th>
                             <th class="align-middle">JENIS KALIBRASI</th>
                             <th class="align-middle">SCHEDULE PLANNING</th>
+                            <th class="align-middle whitespace-nowrap">PR</th>
                             <th class="align-middle">STATUS</th>
                             <th class="align-middle text-center" style="min-width: 320px;">AKSI</th>
                         </tr>
@@ -118,7 +128,86 @@
                                     @endphp
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            <span class="badge badge-info mb-1">{{ $item->schedule_date->format('d/m/Y') }}</span><br>
+                                            <span
+                                                class="badge badge-info mb-1">{{ \Carbon\Carbon::parse($item->schedule_date)->format('d/m/Y') }}</span><br>
+                                        @endforeach
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>
+                                    @if(!empty($scheduledStatuses))
+                                        @foreach($scheduledStatuses as $item)
+                                            <div class="mb-2 pb-2 border-bottom last-child-no-border">
+                                                @php
+                                                    $planningDate = \Carbon\Carbon::parse($item->schedule_date);
+                                                    $today = now()->startOfDay();
+                                                    $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
+
+                                                    $badgeClass = 'badge-secondary';
+                                                    $badgeText = 'BELUM PR';
+                                                    $badgeStyle = '';
+                                                    $isClickable = false;
+
+                                                    if ($item->is_ok) {
+                                                        $badgeClass = 'badge-success';
+                                                        $badgeText = 'SUDAH VERIFIKASI';
+                                                        $isClickable = true;
+                                                    } elseif ($item->pr_number) {
+                                                        $diffDays = $today->diffInDays($planningDate, false);
+
+                                                        if ($diffDays < 0) {
+                                                            $badgeClass = 'badge-danger';
+                                                            $badgeText = 'MELEWATI JADWAL';
+                                                        } elseif ($diffDays >= 30) {
+                                                            $badgeStyle = 'background-color: #add8e6; color: #000;';
+                                                            $badgeText = 'ON PROGRES';
+                                                        } else {
+                                                            $badgeClass = 'badge-warning';
+                                                            $badgeText = 'SEGERA VERIFIKASI';
+                                                        }
+                                                    } elseif ($today->gt($planningDate)) {
+                                                        $badgeClass = 'badge-danger';
+                                                        $badgeText = 'MELEWATI JADWAL';
+                                                    }
+                                                @endphp
+
+                                                @if(!$item->is_ok)
+                                                    <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
+                                                        <input type="text" class="form-control form-control-sm pr-input text-center"
+                                                            data-schedule-id="{{ $item->id }}" placeholder="Input PR..."
+                                                            value="{{ $item->pr_number }}" style="width: 120px;">
+                                                        @if($item->pr_number)
+                                                            <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
+                                                                data-schedule-id="{{ $item->id }}" title="Reset PR">
+                                                                <i class="fas fa-undo"></i>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                    <small
+                                                        class="pr-date-display text-muted">{{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}</small>
+                                                @else
+                                                    <div class="font-weight-bold">{{ $item->pr_number ?? '-' }}</div>
+                                                    <small
+                                                        class="text-muted">{{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}</small>
+                                                @endif
+                                                <br>
+                                                @if($isClickable)
+                                                                    <a href="{{ route('calibration.verifications.index', [
+                                                        'plant' => $plantCode,
+                                                        'tool_id' => $tool->id,
+                                                        'start_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
+                                                        'end_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
+                                                    ]) }}" class="badge {{ $badgeClass }} mt-1"
+                                                                        style="{{ $badgeStyle }}; text-decoration: none;" title="Lihat Hasil Verifikasi">
+                                                                        {{ $badgeText }}
+                                                                    </a>
+                                                @else
+                                                    <span class="badge {{ $badgeClass }} mt-1" style="{{ $badgeStyle }}">
+                                                        {{ $badgeText }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         @endforeach
                                     @else
                                         -
@@ -128,17 +217,9 @@
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
                                             @if($item->is_ok)
-                                                            <a href="{{ route('calibration.verifications.index', [
-                                                    'plant' => $plantCode,
-                                                    'tool_id' => $tool->id,
-                                                    'start_date' => $item->schedule_date->copy()->startOfMonth()->format('Y-m-d'),
-                                                    'end_date' => $item->schedule_date->copy()->endOfMonth()->format('Y-m-d')
-                                                ]) }}" class="badge badge-success mb-1" style="text-decoration: none;"
-                                                                title="Lihat Hasil Verifikasi">
-                                                                OK
-                                                            </a><br>
+                                                <span class="badge badge-success mb-1">OK</span><br>
                                             @else
-                                                <span class="badge badge-secondary mb-1">Belum Verifikasi</span><br>
+                                                <span class="badge badge-secondary mb-1">Belum</span><br>
                                             @endif
                                         @endforeach
                                     @else
@@ -257,6 +338,94 @@
             // Clear iframe src when modal is closed to stop loading/playback
             $('#pdfModal').on('hidden.bs.modal', function () {
                 $(this).find('#pdfFrame').attr('src', '');
+            });
+
+            // PR Input Change
+            $('.pr-input').on('change', function () {
+                var input = $(this);
+                var scheduleId = input.data('schedule-id');
+                var prNumber = input.val();
+                var display = input.siblings('.pr-date-display');
+
+                $.ajax({
+                    url: "{{ route('calibration.tools.update-pr') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        schedule_id: scheduleId,
+                        pr_number: prNumber
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            display.text(response.pr_date);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Gagal memperbarui PR.'
+                        });
+                    }
+                });
+            });
+
+            // Reset PR Click
+            $('.reset-pr').on('click', function () {
+                var button = $(this);
+                var scheduleId = button.data('schedule-id');
+
+                Swal.fire({
+                    title: 'Reset PR?',
+                    text: "Nomor dan tanggal PR akan dihapus.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74a3b',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Reset!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('calibration.tools.update-pr') }}",
+                            method: 'POST',
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                schedule_id: scheduleId,
+                                pr_number: "" // Send empty to reset
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: 'PR telah direset.',
+                                        toast: true,
+                                        position: 'top-end',
+                                        showConfirmButton: false,
+                                        timer: 3000
+                                    });
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 1000);
+                                }
+                            }
+                        });
+                    }
+                });
             });
         });
 

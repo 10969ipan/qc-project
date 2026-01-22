@@ -12,10 +12,13 @@ class CalibrationToolSchedule extends Model
     protected $fillable = [
         'tool_id',
         'schedule_date',
+        'pr_number',
+        'pr_date',
     ];
 
     protected $casts = [
         'schedule_date' => 'date',
+        'pr_date' => 'date',
     ];
 
     public function tool()

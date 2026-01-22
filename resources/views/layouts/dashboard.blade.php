@@ -530,6 +530,48 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- NG Rate Jakarta --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-primary text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <h6 class="modern-card-title">MONITORING RATE NG - JAKARTA</h6>
+                                    <div class="small text-muted">Trend Rate NG 1 Bulan Terakhir</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="chartNgJakarta" style="height: 300px; width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- NG Rate Karawang --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-success text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <h6 class="modern-card-title">MONITORING RATE NG - KARAWANG</h6>
+                                    <div class="small text-muted">Trend Rate NG 1 Bulan Terakhir</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="chartNgKarawang" style="height: 300px; width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
             @else
                 {{-- Combined/Single Chart --}}
                 <div class="col-xl-6 col-lg-12 mb-5">
@@ -548,6 +590,30 @@
                         </div>
                         <div class="card-body bg-light" style="background: #fdfdfe;">
                             <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- NG Rate Single --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-primary text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    @php
+                                        $currentPlantDisplay = strtolower(Auth::user()->plant->code ?? request('plant') ?? 'jakarta');
+                                    @endphp
+                                    <h6 class="modern-card-title">MONITORING RATE NG - {{ strtoupper($currentPlantDisplay) }}</h6>
+                                    <div class="small text-muted">Trend Rate NG 1 Bulan Terakhir</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="chartNgSingle" style="height: 300px; width: 100%;"></div>
                         </div>
                     </div>
                 </div>
@@ -574,12 +640,15 @@
                         renderChart("chartJakarta", "Status Approval - Jakarta", statsJakarta);
                         renderChart("chartKarawang", "Status Approval - Karawang", statsKarawang);
                     @else
-                                                                                                                                                                                                                                                                                                                    var combinedStats = @json($combinedStats);
+                                                                                                                                                                                                                                                                                                                                                                                                                    var combinedStats = @json($combinedStats);
                         renderChart("chartContainer", "Status Approval", combinedStats);
                     @endif
 
                     // Customer Claim Chart
                     renderClaimChart();
+
+                    // NG Rate Charts
+                    renderNgRateCharts();
                 }
 
                 function renderClaimChart() {
@@ -722,9 +791,90 @@
                     });
                     chart.render();
                 }
+
+                function renderNgRateCharts() {
+                    const ngData = @json($ngRateData ?? null);
+                    if (!ngData) return;
+
+                    const isDualView = {{ $isDualView ? 'true' : 'false' }};
+                    const currentPlant = "{{ strtolower($currentPlant ?? '') }}";
+
+                    if (isDualView) {
+                        renderSingleNgChart("chartNgJakarta", "Jakarta", ngData.jakarta, ngData.labels);
+                        renderSingleNgChart("chartNgKarawang", "Karawang", ngData.karawang, ngData.labels);
+                    } else {
+                        const plantData = currentPlant === 'jakarta' ? ngData.jakarta : ngData.karawang;
+                        renderSingleNgChart("chartNgSingle", currentPlant.toUpperCase(), plantData, ngData.labels);
+                    }
+                }
+
+                function renderSingleNgChart(containerId, plantName, plantData, labels) {
+                    const series = [];
+
+                    if (plantData.sub_assy) {
+                        series.push({
+                            name: "Sub Assy",
+                            type: "spline",
+                            showInLegend: true,
+                            yValueFormatString: "##0.00'%'",
+                            dataPoints: labels.map((l, i) => ({ label: l.split('-').slice(1).reverse().join('/'), y: plantData.sub_assy[i] }))
+                        });
+                    }
+
+                    if (plantData.in_process) {
+                        series.push({
+                            name: "In Process",
+                            type: "spline",
+                            showInLegend: true,
+                            yValueFormatString: "##0.00'%'",
+                            dataPoints: labels.map((l, i) => ({ label: l.split('-').slice(1).reverse().join('/'), y: plantData.in_process[i] }))
+                        });
+                    }
+
+                    if (plantData.cross_cut) {
+                        series.push({
+                            name: "Cross Cut",
+                            type: "spline",
+                            showInLegend: true,
+                            yValueFormatString: "##0.00'%'",
+                            dataPoints: labels.map((l, i) => ({ label: l.split('-').slice(1).reverse().join('/'), y: plantData.cross_cut[i] }))
+                        });
+                    }
+
+                    const chart = new CanvasJS.Chart(containerId, {
+                        animationEnabled: true,
+                        theme: "light2",
+                        title: {
+                            text: "",
+                            fontFamily: "Nunito"
+                        },
+                        toolTip: {
+                            shared: true,
+                            fontFamily: "Nunito"
+                        },
+                        legend: {
+                            cursor: "pointer",
+                            itemclick: toggleDataSeries,
+                            fontFamily: "Nunito"
+                        },
+                        axisX: {
+                            labelFontFamily: "Nunito",
+                            labelFontSize: 10
+                        },
+                        axisY: {
+                            title: "NG Rate (%)",
+                            suffix: "%",
+                            titleFontFamily: "Nunito",
+                            labelFontFamily: "Nunito"
+                        },
+                        data: series
+                    });
+                    chart.render();
+                }
             </script>
         @endpush
     @endif
+
 
     <!-- Production Status Section -->
 
@@ -1321,47 +1471,47 @@
 
             if (status === 'active') {
                 content = `
-                                                                                                                                                                                <div class="mb-3">
-                                                                                                                                                                                    <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-box mr-2"></i>Part Info</h6>
-                                                                                                                                                                                    <div class="pl-4">
-                                                                                                                                                                                        <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
-                                                                                                                                                                                        <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
-                                                                                                                                                                                        <p class="mb-0"><strong>Tonnage:</strong> ${tonnage}</p>
-                                                                                                                                                                                    </div>
-                                                                                                                                                                                </div>
-                                                                                                                                                                                <div class="mb-3">
-                                                                                                                                                                                    <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-clipboard-check mr-2"></i>QC Check</h6>
-                                                                                                                                                                                    <div class="pl-4">
-                                                                                                                                                                                        <p class="mb-1"><strong>Sampling:</strong> ${samplingQty} / ${totalQty}</p>
-                                                                                                                                                                                        <div class="row mb-2">
-                                                                                                                                                                                            <div class="col-6"><span class="badge badge-success w-100">OK: ${okCount}</span></div>
-                                                                                                                                                                                            <div class="col-6"><span class="badge badge-danger w-100">NG: ${ngCount}</span></div>
-                                                                                                                                                                                        </div>
-                                                                                                                                                                                        <p class="mb-1"><strong>Judgment:</strong> <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span></p>
-                                                                                                                                                                                        <p class="mb-1"><strong>QC:</strong> ${operator}</p>
-                                                                                                                                                                                        <p class="mb-0"><strong>Time:</strong> ${date} | ${time} | Shift ${shift}</p>
-                                                                                                                                                                                    </div>
-                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                        <div class="mb-3">
+                                                                                                                                                                                                            <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-box mr-2"></i>Part Info</h6>
+                                                                                                                                                                                                            <div class="pl-4">
+                                                                                                                                                                                                                <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
+                                                                                                                                                                                                                <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
+                                                                                                                                                                                                                <p class="mb-0"><strong>Tonnage:</strong> ${tonnage}</p>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <div class="mb-3">
+                                                                                                                                                                                                            <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-clipboard-check mr-2"></i>QC Check</h6>
+                                                                                                                                                                                                            <div class="pl-4">
+                                                                                                                                                                                                                <p class="mb-1"><strong>Sampling:</strong> ${samplingQty} / ${totalQty}</p>
+                                                                                                                                                                                                                <div class="row mb-2">
+                                                                                                                                                                                                                    <div class="col-6"><span class="badge badge-success w-100">OK: ${okCount}</span></div>
+                                                                                                                                                                                                                    <div class="col-6"><span class="badge badge-danger w-100">NG: ${ngCount}</span></div>
+                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                <p class="mb-1"><strong>Judgment:</strong> <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span></p>
+                                                                                                                                                                                                                <p class="mb-1"><strong>QC:</strong> ${operator}</p>
+                                                                                                                                                                                                                <p class="mb-0"><strong>Time:</strong> ${date} | ${time} | Shift ${shift}</p>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                        </div>`;
             } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
                 let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
                 let color = status === 'maintenance' ? 'warning' : (status === 'stopped' ? 'dark' : 'danger');
                 content = `
-                                                                                                                                                                                <div class="mb-3">
-                                                                                                                                                                                    <h6 class="font-weight-bold text-${color} mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Manual Status</h6>
-                                                                                                                                                                                    <div class="pl-4">
-                                                                                                                                                                                        <p class="mb-2"><strong>Status:</strong> <span class="badge badge-${color}">${badge}</span></p>
-                                                                                                                                                                                        <p class="mb-1"><strong>Desc:</strong> ${manualDescription || '-'}</p>
-                                                                                                                                                                                        <p class="mb-1"><strong>By:</strong> ${manualBy}</p>
-                                                                                                                                                                                        <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
-                                                                                                                                                                                    </div>
-                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                        <div class="mb-3">
+                                                                                                                                                                                                            <h6 class="font-weight-bold text-${color} mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Manual Status</h6>
+                                                                                                                                                                                                            <div class="pl-4">
+                                                                                                                                                                                                                <p class="mb-2"><strong>Status:</strong> <span class="badge badge-${color}">${badge}</span></p>
+                                                                                                                                                                                                                <p class="mb-1"><strong>Desc:</strong> ${manualDescription || '-'}</p>
+                                                                                                                                                                                                                <p class="mb-1"><strong>By:</strong> ${manualBy}</p>
+                                                                                                                                                                                                                <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                        </div>`;
             } else {
                 content = `
-                                                                                                                                                                                <div class="text-center py-4">
-                                                                                                                                                                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                                                                                                                                                                                    <h6 class="text-muted">Status: IDLE</h6>
-                                                                                                                                                                                    <p class="text-muted mb-0">Menunggu Pengecekan Quality</p>
-                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                        <div class="text-center py-4">
+                                                                                                                                                                                                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                                                                                                                                                                                            <h6 class="text-muted">Status: IDLE</h6>
+                                                                                                                                                                                                            <p class="text-muted mb-0">Menunggu Pengecekan Quality</p>
+                                                                                                                                                                                                        </div>`;
             }
 
             // Set modal content
