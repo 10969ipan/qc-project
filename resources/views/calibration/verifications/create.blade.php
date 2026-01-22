@@ -33,7 +33,8 @@
                                             data-serial="{{ $tool->serial_number }}" data-range="{{ $tool->range }}"
                                             data-resolusi="{{ $tool->resolusi }}"
                                             data-frekuensi="{{ $tool->frekuensi_kalibrasi }}"
-                                            data-lokasi="{{ $tool->lokasi_pakai }}">
+                                            data-lokasi="{{ $tool->lokasi_pakai }}"
+                                            data-schedules="{{ json_encode($tool->schedules->pluck('schedule_date')->map(fn($d) => $d->format('Y-m-d'))) }}">
                                             {{ $tool->name_alat }} ({{ $tool->serial_number }})
                                         </option>
                                     @endforeach
@@ -193,8 +194,40 @@
                     $('#resolusi').val(selected.data('resolusi'));
                     $('#frekuensi_kalibrasi').val(selected.data('frekuensi'));
                     $('#lokasi_penyimpanan').val(selected.data('lokasi'));
+                    
+                    updateNextCalibrationDate();
                 }
             });
+
+            $('input[name="tanggal_verifikasi"]').on('change', function() {
+                updateNextCalibrationDate();
+            });
+
+            function updateNextCalibrationDate() {
+                var selected = $('#tool_select').find('option:selected');
+                var verifDate = $('input[name="tanggal_verifikasi"]').val();
+                
+                if (!selected.val() || !selected.data('schedules')) return;
+
+                var schedules = selected.data('schedules');
+                if (typeof schedules === 'string') {
+                    schedules = JSON.parse(schedules);
+                }
+
+                if (schedules.length > 0) {
+                    // Sort schedules ascending
+                    schedules.sort();
+
+                    var referenceDate = verifDate || new Date().toISOString().split('T')[0];
+                    
+                    // Find the first schedule date strictly AFTER the reference date
+                    var nextDate = schedules.find(date => date > referenceDate);
+                    
+                    if (nextDate) {
+                        $('input[name="next_kalibrasi"]').val(nextDate);
+                    }
+                }
+            }
 
             // Trigger change if tool_id is pre-selected
             if ($('#tool_select').val()) {

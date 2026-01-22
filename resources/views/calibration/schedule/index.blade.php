@@ -26,10 +26,20 @@
             <div class="card-body">
                 <form action="{{ route('calibration.schedule.index') }}" method="GET" class="row align-items-end">
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold">Pencarian Alat</label>
                             <input type="text" name="search" class="form-control" placeholder="Nama / No. Seri" value="{{ request('search') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Jenis Kalibrasi</label>
+                            <select name="jenis_kalibrasi" class="form-control">
+                                <option value="">Semua</option>
+                                <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
+                                <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -54,14 +64,14 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="d-flex" style="gap: 5px;">
                             <button type="submit" class="btn btn-primary flex-fill">
-                                <i class="fas fa-search fa-sm"></i> Cari
+                                <i class="fas fa-search fa-sm"></i> 
                             </button>
                             <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode]) }}"
                                 class="btn btn-secondary flex-fill">
-                                <i class="fas fa-undo fa-sm"></i> Reset
+                                <i class="fas fa-undo fa-sm"></i>
                             </a>
                         </div>
                     </div>
@@ -74,8 +84,8 @@
             .schedule-table {
                 table-layout: fixed;
                 border-collapse: collapse !important;
-                width: 1590px; /* 180 + 120 + 90 + (48 * 25) */
-                min-width: 1590px;
+                width: 1650px; /* 180 + 120 + 100 + 90 + (48 * 25) */
+                min-width: 1650px;
                 background-color: white;
             }
 
@@ -106,10 +116,18 @@
                 z-index: 30;
             }
 
+            .jenis-col {
+                width: 100px;
+                min-width: 100px;
+                left: 300px;
+                position: sticky;
+                z-index: 30;
+            }
+
             .status-col {
                 width: 90px;
                 min-width: 90px;
-                left: 300px;
+                left: 400px;
                 position: sticky;
                 z-index: 30;
                 border-right: 2px solid #5a5c69 !important;
@@ -124,7 +142,8 @@
 
             /* Overwrite sticky backgrounds for body */
             tbody td.tool-name-col, 
-            tbody td.serial-col {
+            tbody td.serial-col,
+            tbody td.jenis-col {
                 background-color: white !important;
                 z-index: 20;
                 padding: 4px !important;
@@ -185,6 +204,7 @@
                             <tr>
                                 <th rowspan="2" class="align-middle tool-name-col text-center">NAMA ALAT</th>
                                 <th rowspan="2" class="align-middle serial-col text-center">NO. SERI</th>
+                                <th rowspan="2" class="align-middle jenis-col text-center">JENIS KALIBRASI</th>
                                 <th rowspan="2" class="align-middle status-col text-center">PLANING/<br>AKTUAL</th>
                                 @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agust', 'Sept', 'Okt', 'Nov', 'Des'] as $m)
                                     <th colspan="4" class="month-header">{{ $m }}</th>
@@ -244,6 +264,11 @@
                                         title="{{ $tool->serial_number }}" style="border-bottom: 2px solid #dee2e6;">
                                         <div class="small text-muted">{{ $tool->serial_number }}</div>
                                     </td>
+                                    <td rowspan="2" class="jenis-col align-middle"
+                                        style="border-bottom: 2px solid #dee2e6;">
+                                        <div class="small">{{ $tool->jenis_kalibrasi }}</div>
+                                    </td>
+                                    {{-- Status column removed as per request --}}
                                     <td class="status-col text-center">P</td>
                                     @for($m = 1; $m <= 12; $m++)
                                         @for($w = 1; $w <= 4; $w++)

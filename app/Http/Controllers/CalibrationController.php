@@ -23,12 +23,37 @@ class CalibrationController extends Controller
                 },
                 'schedules' => function ($q) {
                     $q->whereYear('schedule_date', date('Y'));
-                }
+                },
+                'latestVerification'
             ]);
 
         // Filter Tool ID (Click-to-filter dari Chart)
         if ($request->filled('tool_id')) {
             $query->where('id', $request->tool_id);
+        }
+
+        // Filter Tanggal Schedule Planning
+        if ($request->filled('start_date')) {
+            $query->whereDate('schedule_planning', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('schedule_planning', '<=', $request->end_date);
+        }
+
+        // Filter Frekuensi Kalibrasi
+        if ($request->filled('frequency')) {
+            if ($request->frequency === '1_year') {
+                $query->where('frekuensi_kalibrasi', 'LIKE', '%1 TAHUN%')
+                    ->orWhere('frekuensi_kalibrasi', 'LIKE', '%1 YEAR%');
+            } elseif ($request->frequency === 'more_than_1_year') {
+                $query->where(function ($q) {
+                    $q->where('frekuensi_kalibrasi', 'REGEXP', '[2-9] TAHUN|[2-9] YEAR|TAHUN|YEAR')
+                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 TAHUN%')
+                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 YEAR%')
+                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%BULAN%')
+                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%MONTH%');
+                });
+            }
         }
 
         // Search
@@ -39,6 +64,10 @@ class CalibrationController extends Controller
                     ->orWhere('name_alat', 'LIKE', "%{$search}%")
                     ->orWhere('serial_number', 'LIKE', "%{$search}%");
             });
+        }
+
+        if ($request->filled('jenis_kalibrasi')) {
+            $query->where('jenis_kalibrasi', $request->jenis_kalibrasi);
         }
 
         $tools = $query->get();
@@ -90,6 +119,11 @@ class CalibrationController extends Controller
             }
         }
 
+        // Filter Jenis Kalibrasi
+        if ($request->filled('jenis_kalibrasi')) {
+            $query->where('jenis_kalibrasi', $request->jenis_kalibrasi);
+        }
+
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
@@ -111,6 +145,27 @@ class CalibrationController extends Controller
         }
 
         $tools = $query->get();
+
+        // Filter by Verification Status (OK / Belum Verifikasi)
+        if ($request->filled('verification_status')) {
+            $statusFilter = $request->verification_status;
+            $tools = $tools->filter(function ($tool) use ($statusFilter) {
+                $scheduledStatuses = $tool->getScheduledStatuses(date('Y'));
+
+                if (empty($scheduledStatuses))
+                    return false;
+
+                if ($statusFilter === 'ok') {
+                    // Has at least one 'OK'
+                    return collect($scheduledStatuses)->contains('is_ok', true);
+                } elseif ($statusFilter === 'pending') {
+                    // Has at least one 'Belum Verifikasi'
+                    return collect($scheduledStatuses)->contains('is_ok', false);
+                }
+
+                return true;
+            });
+        }
 
         return view('calibration.tools.index', compact('tools', 'plantCode'));
     }
@@ -322,7 +377,7 @@ class CalibrationController extends Controller
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $tools = CalibrationTool::where('plant_id', $plant->id)->get();
+        $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->get();
         $selectedToolId = $request->get('tool_id');
 
         return view('calibration.verifications.create', compact('tools', 'plantCode', 'selectedToolId'));
@@ -389,7 +444,7 @@ class CalibrationController extends Controller
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $tools = CalibrationTool::where('plant_id', $plant->id)->get();
+        $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->get();
 
         return view('calibration.verifications.edit', compact('verification', 'tools', 'plantCode'));
     }

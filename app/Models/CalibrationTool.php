@@ -26,8 +26,8 @@ class CalibrationTool extends Model
     ];
 
     protected $casts = [
-        'tanggal_beli' => 'date',
-        'schedule_planning' => 'date',
+        'tanggal_beli' => 'date:Y-m-d',
+        'schedule_planning' => 'date:Y-m-d',
     ];
 
     public function plant()
@@ -43,6 +43,11 @@ class CalibrationTool extends Model
     public function schedules()
     {
         return $this->hasMany(CalibrationToolSchedule::class, 'tool_id');
+    }
+
+    public function latestVerification()
+    {
+        return $this->hasOne(CalibrationVerification::class, 'tool_id')->latestOfMany('tanggal_verifikasi');
     }
 
     /**
@@ -74,6 +79,15 @@ class CalibrationTool extends Model
 
         $next = \Carbon\Carbon::parse($nextDate)->startOfDay();
 
+        // Check if there is a verification in the same month and year as the next schedule
+        $latestVerification = $this->latestVerification;
+        if ($latestVerification) {
+            $verificationDate = \Carbon\Carbon::parse($latestVerification->tanggal_verifikasi)->startOfDay();
+            if ($verificationDate->format('Y-m') === $next->format('Y-m')) {
+                return 'calibrated';
+            }
+        }
+
         if ($today->gt($next)) {
             return 'overdue';
         }
@@ -83,5 +97,61 @@ class CalibrationTool extends Model
         }
 
         return 'calibrated';
+    }
+
+    /**
+     * Get detailed statuses for all schedules in a year
+     */
+    public function getScheduledStatuses($year = null)
+    {
+        if (!$year) {
+            $year = date('Y');
+        }
+
+        $schedules = $this->schedules()
+            ->whereYear('schedule_date', $year)
+            ->orderBy('schedule_date', 'asc')
+            ->get();
+
+        $verifications = $this->verifications()
+            ->whereYear('tanggal_verifikasi', $year)
+            ->get();
+
+        $results = [];
+
+        // If no schedules in the new table, try fallback to legacy schedule_planning
+        if ($schedules->isEmpty()) {
+            if ($this->schedule_planning && $this->schedule_planning->format('Y') == $year) {
+                $month = $this->schedule_planning->format('Y-m');
+                $v = $verifications->first(function ($v) use ($month) {
+                    return $v->tanggal_verifikasi->format('Y-m') === $month;
+                });
+
+                $results[] = (object) [
+                    'schedule_date' => $this->schedule_planning,
+                    'status' => $v ? 'OK' : 'Belum Verifikasi',
+                    'is_ok' => (bool) $v,
+                    'verification' => $v
+                ];
+            }
+        } else {
+            foreach ($schedules as $s) {
+                $month = $s->schedule_date->format('Y-m');
+                $v = $verifications->first(function ($v) use ($month) {
+                    return $v->tanggal_verifikasi->format('Y-m') === $month;
+                });
+
+                $displayDate = $v ? $v->tanggal_verifikasi : $s->schedule_date;
+
+                $results[] = (object) [
+                    'schedule_date' => $displayDate,
+                    'status' => $v ? 'OK' : 'Belum Verifikasi',
+                    'is_ok' => (bool) $v,
+                    'verification' => $v
+                ];
+            }
+        }
+
+        return $results;
     }
 }
