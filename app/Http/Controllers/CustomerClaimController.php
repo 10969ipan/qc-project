@@ -13,6 +13,9 @@ class CustomerClaimController extends Controller
      */
     public function index(Request $request)
     {
+        // Managers and Asst Managers can only view
+        $isRestricted = in_array(auth()->user()->role, ['manager', 'asst_manager']);
+
         $query = CustomerClaim::with(['plant', 'creator'])
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc');
@@ -48,6 +51,11 @@ class CustomerClaimController extends Controller
      */
     public function create(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $request->plant])
+                ->with('error', 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         // Determine plant context
         $plantIdentifier = $request->get('plant');
         $plantId = null;
@@ -70,6 +78,11 @@ class CustomerClaimController extends Controller
      */
     public function store(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $request->plant])
+                ->with('error', 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $validated = $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'year' => 'required|integer|min:2020|max:2100',
@@ -106,6 +119,11 @@ class CustomerClaimController extends Controller
      */
     public function edit(CustomerClaim $customerClaim)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $customerClaim->plant->code])
+                ->with('error', 'Anda tidak memiliki akses untuk mengedit data.');
+        }
+
         // For admin to edit claims from any plant
         if (auth()->user()->role === 'admin') {
             $customerClaim = CustomerClaim::withoutGlobalScope('plant')->findOrFail($customerClaim->id);
@@ -121,6 +139,11 @@ class CustomerClaimController extends Controller
      */
     public function update(Request $request, CustomerClaim $customerClaim)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $customerClaim->plant->code])
+                ->with('error', 'Anda tidak memiliki akses untuk mengupdate data.');
+        }
+
         $validated = $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'year' => 'required|integer|min:2020|max:2100',
@@ -159,6 +182,11 @@ class CustomerClaimController extends Controller
      */
     public function destroy(Request $request, CustomerClaim $customerClaim)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $customerClaim->plant->code])
+                ->with('error', 'Anda tidak memiliki akses untuk menghapus data.');
+        }
+
         $customerClaim->delete();
 
         $queryParams = [
@@ -179,6 +207,11 @@ class CustomerClaimController extends Controller
      */
     public function yearly(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $request->plant])
+                ->with('error', 'Anda tidak memiliki akses untuk input data tahunan.');
+        }
+
         $year = $request->get('year', date('Y'));
         $plantIdentifier = $request->get('plant');
         $plantId = null;
@@ -234,6 +267,11 @@ class CustomerClaimController extends Controller
      */
     public function storeYearly(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return redirect()->route('admin.customer-claims.index', ['plant' => $request->plant])
+                ->with('error', 'Anda tidak memiliki akses untuk menyimpan data tahunan.');
+        }
+
         $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'year' => 'required|integer|min:2020|max:2100',

@@ -60,6 +60,9 @@ class ItemController extends Controller
     // Menampilkan form pembuatan item
     public function create(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         // Determine current plant context
         $plantIdentifier = $request->get('plant');
         $plantId = null;
@@ -97,6 +100,9 @@ class ItemController extends Controller
     // Menampilkan form edit item
     public function edit(Item $item)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         // For admin to edit items from any plant
         if (auth()->user()->role === 'admin') {
             $item = Item::withoutGlobalScope('plant')->findOrFail($item->id);
@@ -143,6 +149,9 @@ class ItemController extends Controller
 
     public function destroy(Request $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         try {
             $this->itemService->deleteItem($id);
 
@@ -217,6 +226,9 @@ class ItemController extends Controller
      */
     public function deletePdf(Request $request, $id, $index)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+        }
         try {
             $this->itemService->deleteItemPdf($id, $index);
             return response()->json(['success' => true, 'message' => 'PDF berhasil dihapus.']);

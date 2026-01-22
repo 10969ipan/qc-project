@@ -26,163 +26,155 @@
     <!-- Divider -->
     <hr class="sidebar-divider">
 
-    <!-- Heading -->
-    <div class="sidebar-heading">
-        Menu
-    </div>
-
     @php
-        // Roles that can VIEW all plants (for reports/laporan) - EXCLUDES inspector and plating roles logic if specific strictness needed, but request asked for specific roles
+        // Roles that can VIEW all plants (for reports/laporan)
         $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
 
-        // Roles that can INPUT in all plants - EXCLUDES inspector (they can only input in their own plant)
+        // Roles that can INPUT in all plants
         $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
     @endphp
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))
-        <!-- Nav Item - Master Data -->
+    <!-- Quality Control -->
+    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
         <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMaster" aria-expanded="true"
-                aria-controls="collapseMaster">
-                <i class="fas fa-fw fa-database"></i>
-                <span>Master Data</span>
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
+                aria-controls="collapseQC">
+                <i class="fas fa-fw fa-shield-alt"></i>
+                <span>Quality Control</span>
             </a>
-            <div id="collapseMaster" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div id="collapseQC" class="collapse" aria-labelledby="headingQC" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#masterJakarta" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Jakarta
-                        </a>
-                        <div id="masterJakarta" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('admin.items.index', ['plant' => 'jakarta']) }}">Data
-                                Item</a>
-                            <a class="collapse-item"
-                                href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori Item</a>
-                            <a class="collapse-item"
-                                href="{{ route('admin.monthly-reports.index', ['plant' => 'jakarta']) }}">Laporan Bulanan</a>
-                        </div>
-                    @endif
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#masterKarawang" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Karawang
-                        </a>
-                        <div id="masterKarawang" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('admin.items.index', ['plant' => 'karawang']) }}">Data
-                                Item</a>
-                            <a class="collapse-item"
-                                href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori Item</a>
-                            <a class="collapse-item"
-                                href="{{ route('admin.monthly-reports.index', ['plant' => 'karawang']) }}">Laporan Bulanan</a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </li>
 
-        <!-- Nav Item - Claim Customer -->
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClaim" aria-expanded="true"
-                aria-controls="collapseClaim">
-                <i class="fas fa-fw fa-exclamation-triangle"></i>
-                <span>Claim Customer</span>
-            </a>
-            <div id="collapseClaim" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
+                    <!-- Plant Jakarta -->
                     @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                        <a class="collapse-item" href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">
-                            <i class="fas fa-building mr-2"></i> Plant Jakarta
-                        </a>
-                    @endif
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                        <a class="collapse-item" href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">
-                            <i class="fas fa-industry mr-2"></i> Plant Karawang
-                        </a>
-                    @endif
-                </div>
-            </div>
-        </li>
-    @endif
+                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                            data-target="#qcPlantJKT">Plant Jakarta</a>
+                        <div id="qcPlantJKT" class="collapse pl-2">
+                            <!-- Master Data JKT -->
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcMasterJKT">Master data</a>
+                                <div id="qcMasterJKT" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('admin.items.index', ['plant' => 'jakarta']) }}">Data
+                                        Item</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('admin.monthly-reports.index', ['plant' => 'jakarta']) }}">Lap Bulanan</a>
+                                </div>
+                            @endif
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager'))
-        <!-- Nav Item - Report -->
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReport" aria-expanded="true"
-                aria-controls="collapseReport">
-                <i class="fas fa-fw fa-chart-line"></i>
-                <span>Report</span>
-            </a>
-            <div id="collapseReport" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#reportJakarta" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Jakarta
-                        </a>
-                        <div id="reportJakarta" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('analysis.monthly_ng', ['plant' => 'jakarta']) }}">Sub
-                                Assy</a>
-                            <a class="collapse-item"
-                                href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'jakarta']) }}">Inprocess</a>
-                        </div>
-                    @endif
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#reportKarawang" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Karawang
-                        </a>
-                        <div id="reportKarawang" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('analysis.monthly_ng', ['plant' => 'karawang']) }}">Sub
-                                Assy</a>
-                            <a class="collapse-item"
-                                href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'karawang']) }}">Inprocess</a>
-                            <a class="collapse-item"
-                                href="{{ route('analysis.monthly_ng_cross_cut', ['plant' => 'karawang']) }}">Cross Cut</a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </li>
-    @endif
+                            <!-- Report JKT -->
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcReportJKT">Report</a>
+                                <div id="qcReportJKT" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('analysis.monthly_ng', ['plant' => 'jakarta']) }}">Sub
+                                        Assy
+                                        Anls</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'jakarta']) }}">Inprocess
+                                        Anls</a>
+                                </div>
+                            @endif
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'inspector' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager'))
-        <!-- Nav Item - Checksheet (Input) -->
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseChecksheet"
-                aria-expanded="true" aria-controls="collapseChecksheet">
-                <i class="fas fa-fw fa-edit"></i>
-                <span>Checksheet</span>
-            </a>
-            <div id="collapseChecksheet" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    {{-- Inspector can only input in their own plant, management can input in all plants --}}
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#checksheetJakarta" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Jakarta
-                        </a>
-                        <div id="checksheetJakarta" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub
-                                Assy</a>
-                            <a class="collapse-item"
-                                href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
-                            <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
+                            <!-- Checksheet JKT -->
+                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'asst_manager']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcCheckJKT">Checksheet</a>
+                                <div id="qcCheckJKT" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub
+                                        Assy</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
+                                </div>
+                            @endif
+
+                            <!-- Laporan JKT -->
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcLaporanJKT">Laporan</a>
+                                <div id="qcLaporanJKT" class="collapse pl-2">
+                                    <a class="collapse-item"
+                                        href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub
+                                        Assy</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
+                                </div>
+                            @endif
                         </div>
                     @endif
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Plant Karawang -->
                     @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#checksheetKarawang" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Karawang
-                        </a>
-                        <div id="checksheetKarawang" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub
-                                Assy</a>
-                            <a class="collapse-item"
-                                href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
-                            <a class="collapse-item" href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
-                                Cut</a>
-                            <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
+                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                            data-target="#qcPlantKRW">Plant Karawang</a>
+                        <div id="qcPlantKRW" class="collapse pl-2">
+                            <!-- Master Data KRW -->
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcMasterKRW">Master data</a>
+                                <div id="qcMasterKRW" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('admin.items.index', ['plant' => 'karawang']) }}">Data
+                                        Item</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('admin.monthly-reports.index', ['plant' => 'karawang']) }}">Lap Bulanan</a>
+                                </div>
+                            @endif
+
+                            <!-- Report KRW -->
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcReportKRW">Report</a>
+                                <div id="qcReportKRW" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('analysis.monthly_ng', ['plant' => 'karawang']) }}">Sub
+                                        Assy
+                                        Anls</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'karawang']) }}">Inprocess
+                                        Anls</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('analysis.monthly_ng_cross_cut', ['plant' => 'karawang']) }}">Cross Cut
+                                        Anls</a>
+                                </div>
+                            @endif
+
+                            <!-- Checksheet KRW -->
+                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'asst_manager']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcCheckKRW">Checksheet</a>
+                                <div id="qcCheckKRW" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub
+                                        Assy</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
+                                    <a class="collapse-item" href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
+                                        Cut</a>
+                                    <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
+                                </div>
+                            @endif
+
+                            <!-- Laporan KRW -->
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                    data-target="#qcLaporanKRW">Laporan</a>
+                                <div id="qcLaporanKRW" class="collapse pl-2">
+                                    <a class="collapse-item"
+                                        href="{{ route('admin.checksheets.index', ['plant' => 'karawang']) }}">Sub
+                                        Assy</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
+                                    <a class="collapse-item" href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross
+                                        Cut</a>
+                                    <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -190,45 +182,98 @@
         </li>
     @endif
 
-    @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor' || auth()->user()->role === 'inspector' || auth()->user()->role === 'kashift' || auth()->user()->role === 'asst_manager' || auth()->user()->role === 'manager' || auth()->user()->role === 'karu_qc'))
-        <!-- Nav Item - Laporan (Viewing) -->
+    <!-- Quality Assurance -->
+    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
         <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLaporan"
-                aria-expanded="true" aria-controls="collapseLaporan">
-                <i class="fas fa-fw fa-file-alt"></i>
-                <span>Laporan</span>
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQA" aria-expanded="true"
+                aria-controls="collapseQA">
+                <i class="fas fa-fw fa-award"></i>
+                <span>Quality Assurance</span>
             </a>
-            <div id="collapseLaporan" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div id="collapseQA" class="collapse" aria-labelledby="headingQA" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    {{-- Inspector can view all plants' reports --}}
-                    @if($canViewAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#laporanJakarta" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Jakarta
-                        </a>
-                        <div id="laporanJakarta" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub
-                                Assy</a>
+
+                    <!-- Plant Jakarta -->
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
+                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                            data-target="#qaPlantJKT">Plant Jakarta</a>
+                        <div id="qaPlantJKT" class="collapse pl-2">
                             <a class="collapse-item"
-                                href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
-                            <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
+                                href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">Claim
+                                Customer</a>
                         </div>
                     @endif
-                    @if($canViewAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                        <a class="collapse-item collapsed d-flex align-items-center" href="#" data-toggle="collapse"
-                            data-target="#laporanKarawang" aria-expanded="false">
-                            <i class="fas fa-building mr-2"></i> Plant Karawang
-                        </a>
-                        <div id="laporanKarawang" class="collapse" style="padding-left: 20px;">
-                            <a class="collapse-item" href="{{ route('admin.checksheets.index', ['plant' => 'karawang']) }}">Sub
-                                Assy</a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Plant Karawang -->
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
+                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                            data-target="#qaPlantKRW">Plant Karawang</a>
+                        <div id="qaPlantKRW" class="collapse pl-2">
                             <a class="collapse-item"
-                                href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
-                            <a class="collapse-item" href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross
-                                Cut</a>
-                            <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
+                                href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">Claim Customer</a>
                         </div>
                     @endif
+
+                </div>
+            </div>
+        </li>
+    @endif
+
+    <!-- Quality Service -->
+    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQS" aria-expanded="true"
+                aria-controls="collapseQS">
+                <i class="fas fa-fw fa-headset"></i>
+                <span>Quality System</span>
+            </a>
+            <div id="collapseQS" class="collapse" aria-labelledby="headingQS" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+
+                    <!-- Plant Jakarta -->
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
+                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                            data-target="#qsPlantJKT">Plant Jakarta</a>
+                        <div id="qsPlantJKT" class="collapse pl-2">
+                            <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                data-target="#qsKalibJKT">Kalibrasi</a>
+                            <div id="qsKalibJKT" class="collapse pl-2">
+                                <a class="collapse-item"
+                                    href="{{ route('calibration.schedule.index', ['plant' => 'jakarta']) }}">Jadwal
+                                    Kalibrasi</a>
+                                <a class="collapse-item"
+                                    href="{{ route('calibration.verifications.index', ['plant' => 'jakarta']) }}">Hasil
+                                    verifikasi</a>
+                                <a class="collapse-item"
+                                    href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar Alat</a>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="dropdown-divider"></div>
+
+                    <!-- Plant Karawang -->
+                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
+                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                            data-target="#qsPlantKRW">Plant Karawang</a>
+                        <div id="qsPlantKRW" class="collapse pl-2">
+                            <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
+                                data-target="#qsKalibKRW">Kalibrasi</a>
+                            <div id="qsKalibKRW" class="collapse pl-2">
+                                <a class="collapse-item"
+                                    href="{{ route('calibration.schedule.index', ['plant' => 'karawang']) }}">Jadwal
+                                    Kalibrasi</a>
+                                <a class="collapse-item"
+                                    href="{{ route('calibration.verifications.index', ['plant' => 'karawang']) }}">Hasil
+                                    verifikasi</a>
+                                <a class="collapse-item"
+                                    href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar Alat</a>
+                            </div>
+                        </div>
+                    @endif
+
                 </div>
             </div>
         </li>

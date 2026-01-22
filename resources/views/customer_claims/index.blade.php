@@ -8,16 +8,18 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Data Claim Customer</h6>
-            <div class="d-flex align-items-center">
-                <a href="{{ route('admin.customer-claims.yearly', ['plant' => request('plant')]) }}"
-                    class="btn btn-info btn-sm mr-2">
-                    <i class="fas fa-calendar-alt"></i> Input Per Tahun
-                </a>
-                <a href="{{ route('admin.customer-claims.create', ['plant' => request('plant')]) }}"
-                    class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Tambah Data
-                </a>
-            </div>
+            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                <div class="d-flex align-items-center">
+                    <a href="{{ route('admin.customer-claims.yearly', ['plant' => request('plant')]) }}"
+                        class="btn btn-info btn-sm mr-2">
+                        <i class="fas fa-calendar-alt"></i> Input Per Tahun
+                    </a>
+                    <a href="{{ route('admin.customer-claims.create', ['plant' => request('plant')]) }}"
+                        class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Tambah Data
+                    </a>
+                </div>
+            @endif
         </div>
         <div class="card-body">
             {{-- Filter Form --}}
@@ -123,22 +125,24 @@
                                 </td>
                                 <td class="align-middle">{{ $claim->creator->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">
-                                    <a href="{{ route('admin.customer-claims.edit', ['customer_claim' => $claim->id, 'plant' => request('plant'), 'year' => request('year'), 'month' => request('month')]) }}"
-                                        class="btn btn-warning btn-sm" title="Edit">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <form action="{{ route('admin.customer-claims.destroy', $claim->id) }}" method="POST"
-                                        class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                        <input type="hidden" name="year" value="{{ request('year') }}">
-                                        <input type="hidden" name="month" value="{{ request('month') }}">
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus">
-                                            <i class="fas fa-trash"></i> Hapus
-                                        </button>
-                                    </form>
+                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                        <a href="{{ route('admin.customer-claims.edit', ['customer_claim' => $claim->id, 'plant' => request('plant'), 'year' => request('year'), 'month' => request('month')]) }}"
+                                            class="btn btn-warning btn-sm" title="Edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <form action="{{ route('admin.customer-claims.destroy', $claim->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                            <input type="hidden" name="year" value="{{ request('year') }}">
+                                            <input type="hidden" name="month" value="{{ request('month') }}">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

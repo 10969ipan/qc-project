@@ -521,20 +521,22 @@
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
-                                        <a href="{{ route('in_process.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
-                                            title="Edit" style="min-width: 110px;">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <form
-                                            action="{{ route('in_process.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
+                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                            <a href="{{ route('in_process.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
+                                                title="Edit" style="min-width: 110px;">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form
+                                                action="{{ route('in_process.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 @endif
                             </tr>
@@ -657,8 +659,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

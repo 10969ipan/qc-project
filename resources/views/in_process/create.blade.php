@@ -4,6 +4,12 @@
 
 @section('content')
     <x-plant-header title="Input Data Checksheet" :plant="request('plant')" />
+    @php
+        $plantCode = strtolower(request('plant') ?? (auth()->user()->plant ? auth()->user()->plant->code : ''));
+        $jakartaMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+        $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 14, 15, 16, 17, 18, 19];
+        $machineNumbers = ($plantCode === 'jakarta') ? $jakartaMachineNumbers : $karawangMachineNumbers;
+    @endphp
 
 
 
@@ -32,11 +38,9 @@
                             <label class="small font-weight-bold">Pilih Mesin</label>
                             <select name="number" class="form-control form-control-sm" required>
                                 <option value="">- Pilih Mesin -</option>
-                                @for($i = 1; $i <= 19; $i++)
-                                    @if($i != 10 && $i != 13)
-                                        <option value="{{ $i }}">MESIN-{{ $i }}</option>
-                                    @endif
-                                @endfor
+                                @foreach($machineNumbers as $num)
+                                    <option value="{{ $num }}">MESIN-{{ $num }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-3 mb-2">
@@ -170,11 +174,9 @@
                                         <select name="code_machine" id="code_machine" class="form-control"
                                             style="min-width: 80px;" required>
                                             <option value="">Pilih Mesin</option>
-                                            @for ($i = 1; $i <= 19; $i++)
-                                                @if($i != 10 && $i != 13)
-                                                    <option value="{{ $i }}">Mesin {{ $i }}</option>
-                                                @endif
-                                            @endfor
+                                            @foreach($machineNumbers as $num)
+                                                <option value="{{ $num }}">Mesin {{ $num }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </td>
@@ -513,7 +515,7 @@
 
             function loadPdf(itemId, index) {
                 const url = `/items/${itemId}/pdf/${index}`;
-                
+
                 pdfDoc = null;
                 pageNum = 1;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -557,7 +559,7 @@
 
                 // Show modal
                 $('#pdfModal').modal('show');
-                
+
                 // Load first PDF
                 loadPdf(currentItemId, currentPdfIndex);
             });

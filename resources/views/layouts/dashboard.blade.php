@@ -3,6 +3,53 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @php
+        $jakartaMachines = [
+            1 => ['brand' => 'NISSEI', 'tonnage' => '210'],
+            2 => ['brand' => 'NISSEI', 'tonnage' => '210'],
+            3 => ['brand' => 'HYBRIC', 'tonnage' => '160'],
+            4 => ['brand' => 'NISSEI', 'tonnage' => '160'],
+            5 => ['brand' => 'NISSEI', 'tonnage' => '160'],
+            6 => ['brand' => 'NISSEI', 'tonnage' => '60'],
+            7 => ['brand' => 'NISSEI', 'tonnage' => '120'],
+            8 => ['brand' => 'NISSEI', 'tonnage' => '80'],
+            9 => ['brand' => 'NISSEI', 'tonnage' => '120'],
+            10 => ['brand' => 'YIZUMI', 'tonnage' => '160'],
+            11 => ['brand' => 'SOUND', 'tonnage' => '230'],
+            12 => ['brand' => 'SOUND', 'tonnage' => '230'],
+            // 13 skipped
+            14 => ['brand' => 'THOSIBA', 'tonnage' => '450'],
+            15 => ['brand' => 'YIZUMI', 'tonnage' => '160'],
+            16 => ['brand' => 'YIZUMI', 'tonnage' => '120'],
+            17 => ['brand' => 'YIZUMI', 'tonnage' => '120'],
+            18 => ['brand' => 'YIZUMI', 'tonnage' => '160'],
+            19 => ['brand' => 'SOUND', 'tonnage' => '230'],
+            20 => ['brand' => 'YIZUMI', 'tonnage' => '120'],
+            21 => ['brand' => 'SOUND', 'tonnage' => '160'],
+            22 => ['brand' => 'NISSEI', 'tonnage' => '80'],
+            23 => ['brand' => 'SOUND', 'tonnage' => '220'],
+        ];
+
+        $karawangMachines = [
+            1 => ['brand' => '-', 'tonnage' => '850'],
+            2 => ['brand' => '-', 'tonnage' => '650'],
+            3 => ['brand' => '-', 'tonnage' => '650'],
+            4 => ['brand' => '-', 'tonnage' => '650'],
+            5 => ['brand' => '-', 'tonnage' => '550'],
+            6 => ['brand' => '-', 'tonnage' => '450'],
+            7 => ['brand' => '-', 'tonnage' => '360'],
+            8 => ['brand' => '-', 'tonnage' => '210'],
+            9 => ['brand' => '-', 'tonnage' => '210'],
+            // 11 removed as requested
+            12 => ['brand' => '-', 'tonnage' => '80'],
+            14 => ['brand' => '-', 'tonnage' => '120'],
+            15 => ['brand' => '-', 'tonnage' => '160'],
+            16 => ['brand' => '-', 'tonnage' => '180'],
+            17 => ['brand' => '-', 'tonnage' => '180'],
+            18 => ['brand' => '-', 'tonnage' => '120'],
+            19 => ['brand' => '-', 'tonnage' => '160'],
+        ];
+    @endphp
 
     <style>
         /* Modern Dashboard CSS */
@@ -527,7 +574,7 @@
                         renderChart("chartJakarta", "Status Approval - Jakarta", statsJakarta);
                         renderChart("chartKarawang", "Status Approval - Karawang", statsKarawang);
                     @else
-                                                                                                                                                                                                                                                    var combinedStats = @json($combinedStats);
+                                                                                                                                                                                                                                                                                                                    var combinedStats = @json($combinedStats);
                         renderChart("chartContainer", "Status Approval", combinedStats);
                     @endif
 
@@ -605,764 +652,763 @@
                             cursor: "pointer",
                             itemclick: toggleDataSeries,
                             fontFamily: "Nunito"
-                        ,
-                                        verticalAlign: "center",
-                                        horizontalAlign: "right"
-                                    },
-                                    data: [
-                                        {
-                                            type: "column",
-                                            name: "Jakarta",
-                                            showInLegend: true,
-                                            color: "#4e73df",
-                                            dataPoints: dataJkt
-                                        },
-                                        {
-                                            type: "column",
-                                            name: "Karawang",
-                                            showInLegend: true,
-                                            color: "#1cc88a",
-                                            dataPoints: dataKrw
-                                        },
-                                        {
-                                            type: "line",
-                                            name: "Target",
-                                            showInLegend: true,
-                                            color: "#e74a3b",
-                                            markerSize: 6, // Slightly smaller marker
-                                            lineThickness: 2, // Thinner line
-                                            yValueFormatString: "##0.00",
-                                            dataPoints: dataTarget
-                                        }
-                                    ]
-                                });
-                                chart.render();
+                            ,
+                            verticalAlign: "center",
+                            horizontalAlign: "right"
+                        },
+                        data: [
+                            {
+                                type: "column",
+                                name: "Jakarta",
+                                showInLegend: true,
+                                color: "#4e73df",
+                                dataPoints: dataJkt
+                            },
+                            {
+                                type: "column",
+                                name: "Karawang",
+                                showInLegend: true,
+                                color: "#1cc88a",
+                                dataPoints: dataKrw
+                            },
+                            {
+                                type: "line",
+                                name: "Target",
+                                showInLegend: true,
+                                color: "#e74a3b",
+                                markerSize: 6, // Slightly smaller marker
+                                lineThickness: 2, // Thinner line
+                                yValueFormatString: "##0.00",
+                                dataPoints: dataTarget
                             }
+                        ]
+                    });
+                    chart.render();
+                }
 
-                            function toggleDataSeries(e) {
-                                if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-                                    e.dataSeries.visible = false;
-                                } else {
-                                    e.dataSeries.visible = true;
-                                }
-                                e.chart.render();
-                            }
+                function toggleDataSeries(e) {
+                    if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+                        e.dataSeries.visible = false;
+                    } else {
+                        e.dataSeries.visible = true;
+                    }
+                    e.chart.render();
+                }
 
-                            function renderChart(containerId, title, stats) {
-                                var chart = new CanvasJS.Chart(containerId, {
-                                    exportEnabled: true,
-                                    animationEnabled: true,
-                                    title: {
-                                        text: title,
-                                        fontSize: 18,
-                                        fontFamily: "Nunito"
-                                    },
-                                    legend: {
-                                        cursor: "pointer",
-                                        itemclick: explodePie
-                                    },
-                                    data: [{
-                                        type: "pie",
-                                        showInLegend: true,
-                                        toolTipContent: "{name}: <strong>{y}</strong>",
-                                        indexLabel: "{name} - {y}",
-                                        dataPoints: [
-                                            { y: stats.pending, name: "Pending", color: "#f6c23e", exploded: true },
-                                            { y: stats.approved, name: "Approved", color: "#1cc88a" },
-                                            { y: stats.rejected, name: "Rejected", color: "#e74a3b" }
-                                        ]
-                                    }]
-                                });
-                                chart.render();
-                            }
-                        </script>
+                function renderChart(containerId, title, stats) {
+                    var chart = new CanvasJS.Chart(containerId, {
+                        exportEnabled: true,
+                        animationEnabled: true,
+                        title: {
+                            text: title,
+                            fontSize: 18,
+                            fontFamily: "Nunito"
+                        },
+                        legend: {
+                            cursor: "pointer",
+                            itemclick: explodePie
+                        },
+                        data: [{
+                            type: "pie",
+                            showInLegend: true,
+                            toolTipContent: "{name}: <strong>{y}</strong>",
+                            indexLabel: "{name} - {y}",
+                            dataPoints: [
+                                { y: stats.pending, name: "Pending", color: "#f6c23e", exploded: true },
+                                { y: stats.approved, name: "Approved", color: "#1cc88a" },
+                                { y: stats.rejected, name: "Rejected", color: "#e74a3b" }
+                            ]
+                        }]
+                    });
+                    chart.render();
+                }
+            </script>
         @endpush
     @endif
 
-        <!-- Production Status Section -->
+    <!-- Production Status Section -->
 
-        @if(isset($isDualView) && $isDualView && isset($productionJakarta) && isset($productionKarawang))
-            {{-- DUAL VIEW MODE --}}
-            <div class="row">
-                {{-- Sub Assy Jakarta (Left) --}}
-                <div class="col-xl-6 col-lg-12 mb-5">
-                    <div class="modern-card h-100">
-                        <div class="modern-card-header">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-success text-white mr-3"
-                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
-                                <div>
-                                    <h6 class="modern-card-title">Produksi Sub Assy - Jakarta</h6><small
-                                        class="text-muted">Monitoring Jakarta</small>
-                                </div>
-                            </div>
-                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                                {{ $productionJakarta['activeLines']->count() }}</span>
-                        </div>
-                        <div class="card-body bg-light" style="background: #fdfdfe;">
-                            <div class="row px-2">
-                                @foreach ([1, 2, 4, 5, 6, 7, 8, 9, 10, 11] as $i)
-                                    @php
-                                        $data = $productionJakarta['activeLines']->get($i);
-                                        $manualStatus = $productionJakarta['lineStatuses']->get($i);
-                                        $isActive = $data ? true : false;
-                                        $isNg = $isActive && $data->judgment === 'NG';
-                                        $statusClass = 'status-idle';
-                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                            $statusClass = 'status-maintenance';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                            $statusClass = 'status-stopped';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                            $statusClass = 'status-trouble';
-                                            $isActive = false;
-                                        } elseif ($isActive) {
-                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                        }
-                                    @endphp
-                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                        <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
-                                            style="cursor: pointer;"
-                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                                data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
-                                                data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                data-manual-description="{{ $manualStatus->description }}"
-                                                data-manual-by="{{ $manualStatus->created_by }}"
-                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                            title="Click untuk detail">
-                                            <div class="unit-number">MEJA-{{ $i }}</div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div class="status-badge status-badge-manual"
-                                                    style="background: rgba(255,255,255,0.3); margin-top: 5px;">
-                                                    {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
-                                                </div>
-                                                <small class="text-white small mt-1"
-                                                    style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
-                                            @elseif($isActive)
-                                                <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
-                                                <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
-                                                <div class="status-badge">{{ $data->judgment }}</div>
-                                            @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
-                                        </div>
-                                    </div>
-                                @endforeach
+    @if(isset($isDualView) && $isDualView && isset($productionJakarta) && isset($productionKarawang))
+        {{-- DUAL VIEW MODE --}}
+        <div class="row">
+            {{-- Sub Assy Jakarta (Left) --}}
+            <div class="col-xl-6 col-lg-12 mb-5">
+                <div class="modern-card h-100">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-success text-white mr-3"
+                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
+                            <div>
+                                <h6 class="modern-card-title">Produksi Sub Assy - Jakarta</h6><small
+                                    class="text-muted">Monitoring Jakarta</small>
                             </div>
                         </div>
+                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                            {{ $productionJakarta['activeLines']->count() }}</span>
                     </div>
-                </div>
-
-                {{-- Sub Assy Karawang (Right) --}}
-                <div class="col-xl-6 col-lg-12 mb-5">
-                    <div class="modern-card h-100">
-                        <div class="modern-card-header">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-primary text-white mr-3"
-                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
-                                <div>
-                                    <h6 class="modern-card-title">Produksi Sub Assy - Karawang</h6><small
-                                        class="text-muted">Monitoring Karawang</small>
-                                </div>
-                            </div>
-                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                                {{ $productionKarawang['activeLines']->count() }}</span>
-                        </div>
-                        <div class="card-body bg-light" style="background: #fdfdfe;">
-                            <div class="row px-2">
-                                @foreach (range(1, 15) as $i)
-                                    @php
-                                        $data = $productionKarawang['activeLines']->get($i);
-                                        $manualStatus = $productionKarawang['lineStatuses']->get($i);
-                                        $isActive = $data ? true : false;
-                                        $isNg = $isActive && $data->judgment === 'NG';
-                                        $statusClass = 'status-idle';
-                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                            $statusClass = 'status-maintenance';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                            $statusClass = 'status-stopped';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                            $statusClass = 'status-trouble';
-                                            $isActive = false;
-                                        } elseif ($isActive) {
-                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                        }
-                                    @endphp
-                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                        <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
-                                            style="cursor: pointer;"
-                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                                data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
-                                                data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                data-manual-description="{{ $manualStatus->description }}"
-                                                data-manual-by="{{ $manualStatus->created_by }}"
-                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                            title="Click untuk detail">
-                                            <div class="unit-number">MEJA-{{ $i }}</div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div class="status-badge status-badge-manual"
-                                                    style="background: rgba(255,255,255,0.3); margin-top: 5px;">
-                                                    {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
-                                                </div>
-                                                <small class="text-white small mt-1"
-                                                    style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
-                                            @elseif($isActive)
-                                                <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
-                                                <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
-                                                <div class="status-badge">{{ $data->judgment }}</div>
-                                            @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
-                                        </div>
+                    <div class="card-body bg-light" style="background: #fdfdfe;">
+                        <div class="row px-2">
+                            @foreach ([1, 2, 4, 5, 6, 7, 8, 9, 10, 11] as $i)
+                                @php
+                                    $data = $productionJakarta['activeLines']->get($i);
+                                    $manualStatus = $productionJakarta['lineStatuses']->get($i);
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                        $statusClass = 'status-maintenance';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                        $statusClass = 'status-stopped';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                        $statusClass = 'status-trouble';
+                                        $isActive = false;
+                                    } elseif ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                    <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
+                                        style="cursor: pointer;"
+                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                            data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
+                                            data-shift="{{ $data->shift ?? '-' }}"
+                                        data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            data-manual-description="{{ $manualStatus->description }}"
+                                            data-manual-by="{{ $manualStatus->created_by }}"
+                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                        title="Click untuk detail">
+                                        <div class="unit-number">MEJA-{{ $i }}</div>
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            <div class="status-badge status-badge-manual"
+                                                style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                                {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
+                                            </div>
+                                            <small class="text-white small mt-1"
+                                                style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        @elseif($isActive)
+                                            <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
+                                            <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
+                                            <div class="status-badge">{{ $data->judgment }}</div>
+                                        @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Injection Jakarta (Left) --}}
-                <div class="col-xl-6 col-lg-12 mb-5">
-                    <div class="modern-card h-100">
-                        <div class="modern-card-header">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-info text-white mr-3"
-                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
-                                <div>
-                                    <h6 class="modern-card-title">Produksi Injection - Jakarta</h6><small
-                                        class="text-muted">Monitoring Jakarta</small>
                                 </div>
-                            </div>
-                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                                {{ $productionJakarta['activeMachines']->count() }}</span>
-                        </div>
-                        <div class="card-body bg-light" style="background: #fdfdfe;">
-                            <div class="row px-2">
-                                @foreach (range(1, 22) as $i)
-                                    @php
-                                        $data = $productionJakarta['activeMachines']->get($i);
-                                        $manualStatus = $productionJakarta['machineStatuses']->get($i);
-                                        $isActive = $data ? true : false;
-                                        $isNg = $isActive && $data->judgment === 'NG';
-                                        $statusClass = 'status-idle';
-                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                            $statusClass = 'status-maintenance';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                            $statusClass = 'status-stopped';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                            $statusClass = 'status-trouble';
-                                            $isActive = false;
-                                        } elseif ($isActive) {
-                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                        }
-                                    @endphp
-                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                        <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
-                                            style="cursor: pointer;"
-                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                                data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
-                                                data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                data-manual-description="{{ $manualStatus->description }}"
-                                                data-manual-by="{{ $manualStatus->created_by }}"
-                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                            title="Click untuk detail">
-                                            <div class="unit-number">MESIN-{{ $i }}</div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div class="status-badge status-badge-manual"
-                                                    style="background: rgba(255,255,255,0.3); margin-top: 5px;">
-                                                    {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
-                                                </div>
-                                                <small class="text-white small mt-1"
-                                                    style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
-                                            @elseif($isActive)
-                                                <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
-                                                <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
-                                                <div class="status-badge">{{ $data->judgment }}</div>
-                                            @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Injection Karawang (Right) --}}
-                <div class="col-xl-6 col-lg-12 mb-5">
-                    <div class="modern-card h-100">
-                        <div class="modern-card-header">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-warning text-white mr-3"
-                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
-                                <div>
-                                    <h6 class="modern-card-title">Produksi Injection - Karawang</h6><small
-                                        class="text-muted">Monitoring Karawang</small>
-                                </div>
-                            </div>
-                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                                {{ $productionKarawang['activeMachines']->count() }}</span>
-                        </div>
-                        <div class="card-body bg-light" style="background: #fdfdfe;">
-                            <div class="row px-2">
-                                @foreach (range(1, 22) as $i)
-                                    @php
-                                        $data = $productionKarawang['activeMachines']->get($i);
-                                        $manualStatus = $productionKarawang['machineStatuses']->get($i);
-                                        $isActive = $data ? true : false;
-                                        $isNg = $isActive && $data->judgment === 'NG';
-                                        $statusClass = 'status-idle';
-                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                            $statusClass = 'status-maintenance';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                            $statusClass = 'status-stopped';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                            $statusClass = 'status-trouble';
-                                            $isActive = false;
-                                        } elseif ($isActive) {
-                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                        }
-                                    @endphp
-                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                        <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
-                                            style="cursor: pointer;"
-                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                                data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
-                                                data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                data-manual-description="{{ $manualStatus->description }}"
-                                                data-manual-by="{{ $manualStatus->created_by }}"
-                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                            title="Click untuk detail">
-                                            <div class="unit-number">MESIN-{{ $i }}</div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div class="status-badge status-badge-manual"
-                                                    style="background: rgba(255,255,255,0.3); margin-top: 5px;">
-                                                    {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
-                                                </div>
-                                                <small class="text-white small mt-1"
-                                                    style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
-                                            @elseif($isActive)
-                                                <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
-                                                <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
-                                                <div class="status-badge">{{ $data->judgment }}</div>
-                                            @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        @else
-
-            <div class="row">
-                <!-- Sub Assy Lines -->
-                <div class="col-xl-6 col-lg-12 mb-5">
-                    <div class="modern-card h-100">
-                        @php
-                            $plant = strtolower(auth()->user()->plant ?? request('plant') ?? '');
-                            $tableOptions = range(1, 15);
-                            if ($plant === 'jakarta') {
-                                $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
-                            }
-                        @endphp
-                        <div class="modern-card-header">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-primary text-white mr-3"
-                                    style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                    <i class="fas fa-industry"></i>
-                                </div>
-                                <div>
-                                    <h6 class="modern-card-title">Produksi Sub Assy</h6>
-                                    <small class="text-muted">Monitoring Produksi Sub Assy Hari Ini</small>
-                                </div>
-                            </div>
-                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">
-                                Running: {{ $runningLinesCount }}
-                            </span>
-                        </div>
-                        <div class="card-body bg-light" style="background: #fdfdfe;">
-                            <div class="row px-2">
-                                @foreach ($tableOptions as $i)
-                                    @php
-                                        $data = $activeLines->get($i);
-                                        $manualStatus = $lineStatuses->get($i);
-
-                                        // Default State
-                                        $isActive = $data ? true : false;
-                                        $isNg = $isActive && $data->judgment === 'NG';
-                                        $statusClass = 'status-idle';
-
-                                        // Override Logic
-                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                            $statusClass = 'status-maintenance';
-                                            $isActive = false; // Hide production data
-                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                            $statusClass = 'status-stopped'; // Use stopped style for consistency
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                            $statusClass = 'status-trouble';
-                                            $isActive = false;
-                                        } elseif ($isActive) {
-                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                        }
-                                    @endphp
-                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                        <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
-                                            style="cursor: pointer;"
-                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                                data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
-                                                data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                data-manual-description="{{ $manualStatus->description }}"
-                                                data-manual-by="{{ $manualStatus->created_by }}"
-                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                            title="Click untuk detail">
-
-                                            <div class="unit-number">MEJA-{{ $i }}</div>
-
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div class="status-badge status-badge-manual"
-                                                    style="background: rgba(255,255,255,0.3); margin-top: 5px;">
-                                                    @if($manualStatus->status === 'maintenance')
-                                                        GANTI MOLD/SETTING
-                                                    @elseif($manualStatus->status === 'stopped')
-                                                        STAND BY
-                                                    @else
-                                                        {{ strtoupper($manualStatus->status) }}
-                                                    @endif
-                                                </div>
-                                                <small class="text-white small mt-1"
-                                                    style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
-                                            @elseif($isActive)
-                                                <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
-                                                <div class="item-name text-center px-2">
-                                                    {{ $data->item->name ?? '-' }}
-                                                </div>
-                                                <div class="status-badge">
-                                                    {{ $data->judgment }}
-                                                </div>
-                                            @else
-                                                <div class="item-name mt-2 font-weight-bold">IDLE</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- In Process Machines -->
-                <div class="col-xl-6 col-lg-12 mb-5">
-                    <div class="modern-card h-100">
-                        <div class="modern-card-header">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-info text-white mr-3"
-                                    style="width: 40px; height: 40px; font-size: 1rem;">
-                                    <i class="fas fa-cogs"></i>
-                                </div>
-                                <div>
-                                    <h6 class="modern-card-title">Produksi Injection</h6>
-                                    <small class="text-muted">Monitoring Produksi Injection Hari Ini</small>
-                                </div>
-                            </div>
-                            <span class="badge badge-info px-3 py-2 rounded-pill shadow-sm text-white">
-                                Running: {{ $runningMachinesCount }}
-                            </span>
-                        </div>
-                        <div class="card-body bg-light" style="background: #fdfdfe;">
-                            <div class="row px-2">
-                                @for ($i = 1; $i <= 19; $i++)
-                                    @if($i == 10 || $i == 13)
-                                        @continue
-                                    @endif
-                                    @php
-                                        $data = $activeMachines->get($i);
-                                        $manualStatus = $machineStatuses->get($i);
-
-                                        // Machine Tonnage Mapping
-                                        $machineTonnage = [
-                                            1 => '850',
-                                            2 => '650',
-                                            3 => '650',
-                                            4 => '650',
-                                            5 => '550',
-                                            6 => '450',
-                                            7 => '360',
-                                            8 => '210',
-                                            9 => '210',
-                                            11 => '160',
-                                            12 => '80',
-                                            14 => '120',
-                                            15 => '160',
-                                            16 => '180',
-                                            17 => '180',
-                                            18 => '120',
-                                            19 => '160',
-                                        ];
-                                        $tonnage = $machineTonnage[$i] ?? '-';
-
-                                        // Default State
-                                        $isActive = $data ? true : false;
-                                        $isNg = $isActive && $data->judgment === 'NG';
-                                        $statusClass = 'status-idle';
-
-                                        // Override Logic
-                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                            $statusClass = 'status-maintenance';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                            $statusClass = 'status-stopped';
-                                            $isActive = false;
-                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                            $statusClass = 'status-trouble';
-                                            $isActive = false;
-                                        } elseif ($isActive) {
-                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                        }
-                                    @endphp
-                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                        <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
-                                            style="cursor: pointer;"
-                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                                data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
-                                                data-shift="{{ $data->shift ?? '-' }}"
-                                                data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
-                                            data-tonnage="{{ $tonnage }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
-                                                data-manual-description="{{ $manualStatus->description }}"
-                                                data-manual-by="{{ $manualStatus->created_by }}"
-                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                            title="Click untuk detail">
-
-
-                                            <div class="unit-number">MESIN-{{ $i }}</div>
-
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div class="status-badge status-badge-manual"
-                                                    style="background: rgba(255,255,255,0.3); margin-top: 5px;">
-                                                    @if($manualStatus->status === 'maintenance')
-                                                        GANTI MOLD/SETTING
-                                                    @elseif($manualStatus->status === 'stopped')
-                                                        STAND BY
-                                                    @elseif($manualStatus->status === 'trouble')
-                                                        TROUBLE
-                                                    @else
-                                                        {{ strtoupper($manualStatus->status) }}
-                                                    @endif
-                                                </div>
-                                                <small class="text-white small mt-1"
-                                                    style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
-                                            @elseif($isActive)
-                                                <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
-                                                <div class="item-name text-center px-2">
-                                                    {{ $data->item->name ?? '-' }}
-                                                </div>
-                                                <div class="status-badge">
-                                                    {{ $data->judgment }}
-                                                </div>
-                                            @else
-                                                <div class="item-name mt-2 font-weight-bold">IDLE</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endfor
-                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
             </div>
-        @endif
 
-        <!-- Detail Modal -->
-        <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="detailModalLabel">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            <span id="modalUnitName"></span>
-                        </h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+            {{-- Sub Assy Karawang (Right) --}}
+            <div class="col-xl-6 col-lg-12 mb-5">
+                <div class="modern-card h-100">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-primary text-white mr-3"
+                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
+                            <div>
+                                <h6 class="modern-card-title">Produksi Sub Assy - Karawang</h6><small
+                                    class="text-muted">Monitoring Karawang</small>
+                            </div>
+                        </div>
+                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                            {{ $productionKarawang['activeLines']->count() }}</span>
                     </div>
-                    <div class="modal-body" id="modalBody">
-                        <!-- Content will be populated by JavaScript -->
+                    <div class="card-body bg-light" style="background: #fdfdfe;">
+                        <div class="row px-2">
+                            @foreach (range(1, 15) as $i)
+                                @php
+                                    $data = $productionKarawang['activeLines']->get($i);
+                                    $manualStatus = $productionKarawang['lineStatuses']->get($i);
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                        $statusClass = 'status-maintenance';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                        $statusClass = 'status-stopped';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                        $statusClass = 'status-trouble';
+                                        $isActive = false;
+                                    } elseif ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                    <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
+                                        style="cursor: pointer;"
+                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                            data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
+                                            data-shift="{{ $data->shift ?? '-' }}"
+                                        data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            data-manual-description="{{ $manualStatus->description }}"
+                                            data-manual-by="{{ $manualStatus->created_by }}"
+                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                        title="Click untuk detail">
+                                        <div class="unit-number">MEJA-{{ $i }}</div>
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            <div class="status-badge status-badge-manual"
+                                                style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                                {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
+                                            </div>
+                                            <small class="text-white small mt-1"
+                                                style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        @elseif($isActive)
+                                            <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
+                                            <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
+                                            <div class="status-badge">{{ $data->judgment }}</div>
+                                        @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            <i class="fas fa-times mr-1"></i> Tutup
-                        </button>
+                </div>
+            </div>
+
+            {{-- Injection Jakarta (Left) --}}
+            <div class="col-xl-6 col-lg-12 mb-5">
+                <div class="modern-card h-100">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-info text-white mr-3"
+                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
+                            <div>
+                                <h6 class="modern-card-title">Produksi Injection - Jakarta</h6><small
+                                    class="text-muted">Monitoring Jakarta</small>
+                            </div>
+                        </div>
+                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                            {{ $productionJakarta['activeMachines']->count() }}</span>
+                    </div>
+                    <div class="card-body bg-light" style="background: #fdfdfe;">
+                        <div class="row px-2">
+                            @foreach (array_keys($jakartaMachines) as $i)
+                                @php
+                                    $data = $productionJakarta['activeMachines']->get($i);
+                                    $manualStatus = $productionJakarta['machineStatuses']->get($i);
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                        $statusClass = 'status-maintenance';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                        $statusClass = 'status-stopped';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                        $statusClass = 'status-trouble';
+                                        $isActive = false;
+                                    } elseif ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                    $machineInfo = $jakartaMachines[$i] ?? null;
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                    <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
+                                        style="cursor: pointer;"
+                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                            data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
+                                            data-shift="{{ $data->shift ?? '-' }}"
+                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+                                        data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
+                                            data-manual-description="{{ $manualStatus->description }}"
+                                            data-manual-by="{{ $manualStatus->created_by }}"
+                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                        title="Click untuk detail">
+                                        <div class="unit-number">MESIN-{{ $i }}</div>
+                                        @if($machineInfo)
+                                            <div style="font-size: 0.5rem; opacity: 0.7; font-weight: 700; line-height: 1;">
+                                                ({{ $machineInfo['tonnage'] }}T)
+                                            </div>
+                                        @endif
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            <div class="status-badge status-badge-manual"
+                                                style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                                {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
+                                            </div>
+                                            <small class="text-white small mt-1"
+                                                style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        @elseif($isActive)
+                                            <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
+                                            <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
+                                            <div class="status-badge">{{ $data->judgment }}</div>
+                                        @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Injection Karawang (Right) --}}
+            <div class="col-xl-6 col-lg-12 mb-5">
+                <div class="modern-card h-100">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-warning text-white mr-3"
+                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
+                            <div>
+                                <h6 class="modern-card-title">Produksi Injection - Karawang</h6><small
+                                    class="text-muted">Monitoring Karawang</small>
+                            </div>
+                        </div>
+                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                            {{ $productionKarawang['activeMachines']->count() }}</span>
+                    </div>
+                    <div class="card-body bg-light" style="background: #fdfdfe;">
+                        <div class="row px-2">
+                            @foreach (array_keys($karawangMachines) as $i)
+                                @php
+                                    $data = $productionKarawang['activeMachines']->get($i);
+                                    $manualStatus = $productionKarawang['machineStatuses']->get($i);
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                        $statusClass = 'status-maintenance';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                        $statusClass = 'status-stopped';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                        $statusClass = 'status-trouble';
+                                        $isActive = false;
+                                    } elseif ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                    $machineInfo = $karawangMachines[$i] ?? null;
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                    <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
+                                        style="cursor: pointer;"
+                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                            data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
+                                            data-shift="{{ $data->shift ?? '-' }}"
+                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+                                        data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
+                                            data-manual-description="{{ $manualStatus->description }}"
+                                            data-manual-by="{{ $manualStatus->created_by }}"
+                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                        title="Click untuk detail">
+                                        <div class="unit-number">MESIN-{{ $i }}</div>
+                                        @if($machineInfo)
+                                            <div style="font-size: 0.5rem; opacity: 0.7; font-weight: 700; line-height: 1;">
+                                                ({{ $machineInfo['tonnage'] }}T)
+                                            </div>
+                                        @endif
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            <div class="status-badge status-badge-manual"
+                                                style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                                {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : strtoupper($manualStatus->status)) }}
+                                            </div>
+                                            <small class="text-white small mt-1"
+                                                style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        @elseif($isActive)
+                                            <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
+                                            <div class="item-name text-center px-2">{{ $data->item->name ?? '-' }}</div>
+                                            <div class="status-badge">{{ $data->judgment }}</div>
+                                        @else <div class="item-name mt-2 font-weight-bold">IDLE</div> @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    @else
+
+        <div class="row">
+            <!-- Sub Assy Lines -->
+            <div class="col-xl-6 col-lg-12 mb-5">
+                <div class="modern-card h-100">
+                    @php
+                        $plant = strtolower(auth()->user()->plant ?? request('plant') ?? '');
+                        $tableOptions = range(1, 15);
+                        if ($plant === 'jakarta') {
+                            $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
+                        }
+                    @endphp
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-primary text-white mr-3"
+                                style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                <i class="fas fa-industry"></i>
+                            </div>
+                            <div>
+                                <h6 class="modern-card-title">Produksi Sub Assy</h6>
+                                <small class="text-muted">Monitoring Produksi Sub Assy Hari Ini</small>
+                            </div>
+                        </div>
+                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">
+                            Running: {{ $runningLinesCount }}
+                        </span>
+                    </div>
+                    <div class="card-body bg-light" style="background: #fdfdfe;">
+                        <div class="row px-2">
+                            @foreach ($tableOptions as $i)
+                                @php
+                                    $data = $activeLines->get($i);
+                                    $manualStatus = $lineStatuses->get($i);
+
+                                    // Default State
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+
+                                    // Override Logic
+                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                        $statusClass = 'status-maintenance';
+                                        $isActive = false; // Hide production data
+                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                        $statusClass = 'status-stopped'; // Use stopped style for consistency
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                        $statusClass = 'status-trouble';
+                                        $isActive = false;
+                                    } elseif ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                    <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
+                                        style="cursor: pointer;"
+                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                            data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
+                                            data-shift="{{ $data->shift ?? '-' }}"
+                                        data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            data-manual-description="{{ $manualStatus->description }}"
+                                            data-manual-by="{{ $manualStatus->created_by }}"
+                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                        title="Click untuk detail">
+
+                                        <div class="unit-number">MEJA-{{ $i }}</div>
+
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            <div class="status-badge status-badge-manual"
+                                                style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                                @if($manualStatus->status === 'maintenance')
+                                                    GANTI MOLD/SETTING
+                                                @elseif($manualStatus->status === 'stopped')
+                                                    STAND BY
+                                                @else
+                                                    {{ strtoupper($manualStatus->status) }}
+                                                @endif
+                                            </div>
+                                            <small class="text-white small mt-1"
+                                                style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        @elseif($isActive)
+                                            <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
+                                            <div class="item-name text-center px-2">
+                                                {{ $data->item->name ?? '-' }}
+                                            </div>
+                                            <div class="status-badge">
+                                                {{ $data->judgment }}
+                                            </div>
+                                        @else
+                                            <div class="item-name mt-2 font-weight-bold">IDLE</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In Process Machines -->
+            <div class="col-xl-6 col-lg-12 mb-5">
+                <div class="modern-card h-100">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-info text-white mr-3"
+                                style="width: 40px; height: 40px; font-size: 1rem;">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div>
+                                <h6 class="modern-card-title">Produksi Injection</h6>
+                                <small class="text-muted">Monitoring Produksi Injection Hari Ini</small>
+                            </div>
+                        </div>
+                        <span class="badge badge-info px-3 py-2 rounded-pill shadow-sm text-white">
+                            Running: {{ $runningMachinesCount }}
+                        </span>
+                    </div>
+                    <div class="card-body bg-light" style="background: #fdfdfe;">
+                        <div class="row px-2">
+                            @php
+                                $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
+                                $machinesToDisplay = ($plant === 'jakarta') ? array_keys($jakartaMachines) : array_keys($karawangMachines);
+                            @endphp
+                            @foreach ($machinesToDisplay as $i)
+                                @php
+                                    $data = $activeMachines->get($i);
+                                    $manualStatus = $machineStatuses->get($i);
+
+                                    $machineInfo = ($plant === 'jakarta') ? ($jakartaMachines[$i] ?? null) : ($karawangMachines[$i] ?? null);
+                                    $tonnage = $machineInfo['tonnage'] ?? '-';
+
+                                    // Default State
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+
+                                    // Override Logic
+                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                        $statusClass = 'status-maintenance';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                        $statusClass = 'status-stopped';
+                                        $isActive = false;
+                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                        $statusClass = 'status-trouble';
+                                        $isActive = false;
+                                    } elseif ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                    <div class="status-item {{ $statusClass }}" onclick="showDetailModal(this)"
+                                        style="cursor: pointer;"
+                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                            data-operator="{{ $data->operator_initials ?? '-' }}" data-date="{{ $data->date ?? '-' }}"
+                                            data-shift="{{ $data->shift ?? '-' }}"
+                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+                                        data-tonnage="{{ $tonnage }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
+                                            data-manual-description="{{ $manualStatus->description }}"
+                                            data-manual-by="{{ $manualStatus->created_by }}"
+                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                        title="Click untuk detail">
+
+
+                                        <div class="unit-number">MESIN-{{ $i }}</div>
+                                        @if($machineInfo)
+                                            <div style="font-size: 0.5rem; opacity: 0.7; font-weight: 700; line-height: 1;">
+                                                ({{ $machineInfo['tonnage'] }}T)
+                                            </div>
+                                        @endif
+
+                                        @if($manualStatus && $manualStatus->status !== 'normal')
+                                            <div class="status-badge status-badge-manual"
+                                                style="background: rgba(255,255,255,0.3); margin-top: 5px;">
+                                                @if($manualStatus->status === 'maintenance')
+                                                    GANTI MOLD/SETTING
+                                                @elseif($manualStatus->status === 'stopped')
+                                                    STAND BY
+                                                @elseif($manualStatus->status === 'trouble')
+                                                    TROUBLE
+                                                @else
+                                                    {{ strtoupper($manualStatus->status) }}
+                                                @endif
+                                            </div>
+                                            <small class="text-white small mt-1"
+                                                style="font-size: 0.6rem; opacity: 0.9;">{{ Str::limit($manualStatus->description, 15) }}</small>
+                                        @elseif($isActive)
+                                            <div class="part-number">{{ $data->item->part_number ?? 'NO PART' }}</div>
+                                            <div class="item-name text-center px-2">
+                                                {{ $data->item->name ?? '-' }}
+                                            </div>
+                                            <div class="status-badge">
+                                                {{ $data->judgment }}
+                                            </div>
+                                        @else
+                                            <div class="item-name mt-2 font-weight-bold">IDLE</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    @endif
 
-        <script>
-            // Function to show detail modal
-            function showDetailModal(element) {
-                const card = element.closest('.status-item');
-                if (!card) return;
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="detailModalLabel">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <span id="modalUnitName"></span>
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                const unitName = card.querySelector('.unit-number')?.textContent || 'Unknown';
-                const partNumber = card.dataset.partNumber || '-';
-                const itemName = card.dataset.itemName || '-';
-                const judgment = card.dataset.judgment || '-';
-                const totalQty = card.dataset.totalQty || '-';
-                const samplingQty = card.dataset.samplingQty || '-';
-                const okCount = card.dataset.okCount || '-';
-                const ngCount = card.dataset.ngCount || '-';
-                const operator = card.dataset.operator || '-';
-                const date = card.dataset.date || '-';
-                const shift = card.dataset.shift || '-';
-                const time = card.dataset.time || '-';
-                const tonnage = card.dataset.tonnage || '-';
-                const status = card.dataset.status || 'idle';
-                const manualDescription = card.dataset.manualDescription || '';
-                const manualBy = card.dataset.manualBy || '';
-                const manualUpdated = card.dataset.manualUpdated || '';
+    <script>
+        // Function to show detail modal
+        function showDetailModal(element) {
+            const card = element.closest('.status-item');
+            if (!card) return;
 
-                // Set modal title
-                document.getElementById('modalUnitName').textContent = unitName;
+            const unitName = card.querySelector('.unit-number')?.textContent || 'Unknown';
+            const partNumber = card.dataset.partNumber || '-';
+            const itemName = card.dataset.itemName || '-';
+            const judgment = card.dataset.judgment || '-';
+            const totalQty = card.dataset.totalQty || '-';
+            const samplingQty = card.dataset.samplingQty || '-';
+            const okCount = card.dataset.okCount || '-';
+            const ngCount = card.dataset.ngCount || '-';
+            const operator = card.dataset.operator || '-';
+            const date = card.dataset.date || '-';
+            const shift = card.dataset.shift || '-';
+            const time = card.dataset.time || '-';
+            const tonnage = card.dataset.tonnage || '-';
+            const status = card.dataset.status || 'idle';
+            const manualDescription = card.dataset.manualDescription || '';
+            const manualBy = card.dataset.manualBy || '';
+            const manualUpdated = card.dataset.manualUpdated || '';
 
-                // Build modal content
-                let content = '';
+            // Set modal title
+            document.getElementById('modalUnitName').textContent = unitName;
 
-                if (status === 'active') {
-                    content = `
-                                                                                                                                                                <div class="mb-3">
-                                                                                                                                                                    <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-box mr-2"></i>Part Info</h6>
-                                                                                                                                                                    <div class="pl-4">
-                                                                                                                                                                        <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
-                                                                                                                                                                        <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
-                                                                                                                                                                        <p class="mb-0"><strong>Tonnage:</strong> ${tonnage}</p>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>
-                                                                                                                                                                <div class="mb-3">
-                                                                                                                                                                    <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-clipboard-check mr-2"></i>QC Check</h6>
-                                                                                                                                                                    <div class="pl-4">
-                                                                                                                                                                        <p class="mb-1"><strong>Sampling:</strong> ${samplingQty} / ${totalQty}</p>
-                                                                                                                                                                        <div class="row mb-2">
-                                                                                                                                                                            <div class="col-6"><span class="badge badge-success w-100">OK: ${okCount}</span></div>
-                                                                                                                                                                            <div class="col-6"><span class="badge badge-danger w-100">NG: ${ngCount}</span></div>
-                                                                                                                                                                        </div>
-                                                                                                                                                                        <p class="mb-1"><strong>Judgment:</strong> <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span></p>
-                                                                                                                                                                        <p class="mb-1"><strong>QC:</strong> ${operator}</p>
-                                                                                                                                                                        <p class="mb-0"><strong>Time:</strong> ${date} | ${time} | Shift ${shift}</p>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>`;
-                } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
-                    let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
-                    let color = status === 'maintenance' ? 'warning' : (status === 'stopped' ? 'dark' : 'danger');
-                    content = `
-                                                                                                                                                                <div class="mb-3">
-                                                                                                                                                                    <h6 class="font-weight-bold text-${color} mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Manual Status</h6>
-                                                                                                                                                                    <div class="pl-4">
-                                                                                                                                                                        <p class="mb-2"><strong>Status:</strong> <span class="badge badge-${color}">${badge}</span></p>
-                                                                                                                                                                        <p class="mb-1"><strong>Desc:</strong> ${manualDescription || '-'}</p>
-                                                                                                                                                                        <p class="mb-1"><strong>By:</strong> ${manualBy}</p>
-                                                                                                                                                                        <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>`;
-                } else {
-                    content = `
-                                                                                                                                                                <div class="text-center py-4">
-                                                                                                                                                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                                                                                                                                                                    <h6 class="text-muted">Status: IDLE</h6>
-                                                                                                                                                                    <p class="text-muted mb-0">Menunggu Pengecekan Quality</p>
-                                                                                                                                                                </div>`;
-                }
+            // Build modal content
+            let content = '';
 
-                // Set modal content
-                document.getElementById('modalBody').innerHTML = content;
-
-                // Show modal
-                $('#detailModal').modal('show');
+            if (status === 'active') {
+                content = `
+                                                                                                                                                                                <div class="mb-3">
+                                                                                                                                                                                    <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-box mr-2"></i>Part Info</h6>
+                                                                                                                                                                                    <div class="pl-4">
+                                                                                                                                                                                        <p class="mb-1"><strong>Part Number:</strong> ${partNumber}</p>
+                                                                                                                                                                                        <p class="mb-1"><strong>Item Name:</strong> ${itemName}</p>
+                                                                                                                                                                                        <p class="mb-0"><strong>Tonnage:</strong> ${tonnage}</p>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                </div>
+                                                                                                                                                                                <div class="mb-3">
+                                                                                                                                                                                    <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-clipboard-check mr-2"></i>QC Check</h6>
+                                                                                                                                                                                    <div class="pl-4">
+                                                                                                                                                                                        <p class="mb-1"><strong>Sampling:</strong> ${samplingQty} / ${totalQty}</p>
+                                                                                                                                                                                        <div class="row mb-2">
+                                                                                                                                                                                            <div class="col-6"><span class="badge badge-success w-100">OK: ${okCount}</span></div>
+                                                                                                                                                                                            <div class="col-6"><span class="badge badge-danger w-100">NG: ${ngCount}</span></div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                        <p class="mb-1"><strong>Judgment:</strong> <span class="badge badge-${judgment === 'OK' ? 'success' : 'danger'}">${judgment}</span></p>
+                                                                                                                                                                                        <p class="mb-1"><strong>QC:</strong> ${operator}</p>
+                                                                                                                                                                                        <p class="mb-0"><strong>Time:</strong> ${date} | ${time} | Shift ${shift}</p>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                </div>`;
+            } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
+                let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
+                let color = status === 'maintenance' ? 'warning' : (status === 'stopped' ? 'dark' : 'danger');
+                content = `
+                                                                                                                                                                                <div class="mb-3">
+                                                                                                                                                                                    <h6 class="font-weight-bold text-${color} mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Manual Status</h6>
+                                                                                                                                                                                    <div class="pl-4">
+                                                                                                                                                                                        <p class="mb-2"><strong>Status:</strong> <span class="badge badge-${color}">${badge}</span></p>
+                                                                                                                                                                                        <p class="mb-1"><strong>Desc:</strong> ${manualDescription || '-'}</p>
+                                                                                                                                                                                        <p class="mb-1"><strong>By:</strong> ${manualBy}</p>
+                                                                                                                                                                                        <p class="mb-0"><strong>Updated:</strong> ${manualUpdated}</p>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                </div>`;
+            } else {
+                content = `
+                                                                                                                                                                                <div class="text-center py-4">
+                                                                                                                                                                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                                                                                                                                                                    <h6 class="text-muted">Status: IDLE</h6>
+                                                                                                                                                                                    <p class="text-muted mb-0">Menunggu Pengecekan Quality</p>
+                                                                                                                                                                                </div>`;
             }
 
-            function updateDateTime() {
-                const now = new Date();
+            // Set modal content
+            document.getElementById('modalBody').innerHTML = content;
 
-                // Format date
-                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            // Show modal
+            $('#detailModal').modal('show');
+        }
 
-                const dayName = days[now.getDay()];
-                const date = now.getDate();
-                const monthName = months[now.getMonth()];
-                const year = now.getFullYear();
+        function updateDateTime() {
+            const now = new Date();
 
-                const dateString = `${dayName}, ${date} ${monthName} ${year}`;
+            // Format date
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-                // Format time
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-                const timeString = `${hours}:${minutes}:${seconds}`;
+            const dayName = days[now.getDay()];
+            const date = now.getDate();
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
 
-                // Update DOM
-                const dateElement = document.getElementById('current-date');
-                if (dateElement) {
-                    dateElement.textContent = dateString;
-                }
+            const dateString = `${dayName}, ${date} ${monthName} ${year}`;
 
-                const timeElement = document.getElementById('current-time');
-                if (timeElement) {
-                    timeElement.textContent = timeString;
-                }
+            // Format time
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+
+            // Update DOM
+            const dateElement = document.getElementById('current-date');
+            if (dateElement) {
+                dateElement.textContent = dateString;
             }
 
-            // Update immediately
-            updateDateTime();
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
 
-            // Update every second
-            setInterval(updateDateTime, 1000);
+        // Update immediately
+        updateDateTime();
 
-        </script>
+        // Update every second
+        setInterval(updateDateTime, 1000);
+
+    </script>
 @endsection

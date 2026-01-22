@@ -9,7 +9,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
-            @if(auth()->user()->role !== 'inspector')
+            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                 <a href="{{ route('admin.items.create', ['plant' => request('plant')]) }}"
                     class="btn btn-sm btn-primary shadow-sm">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
@@ -79,7 +79,7 @@
                             <th>No Part</th>
                             <th>Kode SAP</th>
                             <th>Plant</th>
-                            @if(auth()->user()->role !== 'inspector')
+                            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                 <th>Aksi</th>
                             @endif
                         </tr>
@@ -124,7 +124,7 @@
                                         {{ strtoupper(optional($item->plant)->name ?? '-') }}
                                     </span>
                                 </td>
-                                @if(auth()->user()->role !== 'inspector')
+                                @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                                     <td class="text-nowrap">
                                                         <a href="{{ route('admin.items.edit', [
                                         'item' => $item->id,
@@ -165,7 +165,7 @@
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
-                                @if(auth()->user()->role !== 'inspector')
+                                @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                     <td>&nbsp;</td>
                                 @endif
                             </tr>

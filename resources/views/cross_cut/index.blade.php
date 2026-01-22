@@ -495,20 +495,22 @@
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
-                                        <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
-                                            title="Edit" style="min-width: 110px;">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <form
-                                            action="{{ route('cross_cut.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
+                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                            <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
+                                                title="Edit" style="min-width: 110px;">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form
+                                                action="{{ route('cross_cut.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 @endif
                             </tr>
@@ -770,8 +772,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                        // Image Modal Handler
-                                                    const imageModal = document.getElementById('imageModal');
+                                                                                                                            // Image Modal Handler
+                                                        const imageModal = document.getElementById('imageModal');
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
             viewImageBtns.forEach(btn => {
@@ -798,93 +800,93 @@
                         if (data.image_path) {
                             const imagePath = `/storage/${data.image_path}`;
                             imageContainer.innerHTML = `
-                                                                        <img src="${imagePath}" 
-                                                                             class="img-fluid rounded shadow" 
-                                                                             alt="Cross Cut Image"
-                                                                             style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                                             onclick="window.open('${imagePath}', '_blank')">
-                                                                    `;
+                                                                            <img src="${imagePath}" 
+                                                                                 class="img-fluid rounded shadow" 
+                                                                                 alt="Cross Cut Image"
+                                                                                 style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                                                 onclick="window.open('${imagePath}', '_blank')">
+                                                                        `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
                         } else {
                             imageContainer.innerHTML = `
-                                                                        <div class="alert alert-warning">
-                                                                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                            Tidak ada gambar untuk checksheet ini
-                                                                        </div>
-                                                                    `;
+                                                                            <div class="alert alert-warning">
+                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                Tidak ada gambar untuk checksheet ini
+                                                                            </div>
+                                                                        `;
                             downloadBtn.style.display = 'none';
                         }
 
                         // Display details
                         const details = `
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Item Part:</th>
-                                                                        <td>${data.item_name || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Customer:</th>
-                                                                        <td>${data.customer || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Part No:</th>
-                                                                        <td>${data.part_number || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Kode SAP:</th>
-                                                                        <td>${data.sap_code || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Tanggal Produksi:</th>
-                                                                        <td>${data.production_date || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Tanggal QC:</th>
-                                                                        <td>${data.qc_date || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Shift Prod./QC:</th>
-                                                                        <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Kimia Copper:</th>
-                                                                        <td>${data.chemical_copper || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Kimia Nikel:</th>
-                                                                        <td>${data.chemical_nikel || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Kimia Eching:</th>
-                                                                        <td>${data.chemical_eching || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Kimia Abu:</th>
-                                                                        <td>${data.chemical_abu || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Posisi Remark:</th>
-                                                                        <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Result Remark:</th>
-                                                                        <td>${data.result_remark || '-'}</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <th class="text-nowrap">Operator:</th>
-                                                                        <td>${data.operator_initials || '-'}</td>
-                                                                    </tr>
-                                                                `;
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Item Part:</th>
+                                                                            <td>${data.item_name || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Customer:</th>
+                                                                            <td>${data.customer || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Part No:</th>
+                                                                            <td>${data.part_number || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Kode SAP:</th>
+                                                                            <td>${data.sap_code || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Tanggal Produksi:</th>
+                                                                            <td>${data.production_date || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Tanggal QC:</th>
+                                                                            <td>${data.qc_date || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Shift Prod./QC:</th>
+                                                                            <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Kimia Copper:</th>
+                                                                            <td>${data.chemical_copper || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Kimia Nikel:</th>
+                                                                            <td>${data.chemical_nikel || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Kimia Eching:</th>
+                                                                            <td>${data.chemical_eching || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Kimia Abu:</th>
+                                                                            <td>${data.chemical_abu || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Posisi Remark:</th>
+                                                                            <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Result Remark:</th>
+                                                                            <td>${data.result_remark || '-'}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <th class="text-nowrap">Operator:</th>
+                                                                            <td>${data.operator_initials || '-'}</td>
+                                                                        </tr>
+                                                                    `;
                         detailsContainer.innerHTML = details;
                     })
                     .catch(error => {
                         console.error('Error loading image:', error);
                         imageContainer.innerHTML = `
-                                                                    <div class="alert alert-danger">
-                                                                        <i class="fas fa-exclamation-circle mr-2"></i>
-                                                                        Gagal memuat gambar. Silakan coba lagi.
-                                                                    </div>
-                                                                `;
+                                                                        <div class="alert alert-danger">
+                                                                            <i class="fas fa-exclamation-circle mr-2"></i>
+                                                                            Gagal memuat gambar. Silakan coba lagi.
+                                                                        </div>
+                                                                    `;
                         detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
@@ -1184,8 +1186,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                            // Live Search Functionality
-                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                // Live Search Functionality
+                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 

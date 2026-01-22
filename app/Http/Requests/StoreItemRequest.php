@@ -12,7 +12,7 @@ class StoreItemRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
+        return auth()->check() && in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift']);
     }
 
     /**

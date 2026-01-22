@@ -84,6 +84,9 @@ class SortirChecksheetController extends Controller
 
     public function create(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $filters = $request->only(['plant']);
 
         // Filter based on plant context
@@ -108,6 +111,9 @@ class SortirChecksheetController extends Controller
 
     public function store(StoreSortirChecksheetRequest $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
             $this->sortirService->createSortirChecksheet($request->validated());
             return redirect()->back()->with('success', 'Data Sortir berhasil disimpan.');
@@ -118,6 +124,9 @@ class SortirChecksheetController extends Controller
 
     public function edit($id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $query = SortirChecksheet::query();
         if (auth()->user()->role === 'admin') {
             $query->withoutGlobalScope('plant');
@@ -130,6 +139,9 @@ class SortirChecksheetController extends Controller
 
     public function update(UpdateSortirChecksheetRequest $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
             $this->sortirService->updateChecksheet($id, $request->validated());
             return redirect()->route('sortir.index', $this->getFilterParams($request))->with('success', 'Data Sortir berhasil diperbarui.');
@@ -140,6 +152,9 @@ class SortirChecksheetController extends Controller
 
     public function destroy(Request $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         try {
             $this->sortirService->deleteChecksheet($id);
             return redirect()->route('sortir.index', $this->getFilterParams($request, true))

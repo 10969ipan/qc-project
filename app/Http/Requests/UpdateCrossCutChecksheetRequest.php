@@ -8,7 +8,7 @@ class UpdateCrossCutChecksheetRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
     }
 
     public function rules(): array

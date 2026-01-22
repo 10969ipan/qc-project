@@ -126,6 +126,9 @@ class InProcessChecksheetController extends Controller
     // Show form (updated to pass items)
     public function create(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $query = Item::byCategory('INPROSES')->orderBy('name');
 
         // Filter items based on plant context
@@ -160,6 +163,9 @@ class InProcessChecksheetController extends Controller
     // Simpan data (submission)
     public function store(StoreInProcessChecksheetRequest $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
             $result = $this->inProcessService->createChecksheet(
                 $request->validated(),
@@ -180,6 +186,9 @@ class InProcessChecksheetController extends Controller
     // Edit Checksheet
     public function edit($id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $query = InProcessChecksheet::query();
         if (auth()->user()->role === 'admin') {
             $query->withoutGlobalScope('plant');
@@ -197,6 +206,9 @@ class InProcessChecksheetController extends Controller
     // Update Checksheet
     public function update(UpdateInProcessChecksheetRequest $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
             $this->inProcessService->updateChecksheet($id, $request->validated());
             return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
@@ -208,6 +220,9 @@ class InProcessChecksheetController extends Controller
     // Delete Checksheet
     public function destroy(Request $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         try {
             $this->inProcessService->deleteChecksheet($id);
 

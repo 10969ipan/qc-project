@@ -21,6 +21,10 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}?v={{ time() }}" rel="stylesheet">
 
+    <!-- Custom styles for DataTables -->
+    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.css') }}"
+        rel="stylesheet">
+
     <!-- Chart.js for Dashboard Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script
@@ -408,6 +412,42 @@
             transform: scale(1.2);
         }
 
+        /* Sidebar Responsive Fixes */
+        .sidebar {
+            width: 16rem !important;
+            /* Increase width from default 14rem */
+        }
+
+        .sidebar.toggled {
+            width: 6.5rem !important;
+        }
+
+        .sidebar .nav-item .collapse .collapse-inner .collapse-item {
+            white-space: normal !important;
+            /* Allow wrapping */
+            line-height: 1.2 !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+
+        .sidebar .collapse-inner {
+            width: 14rem !important;
+            /* Match inner with sidebar */
+        }
+
+        /* Handle deep nesting padding */
+        .sidebar .collapse .collapse .collapse-inner {
+            padding-left: 0.5rem !important;
+        }
+
+        /* Icon adjustment */
+        .sidebar .nav-item .nav-link i {
+            margin-right: 0.5rem !important;
+            width: 1.1rem !important;
+            text-align: center;
+        }
+
         /* --- COMPACT UI MODE (User Requested) --- */
         /* Reduce font sizes and padding for dense information display */
 
@@ -515,6 +555,11 @@
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
 
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}"></script>
+
+    <!-- Page level plugins -->
+    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/jquery.dataTables.min.js') }}"></script>
+    <script
+        src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
 
     {{-- SweetAlert2 --}}
     <script src="{{ asset('sweetalert/sweetalert2.all.min.js') }}"></script>

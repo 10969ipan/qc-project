@@ -72,6 +72,9 @@ class CrossCutChecksheetController extends Controller
      */
     public function create(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $query = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])->orderBy('name');
 
         // Filter items based on plant context
@@ -104,6 +107,9 @@ class CrossCutChecksheetController extends Controller
      */
     public function store(StoreCrossCutChecksheetRequest $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
             $this->crossCutService->createChecksheet($request->validated());
             return redirect()->route('cross_cut.create')->with('success', 'Cross Cut Checksheet created successfully.');
@@ -171,6 +177,9 @@ class CrossCutChecksheetController extends Controller
 
     public function edit($id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $query = CrossCutChecksheet::query();
         if (auth()->user()->role === 'admin') {
             $query->withoutGlobalScope('plant');
@@ -183,6 +192,9 @@ class CrossCutChecksheetController extends Controller
 
     public function update(UpdateCrossCutChecksheetRequest $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         try {
             $this->crossCutService->updateChecksheet($id, $request->validated());
             return redirect()->route('cross_cut.index')->with('success', 'Data berhasil diperbarui.');
@@ -193,6 +205,9 @@ class CrossCutChecksheetController extends Controller
 
     public function destroy(Request $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         try {
             $this->crossCutService->deleteChecksheet($id);
 

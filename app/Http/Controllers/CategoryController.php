@@ -35,6 +35,9 @@ class CategoryController extends Controller
      */
     public function create()
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         return view('categories.create');
     }
 
@@ -52,6 +55,9 @@ class CategoryController extends Controller
      */
     public function edit($id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $category = $this->categoryService->findCategory($id);
         return view('categories.edit', compact('category'));
     }
@@ -70,6 +76,9 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $this->categoryService->deleteCategory($id);
         return redirect()->route('categories.index', $request->only('plant'))->with('success', 'Kategori berhasil dihapus.');
     }

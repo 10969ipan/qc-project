@@ -114,6 +114,9 @@ class SubAssyChecksheetController extends Controller
     // Tampilkan form (diupdate untuk mengirim data items)
     public function create(Request $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $user = auth()->user();
 
         // Roles that can switch between plants via request parameter
@@ -145,6 +148,9 @@ class SubAssyChecksheetController extends Controller
     // Simpan data (submission)
     public function store(StoreSubAssyChecksheetRequest $request)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         $result = $this->checksheetService->createChecksheet(
             $request->validated(),
             fn($checksheet) => $this->mapExportRow($checksheet)
@@ -163,6 +169,9 @@ class SubAssyChecksheetController extends Controller
     // Edit Checksheet
     public function edit($id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $query = SubAssyChecksheet::query();
         if (auth()->user()->role === 'admin') {
             $query->withoutGlobalScope('plant');
@@ -176,6 +185,9 @@ class SubAssyChecksheetController extends Controller
     // Update Checksheet
     public function update(UpdateSubAssyChecksheetRequest $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action.');
+        }
         $this->checksheetService->updateChecksheet($id, $request->validated());
         return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Checksheet berhasil diperbarui.');
     }
@@ -183,6 +195,9 @@ class SubAssyChecksheetController extends Controller
     // Delete Checksheet
     public function destroy(Request $request, $id)
     {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        }
         $this->checksheetService->deleteChecksheet($id);
 
         // Preserve plant parameter when redirecting back
