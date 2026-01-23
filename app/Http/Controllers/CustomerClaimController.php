@@ -83,19 +83,29 @@ class CustomerClaimController extends Controller
                 ->with('error', 'Anda tidak memiliki akses untuk menambah data.');
         }
 
+        $isTotalPlant = false;
+        if ($request->filled('plant_id')) {
+            $isTotalPlant = Plant::where('id', $request->plant_id)->where('code', 'total')->exists();
+        }
+
         $validated = $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'year' => 'required|integer|min:2020|max:2100',
             'month' => 'required|integer|min:0|max:12', // Allowed 0 for yearly
-            'ppm_value' => 'required|numeric|min:0',
-            'target_value' => 'required|numeric|min:0',
+            'ppm_value' => $isTotalPlant ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
+            'target_value' => $isTotalPlant ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
+            'total_claims' => 'required|numeric|min:0',
         ], [
             'plant_id.required' => 'Plant harus dipilih',
             'year.required' => 'Tahun harus diisi',
             'month.required' => 'Bulan harus dipilih',
             'ppm_value.required' => 'Nilai PPM harus diisi',
             'target_value.required' => 'Target harus diisi',
+            'total_claims.required' => 'Total claim harus diisi',
         ]);
+
+        $validated['ppm_value'] = $validated['ppm_value'] ?? 0;
+        $validated['target_value'] = $validated['target_value'] ?? 0;
 
         $validated['created_by'] = auth()->id();
 
@@ -144,13 +154,22 @@ class CustomerClaimController extends Controller
                 ->with('error', 'Anda tidak memiliki akses untuk mengupdate data.');
         }
 
+        $isTotalPlant = false;
+        if ($request->filled('plant_id')) {
+            $isTotalPlant = Plant::where('id', $request->plant_id)->where('code', 'total')->exists();
+        }
+
         $validated = $request->validate([
             'plant_id' => 'required|exists:plants,id',
             'year' => 'required|integer|min:2020|max:2100',
             'month' => 'required|integer|min:0|max:12', // Allowed 0 for yearly
-            'ppm_value' => 'required|numeric|min:0',
-            'target_value' => 'required|numeric|min:0',
+            'ppm_value' => $isTotalPlant ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
+            'target_value' => $isTotalPlant ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
+            'total_claims' => 'required|numeric|min:0',
         ]);
+
+        $validated['ppm_value'] = $validated['ppm_value'] ?? 0;
+        $validated['target_value'] = $validated['target_value'] ?? 0;
 
         try {
             $customerClaim->update($validated);
@@ -277,8 +296,10 @@ class CustomerClaimController extends Controller
             'year' => 'required|integer|min:2020|max:2100',
             'data.*.ppm_value' => 'nullable|numeric|min:0',
             'data.*.target_value' => 'nullable|numeric|min:0',
+            'data.*.total_claims' => 'nullable|numeric|min:0',
             'ppm_value' => 'nullable|numeric|min:0',
             'target_value' => 'nullable|numeric|min:0',
+            'total_claims' => 'nullable|numeric|min:0',
         ]);
 
         $plantId = $request->plant_id;
@@ -286,8 +307,9 @@ class CustomerClaimController extends Controller
         // process annual summary (month = 0) if provided
         $ppmValue = $request->input('ppm_value');
         $targetValue = $request->input('target_value');
+        $totalClaims = $request->input('total_claims');
 
-        if (($ppmValue !== null && $ppmValue !== '') || ($targetValue !== null && $targetValue !== '')) {
+        if (($ppmValue !== null && $ppmValue !== '') || ($targetValue !== null && $targetValue !== '') || ($totalClaims !== null && $totalClaims !== '')) {
             CustomerClaim::withoutGlobalScope('plant')->updateOrCreate(
                 [
                     'plant_id' => $plantId,
@@ -297,6 +319,7 @@ class CustomerClaimController extends Controller
                 [
                     'ppm_value' => $ppmValue ?? 0,
                     'target_value' => $targetValue ?? 0,
+                    'total_claims' => $totalClaims ?? 0,
                     'created_by' => auth()->id(),
                 ]
             );
@@ -308,7 +331,8 @@ class CustomerClaimController extends Controller
             foreach ($bulkData as $month => $values) {
                 if (
                     ($values['ppm_value'] !== null && $values['ppm_value'] !== '') ||
-                    ($values['target_value'] !== null && $values['target_value'] !== '')
+                    ($values['target_value'] !== null && $values['target_value'] !== '') ||
+                    ($values['total_claims'] !== null && $values['total_claims'] !== '')
                 ) {
                     CustomerClaim::withoutGlobalScope('plant')->updateOrCreate(
                         [
@@ -319,6 +343,7 @@ class CustomerClaimController extends Controller
                         [
                             'ppm_value' => $values['ppm_value'] ?? 0,
                             'target_value' => $values['target_value'] ?? 0,
+                            'total_claims' => $values['total_claims'] ?? 0,
                             'created_by' => auth()->id(),
                         ]
                     );

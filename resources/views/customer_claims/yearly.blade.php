@@ -44,38 +44,57 @@
                             <i class="fas fa-chart-line mr-1"></i> Ringkasan / Target Tahunan (Month = 0)
                         </h6>
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-0">
-                                    <label class="small font-weight-bold">PPM Value (Tahunan)</label>
-                                    @php
-                                        $summaryPpm = '';
-                                        if ($existingData instanceof \Illuminate\Database\Eloquent\Model) {
-                                            $summaryPpm = $existingData->ppm_value;
-                                        } elseif ($existingData instanceof \Illuminate\Support\Collection && $existingData->has(0)) {
-                                            $summaryPpm = $existingData->get(0)->ppm_value;
-                                        }
-                                    @endphp
-                                    <input type="number" step="0.01" name="ppm_value" class="form-control"
-                                        placeholder="Contoh: 15.50"
-                                        value="{{ old('ppm_value', $summaryPpm) }}">
+                            @if(request('plant') === 'total')
+                                <div class="col-md-12">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">Total Claim (Tahunan)</label>
+                                        @php
+                                            $summaryTotal = '';
+                                            if ($existingData instanceof \Illuminate\Database\Eloquent\Model) {
+                                                $summaryTotal = $existingData->total_claims;
+                                            } elseif ($existingData instanceof \Illuminate\Support\Collection && $existingData->has(0)) {
+                                                $summaryTotal = $existingData->get(0)->total_claims;
+                                            }
+                                        @endphp
+                                        <input type="number" step="0.01" name="total_claims" class="form-control"
+                                            placeholder="0" value="{{ old('total_claims', $summaryTotal) }}">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-0">
-                                    <label class="small font-weight-bold">Target PPM (Tahunan)</label>
-                                    @php
-                                        $summaryTarget = '';
-                                        if ($existingData instanceof \Illuminate\Database\Eloquent\Model) {
-                                            $summaryTarget = $existingData->target_value;
-                                        } elseif ($existingData instanceof \Illuminate\Support\Collection && $existingData->has(0)) {
-                                            $summaryTarget = $existingData->get(0)->target_value;
-                                        }
-                                    @endphp
-                                    <input type="number" step="0.01" name="target_value" class="form-control"
-                                        placeholder="Contoh: 5.00"
-                                        value="{{ old('target_value', $summaryTarget) }}">
+                                <input type="hidden" name="ppm_value" value="0">
+                                <input type="hidden" name="target_value" value="0">
+                            @else
+                                <div class="col-md-6">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">PPM Value (Tahunan)</label>
+                                        @php
+                                            $summaryPpm = '';
+                                            if ($existingData instanceof \Illuminate\Database\Eloquent\Model) {
+                                                $summaryPpm = $existingData->ppm_value;
+                                            } elseif ($existingData instanceof \Illuminate\Support\Collection && $existingData->has(0)) {
+                                                $summaryPpm = $existingData->get(0)->ppm_value;
+                                            }
+                                        @endphp
+                                        <input type="number" step="0.01" name="ppm_value" class="form-control"
+                                            placeholder="Contoh: 15.50" value="{{ old('ppm_value', $summaryPpm) }}">
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">Target PPM (Tahunan)</label>
+                                        @php
+                                            $summaryTarget = '';
+                                            if ($existingData instanceof \Illuminate\Database\Eloquent\Model) {
+                                                $summaryTarget = $existingData->target_value;
+                                            } elseif ($existingData instanceof \Illuminate\Support\Collection && $existingData->has(0)) {
+                                                $summaryTarget = $existingData->get(0)->target_value;
+                                            }
+                                        @endphp
+                                        <input type="number" step="0.01" name="target_value" class="form-control"
+                                            placeholder="Contoh: 5.00" value="{{ old('target_value', $summaryTarget) }}">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="total_claims" value="0">
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -94,8 +113,12 @@
                                     <thead class="bg-light">
                                         <tr class="text-center">
                                             <th width="200">Bulan</th>
-                                            <th>PPM Value</th>
-                                            <th>Target PPM</th>
+                                            @if(request('plant') === 'total')
+                                                <th>Total Claim</th>
+                                            @else
+                                                <th>PPM Value</th>
+                                                <th>Target PPM</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -105,16 +128,27 @@
                                             @endphp
                                             <tr>
                                                 <td class="align-middle font-weight-bold text-gray-800">{{ $name }}</td>
-                                                <td>
-                                                    <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]"
-                                                        class="form-control" placeholder="0.00"
-                                                        value="{{ old("data.$num.ppm_value", $claim ? $claim->ppm_value : '') }}">
-                                                </td>
-                                                <td>
-                                                    <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
-                                                        class="form-control" placeholder="0.00"
-                                                        value="{{ old("data.$num.target_value", $claim ? $claim->target_value : '') }}">
-                                                </td>
+                                                @if(request('plant') === 'total')
+                                                    <td>
+                                                        <input type="number" step="0.01" name="data[{{ $num }}][total_claims]"
+                                                            class="form-control" placeholder="0"
+                                                            value="{{ old("data.$num.total_claims", $claim ? $claim->total_claims : '') }}">
+                                                        <input type="hidden" name="data[{{ $num }}][ppm_value]" value="0">
+                                                        <input type="hidden" name="data[{{ $num }}][target_value]" value="0">
+                                                    </td>
+                                                @else
+                                                    <td>
+                                                        <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]"
+                                                            class="form-control" placeholder="0.00"
+                                                            value="{{ old("data.$num.ppm_value", $claim ? $claim->ppm_value : '') }}">
+                                                        <input type="hidden" name="data[{{ $num }}][total_claims]" value="0">
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
+                                                            class="form-control" placeholder="0.00"
+                                                            value="{{ old("data.$num.target_value", $claim ? $claim->target_value : '') }}">
+                                                    </td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                     </tbody>

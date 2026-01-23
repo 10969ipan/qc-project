@@ -203,22 +203,26 @@ class DashboardService extends BaseService
 
         $jakartaPlantId = Plant::resolveId('jakarta');
         $karawangPlantId = Plant::resolveId('karawang');
+        $totalPlantId = Plant::resolveId('total');
 
         $labels = [];
         $jakartaPpm = [];
         $karawangPpm = [];
+        $combinedTotal = [];
         $targets = [];
 
         for ($m = 1; $m <= 12; $m++) {
             $labels[] = \Carbon\Carbon::createFromDate($year, $m, 1)->format('M');
             $jkt = $claims->where('month', $m)->where('plant_id', $jakartaPlantId)->first();
             $krw = $claims->where('month', $m)->where('plant_id', $karawangPlantId)->first();
+            $totalData = $claims->where('month', $m)->where('plant_id', $totalPlantId)->first();
 
             // Get target from any record in that month, or default to 0
             $target = ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
 
             $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
             $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $combinedTotal[] = (int) ($totalData->total_claims ?? 0);
             $targets[] = (float) $target;
         }
 
@@ -227,6 +231,7 @@ class DashboardService extends BaseService
             'labels' => $labels,
             'jakarta' => $jakartaPpm,
             'karawang' => $karawangPpm,
+            'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => false
         ];
@@ -241,12 +246,14 @@ class DashboardService extends BaseService
         $currentYear = (int) date('Y');
         $years = range($currentYear - 4, $currentYear);
 
-        $jakartaPlant = Plant::where('code', 'jakarta')->first();
-        $karawangPlant = Plant::where('code', 'karawang')->first();
+        $jakartaPlantId = Plant::where('code', 'jakarta')->value('id');
+        $karawangPlantId = Plant::where('code', 'karawang')->value('id');
+        $totalPlantId = Plant::where('code', 'total')->value('id');
 
         $labels = [];
         $jakartaPpm = [];
         $karawangPpm = [];
+        $combinedTotal = [];
         $targets = [];
 
         foreach ($years as $year) {
@@ -254,7 +261,7 @@ class DashboardService extends BaseService
 
             // Jakarta average for the year
             $jktData = CustomerClaim::withoutGlobalScope('plant')
-                ->where('plant_id', $jakartaPlant->id ?? null)
+                ->where('plant_id', $jakartaPlantId)
                 ->where('year', $year)
                 ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target')
                 ->first();
@@ -263,12 +270,21 @@ class DashboardService extends BaseService
 
             // Karawang average for the year
             $krwData = CustomerClaim::withoutGlobalScope('plant')
-                ->where('plant_id', $karawangPlant->id ?? null)
+                ->where('plant_id', $karawangPlantId)
                 ->where('year', $year)
                 ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target')
                 ->first();
 
             $karawangPpm[] = $krwData->avg_ppm ? round($krwData->avg_ppm, 2) : 0;
+
+            // Total claims from plant 'total' (Month 0 for yearly summary)
+            $totalYearlyData = CustomerClaim::withoutGlobalScope('plant')
+                ->where('plant_id', $totalPlantId)
+                ->where('year', $year)
+                ->where('month', 0)
+                ->first();
+
+            $combinedTotal[] = (float) ($totalYearlyData->total_claims ?? 0);
 
             // Use average target between plants or from one if other is missing
             $target = 0;
@@ -285,6 +301,7 @@ class DashboardService extends BaseService
             'labels' => $labels,
             'jakarta' => $jakartaPpm,
             'karawang' => $karawangPpm,
+            'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => true
         ];
@@ -315,12 +332,14 @@ class DashboardService extends BaseService
 
         $historicalYears = range(2022, $monthlyYear - 1);
 
-        $jakartaPlantId = Plant::resolveId('jakarta');
-        $karawangPlantId = Plant::resolveId('karawang');
+        $jakartaPlantId = Plant::where('code', 'jakarta')->value('id');
+        $karawangPlantId = Plant::where('code', 'karawang')->value('id');
+        $totalPlantId = Plant::where('code', 'total')->value('id');
 
         $labels = [];
         $jakartaPpm = [];
         $karawangPpm = [];
+        $combinedTotal = [];
         $targets = [];
 
         // 1. Get Historical Yearly Data (Month = 0)
@@ -339,8 +358,15 @@ class DashboardService extends BaseService
                 ->where('plant_id', $karawangPlantId)
                 ->first();
 
+            $totalData = CustomerClaim::withoutGlobalScope('plant')
+                ->where('year', $year)
+                ->where('month', 0)
+                ->where('plant_id', $totalPlantId)
+                ->first();
+
             $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
             $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $combinedTotal[] = (float) ($totalData->total_claims ?? 0);
             $targets[] = (float) ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
         }
 
@@ -355,9 +381,11 @@ class DashboardService extends BaseService
 
             $jkt = $monthlyYearClaims->where('month', $m)->where('plant_id', $jakartaPlantId)->first();
             $krw = $monthlyYearClaims->where('month', $m)->where('plant_id', $karawangPlantId)->first();
+            $totalData = $monthlyYearClaims->where('month', $m)->where('plant_id', $totalPlantId)->first();
 
             $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
             $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $combinedTotal[] = (float) ($totalData->total_claims ?? 0);
             $targets[] = (float) ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
         }
 
@@ -367,6 +395,7 @@ class DashboardService extends BaseService
             'labels' => $labels,
             'jakarta' => $jakartaPpm,
             'karawang' => $karawangPpm,
+            'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => false // Using monthly-style rendering but with custom labels
         ];

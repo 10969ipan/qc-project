@@ -14,12 +14,14 @@ class CustomerClaim extends Model
         'month',
         'ppm_value',
         'target_value',
+        'total_claims',
         'created_by',
     ];
 
     protected $casts = [
         'ppm_value' => 'decimal:2',
         'target_value' => 'decimal:2',
+        'total_claims' => 'decimal:2',
     ];
 
     /**

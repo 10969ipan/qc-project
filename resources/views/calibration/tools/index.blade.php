@@ -29,8 +29,8 @@
         }
 
         .col-aksi {
-            width: 125px !important;
-            min-width: 125px !important;
+            width: 100px !important;
+            min-width: 100px !important;
         }
 
         .col-no {
@@ -128,17 +128,17 @@
 
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Filter Pencarian</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Filter</h6>
             </div>
             <div class="card-body">
                 <form action="{{ route('calibration.tools.index') }}" method="GET" class="row align-items-end">
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
 
-                    <!-- Input PR / Pencarian -->
+                    <!-- Pencarian Alat -->
                     <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Input PR / Pencarian</label>
-                            <input type="text" name="search" class="form-control" placeholder="No PR, Nama Alat..."
+                            <label class="small font-weight-bold text-dark">Pencarian Alat</label>
+                            <input type="text" name="search" class="form-control" placeholder="Nama / No. Seri"
                                 value="{{ request('search') }}">
                         </div>
                     </div>
@@ -146,7 +146,7 @@
                     <!-- Jenis Kalibrasi -->
                     <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Jenis Kalibrasi</label>
+                            <label class="small font-weight-bold text-dark">Jenis Kalibrasi</label>
                             <select name="jenis_kalibrasi" class="form-control">
                                 <option value="">Semua</option>
                                 <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>
@@ -160,7 +160,7 @@
                     <!-- Planning Dari -->
                     <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Planning Dari</label>
+                            <label class="small font-weight-bold text-dark">Planning Dari</label>
                             <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
                         </div>
                     </div>
@@ -168,7 +168,7 @@
                     <!-- Sampai -->
                     <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Sampai</label>
+                            <label class="small font-weight-bold text-dark">Sampai</label>
                             <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
                         </div>
                     </div>
@@ -176,7 +176,7 @@
                     <!-- Status -->
                     <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Status</label>
+                            <label class="small font-weight-bold text-dark">Status</label>
                             <select name="verification_status" class="form-control">
                                 <option value="">Semua</option>
                                 <option value="ok" {{ request('verification_status') === 'ok' ? 'selected' : '' }}>
@@ -190,11 +190,11 @@
                     <!-- Buttons -->
                     <div class="col-md-2">
                         <div class="d-flex" style="gap: 5px;">
-                            <button type="submit" class="btn btn-primary flex-fill" title="Cari Data">
+                            <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.5rem;" title="Cari Data">
                                 <i class="fas fa-search"></i>
                             </button>
                             <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
-                                class="btn btn-secondary flex-fill" title="Reset Filter">
+                                class="btn btn-secondary" style="padding: 0.5rem 1.5rem;" title="Reset Filter">
                                 <i class="fas fa-undo"></i>
                             </a>
                         </div>
@@ -306,6 +306,12 @@
                                                         $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
                                                         $statusText = 'Sudah Verifikasi';
                                                         $isClickable = true;
+                                                    } elseif ($tool->jenis_kalibrasi === 'Internal') {
+                                                        $icon = '<div class="d-inline-block position-relative" title="Siap Verifikasi" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                                            '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
+                                                            '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                            '</div>';
+                                                        $statusText = 'Siap Verifikasi';
                                                     } elseif ($item->pr_number) {
                                                         $diffDays = $today->diffInDays($planningDate, false);
 
@@ -351,17 +357,17 @@
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             <a href="{{ route('calibration.verifications.create', ['plant' => $plantCode, 'tool_id' => $tool->id]) }}"
                                                 class="btn btn-sm btn-success" title="Input Verifikasi">
-                                                <i class="fas fa-check-circle"></i> VERIF
+                                                <i class="fas fa-check-circle"></i>
                                             </a>
 
                                             <a href="{{ route('calibration.tools.edit', [$tool->id, 'plant' => $plantCode]) }}"
                                                 class="btn btn-sm btn-info" title="Edit">
-                                                <i class="fas fa-edit"></i> EDIT
+                                                <i class="fas fa-edit"></i>
                                             </a>
 
                                             <button type="button" class="btn btn-sm btn-danger"
                                                 onclick="confirmDeleteTool('{{ $tool->id }}')" title="Hapus">
-                                                <i class="fas fa-trash"></i> DEL
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                             <form id="delete-tool-form-{{ $tool->id }}"
                                                 action="{{ route('calibration.tools.destroy', $tool->id) }}" method="POST"
@@ -377,7 +383,7 @@
                                                 data-target="#pdfModal"
                                                 data-url="{{ asset('storage/' . $tool->certification_path) }}"
                                                 data-title="Sertifikat - {{ $tool->name_alat }}">
-                                                <i class="fas fa-file-pdf"></i> PDF
+                                                <i class="fas fa-file-pdf"></i>
                                             </button>
                                         @endif
                                     </div>

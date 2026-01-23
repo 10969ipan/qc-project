@@ -71,39 +71,65 @@
                                     <option value="{{ $num }}" {{ old('month') == $num ? 'selected' : '' }}>{{ $name }}</option>
                                 @endforeach
                             </select>
+                            <small class="form-text text-muted">Pilih Bulan 0 untuk summary Tahunan</small>
                             @error('month')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="ppm_value" class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="ppm_value" id="ppm_value" 
-                                class="form-control @error('ppm_value') is-invalid @enderror" 
-                                value="{{ old('ppm_value') }}" min="0" required>
-                            @error('ppm_value')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="form-text text-muted">Nilai PPM claim customer</small>
+                    @if(request('plant') !== 'total')
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ppm_value" class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" name="ppm_value" id="ppm_value" 
+                                    class="form-control @error('ppm_value') is-invalid @enderror" 
+                                    value="{{ old('ppm_value') }}" min="0" required>
+                                @error('ppm_value')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">Nilai PPM claim customer</small>
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <input type="hidden" name="ppm_value" value="0">
+                    @endif
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="target_value" class="font-weight-bold">Target <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="target_value" id="target_value" 
-                                class="form-control @error('target_value') is-invalid @enderror" 
-                                value="{{ old('target_value', 0) }}" min="0" required>
-                            @error('target_value')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="form-text text-muted">Target PPM yang ingin dicapai</small>
+                    @if(request('plant') === 'total')
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="total_claims" class="font-weight-bold">Total Claim <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" name="total_claims" id="total_claims" 
+                                    class="form-control @error('total_claims') is-invalid @enderror" 
+                                    value="{{ old('total_claims', 0) }}" min="0" required>
+                                @error('total_claims')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">Jumlah total claim customer (Angka)</small>
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <input type="hidden" name="total_claims" value="0">
+                    @endif
+
+                    @if(request('plant') !== 'total')
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="target_value" class="font-weight-bold">Target <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" name="target_value" id="target_value" 
+                                    class="form-control @error('target_value') is-invalid @enderror" 
+                                    value="{{ old('target_value', 0) }}" min="0" required>
+                                @error('target_value')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">Target PPM yang ingin dicapai</small>
+                            </div>
+                        </div>
+                    @else
+                        <input type="hidden" name="target_value" value="0">
+                    @endif
                 </div>
 
                 <div class="form-group mt-4">

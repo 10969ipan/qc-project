@@ -39,7 +39,7 @@
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
                 aria-controls="collapseQC">
-                <i class="fas fa-fw fa-search"></i>
+                <i class="fas fa-fw fa-clipboard-check"></i>
                 <span>Quality Control</span>
             </a>
             <div id="collapseQC" class="collapse" aria-labelledby="headingQC" data-parent="#accordionSidebar">

@@ -429,13 +429,15 @@
 
         .top-brand-row {
             width: 100%;
+            height: 50px !important;
+            /* Fixed height to stabilize topbar */
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.35rem 1.5rem;
-            /* Even more compact */
+            padding: 0 1.5rem !important;
             background: transparent;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
         .sidebar-brand-text {
@@ -446,9 +448,13 @@
 
         .nav-menu-row {
             width: 100%;
+            height: 40px !important;
+            /* Fixed height to stabilize topbar */
             background: rgba(0, 0, 0, 0.1);
-            /* Subtle darkening for menu row */
-            padding: 0 1.5rem;
+            padding: 0 1.5rem !important;
+            display: flex;
+            align-items: center;
+            position: relative;
         }
 
         .topbar .topbar-divider {
@@ -462,7 +468,7 @@
             padding: 0;
         }
 
-        .main-nav>li {
+        .main-nav li {
             position: relative;
         }
 
@@ -613,19 +619,43 @@
         }
 
         .main-nav>li>a {
-            padding: 0.55rem 1.25rem !important;
+            padding: 0.6rem 1.25rem !important;
             font-size: 0.8rem !important;
             font-weight: 600 !important;
             white-space: nowrap !important;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Fix for potential layout shift on dropdown open */
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+        #content-wrapper {
+            transition: all 0.3s ease;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+        }
+
+        body.sidebar-toggled #content-wrapper {
+            width: 100% !important;
         }
 
         /* Notification Dropdown Overrides for Top Nav */
         .topbar .dropdown-list {
-            width: 280px !important;
+            width: 320px !important;
+            /* Slightly wider for better text display */
             padding: 0;
             border: 1px solid #e3e6f0 !important;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
-            margin-top: -1px !important;
+            margin-top: 0 !important;
+            position: absolute !important;
+            top: 100% !important;
+            right: 0 !important;
+            z-index: 1060 !important;
         }
 
         .topbar .dropdown-list .dropdown-header {
@@ -657,6 +687,127 @@
         #notification-list {
             max-height: 350px;
             overflow-y: auto;
+        }
+
+        /* General Dropdown Overrides for Topbar */
+        .topbar .dropdown-menu {
+            position: absolute !important;
+            top: 100% !important;
+            right: 0 !important;
+            z-index: 1060 !important;
+            margin-top: 0 !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Ensure dropdowns don't expand their parents in flex containers */
+        .topbar .nav-item.dropdown {
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+
+        /* --- MOBILE NAVIGATION RESPONSIVENESS --- */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.25rem;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-toggle:focus {
+            outline: none;
+            border-color: white;
+        }
+
+        @media (max-width: 991.98px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-menu-row {
+                display: none;
+                /* Hidden by default on mobile */
+                flex-direction: column;
+                height: auto !important;
+                padding: 0.5rem 1.5rem !important;
+                background: #224abe !important;
+                /* Solid background for readability */
+                position: absolute;
+                top: 50px;
+                /* Below top-brand-row */
+                left: 0;
+                right: 0;
+                z-index: 1050;
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            }
+
+            .nav-menu-row.show {
+                display: flex;
+            }
+
+            .main-nav {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .main-nav>li {
+                width: 100%;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .main-nav>li:last-child {
+                border-bottom: none;
+            }
+
+            .main-nav>li>a {
+                padding: 0.75rem 0 !important;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            /* Sub-menus adjustment for mobile */
+            .main-nav .dropdown-menu {
+                position: static !important;
+                float: none;
+                width: 100% !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0.5rem 0 0.5rem 1rem !important;
+            }
+
+            .main-nav .dropdown-menu .dropdown-item {
+                color: rgba(255, 255, 255, 0.8) !important;
+                padding: 0.5rem 0 !important;
+                font-size: 0.75rem !important;
+            }
+
+            .main-nav .dropdown-menu .dropdown-item:hover {
+                background: transparent !important;
+                color: white !important;
+            }
+
+            /* Sub-sub-menus (3rd level) adjustment for mobile */
+            .main-nav .sub-menu {
+                padding-left: 1.5rem !important;
+            }
+
+            .topbar .topbar-divider {
+                display: none;
+                /* Hide dividers in vertical list */
+            }
         }
     </style>
 

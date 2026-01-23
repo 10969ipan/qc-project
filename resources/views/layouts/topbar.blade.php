@@ -10,6 +10,9 @@
     <!-- Top Row: Branding and User Profile -->
     <div class="top-brand-row">
         <div class="d-flex align-items-center">
+            <button class="menu-toggle mr-2" id="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
             <a class="sidebar-brand d-flex align-items-center text-decoration-none" href="/">
                 <div class="sidebar-brand-icon rotate-n-15 mr-2">
                     <i class="fas fa-laugh-wink text-white" style="font-size: 1.5rem;"></i>
@@ -68,7 +71,7 @@
     </div>
 
     <!-- Bottom Row: Navigation Menu -->
-    <div class="nav-menu-row">
+    <div class="nav-menu-row" id="topbar-nav-menu">
         <ul class="main-nav">
             <li class="{{ Request::is('/') ? 'active' : '' }}">
                 <a href="/"><i class="fas fa-tachometer-alt mr-1"></i> DASHBOARD</a>
@@ -77,7 +80,7 @@
             <!-- Quality Control -->
             @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
                 <li>
-                    <a href="#"><i class="fas fa-search mr-1"></i> Quality Control <i
+                    <a href="#"><i class="fas fa-clipboard-check mr-1"></i> Quality Control <i
                             class="fas fa-chevron-down ml-1 small"></i></a>
                     <ul class="dropdown-menu">
                         <!-- Plant Jakarta QC -->
@@ -86,17 +89,42 @@
                                 <a href="#" class="dropdown-item">PLANT JAKARTA <i
                                         class="fas fa-chevron-right submenu-arrow"></i></a>
                                 <ul class="dropdown-menu sub-menu">
-                                    <a class="dropdown-item font-weight-bold bg-light" href="#">MASTER DATA</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('admin.items.index', ['plant' => 'jakarta']) }}">Data Item</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item font-weight-bold bg-light" href="#">CHECKSHEET</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <li>
+                                        <a href="#" class="dropdown-item">MASTER DATA <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('admin.items.index', ['plant' => 'jakarta']) }}">Data Item</a>
+                                            <a class="dropdown-item" href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori</a>
+                                        </ul>
+                                    </li>
+
+                                    @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                    <li>
+                                        <a href="#" class="dropdown-item">ANALYSIS <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('analysis.monthly_ng', ['plant' => 'jakarta']) }}">Sub Assy Anls</a>
+                                            <a class="dropdown-item" href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'jakarta']) }}">Inprocess Anls</a>
+                                        </ul>
+                                    </li>
+                                    @endif
+
+                                    <li>
+                                        <a href="#" class="dropdown-item">CHECKSHEET <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
+                                            <a class="dropdown-item" href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                        </ul>
+                                    </li>
+
+                                    @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                                    <li>
+                                        <a href="#" class="dropdown-item">LAPORAN <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub Assy</a>
+                                            <a class="dropdown-item" href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                            <a class="dropdown-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
+                                        </ul>
+                                    </li>
+                                    @endif
                                 </ul>
                             </li>
                         @endif
@@ -107,19 +135,45 @@
                                 <a href="#" class="dropdown-item">PLANT KARAWANG <i
                                         class="fas fa-chevron-right submenu-arrow"></i></a>
                                 <ul class="dropdown-menu sub-menu">
-                                    <a class="dropdown-item font-weight-bold bg-light" href="#">MASTER DATA</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('admin.items.index', ['plant' => 'karawang']) }}">Data Item</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item font-weight-bold bg-light" href="#">CHECKSHEET</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub Assy</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
-                                    <a class="dropdown-item"
-                                        href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross Cut</a>
+                                    <li>
+                                        <a href="#" class="dropdown-item">MASTER DATA <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('admin.items.index', ['plant' => 'karawang']) }}">Data Item</a>
+                                            <a class="dropdown-item" href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
+                                        </ul>
+                                    </li>
+
+                                    @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                    <li>
+                                        <a href="#" class="dropdown-item">ANALYSIS <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('analysis.monthly_ng', ['plant' => 'karawang']) }}">Sub Assy Anls</a>
+                                            <a class="dropdown-item" href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'karawang']) }}">Inprocess Anls</a>
+                                            <a class="dropdown-item" href="{{ route('analysis.monthly_ng_cross_cut', ['plant' => 'karawang']) }}">Cross Cut Anls</a>
+                                        </ul>
+                                    </li>
+                                    @endif
+
+                                    <li>
+                                        <a href="#" class="dropdown-item">CHECKSHEET <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub Assy</a>
+                                            <a class="dropdown-item" href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
+                                            <a class="dropdown-item" href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross Cut</a>
+                                        </ul>
+                                    </li>
+
+                                    @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                                    <li>
+                                        <a href="#" class="dropdown-item">LAPORAN <i class="fas fa-chevron-right submenu-arrow"></i></a>
+                                        <ul class="dropdown-menu sub-menu">
+                                            <a class="dropdown-item" href="{{ route('admin.checksheets.index', ['plant' => 'karawang']) }}">Sub Assy</a>
+                                            <a class="dropdown-item" href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
+                                            <a class="dropdown-item" href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross Cut</a>
+                                            <a class="dropdown-item" href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
+                                        </ul>
+                                    </li>
+                                    @endif
                                 </ul>
                             </li>
                         @endif
@@ -134,12 +188,35 @@
                             class="fas fa-chevron-down ml-1 small"></i></a>
                     <ul class="dropdown-menu">
                         @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                            <a class="dropdown-item"
-                                href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">CLAIM JKT</a>
+                            <li>
+                                <a href="#" class="dropdown-item">PLANT JAKARTA <i
+                                        class="fas fa-chevron-right submenu-arrow"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <a class="dropdown-item"
+                                        href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">Claim
+                                        Customer</a>
+                                </ul>
+                            </li>
                         @endif
+
                         @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                            <a class="dropdown-item"
-                                href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">CLAIM KRW</a>
+                            <li>
+                                <a href="#" class="dropdown-item">PLANT KARAWANG <i
+                                        class="fas fa-chevron-right submenu-arrow"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <a class="dropdown-item"
+                                        href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">Claim
+                                        Customer</a>
+                                </ul>
+                            </li>
+                        @endif
+
+                        @if($canInputAllPlants)
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item font-weight-bold text-primary"
+                                href="{{ route('admin.customer-claims.index', ['plant' => 'total']) }}">
+                                <i class="fas fa-plus-circle mr-1"></i> Input Total Claim Customer
+                            </a>
                         @endif
                     </ul>
                 </li>
@@ -248,19 +325,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                    <div class="mr-3">
-                                        <div class="icon-circle ${iconClass}">
-                                            <i class="${icon} text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">${timeAgo}</div>
-                                        <span class="${unreadClass}">${notif.title}</span>
-                                        <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                    </div>
-                                </a>
-                            `;
+                                                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                            <div class="mr-3">
+                                                                <div class="icon-circle ${iconClass}">
+                                                                    <i class="${icon} text-white"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <div class="small text-gray-500">${timeAgo}</div>
+                                                                <span class="${unreadClass}">${notif.title}</span>
+                                                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                            </div>
+                                                        </a>
+                                                    `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {
@@ -317,6 +394,49 @@
 
             fetchNotifications();
             setInterval(fetchNotifications, 60000);
+
+            // Mobile Menu Toggle
+            const menuToggle = document.getElementById('mobile-menu-toggle');
+            const navMenu = document.getElementById('topbar-nav-menu');
+
+            if (menuToggle && navMenu) {
+                menuToggle.addEventListener('click', function () {
+                    navMenu.classList.toggle('show');
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', function (event) {
+                    if (!navMenu.contains(event.target) && !menuToggle.contains(event.target)) {
+                        navMenu.classList.remove('show');
+                    }
+                });
+
+                // Toggle sub-menus on mobile clock
+                const subMenuToggles = navMenu.querySelectorAll('.main-nav > li > a, .main-nav .dropdown-menu > li > a');
+                subMenuToggles.forEach(toggle => {
+                    toggle.addEventListener('click', function (e) {
+                        if (window.innerWidth < 992) {
+                            const nextMenu = this.nextElementSibling;
+                            if (nextMenu && (nextMenu.classList.contains('dropdown-menu') || nextMenu.classList.contains('sub-menu'))) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Close other sub-menus at the same level
+                                const parentUl = this.parentElement.parentElement;
+                                parentUl.querySelectorAll(':scope > li > .dropdown-menu, :scope > li > .sub-menu').forEach(menu => {
+                                    if (menu !== nextMenu) {
+                                        menu.style.display = 'none';
+                                    }
+                                });
+
+                                // Toggle current menu
+                                const isVisible = window.getComputedStyle(nextMenu).display !== 'none';
+                                nextMenu.style.display = isVisible ? 'none' : 'block';
+                            }
+                        }
+                    });
+                });
+            }
         });
     </script>
     <style>

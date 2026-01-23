@@ -100,8 +100,12 @@
                             <th>Plant</th>
                             <th>Tahun</th>
                             <th>Bulan</th>
-                            <th>PPM Value</th>
-                            <th>Target</th>
+                            @if(request('plant') === 'total')
+                                <th>Total Claim</th>
+                            @else
+                                <th>PPM Value</th>
+                                <th>Target</th>
+                            @endif
                             <th>Dibuat Oleh</th>
                             <th>Aksi</th>
                         </tr>
@@ -117,12 +121,18 @@
                                 </td>
                                 <td class="align-middle">{{ $claim->year }}</td>
                                 <td class="align-middle">{{ $claim->month_name }}</td>
-                                <td class="align-middle">
-                                    <span class="badge badge-primary">{{ number_format($claim->ppm_value, 2) }}</span>
-                                </td>
-                                <td class="align-middle">
-                                    <span class="badge badge-danger">{{ number_format($claim->target_value, 2) }}</span>
-                                </td>
+                                @if(request('plant') === 'total')
+                                    <td class="align-middle">
+                                        <span class="badge badge-secondary">{{ number_format($claim->total_claims, 2) }}</span>
+                                    </td>
+                                @else
+                                    <td class="align-middle">
+                                        <span class="badge badge-primary">{{ number_format($claim->ppm_value, 2) }}</span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-danger">{{ number_format($claim->target_value, 2) }}</span>
+                                    </td>
+                                @endif
                                 <td class="align-middle">{{ $claim->creator->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">
                                     @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
