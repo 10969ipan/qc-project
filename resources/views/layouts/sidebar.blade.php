@@ -39,7 +39,7 @@
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
                 aria-controls="collapseQC">
-                <i class="fas fa-fw fa-shield-alt"></i>
+                <i class="fas fa-fw fa-search"></i>
                 <span>Quality Control</span>
             </a>
             <div id="collapseQC" class="collapse" aria-labelledby="headingQC" data-parent="#accordionSidebar">
@@ -226,7 +226,7 @@
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQS" aria-expanded="true"
                 aria-controls="collapseQS">
-                <i class="fas fa-fw fa-headset"></i>
+                <i class="fas fa-fw fa-chart-bar"></i>
                 <span>Quality System</span>
             </a>
             <div id="collapseQS" class="collapse" aria-labelledby="headingQS" data-parent="#accordionSidebar">

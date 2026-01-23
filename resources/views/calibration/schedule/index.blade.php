@@ -2,13 +2,12 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Jadwal Kalibrasi - Plant {{ strtoupper($plantCode) }}</h1>
+        <x-plant-header title="Jadwal Kalibrasi" :plant="$plantCode">
             <a href="{{ route('calibration.tools.create', ['plant' => $plantCode]) }}"
                 class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                 <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Alat
             </a>
-        </div>
+        </x-plant-header>
 
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">

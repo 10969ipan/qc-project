@@ -136,7 +136,10 @@ class CalibrationController extends Controller
                     ->orWhere('lokasi_pakai', 'LIKE', "%{$search}%")
                     ->orWhere('frekuensi_kalibrasi', 'LIKE', "%{$search}%")
                     ->orWhere('riwayat_kalibrasi', 'LIKE', "%{$search}%")
-                    ->orWhere('jenis_kalibrasi', 'LIKE', "%{$search}%");
+                    ->orWhere('jenis_kalibrasi', 'LIKE', "%{$search}%")
+                    ->orWhereHas('schedules', function ($q2) use ($search) {
+                        $q2->where('pr_number', 'LIKE', "%{$search}%");
+                    });
 
                 // Special handling for date searching if needed, 
                 // but usually simple LIKE is enough for parts of date strings
@@ -546,7 +549,7 @@ class CalibrationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'PR berhasil diperbarui.',
-            'pr_date' => $schedule->pr_date ? $schedule->pr_date->format('d/m/Y') : '-'
+            'pr_date' => $schedule->pr_date ? \Carbon\Carbon::parse($schedule->pr_date)->format('d/m/Y') : '-'
         ]);
     }
 }

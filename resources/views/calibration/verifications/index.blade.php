@@ -2,15 +2,14 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Hasil Verifikasi Alat Ukur - Plant {{ strtoupper($plantCode) }}</h1>
+        <x-plant-header title="Hasil Verifikasi Alat Ukur" :plant="$plantCode">
             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                 <a href="{{ route('calibration.verifications.create', ['plant' => $plantCode]) }}"
                     class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Verifikasi Baru
                 </a>
             @endif
-        </div>
+        </x-plant-header>
 
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">

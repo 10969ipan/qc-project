@@ -11,15 +11,14 @@
         }
     </style>
     <div class="container-fluid">
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Master Data Alat - Plant {{ strtoupper($plantCode) }}</h1>
+        <x-plant-header title="Master Data Alat" :plant="$plantCode">
             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                 <a href="{{ route('calibration.tools.create', ['plant' => $plantCode]) }}"
                     class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Alat
                 </a>
             @endif
-        </div>
+        </x-plant-header>
 
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -37,13 +36,17 @@
             <div class="card-body">
                 <form action="{{ route('calibration.tools.index') }}" method="GET" class="row align-items-end">
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="col-md-4">
+
+                    <!-- Input PR / Pencarian -->
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Pencarian</label>
-                            <input type="text" name="search" class="form-control" placeholder="Cari Bagian, Nama Alat..."
+                            <label class="small font-weight-bold">Input PR / Pencarian</label>
+                            <input type="text" name="search" class="form-control" placeholder="No PR, Nama Alat..."
                                 value="{{ request('search') }}">
                         </div>
                     </div>
+
+                    <!-- Jenis Kalibrasi -->
                     <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold">Jenis Kalibrasi</label>
@@ -56,26 +59,46 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+
+                    <!-- Planning Dari -->
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Status Verifikasi</label>
+                            <label class="small font-weight-bold">Planning Dari</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+                        </div>
+                    </div>
+
+                    <!-- Sampai -->
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Sampai</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Status</label>
                             <select name="verification_status" class="form-control">
                                 <option value="">Semua</option>
-                                <option value="ok" {{ request('verification_status') === 'ok' ? 'selected' : '' }}>Sudah
-                                    Verifikasi (OK)</option>
+                                <option value="ok" {{ request('verification_status') === 'ok' ? 'selected' : '' }}>
+                                    Sudah OK</option>
                                 <option value="pending" {{ request('verification_status') === 'pending' ? 'selected' : '' }}>
-                                    Belum Verifikasi</option>
+                                    Belum</option>
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+
+                    <!-- Buttons -->
+                    <div class="col-md-2">
                         <div class="d-flex" style="gap: 5px;">
-                            <button type="submit" class="btn btn-primary flex-fill">
-                                <i class="fas fa-search fa-sm"></i> Cari
+                            <button type="submit" class="btn btn-primary flex-fill" title="Cari Data">
+                                <i class="fas fa-search"></i>
                             </button>
                             <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
-                                class="btn btn-secondary flex-fill">
-                                <i class="fas fa-undo fa-sm"></i> Reset
+                                class="btn btn-secondary flex-fill" title="Reset Filter">
+                                <i class="fas fa-undo"></i>
                             </a>
                         </div>
                     </div>
@@ -128,8 +151,11 @@
                                     @endphp
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            <span
-                                                class="badge badge-info mb-1">{{ \Carbon\Carbon::parse($item->schedule_date)->format('d/m/Y') }}</span><br>
+                                            <div class="mb-2 pb-2 border-bottom last-child-no-border"
+                                                style="min-height: 65px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                                <span
+                                                    class="badge badge-info">{{ \Carbon\Carbon::parse($item->schedule_date)->format('d/m/Y') }}</span>
+                                            </div>
                                         @endforeach
                                     @else
                                         -
@@ -138,40 +164,8 @@
                                 <td>
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            <div class="mb-2 pb-2 border-bottom last-child-no-border">
-                                                @php
-                                                    $planningDate = \Carbon\Carbon::parse($item->schedule_date);
-                                                    $today = now()->startOfDay();
-                                                    $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
-
-                                                    $badgeClass = 'badge-secondary';
-                                                    $badgeText = 'BELUM PR';
-                                                    $badgeStyle = '';
-                                                    $isClickable = false;
-
-                                                    if ($item->is_ok) {
-                                                        $badgeClass = 'badge-success';
-                                                        $badgeText = 'SUDAH VERIFIKASI';
-                                                        $isClickable = true;
-                                                    } elseif ($item->pr_number) {
-                                                        $diffDays = $today->diffInDays($planningDate, false);
-
-                                                        if ($diffDays < 0) {
-                                                            $badgeClass = 'badge-danger';
-                                                            $badgeText = 'MELEWATI JADWAL';
-                                                        } elseif ($diffDays >= 30) {
-                                                            $badgeStyle = 'background-color: #add8e6; color: #000;';
-                                                            $badgeText = 'ON PROGRES';
-                                                        } else {
-                                                            $badgeClass = 'badge-warning';
-                                                            $badgeText = 'SEGERA VERIFIKASI';
-                                                        }
-                                                    } elseif ($today->gt($planningDate)) {
-                                                        $badgeClass = 'badge-danger';
-                                                        $badgeText = 'MELEWATI JADWAL';
-                                                    }
-                                                @endphp
-
+                                            <div class="mb-2 pb-2 border-bottom last-child-no-border"
+                                                style="min-height: 65px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                                 @if(!$item->is_ok)
                                                     <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
                                                         <input type="text" class="form-control form-control-sm pr-input text-center"
@@ -184,28 +178,8 @@
                                                             </button>
                                                         @endif
                                                     </div>
-                                                    <small
-                                                        class="pr-date-display text-muted">{{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}</small>
                                                 @else
                                                     <div class="font-weight-bold">{{ $item->pr_number ?? '-' }}</div>
-                                                    <small
-                                                        class="text-muted">{{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}</small>
-                                                @endif
-                                                <br>
-                                                @if($isClickable)
-                                                                    <a href="{{ route('calibration.verifications.index', [
-                                                        'plant' => $plantCode,
-                                                        'tool_id' => $tool->id,
-                                                        'start_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
-                                                        'end_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
-                                                    ]) }}" class="badge {{ $badgeClass }} mt-1"
-                                                                        style="{{ $badgeStyle }}; text-decoration: none;" title="Lihat Hasil Verifikasi">
-                                                                        {{ $badgeText }}
-                                                                    </a>
-                                                @else
-                                                    <span class="badge {{ $badgeClass }} mt-1" style="{{ $badgeStyle }}">
-                                                        {{ $badgeText }}
-                                                    </span>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -216,11 +190,59 @@
                                 <td>
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            @if($item->is_ok)
-                                                <span class="badge badge-success mb-1">OK</span><br>
-                                            @else
-                                                <span class="badge badge-secondary mb-1">Belum</span><br>
-                                            @endif
+                                            <div class="mb-2 pb-2 border-bottom last-child-no-border"
+                                                style="min-height: 65px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                                @php
+                                                    $planningDate = \Carbon\Carbon::parse($item->schedule_date);
+                                                    $today = now()->startOfDay();
+                                                    $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
+
+                                                    $icon = '<div class="d-inline-block position-relative" title="Belum PR" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                                            '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
+                                                            '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                            '</div>';
+                                                    $isClickable = false;
+                                                    $statusText = 'Belum PR';
+
+                                                    if ($item->is_ok) {
+                                                        $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
+                                                        $statusText = 'Sudah Verifikasi';
+                                                        $isClickable = true;
+                                                    } elseif ($item->pr_number) {
+                                                        $diffDays = $today->diffInDays($planningDate, false);
+
+                                                        if ($diffDays < 0) {
+                                                            $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
+                                                            $statusText = 'Melewati Jadwal';
+                                                        } elseif ($diffDays >= 30) {
+                                                            $icon = '<i class="fas fa-hourglass-half text-info fa-lg" title="On Progress"></i>';
+                                                            $statusText = 'On Progress';
+                                                        } else {
+                                                            $icon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Segera Verifikasi"></i>';
+                                                            $statusText = 'Segera Verifikasi';
+                                                        }
+                                                    } elseif ($today->gt($planningDate)) {
+                                                        $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
+                                                        $statusText = 'Melewati Jadwal';
+                                                    }
+                                                @endphp
+
+                                                @if($isClickable)
+                                                                    <a href="{{ route('calibration.verifications.index', [
+                                                        'plant' => $plantCode,
+                                                        'tool_id' => $tool->id,
+                                                        'start_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
+                                                        'end_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
+                                                    ]) }}" style="text-decoration: none;">
+                                                                        {!! $icon !!}
+                                                                    </a>
+                                                @else
+                                                    {!! $icon !!}
+                                                @endif
+                                                <small class="pr-date-display text-muted mt-1" id="pr-date-{{ $item->id }}">
+                                                    {{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}
+                                                </small>
+                                            </div>
                                         @endforeach
                                     @else
                                         -
@@ -345,7 +367,7 @@
                 var input = $(this);
                 var scheduleId = input.data('schedule-id');
                 var prNumber = input.val();
-                var display = input.siblings('.pr-date-display');
+                var display = $('#pr-date-' + scheduleId);
 
                 $.ajax({
                     url: "{{ route('calibration.tools.update-pr') }}",
@@ -418,7 +440,7 @@
                                         showConfirmButton: false,
                                         timer: 3000
                                     });
-                                    setTimeout(function() {
+                                    setTimeout(function () {
                                         location.reload();
                                     }, 1000);
                                 }
