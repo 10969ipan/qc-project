@@ -1,67 +1,189 @@
-<nav class="navbar navbar-expand navbar-dark bg-primary topbar mb-4 static-top shadow">
+@php
+    // Roles that can VIEW all plants (for reports/laporan)
+    $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
 
-    <!-- Sidebar Toggle (Topbar) -->
-    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-        <i class="fa fa-bars text-white"></i>
-    </button>
+    // Roles that can INPUT in all plants
+    $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
+@endphp
 
-    <!-- Topbar Navbar -->
-    <ul class="navbar-nav ml-auto">
-
-        <!-- Nav Item - Alerts -->
-        <li class="nav-item dropdown no-arrow mx-1">
-            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-bell fa-fw fa-lg"></i>
-                <!-- Counter - Alerts -->
-                <span class="badge badge-danger badge-counter d-none" id="notification-badge"
-                    style="margin-top: -5px; margin-right: -2px;">0</span>
-            </a>
-            <!-- Dropdown - Alerts -->
-            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="alertsDropdown">
-                <h6 class="dropdown-header">
-                    Notifications
-                </h6>
-                <div id="notification-list">
-                    <!-- Notifications will be loaded here -->
-                    <div class="text-center p-3 small text-muted">Loading...</div>
+<nav class="navbar topbar mb-4 static-top shadow p-0">
+    <!-- Top Row: Branding and User Profile -->
+    <div class="top-brand-row">
+        <div class="d-flex align-items-center">
+            <a class="sidebar-brand d-flex align-items-center text-decoration-none" href="/">
+                <div class="sidebar-brand-icon rotate-n-15 mr-2">
+                    <i class="fas fa-laugh-wink text-primary" style="font-size: 1.5rem;"></i>
                 </div>
-                <div class="d-flex justify-content-between border-top">
-                    <a class="dropdown-item text-center small text-gray-500 flex-grow-1" href="#" id="mark-all-read">
-                        <i class="fas fa-check-double mr-1"></i> Tandai Dibaca
-                    </a>
-                    <a class="dropdown-item text-center small text-danger flex-grow-1 border-left" href="#"
-                        id="clear-all-notifications">
-                        <i class="fas fa-trash mr-1"></i> Hapus Semua
-                    </a>
+                <div class="sidebar-brand-text font-weight-bold text-dark h5 mb-0">QC APPS
+                    @if(auth()->check() && auth()->user()->plant)
+                        <span class="badge badge-primary ml-2"
+                            style="font-size: 0.65rem;">{{ strtoupper(auth()->user()->plant->name) }}</span>
+                    @endif
                 </div>
-            </div>
-        </li>
-
-        <div class="topbar-divider d-none d-sm-block"></div>
-
-        <!-- Nav Item - User Information -->
-        <li class="nav-item dropdown no-arrow">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-white small">{{ Auth::user()->name ?? 'User' }}</span>
-                <span class="d-lg-none text-white small">{{ mb_substr(Auth::user()->name ?? 'User', 0, 10) }}</span>
-                <img class="img-profile rounded-circle"
-                    src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/undraw_profile.svg') }}" alt="User">
             </a>
-            <!-- Dropdown - User Information -->
-            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                <a class="dropdown-item btn-logout" href="#">
-                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Logout
+        </div>
+
+        <ul class="navbar-nav ml-auto flex-row align-items-center">
+            <!-- Notifications -->
+            <li class="nav-item dropdown no-arrow mx-1">
+                <a class="nav-link dropdown-toggle text-gray-600" href="#" id="alertsDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-bell fa-fw"></i>
+                    <span class="badge badge-danger badge-counter d-none" id="notification-badge">0</span>
                 </a>
-            </div>
-        </li>
+                <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                    aria-labelledby="alertsDropdown">
+                    <h6 class="dropdown-header">Notifications</h6>
+                    <div id="notification-list">
+                        <div class="text-center p-3 small text-muted">Loading...</div>
+                    </div>
+                    <div class="d-flex justify-content-between border-top">
+                        <a class="dropdown-item text-center small text-gray-500 flex-grow-1" href="#"
+                            id="mark-all-read">
+                            <i class="fas fa-check-double mr-1"></i> Tandai Dibaca
+                        </a>
+                    </div>
+                </div>
+            </li>
 
-    </ul>
+            <div class="topbar-divider d-none d-sm-block"></div>
 
+            <!-- User Info -->
+            <li class="nav-item dropdown no-arrow">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
+                    data-toggle="dropdown">
+                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ Auth::user()->name ?? 'User' }}</span>
+                    <img class="img-profile rounded-circle" style="width: 30px; height: 30px;"
+                        src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/undraw_profile.svg') }}">
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                    <a class="dropdown-item btn-logout" href="#">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Logout
+                    </a>
+                </div>
+            </li>
+        </ul>
+    </div>
 
+    <!-- Bottom Row: Navigation Menu -->
+    <div class="nav-menu-row">
+        <ul class="main-nav">
+            <li class="{{ Request::is('/') ? 'active' : '' }}">
+                <a href="/"><i class="fas fa-tachometer-alt mr-1"></i> DASHBOARD</a>
+            </li>
+
+            <!-- Quality Control -->
+            @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
+                <li>
+                    <a href="#"><i class="fas fa-search mr-1"></i> QC <i class="fas fa-chevron-down ml-1 small"></i></a>
+                    <ul class="dropdown-menu">
+                        <!-- Plant Jakarta QC -->
+                        @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
+                            <li>
+                                <a href="#" class="dropdown-item">PLANT JAKARTA <i
+                                        class="fas fa-chevron-right submenu-arrow"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <a class="dropdown-item font-weight-bold bg-light" href="#">MASTER DATA</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('admin.items.index', ['plant' => 'jakarta']) }}">Data Item</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item font-weight-bold bg-light" href="#">CHECKSHEET</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                </ul>
+                            </li>
+                        @endif
+
+                        <!-- Plant Karawang QC -->
+                        @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
+                            <li>
+                                <a href="#" class="dropdown-item">PLANT KARAWANG <i
+                                        class="fas fa-chevron-right submenu-arrow"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <a class="dropdown-item font-weight-bold bg-light" href="#">MASTER DATA</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('admin.items.index', ['plant' => 'karawang']) }}">Data Item</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item font-weight-bold bg-light" href="#">CHECKSHEET</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub Assy</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross Cut</a>
+                                </ul>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
+
+            <!-- Quality Assurance -->
+            @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
+                <li>
+                    <a href="#"><i class="fas fa-award mr-1"></i> QA <i class="fas fa-chevron-down ml-1 small"></i></a>
+                    <ul class="dropdown-menu">
+                        @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
+                            <a class="dropdown-item"
+                                href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">CLAIM JKT</a>
+                        @endif
+                        @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
+                            <a class="dropdown-item"
+                                href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">CLAIM KRW</a>
+                        @endif
+                    </ul>
+                </li>
+            @endif
+
+            <!-- Quality System -->
+            @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
+                <li>
+                    <a href="#"><i class="fas fa-chart-bar mr-1"></i> QS <i class="fas fa-chevron-down ml-1 small"></i></a>
+                    <ul class="dropdown-menu">
+                        @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
+                            <li>
+                                <a href="#" class="dropdown-item">PLANT JAKARTA <i
+                                        class="fas fa-chevron-right submenu-arrow"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <a class="dropdown-item"
+                                        href="{{ route('calibration.schedule.index', ['plant' => 'jakarta']) }}">Jadwal
+                                        Kalibrasi</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('calibration.verifications.index', ['plant' => 'jakarta']) }}">Hasil
+                                        Verif</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar Alat</a>
+                                </ul>
+                            </li>
+                        @endif
+                        @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
+                            <li>
+                                <a href="#" class="dropdown-item">PLANT KARAWANG <i
+                                        class="fas fa-chevron-right submenu-arrow"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <a class="dropdown-item"
+                                        href="{{ route('calibration.schedule.index', ['plant' => 'karawang']) }}">Jadwal
+                                        Kalibrasi</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('calibration.verifications.index', ['plant' => 'karawang']) }}">Hasil
+                                        Verif</a>
+                                    <a class="dropdown-item"
+                                        href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar Alat</a>
+                                </ul>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
+        </ul>
+    </div>
 </nav>
 
 @push('scripts')
@@ -122,22 +244,21 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                            <div class="mr-3">
-                                                                <div class="icon-circle ${iconClass}">
-                                                                    <i class="${icon} text-white"></i>
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <div class="small text-gray-500">${timeAgo}</div>
-                                                                <span class="${unreadClass}">${notif.title}</span>
-                                                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                            </div>
-                                                        </a>
-                                                    `;
+                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                            <div class="mr-3">
+                                <div class="icon-circle ${iconClass}">
+                                    <i class="${icon} text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="small text-gray-500">${timeAgo}</div>
+                                <span class="${unreadClass}">${notif.title}</span>
+                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                            </div>
+                        </a>
+                    `;
                 }).join('');
 
-                // Add click events to mark as read
                 document.querySelectorAll('.notification-item').forEach(item => {
                     item.addEventListener('click', function (e) {
                         const id = this.getAttribute('data-id');
@@ -159,7 +280,7 @@
                     if (response.status === 419) {
                         window.location.reload();
                     }
-                }).catch(error => console.error('Error marking read:', error));
+                });
             }
 
             markAllReadBtn.addEventListener('click', function (e) {
@@ -181,158 +302,21 @@
                 });
             });
 
-            // Clear All Notifications Handler
-            const clearAllBtn = document.getElementById('clear-all-notifications');
-            clearAllBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                fetch('{{ route('notifications.clear-all') }}', {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                })
-                    .then(response => {
-                        if (response.status === 419) {
-                            // CSRF token expired, refresh page
-                            window.location.reload();
-                            return;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data && data.success) {
-                            fetchNotifications();
-                            // Close the dropdown menu
-                            const dropdown = document.getElementById('alertsDropdown');
-                            if (dropdown) {
-                                $(dropdown).dropdown('hide');
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error clearing notifications:', error));
-            });
-
             function formatTimeAgo(date) {
                 const now = new Date();
                 const diffInSeconds = Math.floor((now - date) / 1000);
-
                 if (diffInSeconds < 60) return 'Recent';
                 if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
                 if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
-
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}-${month}-${year}`;
+                return date.toLocaleDateString();
             }
 
-            // --- Optimization: Visibility & Tab Sync ---
-            let pollingInterval = null;
-            const POLLING_TIME = 30000;
-            const channel = window.BroadcastChannel ? new BroadcastChannel('notification_sync') : null;
-
-            // Leader Election Logic (Simple: First one to claim it or last one active)
-            let isLeader = false;
-            let lastFetchTime = 0;
-
-            if (channel) {
-                channel.onmessage = (event) => {
-                    if (event.data.type === 'NOTIF_UPDATE') {
-                        // Received update from leader tab
-                        updateBadge(event.data.unread_count);
-                        renderNotifications(event.data.notifications);
-                        lastFetchTime = Date.now();
-                    } else if (event.data.type === 'CLAIM_LEADER') {
-                        // Another tab wants to be leader
-                        isLeader = false;
-                        stopPolling();
-                    }
-                };
-            }
-
-            function startPolling() {
-                if (pollingInterval) return;
-
-                // If there's a channel, try to be leader
-                if (channel) {
-                    isLeader = true;
-                    channel.postMessage({ type: 'CLAIM_LEADER' });
-                }
-
-                pollingInterval = setInterval(() => {
-                    if (document.visibilityState === 'visible' && (!channel || isLeader)) {
-                        fetchNotifications();
-                    }
-                }, POLLING_TIME);
-            }
-
-            function stopPolling() {
-                if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                    pollingInterval = null;
-                }
-            }
-
-            function fetchNotifications() {
-                fetch('{{ route('notifications.index') }}')
-                    .then(response => {
-                        if (response.status === 419) {
-                            window.location.reload();
-                            return;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        updateBadge(data.unread_count);
-                        renderNotifications(data.notifications);
-                        lastFetchTime = Date.now();
-
-                        // Sync with other tabs
-                        if (channel && isLeader) {
-                            channel.postMessage({
-                                type: 'NOTIF_UPDATE',
-                                unread_count: data.unread_count,
-                                notifications: data.notifications
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error fetching notifications:', error));
-            }
-
-            // Page Visibility Handling
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    // Refresh if more than POLLING_TIME has passed while hidden
-                    if (Date.now() - lastFetchTime > POLLING_TIME) {
-                        fetchNotifications();
-                    }
-                    startPolling();
-                } else {
-                    // Optional: stop polling completely when hidden if not leader
-                    // or keep leader polling to sync others
-                }
-            });
-
-            // Initial fetch and start
             fetchNotifications();
-            startPolling();
+            setInterval(fetchNotifications, 60000);
         });
     </script>
     <style>
-        #notification-list {
-            max-height: 340px;
-            overflow-y: auto;
-        }
-
-        .line-clamp-notification {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            white-space: normal;
-        }
+        #notification-list { max-height: 340px; overflow-y: auto; }
+        .line-clamp-notification { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 @endpush

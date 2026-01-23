@@ -412,40 +412,113 @@
             transform: scale(1.2);
         }
 
-        /* Sidebar Responsive Fixes */
+        /* Topbar & Navbar Redesign (Top Nav Mode) */
+        #content-wrapper {
+            background-color: #f8f9fc;
+        }
+
+        .topbar {
+            height: auto !important;
+            padding: 0 !important;
+            flex-direction: column;
+            background: white !important;
+            border-bottom: 2px solid #e3e6f0;
+        }
+
+        .top-brand-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .nav-menu-row {
+            width: 100%;
+            background: #1e293b; /* Dark Navy Corporate */
+            padding: 0 1.5rem;
+        }
+
+        .main-nav {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-nav > li {
+            position: relative;
+        }
+
+        .main-nav > li > a {
+            display: block;
+            padding: 0.85rem 1.25rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .main-nav > li:hover > a,
+        .main-nav > li.active > a {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-color: #36b9cc;
+        }
+
+        /* Multi-level Dropdown */
+        .main-nav .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 220px;
+            background: white;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border: 1px solid #e3e6f0;
+            border-radius: 0.25rem;
+            margin-top: 0;
+            z-index: 1050;
+        }
+
+        .main-nav li:hover > .dropdown-menu {
+            display: block;
+        }
+
+        .main-nav .dropdown-item {
+            padding: 0.65rem 1.25rem;
+            font-size: 0.85rem;
+            color: #4e73df;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .main-nav .dropdown-item:hover {
+            background-color: #f8f9fc;
+            color: #224abe;
+            padding-left: 1.5rem;
+        }
+
+        .main-nav .dropdown-item i.submenu-arrow {
+            font-size: 0.7rem;
+            opacity: 0.5;
+        }
+
+        .main-nav .sub-menu {
+            left: 100%;
+            top: 0;
+            margin-top: -1px;
+        }
+
+        /* Hide sidebar on all screens in Top Nav mode */
         .sidebar {
-            width: 16rem !important;
-            /* Increase width from default 14rem */
-        }
-
-        .sidebar.toggled {
-            width: 6.5rem !important;
-        }
-
-        .sidebar .nav-item .collapse .collapse-inner .collapse-item {
-            white-space: normal !important;
-            /* Allow wrapping */
-            line-height: 1.2 !important;
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-            font-size: 0.75rem !important;
-        }
-
-        .sidebar .collapse-inner {
-            width: 14rem !important;
-            /* Match inner with sidebar */
-        }
-
-        /* Handle deep nesting padding */
-        .sidebar .collapse .collapse .collapse-inner {
-            padding-left: 0.5rem !important;
-        }
-
-        /* Icon adjustment */
-        .sidebar .nav-item .nav-link i {
-            margin-right: 0.5rem !important;
-            width: 1.1rem !important;
-            text-align: center;
+            display: none !important;
         }
 
         /* --- COMPACT UI MODE (User Requested) --- */
@@ -523,7 +596,7 @@
 
     <div id="wrapper">
 
-        @include('layouts.sidebar')
+
         <div id="content-wrapper" class="d-flex flex-column">
 
             <div id="content">
