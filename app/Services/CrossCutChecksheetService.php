@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CrossCutChecksheetService extends BaseService
 {
@@ -114,12 +115,23 @@ class CrossCutChecksheetService extends BaseService
 
             DB::commit();
 
+            Log::info('Checksheet Cross Cut berhasil dibuat', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $checksheet->id,
+                'plant_id' => $checksheet->plant_id
+            ]);
+
             // Notifications
             $this->notificationService->notifyApprovalRequest($checksheet, 'Cross Cut');
 
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal membuat checksheet Cross Cut', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
             throw $e;
         }
     }
@@ -148,9 +160,21 @@ class CrossCutChecksheetService extends BaseService
             $checksheet->update(array_merge($data, ['image_path' => $imagePath]));
 
             DB::commit();
+
+            Log::info('Checksheet Cross Cut berhasil diperbarui', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $checksheet->id,
+                'plant_id' => $checksheet->plant_id
+            ]);
+
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal memperbarui checksheet Cross Cut', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
     }
@@ -177,9 +201,20 @@ class CrossCutChecksheetService extends BaseService
             $checksheet->delete();
 
             DB::commit();
+
+            Log::info('Checksheet Cross Cut berhasil dihapus', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id
+            ]);
+
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menghapus checksheet Cross Cut', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
     }

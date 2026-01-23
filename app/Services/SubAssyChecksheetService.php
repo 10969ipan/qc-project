@@ -109,6 +109,12 @@ class SubAssyChecksheetService extends BaseService
 
             DB::commit();
 
+            Log::info('Checksheet Sub Assy berhasil dibuat', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $checksheet->id,
+                'plant_id' => $checksheet->plant_id
+            ]);
+
             // Notifications
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Sub Assy');
@@ -137,6 +143,11 @@ class SubAssyChecksheetService extends BaseService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal membuat checksheet Sub Assy', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
             throw $e;
         }
     }
@@ -197,9 +208,21 @@ class SubAssyChecksheetService extends BaseService
             $checksheet->update($updateData);
 
             DB::commit();
+
+            Log::info('Checksheet Sub Assy berhasil diperbarui', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $checksheet->id,
+                'plant_id' => $checksheet->plant_id
+            ]);
+
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal memperbarui checksheet Sub Assy', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
     }
@@ -222,9 +245,20 @@ class SubAssyChecksheetService extends BaseService
             $checksheet->delete();
 
             DB::commit();
+
+            Log::info('Checksheet Sub Assy berhasil dihapus', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id
+            ]);
+
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menghapus checksheet Sub Assy', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
     }

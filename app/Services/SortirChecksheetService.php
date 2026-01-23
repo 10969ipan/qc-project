@@ -9,6 +9,7 @@ use App\Models\CrossCutChecksheet;
 use App\Models\Item;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SortirChecksheetService extends BaseService
 {
@@ -199,12 +200,23 @@ class SortirChecksheetService extends BaseService
 
             DB::commit();
 
+            Log::info('Checksheet Sortir berhasil dibuat', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $sortir->id,
+                'plant_id' => $sortir->plant_id
+            ]);
+
             // Notifications
             $this->notificationService->notifyApprovalRequest($sortir, 'Sortir');
 
             return $sortir;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal membuat checksheet Sortir', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
             throw $e;
         }
     }
@@ -218,9 +230,29 @@ class SortirChecksheetService extends BaseService
      */
     public function updateChecksheet(int $id, array $data): SortirChecksheet
     {
-        $checksheet = SortirChecksheet::findOrFail($id);
-        $checksheet->update($data);
-        return $checksheet;
+        DB::beginTransaction();
+        try {
+            $checksheet = SortirChecksheet::findOrFail($id);
+            $checksheet->update($data);
+
+            DB::commit();
+
+            Log::info('Checksheet Sortir berhasil diperbarui', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'plant_id' => $checksheet->plant_id
+            ]);
+
+            return $checksheet;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal memperbarui checksheet Sortir', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -231,7 +263,28 @@ class SortirChecksheetService extends BaseService
      */
     public function deleteChecksheet(int $id): bool
     {
-        return SortirChecksheet::findOrFail($id)->delete();
+        DB::beginTransaction();
+        try {
+            $checksheet = SortirChecksheet::findOrFail($id);
+            $res = $checksheet->delete();
+
+            DB::commit();
+
+            Log::info('Checksheet Sortir berhasil dihapus', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id
+            ]);
+
+            return $res;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal menghapus checksheet Sortir', [
+                'user_id' => auth()->id(),
+                'checksheet_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 
     /**

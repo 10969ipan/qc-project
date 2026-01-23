@@ -11,6 +11,8 @@ use App\Models\CustomerClaim;
 use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardService extends BaseService
 {
@@ -21,40 +23,43 @@ class DashboardService extends BaseService
      */
     public function getDashboardData(): array
     {
-        $combinedStats = $this->calculateApprovalStats();
-
-        $statsJakarta = null;
-        $statsKarawang = null;
-
         $authRole = auth()->user()->role;
-        $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc']; // Covers potentially both role naming conventions
+        $plantId = auth()->user()->plant_id;
+        $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant');
 
-        $productionJakarta = [];
-        $productionKarawang = [];
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($authRole) {
+            $combinedStats = $this->calculateApprovalStats();
 
-        if (in_array($authRole, $dualViewRoles)) {
-            $statsJakarta = $this->calculateApprovalStats('jakarta');
-            $statsKarawang = $this->calculateApprovalStats('karawang');
+            $statsJakarta = null;
+            $statsKarawang = null;
 
-            $productionJakarta = $this->getProductionMonitoring('jakarta');
-            $productionKarawang = $this->getProductionMonitoring('karawang');
-        }
+            $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
 
-        $productionMonitoring = $this->getProductionMonitoring(); // Default
+            $productionJakarta = [];
+            $productionKarawang = [];
 
-        $activeReport = MonthlyReport::where('is_active', true)->first();
+            if (in_array($authRole, $dualViewRoles)) {
+                $statsJakarta = $this->calculateApprovalStats('jakarta');
+                $statsKarawang = $this->calculateApprovalStats('karawang');
 
-        // NG Rate Data for Charts
-        $ngRateData = $this->getNgRateData();
+                $productionJakarta = $this->getProductionMonitoring('jakarta');
+                $productionKarawang = $this->getProductionMonitoring('karawang');
+            }
 
-        $currentPlant = auth()->user()->plant?->name ?? 'unknown';
+            $productionMonitoring = $this->getProductionMonitoring(); // Default
 
-        // Merge everything. 
-        // We nest the plant-specific production data to avoid collision with standard 'activeLines' etc.
-        return array_merge(
-            compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant'),
-            $productionMonitoring
-        );
+            $activeReport = MonthlyReport::where('is_active', true)->first();
+
+            // NG Rate Data for Charts
+            $ngRateData = $this->getNgRateData();
+
+            $currentPlant = auth()->user()->plant?->name ?? 'unknown';
+
+            return array_merge(
+                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant'),
+                $productionMonitoring
+            );
+        });
     }
 
     /**
@@ -76,21 +81,27 @@ class DashboardService extends BaseService
     private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null): void
     {
         $table = (new $modelClass)->getTable();
-        $query = $modelClass::query();
-
-        if ($plantId) {
-            $query->where($query->getModel()->getTable() . '.plant_id', $plantId);
-        }
-
-        // Count individual columns (Karu, Kashift, SPV). 
-        $items = $query->get();
         $hasKaru = Schema::hasColumn($table, 'karu_qc');
 
-        foreach ($items as $item) {
-            if ($hasKaru)
-                $this->updateStat($stats, $item->karu_qc);
-            $this->updateStat($stats, $item->kashift_qc);
-            $this->updateStat($stats, $item->supervisor_qc);
+        $columns = ['kashift_qc', 'supervisor_qc'];
+        if ($hasKaru)
+            $columns[] = 'karu_qc';
+
+        foreach ($columns as $column) {
+            $query = DB::table($table);
+            if ($plantId) {
+                $query->where('plant_id', $plantId);
+            }
+
+            $results = $query->selectRaw("
+                SUM(CASE WHEN $column = 'REJECTED' THEN 1 ELSE 0 END) as rejected,
+                SUM(CASE WHEN $column IS NOT NULL AND $column != '' AND $column != 'REJECTED' THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN $column IS NULL OR $column = '' THEN 1 ELSE 0 END) as pending
+            ")->first();
+
+            $stats['rejected'] += (int) $results->rejected;
+            $stats['approved'] += (int) $results->approved;
+            $stats['pending'] += (int) $results->pending;
         }
     }
 
