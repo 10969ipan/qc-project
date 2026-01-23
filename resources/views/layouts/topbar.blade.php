@@ -12,11 +12,11 @@
         <div class="d-flex align-items-center">
             <a class="sidebar-brand d-flex align-items-center text-decoration-none" href="/">
                 <div class="sidebar-brand-icon rotate-n-15 mr-2">
-                    <i class="fas fa-laugh-wink text-primary" style="font-size: 1.5rem;"></i>
+                    <i class="fas fa-laugh-wink text-white" style="font-size: 1.5rem;"></i>
                 </div>
-                <div class="sidebar-brand-text font-weight-bold text-dark h5 mb-0">QC APPS
+                <div class="sidebar-brand-text font-weight-bold text-white h5 mb-0">QC APPS
                     @if(auth()->check() && auth()->user()->plant)
-                        <span class="badge badge-primary ml-2"
+                        <span class="badge badge-light text-primary ml-2"
                             style="font-size: 0.65rem;">{{ strtoupper(auth()->user()->plant->name) }}</span>
                     @endif
                 </div>
@@ -26,7 +26,7 @@
         <ul class="navbar-nav ml-auto flex-row align-items-center">
             <!-- Notifications -->
             <li class="nav-item dropdown no-arrow mx-1">
-                <a class="nav-link dropdown-toggle text-gray-600" href="#" id="alertsDropdown" role="button"
+                <a class="nav-link dropdown-toggle text-white" href="#" id="alertsDropdown" role="button"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fas fa-bell fa-fw"></i>
                     <span class="badge badge-danger badge-counter d-none" id="notification-badge">0</span>
@@ -52,8 +52,9 @@
             <li class="nav-item dropdown no-arrow">
                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
                     data-toggle="dropdown">
-                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ Auth::user()->name ?? 'User' }}</span>
-                    <img class="img-profile rounded-circle" style="width: 30px; height: 30px;"
+                    <span class="mr-2 d-none d-lg-inline text-white small">{{ Auth::user()->name ?? 'User' }}</span>
+                    <img class="img-profile rounded-circle"
+                        style="width: 30px; height: 30px; border: 1px solid rgba(255,255,255,0.5);"
                         src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/undraw_profile.svg') }}">
                 </a>
                 <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
@@ -76,7 +77,8 @@
             <!-- Quality Control -->
             @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
                 <li>
-                    <a href="#"><i class="fas fa-search mr-1"></i> QC <i class="fas fa-chevron-down ml-1 small"></i></a>
+                    <a href="#"><i class="fas fa-search mr-1"></i> Quality Control <i
+                            class="fas fa-chevron-down ml-1 small"></i></a>
                     <ul class="dropdown-menu">
                         <!-- Plant Jakarta QC -->
                         @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
@@ -128,7 +130,8 @@
             <!-- Quality Assurance -->
             @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
                 <li>
-                    <a href="#"><i class="fas fa-award mr-1"></i> QA <i class="fas fa-chevron-down ml-1 small"></i></a>
+                    <a href="#"><i class="fas fa-award mr-1"></i> Quality Assurance <i
+                            class="fas fa-chevron-down ml-1 small"></i></a>
                     <ul class="dropdown-menu">
                         @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                             <a class="dropdown-item"
@@ -145,7 +148,8 @@
             <!-- Quality System -->
             @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
                 <li>
-                    <a href="#"><i class="fas fa-chart-bar mr-1"></i> QS <i class="fas fa-chevron-down ml-1 small"></i></a>
+                    <a href="#"><i class="fas fa-chart-bar mr-1"></i> Quality System <i
+                            class="fas fa-chevron-down ml-1 small"></i></a>
                     <ul class="dropdown-menu">
                         @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                             <li>
@@ -244,19 +248,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                            <div class="mr-3">
-                                <div class="icon-circle ${iconClass}">
-                                    <i class="${icon} text-white"></i>
+                            <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                <div class="mr-3">
+                                    <div class="icon-circle ${iconClass}">
+                                        <i class="${icon} text-white"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <div class="small text-gray-500">${timeAgo}</div>
-                                <span class="${unreadClass}">${notif.title}</span>
-                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                            </div>
-                        </a>
-                    `;
+                                <div>
+                                    <div class="small text-gray-500">${timeAgo}</div>
+                                    <span class="${unreadClass}">${notif.title}</span>
+                                    <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                </div>
+                            </a>
+                        `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {
@@ -316,7 +320,16 @@
         });
     </script>
     <style>
-        #notification-list { max-height: 340px; overflow-y: auto; }
-        .line-clamp-notification { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        #notification-list {
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .line-clamp-notification {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 @endpush
