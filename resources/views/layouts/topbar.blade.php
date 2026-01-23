@@ -6,7 +6,7 @@
     $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
 @endphp
 
-<nav class="navbar topbar mb-4 static-top shadow p-0">
+<nav class="navbar topbar static-top shadow p-0">
     <!-- Top Row: Branding and User Profile -->
     <div class="top-brand-row">
         <div class="d-flex align-items-center">
@@ -248,19 +248,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                            <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                <div class="mr-3">
-                                    <div class="icon-circle ${iconClass}">
-                                        <i class="${icon} text-white"></i>
+                                <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                    <div class="mr-3">
+                                        <div class="icon-circle ${iconClass}">
+                                            <i class="${icon} text-white"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <div class="small text-gray-500">${timeAgo}</div>
-                                    <span class="${unreadClass}">${notif.title}</span>
-                                    <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                </div>
-                            </a>
-                        `;
+                                    <div>
+                                        <div class="small text-gray-500">${timeAgo}</div>
+                                        <span class="${unreadClass}">${notif.title}</span>
+                                        <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                    </div>
+                                </a>
+                            `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {

@@ -432,9 +432,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem 1.5rem;
+            padding: 0.35rem 1.5rem;
+            /* Even more compact */
             background: transparent;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand-text {
+            font-size: 1.1rem !important;
+            /* Slightly smaller h5 */
+            letter-spacing: 0.5px;
         }
 
         .nav-menu-row {
@@ -461,11 +468,14 @@
 
         .main-nav>li>a {
             display: block;
-            padding: 0.85rem 1.25rem;
+            padding: 0.55rem 1.25rem;
+            /* Even more compact */
             color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
+            font-size: 0.8rem;
+            /* Slightly smaller font */
+            font-weight: 600;
+            text-transform: uppercase;
             transition: all 0.2s;
             border-bottom: 3px solid transparent;
         }
@@ -594,6 +604,59 @@
 
         .form-group {
             margin-bottom: 0.5rem !important;
+        }
+
+        /* --- TOPBAR & NAV REFINEMENTS --- */
+        .top-brand-row {
+            padding: 0.35rem 1.5rem !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .main-nav>li>a {
+            padding: 0.55rem 1.25rem !important;
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+        }
+
+        /* Notification Dropdown Overrides for Top Nav */
+        .topbar .dropdown-list {
+            width: 280px !important;
+            padding: 0;
+            border: 1px solid #e3e6f0 !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+            margin-top: -1px !important;
+        }
+
+        .topbar .dropdown-list .dropdown-header {
+            background-color: #4e73df;
+            padding: 0.5rem 1rem;
+            color: white;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.65rem;
+            border-radius: 0;
+        }
+
+        .topbar .dropdown-list .dropdown-item {
+            white-space: normal;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #e3e6f0;
+            font-size: 0.75rem;
+        }
+
+        .topbar .dropdown-list .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .topbar .dropdown-list .dropdown-item:active {
+            background-color: #f8f9fc;
+            color: #4e73df;
+        }
+
+        #notification-list {
+            max-height: 350px;
+            overflow-y: auto;
         }
     </style>
 
