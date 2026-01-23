@@ -9,6 +9,103 @@
         .whitespace-nowrap {
             white-space: nowrap;
         }
+
+        #dataTable {
+            font-size: 0.75rem;
+            table-layout: fixed;
+        }
+
+        #dataTable thead th {
+            padding: 0.4rem 0.2rem !important;
+            vertical-align: middle;
+            font-size: 0.7rem;
+        }
+
+        #dataTable td {
+            padding: 0.25rem 0.15rem !important;
+            white-space: normal !important;
+            word-wrap: break-word;
+            vertical-align: middle;
+        }
+
+        .col-aksi {
+            width: 125px !important;
+            min-width: 125px !important;
+        }
+
+        .col-no {
+            width: 25px;
+        }
+
+        .col-bagian {
+            width: 60px;
+        }
+
+        .col-name {
+            width: 110px;
+        }
+
+        .col-seri {
+            width: 80px;
+        }
+
+        .col-range {
+            width: 60px;
+        }
+
+        .col-res {
+            width: 50px;
+        }
+
+        .col-lokasi {
+            width: 70px;
+        }
+
+        .col-tgl {
+            width: 70px;
+        }
+
+        .col-freq {
+            width: 70px;
+        }
+
+        .col-hist {
+            width: 50px;
+        }
+
+        .col-jenis {
+            width: 60px;
+        }
+
+        .col-sch {
+            width: 75px;
+        }
+
+        .col-pr {
+            width: 90px;
+        }
+
+        .col-status {
+            width: 45px;
+        }
+
+        /* Compact elements inside table */
+        #dataTable .form-control-sm {
+            height: calc(1.5em + 0.25rem + 2px) !important;
+            padding: 0.125rem 0.25rem !important;
+            font-size: 0.7rem !important;
+        }
+
+        #dataTable .btn-sm {
+            padding: 0.15rem 0.3rem !important;
+            font-size: 0.65rem !important;
+        }
+
+        .schedule-item {
+            min-height: 40px !important;
+            margin-bottom: 2px !important;
+            padding-bottom: 2px !important;
+        }
     </style>
     <div class="container-fluid">
         <x-plant-header title="Master Data Alat" :plant="$plantCode">
@@ -111,24 +208,25 @@
                 <h6 class="m-0 font-weight-bold text-primary">Daftar Alat Ukur</h6>
             </div>
             <div class="card-body">
-                <table class="table table-bordered text-center align-middle" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered table-sm text-center align-middle" id="dataTable" width="100%"
+                    cellspacing="0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="align-middle">NO.</th>
-                            <th class="align-middle">BAGIAN</th>
-                            <th class="align-middle">NAMA ALAT</th>
-                            <th class="align-middle">NO. SERI</th>
-                            <th class="align-middle">RANGE</th>
-                            <th class="align-middle">RESOLUSI</th>
-                            <th class="align-middle">LOKASI PAKAI</th>
-                            <th class="align-middle">TANGGAL BELI</th>
-                            <th class="align-middle">FREKUENSI KALIBRASI</th>
-                            <th class="align-middle">RIWAYAT KALIBRASI</th>
-                            <th class="align-middle">JENIS KALIBRASI</th>
-                            <th class="align-middle">SCHEDULE PLANNING</th>
-                            <th class="align-middle whitespace-nowrap">PR</th>
-                            <th class="align-middle">STATUS</th>
-                            <th class="align-middle text-center" style="min-width: 320px;">AKSI</th>
+                            <th class="align-middle col-no">NO.</th>
+                            <th class="align-middle col-bagian">BAGIAN</th>
+                            <th class="align-middle col-name">NAMA ALAT</th>
+                            <th class="align-middle col-seri">NO. SERI</th>
+                            <th class="align-middle col-range">RANGE</th>
+                            <th class="align-middle col-res">RESOLUSI</th>
+                            <th class="align-middle col-lokasi">LOKASI PAKAI</th>
+                            <th class="align-middle col-tgl">TANGGAL BELI</th>
+                            <th class="align-middle col-freq">FREKUENSI KALIBRASI</th>
+                            <th class="align-middle col-hist">RIWAYAT</th>
+                            <th class="align-middle col-jenis">JENIS</th>
+                            <th class="align-middle col-sch">SCHEDULE</th>
+                            <th class="align-middle whitespace-nowrap col-pr">PR</th>
+                            <th class="align-middle col-status">STAT</th>
+                            <th class="align-middle text-center col-aksi">AKSI</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -151,8 +249,8 @@
                                     @endphp
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            <div class="mb-2 pb-2 border-bottom last-child-no-border"
-                                                style="min-height: 65px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
+                                                style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                                 <span
                                                     class="badge badge-info">{{ \Carbon\Carbon::parse($item->schedule_date)->format('d/m/Y') }}</span>
                                             </div>
@@ -164,13 +262,13 @@
                                 <td>
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            <div class="mb-2 pb-2 border-bottom last-child-no-border"
-                                                style="min-height: 65px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
+                                                style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                                 @if(!$item->is_ok)
                                                     <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
                                                         <input type="text" class="form-control form-control-sm pr-input text-center"
-                                                            data-schedule-id="{{ $item->id }}" placeholder="Input PR..."
-                                                            value="{{ $item->pr_number }}" style="width: 120px;">
+                                                            data-schedule-id="{{ $item->id }}" placeholder="PR..."
+                                                            value="{{ $item->pr_number }}" style="width: 70px;">
                                                         @if($item->pr_number)
                                                             <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
                                                                 data-schedule-id="{{ $item->id }}" title="Reset PR">
@@ -190,17 +288,17 @@
                                 <td>
                                     @if(!empty($scheduledStatuses))
                                         @foreach($scheduledStatuses as $item)
-                                            <div class="mb-2 pb-2 border-bottom last-child-no-border"
-                                                style="min-height: 65px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
+                                                style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                                 @php
                                                     $planningDate = \Carbon\Carbon::parse($item->schedule_date);
                                                     $today = now()->startOfDay();
                                                     $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
 
                                                     $icon = '<div class="d-inline-block position-relative" title="Belum PR" style="width: 25px; height: 25px; vertical-align: middle;">' .
-                                                            '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
-                                                            '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                            '</div>';
+                                                        '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
+                                                        '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                        '</div>';
                                                     $isClickable = false;
                                                     $statusText = 'Belum PR';
 
@@ -253,7 +351,7 @@
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             <a href="{{ route('calibration.verifications.create', ['plant' => $plantCode, 'tool_id' => $tool->id]) }}"
                                                 class="btn btn-sm btn-success" title="Input Verifikasi">
-                                                <i class="fas fa-check-circle"></i> VERIFIKASI
+                                                <i class="fas fa-check-circle"></i> VERIF
                                             </a>
 
                                             <a href="{{ route('calibration.tools.edit', [$tool->id, 'plant' => $plantCode]) }}"
@@ -263,7 +361,7 @@
 
                                             <button type="button" class="btn btn-sm btn-danger"
                                                 onclick="confirmDeleteTool('{{ $tool->id }}')" title="Hapus">
-                                                <i class="fas fa-trash"></i> HAPUS
+                                                <i class="fas fa-trash"></i> DEL
                                             </button>
                                             <form id="delete-tool-form-{{ $tool->id }}"
                                                 action="{{ route('calibration.tools.destroy', $tool->id) }}" method="POST"
