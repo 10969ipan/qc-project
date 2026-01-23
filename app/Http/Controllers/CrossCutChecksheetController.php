@@ -187,6 +187,11 @@ class CrossCutChecksheetController extends Controller
         $checksheet = $query->findOrFail($id);
 
         $items = Item::orderBy('name')->get();
+
+        if (request()->ajax()) {
+            return view('cross_cut.partials.edit_form', compact('checksheet', 'items'));
+        }
+
         return view('cross_cut.edit', compact('checksheet', 'items'));
     }
 
@@ -289,6 +294,9 @@ class CrossCutChecksheetController extends Controller
     public function editApproval($id)
     {
         $checksheet = CrossCutChecksheet::findOrFail($id);
+        if (request()->ajax()) {
+            return view('cross_cut.partials.edit_approval_form', compact('checksheet'));
+        }
         return view('cross_cut.edit_approval', compact('checksheet'));
     }
 

@@ -508,6 +508,16 @@
             z-index: 1050;
         }
 
+        /* Bridge gap between top nav and dropdown */
+        .main-nav .dropdown-menu::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+        }
+
         .main-nav li:hover>.dropdown-menu {
             display: block;
         }
@@ -533,10 +543,27 @@
             opacity: 0.5;
         }
 
-        .main-nav .sub-menu {
-            left: 100%;
-            top: 0;
-            margin-top: -1px;
+        /* Reset and Aligned Sub-menus */
+        .main-nav .dropdown-menu .dropdown-menu {
+            top: 0 !important;
+            left: 100% !important;
+            margin-top: -8px !important; /* Adjust to align text perfectly */
+            margin-left: 0 !important;
+        }
+
+        /* Ensure parent LI provides the correct context */
+        .main-nav .dropdown-menu li {
+            position: relative;
+        }
+
+        /* Bridge the gap for all nested sub-menus */
+        .main-nav .dropdown-menu .dropdown-menu::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -20px;
+            width: 25px;
+            height: calc(100% + 20px);
         }
 
         /* Hide sidebar on all screens in Top Nav mode */

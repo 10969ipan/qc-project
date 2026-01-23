@@ -437,13 +437,15 @@
 
                                         @if(auth()->user()->role === 'admin')
                                             <a href="{{ route('admin.checksheets.edit_approval', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
+                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             <a href="{{ route('admin.checksheets.edit', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                class="btn btn-warning btn-sm m-1" title="Edit" style="min-width: 110px;">
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
                                             <form
@@ -466,6 +468,49 @@
             </div>
             <div class="mt-4">
                 {{ $checksheets->withQueryString()->links() }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Checksheet Sub Assy</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="editModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="statusModalLabel">Edit Status Approval</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="statusModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -564,8 +609,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -745,6 +790,42 @@
                 document.body.removeChild(tableClone);
 
                 doc.save('Laporan_Checksheet_Sub_Assy_' + new Date().toISOString().slice(0, 10) + '.pdf');
+            });
+
+            // Edit Modal Handler
+            $('.btn-edit-modal').on('click', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#editModal').modal('show');
+                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: url,
+                    success: function (response) {
+                        $('#editModalBody').html(response);
+                    },
+                    error: function () {
+                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    }
+                });
+            });
+
+            // Status Modal Handler
+            $('.btn-status-modal').on('click', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#statusModal').modal('show');
+                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: url,
+                    success: function (response) {
+                        $('#statusModalBody').html(response);
+                    },
+                    error: function () {
+                        $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    }
+                });
             });
         });
     </script>

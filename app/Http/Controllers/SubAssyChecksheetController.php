@@ -179,6 +179,11 @@ class SubAssyChecksheetController extends Controller
         $checksheet = $query->findOrFail($id);
 
         $items = Item::orderBy('name')->get();
+
+        if (request()->ajax()) {
+            return view('sub_assy.partials.edit_form', compact('checksheet', 'items'));
+        }
+
         return view('sub_assy.edit', compact('checksheet', 'items'));
     }
 
@@ -214,6 +219,9 @@ class SubAssyChecksheetController extends Controller
     public function editApproval($id)
     {
         $checksheet = SubAssyChecksheet::findOrFail($id);
+        if (request()->ajax()) {
+            return view('sub_assy.partials.edit_approval_form', compact('checksheet'));
+        }
         return view('sub_assy.edit_approval', compact('checksheet'));
     }
 

@@ -53,37 +53,13 @@ class ItemController extends Controller
         }
 
         $categories = $categoriesQuery->get();
+        $plantCode = $plantIdentifier;
+        $allPlants = \App\Models\Plant::all();
 
-        return view('items.index', compact('items', 'categories'));
+        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants'));
     }
 
-    // Menampilkan form pembuatan item
-    public function create(Request $request)
-    {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action. Managers can only perform approvals.');
-        }
-        // Determine current plant context
-        $plantIdentifier = $request->get('plant');
-        $plantId = null;
 
-        if ($plantIdentifier) {
-            $plantId = \App\Models\Plant::resolveId($plantIdentifier);
-        } elseif (auth()->user()->plant_id) {
-            $plantId = auth()->user()->plant_id;
-        }
-
-        $categoriesQuery = \App\Models\Category::orderBy('name');
-
-        if ($plantId) {
-            $categoriesQuery->where('plant_id', $plantId);
-        }
-
-        $categories = $categoriesQuery->get();
-        $currentPlant = $request->get('plant', auth()->user()->plant); // Keep for view compatibility if needed, though simpler refactor possible
-
-        return view('items.create', compact('categories', 'currentPlant'));
-    }
 
     public function store(StoreItemRequest $request)
     {
@@ -98,7 +74,7 @@ class ItemController extends Controller
     }
 
     // Menampilkan form edit item
-    public function edit(Item $item)
+    public function edit(Request $request, Item $item)
     {
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
@@ -120,6 +96,16 @@ class ItemController extends Controller
             $categoriesQuery->where('plant_id', $targetPlantId);
         }
         $categories = $categoriesQuery->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'item' => $item->load('plant'),
+                'categories' => $categories,
+                'defects_text' => $item->defects ? implode("\n", $item->defects) : '',
+                'plant_code' => optional($item->plant)->code
+            ]);
+        }
+
 
         return view('items.edit', compact('item', 'categories'));
     }

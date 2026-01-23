@@ -112,6 +112,7 @@
                                         <ul class="dropdown-menu sub-menu">
                                             <a class="dropdown-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
                                             <a class="dropdown-item" href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                            <a class="dropdown-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                                         </ul>
                                     </li>
 
@@ -160,6 +161,7 @@
                                             <a class="dropdown-item" href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub Assy</a>
                                             <a class="dropdown-item" href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
                                             <a class="dropdown-item" href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross Cut</a>
+                                            <a class="dropdown-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                         </ul>
                                     </li>
 

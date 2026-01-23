@@ -3,17 +3,42 @@
 @section('title', 'Master Data Items')
 
 @section('content')
-    <x-plant-header title="Master Data Items" :plant="request()->get('plant')" />
+    <x-plant-header title="Master Data Items" :plant="$plantCode" />
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @php
+        /** @var \Illuminate\Support\ViewErrorBag $errors */
+    @endphp
+    @if(isset($errors) && method_exists($errors, 'any') && $errors->any())
+        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
 
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                <a href="{{ route('admin.items.create', ['plant' => request('plant')]) }}"
-                    class="btn btn-sm btn-primary shadow-sm">
+                <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
+                    data-target="#modalTambahItem">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
-                </a>
+                </button>
             @endif
         </div>
         <div class="card-body">
@@ -125,34 +150,27 @@
                                     </span>
                                 </td>
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                                    <td class="text-nowrap">
-                                                        <a href="{{ route('admin.items.edit', [
-                                        'item' => $item->id,
-                                        'page' => request('page', 1),
-                                        'name' => request('name'),
-                                        'category' => request('category'),
-                                        'customer' => request('customer'),
-                                        'part_number' => request('part_number'),
-                                        'plant' => request('plant')
-                                    ]) }}" class="btn btn-warning btn-sm" style="min-width: 110px;">
-                                                            <i class="fas fa-edit"></i> Edit
-                                                        </a>
-                                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
-                                                            class="d-inline delete-form">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <input type="hidden" name="page" value="{{ request('page', 1) }}">
-                                                            <input type="hidden" name="name" value="{{ request('name') }}">
-                                                            <input type="hidden" name="category" value="{{ request('category') }}">
-                                                            <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                            <input type="hidden" name="part_number" value="{{ request('part_number') }}">
-                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                            <button type="button" class="btn btn-danger btn-sm delete-btn"
-                                                                style="min-width: 110px;">
-                                                                <i class="fas fa-trash"></i> Hapus
-                                                            </button>
-                                                        </form>
-                                                    </td>
+                                    <td class="text-nowrap">
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}"
+                                            style="min-width: 110px;">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
+                                            class="d-inline delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                                            <input type="hidden" name="name" value="{{ request('name') }}">
+                                            <input type="hidden" name="category" value="{{ request('category') }}">
+                                            <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                            <input type="hidden" name="part_number" value="{{ request('part_number') }}">
+                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                            <button type="button" class="btn btn-danger btn-sm delete-btn"
+                                                style="min-width: 110px;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </td>
                                 @endif
                             </tr>
                         @endforeach
@@ -179,6 +197,7 @@
         </div>
     </div>
 
+    <!-- PDF Modal -->
     <!-- PDF Modal -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
@@ -214,6 +233,252 @@
                         <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Edit Item --}}
+    <div class="modal fade" id="modalEditItem" tabindex="-1" role="dialog" aria-labelledby="modalEditItemLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="modalEditItemLabel">
+                        <i class="fas fa-edit mr-2"></i> Edit Master Data Item
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formEditItem" action="" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    {{-- Preserve filters --}}
+                    <input type="hidden" name="filter_plant" value="{{ $plantCode }}">
+                    <input type="hidden" name="plant" id="edit_plant">
+
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 text-left">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" id="edit_name" class="form-control form-control-sm"
+                                        required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
+                                    <select name="category_id" id="edit_category_id" class="form-control form-control-sm"
+                                        required>
+                                        <option value="">Pilih Kategori</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Customer</label>
+                                    <textarea name="customer" id="edit_customer" class="form-control form-control-sm"
+                                        rows="2"></textarea>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">List Defect</label>
+                                    <textarea name="defects" id="edit_defects" class="form-control form-control-sm"
+                                        rows="3"></textarea>
+                                    <small class="text-muted">Pisahkan setiap defect dengan baris baru.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-left">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Nomor Part</label>
+                                    <input type="text" name="part_number" id="edit_part_number"
+                                        class="form-control form-control-sm">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Kode SAP</label>
+                                    <input type="text" name="sap_code" id="edit_sap_code"
+                                        class="form-control form-control-sm">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Upload PDF Baru</label>
+                                    <input type="file" name="files[]" class="form-control-file form-control-sm"
+                                        accept=".pdf" multiple>
+                                    <small class="text-muted text-xs d-block">Bisa upload lebih dari satu file PDF. Max 10MB
+                                        per file.</small>
+                                    <div id="edit_existing_files" class="mt-2"></div>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold small">Standar Dimensi In-Process</label>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0" id="edit-modal-dimension-table">
+                                            <thead class="bg-light small">
+                                                <tr class="text-center">
+                                                    <th>Point/No</th>
+                                                    <th>Standar</th>
+                                                    <th>Toleransi (+/-)</th>
+                                                    <th style="width: 30px;">
+                                                        <button type="button"
+                                                            class="btn btn-xs btn-success add-edit-dimension-row">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{-- Will be filled by JS --}}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning btn-sm px-4 shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalTambahItem" tabindex="-1" role="dialog" aria-labelledby="modalTambahItemLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTambahItemLabel">
+                        <i class="fas fa-plus-circle mr-2"></i> Tambah Master Data Item
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('admin.items.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        @if(!$plantCode)
+                            <div class="alert alert-warning py-2 mb-3 small">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Anda sedang di tampilan <strong>Total</strong>. Silakan pilih Plant tujuan item ini.
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="font-weight-bold">Pilih Plant <span class="text-danger">*</span></label>
+                                <select name="plant" class="form-control form-control-sm" required id="modal_plant_select">
+                                    <option value="">-- Pilih Plant --</option>
+                                    @foreach($allPlants as $p)
+                                        <option value="{{ $p->code }}" data-uuid="{{ $p->id }}">{{ strtoupper($p->name) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            <input type="hidden" name="plant" value="{{ $plantCode }}">
+                            <div class="alert alert-info py-2 px-3 mb-3 small">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Item akan otomatis didaftarkan untuk Plant: <strong>{{ strtoupper($plantCode) }}</strong>
+                            </div>
+                        @endif
+                        <div class="row">
+                            <div class="col-md-6 text-left">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control form-control-sm" required
+                                        placeholder="Masukkan Nama Item...">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
+                                    <select name="category_id" id="modal_category_select"
+                                        class="form-control form-control-sm" required>
+                                        <option value="">Pilih Kategori</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}">{{ $cat->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Customer</label>
+                                    <textarea name="customer" class="form-control form-control-sm" rows="2"
+                                        placeholder="Masukkan Nama Customer..."></textarea>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">List Defect</label>
+                                    <textarea name="defects" class="form-control form-control-sm" rows="3"
+                                        placeholder="Pisahkan setiap defect dengan baris baru"></textarea>
+                                    <small class="text-muted">Biarkan kosong untuk menggunakan default defects.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-left">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Nomor Part</label>
+                                    <input type="text" name="part_number" class="form-control form-control-sm"
+                                        placeholder="Masukkan Nomor Part...">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Kode SAP</label>
+                                    <input type="text" name="sap_code" class="form-control form-control-sm"
+                                        placeholder="Masukkan Kode SAP (Opsional)">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Upload PDF Standard <span
+                                            class="text-danger">*</span></label>
+                                    <input type="file" name="files[]" class="form-control-file form-control-sm"
+                                        accept=".pdf" multiple required>
+                                    <small class="text-muted text-xs d-block">Bisa upload lebih dari satu file PDF. Max 10MB
+                                        per file.</small>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold small">Standar Dimensi In-Process</label>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0" id="modal-dimension-table">
+                                            <thead class="bg-light small">
+                                                <tr class="text-center">
+                                                    <th>Point/No</th>
+                                                    <th>Standar</th>
+                                                    <th>Toleransi (+/-)</th>
+                                                    <th style="width: 30px;">
+                                                        <button type="button"
+                                                            class="btn btn-xs btn-success add-dimension-row">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="text" name="dimension_points[]"
+                                                            class="form-control form-control-sm" placeholder="Contoh: 1, A">
+                                                    </td>
+                                                    <td><input type="text" name="dimension_sizes[]"
+                                                            class="form-control form-control-sm" placeholder="Contoh: 10.5">
+                                                    </td>
+                                                    <td><input type="number" step="0.01" name="dimension_tolerances[]"
+                                                            class="form-control form-control-sm" placeholder="Contoh: 0.1">
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="button"
+                                                            class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Simpan
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -350,6 +615,150 @@
                         alert(errorMsg);
                     });
                 });
+            });
+
+            $(document).ready(function () {
+                // Add Dimension Row
+                $('.add-dimension-row').on('click', function () {
+                    var newRow = `
+                                            <tr>
+                                                <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
+                                                <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>`;
+                    $('#modal-dimension-table tbody').append(newRow);
+                });
+
+                // Remove Dimension Row
+                $(document).on('click', '.remove-dimension-row', function () {
+                    if ($('#modal-dimension-table tbody tr').length > 1) {
+                        $(this).closest('tr').remove();
+                    }
+                });
+
+                // Filter categories based on plant selection in modal
+                $('#modal_plant_select').on('change', function () {
+                    var selectedPlantUuid = $(this).find(':selected').data('uuid');
+                    var categorySelect = $('#modal_category_select');
+
+                    categorySelect.val('');
+                    categorySelect.find('option').each(function () {
+                        var optionPlant = $(this).data('plant');
+                        if (!optionPlant || optionPlant == selectedPlantUuid) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                });
+            });
+
+            // Edit Item Logic
+            $('.btn-edit-item').on('click', function () {
+                var id = $(this).data('id');
+                var btn = $(this);
+
+                // Show loading state if needed
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+                $.ajax({
+                    url: `/admin/items/${id}/edit`,
+                    type: 'GET',
+                    success: function (response) {
+                        var item = response.item;
+                        $('#edit_name').val(item.name);
+                        $('#edit_category_id').val(item.category_id);
+                        $('#edit_customer').val(item.customer);
+                        $('#edit_part_number').val(item.part_number);
+                        $('#edit_sap_code').val(item.sap_code);
+                        $('#edit_defects').val(response.defects_text);
+                        $('#edit_plant').val(response.plant_code);
+
+
+                        // Existing files
+                        var filesHtml = '';
+                        if (item.file_paths && item.file_paths.length > 0) {
+                            item.file_paths.forEach(function (path, index) {
+                                filesHtml += `
+                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
+                                                    <a href="/items/${item.id}/pdf/${index}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                </div>`;
+                            });
+                        } else if (item.file_path) {
+                            filesHtml += `
+                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
+                                                    <a href="/items/${item.id}/pdf" target="_blank" class="badge badge-info mr-1">View</a>
+                                                </div>`;
+                        }
+                        $('#edit_existing_files').html(item.file_paths || item.file_path ? '<label class="small font-weight-bold mb-1">File Terdaftar:</label>' + filesHtml : '');
+
+                        // Dimensions
+                        var dimHtml = '';
+                        if (item.dimension_standards && item.dimension_standards.length > 0) {
+                            item.dimension_standards.forEach(function (dim) {
+                                dimHtml += `
+                                                <tr>
+                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
+                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
+                                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>`;
+                            });
+                        } else {
+                            dimHtml = `
+                                            <tr>
+                                                <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
+                                                <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>`;
+                        }
+                        $('#edit-modal-dimension-table tbody').html(dimHtml);
+
+                        // Update form action
+                        var url = "{{ route('admin.items.update', ':id') }}";
+                        url = url.replace(':id', id);
+                        $('#formEditItem').attr('action', url);
+
+                        $('#modalEditItem').modal('show');
+                        btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                    },
+                    error: function () {
+                        alert('Gagal mengambil data item.');
+                        btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                    }
+                });
+            });
+
+            // Add Dimension Row for Edit Modal
+            $(document).on('click', '.add-edit-dimension-row', function () {
+                var newRow = `
+                                <tr>
+                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
+                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>`;
+                $('#edit-modal-dimension-table tbody').append(newRow);
             });
         </script>
 

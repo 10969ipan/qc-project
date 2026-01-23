@@ -491,13 +491,15 @@
 
                                         @if(auth()->user()->role === 'admin')
                                             <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}"
-                                                class="btn btn-info btn-sm m-1" title="Edit Approval Status" style="min-width: 110px;">
+                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('cross_cut.edit', $checksheet->id) }}" class="btn btn-warning btn-sm m-1"
-                                                title="Edit" style="min-width: 110px;">
+                                            <a href="{{ route('cross_cut.edit', $checksheet->id) }}"
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
                                             <form
@@ -544,6 +546,49 @@
                     <img id="modalImage" src="" class="img-fluid" alt="Cross Cut Image">
                     <p id="modalItemName" class="mt-2"></p>
                     <p id="modalQcDatetime"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Checksheet Cross Cut</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="editModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="statusModalLabel">Edit Status Approval</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="statusModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -772,8 +817,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                            // Image Modal Handler
-                                                        const imageModal = document.getElementById('imageModal');
+                                                                                                                                        // Image Modal Handler
+                                                                    const imageModal = document.getElementById('imageModal');
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
             viewImageBtns.forEach(btn => {
@@ -800,93 +845,93 @@
                         if (data.image_path) {
                             const imagePath = `/storage/${data.image_path}`;
                             imageContainer.innerHTML = `
-                                                                            <img src="${imagePath}" 
-                                                                                 class="img-fluid rounded shadow" 
-                                                                                 alt="Cross Cut Image"
-                                                                                 style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                                                 onclick="window.open('${imagePath}', '_blank')">
-                                                                        `;
+                                                                                        <img src="${imagePath}" 
+                                                                                             class="img-fluid rounded shadow" 
+                                                                                             alt="Cross Cut Image"
+                                                                                             style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                                                             onclick="window.open('${imagePath}', '_blank')">
+                                                                                    `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
                         } else {
                             imageContainer.innerHTML = `
-                                                                            <div class="alert alert-warning">
-                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                                Tidak ada gambar untuk checksheet ini
-                                                                            </div>
-                                                                        `;
+                                                                                        <div class="alert alert-warning">
+                                                                                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                            Tidak ada gambar untuk checksheet ini
+                                                                                        </div>
+                                                                                    `;
                             downloadBtn.style.display = 'none';
                         }
 
                         // Display details
                         const details = `
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Item Part:</th>
-                                                                            <td>${data.item_name || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Customer:</th>
-                                                                            <td>${data.customer || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Part No:</th>
-                                                                            <td>${data.part_number || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Kode SAP:</th>
-                                                                            <td>${data.sap_code || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Tanggal Produksi:</th>
-                                                                            <td>${data.production_date || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Tanggal QC:</th>
-                                                                            <td>${data.qc_date || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Shift Prod./QC:</th>
-                                                                            <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Kimia Copper:</th>
-                                                                            <td>${data.chemical_copper || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Kimia Nikel:</th>
-                                                                            <td>${data.chemical_nikel || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Kimia Eching:</th>
-                                                                            <td>${data.chemical_eching || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Kimia Abu:</th>
-                                                                            <td>${data.chemical_abu || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Posisi Remark:</th>
-                                                                            <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Result Remark:</th>
-                                                                            <td>${data.result_remark || '-'}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <th class="text-nowrap">Operator:</th>
-                                                                            <td>${data.operator_initials || '-'}</td>
-                                                                        </tr>
-                                                                    `;
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Item Part:</th>
+                                                                                        <td>${data.item_name || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Customer:</th>
+                                                                                        <td>${data.customer || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Part No:</th>
+                                                                                        <td>${data.part_number || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Kode SAP:</th>
+                                                                                        <td>${data.sap_code || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Tanggal Produksi:</th>
+                                                                                        <td>${data.production_date || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Tanggal QC:</th>
+                                                                                        <td>${data.qc_date || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Shift Prod./QC:</th>
+                                                                                        <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Kimia Copper:</th>
+                                                                                        <td>${data.chemical_copper || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Kimia Nikel:</th>
+                                                                                        <td>${data.chemical_nikel || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Kimia Eching:</th>
+                                                                                        <td>${data.chemical_eching || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Kimia Abu:</th>
+                                                                                        <td>${data.chemical_abu || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Posisi Remark:</th>
+                                                                                        <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Result Remark:</th>
+                                                                                        <td>${data.result_remark || '-'}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-nowrap">Operator:</th>
+                                                                                        <td>${data.operator_initials || '-'}</td>
+                                                                                    </tr>
+                                                                                `;
                         detailsContainer.innerHTML = details;
                     })
                     .catch(error => {
                         console.error('Error loading image:', error);
                         imageContainer.innerHTML = `
-                                                                        <div class="alert alert-danger">
-                                                                            <i class="fas fa-exclamation-circle mr-2"></i>
-                                                                            Gagal memuat gambar. Silakan coba lagi.
-                                                                        </div>
-                                                                    `;
+                                                                                    <div class="alert alert-danger">
+                                                                                        <i class="fas fa-exclamation-circle mr-2"></i>
+                                                                                        Gagal memuat gambar. Silakan coba lagi.
+                                                                                    </div>
+                                                                                `;
                         detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
@@ -1077,6 +1122,23 @@
                     doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 });
             }
+            // Edit Modal Handler
+            $('.btn-edit-modal').on('click', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#editModal').modal('show');
+                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: url,
+                    success: function (response) {
+                        $('#editModalBody').html(response);
+                    },
+                    error: function () {
+                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    }
+                });
+            });
         });
     </script>
 @endpush
@@ -1186,8 +1248,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                // Live Search Functionality
-                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                            // Live Search Functionality
+                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
@@ -1374,7 +1436,44 @@
                     document.body.removeChild(tableClone);
                     doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 });
+                });
             }
+
+            // Edit Modal Handler
+            $('.btn-edit-modal').on('click', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#editModal').modal('show');
+                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: url,
+                    success: function (response) {
+                        $('#editModalBody').html(response);
+                    },
+                    error: function () {
+                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    }
+                });
+            });
+
+            // Status Modal Handler
+            $('.btn-status-modal').on('click', function(e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#statusModal').modal('show');
+                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: url,
+                    success: function(response) {
+                        $('#statusModalBody').html(response);
+                    },
+                    error: function() {
+                        $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    }
+                });
+            });
         });
     </script>
 @endpush

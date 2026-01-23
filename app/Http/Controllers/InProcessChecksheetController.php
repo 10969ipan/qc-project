@@ -196,10 +196,20 @@ class InProcessChecksheetController extends Controller
         $checksheet = $query->findOrFail($id);
 
         $items = Item::orderBy('name')->get();
+        $partDimensionStandards = json_encode($this->getConsolidatedStandards());
+
+        if (request()->ajax()) {
+            return view('in_process.partials.edit_form', [
+                'checksheet' => $checksheet,
+                'items' => $items,
+                'partDimensionStandards' => $partDimensionStandards
+            ]);
+        }
+
         return view('in_process.edit', [
             'checksheet' => $checksheet,
             'items' => $items,
-            'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
+            'partDimensionStandards' => $partDimensionStandards
         ]);
     }
 
@@ -257,6 +267,9 @@ class InProcessChecksheetController extends Controller
     public function editApproval($id)
     {
         $checksheet = InProcessChecksheet::findOrFail($id);
+        if (request()->ajax()) {
+            return view('in_process.partials.edit_approval_form', compact('checksheet'));
+        }
         return view('in_process.edit_approval', compact('checksheet'));
     }
 

@@ -77,12 +77,12 @@ class CalibrationTool extends Model
             return 'unknown';
         }
 
-        $next = \Carbon\Carbon::parse($nextDate)->startOfDay();
+        $next = \Carbon\Carbon::parse((string) $nextDate)->startOfDay();
 
         // Check if there is a verification in the same month and year as the next schedule
         $latestVerification = $this->latestVerification;
         if ($latestVerification) {
-            $verificationDate = \Carbon\Carbon::parse($latestVerification->tanggal_verifikasi)->startOfDay();
+            $verificationDate = \Carbon\Carbon::parse((string) $latestVerification->tanggal_verifikasi)->startOfDay();
             if ($verificationDate->format('Y-m') === $next->format('Y-m')) {
                 return 'calibrated';
             }
@@ -121,10 +121,10 @@ class CalibrationTool extends Model
 
         // If no schedules in the new table, try fallback to legacy schedule_planning
         if ($schedules->isEmpty()) {
-            if ($this->schedule_planning && $this->schedule_planning->format('Y') == $year) {
-                $month = $this->schedule_planning->format('Y-m');
+            if ($this->schedule_planning && \Carbon\Carbon::parse((string) $this->schedule_planning)->format('Y') == $year) {
+                $month = \Carbon\Carbon::parse((string) $this->schedule_planning)->format('Y-m');
                 $v = $verifications->first(function ($v) use ($month) {
-                    return $v->tanggal_verifikasi->format('Y-m') === $month;
+                    return $v->tanggal_verifikasi && \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $month;
                 });
 
                 $results[] = (object) [
@@ -136,9 +136,9 @@ class CalibrationTool extends Model
             }
         } else {
             foreach ($schedules as $s) {
-                $month = $s->schedule_date->format('Y-m');
+                $month = \Carbon\Carbon::parse((string) $s->schedule_date)->format('Y-m');
                 $v = $verifications->first(function ($v) use ($month) {
-                    return $v->tanggal_verifikasi->format('Y-m') === $month;
+                    return $v->tanggal_verifikasi && \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $month;
                 });
 
                 $displayDate = $v ? $v->tanggal_verifikasi : $s->schedule_date;

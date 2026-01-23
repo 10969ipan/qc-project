@@ -523,8 +523,8 @@ select#item_id:valid {
 .sticky-scroll-bar {
     position: fixed;
     bottom: 0;
-    left: 224px;
-    /* Sidebar width (14rem = 224px) */
+    left: 0;
+    /* Updated for sidebarless topbar design */
     right: 0;
     height: 20px;
     overflow-x: auto;
@@ -539,10 +539,9 @@ select#item_id:valid {
     transition: left 0.3s ease;
 }
 
-/* When sidebar is toggled (collapsed) */
+/* When sidebar is toggled (collapsed) - Not used in topbar design but kept for safety */
 body.sidebar-toggled .sticky-scroll-bar {
-    left: 104px;
-    /* Collapsed sidebar width (6.5rem = 104px) */
+    left: 0;
 }
 
 /* Mobile - full width */
@@ -604,5 +603,19 @@ body.sidebar-toggled .sticky-scroll-bar {
 
 /* Ensure footer doesn't overlap sticky scroll */
 footer.sticky-footer {
-    margin-bottom: 25px;
+    z-index: 1050;
+}
+/* Sticky Footer Implementation */
+footer.sticky-footer {
+    margin-top: auto;
+}
+
+#content-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#content {
+    flex: 1 0 auto;
 }

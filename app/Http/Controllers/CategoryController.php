@@ -31,24 +31,14 @@ class CategoryController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action. Managers can only perform approvals.');
-        }
-        return view('categories.create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreCategoryRequest $request)
     {
         $this->categoryService->createCategory($request->validated());
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil ditambahkan.');
+        return redirect()->route('admin.categories.index', ['plant' => $request->get('plant')])->with('success', 'Kategori berhasil ditambahkan.');
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -59,7 +49,13 @@ class CategoryController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         $category = $this->categoryService->findCategory($id);
-        return view('categories.edit', compact('category'));
+        if (request()->ajax()) {
+            return response()->json([
+                'category' => $category,
+                'plant' => $category->plant
+            ]);
+        }
+        abort(404);
     }
 
     /**
@@ -68,8 +64,9 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, $id)
     {
         $this->categoryService->updateCategory($id, $request->validated());
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui.');
+        return redirect()->route('admin.categories.index', ['plant' => $request->get('plant')])->with('success', 'Kategori berhasil diperbarui.');
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -80,6 +77,7 @@ class CategoryController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         $this->categoryService->deleteCategory($id);
-        return redirect()->route('categories.index', $request->only('plant'))->with('success', 'Kategori berhasil dihapus.');
+        return redirect()->route('admin.categories.index', $request->only('plant'))->with('success', 'Kategori berhasil dihapus.');
     }
 }
+

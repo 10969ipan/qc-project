@@ -10,11 +10,12 @@ Route::middleware(['auth'])->group(function () {
     // Master Data Management (Admin & Staff)
     Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
         // Items
-        Route::resource('items', ItemController::class);
+        Route::resource('items', ItemController::class)->except(['create']);
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
 
         // Categories
-        Route::resource('categories', CategoryController::class);
+        Route::resource('categories', CategoryController::class)->except(['create']);
+
 
         // Monthly Reports
         Route::resource('monthly-reports', MonthlyReportController::class);
@@ -23,7 +24,7 @@ Route::middleware(['auth'])->group(function () {
         // Customer Claims
         Route::get('customer-claims/yearly', [CustomerClaimController::class, 'yearly'])->name('customer-claims.yearly');
         Route::post('customer-claims/yearly', [CustomerClaimController::class, 'storeYearly'])->name('customer-claims.store-yearly');
-        Route::resource('customer-claims', CustomerClaimController::class);
+        Route::resource('customer-claims', CustomerClaimController::class)->except(['create', 'edit']);
     });
 
     // Public/Shared Access to Master Files

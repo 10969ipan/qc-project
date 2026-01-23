@@ -3,9 +3,9 @@
 @section('content')
     <div class="container-fluid">
         <x-plant-header title="Jadwal Kalibrasi" :plant="$plantCode">
-            <a href="{{ route('calibration.tools.create', ['plant' => $plantCode]) }}"
+            <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
                 class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Alat
+                <i class="fas fa-list fa-sm text-white-50"></i> Daftar Alat
             </a>
         </x-plant-header>
 
@@ -18,65 +18,6 @@
             </div>
         @endif
 
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Filter</h6>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('calibration.schedule.index') }}" method="GET" class="row align-items-end">
-                    <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Pencarian Alat</label>
-                            <input type="text" name="search" class="form-control" placeholder="Nama / No. Seri" value="{{ request('search') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Jenis Kalibrasi</label>
-                            <select name="jenis_kalibrasi" class="form-control">
-                                <option value="">Semua</option>
-                                <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
-                                <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Planning Dari</label>
-                            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Sampai</label>
-                            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Frekuensi</label>
-                            <select name="frequency" class="form-control">
-                                <option value="">Semua</option>
-                                <option value="1_year" {{ request('frequency') === '1_year' ? 'selected' : '' }}>1 Thn</option>
-                                <option value="more_than_1_year" {{ request('frequency') === 'more_than_1_year' ? 'selected' : '' }}> > 1 Thn</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="d-flex" style="gap: 5px;">
-                            <button type="submit" class="btn btn-primary flex-fill">
-                                <i class="fas fa-search fa-sm"></i> 
-                            </button>
-                            <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode]) }}"
-                                class="btn btn-secondary flex-fill">
-                                <i class="fas fa-undo fa-sm"></i>
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
 
 
         <style>
@@ -197,6 +138,61 @@
                 </div>
             </div>
             <div class="card-body">
+                <form action="{{ route('calibration.schedule.index') }}" method="GET" class="row align-items-end mb-4">
+                    <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Pencarian Alat</label>
+                            <input type="text" name="search" class="form-control form-control-sm shadow-sm" placeholder="Nama / No. Seri" value="{{ request('search') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Jenis Kalibrasi</label>
+                            <select name="jenis_kalibrasi" class="form-control form-control-sm shadow-sm">
+                                <option value="">Semua</option>
+                                <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
+                                <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Planning Dari</label>
+                            <input type="date" name="start_date" class="form-control form-control-sm shadow-sm" value="{{ request('start_date') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Sampai</label>
+                            <input type="date" name="end_date" class="form-control form-control-sm shadow-sm" value="{{ request('end_date') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Frekuensi</label>
+                            <select name="frequency" class="form-control form-control-sm shadow-sm">
+                                <option value="">Semua</option>
+                                <option value="1_year" {{ request('frequency') === '1_year' ? 'selected' : '' }}>1 Thn</option>
+                                <option value="more_than_1_year" {{ request('frequency') === 'more_than_1_year' ? 'selected' : '' }}> > 1 Thn</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="d-flex" style="gap: 5px;">
+                            <button type="submit" class="btn btn-primary btn-sm shadow-sm flex-fill">
+                                <i class="fas fa-search mr-1"></i> Cari
+                            </button>
+                            <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode]) }}"
+                                class="btn btn-secondary btn-sm shadow-sm flex-fill">
+                                <i class="fas fa-undo mr-1"></i> Reset
+                            </a>
+                        </div>
+                    </div>
+                </form>
+
+                <hr class="my-4 border-light">
+
                 <div class="table-responsive">
                     <table class="table table-bordered schedule-table mb-0">
                         <thead>

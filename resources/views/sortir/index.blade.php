@@ -40,9 +40,12 @@
                             <label for="source_type" class="small font-weight-bold">Sumber</label>
                             <select name="source_type" id="source_type" class="form-control form-control-sm">
                                 <option value="">Semua Sumber</option>
-                                <option value="sub_assy" {{ request('source_type') == 'sub_assy' ? 'selected' : '' }}>SUB ASSY</option>
-                                <option value="in_process" {{ request('source_type') == 'in_process' ? 'selected' : '' }}>IN PROCESS</option>
-                                <option value="cross_cut" {{ request('source_type') == 'cross_cut' ? 'selected' : '' }}>CROSS CUT</option>
+                                <option value="sub_assy" {{ request('source_type') == 'sub_assy' ? 'selected' : '' }}>SUB ASSY
+                                </option>
+                                <option value="in_process" {{ request('source_type') == 'in_process' ? 'selected' : '' }}>IN
+                                    PROCESS</option>
+                                <option value="cross_cut" {{ request('source_type') == 'cross_cut' ? 'selected' : '' }}>CROSS
+                                    CUT</option>
                             </select>
                         </div>
                     </div>
@@ -332,7 +335,7 @@
 
                                         @if(auth()->user()->role == 'admin')
                                             <a href="{{ route('sortir.edit', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                class="btn btn-warning btn-sm m-1">
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form
@@ -423,6 +426,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Data Sortir</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="editModalBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -445,6 +469,24 @@
                     }
                     window.location.href = url.toString();
                 }, 500);
+            });
+
+            // Edit Modal Handler
+            $('.btn-edit-modal').on('click', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#editModal').modal('show');
+                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: url,
+                    success: function (response) {
+                        $('#editModalBody').html(response);
+                    },
+                    error: function () {
+                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    }
+                });
             });
 
             // PDF Export Functionality

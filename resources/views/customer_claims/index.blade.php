@@ -10,14 +10,14 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Data Claim Customer</h6>
             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('admin.customer-claims.yearly', ['plant' => request('plant')]) }}"
-                        class="btn btn-info btn-sm mr-2">
+                    <button type="button" class="btn btn-info btn-sm mr-2 shadow-sm" data-toggle="modal"
+                        data-target="#modalInputTahunan">
                         <i class="fas fa-calendar-alt"></i> Input Per Tahun
-                    </a>
-                    <a href="{{ route('admin.customer-claims.create', ['plant' => request('plant')]) }}"
-                        class="btn btn-primary btn-sm">
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal"
+                        data-target="#modalTambahData">
                         <i class="fas fa-plus"></i> Tambah Data
-                    </a>
+                    </button>
                 </div>
             @endif
         </div>
@@ -136,10 +136,13 @@
                                 <td class="align-middle">{{ $claim->creator->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">
                                     @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                        <a href="{{ route('admin.customer-claims.edit', ['customer_claim' => $claim->id, 'plant' => request('plant'), 'year' => request('year'), 'month' => request('month')]) }}"
-                                            class="btn btn-warning btn-sm" title="Edit">
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit-claim" data-toggle="modal"
+                                            data-target="#modalEditData" data-id="{{ $claim->id }}"
+                                            data-plant="{{ $claim->plant_id }}" data-year="{{ $claim->year }}"
+                                            data-month="{{ $claim->month }}" data-ppm="{{ $claim->ppm_value }}"
+                                            data-target-val="{{ $claim->target_value }}" title="Edit">
                                             <i class="fas fa-edit"></i> Edit
-                                        </a>
+                                        </button>
                                         <form action="{{ route('admin.customer-claims.destroy', $claim->id) }}" method="POST"
                                             class="d-inline">
                                             @csrf
@@ -170,4 +173,326 @@
             </div>
         </div>
     </div>
+
+
+    {{-- Modal Tambah Data --}}
+    <div class="modal fade" id="modalTambahData" tabindex="-1" role="dialog" aria-labelledby="modalTambahDataLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTambahDataLabel">
+                        <i class="fas fa-plus-circle mr-2"></i> Tambah Data Claim Customer
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('admin.customer-claims.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 text-left">
+                                <div class="form-group">
+                                    <label for="modal_plant_id" class="font-weight-bold small">Plant <span
+                                            class="text-danger">*</span></label>
+                                    <select name="plant_id" id="modal_plant_id" class="form-control form-control-sm"
+                                        required>
+                                        <option value="">Pilih Plant</option>
+                                        @foreach($plants as $plant)
+                                            <option value="{{ $plant->id }}" {{ $plantId == $plant->id ? 'selected' : '' }}>
+                                                {{ $plant->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-left">
+                                <div class="form-group">
+                                    <label for="modal_year" class="font-weight-bold small">Tahun <span
+                                            class="text-danger">*</span></label>
+                                    <input type="number" name="year" id="modal_year" class="form-control form-control-sm"
+                                        value="{{ $currentYear }}" min="2020" max="2100" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 text-left">
+                                <div class="form-group">
+                                    <label for="modal_month" class="font-weight-bold small">Bulan <span
+                                            class="text-danger">*</span></label>
+                                    <select name="month" id="modal_month" class="form-control form-control-sm" required>
+                                        <option value="">Pilih Bulan</option>
+                                        <option value="0">0 - Tahunan (Summary)</option>
+                                        @foreach([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $num => $name)
+                                            <option value="{{ $num }}">{{ $num }} - {{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            @if(request('plant') !== 'total')
+                                <div class="col-md-6 text-left">
+                                    <div class="form-group">
+                                        <label for="modal_ppm_value" class="font-weight-bold small">PPM Value <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" step="0.01" name="ppm_value" id="modal_ppm_value"
+                                            class="form-control form-control-sm" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="ppm_value" value="0">
+                            @endif
+                        </div>
+                        <div class="row">
+                            @if(request('plant') === 'total')
+                                <div class="col-md-6 text-left">
+                                    <div class="form-group">
+                                        <label for="modal_total_claims" class="font-weight-bold small">Total Claim <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" step="0.01" name="total_claims" id="modal_total_claims"
+                                            class="form-control form-control-sm" placeholder="0" required>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="target_value" value="0">
+                            @else
+                                <input type="hidden" name="total_claims" value="0">
+                                <div class="col-md-6 text-left">
+                                    <div class="form-group">
+                                        <label for="modal_target_value" class="font-weight-bold small">Target PPM <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" step="0.01" name="target_value" id="modal_target_value"
+                                            class="form-control form-control-sm" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-save mr-1"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{-- Modal Input Per Tahun --}}
+    <div class="modal fade" id="modalInputTahunan" tabindex="-1" role="dialog" aria-labelledby="modalInputTahunanLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="modalInputTahunanLabel">
+                        <i class="fas fa-calendar-alt mr-2"></i> Input Claim Customer Per Tahun
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('admin.customer-claims.store-yearly') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                    <div class="modal-body">
+                        <div class="alert alert-info py-2 small">
+                            <i class="fas fa-info-circle mr-1"></i> Form ini akan menyimpan data untuk plant
+                            <strong>{{ strtoupper(request('plant', 'total')) }}</strong>.
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4 text-left">
+                                <div class="form-group mb-0">
+                                    <label for="yearly_plant_id" class="font-weight-bold small">Plant <span
+                                            class="text-danger">*</span></label>
+                                    <select name="plant_id" id="yearly_plant_id" class="form-control form-control-sm"
+                                        required>
+                                        @foreach($plants as $plant)
+                                            <option value="{{ $plant->id }}" {{ $plantId == $plant->id ? 'selected' : '' }}>
+                                                {{ $plant->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-left">
+                                <div class="form-group mb-0">
+                                    <label for="yearly_year" class="font-weight-bold small">Tahun <span
+                                            class="text-danger">*</span></label>
+                                    <input type="number" name="year" id="yearly_year" class="form-control form-control-sm"
+                                        value="{{ $currentYear }}" min="2020" max="2100" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm mb-0">
+                                <thead class="bg-light">
+                                    <tr class="text-center small">
+                                        <th width="150">Bulan</th>
+                                        @if(request('plant') === 'total')
+                                            <th>Total Claim</th>
+                                        @else
+                                            <th>PPM Value</th>
+                                            <th>Target PPM</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{-- Row for Month 0 (Summary) --}}
+                                    <tr class="bg-light font-weight-bold">
+                                        <td class="align-middle text-info">TAHUNAN (0)</td>
+                                        @if(request('plant') === 'total')
+                                            <td>
+                                                <input type="number" step="0.01" name="total_claims"
+                                                    class="form-control form-control-sm" placeholder="0">
+                                                <input type="hidden" name="ppm_value" value="0">
+                                                <input type="hidden" name="target_value" value="0">
+                                            </td>
+                                        @else
+                                            <td>
+                                                <input type="number" step="0.01" name="ppm_value"
+                                                    class="form-control form-control-sm" placeholder="0.00">
+                                                <input type="hidden" name="total_claims" value="0">
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" name="target_value"
+                                                    class="form-control form-control-sm" placeholder="0.00">
+                                            </td>
+                                        @endif
+                                    </tr>
+                                    @foreach($months as $num => $name)
+                                        <tr class="small">
+                                            <td class="align-middle">{{ $name }}</td>
+                                            @if(request('plant') === 'total')
+                                                <td>
+                                                    <input type="number" step="0.01" name="data[{{ $num }}][total_claims]"
+                                                        class="form-control form-control-sm" placeholder="0">
+                                                    <input type="hidden" name="data[{{ $num }}][ppm_value]" value="0">
+                                                    <input type="hidden" name="data[{{ $num }}][target_value]" value="0">
+                                                </td>
+                                            @else
+                                                <td>
+                                                    <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]"
+                                                        class="form-control form-control-sm" placeholder="0.00">
+                                                    <input type="hidden" name="data[{{ $num }}][total_claims]" value="0">
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
+                                                        class="form-control form-control-sm" placeholder="0.00">
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-info btn-sm text-white">
+                            <i class="fas fa-save mr-1"></i> Simpan Semua
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Edit Data -->
+    <div class="modal fade" id="modalEditData" tabindex="-1" role="dialog" aria-labelledby="modalEditDataLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="modalEditDataLabel">
+                        <i class="fas fa-edit mr-2"></i> Edit Data Customer Claim
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formEditClaim" action="" method="POST">
+                    @csrf
+                    @method('PUT')
+                    {{-- Preserve filters --}}
+                    <input type="hidden" name="filter_plant" value="{{ request('plant') }}">
+                    <input type="hidden" name="filter_year" value="{{ request('year') }}">
+                    <input type="hidden" name="filter_month" value="{{ request('month') }}">
+
+                    <div class="modal-body">
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold">Plant <span class="text-danger">*</span></label>
+                            <select name="plant_id" id="edit_plant_id" class="form-control" required>
+                                @foreach($plants as $p)
+                                    <option value="{{ $p->id }}">{{ strtoupper($p->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Tahun <span class="text-danger">*</span></label>
+                                    <input type="number" name="year" id="edit_year" class="form-control" min="2000"
+                                        max="2100" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Bulan <span class="text-danger">*</span></label>
+                                    <select name="month" id="edit_month" class="form-control" required>
+                                        @foreach($months as $num => $name)
+                                            <option value="{{ $num }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control"
+                                required>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="font-weight-bold">Target PPM <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="target_value" id="edit_target_value" class="form-control"
+                                required>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning btn-sm px-4">
+                            <i class="fas fa-save mr-1"></i> Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Edit Claim Logic
+            $('.btn-edit-claim').on('click', function() {
+                var id = $(this).data('id');
+                var plant = $(this).data('plant');
+                var year = $(this).data('year');
+                var month = $(this).data('month');
+                var ppm = $(this).data('ppm');
+                var target = $(this).data('target-val');
+
+                $('#edit_plant_id').val(plant);
+                $('#edit_year').val(year);
+                $('#edit_month').val(month);
+                $('#edit_ppm_value').val(ppm);
+                $('#edit_target_value').val(target);
+
+                // Update form action
+                var url = "{{ route('admin.customer-claims.update', ':id') }}";
+                url = url.replace(':id', id);
+                $('#formEditClaim').attr('action', url);
+            });
+        });
+    </script>
+@endpush

@@ -173,14 +173,7 @@ class CalibrationController extends Controller
         return view('calibration.tools.index', compact('tools', 'plantCode'));
     }
 
-    public function toolsCreate(Request $request)
-    {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action. Managers can only perform approvals.');
-        }
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
-        return view('calibration.tools.create', compact('plantCode'));
-    }
+
 
     public function toolsStore(Request $request)
     {
@@ -236,6 +229,12 @@ class CalibrationController extends Controller
         }
         $tool = CalibrationTool::findOrFail($id);
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        if ($request->ajax()) {
+            return response()->json([
+                'tool' => $tool,
+                'plantCode' => $plantCode
+            ]);
+        }
         return view('calibration.tools.edit', compact('tool', 'plantCode'));
     }
 
@@ -339,7 +338,9 @@ class CalibrationController extends Controller
 
         $verifications = $query->latest()->get();
 
-        return view('calibration.verifications.index', compact('verifications', 'plantCode'));
+        $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->orderBy('name_alat')->get();
+
+        return view('calibration.verifications.index', compact('verifications', 'plantCode', 'tools'));
     }
 
     public function verificationsPdf(Request $request)
@@ -372,19 +373,7 @@ class CalibrationController extends Controller
         return $pdf->stream('Laporan_Hasil_Verifikasi_' . date('Ymd_His') . '.pdf');
     }
 
-    public function verificationsCreate(Request $request)
-    {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action. Managers can only perform approvals.');
-        }
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
-        $plant = Plant::where('code', $plantCode)->first();
 
-        $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->get();
-        $selectedToolId = $request->get('tool_id');
-
-        return view('calibration.verifications.create', compact('tools', 'plantCode', 'selectedToolId'));
-    }
 
     public function verificationsStore(Request $request)
     {
@@ -448,6 +437,14 @@ class CalibrationController extends Controller
         $plant = Plant::where('code', $plantCode)->first();
 
         $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'verification' => $verification,
+                'tools' => $tools,
+                'plantCode' => $plantCode
+            ]);
+        }
 
         return view('calibration.verifications.edit', compact('verification', 'tools', 'plantCode'));
     }

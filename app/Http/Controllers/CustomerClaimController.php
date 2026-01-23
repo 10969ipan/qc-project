@@ -40,38 +40,33 @@ class CustomerClaimController extends Controller
 
         $claims = $query->paginate(15)->withQueryString();
 
+        $claims = $query->paginate(15)->withQueryString();
+
         // Get available years for filter
         $years = CustomerClaim::selectRaw('DISTINCT year')->orderBy('year', 'desc')->pluck('year');
-
-        return view('customer_claims.index', compact('claims', 'years'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request)
-    {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            return redirect()->route('admin.customer-claims.index', ['plant' => $request->plant])
-                ->with('error', 'Anda tidak memiliki akses untuk menambah data.');
-        }
-
-        // Determine plant context
-        $plantIdentifier = $request->get('plant');
-        $plantId = null;
-
-        if ($plantIdentifier) {
-            $plantId = Plant::resolveId($plantIdentifier);
-        } elseif (auth()->user()->plant_id) {
-            $plantId = auth()->user()->plant_id;
-        }
-
         $plants = Plant::orderBy('name')->get();
-        $currentYear = date('Y');
-        $currentPlant = $request->get('plant', auth()->user()->plant);
+        $currentYear = (int) date('Y');
+        $plantId = Plant::resolveId($request->plant) ?: (auth()->check() ? auth()->user()->plant_id : null);
 
-        return view('customer_claims.create', compact('plants', 'currentYear', 'currentPlant', 'plantId'));
+        $months = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        ];
+
+        return view('customer_claims.index', compact('claims', 'years', 'plants', 'currentYear', 'plantId', 'months'));
     }
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -124,25 +119,7 @@ class CustomerClaimController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(CustomerClaim $customerClaim)
-    {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            return redirect()->route('admin.customer-claims.index', ['plant' => $customerClaim->plant->code])
-                ->with('error', 'Anda tidak memiliki akses untuk mengedit data.');
-        }
 
-        // For admin to edit claims from any plant
-        if (auth()->user()->role === 'admin') {
-            $customerClaim = CustomerClaim::withoutGlobalScope('plant')->findOrFail($customerClaim->id);
-        }
-
-        $plants = Plant::orderBy('name')->get();
-
-        return view('customer_claims.edit', compact('customerClaim', 'plants'));
-    }
 
     /**
      * Update the specified resource in storage.

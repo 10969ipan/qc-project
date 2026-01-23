@@ -134,6 +134,11 @@ class SortirChecksheetController extends Controller
         $checksheet = $query->findOrFail($id);
 
         $items = Item::orderBy('name')->get();
+
+        if (request()->ajax()) {
+            return view('sortir.partials.edit_form', compact('checksheet', 'items'));
+        }
+
         return view('sortir.edit', compact('checksheet', 'items'));
     }
 

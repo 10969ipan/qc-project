@@ -9,7 +9,6 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
 
     // Master Tools
     Route::get('tools', [CalibrationController::class, 'toolsIndex'])->name('tools.index');
-    Route::get('tools/create', [CalibrationController::class, 'toolsCreate'])->name('tools.create');
     Route::post('tools', [CalibrationController::class, 'toolsStore'])->name('tools.store');
     Route::get('tools/{id}/edit', [CalibrationController::class, 'toolsEdit'])->name('tools.edit');
     Route::put('tools/{id}', [CalibrationController::class, 'toolsUpdate'])->name('tools.update');
@@ -18,7 +17,6 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
 
     // Verifications
     Route::get('verifications', [CalibrationController::class, 'verificationsIndex'])->name('verifications.index');
-    Route::get('verifications/create', [CalibrationController::class, 'verificationsCreate'])->name('verifications.create');
     Route::post('verifications', [CalibrationController::class, 'verificationsStore'])->name('verifications.store');
     Route::get('verifications/{id}/edit', [CalibrationController::class, 'verificationsEdit'])->name('verifications.edit');
     Route::put('verifications/{id}', [CalibrationController::class, 'verificationsUpdate'])->name('verifications.update');
