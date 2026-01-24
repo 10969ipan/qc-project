@@ -141,11 +141,10 @@ class CalibrationTool extends Model
                     return $v->tanggal_verifikasi && \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $month;
                 });
 
-                $displayDate = $v ? $v->tanggal_verifikasi : $s->schedule_date;
-
                 $results[] = (object) [
                     'id' => $s->id,
-                    'schedule_date' => $displayDate,
+                    'schedule_date' => $s->schedule_date,
+                    'actual_date' => $v ? $v->tanggal_verifikasi : null,
                     'status' => $v ? 'OK' : 'Belum Verifikasi',
                     'is_ok' => (bool) $v,
                     'verification' => $v,

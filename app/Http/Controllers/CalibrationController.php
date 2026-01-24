@@ -231,7 +231,7 @@ class CalibrationController extends Controller
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         if ($request->ajax()) {
             return response()->json([
-                'tool' => $tool,
+                'tool' => $tool->load('schedules'),
                 'plantCode' => $plantCode
             ]);
         }
@@ -279,10 +279,29 @@ class CalibrationController extends Controller
 
         $tool->update($data);
 
-        // Sync schedules: Delete all and recreate (simplest way to sync)
-        $tool->schedules()->delete();
-        foreach ($request->schedule_planning as $date) {
-            $tool->schedules()->create(['schedule_date' => $date]);
+        // Sync schedules: Match by ID to preserve PR numbers/dates
+        $inputDates = $request->schedule_planning;
+        $inputIds = $request->input('schedule_ids', []); // IDs of existing schedules to keep/update
+
+        $existingIds = $tool->schedules()->pluck('id')->toArray();
+
+        // 1. Delete schedules that are no longer in the request
+        $toDelete = array_diff($existingIds, $inputIds);
+        if (!empty($toDelete)) {
+            $tool->schedules()->whereIn('id', $toDelete)->delete();
+        }
+
+        // 2. Update or Create schedules
+        foreach ($inputDates as $index => $date) {
+            $scheduleId = isset($inputIds[$index]) ? $inputIds[$index] : null;
+
+            if ($scheduleId && in_array($scheduleId, $existingIds)) {
+                // Update existing
+                $tool->schedules()->where('id', $scheduleId)->update(['schedule_date' => $date]);
+            } else {
+                // Create new
+                $tool->schedules()->create(['schedule_date' => $date]);
+            }
         }
 
         return redirect()->route('calibration.tools.index', ['plant' => $request->plant])
@@ -421,6 +440,12 @@ class CalibrationController extends Controller
         $tool = CalibrationTool::find($request->tool_id);
         if ($tool) {
             $tool->update(['schedule_planning' => $request->next_kalibrasi]);
+
+            // Sync next_kalibrasi to schedules table if it doesn't exist
+            $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
+            if (!$exists) {
+                $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
+            }
         }
 
         return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
@@ -498,6 +523,12 @@ class CalibrationController extends Controller
         $tool = CalibrationTool::find($request->tool_id);
         if ($tool) {
             $tool->update(['schedule_planning' => $request->next_kalibrasi]);
+
+            // Sync next_kalibrasi to schedules table if it doesn't exist
+            $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
+            if (!$exists) {
+                $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
+            }
         }
 
         return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])

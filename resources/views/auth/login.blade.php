@@ -143,7 +143,7 @@
         .banner-divider::after {
             content: '';
             height: 4px;
-            background: #4e73df;
+            background: #d1d3e2;
             flex-grow: 1;
             border-radius: 2px;
         }
@@ -452,8 +452,8 @@
                     <h2 class="banner-title">QC APPS<br>SYSTEM</h2>
                     <div class="banner-divider"></div>
                     <p class="banner-subtitle">
-                        INTEGRATED PRODUCTION PLANNING<br>
-                        QUALITY DEPARTMENT
+                        INTEGRATED DIGITAL QUALITY MANAGEMENT &<br>
+                        REAL-TIME ANALYTICS 
                     </p>
                 </div>
             </div>

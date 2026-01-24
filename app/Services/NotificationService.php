@@ -55,9 +55,9 @@ class NotificationService
     {
         try {
             $item = $checksheet->item;
-            $dateStr = ($checksheet->date instanceof \Carbon\Carbon)
+            $dateStr = ($checksheet->date instanceof Carbon)
                 ? $checksheet->date->format('d-m-Y')
-                : \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y');
+                : Carbon::parse($checksheet->date)->format('d-m-Y');
 
             $title = "Laporan Ditolak: {$item->name}";
             $message = "Laporan {$type} pada {$dateStr} (Shift {$checksheet->shift}) telah DITOLAK" . ($rejector ? " oleh {$rejector}" : "") . ".";
@@ -90,9 +90,9 @@ class NotificationService
     {
         try {
             $item = $checksheet->item;
-            $dateStr = ($checksheet->date instanceof \Carbon\Carbon)
+            $dateStr = ($checksheet->date instanceof Carbon)
                 ? $checksheet->date->format('d-m-Y')
-                : \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y');
+                : Carbon::parse($checksheet->date)->format('d-m-Y');
 
             $title = "Permintaan Approval: {$item->name}";
             $locationLabel = $this->getLocationLabel($type);
@@ -195,9 +195,9 @@ class NotificationService
      */
     private function getChecksheetUrl($checksheet, $type)
     {
-        $dateStr = ($checksheet->date instanceof \Carbon\Carbon)
+        $dateStr = ($checksheet->date instanceof Carbon)
             ? $checksheet->date->format('Y-m-d')
-            : \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d');
+            : Carbon::parse($checksheet->date)->format('Y-m-d');
 
         $params = [
             'plant' => $checksheet->plant->code,
