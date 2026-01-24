@@ -41,9 +41,13 @@
                         <div class="text-center p-3 small text-muted">Loading...</div>
                     </div>
                     <div class="d-flex justify-content-between border-top">
-                        <a class="dropdown-item text-center small text-gray-500 flex-grow-1" href="#"
+                        <a class="dropdown-item text-center small text-gray-500 border-right" href="#"
                             id="mark-all-read">
                             <i class="fas fa-check-double mr-1"></i> Tandai Dibaca
+                        </a>
+                        <a class="dropdown-item text-center small text-danger" href="#"
+                            id="clear-all-notifications">
+                            <i class="fas fa-trash-alt mr-1"></i> Hapus Semua
                         </a>
                     </div>
                 </div>
@@ -388,6 +392,31 @@
                     fetchNotifications();
                 });
             });
+
+            const clearAllBtn = document.getElementById('clear-all-notifications');
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    fetch('{{ route('notifications.clear-all') }}', {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    }).then(response => {
+                        if (response.status === 419) {
+                            window.location.reload();
+                            return;
+                        }
+                        return response.json();
+                    }).then(data => {
+                        fetchNotifications();
+                    }).catch(error => console.error('Error clearing notifications:', error));
+                });
+            }
 
             function formatTimeAgo(date) {
                 const now = new Date();

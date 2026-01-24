@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
+    ->withSchedule(function ($schedule) {
+        $schedule->command('app:check-calibration-schedules')->dailyAt('07:00');
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

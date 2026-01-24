@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\CalibrationToolSchedule;
+use App\Models\CalibrationVerification;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class NotificationService
@@ -116,6 +119,74 @@ class NotificationService
             }
         } catch (\Exception $e) {
             Log::error('Notification Error (Approval): ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify about calibration schedules that need verification
+     */
+    public function notifyCalibrationReminder()
+    {
+        try {
+            $today = Carbon::today();
+
+            // Get all upcoming schedules
+            $schedules = CalibrationToolSchedule::with('tool.plant')
+                ->where('schedule_date', '>', $today)
+                ->get();
+
+            // Target users: admins + Mida Herdiyani
+            $targetUsers = User::where('role', 'admin')
+                ->orWhere('name', 'Mida Herdiyani')
+                ->get();
+
+            foreach ($schedules as $schedule) {
+                $tool = $schedule->tool;
+                if (!$tool)
+                    continue;
+
+                $leadTime = ($tool->jenis_kalibrasi === 'Eksternal') ? 30 : 7;
+                $diffInDays = $today->diffInDays($schedule->schedule_date, false);
+
+                // Check if we are within the notification window
+                if ($diffInDays <= $leadTime) {
+                    $scheduleDate = Carbon::parse($schedule->schedule_date);
+
+                    // Check if verification already exists for this tool in the same month/year
+                    $alreadyVerified = CalibrationVerification::where('tool_id', $tool->id)
+                        ->whereMonth('tanggal_verifikasi', $scheduleDate->month)
+                        ->whereYear('tanggal_verifikasi', $scheduleDate->year)
+                        ->exists();
+
+                    if (!$alreadyVerified) {
+                        $title = "Reminder Kalibrasi: {$tool->name_alat}";
+                        $message = "Alat {$tool->name_alat} ({$tool->serial_number}) dijadwalkan kalibrasi {$tool->jenis_kalibrasi} pada {$scheduleDate->format('d-m-Y')}. Silakan lakukan verifikasi.";
+
+                        $url = route('calibration.verifications.index', ['plant' => $tool->plant->code ?? 'jakarta']);
+
+                        foreach ($targetUsers as $user) {
+                            // Avoid duplicate notifications for the same day/tool/user
+                            $exists = Notification::where('user_id', $user->id)
+                                ->where('type', 'calibration_reminder')
+                                ->where('title', $title)
+                                ->whereDate('created_at', $today)
+                                ->exists();
+
+                            if (!$exists) {
+                                Notification::create([
+                                    'user_id' => $user->id,
+                                    'type' => 'calibration_reminder',
+                                    'title' => $title,
+                                    'message' => $message,
+                                    'data' => ['url' => $url],
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Notification Error (Calibration Reminder): ' . $e->getMessage());
         }
     }
 

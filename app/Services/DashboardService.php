@@ -162,8 +162,11 @@ class DashboardService extends BaseService
             ->mapWithKeys(fn($item) => [(int) $item->code_machine => $item]);
 
         // Status Overrides - Filter by shift start time to reset automatically when shift changes
-        $statusQuery = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble'])
-            ->where('updated_at', '>=', $shiftStartTime);
+        $statusQuery = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble']);
+
+        if ($shiftStartTime) {
+            $statusQuery->where('updated_at', '>=', $shiftStartTime);
+        }
 
         if ($plantId)
             $statusQuery->where('plant_id', $plantId);
