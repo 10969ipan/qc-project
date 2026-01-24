@@ -26,7 +26,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #4e73df;
+            background-color: #ffffff;
             overflow-x: hidden;
             overflow-y: auto;
             min-height: 100vh;
@@ -37,9 +37,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #4e73df;
+            background-color: #ffffff;
+            background-image: url('{{ asset("master item/bg_pattern.png") }}');
+            background-size: 400px;
+            background-repeat: repeat;
             position: relative;
             padding: 2rem 1rem;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 0;
         }
 
         @keyframes float {
@@ -55,79 +69,109 @@
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 8px 32px 0 rgba(30, 60, 114, 0.3);
-            padding: 3rem 2.5rem;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 28px;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 440px;
+            max-width: 950px;
             position: relative;
             z-index: 1;
             margin: auto;
+            display: flex;
+            overflow: hidden;
+            flex-direction: row;
         }
 
-        @keyframes floatCard {
+        .login-side-form {
+            flex: 1;
+            padding: 4.5rem 3.5rem;
+            max-width: 460px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+        }
 
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
+        .login-side-image {
+            flex: 1.3;
+            background-image: url('{{ asset("master item/indoplat.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 4rem 3.5rem;
+            color: white;
+            text-align: left;
+        }
 
-            50% {
-                transform: translateY(-10px);
-            }
+        .login-side-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(30, 60, 114, 0.85) 0%, rgba(42, 82, 152, 0.7) 100%);
+            z-index: 1;
+        }
+
+        .banner-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+
+        .banner-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+
+        .banner-divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .banner-divider::after {
+            content: '';
+            height: 4px;
+            background: #4e73df;
+            flex-grow: 1;
+            border-radius: 2px;
+        }
+
+        .banner-subtitle {
+            font-size: 1.15rem;
+            opacity: 0.95;
+            font-weight: 300;
+            letter-spacing: 1px;
+            line-height: 1.6;
         }
 
         .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .login-icon {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.2);
-            padding: 15px;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        .login-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            text-align: left;
+            margin-bottom: 2.5rem;
         }
 
         .login-title {
-            font-size: 1.75rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            color: #1e3c72;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
         }
 
         .login-subtitle {
-            font-size: 0.95rem;
-            color: #4a90e2;
+            font-size: 1rem;
+            color: #718096;
             font-weight: 400;
         }
 
@@ -259,13 +303,28 @@
         }
 
         /* Responsive Design Upgrades */
+        @media (max-width: 991.98px) {
+            .login-card {
+                flex-direction: column;
+                max-width: 480px;
+            }
+
+            .login-side-image {
+                display: none;
+            }
+
+            .login-side-form {
+                max-width: 100%;
+                padding: 3rem 2rem;
+            }
+        }
+
         @media (max-width: 767.98px) {
             .login-container {
                 padding: 1.5rem 1rem;
             }
 
             .login-card {
-                padding: 2.25rem 1.75rem;
                 border-radius: 20px;
             }
 
@@ -348,48 +407,56 @@
 
     <div class="login-container">
         <div class="login-card">
-            <div class="login-header">
-                <div class="login-icon">
-                    <img src="{{ asset('master item/ipp.png') }}" alt="IPP Logo">
-                </div>
-                <h1 class="login-title">Quality Control</h1>
-                <p class="login-subtitle">Silakan login untuk melanjutkan</p>
-            </div>
-
-            @if (isset($errors) && $errors instanceof \Illuminate\Support\ViewErrorBag && $errors->any())
-                <div class="alert-modern">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('login.process') }}" method="POST">
-                @csrf
-                <div class="form-group">
-                    <input type="email" name="email" class="form-control-modern" id="exampleInputEmail"
-                        placeholder="Email Address" required autofocus value="{{ old('email', $saved_email ?? '') }}">
+            <div class="login-side-form">
+                <div class="login-header">
+                    <h1 class="login-title">Masuk</h1>
+                    <p class="login-subtitle">Masukkan akun Anda untuk melanjutkan</p>
                 </div>
 
-                <div class="form-group">
-                    <div class="password-wrapper">
-                        <input type="password" name="password" class="form-control-modern" id="exampleInputPassword"
-                            placeholder="Password" required value="{{ $saved_password ?? '' }}">
-                        <span toggle="#exampleInputPassword" class="fas fa-eye toggle-password"></span>
+                @if (isset($errors) && $errors instanceof \Illuminate\Support\ViewErrorBag && $errors->any())
+                    <div class="alert-modern">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
-                </div>
+                @endif
 
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" name="remember" id="customCheck" {{ (old('remember') || ($is_remembered ?? false)) ? 'checked' : '' }}>
-                    <label for="customCheck">Remember Me</label>
-                </div>
+                <form action="{{ route('login.process') }}" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label class="small font-weight-bold text-gray-600 mb-1">EMAIL ADDRESS</label>
+                        <input type="email" name="email" class="form-control-modern" id="exampleInputEmail"
+                            placeholder="nama@email.com" required autofocus
+                            value="{{ old('email', $saved_email ?? '') }}">
+                    </div>
 
-                <button type="submit" class="btn-login">
-                    Login
-                </button>
-            </form>
+                    <div class="form-group">
+                        <label class="small font-weight-bold text-gray-600 mb-1">PASSWORD</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" class="form-control-modern" id="exampleInputPassword"
+                                placeholder="••••••••" required value="{{ $saved_password ?? '' }}">
+                            <span toggle="#exampleInputPassword" class="fas fa-eye toggle-password"></span>
+                        </div>
+                    </div>
+
+
+                    <button type="submit" class="btn-login">
+                        Masuk
+                    </button>
+                </form>
+            </div>
+            <div class="login-side-image">
+                <div class="banner-content">
+                    <h2 class="banner-title">QC APPS<br>SYSTEM</h2>
+                    <div class="banner-divider"></div>
+                    <p class="banner-subtitle">
+                        INTEGRATED PRODUCTION PLANNING<br>
+                        QUALITY DEPARTMENT
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 

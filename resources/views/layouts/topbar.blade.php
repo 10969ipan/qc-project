@@ -89,6 +89,7 @@
                                 <a href="#" class="dropdown-item">PLANT JAKARTA <i
                                         class="fas fa-chevron-right submenu-arrow"></i></a>
                                 <ul class="dropdown-menu sub-menu">
+                                    @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
                                     <li>
                                         <a href="#" class="dropdown-item">MASTER DATA <i class="fas fa-chevron-right submenu-arrow"></i></a>
                                         <ul class="dropdown-menu sub-menu">
@@ -96,6 +97,7 @@
                                             <a class="dropdown-item" href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori</a>
                                         </ul>
                                     </li>
+                                    @endif
 
                                     @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
                                     <li>
@@ -136,6 +138,7 @@
                                 <a href="#" class="dropdown-item">PLANT KARAWANG <i
                                         class="fas fa-chevron-right submenu-arrow"></i></a>
                                 <ul class="dropdown-menu sub-menu">
+                                    @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
                                     <li>
                                         <a href="#" class="dropdown-item">MASTER DATA <i class="fas fa-chevron-right submenu-arrow"></i></a>
                                         <ul class="dropdown-menu sub-menu">
@@ -143,6 +146,7 @@
                                             <a class="dropdown-item" href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
                                         </ul>
                                     </li>
+                                    @endif
 
                                     @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
                                     <li>

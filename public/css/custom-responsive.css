@@ -184,6 +184,11 @@
     .input-group-append .btn {
         width: 100%;
     }
+
+    /* Hide navigation icons on mobile */
+    .main-nav>li>a>i:first-child {
+        display: none !important;
+    }
 }
 
 /* Small Mobile Devices (max-width: 575.98px) */
@@ -257,6 +262,11 @@
 
     .card-body {
         padding: 1.25rem;
+    }
+
+    /* Hide navigation icons on tablet-mode mobile menu */
+    .main-nav>li>a>i:first-child {
+        display: none !important;
     }
 }
 
@@ -605,6 +615,7 @@ body.sidebar-toggled .sticky-scroll-bar {
 footer.sticky-footer {
     z-index: 1050;
 }
+
 /* Sticky Footer Implementation */
 footer.sticky-footer {
     margin-top: auto;
