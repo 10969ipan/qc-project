@@ -132,7 +132,7 @@
                             <th rowspan="2" style="align-middle">Tanggal / Shift</th>
                             <th rowspan="2" style="align-middle">Total Qty</th>
                             <th rowspan="2" style="align-middle">Sampling Qty</th>
-                            <th rowspan="2" style="align-middle">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" style="align-middle; min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
                             <th rowspan="2" style="align-middle">Total (OK/NG)</th>
                             <th rowspan="2" style="align-middle">Judgment</th>
                             <th rowspan="2" style="align-middle">Inisial QC</th>
@@ -222,8 +222,7 @@
                                         name="sampling_qty" placeholder="0" min="0" required>
                                 </td>
 
-                                <!-- Jenis (OK/NG) & Detail Varian NG -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 280px;">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="check_ok" value="1"
                                             id="checkOK">
@@ -231,14 +230,14 @@
                                             (Pass)</label>
                                     </div>
                                     <hr class="my-2">
-                                    <small class="font-weight-bold text-secondary">Defect List (NG):</small>
+                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 100px;"
+                                            <select class="form-control defect-select" style="min-width: 180px;"
                                                 name="defect_types[]" id="defectSelect">
                                                 <option value="">-- Pilih Defect --</option>
                                             </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 60px;"
+                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
                                                 name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
@@ -510,7 +509,7 @@
 
             function loadPdf(itemId, index) {
                 const url = `/items/${itemId}/pdf/${index}`;
-                
+
                 // Reset page state for new PDF
                 pdfDoc = null;
                 pageNum = 1;
@@ -556,7 +555,7 @@
 
                 // Show modal
                 $('#pdfModal').modal('show');
-                
+
                 // Load first PDF
                 loadPdf(currentItemId, currentPdfIndex);
             });
@@ -858,10 +857,10 @@
                 if (rowCount < 4) {
                     var firstSelect = $('#defectSelect'); // The original one
                     var newRow = $('<div class="input-group mb-2 defect-row">' +
-                        '<select class="form-control defect-select" style="min-width: 100px;" name="defect_types[]">' +
+                        '<select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]">' +
                         firstSelect.html() +
                         '</select>' +
-                        '<input type="number" class="form-control defect-qty" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                        '<input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
                         '<div class="input-group-append">' +
                         '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
                         '</div>' +

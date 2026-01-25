@@ -90,7 +90,7 @@
                 </form>
             @endif
 
-            <form action="{{ route('in_process.store') }}" method="POST">
+            <form action="{{ route('in_process.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
@@ -102,7 +102,7 @@
                             <th rowspan="2" style="align-middle">Total Qty</th>
                             <th rowspan="2" style="align-middle">Sampling Qty</th>
                             <th rowspan="2" style="align-middle">Check Dimensi</th>
-                            <th rowspan="2" style="align-middle">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" style="align-middle; min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
                             <th rowspan="2" style="align-middle">Total (OK/NG)</th>
                             <th rowspan="2" style="align-middle">Judgment</th>
                             <th rowspan="2" style="align-middle">Inisial QC</th>
@@ -225,8 +225,7 @@
                                     </table>
                                 </td>
 
-                                <!-- Jenis (OK/NG) & Detail Varian NG -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 280px;">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="check_ok" value="1"
                                             id="checkOK">
@@ -234,14 +233,14 @@
                                             (Pass)</label>
                                     </div>
                                     <hr class="my-2">
-                                    <small class="font-weight-bold text-secondary">Defect List (NG):</small>
+                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 100px;"
+                                            <select class="form-control defect-select" style="min-width: 180px;"
                                                 name="defect_types[]" id="defectSelect">
                                                 <option value="">-- Pilih Defect --</option>
                                             </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 60px;"
+                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
                                                 name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
@@ -431,11 +430,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
-            // Disable all form inputs until Start button is clicked
-            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            // Disable all form inputs in checksheetForm until Start button is clicked
+            var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
-            $('form').addClass('inputs-locked');
-            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
+            $('#checksheetForm').addClass('inputs-locked');
+            $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // --- PDF.js Logic ---
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -710,7 +709,7 @@
                 }
 
                 // Use d-flex column if both exist
-                if (fileUrl && imageUrl) {
+                if (files && files.length > 0 && imageUrl) {
                     container.html('<div class="d-flex flex-column align-items-center">' + htmlContent + '</div>');
                 } else {
                     container.html(htmlContent);
@@ -841,10 +840,10 @@
                 if (rowCount < 4) {
                     var firstSelect = $('#defectSelect'); // The original one
                     var newRow = $('<div class="input-group mb-2 defect-row">' +
-                        '<select class="form-control defect-select" style="min-width: 100px;" name="defect_types[]">' +
+                        '<select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]">' +
                         firstSelect.html() +
                         '</select>' +
-                        '<input type="number" class="form-control defect-qty" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                        '<input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
                         '<div class="input-group-append">' +
                         '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
                         '</div>' +

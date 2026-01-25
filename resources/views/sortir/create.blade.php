@@ -49,7 +49,7 @@
                             <th rowspan="2">Tanggal / Shift</th>
                             <th rowspan="2">Total Qty</th>
                             <th rowspan="2">Sampling Qty</th>
-                            <th rowspan="2">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" style="min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
                             <th rowspan="2">Total (OK/NG)</th>
                             <th rowspan="2">Judgment</th>
                             <th rowspan="2">Inisial QC</th>
@@ -135,8 +135,7 @@
                                         name="sampling_qty" placeholder="0" min="0" required>
                                 </td>
 
-                                <!-- Jenis (OK/NG) & Detail NG -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 280px;">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="check_ok" value="1"
                                             id="checkOK">
@@ -144,12 +143,12 @@
                                             (Pass)</label>
                                     </div>
                                     <hr class="my-2">
-                                    <small class="font-weight-bold text-secondary">Defect List (NG):</small>
+                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <input type="text" class="form-control" style="min-width: 100px;"
+                                            <input type="text" class="form-control" style="min-width: 180px;"
                                                 name="defect_types[]" placeholder="Jenis Defect">
-                                            <input type="number" class="form-control" style="min-width: 60px;"
+                                            <input type="number" class="form-control" style="min-width: 100px;"
                                                 name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
@@ -600,14 +599,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                                                            <div class="input-group mb-2 defect-row">
-                                                                                                                            <input type="text" class="form-control" style="min-width: 100px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                                                            <input type="number" class="form-control" style="min-width: 60px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                                                            <div class="input-group-append">
-                                                                                                                                <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                    `;
+                                                                                                                                    <div class="input-group mb-2 defect-row">
+                                                                                                                                 <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                                 <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                                 <div class="input-group-append">
+                                                                                                                                     <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                 </div>
+                                                                                                                             </div>
+                                                                                                                            `;
                 $('#defectContainer').append(newRow);
             });
 
