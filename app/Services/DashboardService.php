@@ -27,7 +27,7 @@ class DashboardService extends BaseService
         $plantId = auth()->user()->plant_id;
         $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant');
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($authRole) {
+        return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole) {
             $combinedStats = $this->calculateApprovalStats();
 
             $statsJakarta = null;
@@ -55,8 +55,19 @@ class DashboardService extends BaseService
 
             $currentPlant = auth()->user()->plant?->name ?? 'unknown';
 
+            // Operator Map (Initials -> Name)
+            $users = \App\Models\User::all();
+            $operatorMap = [];
+            foreach ($users as $u) {
+                // Using accessor to ensure we get initials even if not in DB column explicit
+                $init = $u->initials;
+                if ($init) {
+                    $operatorMap[$init] = $u->name;
+                }
+            }
+
             return array_merge(
-                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant'),
+                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap'),
                 $productionMonitoring
             );
         });
