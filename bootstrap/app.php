@@ -23,5 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:check-calibration-schedules')->dailyAt('07:00');
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            return redirect()->route('login')
+                ->with('error', 'Sesi Anda telah berakhir. Silakan login kembali.');
+        });
     })->create();

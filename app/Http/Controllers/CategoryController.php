@@ -21,9 +21,11 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        // For non-admin users, force filtering by their assigned plant
+        // For non-admin users, default filtering to their assigned plant if no specific plant is requested
         if (auth()->check() && auth()->user()->role !== 'admin') {
-            $request->merge(['plant' => auth()->user()->plant_id]);
+            if (!$request->has('plant')) {
+                $request->merge(['plant' => auth()->user()->plant_id]);
+            }
         }
 
         $categories = $this->categoryService->getFilteredCategories($request->only('plant'));

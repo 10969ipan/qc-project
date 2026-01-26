@@ -441,6 +441,7 @@
 
         /* Mobile Navigation Overlay */
         @media (max-width: 991.98px) {
+
             /* Keep topbar in single row on mobile */
             .topbar {
                 flex-wrap: nowrap !important;
@@ -448,7 +449,7 @@
             }
 
             /* Left section should NOT grow on mobile */
-            .topbar > div:first-child {
+            .topbar>div:first-child {
                 flex-grow: 0 !important;
                 flex-shrink: 1 !important;
                 min-width: 0 !important;
@@ -461,7 +462,7 @@
             }
 
             /* Right section stays on the right */
-            .topbar > div:last-child {
+            .topbar>div:last-child {
                 flex-shrink: 0 !important;
                 margin-left: auto !important;
             }
@@ -526,7 +527,8 @@
                 position: static !important;
                 float: none !important;
                 width: 100% !important;
-                background: #1e40af !important; /* Solid blue */
+                background: #1e40af !important;
+                /* Solid blue */
                 border: none !important;
                 box-shadow: none !important;
                 padding: 0.5rem 0 0.5rem 1rem !important;
@@ -549,12 +551,14 @@
             /* Nested levels - deeper blue for hierarchy */
             .main-nav .dropdown-menu .dropdown-menu,
             .main-nav .dropdown-menu .sub-menu {
-                background: #1e3a8a !important; /* Deeper blue */
+                background: #1e3a8a !important;
+                /* Deeper blue */
                 padding-left: 2rem !important;
             }
 
             .main-nav .dropdown-menu .dropdown-menu .dropdown-menu {
-                background: #172554 !important; /* Deepest blue */
+                background: #172554 !important;
+                /* Deepest blue */
                 padding-left: 3rem !important;
             }
 
@@ -571,7 +575,7 @@
             }
 
             /* Chevron rotation on mobile */
-            .main-nav > li.expanded > a i.fa-chevron-down,
+            .main-nav>li.expanded>a i.fa-chevron-down,
             .main-nav .dropdown-item.expanded i {
                 transform: rotate(180deg);
             }
