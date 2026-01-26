@@ -207,6 +207,8 @@
                             <a class="collapse-item"
                                 href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">Claim
                                 Customer</a>
+                            <a class="collapse-item"
+                                href="{{ route('admin.customer-claim-records.index', ['plant' => 'jakarta']) }}">List Claim</a>
                         </div>
                     @endif
 
@@ -219,6 +221,8 @@
                         <div id="qaPlantKRW" class="collapse pl-2">
                             <a class="collapse-item"
                                 href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">Claim Customer</a>
+                            <a class="collapse-item"
+                                href="{{ route('admin.customer-claim-records.index', ['plant' => 'karawang']) }}">List Claim</a>
                         </div>
                     @endif
 

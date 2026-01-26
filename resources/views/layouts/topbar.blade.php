@@ -215,6 +215,9 @@
                                         <li><a class="dropdown-item"
                                                 href="{{ route('admin.customer-claims.index', ['plant' => 'jakarta']) }}">Claim
                                                 Customer</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('admin.customer-claim-records.index', ['plant' => 'jakarta']) }}">List
+                                                Claim</a></li>
                                     </ul>
                                 </li>
                             @endif
@@ -226,6 +229,9 @@
                                         <li><a class="dropdown-item"
                                                 href="{{ route('admin.customer-claims.index', ['plant' => 'karawang']) }}">Claim
                                                 Customer</a></li>
+                                        <li><a class="dropdown-item"
+                                                href="{{ route('admin.customer-claim-records.index', ['plant' => 'karawang']) }}">List
+                                                Claim</a></li>
                                     </ul>
                                 </li>
                             @endif
@@ -400,19 +406,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                                                                                                    <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                                                                                        <div class="mr-3">
-                                                                                                                            <div class="icon-circle ${iconClass}">
-                                                                                                                                <i class="${icon} text-white"></i>
+                                                                                                                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                                                                                            <div class="mr-3">
+                                                                                                                                <div class="icon-circle ${iconClass}">
+                                                                                                                                    <i class="${icon} text-white"></i>
+                                                                                                                                </div>
                                                                                                                             </div>
-                                                                                                                        </div>
-                                                                                                                        <div>
-                                                                                                                            <div class="small text-gray-500">${timeAgo}</div>
-                                                                                                                            <span class="${unreadClass}">${notif.title}</span>
-                                                                                                                            <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                                                                                        </div>
-                                                                                                                    </a>
-                                                                                                                `;
+                                                                                                                            <div>
+                                                                                                                                <div class="small text-gray-500">${timeAgo}</div>
+                                                                                                                                <span class="${unreadClass}">${notif.title}</span>
+                                                                                                                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                                                                                            </div>
+                                                                                                                        </a>
+                                                                                                                    `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {

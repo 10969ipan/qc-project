@@ -5,6 +5,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MonthlyReportController;
 use App\Http\Controllers\CustomerClaimController;
+use App\Http\Controllers\CustomerClaimRecordController;
 
 Route::middleware(['auth'])->group(function () {
     // Master Data Management (Admin & Staff)
@@ -25,6 +26,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('customer-claims/yearly', [CustomerClaimController::class, 'yearly'])->name('customer-claims.yearly');
         Route::post('customer-claims/yearly', [CustomerClaimController::class, 'storeYearly'])->name('customer-claims.store-yearly');
         Route::resource('customer-claims', CustomerClaimController::class)->except(['create', 'edit']);
+
+        // Customer Claim Records (Detailed List)
+        Route::get('customer-claim-records-export', [CustomerClaimRecordController::class, 'exportPdf'])->name('customer-claim-records.export');
+        Route::resource('customer-claim-records', CustomerClaimRecordController::class)->names('customer-claim-records');
     });
 
     // Public/Shared Access to Master Files
