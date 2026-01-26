@@ -103,7 +103,7 @@
                             <th rowspan="2" class="align-middle">Jam After</th>
                             <th rowspan="2" class="align-middle">Cycle (s)</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
-                            <th colspan="2" class="align-middle">Pengujian</th>
+                            <th rowspan="2" class="align-middle">Pengujian (Foto/Tap/Pencil)</th>
                             <th rowspan="2" class="align-middle">Judgement</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="6" class="align-middle">Approval Status</th>
@@ -113,14 +113,12 @@
                             @endif
                         </tr>
                         <tr class="text-center">
-                            <th style="font-size: 10px;">Foto & Tap</th>
-                            <th style="font-size: 10px;">Pencil</th>
-                            <th style="font-size: 10px;">{{ getApprovalLabelShort('karu_qc') }}</th>
-                            <th style="font-size: 10px;">{{ getApprovalLabelShort('kashift_plating') }}</th>
-                            <th style="font-size: 10px;">{{ getApprovalLabelShort('supervisor') }}</th>
-                            <th style="font-size: 10px;">{{ getApprovalLabelShort('supervisor_plating') }}</th>
-                            <th style="font-size: 10px;">{{ getApprovalLabelShort('manager') }}</th>
-                            <th style="font-size: 10px;">{{ getApprovalLabelShort('manager_plating') }}</th>
+                            <th style="font-size: 10px;">Kepala Regu QC</th>
+                            <th style="font-size: 10px;">Kepala Shift Plating</th>
+                            <th style="font-size: 10px;">Supervisor Quality</th>
+                            <th style="font-size: 10px;">Supervisor Plating</th>
+                            <th style="font-size: 10px;">Manager QC</th>
+                            <th style="font-size: 10px;">Manager Plating</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 12px;">
@@ -144,7 +142,7 @@
                                 <td class="align-middle font-weight-bold">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle text-nowrap text-left">{{ $checksheet->item->name ?? 'N/A' }}</td>
 
-                                {{-- Foto & Tap Test --}}
+                                {{-- Unified Foto (Cross / Tap / Pencil) --}}
                                 <td class="text-center align-middle">
                                     @if ($checksheet->image_path)
                                         <button type="button" class="btn btn-sm btn-info view-image-btn p-1 px-2" data-toggle="modal"
@@ -157,8 +155,6 @@
                                         -
                                     @endif
                                 </td>
-
-                                <td class="align-middle font-weight-bold">{{ $checksheet->pencil_scratch ?? '-' }}</td>
                                 <td class="align-middle font-weight-bold {{ $checksheet->position_remark_judgment === 'OK' ? 'text-success' : 'text-danger' }}">
                                     {{ $checksheet->position_remark_judgment }}
                                 </td>

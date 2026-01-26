@@ -58,8 +58,7 @@
                                 <th>Standard</th>
                                 <th>Item Part</th>
                                 <th>Tanggal & Shift Produksi / QC</th>
-                                <th>Hasil Foto Cross Cut / Tap Test</th>
-                                <th>Pencil Scratch</th>
+                                <th>Hasil Foto Cross Cut / Tap Test & Pencil Scratch</th>
                                 <th>Judgement</th>
                                 <th>Inisial QC</th>
                                 <th>Keterangan</th>
@@ -131,7 +130,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <!-- Image + Tap Test merge -->
+                                <!-- Cross Cut / Tap Test / Pencil Scratch Image -->
                                 <td class="align-middle text-center">
                                     <label for="image" class="mb-2 d-block text-primary font-weight-bold">
                                         <i class="fas fa-camera mr-1"></i> AMBIL GAMBAR
@@ -142,20 +141,13 @@
                                         <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih
                                             Foto</span>
                                     </button>
-                                    <small class="text-muted d-block mb-2">Foto Checksheet & Bukti Tap Test</small>
+                                    <small class="text-muted d-block mb-2">Foto Checksheet & Bukti Tap / Pencil
+                                        Scratch</small>
                                     <button type="button" id="previewBtn" class="btn btn-info btn-sm btn-block"
                                         style="display: none;">
                                         <i class="fas fa-eye"></i> Preview Foto
                                     </button>
                                     <small id="fileName" class="text-muted d-block"></small>
-                                </td>
-                                <!-- Pencil Scratch -->
-                                <td class="align-middle" style="min-width: 120px;">
-                                    <select class="form-control" name="pencil_scratch">
-                                        <option value="">-- Pilih --</option>
-                                        <option value="OK">OK</option>
-                                        <option value="NG">NG</option>
-                                    </select>
                                 </td>
                                 <!-- Judgment -->
                                 <td class="align-middle" style="min-width: 120px;">

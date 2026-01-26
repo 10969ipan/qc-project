@@ -45,7 +45,7 @@ class UpdateCrossCutPaintingChecksheetRequest extends FormRequest
             'qc_shift' => 'sometimes|string|max:255',
             'production_datetime' => 'sometimes|date',
             'qc_datetime' => 'sometimes|date',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
             'pencil_scratch' => 'nullable|string|max:255',
             'tap_test' => 'nullable|string|max:255',
             'position_remark_judgment' => 'sometimes|in:OK,NG',

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\InProcessChecksheet;
 use App\Models\SubAssyChecksheet;
 use App\Models\CrossCutChecksheet;
+use App\Models\CrossCutPaintingChecksheet;
 use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
 use App\Models\CustomerClaim;
@@ -85,6 +86,7 @@ class DashboardService extends BaseService
         $this->processModelStats(InProcessChecksheet::class, $stats, $plantId);
         $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId);
         $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId);
+        $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId);
 
         return $stats;
     }
@@ -434,8 +436,8 @@ class DashboardService extends BaseService
 
         return [
             'labels' => $dates,
-            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process']),
-            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut']),
+            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut_plating', 'cross_cut_painting']),
+            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut_plating', 'cross_cut_painting']),
         ];
     }
 
@@ -460,8 +462,15 @@ class DashboardService extends BaseService
                     ->groupBy('group_date')
                     ->get()
                     ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
-            } elseif ($type === 'cross_cut') {
+            } elseif ($type === 'cross_cut_plating') {
                 $records = CrossCutChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('production_datetime', [$start, $end])
+                    ->selectRaw('DATE(production_datetime) as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy('group_date');
+            } elseif ($type === 'cross_cut_painting') {
+                $records = CrossCutPaintingChecksheet::where('plant_id', $plantId)
                     ->whereBetween('production_datetime', [$start, $end])
                     ->selectRaw('DATE(production_datetime) as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
                     ->groupBy('group_date')

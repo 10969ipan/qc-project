@@ -11,8 +11,7 @@
                 <tr>
                     <th>Item Part</th>
                     <th>Tanggal / Shift</th>
-                    <th>Hasil Foto Cross Cut / Tap Test</th>
-                    <th>Pencil Scratch</th>
+                    <th>Hasil Foto Cross Cut / Tap Test & Pencil Scratch</th>
                     <th>Judgement</th>
                     <th>Keterangan</th>
                 </tr>
@@ -73,13 +72,6 @@
                         @endif
                         <input type="file" class="form-control-file" name="image" accept="image/*">
                         <small class="text-muted d-block mt-1">Upload gambar baru untuk mengganti</small>
-                    </td>
-                    <td>
-                        <select class="form-control" name="pencil_scratch">
-                            <option value="">-- Pilih --</option>
-                            <option value="OK" {{ $checksheet->pencil_scratch == 'OK' ? 'selected' : '' }}>OK</option>
-                            <option value="NG" {{ $checksheet->pencil_scratch == 'NG' ? 'selected' : '' }}>NG</option>
-                        </select>
                     </td>
                     <td>
                         <select class="form-control" name="position_remark_judgment" required>

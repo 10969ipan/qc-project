@@ -424,7 +424,7 @@
                         renderChart("chartJakarta", "Status Approval - Jakarta", statsJakarta);
                         renderChart("chartKarawang", "Status Approval - Karawang", statsKarawang);
                     @else
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    var combinedStats = @json($combinedStats);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    var combinedStats = @json($combinedStats);
                         renderChart("chartContainer", "Status Approval", combinedStats);
                     @endif
 
@@ -614,1183 +614,1204 @@
                 }
 
                 function renderSingleNgChart(containerId, plantName, plantData, labels) {
-                    const series = [];
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                const series = [];
 
-                    if (plantData.sub_assy) {
-                        series.push({
-                            name: "Sub Assy",
-                            type: "spline",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: l.split('-').slice(1).reverse().join('/'), y: plantData.sub_assy[i] }))
-                        });
-                    }
+                                const formatLabel = (l) => {
+                                    const parts = l.split('-');
+                                    if (parts.length < 3) return l;
+                                    const day = parts[2];
+                                    const month = monthNames[parseInt(parts[1]) - 1];
+                                    return day + ' ' + month;
+                                };
 
-                    if (plantData.in_process) {
-                        series.push({
-                            name: "In Process",
-                            type: "spline",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: l.split('-').slice(1).reverse().join('/'), y: plantData.in_process[i] }))
-                        });
-                    }
+                                if (plantData.sub_assy) {
+                                    series.push({
+                                        name: "Sub Assy",
+                                        type: "spline",
+                                        showInLegend: true,
+                                        yValueFormatString: "##0.00'%'",
+                                        dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.sub_assy[i] }))
+                                    });
+                                }
 
-                    if (plantData.cross_cut) {
-                        series.push({
-                            name: "Cross Cut",
-                            type: "spline",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: l.split('-').slice(1).reverse().join('/'), y: plantData.cross_cut[i] }))
-                        });
-                    }
+                                if (plantData.in_process) {
+                                    series.push({
+                                        name: "In Process",
+                                        type: "spline",
+                                        showInLegend: true,
+                                        yValueFormatString: "##0.00'%'",
+                                        dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.in_process[i] }))
+                                    });
+                                }
 
-                    const chart = new CanvasJS.Chart(containerId, {
-                        animationEnabled: true,
-                        theme: "light2",
-                        title: {
-                            text: "",
-                            fontFamily: "Nunito"
-                        },
-                        toolTip: {
-                            shared: true,
-                            fontFamily: "Nunito"
-                        },
-                        legend: {
-                            cursor: "pointer",
-                            itemclick: toggleDataSeries,
-                            fontFamily: "Nunito"
-                        },
-                        axisX: {
-                            labelFontFamily: "Nunito",
-                            labelFontSize: 10
-                        },
-                        axisY: {
-                            title: "NG Rate (%)",
-                            suffix: "%",
-                            titleFontFamily: "Nunito",
-                            labelFontFamily: "Nunito"
-                        },
-                        data: series
-                    });
-                    chart.render();
-                }
-            </script>
+                                if (plantData.cross_cut_plating) {
+                                    series.push({
+                                        name: "Cross Cut Plating",
+                                        type: "spline",
+                                        color: "#f6c23e",
+                                        showInLegend: true,
+                                        yValueFormatString: "##0.00'%'",
+                                        dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.cross_cut_plating[i] }))
+                                    });
+                                }
+
+                                if (plantData.cross_cut_painting) {
+                                    series.push({
+                                        name: "Cross Cut Painting",
+                                        type: "spline",
+                                        color: "#e74a3b",
+                                        showInLegend: true,
+                                        yValueFormatString: "##0.00'%'",
+                                        dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.cross_cut_painting[i] }))
+                                    });
+                                }
+
+                                const chart = new CanvasJS.Chart(containerId, {
+                                    animationEnabled: true,
+                                    theme: "light2",
+                                    title: {
+                                        text: "",
+                                        fontFamily: "Nunito"
+                                    },
+                                    toolTip: {
+                                        shared: true,
+                                        fontFamily: "Nunito"
+                                    },
+                                    legend: {
+                                        cursor: "pointer",
+                                        itemclick: toggleDataSeries,
+                                        fontFamily: "Nunito"
+                                    },
+                                    axisX: {
+                                        labelFontFamily: "Nunito",
+                                        labelFontSize: 10
+                                    },
+                                    axisY: {
+                                        title: "NG Rate (%)",
+                                        suffix: "%",
+                                        titleFontFamily: "Nunito",
+                                        labelFontFamily: "Nunito"
+                                    },
+                                    data: series
+                                });
+                                chart.render();
+                            }
+                        </script>
         @endpush
     @endif
 
 
-    <!-- Production Status Section -->
+        <!-- Production Status Section -->
 
-    @if(isset($isDualView) && $isDualView && isset($productionJakarta) && isset($productionKarawang))
-        {{-- DUAL VIEW MODE --}}
-        <div class="row">
-            {{-- Sub Assy Jakarta (Left) --}}
-            <div class="col-xl-6 col-lg-12 mb-5">
-                <div class="modern-card h-100">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-success text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
-                            <div>
-                                <h6 class="modern-card-title">Produksi Sub Assy - Jakarta</h6><small
-                                    class="text-muted">Monitoring Jakarta</small>
-                            </div>
-                        </div>
-                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                            {{ $productionJakarta['activeLines']->count() }}</span>
-                    </div>
-                    <div class="card-body bg-light" style="background: #fdfdfe;">
-                        <div class="row px-2">
-                            @foreach ([1, 2, 4, 5, 6, 7, 8, 9, 10, 11] as $i)
-                                @php
-                                    $data = $productionJakarta['activeLines']->get($i);
-                                    $manualStatus = $productionJakarta['lineStatuses']->get($i);
-                                    $isActive = $data ? true : false;
-                                    $isNg = $isActive && $data->judgment === 'NG';
-                                    $statusClass = 'status-idle';
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
-                                    } elseif ($isActive) {
-                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                    }
-                                @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                    <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
-                                        onclick="showDetailModal(this)"
-                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                            data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                            data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
-                                        data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                        @if($manualStatus && $manualStatus->status !== 'normal')
-                                            data-manual-description="{{ $manualStatus->description }}"
-                                            data-manual-by="{{ $manualStatus->created_by }}"
-                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                        title="Click untuk detail">
-
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div class="flex flex-col">
-                                                <h4
-                                                    class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
-                                                    MEJA-{{ $i }}</h4>
-                                            </div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                @php
-                                                    $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
-                                                    $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
-                                                    $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
-                                                    $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
-                                                @endphp
-                                                <div
-                                                    class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
-                                                    <span
-                                                        class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
-                                                    {{ $badgeText }}
-                                                </div>
-                                            @elseif($isActive)
-                                                <div
-                                                    class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
-                                                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                                                    RUNNING
-                                                </div>
-                                            @else
-                                                <div
-                                                    class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
-                                                    <span class="material-icons-round text-[10px]">pause_circle_outline</span>
-                                                    IDLE
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <div class="space-y-1.5">
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div
-                                                    class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
-                                                    <p
-                                                        class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
-                                                        {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
-                                                    </p>
-                                                    <p
-                                                        class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
-                                                        {{ Str::limit($manualStatus->description, 30) }}
-                                                    </p>
-                                                </div>
-                                            @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">Part No.</span>
-                                                    <span
-                                                        class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">QC</span>
-                                                    <div
-                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
-                                                        <span
-                                                            class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
-                                                        <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
-                                                        <span
-                                                            class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
-                                                            style="width: 100%"></div>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
-                                                    <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
-                                                    <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
+        @if(isset($isDualView) && $isDualView && isset($productionJakarta) && isset($productionKarawang))
+            {{-- DUAL VIEW MODE --}}
+            <div class="row">
+                {{-- Sub Assy Jakarta (Left) --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-success text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
+                                <div>
+                                    <h6 class="modern-card-title">Produksi Sub Assy - Jakarta</h6><small
+                                        class="text-muted">Monitoring Jakarta</small>
                                 </div>
-                            @endforeach
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Sub Assy Karawang (Right) --}}
-            <div class="col-xl-6 col-lg-12 mb-5">
-                <div class="modern-card h-100">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-primary text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
-                            <div>
-                                <h6 class="modern-card-title">Produksi Sub Assy - Karawang</h6><small
-                                    class="text-muted">Monitoring Karawang</small>
                             </div>
+                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                                {{ $productionJakarta['activeLines']->count() }}</span>
                         </div>
-                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                            {{ $productionKarawang['activeLines']->count() }}</span>
-                    </div>
-                    <div class="card-body bg-light" style="background: #fdfdfe;">
-                        <div class="row px-2">
-                            @foreach (range(1, 15) as $i)
-                                @php
-                                    $data = $productionKarawang['activeLines']->get($i);
-                                    $manualStatus = $productionKarawang['lineStatuses']->get($i);
-                                    $isActive = $data ? true : false;
-                                    $isNg = $isActive && $data->judgment === 'NG';
-                                    $statusClass = 'status-idle';
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
-                                    } elseif ($isActive) {
-                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                    }
-                                @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                    <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
-                                        onclick="showDetailModal(this)"
-                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                            data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                            data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
-                                        data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                        @if($manualStatus && $manualStatus->status !== 'normal')
-                                            data-manual-description="{{ $manualStatus->description }}"
-                                            data-manual-by="{{ $manualStatus->created_by }}"
-                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                        title="Click untuk detail">
-
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div class="flex flex-col">
-                                                <h4
-                                                    class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
-                                                    MEJA-{{ $i }}</h4>
-                                            </div>
+                        <div class="card-body bg-light" style="background: #fdfdfe;">
+                            <div class="row px-2">
+                                @foreach ([1, 2, 4, 5, 6, 7, 8, 9, 10, 11] as $i)
+                                    @php
+                                        $data = $productionJakarta['activeLines']->get($i);
+                                        $manualStatus = $productionJakarta['lineStatuses']->get($i);
+                                        $isActive = $data ? true : false;
+                                        $isNg = $isActive && $data->judgment === 'NG';
+                                        $statusClass = 'status-idle';
+                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                            $statusClass = 'status-maintenance';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                            $statusClass = 'status-stopped';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                            $statusClass = 'status-trouble';
+                                            $isActive = false;
+                                        } elseif ($isActive) {
+                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                        }
+                                    @endphp
+                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                        <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                            onclick="showDetailModal(this)"
+                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
                                             @if($manualStatus && $manualStatus->status !== 'normal')
-                                                @php
-                                                    $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
-                                                    $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
-                                                    $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
-                                                    $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
-                                                @endphp
-                                                <div
-                                                    class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
-                                                    <span
-                                                        class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
-                                                    {{ $badgeText }}
-                                                </div>
-                                            @elseif($isActive)
-                                                <div
-                                                    class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
-                                                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                                                    RUNNING
-                                                </div>
-                                            @else
-                                                <div
-                                                    class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
-                                                    <span class="material-icons-round text-[10px]">pause_circle_outline</span>
-                                                    IDLE
-                                                </div>
-                                            @endif
-                                        </div>
+                                                data-manual-description="{{ $manualStatus->description }}"
+                                                data-manual-by="{{ $manualStatus->created_by }}"
+                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                            title="Click untuk detail">
 
-                                        <div class="space-y-1.5">
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div
-                                                    class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
-                                                    <p
-                                                        class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
-                                                        {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
-                                                    </p>
-                                                    <p
-                                                        class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
-                                                        {{ Str::limit($manualStatus->description, 30) }}
-                                                    </p>
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div class="flex flex-col">
+                                                    <h4
+                                                        class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
+                                                        MEJA-{{ $i }}</h4>
                                                 </div>
-                                            @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">Part No.</span>
-                                                    <span
-                                                        class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    @php
+                                                        $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
+                                                        $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
+                                                        $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
+                                                        $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
+                                                    @endphp
                                                     <div
-                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
+                                                        class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
                                                         <span
-                                                            class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                            class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
+                                                        {{ $badgeText }}
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
-                                                        <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
-                                                        <span
-                                                            class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
-                                                    </div>
+                                                @elseif($isActive)
                                                     <div
-                                                        class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
-                                                            style="width: 100%"></div>
+                                                        class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                        RUNNING
                                                     </div>
-                                                </div>
-                                            @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
-                                                    <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
-                                                    <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Injection Jakarta (Left) --}}
-            <div class="col-xl-6 col-lg-12 mb-5">
-                <div class="modern-card h-100">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-info text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
-                            <div>
-                                <h6 class="modern-card-title">Produksi Injection - Jakarta</h6><small
-                                    class="text-muted">Monitoring Jakarta</small>
-                            </div>
-                        </div>
-                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                            {{ $productionJakarta['activeMachines']->count() }}</span>
-                    </div>
-                    <div class="card-body bg-light" style="background: #fdfdfe;">
-                        <div class="row px-2">
-                            @foreach (array_keys($jakartaMachines) as $i)
-                                @php
-                                    $data = $productionJakarta['activeMachines']->get($i);
-                                    $manualStatus = $productionJakarta['machineStatuses']->get($i);
-                                    $isActive = $data ? true : false;
-                                    $isNg = $isActive && $data->judgment === 'NG';
-                                    $statusClass = 'status-idle';
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
-                                    } elseif ($isActive) {
-                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                    }
-                                    $machineInfo = $jakartaMachines[$i] ?? null;
-                                @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                    <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
-                                        onclick="showDetailModal(this)"
-                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                            data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                            data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
-                                        data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
-                                            data-manual-description="{{ $manualStatus->description }}"
-                                            data-manual-by="{{ $manualStatus->created_by }}"
-                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                        title="Click untuk detail">
-
-                                        <div class="flex justify-between items-start mb-1.5">
-                                            <div class="flex flex-col">
-                                                <h4
-                                                    class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
-                                                    MESIN-{{ $i }}</h4>
-                                                @if($machineInfo)
-                                                    <span
-                                                        class="text-[0.55rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">({{ $machineInfo['tonnage'] }}T)</span>
+                                                @else
+                                                    <div
+                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                        <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                        IDLE
+                                                    </div>
                                                 @endif
                                             </div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                @php
-                                                    $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
-                                                    $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
-                                                    $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
-                                                    $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
-                                                @endphp
-                                                <div
-                                                    class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
-                                                    <span
-                                                        class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
-                                                    {{ $badgeText }}
-                                                </div>
-                                            @elseif($isActive)
-                                                <div
-                                                    class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
-                                                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                                                    RUNNING
-                                                </div>
-                                            @else
-                                                <div
-                                                    class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
-                                                    <span class="material-icons-round text-[10px]">pause_circle_outline</span>
-                                                    IDLE
-                                                </div>
-                                            @endif
-                                        </div>
 
-                                        <div class="space-y-1.5">
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div
-                                                    class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
-                                                    <p
-                                                        class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
-                                                        {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
-                                                    </p>
-                                                    <p
-                                                        class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
-                                                        {{ Str::limit($manualStatus->description, 30) }}
-                                                    </p>
-                                                </div>
-                                            @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">Part No.</span>
-                                                    <span
-                                                        class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                            <div class="space-y-1.5">
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
                                                     <div
-                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
-                                                        <span
-                                                            class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
+                                                        <p
+                                                            class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
+                                                            {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
+                                                        </p>
+                                                        <p
+                                                            class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
+                                                            {{ Str::limit($manualStatus->description, 30) }}
+                                                        </p>
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                @elseif($isActive)
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
-                                                        <span
-                                                            class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                            class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
                                                     </div>
-                                                    <div
-                                                        class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
-                                                            style="width: 100%"></div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                        <div
+                                                            class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                            <span class="material-icons-round text-[0.65rem]">person</span>
+                                                            <span
+                                                                class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
-                                                    <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
-                                                    <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Injection Karawang (Right) --}}
-            <div class="col-xl-6 col-lg-12 mb-5">
-                <div class="modern-card h-100">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-warning text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
-                            <div>
-                                <h6 class="modern-card-title">Produksi Injection - Karawang</h6><small
-                                    class="text-muted">Monitoring
-                                    Karawang</small>
-                            </div>
-                        </div>
-                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
-                            {{ $productionKarawang['activeMachines']->count() }}</span>
-                    </div>
-                    <div class="card-body bg-light" style="background: #fdfdfe;">
-                        <div class="row px-2">
-                            @foreach (array_keys($karawangMachines) as $i)
-                                @php
-                                    $data = $productionKarawang['activeMachines']->get($i);
-                                    $manualStatus = $productionKarawang['machineStatuses']->get($i);
-                                    $isActive = $data ? true : false;
-                                    $isNg = $isActive && $data->judgment === 'NG';
-                                    $statusClass = 'status-idle';
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
-                                    } elseif ($isActive) {
-                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                    }
-                                    $machineInfo = $karawangMachines[$i] ?? null;
-                                @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                    <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
-                                        onclick="showDetailModal(this)"
-                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                            data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                            data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
-                                        data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
-                                            data-manual-description="{{ $manualStatus->description }}"
-                                            data-manual-by="{{ $manualStatus->created_by }}"
-                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                        title="Click untuk detail">
-
-                                        <div class="flex justify-between items-start mb-1.5">
-                                            <div class="flex flex-col">
-                                                <h4
-                                                    class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
-                                                    MESIN-{{ $i }}</h4>
-                                                @if($machineInfo)
-                                                    <span
-                                                        class="text-[0.55rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">({{ $machineInfo['tonnage'] }}T)</span>
+                                                    <div>
+                                                        <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                            <span
+                                                                class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            <span
+                                                                class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                            <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                        <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
+                                                        <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
+                                                            Setup</p>
+                                                    </div>
                                                 @endif
                                             </div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                @php
-                                                    $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
-                                                    $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
-                                                    $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
-                                                    $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
-                                                @endphp
-                                                <div
-                                                    class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
-                                                    <span
-                                                        class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
-                                                    {{ $badgeText }}
-                                                </div>
-                                            @elseif($isActive)
-                                                <div
-                                                    class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
-                                                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                                                    RUNNING
-                                                </div>
-                                            @else
-                                                <div
-                                                    class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
-                                                    <span class="material-icons-round text-[10px]">pause_circle_outline</span>
-                                                    IDLE
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <div class="space-y-1.5">
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div
-                                                    class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
-                                                    <p
-                                                        class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
-                                                        {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
-                                                    </p>
-                                                    <p
-                                                        class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
-                                                        {{ Str::limit($manualStatus->description, 30) }}
-                                                    </p>
-                                                </div>
-                                            @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">Part No.</span>
-                                                    <span
-                                                        class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">QC</span>
-                                                    <div
-                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
-                                                        <span
-                                                            class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
-                                                        <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
-                                                        <span
-                                                            class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
-                                                            style="width: 100%"></div>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
-                                                    <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
-                                                    <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
-                                                </div>
-                                            @endif
                                         </div>
                                     </div>
-                                </div>
-                            @endforeach
+                                @endforeach
+
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-        </div>
-    @else
-
-        <div class="row">
-            <!-- Sub Assy Lines -->
-            <div class="col-xl-6 col-lg-12 mb-5">
-                <div class="modern-card h-100">
-                    @php
-                        $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
-                        $tableOptions = range(1, 15);
-                        if ($plant === 'jakarta') {
-                            $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
-                        }
-                    @endphp
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-primary text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                <i class="fas fa-industry"></i>
-                            </div>
-                            <div>
-                                <h6 class="modern-card-title">Produksi Sub Assy</h6>
-                                <small class="text-muted">Monitoring Produksi Sub Assy Hari Ini</small>
-                            </div>
-                        </div>
-                        <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">
-                            Running: {{ $runningLinesCount }}
-                        </span>
-                    </div>
-                    <div class="card-body bg-light" style="background: #fdfdfe;">
-                        <div class="row px-2">
-                            @foreach ($tableOptions as $i)
-                                @php
-                                    $data = $activeLines->get($i);
-                                    $manualStatus = $lineStatuses->get($i);
-
-                                    // Default State
-                                    $isActive = $data ? true : false;
-                                    $isNg = $isActive && $data->judgment === 'NG';
-                                    $statusClass = 'status-idle';
-
-                                    // Override Logic
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false; // Hide production data
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped'; // Use stopped style for consistency
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
-                                    } elseif ($isActive) {
-                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                    }
-                                @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                    <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
-                                        onclick="showDetailModal(this)"
-                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                            data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                            data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
-                                        data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
-                                        @if($manualStatus && $manualStatus->status !== 'normal')
-                                            data-manual-description="{{ $manualStatus->description }}"
-                                            data-manual-by="{{ $manualStatus->created_by }}"
-                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                        title="Click untuk detail">
-
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div class="flex flex-col">
-                                                <h4
-                                                    class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
-                                                    MEJA-{{ $i }}</h4>
-                                            </div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                @php
-                                                    $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
-                                                    $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
-                                                    $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
-                                                    $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
-                                                @endphp
-                                                <div
-                                                    class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
-                                                    <span
-                                                        class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
-                                                    {{ $badgeText }}
-                                                </div>
-                                            @elseif($isActive)
-                                                <div
-                                                    class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
-                                                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                                                    RUNNING
-                                                </div>
-                                            @else
-                                                <div
-                                                    class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
-                                                    <span class="material-icons-round text-[10px]">pause_circle_outline</span>
-                                                    IDLE
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <div class="space-y-1.5">
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div
-                                                    class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
-                                                    <p
-                                                        class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
-                                                        {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
-                                                    </p>
-                                                    <p
-                                                        class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
-                                                        {{ Str::limit($manualStatus->description, 30) }}
-                                                    </p>
-                                                </div>
-                                            @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">Part No.</span>
-                                                    <span
-                                                        class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">QC</span>
-                                                    <div
-                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
-                                                        <span
-                                                            class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
-                                                        <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
-                                                        <span
-                                                            class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
-                                                            style="width: 100%"></div>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
-                                                    <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
-                                                    <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
+                {{-- Sub Assy Karawang (Right) --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-primary text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
+                                <div>
+                                    <h6 class="modern-card-title">Produksi Sub Assy - Karawang</h6><small
+                                        class="text-muted">Monitoring Karawang</small>
                                 </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- In Process Machines -->
-            <div class="col-xl-6 col-lg-12 mb-5">
-                <div class="modern-card h-100">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-info text-white mr-3"
-                                style="width: 40px; height: 40px; font-size: 1rem;">
-                                <i class="fas fa-cogs"></i>
                             </div>
-                            <div>
-                                <h6 class="modern-card-title">Produksi Injection</h6>
-                                <small class="text-muted">Monitoring Produksi Injection Hari Ini</small>
-                            </div>
+                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                                {{ $productionKarawang['activeLines']->count() }}</span>
                         </div>
-                        <span class="badge badge-info px-3 py-2 rounded-pill shadow-sm text-white">
-                            Running: {{ $runningMachinesCount }}
-                        </span>
-                    </div>
-                    <div class="card-body bg-light" style="background: #fdfdfe;">
-                        <div class="row px-2">
-                            @php
-                                $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
-                                $machinesToDisplay = ($plant === 'jakarta') ? array_keys($jakartaMachines) : array_keys($karawangMachines);
-                            @endphp
-                            @foreach ($machinesToDisplay as $i)
-                                @php
-                                    $data = $activeMachines->get($i);
-                                    $manualStatus = $machineStatuses->get($i);
+                        <div class="card-body bg-light" style="background: #fdfdfe;">
+                            <div class="row px-2">
+                                @foreach (range(1, 15) as $i)
+                                    @php
+                                        $data = $productionKarawang['activeLines']->get($i);
+                                        $manualStatus = $productionKarawang['lineStatuses']->get($i);
+                                        $isActive = $data ? true : false;
+                                        $isNg = $isActive && $data->judgment === 'NG';
+                                        $statusClass = 'status-idle';
+                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                            $statusClass = 'status-maintenance';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                            $statusClass = 'status-stopped';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                            $statusClass = 'status-trouble';
+                                            $isActive = false;
+                                        } elseif ($isActive) {
+                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                        }
+                                    @endphp
+                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                        <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                            onclick="showDetailModal(this)"
+                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
+                                            @if($manualStatus && $manualStatus->status !== 'normal')
+                                                data-manual-description="{{ $manualStatus->description }}"
+                                                data-manual-by="{{ $manualStatus->created_by }}"
+                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                            title="Click untuk detail">
 
-                                    $machineInfo = ($plant === 'jakarta') ? ($jakartaMachines[$i] ?? null) : ($karawangMachines[$i] ?? null);
-                                    $tonnage = $machineInfo['tonnage'] ?? '-';
-
-                                    // Default State
-                                    $isActive = $data ? true : false;
-                                    $isNg = $isActive && $data->judgment === 'NG';
-                                    $statusClass = 'status-idle';
-
-                                    // Override Logic
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
-                                    } elseif ($isActive) {
-                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
-                                    }
-                                @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
-                                    <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
-                                        onclick="showDetailModal(this)"
-                                        data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
-                                        @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
-                                            data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
-                                            data-total-qty="{{ $data->total_qty ?? '-' }}"
-                                            data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
-                                            data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
-                                            data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                            data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
-                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
-                                        data-tonnage="{{ $tonnage }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
-                                            data-manual-description="{{ $manualStatus->description }}"
-                                            data-manual-by="{{ $manualStatus->created_by }}"
-                                        data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
-                                        title="Click untuk detail">
-
-                                        <div class="flex justify-between items-start mb-1.5">
-                                            <div class="flex flex-col">
-                                                <h4
-                                                    class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
-                                                    MESIN-{{ $i }}</h4>
-                                                @if($machineInfo)
-                                                    <span
-                                                        class="text-[0.55rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">({{ $machineInfo['tonnage'] }}T)</span>
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div class="flex flex-col">
+                                                    <h4
+                                                        class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
+                                                        MEJA-{{ $i }}</h4>
+                                                </div>
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    @php
+                                                        $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
+                                                        $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
+                                                        $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
+                                                        $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
+                                                    @endphp
+                                                    <div
+                                                        class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
+                                                        <span
+                                                            class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
+                                                        {{ $badgeText }}
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div
+                                                        class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                        RUNNING
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                        <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                        IDLE
+                                                    </div>
                                                 @endif
                                             </div>
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                @php
-                                                    $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
-                                                    $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
-                                                    $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
-                                                    $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
-                                                @endphp
-                                                <div
-                                                    class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
-                                                    <span
-                                                        class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
-                                                    {{ $badgeText }}
-                                                </div>
-                                            @elseif($isActive)
-                                                <div
-                                                    class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
-                                                    <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                                                    RUNNING
-                                                </div>
-                                            @else
-                                                <div
-                                                    class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
-                                                    <span class="material-icons-round text-[10px]">pause_circle_outline</span>
-                                                    IDLE
-                                                </div>
-                                            @endif
-                                        </div>
 
-                                        <div class="space-y-1.5">
-                                            @if($manualStatus && $manualStatus->status !== 'normal')
-                                                <div
-                                                    class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
-                                                    <p
-                                                        class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
-                                                        {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
-                                                    </p>
-                                                    <p
-                                                        class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
-                                                        {{ Str::limit($manualStatus->description, 30) }}
-                                                    </p>
-                                                </div>
-                                            @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">Part No.</span>
-                                                    <span
-                                                        class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                    <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                            <div class="space-y-1.5">
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
                                                     <div
-                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
-                                                        <span
-                                                            class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
+                                                        <p
+                                                            class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
+                                                            {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
+                                                        </p>
+                                                        <p
+                                                            class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
+                                                            {{ Str::limit($manualStatus->description, 30) }}
+                                                        </p>
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                @elseif($isActive)
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
-                                                        <span
-                                                            class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                            class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
                                                     </div>
-                                                    <div
-                                                        class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
-                                                            style="width: 100%"></div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                        <div
+                                                            class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                            <span class="material-icons-round text-[0.65rem]">person</span>
+                                                            <span
+                                                                class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
-                                                    <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
-                                                    <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
-                                                </div>
-                                            @endif
+                                                    <div>
+                                                        <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                            <span
+                                                                class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            <span
+                                                                class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                            <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                        <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
+                                                        <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
+                                                            Setup</p>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Injection Jakarta (Left) --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-info text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
+                                <div>
+                                    <h6 class="modern-card-title">Produksi Injection - Jakarta</h6><small
+                                        class="text-muted">Monitoring Jakarta</small>
                                 </div>
-                            @endforeach
+                            </div>
+                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                                {{ $productionJakarta['activeMachines']->count() }}</span>
+                        </div>
+                        <div class="card-body bg-light" style="background: #fdfdfe;">
+                            <div class="row px-2">
+                                @foreach (array_keys($jakartaMachines) as $i)
+                                    @php
+                                        $data = $productionJakarta['activeMachines']->get($i);
+                                        $manualStatus = $productionJakarta['machineStatuses']->get($i);
+                                        $isActive = $data ? true : false;
+                                        $isNg = $isActive && $data->judgment === 'NG';
+                                        $statusClass = 'status-idle';
+                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                            $statusClass = 'status-maintenance';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                            $statusClass = 'status-stopped';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                            $statusClass = 'status-trouble';
+                                            $isActive = false;
+                                        } elseif ($isActive) {
+                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                        }
+                                        $machineInfo = $jakartaMachines[$i] ?? null;
+                                    @endphp
+                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                        <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                            onclick="showDetailModal(this)"
+                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+                                            data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
+                                                data-manual-description="{{ $manualStatus->description }}"
+                                                data-manual-by="{{ $manualStatus->created_by }}"
+                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                            title="Click untuk detail">
+
+                                            <div class="flex justify-between items-start mb-1.5">
+                                                <div class="flex flex-col">
+                                                    <h4
+                                                        class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
+                                                        MESIN-{{ $i }}</h4>
+                                                    @if($machineInfo)
+                                                        <span
+                                                            class="text-[0.55rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">({{ $machineInfo['tonnage'] }}T)</span>
+                                                    @endif
+                                                </div>
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    @php
+                                                        $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
+                                                        $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
+                                                        $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
+                                                        $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
+                                                    @endphp
+                                                    <div
+                                                        class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
+                                                        <span
+                                                            class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
+                                                        {{ $badgeText }}
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div
+                                                        class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                        RUNNING
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                        <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                        IDLE
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <div class="space-y-1.5">
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    <div
+                                                        class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
+                                                        <p
+                                                            class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
+                                                            {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
+                                                        </p>
+                                                        <p
+                                                            class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
+                                                            {{ Str::limit($manualStatus->description, 30) }}
+                                                        </p>
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Part No.</span>
+                                                        <span
+                                                            class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                        <div
+                                                            class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                            <span class="material-icons-round text-[0.65rem]">person</span>
+                                                            <span
+                                                                class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                            <span
+                                                                class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            <span
+                                                                class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                            <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                        <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
+                                                        <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
+                                                            Setup</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Injection Karawang (Right) --}}
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-warning text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
+                                <div>
+                                    <h6 class="modern-card-title">Produksi Injection - Karawang</h6><small
+                                        class="text-muted">Monitoring
+                                        Karawang</small>
+                                </div>
+                            </div>
+                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running:
+                                {{ $productionKarawang['activeMachines']->count() }}</span>
+                        </div>
+                        <div class="card-body bg-light" style="background: #fdfdfe;">
+                            <div class="row px-2">
+                                @foreach (array_keys($karawangMachines) as $i)
+                                    @php
+                                        $data = $productionKarawang['activeMachines']->get($i);
+                                        $manualStatus = $productionKarawang['machineStatuses']->get($i);
+                                        $isActive = $data ? true : false;
+                                        $isNg = $isActive && $data->judgment === 'NG';
+                                        $statusClass = 'status-idle';
+                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                            $statusClass = 'status-maintenance';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                            $statusClass = 'status-stopped';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                            $statusClass = 'status-trouble';
+                                            $isActive = false;
+                                        } elseif ($isActive) {
+                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                        }
+                                        $machineInfo = $karawangMachines[$i] ?? null;
+                                    @endphp
+                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                        <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                            onclick="showDetailModal(this)"
+                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+                                            data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
+                                                data-manual-description="{{ $manualStatus->description }}"
+                                                data-manual-by="{{ $manualStatus->created_by }}"
+                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                            title="Click untuk detail">
+
+                                            <div class="flex justify-between items-start mb-1.5">
+                                                <div class="flex flex-col">
+                                                    <h4
+                                                        class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
+                                                        MESIN-{{ $i }}</h4>
+                                                    @if($machineInfo)
+                                                        <span
+                                                            class="text-[0.55rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">({{ $machineInfo['tonnage'] }}T)</span>
+                                                    @endif
+                                                </div>
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    @php
+                                                        $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
+                                                        $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
+                                                        $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
+                                                        $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
+                                                    @endphp
+                                                    <div
+                                                        class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
+                                                        <span
+                                                            class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
+                                                        {{ $badgeText }}
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div
+                                                        class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                        RUNNING
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                        <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                        IDLE
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <div class="space-y-1.5">
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    <div
+                                                        class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
+                                                        <p
+                                                            class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
+                                                            {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
+                                                        </p>
+                                                        <p
+                                                            class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
+                                                            {{ Str::limit($manualStatus->description, 30) }}
+                                                        </p>
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Part No.</span>
+                                                        <span
+                                                            class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                        <div
+                                                            class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                            <span class="material-icons-round text-[0.65rem]">person</span>
+                                                            <span
+                                                                class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                            <span
+                                                                class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            <span
+                                                                class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                            <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                        <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
+                                                        <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
+                                                            Setup</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        @else
+
+            <div class="row">
+                <!-- Sub Assy Lines -->
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        @php
+                            $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
+                            $tableOptions = range(1, 15);
+                            if ($plant === 'jakarta') {
+                                $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
+                            }
+                        @endphp
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-primary text-white mr-3"
+                                    style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    <i class="fas fa-industry"></i>
+                                </div>
+                                <div>
+                                    <h6 class="modern-card-title">Produksi Sub Assy</h6>
+                                    <small class="text-muted">Monitoring Produksi Sub Assy Hari Ini</small>
+                                </div>
+                            </div>
+                            <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">
+                                Running: {{ $runningLinesCount }}
+                            </span>
+                        </div>
+                        <div class="card-body bg-light" style="background: #fdfdfe;">
+                            <div class="row px-2">
+                                @foreach ($tableOptions as $i)
+                                    @php
+                                        $data = $activeLines->get($i);
+                                        $manualStatus = $lineStatuses->get($i);
+
+                                        // Default State
+                                        $isActive = $data ? true : false;
+                                        $isNg = $isActive && $data->judgment === 'NG';
+                                        $statusClass = 'status-idle';
+
+                                        // Override Logic
+                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                            $statusClass = 'status-maintenance';
+                                            $isActive = false; // Hide production data
+                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                            $statusClass = 'status-stopped'; // Use stopped style for consistency
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                            $statusClass = 'status-trouble';
+                                            $isActive = false;
+                                        } elseif ($isActive) {
+                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                        }
+                                    @endphp
+                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                        <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                            onclick="showDetailModal(this)"
+                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                            data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
+                                            @if($manualStatus && $manualStatus->status !== 'normal')
+                                                data-manual-description="{{ $manualStatus->description }}"
+                                                data-manual-by="{{ $manualStatus->created_by }}"
+                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                            title="Click untuk detail">
+
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div class="flex flex-col">
+                                                    <h4
+                                                        class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
+                                                        MEJA-{{ $i }}</h4>
+                                                </div>
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    @php
+                                                        $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
+                                                        $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
+                                                        $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
+                                                        $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
+                                                    @endphp
+                                                    <div
+                                                        class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
+                                                        <span
+                                                            class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
+                                                        {{ $badgeText }}
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div
+                                                        class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                        RUNNING
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                        <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                        IDLE
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <div class="space-y-1.5">
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    <div
+                                                        class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
+                                                        <p
+                                                            class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
+                                                            {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
+                                                        </p>
+                                                        <p
+                                                            class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
+                                                            {{ Str::limit($manualStatus->description, 30) }}
+                                                        </p>
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Part No.</span>
+                                                        <span
+                                                            class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                        <div
+                                                            class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                            <span class="material-icons-round text-[0.65rem]">person</span>
+                                                            <span
+                                                                class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                            <span
+                                                                class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            <span
+                                                                class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                            <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                        <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
+                                                        <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
+                                                            Setup</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Process Machines -->
+                <div class="col-xl-6 col-lg-12 mb-5">
+                    <div class="modern-card h-100">
+                        <div class="modern-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-info text-white mr-3"
+                                    style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="fas fa-cogs"></i>
+                                </div>
+                                <div>
+                                    <h6 class="modern-card-title">Produksi Injection</h6>
+                                    <small class="text-muted">Monitoring Produksi Injection Hari Ini</small>
+                                </div>
+                            </div>
+                            <span class="badge badge-info px-3 py-2 rounded-pill shadow-sm text-white">
+                                Running: {{ $runningMachinesCount }}
+                            </span>
+                        </div>
+                        <div class="card-body bg-light" style="background: #fdfdfe;">
+                            <div class="row px-2">
+                                @php
+                                    $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
+                                    $machinesToDisplay = ($plant === 'jakarta') ? array_keys($jakartaMachines) : array_keys($karawangMachines);
+                                @endphp
+                                @foreach ($machinesToDisplay as $i)
+                                    @php
+                                        $data = $activeMachines->get($i);
+                                        $manualStatus = $machineStatuses->get($i);
+
+                                        $machineInfo = ($plant === 'jakarta') ? ($jakartaMachines[$i] ?? null) : ($karawangMachines[$i] ?? null);
+                                        $tonnage = $machineInfo['tonnage'] ?? '-';
+
+                                        // Default State
+                                        $isActive = $data ? true : false;
+                                        $isNg = $isActive && $data->judgment === 'NG';
+                                        $statusClass = 'status-idle';
+
+                                        // Override Logic
+                                        if ($manualStatus && $manualStatus->status === 'maintenance') {
+                                            $statusClass = 'status-maintenance';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'stopped') {
+                                            $statusClass = 'status-stopped';
+                                            $isActive = false;
+                                        } elseif ($manualStatus && $manualStatus->status === 'trouble') {
+                                            $statusClass = 'status-trouble';
+                                            $isActive = false;
+                                        } elseif ($isActive) {
+                                            $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                        }
+                                    @endphp
+                                    <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                        <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                            onclick="showDetailModal(this)"
+                                            data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
+                                            @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
+                                            data-tonnage="{{ $tonnage }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
+                                                data-manual-description="{{ $manualStatus->description }}"
+                                                data-manual-by="{{ $manualStatus->created_by }}"
+                                            data-manual-updated="{{ $manualStatus->updated_at->format('Y-m-d H:i') }}" @endif
+                                            title="Click untuk detail">
+
+                                            <div class="flex justify-between items-start mb-1.5">
+                                                <div class="flex flex-col">
+                                                    <h4
+                                                        class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">
+                                                        MESIN-{{ $i }}</h4>
+                                                    @if($machineInfo)
+                                                        <span
+                                                            class="text-[0.55rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">({{ $machineInfo['tonnage'] }}T)</span>
+                                                    @endif
+                                                </div>
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    @php
+                                                        $badgeColor = $manualStatus->status === 'maintenance' ? 'yellow' : ($manualStatus->status === 'stopped' ? 'gray' : 'red');
+                                                        $badgeBg = $manualStatus->status === 'maintenance' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ($manualStatus->status === 'stopped' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/40');
+                                                        $badgeText = $manualStatus->status === 'maintenance' ? 'MAINT' : ($manualStatus->status === 'stopped' ? 'IDLE' : 'TROUBLE');
+                                                        $icon = $manualStatus->status === 'maintenance' ? 'engineering' : ($manualStatus->status === 'stopped' ? 'pause_circle_outline' : 'warning');
+                                                    @endphp
+                                                    <div
+                                                        class="flex items-center gap-1 {{ $badgeBg }} text-{{ $badgeColor }}-700 dark:text-{{ $badgeColor }}-200 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-{{ $badgeColor }}-200 dark:border-{{ $badgeColor }}-700 shadow-sm">
+                                                        <span
+                                                            class="material-icons-round text-[10px] {{ $badgeColor === 'red' ? 'animate-bounce' : '' }}">{{ $icon }}</span>
+                                                        {{ $badgeText }}
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div
+                                                        class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                        <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                        RUNNING
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                        <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                        IDLE
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <div class="space-y-1.5">
+                                                @if($manualStatus && $manualStatus->status !== 'normal')
+                                                    <div
+                                                        class="rounded-lg p-1.5 border border-{{ $badgeColor }}-100 dark:border-{{ $badgeColor }}-800/50">
+                                                        <p
+                                                            class="text-[0.65rem] text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-700 dark:text-{{ $badgeColor === 'gray' ? 'slate' : $badgeColor }}-300 font-semibold uppercase">
+                                                            {{ $manualStatus->status === 'maintenance' ? 'GANTI MOLD/SETTING' : ($manualStatus->status === 'stopped' ? 'STAND BY' : 'TROUBLE') }}
+                                                        </p>
+                                                        <p
+                                                            class="text-[0.6rem] text-slate-500 dark:text-slate-400 italic mt-0.5 leading-tight">
+                                                            {{ Str::limit($manualStatus->description, 30) }}
+                                                        </p>
+                                                    </div>
+                                                @elseif($isActive)
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Part No.</span>
+                                                        <span
+                                                            class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                        <div
+                                                            class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                            <span class="material-icons-round text-[0.65rem]">person</span>
+                                                            <span
+                                                                class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                            <span
+                                                                class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            <span
+                                                                class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                            <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                        <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
+                                                        <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
+                                                            Setup</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
 
-    <!-- Detail Modal -->
-    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="detailModalLabel">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        <span id="modalUnitName"></span>
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Content will be populated by JavaScript -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-1"></i> Tutup
-                    </button>
+        <!-- Detail Modal -->
+        <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="detailModalLabel">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <span id="modalUnitName"></span>
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="modalBody">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Tutup
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        // Function to show detail modal
-        function showDetailModal(element) {
-            const card = element.closest('.status-item');
-            if (!card) return;
+        <script>
+            // Function to show detail modal
+            function showDetailModal(element) {
+                const card = element.closest('.status-item');
+                if (!card) return;
 
-            const unitName = card.querySelector('h4')?.textContent || 'Unknown';
-            const partNumber = card.dataset.partNumber || '-';
-            const itemName = card.dataset.itemName || '-';
-            const judgment = card.dataset.judgment || '-';
-            const totalQty = card.dataset.totalQty || '-';
-            const samplingQty = card.dataset.samplingQty || '-';
-            const okCount = card.dataset.okCount || '-';
-            const ngCount = card.dataset.ngCount || '-';
-            const operator = card.dataset.operator || '-';
-            const date = card.dataset.date || '-';
-            const shift = card.dataset.shift || '-';
-            const time = card.dataset.time || '-';
-            const tonnage = card.dataset.tonnage || '-';
-            const status = card.dataset.status || 'idle';
-            const manualDescription = card.dataset.manualDescription || '';
-            const manualBy = card.dataset.manualBy || '';
-            const manualUpdated = card.dataset.manualUpdated || '';
+                const unitName = card.querySelector('h4')?.textContent || 'Unknown';
+                const partNumber = card.dataset.partNumber || '-';
+                const itemName = card.dataset.itemName || '-';
+                const judgment = card.dataset.judgment || '-';
+                const totalQty = card.dataset.totalQty || '-';
+                const samplingQty = card.dataset.samplingQty || '-';
+                const okCount = card.dataset.okCount || '-';
+                const ngCount = card.dataset.ngCount || '-';
+                const operator = card.dataset.operator || '-';
+                const date = card.dataset.date || '-';
+                const shift = card.dataset.shift || '-';
+                const time = card.dataset.time || '-';
+                const tonnage = card.dataset.tonnage || '-';
+                const status = card.dataset.status || 'idle';
+                const manualDescription = card.dataset.manualDescription || '';
+                const manualBy = card.dataset.manualBy || '';
+                const manualUpdated = card.dataset.manualUpdated || '';
 
-            // Set modal title
-            document.getElementById('modalUnitName').textContent = unitName;
+                // Set modal title
+                document.getElementById('modalUnitName').textContent = unitName;
 
-            // Build modal content with premium design
-            let content = '';
+                // Build modal content with premium design
+                let content = '';
 
-            const unitLabel = unitName.includes('MEJA') ? 'MEJA' : 'MACHINE';
+                const unitLabel = unitName.includes('MEJA') ? 'MEJA' : 'MACHINE';
 
                 if (status === 'active') {
                     content = `
-                                                                    <div class="space-y-6 text-slate-800 dark:text-slate-200">
-                                                                        <!-- Part Info Section -->
-                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-                                                                            <div class="flex items-center gap-2 mb-4">
-                                                                                <span class="material-icons-round text-primary">inventory_2</span>
-                                                                                <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Informasi Produk</h6>
-                                                                            </div>
-                                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                                <div class="space-y-1">
-                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Part Number</p>
-                                                                                    <p class="text-sm font-mono font-bold">${partNumber}</p>
-                                                                                </div>
-                                                                                <div class="space-y-1">
-                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Item Name</p>
-                                                                                    <p class="text-sm font-bold">${itemName}</p>
-                                                                                </div>
-                                                                                <div class="space-y-1">
-                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Kapasitas (Tonnage)</p>
-                                                                                    <p class="text-sm font-bold">${tonnage}T</p>
-                                                                                </div>
-                                                                                <div class="space-y-1">
-                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Waktu Update</p>
-                                                                                    <p class="text-sm font-bold">${time} WIB</p>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <!-- Quality Control Section -->
-                                                                        <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
-                                                                            <div class="flex items-center gap-2 mb-4">
-                                                                                <span class="material-icons-round text-indigo-600">verified_user</span>
-                                                                                <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Quality Control (QC)</h6>
-                                                                            </div>
-
-                                                                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                                                                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Sampling Rate</p>
-                                                                                    <div class="flex items-end gap-1">
-                                                                                        <span class="text-xl font-bold">${samplingQty}</span>
-                                                                                        <span class="text-[0.65rem] text-slate-400 mb-1">/ ${totalQty} pcs</span>
+                                                                            <div class="space-y-6 text-slate-800 dark:text-slate-200">
+                                                                                <!-- Part Info Section -->
+                                                                                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+                                                                                    <div class="flex items-center gap-2 mb-4">
+                                                                                        <span class="material-icons-round text-primary">inventory_2</span>
+                                                                                        <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Informasi Produk</h6>
+                                                                                    </div>
+                                                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                        <div class="space-y-1">
+                                                                                            <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Part Number</p>
+                                                                                            <p class="text-sm font-mono font-bold">${partNumber}</p>
+                                                                                        </div>
+                                                                                        <div class="space-y-1">
+                                                                                            <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Item Name</p>
+                                                                                            <p class="text-sm font-bold">${itemName}</p>
+                                                                                        </div>
+                                                                                        <div class="space-y-1">
+                                                                                            <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Kapasitas (Tonnage)</p>
+                                                                                            <p class="text-sm font-bold">${tonnage}T</p>
+                                                                                        </div>
+                                                                                        <div class="space-y-1">
+                                                                                            <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Waktu Update</p>
+                                                                                            <p class="text-sm font-bold">${time} WIB</p>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Status Judgment</p>
-                                                                                    <div class="flex items-center gap-1.5">
-                                                                                        <span class="w-2 h-2 rounded-full ${judgment === 'OK' ? 'bg-green-500' : 'bg-red-500'}"></span>
-                                                                                        <span class="text-sm font-extrabold ${judgment === 'OK' ? 'text-green-600' : 'text-red-600'}">${judgment}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
 
-                                                                            <div class="grid grid-cols-2 gap-4">
-                                                                                <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 p-2.5 rounded-xl border border-green-100 dark:border-green-900/30">
-                                                                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">OK</div>
-                                                                                    <div>
-                                                                                        <p class="text-[0.6rem] text-green-700 dark:text-green-400 font-bold uppercase">Total OK</p>
-                                                                                        <p class="text-sm font-bold">${okCount}</p>
+                                                                                <!-- Quality Control Section -->
+                                                                                <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
+                                                                                    <div class="flex items-center gap-2 mb-4">
+                                                                                        <span class="material-icons-round text-indigo-600">verified_user</span>
+                                                                                        <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Quality Control (QC)</h6>
                                                                                     </div>
-                                                                                </div>
-                                                                                <div class="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-xl border border-red-100 dark:border-red-900/30">
-                                                                                    <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">NG</div>
-                                                                                    <div>
-                                                                                        <p class="text-[0.6rem] text-red-700 dark:text-red-400 font-bold uppercase">Total NG</p>
-                                                                                        <p class="text-sm font-bold">${ngCount}</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
 
-                                                                        <!-- Operator Info -->
-                                                                        <div class="flex items-center justify-between px-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                                                            <div class="flex items-center gap-2">
-                                                                                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                                                                    <span class="material-icons-round text-lg">person</span>
+                                                                                    <div class="grid grid-cols-2 gap-4 mb-4">
+                                                                                        <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                                                                            <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Sampling Rate</p>
+                                                                                            <div class="flex items-end gap-1">
+                                                                                                <span class="text-xl font-bold">${samplingQty}</span>
+                                                                                                <span class="text-[0.65rem] text-slate-400 mb-1">/ ${totalQty} pcs</span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                                                                            <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Status Judgment</p>
+                                                                                            <div class="flex items-center gap-1.5">
+                                                                                                <span class="w-2 h-2 rounded-full ${judgment === 'OK' ? 'bg-green-500' : 'bg-red-500'}"></span>
+                                                                                                <span class="text-sm font-extrabold ${judgment === 'OK' ? 'text-green-600' : 'text-red-600'}">${judgment}</span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    <div class="grid grid-cols-2 gap-4">
+                                                                                        <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 p-2.5 rounded-xl border border-green-100 dark:border-green-900/30">
+                                                                                            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">OK</div>
+                                                                                            <div>
+                                                                                                <p class="text-[0.6rem] text-green-700 dark:text-green-400 font-bold uppercase">Total OK</p>
+                                                                                                <p class="text-sm font-bold">${okCount}</p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-xl border border-red-100 dark:border-red-900/30">
+                                                                                            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">NG</div>
+                                                                                            <div>
+                                                                                                <p class="text-[0.6rem] text-red-700 dark:text-red-400 font-bold uppercase">Total NG</p>
+                                                                                                <p class="text-sm font-bold">${ngCount}</p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div>
-                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Operator QC</p>
-                                                                                    <p class="text-xs font-bold leading-none">${operator}</p>
+
+                                                                                <!-- Operator Info -->
+                                                                                <div class="flex items-center justify-between px-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                                                    <div class="flex items-center gap-2">
+                                                                                        <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                                                                            <span class="material-icons-round text-lg">person</span>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Operator QC</p>
+                                                                                            <p class="text-xs font-bold leading-none">${operator}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="text-right">
+                                                                                        <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Shift / Tanggal</p>
+                                                                                        <p class="text-xs font-medium leading-none">Shift ${shift} | ${date}</p>
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div class="text-right">
-                                                                                <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Shift / Tanggal</p>
-                                                                                <p class="text-xs font-medium leading-none">Shift ${shift} | ${date}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
+                                                                            </div>`;
                 } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
                     let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
                     let color = status === 'maintenance' ? 'yellow' : (status === 'stopped' ? 'gray' : 'red');
                     let icon = status === 'maintenance' ? 'engineering' : (status === 'stopped' ? 'pause_circle_outline' : 'warning');
 
                     content = `
-                                                                    <div class="text-center py-6 text-slate-800 dark:text-slate-200">
-                                                                        <div class="w-20 h-20 bg-${color}-50 dark:bg-${color}-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-${color}-100 dark:border-${color}-900/30">
-                                                                            <span class="material-icons-round text-4xl text-${color}-600 dark:text-${color}-400">${icon}</span>
-                                                                        </div>
-                                                                        <h4 class="text-xl font-black mb-2 uppercase italic">${unitLabel} IN ${badge}</h4>
-                                                                        <div class="max-w-xs mx-auto bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mt-6">
-                                                                            <p class="text-[0.65rem] text-slate-500 uppercase font-bold mb-2">Keterangan / Masalah</p>
-                                                                            <p class="text-sm font-medium italic">"${manualDescription || 'Tidak ada keterangan tambahan'}"</p>
-                                                                            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-[0.6rem]">
-                                                                                <span class="text-slate-400 uppercase font-bold">Dibuat Oleh: ${manualBy}</span>
-                                                                                <span class="text-slate-400 font-medium">${manualUpdated}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
+                                                                            <div class="text-center py-6 text-slate-800 dark:text-slate-200">
+                                                                                <div class="w-20 h-20 bg-${color}-50 dark:bg-${color}-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-${color}-100 dark:border-${color}-900/30">
+                                                                                    <span class="material-icons-round text-4xl text-${color}-600 dark:text-${color}-400">${icon}</span>
+                                                                                </div>
+                                                                                <h4 class="text-xl font-black mb-2 uppercase italic">${unitLabel} IN ${badge}</h4>
+                                                                                <div class="max-w-xs mx-auto bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mt-6">
+                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold mb-2">Keterangan / Masalah</p>
+                                                                                    <p class="text-sm font-medium italic">"${manualDescription || 'Tidak ada keterangan tambahan'}"</p>
+                                                                                    <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-[0.6rem]">
+                                                                                        <span class="text-slate-400 uppercase font-bold">Dibuat Oleh: ${manualBy}</span>
+                                                                                        <span class="text-slate-400 font-medium">${manualUpdated}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>`;
                 } else {
                     content = `
-                                                                    <div class="text-center py-12 text-slate-800 dark:text-slate-200">
-                                                                        <div class="relative w-24 h-24 mx-auto mb-6">
-                                                                            <div class="absolute inset-0 bg-slate-100 dark:bg-slate-800 rounded-full animate-ping opacity-25"></div>
-                                                                            <div class="relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-inner">
-                                                                                <span class="material-icons-round text-4xl text-slate-400">hourglass_empty</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <h4 class="text-lg font-bold mb-2 tracking-tight">Status: ${unitLabel} IDLE</h4>
-                                                                        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto">Menunggu pengecekan dari tim Quality Control.</p>
-                                                                        <button class="mt-8 px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:scale-105 transition-transform" data-dismiss="modal">Tutup Detail</button>
-                                                                    </div>`;
+                                                                            <div class="text-center py-12 text-slate-800 dark:text-slate-200">
+                                                                                <div class="relative w-24 h-24 mx-auto mb-6">
+                                                                                    <div class="absolute inset-0 bg-slate-100 dark:bg-slate-800 rounded-full animate-ping opacity-25"></div>
+                                                                                    <div class="relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-inner">
+                                                                                        <span class="material-icons-round text-4xl text-slate-400">hourglass_empty</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <h4 class="text-lg font-bold mb-2 tracking-tight">Status: ${unitLabel} IDLE</h4>
+                                                                                <p class="text-sm text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto">Menunggu pengecekan dari tim Quality Control.</p>
+                                                                                <button class="mt-8 px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:scale-105 transition-transform" data-dismiss="modal">Tutup Detail</button>
+                                                                            </div>`;
                 }
 
                 // Set modal content

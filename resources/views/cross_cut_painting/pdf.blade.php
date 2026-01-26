@@ -70,25 +70,23 @@
                 <th rowspan="2">Jam Bef</th>
                 <th rowspan="2">Jam Aft</th>
                 <th rowspan="2" style="width: 15%;">Nama Part</th>
-                <th colspan="2">Pengujian</th>
+                <th rowspan="2" style="width: 10%;">Pengujian</th>
                 <th rowspan="2">Judgement</th>
                 <th rowspan="2">Inisial</th>
                 <th colspan="6">Approval Status</th>
             </tr>
             <tr class="bg-gray">
-                <th>Foto & Tap</th>
-                <th>Pencil</th>
                 <!-- Adjust Labels based on Plant -->
                 @if(request('plant') == 'jakarta')
                     <th>Karu</th>
                 @else
-                    <th>Karu QC</th>
+                    <th>Kepala Regu QC</th>
                 @endif
-                <th>Kashift Ptg</th>
-                <th>SPV Ptg</th>
-                <th>SPV QC</th>
-                <th>Mgr Ptg</th>
-                <th>Mgr QC</th>
+                <th>Kepala Shift Plating</th>
+                <th>Supervisor Quality</th>
+                <th>Supervisor Plating</th>
+                <th>Manager QC</th>
+                <th>Manager Plating</th>
             </tr>
         </thead>
         <tbody>
@@ -104,13 +102,11 @@
                     <td>{{ \Carbon\Carbon::parse($row->qc_datetime)->format('H:i') }}</td>
                     <td style="text-align: left;">{{ $row->item->name ?? '-' }}</td>
 
-                    {{-- Foto & Tap --}}
+                    {{-- Unified Pengujian --}}
                     <td>
-                        @if($row->tap_test) Tap: {{ $row->tap_test }} @endif
-                        @if($row->image_path) [Foto] @else - @endif
+                        @if($row->tap_test) Tap: {{ $row->tap_test }} <br> @endif
+                        @if($row->image_path) [Foto Check] @else - @endif
                     </td>
-
-                    <td>{{ $row->pencil_scratch ?? '-' }}</td>
 
                     <td
                         style="{{ $row->position_remark_judgment == 'NG' ? 'color: red; font-weight: bold;' : 'color: green;' }}">
