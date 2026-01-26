@@ -26,7 +26,12 @@
         @endif
 
         <!-- Navigation Menu (Left Aligned) -->
-        <div class="nav-menu-container d-none d-lg-block" id="topbar-nav-menu">
+        <div class="nav-menu-container" id="topbar-nav-menu">
+            <!-- Mobile Header Item -->
+            <div class="mobile-header d-lg-none px-4 py-3 font-weight-bold text-white"
+                style="background: rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.2); font-size: 0.9rem; letter-spacing: 1px;">
+                QC APPS
+            </div>
             <ul class="main-nav d-flex align-items-center list-unstyled mb-0">
                 <li class="{{ Request::is('/') ? 'active' : '' }}">
                     <a href="/"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
@@ -223,7 +228,7 @@
                                 <li>
                                     <a class="dropdown-item font-weight-bold text-primary"
                                         href="{{ route('admin.customer-claims.index', ['plant' => 'total']) }}">
-                                        <i class="fas fa-plus-circle mr-1"></i> Input Total Claim Customer
+                                        Input Total Claim Customer <i class="fas fa-plus-circle ml-1"></i>
                                     </a>
                                 </li>
                             @endif
@@ -389,19 +394,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                                                                    <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                                                        <div class="mr-3">
-                                                                                            <div class="icon-circle ${iconClass}">
-                                                                                                <i class="${icon} text-white"></i>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <div class="small text-gray-500">${timeAgo}</div>
-                                                                                            <span class="${unreadClass}">${notif.title}</span>
-                                                                                            <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                                                        </div>
-                                                                                    </a>
-                                                                                `;
+                                                                                                            <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                                                                                <div class="mr-3">
+                                                                                                                    <div class="icon-circle ${iconClass}">
+                                                                                                                        <i class="${icon} text-white"></i>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                                <div>
+                                                                                                                    <div class="small text-gray-500">${timeAgo}</div>
+                                                                                                                    <span class="${unreadClass}">${notif.title}</span>
+                                                                                                                    <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                                                                                </div>
+                                                                                                            </a>
+                                                                                                        `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {
@@ -482,7 +487,6 @@
             }
 
             fetchNotifications();
-            setInterval(fetchNotifications, 60000);
 
             // Mobile Menu Toggle
             const menuToggle = document.getElementById('mobile-menu-toggle');
@@ -501,7 +505,7 @@
                 });
             }
 
-            // Collapsible Menu Toggle (Desktop)
+            // Collapsible Menu Toggle (Manual)
             const mainNavItems = document.querySelectorAll('.main-nav > li.dropdown-item-hover > a');
             mainNavItems.forEach(item => {
                 item.addEventListener('click', function (e) {
@@ -510,54 +514,62 @@
                     const dropdownMenu = this.nextElementSibling;
 
                     if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-                        // Toggle expanded class for chevron rotation
-                        parentLi.classList.toggle('expanded');
+                        const isOpen = dropdownMenu.classList.contains('show');
 
-                        // Toggle show class for dropdown
-                        dropdownMenu.classList.toggle('show');
-
-                        // Close other open menus at the same level
+                        // Clear others at same level
                         const siblings = parentLi.parentElement.querySelectorAll(':scope > li.dropdown-item-hover');
                         siblings.forEach(sibling => {
                             if (sibling !== parentLi) {
                                 sibling.classList.remove('expanded');
+                                const siblingLink = sibling.querySelector(':scope > a');
+                                if (siblingLink) siblingLink.classList.remove('expanded');
                                 const siblingMenu = sibling.querySelector(':scope > .dropdown-menu');
-                                if (siblingMenu) {
-                                    siblingMenu.classList.remove('show');
-                                }
+                                if (siblingMenu) siblingMenu.classList.remove('show');
                             }
                         });
+
+                        // Toggle current
+                        if (isOpen) {
+                            this.classList.remove('expanded');
+                            dropdownMenu.classList.remove('show');
+                        } else {
+                            this.classList.add('expanded');
+                            dropdownMenu.classList.add('show');
+                        }
                     }
                 });
             });
 
-            // Nested submenu toggle
+            // Nested submenu toggle (Manual)
             const subMenuItems = document.querySelectorAll('.main-nav .dropdown-menu .has-submenu > a');
             subMenuItems.forEach(item => {
                 item.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const parentLi = this.parentElement;
                     const dropdownMenu = this.nextElementSibling;
-
                     if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-                        // Toggle expanded class
-                        this.classList.toggle('expanded');
+                        const isOpen = dropdownMenu.classList.contains('show');
 
-                        // Toggle show class
-                        dropdownMenu.classList.toggle('show');
-
-                        // Close other submenus at same level
-                        const siblings = parentLi.parentElement.querySelectorAll(':scope > li.has-submenu');
+                        // Close others at same level
+                        const siblings = this.parentElement.parentElement.querySelectorAll(':scope > li.has-submenu');
                         siblings.forEach(sibling => {
-                            if (sibling !== parentLi) {
+                            if (sibling !== this.parentElement) {
                                 const siblingLink = sibling.querySelector(':scope > a');
                                 const siblingMenu = sibling.querySelector(':scope > .dropdown-menu');
                                 if (siblingLink) siblingLink.classList.remove('expanded');
                                 if (siblingMenu) siblingMenu.classList.remove('show');
                             }
                         });
+
+                        // Toggle current
+                        if (isOpen) {
+                            this.classList.remove('expanded');
+                            dropdownMenu.classList.remove('show');
+                        } else {
+                            this.classList.add('expanded');
+                            dropdownMenu.classList.add('show');
+                        }
                     }
                 });
             });
@@ -618,98 +630,193 @@
             color: #ffffff;
         }
 
+        /* Improved Dropdown Interaction (Manual Toggle) */
+        .dropdown-item-hover .dropdown-menu {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            margin-top: 0 !important;
+            z-index: 1000;
+        }
+
+        .dropdown-item-hover .dropdown-menu.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .has-submenu>.sub-menu {
+            top: 0;
+            left: 100%;
+            margin-top: -1px;
+            z-index: 1001;
+        }
+
         /* Badge Positioning Fix */
         .dropdown.no-arrow .nav-link {
             position: relative;
         }
-        
+
         .badge-counter {
             position: absolute;
             transform: translate(50%, -50%);
             transform-origin: top right;
-            top: 10% !important; 
-            right: 10% !important; 
+            top: 10% !important;
+            right: 10% !important;
             margin-top: 0;
         }
 
-        /* Desktop specific adjustments */
+        /* Media Queries for Responsiveness */
+        @media (max-width: 991.98px) {
+            #topbar-nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #4e73df !important;
+                z-index: 1000;
+                padding: 10px 0 20px 0;
+                box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+
+            #topbar-nav-menu.show {
+                display: block;
+            }
+
+            .main-nav {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            .main-nav>li {
+                width: 100%;
+                display: block !important;
+                height: auto !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .main-nav>li:last-child {
+                border-bottom: none;
+            }
+
+            .main-nav>li>a {
+                padding: 12px 20px !important;
+                font-size: 0.85rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            #topbar-nav-menu .dropdown-menu {
+                display: none;
+                position: static !important;
+                float: none !important;
+                width: 100% !important;
+                background: rgba(0, 0, 0, 0.1) !important;
+                border-radius: 0;
+                padding: 0;
+                margin: 0 !important;
+                box-shadow: none;
+                opacity: 1 !important;
+                transition: none;
+            }
+
+            #topbar-nav-menu .dropdown-menu.show {
+                display: block !important;
+            }
+
+            .main-nav>li.active>a {
+                background: rgba(255, 255, 255, 0.15);
+                font-weight: bold;
+            }
+
+            #topbar-nav-menu .dropdown-item {
+                padding: 12px 20px 12px 40px !important;
+                font-size: 0.85rem;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            #topbar-nav-menu .dropdown-item:last-child {
+                border-bottom: none;
+            }
+
+            #topbar-nav-menu .has-submenu {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            #topbar-nav-menu .has-submenu>.sub-menu {
+                display: none;
+                position: static !important;
+                width: 100% !important;
+                background: rgba(0, 0, 0, 0.2) !important;
+                padding-left: 0;
+            }
+
+            #topbar-nav-menu .has-submenu>.sub-menu.show {
+                display: block !important;
+            }
+
+            #topbar-nav-menu .sub-menu .dropdown-item {
+                padding-left: 60px !important;
+            }
+
+            #topbar-nav-menu .sub-menu .sub-menu .dropdown-item {
+                padding-left: 80px !important;
+            }
+
+            /* Fix chevron rotation and position on mobile */
+            .main-nav>li.dropdown-item-hover>a i:last-child,
+            .has-submenu>a i:last-child {
+                margin-left: auto !important;
+            }
+
+            .main-nav>li.dropdown-item-hover>a.expanded i.fa-chevron-down {
+                transform: rotate(180deg);
+            }
+
+            .has-submenu>a.expanded i:last-child {
+                transform: rotate(90deg);
+            }
+        }
+
         @media (min-width: 992px) {
+            .nav-menu-container {
+                display: block !important;
+            }
+
             .dropdown-item-hover {
                 position: relative;
             }
 
-            /* Ensure submenus are positioned correctly */
             .has-submenu {
                 position: relative;
             }
 
-            .has-submenu > .sub-menu {
-                top: 0;
-                left: 100%;
-                margin-top: -1px;
+            .dropdown-item-hover>a.expanded i.fa-chevron-down {
+                transform: rotate(180deg);
+            }
+
+            .has-submenu>a.expanded i.fa-chevron-right {
+                transform: rotate(90deg);
+            }
+
+            .dropdown-item-hover>a i,
+            .has-submenu>a i {
+                transition: transform 0.2s ease;
             }
         }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // ... existing code ...
-
-            // Desktop Hover Interaction
-            const minDesktopWidth = 992;
-
-            function setupHoverMenu() {
-                if (window.innerWidth < minDesktopWidth) return;
-
-                // Top Level Menus
-                const menuItems = document.querySelectorAll('.dropdown-item-hover');
-                menuItems.forEach(item => {
-                    item.addEventListener('mouseenter', function() {
-                        if (window.innerWidth < minDesktopWidth) return;
-                        const menu = this.querySelector('.dropdown-menu');
-                        const link = this.querySelector('a');
-                        if (menu) menu.classList.add('show');
-                        if (link) link.classList.add('expanded');
-                    });
-
-                    item.addEventListener('mouseleave', function() {
-                        if (window.innerWidth < minDesktopWidth) return;
-                        const menu = this.querySelector('.dropdown-menu');
-                        const link = this.querySelector('a');
-                        if (menu) menu.classList.remove('show');
-                        if (link) link.classList.remove('expanded');
-                    });
-                });
-
-                // Nested Sub-Menus
-                const subMenuItems = document.querySelectorAll('.has-submenu');
-                subMenuItems.forEach(item => {
-                    item.addEventListener('mouseenter', function(e) {
-                        if (window.innerWidth < minDesktopWidth) return;
-                        e.stopPropagation(); // Prevent bubbling causing issues
-                        const menu = this.querySelector('.sub-menu');
-                        const link = this.querySelector('a');
-                        if (menu) menu.classList.add('show');
-                        if (link) link.classList.add('expanded');
-                    });
-
-                    item.addEventListener('mouseleave', function(e) {
-                        if (window.innerWidth < minDesktopWidth) return;
-                        e.stopPropagation();
-                        const menu = this.querySelector('.sub-menu');
-                        const link = this.querySelector('a');
-                        if (menu) menu.classList.remove('show');
-                        if (link) link.classList.remove('expanded');
-                    });
-                });
-            }
-
-            setupHoverMenu();
-            
-            // Re-run on resize to handle orientation changes etc
-            window.addEventListener('resize', () => {
-                // Optional: clear styles if moving to mobile?
-                // For now just ensuring logic checks width
-            });
+            // Revert to manual click - removing setupHoverMenu and resize listener for hover
         });
     </script>
 @endpush
