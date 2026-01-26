@@ -150,10 +150,10 @@
                             <label class="small font-weight-bold text-dark">Jenis Kalibrasi</label>
                             <select name="jenis_kalibrasi" class="form-control form-control-sm shadow-sm">
                                 <option value="">Semua</option>
-                                <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>
-                                    Internal</option>
-                                <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>
-                                    Eksternal</option>
+                                <option value="INTERNAL" {{ request('jenis_kalibrasi') === 'INTERNAL' ? 'selected' : '' }}>
+                                    INTERNAL</option>
+                                <option value="EKSTERNAL" {{ request('jenis_kalibrasi') === 'EKSTERNAL' ? 'selected' : '' }}>
+                                    EKSTERNAL</option>
                             </select>
                         </div>
                     </div>
@@ -263,17 +263,21 @@
                                             <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
                                                 style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                                 @if(!$item->is_ok)
-                                                    <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
-                                                        <input type="text" class="form-control form-control-sm pr-input text-center"
-                                                            data-schedule-id="{{ $item->id }}" placeholder="PR..."
-                                                            value="{{ $item->pr_number }}" style="width: 70px;">
-                                                        @if($item->pr_number)
-                                                            <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
-                                                                data-schedule-id="{{ $item->id }}" title="Reset PR">
-                                                                <i class="fas fa-undo"></i>
-                                                            </button>
-                                                        @endif
-                                                    </div>
+                                                    @if($tool->jenis_kalibrasi !== 'INTERNAL')
+                                                        <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
+                                                            <input type="text" class="form-control form-control-sm pr-input text-center"
+                                                                data-schedule-id="{{ $item->id }}" placeholder="PR..."
+                                                                value="{{ $item->pr_number }}" style="width: 70px;">
+                                                            @if($item->pr_number)
+                                                                <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
+                                                                    data-schedule-id="{{ $item->id }}" title="Reset PR">
+                                                                    <i class="fas fa-undo"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <div class="text-muted small">INTERNAL</div>
+                                                    @endif
                                                 @else
                                                     <div class="font-weight-bold">{{ $item->pr_number ?? '-' }}</div>
                                                 @endif
@@ -304,7 +308,7 @@
                                                         $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
                                                         $statusText = 'Sudah Verifikasi';
                                                         $isClickable = true;
-                                                    } elseif ($tool->jenis_kalibrasi === 'Internal') {
+                                                    } elseif ($tool->jenis_kalibrasi === 'INTERNAL') {
                                                         $icon = '<div class="d-inline-block position-relative" title="Siap Verifikasi" style="width: 25px; height: 25px; vertical-align: middle;">' .
                                                             '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
                                                             '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
@@ -600,8 +604,8 @@
                                             class="text-danger">*</span></label>
                                     <select name="jenis_kalibrasi" id="edit_jenis_kalibrasi"
                                         class="form-control form-control-sm" required>
-                                        <option value="INTERNAL">INTERNAL</option>
-                                        <option value="EKSTERNAL">EKSTERNAL</option>
+                                        <option value="Internal">Internal</option>
+                                        <option value="Eksternal">Eksternal</option>
                                     </select>
                                 </div>
                             </div>
@@ -849,14 +853,14 @@
             // Modal Add Schedule rows
             $('#modal-add-schedule-btn').click(function () {
                 var html = `
-                                                    <div class="input-group input-group-sm mb-2">
-                                                        <input type="date" name="schedule_planning[]" class="form-control" required>
-                                                        <div class="input-group-append">
-                                                            <button class="btn btn-danger modal-remove-schedule" type="button">
-                                                                <i class="fas fa-minus"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>`;
+                                                                <div class="input-group input-group-sm mb-2">
+                                                                    <input type="date" name="schedule_planning[]" class="form-control" required>
+                                                                    <div class="input-group-append">
+                                                                        <button class="btn btn-danger modal-remove-schedule" type="button">
+                                                                            <i class="fas fa-minus"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>`;
                 $('#modal-schedule-container').append(html);
             });
 
@@ -911,17 +915,17 @@
 
             $('#modal-verif-add-row').on('click', function () {
                 var newRow = `
-                                    <tr>
-                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-danger modal-verif-remove-row">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>`;
+                                                <tr>
+                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger modal-verif-remove-row">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>`;
                 $('#modal-verif-verification-body').append(newRow);
                 modalVerifUpdateRemoveButtons();
             });
@@ -1120,26 +1124,26 @@
                     if (tool.schedules && tool.schedules.length > 0) {
                         tool.schedules.forEach(function (sch) {
                             schHtml += `
-                                        <tr>
-                                            <td>
-                                                <input type="hidden" name="schedule_ids[]" value="${sch.id}">
-                                                <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date.substring(0, 10)}" required>
-                                            </td>
-                                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>`;
+                                                    <tr>
+                                                        <td>
+                                                            <input type="hidden" name="schedule_ids[]" value="${sch.id}">
+                                                            <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date.substring(0, 10)}" required>
+                                                        </td>
+                                                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                                    </tr>`;
                         });
                     } else if (tool.schedule_planning) {
                         schHtml = `
-                                    <tr>
-                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}" required></td>
-                                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                    </tr>`;
+                                                <tr>
+                                                    <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}" required></td>
+                                                    <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                                </tr>`;
                     } else {
                         schHtml = `
-                                    <tr>
-                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
-                                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                    </tr>`;
+                                                <tr>
+                                                    <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                    <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                                </tr>`;
                     }
                     $('#edit-schedule-table tbody').html(schHtml);
 
@@ -1160,10 +1164,10 @@
 
         $(document).on('click', '.add-edit-schedule-row', function () {
             var newRow = `
-                        <tr>
-                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
-                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                        </tr>`;
+                                    <tr>
+                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                    </tr>`;
             $('#edit-schedule-table tbody').append(newRow);
         });
 

@@ -16,13 +16,25 @@ class CalibrationController extends Controller
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
+        $year = date('Y');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
         $query = CalibrationTool::where('plant_id', $plant->id)
             ->with([
-                'verifications' => function ($q) {
-                    $q->whereYear('tanggal_verifikasi', date('Y'));
+                'verifications' => function ($q) use ($year, $startDate, $endDate) {
+                    $q->whereYear('tanggal_verifikasi', $year);
+                    if ($startDate)
+                        $q->whereDate('tanggal_verifikasi', '>=', $startDate);
+                    if ($endDate)
+                        $q->whereDate('tanggal_verifikasi', '<=', $endDate);
                 },
-                'schedules' => function ($q) {
-                    $q->whereYear('schedule_date', date('Y'));
+                'schedules' => function ($q) use ($year, $startDate, $endDate) {
+                    $q->whereYear('schedule_date', $year);
+                    if ($startDate)
+                        $q->whereDate('schedule_date', '>=', $startDate);
+                    if ($endDate)
+                        $q->whereDate('schedule_date', '<=', $endDate);
                 },
                 'latestVerification'
             ]);
@@ -32,12 +44,25 @@ class CalibrationController extends Controller
             $query->where('id', $request->tool_id);
         }
 
-        // Filter Tanggal Schedule Planning
-        if ($request->filled('start_date')) {
-            $query->whereDate('schedule_planning', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('schedule_planning', '<=', $request->end_date);
+        // Filter Tanggal Schedule Planning (New Logic)
+        if ($startDate || $endDate) {
+            $query->where(function ($q) use ($startDate, $endDate) {
+                // Check in multiple schedules table
+                $q->whereHas('schedules', function ($sq) use ($startDate, $endDate) {
+                    if ($startDate)
+                        $sq->whereDate('schedule_date', '>=', $startDate);
+                    if ($endDate)
+                        $sq->whereDate('schedule_date', '<=', $endDate);
+                });
+
+                // OR check in legacy schedule_planning field
+                $q->orWhere(function ($lq) use ($startDate, $endDate) {
+                    if ($startDate)
+                        $lq->whereDate('schedule_planning', '>=', $startDate);
+                    if ($endDate)
+                        $lq->whereDate('schedule_planning', '<=', $endDate);
+                });
+            });
         }
 
         // Filter Frekuensi Kalibrasi
@@ -211,6 +236,9 @@ class CalibrationController extends Controller
             $data['certification_path'] = $path;
         }
 
+        if (isset($data['jenis_kalibrasi'])) {
+            $data['jenis_kalibrasi'] = str_replace('EXTERNAL', 'EKSTERNAL', strtoupper($data['jenis_kalibrasi']));
+        }
         $tool = CalibrationTool::create($data);
 
         // Save multiple schedules
@@ -277,6 +305,9 @@ class CalibrationController extends Controller
             $data['certification_path'] = $path;
         }
 
+        if (isset($data['jenis_kalibrasi'])) {
+            $data['jenis_kalibrasi'] = str_replace('EXTERNAL', 'EKSTERNAL', strtoupper($data['jenis_kalibrasi']));
+        }
         $tool->update($data);
 
         // Sync schedules: Match by ID to preserve PR numbers/dates
@@ -559,7 +590,14 @@ class CalibrationController extends Controller
             'pr_number' => 'nullable|string',
         ]);
 
-        $schedule = \App\Models\CalibrationToolSchedule::findOrFail($request->schedule_id);
+        $schedule = \App\Models\CalibrationToolSchedule::with('tool')->findOrFail($request->schedule_id);
+
+        if ($schedule->tool->jenis_kalibrasi === 'INTERNAL') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alat internal tidak memerlukan PR.'
+            ], 422);
+        }
 
         if (empty($request->pr_number)) {
             $schedule->pr_number = null;

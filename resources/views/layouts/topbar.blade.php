@@ -38,7 +38,7 @@
                 </li>
 
                 <!-- Quality Control Dropdown -->
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
+                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-clipboard-check mr-1"></i> Quality Control <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
@@ -162,7 +162,10 @@
                                                 </li>
                                                 <li><a class="dropdown-item"
                                                         href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
-                                                        Cut</a></li>
+                                                        Cut Plating</a></li>
+                                                <li><a class="dropdown-item"
+                                                        href="{{ route('cross_cut_painting.create', ['plant' => 'karawang']) }}">Cross
+                                                        Cut Painting</a></li>
                                                 <li><a class="dropdown-item"
                                                         href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                                 </li>
@@ -180,8 +183,11 @@
                                                             href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
                                                     </li>
                                                     <li><a class="dropdown-item"
-                                                            href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross
-                                                            Cut</a></li>
+                                                            href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross Cut
+                                                            Plating</a></li>
+                                                    <li><a class="dropdown-item"
+                                                            href="{{ route('cross_cut_painting.index', ['plant' => 'karawang']) }}">Cross
+                                                            Cut Painting</a></li>
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
                                                     </li>
@@ -394,19 +400,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                                                                                            <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                                                                                <div class="mr-3">
-                                                                                                                    <div class="icon-circle ${iconClass}">
-                                                                                                                        <i class="${icon} text-white"></i>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                                <div>
-                                                                                                                    <div class="small text-gray-500">${timeAgo}</div>
-                                                                                                                    <span class="${unreadClass}">${notif.title}</span>
-                                                                                                                    <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                                                                                </div>
-                                                                                                            </a>
-                                                                                                        `;
+                                                                                                                    <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                                                                                        <div class="mr-3">
+                                                                                                                            <div class="icon-circle ${iconClass}">
+                                                                                                                                <i class="${icon} text-white"></i>
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                        <div>
+                                                                                                                            <div class="small text-gray-500">${timeAgo}</div>
+                                                                                                                            <span class="${unreadClass}">${notif.title}</span>
+                                                                                                                            <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                                                                                        </div>
+                                                                                                                    </a>
+                                                                                                                `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {

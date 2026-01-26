@@ -1,0 +1,31 @@
+@extends('layouts.admin')
+
+@section('title', 'Edit Data Cross Cut')
+
+@section('content')
+    <x-plant-header title="Edit Data Cross Cut" :plant="request('plant')" />
+    <div class="container-fluid">
+        <h1 class="h3 mb-4 text-gray-800">Checksheet Cross Cut</h1>
+
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Edit Data Checksheet Cross Cut</h6>
+                <a href="{{ route('cross_cut_painting.index', ['plant' => request('plant')]) }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
+            <div class="card-body">
+                @include('cross_cut_painting.partials.edit_form')
+            </div>
+        </div>
+    </div>
+@endsection

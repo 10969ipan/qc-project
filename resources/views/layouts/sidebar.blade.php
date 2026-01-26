@@ -155,7 +155,10 @@
                                     <a class="collapse-item"
                                         href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
                                     <a class="collapse-item" href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
-                                        Cut</a>
+                                        Cut Plating</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('cross_cut_painting.create', ['plant' => 'karawang']) }}">Cross Cut
+                                        Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -171,7 +174,10 @@
                                     <a class="collapse-item"
                                         href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
                                     <a class="collapse-item" href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross
-                                        Cut</a>
+                                        Cut Plating</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('cross_cut_painting.index', ['plant' => 'karawang']) }}">Cross Cut
+                                        Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
                                 </div>
                             @endif

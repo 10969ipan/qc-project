@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubAssyChecksheetController;
 use App\Http\Controllers\InProcessChecksheetController;
 use App\Http\Controllers\CrossCutChecksheetController;
+use App\Http\Controllers\CrossCutPaintingChecksheetController;
 use App\Http\Controllers\SortirChecksheetController;
 
 Route::middleware(['auth'])->group(function () {
@@ -24,6 +25,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet/cross-cut/{id}/image', [CrossCutChecksheetController::class, 'serveImage'])->name('cross_cut.image');
     Route::get('/cross_cut/{id}/data', [CrossCutChecksheetController::class, 'getData'])->name('cross_cut.data');
 
+    // Cross Cut Painting
+    Route::get('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'create'])->name('cross_cut_painting.create');
+    Route::post('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'store'])->name('cross_cut_painting.store');
+    Route::get('/checksheet/cross-cut-painting/{id}', [CrossCutPaintingChecksheetController::class, 'show'])->name('cross_cut_painting.show');
+    Route::get('/checksheet/cross-cut-painting/{id}/image', [CrossCutPaintingChecksheetController::class, 'serveImage'])->name('cross_cut_painting.image');
+    Route::get('/cross_cut-painting/{id}/data', [CrossCutPaintingChecksheetController::class, 'getData'])->name('cross_cut_painting.data');
+
     // Sortir
     Route::get('/checksheet/sortir', [SortirChecksheetController::class, 'create'])->name('sortir.create');
     Route::post('/checksheet/sortir', [SortirChecksheetController::class, 'store'])->name('sortir.store');
@@ -35,6 +43,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/checksheets', [SubAssyChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
+        Route::get('/report/cross-cut-painting-checksheets', [CrossCutPaintingChecksheetController::class, 'index'])->name('cross_cut_painting.index');
         Route::get('/report/sortir-checksheets', [SortirChecksheetController::class, 'index'])->name('sortir.index');
 
         // Export & Sync
@@ -44,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');
         Route::post('/report/in-process-checksheets/sync', [InProcessChecksheetController::class, 'syncToGoogleSheets'])->name('in_process.sync');
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
+        Route::get('/report/cross-cut-painting-checksheets/export-pdf', [CrossCutPaintingChecksheetController::class, 'exportPdf'])->name('cross_cut_painting.export_pdf');
         Route::get('/report/sortir-checksheets/export', [SortirChecksheetController::class, 'export'])->name('sortir.export');
 
         // Approval Actions
@@ -53,6 +63,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/in-process-checksheets/{id}/reject/{type}', [InProcessChecksheetController::class, 'reject'])->name('in_process.reject');
         Route::post('/cross-cut-checksheets/{id}/approve/{type}', [CrossCutChecksheetController::class, 'approve'])->name('cross_cut.approve');
         Route::post('/cross-cut-checksheets/{id}/reject/{type}', [CrossCutChecksheetController::class, 'reject'])->name('cross_cut.reject');
+        Route::post('/cross-cut-painting-checksheets/{id}/approve/{type}', [CrossCutPaintingChecksheetController::class, 'approve'])->name('cross_cut_painting.approve');
+        Route::post('/cross-cut-painting-checksheets/{id}/reject/{type}', [CrossCutPaintingChecksheetController::class, 'reject'])->name('cross_cut_painting.reject');
         Route::post('/sortir-checksheets/{id}/approve/{type}', [SortirChecksheetController::class, 'approve'])->name('sortir.approve');
         Route::post('/sortir-checksheets/{id}/reject/{type}', [SortirChecksheetController::class, 'reject'])->name('sortir.reject');
 
@@ -73,6 +85,11 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'update'])->name('cross_cut.update');
             Route::delete('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'destroy'])->name('cross_cut.destroy');
 
+            // Cross Cut Painting
+            Route::get('/cross-cut-painting-checksheets/{id}/edit', [CrossCutPaintingChecksheetController::class, 'edit'])->name('cross_cut_painting.edit');
+            Route::put('/cross-cut-painting-checksheets/{id}', [CrossCutPaintingChecksheetController::class, 'update'])->name('cross_cut_painting.update');
+            Route::delete('/cross-cut-painting-checksheets/{id}', [CrossCutPaintingChecksheetController::class, 'destroy'])->name('cross_cut_painting.destroy');
+
             // Sortir
             Route::get('/sortir-checksheets/{id}/edit', [SortirChecksheetController::class, 'edit'])->name('sortir.edit');
             Route::put('/sortir-checksheets/{id}', [SortirChecksheetController::class, 'update'])->name('sortir.update');
@@ -88,5 +105,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('in-process-checksheets/{id}/update-approval', [InProcessChecksheetController::class, 'updateApproval'])->name('in_process.update_approval');
         Route::get('cross-cut-checksheets/{id}/edit-approval', [CrossCutChecksheetController::class, 'editApproval'])->name('cross_cut.edit_approval');
         Route::put('cross-cut-checksheets/{id}/update-approval', [CrossCutChecksheetController::class, 'updateApproval'])->name('cross_cut.update_approval');
+        Route::get('cross-cut-painting-checksheets/{id}/edit-approval', [CrossCutPaintingChecksheetController::class, 'editApproval'])->name('cross_cut_painting.edit_approval');
+        Route::put('cross-cut-painting-checksheets/{id}/update-approval', [CrossCutPaintingChecksheetController::class, 'updateApproval'])->name('cross_cut_painting.update_approval');
     });
 });

@@ -22,12 +22,20 @@ if (!function_exists('getApprovalLabel')) {
 
         $labels = [
             'karawang' => [
+                'karu_qc' => 'Kepala Regu QC',
+                'kashift_plating' => 'Kashift Plating',
+                'supervisor_plating' => 'Supervisor Plating',
+                'manager_plating' => 'Manager Plating',
                 'kashift' => 'Kashift QC',
                 'supervisor' => 'Supervisor QC',
                 'asst_manager' => 'Asst Manager QC',
                 'manager' => 'Manager QC',
             ],
             'jakarta' => [
+                'karu_qc' => 'Kepala Regu',
+                'kashift_plating' => 'Kashift Plating',
+                'supervisor_plating' => 'Supervisor Plating',
+                'manager_plating' => 'Manager Plating',
                 'kashift' => 'Kepala Regu', // Requested: Karu/Kepala Regu
                 'supervisor' => 'Supervisor QC',
                 'asst_manager' => 'Asst Manager QC',
@@ -61,12 +69,20 @@ if (!function_exists('getApprovalLabelShort')) {
 
         $labels = [
             'karawang' => [
+                'karu_qc' => 'Karu QC',
+                'kashift_plating' => 'Kashift Ptg',
+                'supervisor_plating' => 'SPV Ptg',
+                'manager_plating' => 'Mgr Ptg',
                 'kashift' => 'Kashift',
                 'supervisor' => 'Supervisor',
                 'asst_manager' => 'Asst Manager',
                 'manager' => 'Manager',
             ],
             'jakarta' => [
+                'karu_qc' => 'Karu',
+                'kashift_plating' => 'Kashift Ptg',
+                'supervisor_plating' => 'SPV Ptg',
+                'manager_plating' => 'Mgr Ptg',
                 'kashift' => 'Kepala Regu',  // Requested: Karu/Kepala Regu
                 'supervisor' => 'Supervisor',
                 'asst_manager' => 'Asst Manager',
@@ -124,5 +140,40 @@ if (!function_exists('getRejectorName')) {
         }
 
         return null;
+    }
+}
+
+if (!function_exists('getApprovalField')) {
+    function getApprovalField($type)
+    {
+        $fields = [
+            'karu_qc' => 'karu_qc',
+            'kashift_plating' => 'kashift_plating',
+            'supervisor_plating' => 'supervisor_plating',
+            'supervisor' => 'supervisor_qc',
+            'manager_plating' => 'manager_plating',
+            'manager' => 'manager_qc',
+            'kashift' => 'kashift_qc',
+            'asst_manager' => 'asst_manager_qc',
+            'inspector' => 'inspector',
+        ];
+        return $fields[$type] ?? $type;
+    }
+}
+
+if (!function_exists('getApprovalDateField')) {
+    function getApprovalDateField($type)
+    {
+        $fields = [
+            'karu_qc' => 'karu_qc_approved_at',
+            'kashift_plating' => 'kashift_plating_approved_at',
+            'supervisor_plating' => 'supervisor_plating_approved_at',
+            'supervisor' => 'supervisor_approved_at',
+            'manager_plating' => 'manager_plating_approved_at',
+            'manager' => 'manager_approved_at',
+            'kashift' => 'kashift_approved_at',
+            'asst_manager' => 'asst_manager_approved_at',
+        ];
+        return $fields[$type] ?? "{$type}_approved_at";
     }
 }

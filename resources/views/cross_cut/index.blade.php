@@ -92,16 +92,19 @@
                             <th rowspan="2" class="align-middle">Posisi Remark</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th rowspan="2" class="align-middle">Kepala Regu QC</th>
-                            <th rowspan="2" class="align-middle">Kepala Shift Plating</th>
-                            <th rowspan="2" class="align-middle">Supervisor Quality</th>
-                            <th rowspan="2" class="align-middle">Supervisor Plating</th>
-                            <th rowspan="2" class="align-middle">Manager QC</th>
-                            <th rowspan="2" class="align-middle">Manager Plating</th>
+                            <th colspan="6" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(auth()->user()->role !== 'inspector')
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
                             @endif
+                        </tr>
+                        <tr class="text-center">
+                            <th style="font-size: 10px;">Kepala Regu QC</th>
+                            <th style="font-size: 10px;">Kepala Shift Plating</th>
+                            <th style="font-size: 10px;">Supervisor Quality</th>
+                            <th style="font-size: 10px;">Supervisor Plating</th>
+                            <th style="font-size: 10px;">Manager QC</th>
+                            <th style="font-size: 10px;">Manager Plating</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -817,8 +820,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                        // Image Modal Handler
-                                                                    const imageModal = document.getElementById('imageModal');
+                                                                                                                                            // Image Modal Handler
+                                                                        const imageModal = document.getElementById('imageModal');
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
             viewImageBtns.forEach(btn => {
@@ -845,93 +848,93 @@
                         if (data.image_path) {
                             const imagePath = `/storage/${data.image_path}`;
                             imageContainer.innerHTML = `
-                                                                                        <img src="${imagePath}" 
-                                                                                             class="img-fluid rounded shadow" 
-                                                                                             alt="Cross Cut Image"
-                                                                                             style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                                                             onclick="window.open('${imagePath}', '_blank')">
-                                                                                    `;
+                                                                                            <img src="${imagePath}" 
+                                                                                                 class="img-fluid rounded shadow" 
+                                                                                                 alt="Cross Cut Image"
+                                                                                                 style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                                                                 onclick="window.open('${imagePath}', '_blank')">
+                                                                                        `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
                         } else {
                             imageContainer.innerHTML = `
-                                                                                        <div class="alert alert-warning">
-                                                                                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                                            Tidak ada gambar untuk checksheet ini
-                                                                                        </div>
-                                                                                    `;
+                                                                                            <div class="alert alert-warning">
+                                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                                Tidak ada gambar untuk checksheet ini
+                                                                                            </div>
+                                                                                        `;
                             downloadBtn.style.display = 'none';
                         }
 
                         // Display details
                         const details = `
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Item Part:</th>
-                                                                                        <td>${data.item_name || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Customer:</th>
-                                                                                        <td>${data.customer || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Part No:</th>
-                                                                                        <td>${data.part_number || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Kode SAP:</th>
-                                                                                        <td>${data.sap_code || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Tanggal Produksi:</th>
-                                                                                        <td>${data.production_date || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Tanggal QC:</th>
-                                                                                        <td>${data.qc_date || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Shift Prod./QC:</th>
-                                                                                        <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Kimia Copper:</th>
-                                                                                        <td>${data.chemical_copper || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Kimia Nikel:</th>
-                                                                                        <td>${data.chemical_nikel || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Kimia Eching:</th>
-                                                                                        <td>${data.chemical_eching || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Kimia Abu:</th>
-                                                                                        <td>${data.chemical_abu || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Posisi Remark:</th>
-                                                                                        <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Result Remark:</th>
-                                                                                        <td>${data.result_remark || '-'}</td>
-                                                                                    </tr>
-                                                                                    <tr>
-                                                                                        <th class="text-nowrap">Operator:</th>
-                                                                                        <td>${data.operator_initials || '-'}</td>
-                                                                                    </tr>
-                                                                                `;
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Item Part:</th>
+                                                                                            <td>${data.item_name || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Customer:</th>
+                                                                                            <td>${data.customer || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Part No:</th>
+                                                                                            <td>${data.part_number || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Kode SAP:</th>
+                                                                                            <td>${data.sap_code || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Tanggal Produksi:</th>
+                                                                                            <td>${data.production_date || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Tanggal QC:</th>
+                                                                                            <td>${data.qc_date || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Shift Prod./QC:</th>
+                                                                                            <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Kimia Copper:</th>
+                                                                                            <td>${data.chemical_copper || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Kimia Nikel:</th>
+                                                                                            <td>${data.chemical_nikel || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Kimia Eching:</th>
+                                                                                            <td>${data.chemical_eching || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Kimia Abu:</th>
+                                                                                            <td>${data.chemical_abu || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Posisi Remark:</th>
+                                                                                            <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Result Remark:</th>
+                                                                                            <td>${data.result_remark || '-'}</td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <th class="text-nowrap">Operator:</th>
+                                                                                            <td>${data.operator_initials || '-'}</td>
+                                                                                        </tr>
+                                                                                    `;
                         detailsContainer.innerHTML = details;
                     })
                     .catch(error => {
                         console.error('Error loading image:', error);
                         imageContainer.innerHTML = `
-                                                                                    <div class="alert alert-danger">
-                                                                                        <i class="fas fa-exclamation-circle mr-2"></i>
-                                                                                        Gagal memuat gambar. Silakan coba lagi.
-                                                                                    </div>
-                                                                                `;
+                                                                                        <div class="alert alert-danger">
+                                                                                            <i class="fas fa-exclamation-circle mr-2"></i>
+                                                                                            Gagal memuat gambar. Silakan coba lagi.
+                                                                                        </div>
+                                                                                    `;
                         detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
@@ -1248,8 +1251,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                            // Live Search Functionality
-                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                // Live Search Functionality
+                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
@@ -1436,44 +1439,44 @@
                     document.body.removeChild(tableClone);
                     doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 });
-                });
-            }
-
-            // Edit Modal Handler
-            $('.btn-edit-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#editModalBody').html(response);
-                    },
-                    error: function () {
-                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
-                    }
-                });
             });
+                }
 
-            // Status Modal Handler
-            $('.btn-status-modal').on('click', function(e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#statusModal').modal('show');
-                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+        // Edit Modal Handler
+        $('.btn-edit-modal').on('click', function (e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            $('#editModal').modal('show');
+            $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
 
-                $.ajax({
-                    url: url,
-                    success: function(response) {
-                        $('#statusModalBody').html(response);
-                    },
-                    error: function() {
-                        $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
-                    }
-                });
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#editModalBody').html(response);
+                },
+                error: function () {
+                    $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                }
             });
         });
+
+        // Status Modal Handler
+        $('.btn-status-modal').on('click', function (e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            $('#statusModal').modal('show');
+            $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#statusModalBody').html(response);
+                },
+                error: function () {
+                    $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                }
+            });
+        });
+            });
     </script>
 @endpush

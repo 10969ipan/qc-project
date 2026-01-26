@@ -90,6 +90,16 @@
             <div class="table-responsive">
                 <table class="table table-bordered" width="100%" cellspacing="0" id="sortirTable">
                     <thead>
+                        @php
+                            $requestPlant = request('plant');
+                            $userPlantCode = optional(auth()->user()->plant)->code;
+                            if (!empty($requestPlant)) {
+                                $plant = \App\Models\Plant::where('code', $requestPlant)->orWhere('id', $requestPlant)->first();
+                                $plantContext = strtolower($plant?->code ?? $requestPlant);
+                            } else {
+                                $plantContext = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
+                            }
+                        @endphp
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">No</th>
                             <th rowspan="2" class="align-middle">Tanggal</th>
@@ -106,24 +116,8 @@
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th rowspan="2" class="align-middle">
-                                @php
-                                    $requestPlant = request('plant');
-                                    $userPlantCode = optional(auth()->user()->plant)->code;
 
-                                    // If request plant exists, resolve it to plant code (could be UUID or code)
-                                    if (!empty($requestPlant)) {
-                                        $plant = \App\Models\Plant::where('code', $requestPlant)
-                                            ->orWhere('id', $requestPlant)
-                                            ->first();
-                                        $plantContext = strtolower($plant?->code ?? $requestPlant);
-                                    } else {
-                                        $plantContext = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
-                                    }
-                                @endphp
-                                {{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
-                            </th>
-                            <th rowspan="2" class="align-middle">Supervisor QC</th>
+                            <th colspan="2" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
@@ -132,6 +126,9 @@
                         <tr class="text-center">
                             <th style="width: 5%">Pcs</th>
                             <th>Jenis NG</th>
+                            <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
+                            </th>
+                            <th style="font-size: 10px;">Supervisor QC</th>
                         </tr>
                     </thead>
                     <tbody>
