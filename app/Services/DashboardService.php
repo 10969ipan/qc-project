@@ -6,6 +6,7 @@ use App\Models\InProcessChecksheet;
 use App\Models\SubAssyChecksheet;
 use App\Models\CrossCutChecksheet;
 use App\Models\CrossCutPaintingChecksheet;
+use App\Models\SortirChecksheet;
 use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
 use App\Models\CustomerClaim;
@@ -81,12 +82,23 @@ class DashboardService extends BaseService
     {
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0];
         // Use override if provided, otherwise check request or auth user
-        $plantId = $this->resolvePlantId($plantOverride ?? request('plant') ?? auth()->user()->plant_id);
+        $plantIdentifier = $plantOverride ?? request('plant') ?? auth()->user()->plant_id;
+        $plantId = $this->resolvePlantId($plantIdentifier);
 
-        $this->processModelStats(InProcessChecksheet::class, $stats, $plantId);
+        // Determine plant code for conditional filtering
+        $plantCode = null;
+        if ($plantId) {
+            $plantCode = Plant::where('id', $plantId)->value('code');
+        }
+
         $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId);
-        $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId);
-        $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId);
+        $this->processModelStats(InProcessChecksheet::class, $stats, $plantId);
+
+        // Jakarta only shows Sub Assy and In Process per user request
+        if ($plantCode !== 'jakarta') {
+            $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId);
+            $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId);
+        }
 
         return $stats;
     }
@@ -436,7 +448,7 @@ class DashboardService extends BaseService
 
         return [
             'labels' => $dates,
-            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut_plating', 'cross_cut_painting']),
+            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process']),
             'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut_plating', 'cross_cut_painting']),
         ];
     }
@@ -476,6 +488,13 @@ class DashboardService extends BaseService
                     ->groupBy('group_date')
                     ->get()
                     ->keyBy('group_date');
+            } elseif ($type === 'sortir') {
+                $records = SortirChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
             }
 
             foreach ($dates as $date) {
