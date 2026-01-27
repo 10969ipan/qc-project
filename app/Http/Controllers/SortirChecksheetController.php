@@ -9,6 +9,8 @@ use App\Services\SortirChecksheetService;
 use App\Http\Requests\StoreSortirChecksheetRequest;
 use App\Http\Requests\UpdateSortirChecksheetRequest;
 use Illuminate\Http\Request;
+use App\Models\Plant;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SortirChecksheetController extends Controller
 {
@@ -180,5 +182,47 @@ class SortirChecksheetController extends Controller
             $params['page'] = $request->page;
         }
         return $params;
+    }
+
+    public function exportPdf(Request $request)
+    {
+        // Copy filter logic from index
+        $user = auth()->user();
+
+        // Apply same restricted roles logic
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        if (in_array($user->role, $restrictedRoles)) {
+            $request->merge(['plant' => $user->plant_id]);
+        }
+
+        // Filter parameters
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type']);
+
+        // Get data (using service logic but without pagination)
+        $query = $this->sortirService->getQuery($filters);
+        $checksheets = $query->get();
+
+        // Plant info for header
+        $plantCode = 'karawang'; // default
+        $plantName = 'Karawang';
+
+        if ($request->plant) {
+            $plant = Plant::where('code', $request->plant)->orWhere('id', $request->plant)->first();
+            if ($plant) {
+                $plantCode = strtolower($plant->code);
+                $plantName = $plant->name;
+            }
+        } elseif ($user->plant) {
+            $plantCode = strtolower($user->plant->code);
+            $plantName = $user->plant->name;
+        }
+
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        $pdf = Pdf::loadView('sortir.pdf', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('Laporan_Sortir_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }

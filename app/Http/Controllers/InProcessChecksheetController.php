@@ -256,7 +256,8 @@ class InProcessChecksheetController extends Controller
     {
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'plant']);
 
-        $checksheets = $this->inProcessService->buildFilteredQuery($filters)->get();
+        // Limit to 10 records as requested
+        $checksheets = $this->inProcessService->buildFilteredQuery($filters)->limit(10)->get();
         $items = Item::orderBy('name')->get();
 
         $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request'));

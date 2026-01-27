@@ -37,7 +37,7 @@
                 </form>
             @endif
 
-            <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
@@ -325,11 +325,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
-            // Disable all form inputs until Start button is clicked
-            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            // Disable all form inputs in checksheetForm until Start button is clicked
+            var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
-            $('form').addClass('inputs-locked');
-            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
+            $('#checksheetForm').addClass('inputs-locked');
+            $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // --- PDF.js Logic ---
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -409,7 +409,7 @@
 
             function loadPdf(itemId, index) {
                 const url = `/items/${itemId}/pdf/${index}`;
-                
+
                 pdfDoc = null;
                 pageNum = 1;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -453,7 +453,7 @@
 
                 // Show modal
                 $('#pdfModal').modal('show');
-                
+
                 // Load first PDF
                 loadPdf(currentItemId, currentPdfIndex);
             });
@@ -490,7 +490,7 @@
                 }
 
                 // Use d-flex column if both exist
-                if (fileUrl && imageUrl) {
+                if (files && files.length > 0 && imageUrl) {
                     container.html('<div class="d-flex flex-column align-items-center">' + htmlContent + '</div>');
                 } else {
                     container.html(htmlContent);

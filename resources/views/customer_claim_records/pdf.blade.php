@@ -10,16 +10,39 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            font-size: 7px;
-            color: #000;
+            font-size: 8px;
+            color: #333;
             margin: 0;
             padding: 0;
         }
 
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            table-layout: fixed;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        .table thead th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 7px;
+        }
+
         .header-table {
             width: 100%;
-            margin-bottom: 15px;
             border-collapse: collapse;
+            margin-bottom: 15px;
         }
 
         .header-table td {
@@ -28,43 +51,31 @@
             vertical-align: middle;
         }
 
-        .header-table .logo {
-            width: 70px;
+        .logo {
+            width: 100px;
             text-align: center;
         }
 
-        .header-table .title {
+        .title {
             text-align: center;
             font-size: 14px;
             font-weight: bold;
-        }
-
-        .header-table .doc-info {
-            font-size: 8px;
-            text-align: left;
-            width: 120px;
-        }
-
-        table.main-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        table.main-table th {
-            background-color: #f2f2f2;
             color: #000;
-            border: 1px solid #000;
-            padding: 3px;
-            font-weight: bold;
-            text-align: center;
         }
 
-        table.main-table td {
-            border: 1px solid #000;
-            padding: 3px;
-            vertical-align: middle;
-            word-wrap: break-word;
+        .doc-info {
+            width: 150px;
+            font-size: 9px;
+        }
+
+        .doc-info table {
+            width: 100%;
+            border: none;
+        }
+
+        .doc-info td {
+            border: none;
+            padding: 1px 2px;
         }
 
         .text-center {
@@ -81,55 +92,51 @@
         }
 
         .col-date {
-            width: 3.5%;
+            width: 4.5%;
         }
 
         .col-cust {
-            width: 4.5%;
+            width: 6%;
         }
 
         .col-plant-up {
-            width: 3.5%;
-        }
-
-        .col-type {
-            width: 3.5%;
-        }
-
-        .col-report {
             width: 4.5%;
         }
 
+        .col-type {
+            width: 4%;
+        }
+
+        .col-report {
+            width: 5%;
+        }
+
         .col-source {
-            width: 2.5%;
+            width: 3%;
         }
 
         .col-project {
-            width: 1.5%;
-        }
-
-        .col-plant-ipp {
-            width: 2.5%;
+            width: 2%;
         }
 
         .col-part {
-            width: 5.5%;
+            width: 7%;
         }
 
         .col-problem {
-            width: 9%;
+            width: 8.5%;
         }
 
         .col-defect {
-            width: 3.5%;
+            width: 4%;
         }
 
         .col-penyimpangan {
-            width: 3.5%;
+            width: 4%;
         }
 
         .col-qty {
-            width: 1.5%;
+            width: 2%;
         }
 
         .col-op {
@@ -140,32 +147,28 @@
             width: 2.5%;
         }
 
-        .col-frek {
-            width: 2.5%;
+        .col-akom {
+            width: 4.5%;
         }
 
-        .col-pfrek {
-            width: 2.5%;
+        .col-ot {
+            width: 4.5%;
         }
 
         .col-action {
-            width: 7.5%;
-        }
-
-        .col-cost {
-            width: 3.5%;
+            width: 7%;
         }
 
         .col-feed {
-            width: 7.5%;
+            width: 5.5%;
         }
 
         .col-sfeed {
-            width: 2.5%;
+            width: 3%;
         }
 
         .col-scm {
-            width: 2.5%;
+            width: 3%;
         }
 
         .col-mon {
@@ -173,16 +176,15 @@
         }
 
         .col-eval {
-            width: 4%;
+            width: 4.5%;
         }
 
         .col-smon {
-            width: 2.5%;
+            width: 3.5%;
         }
 
-        .info-section {
-            font-size: 8px;
-            margin-bottom: 5px;
+        .col-file {
+            width: 2.5%;
         }
     </style>
 </head>
@@ -191,88 +193,110 @@
     <table class="header-table">
         <tr>
             <td class="logo">
-                <img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 70px;">
+                <img src="{{ public_path('master item/ipp.jpg') }}" style="max-height: 50px;">
             </td>
             <td class="title">LAPORAN DATA CLAIM CUSTOMER</td>
             <td class="doc-info">
-                No. Dokumen: QC-IPP-F-00XX<br>
-                Tgl. Terbit: {{ date('d/m/Y') }}<br>
-                Revisi Ke: 0<br>
-                Tgl. Revisi: -
+                <table>
+                    <tr>
+                        <td>No. Dokumen</td>
+                        <td>: QC-KRW-F-178</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Terbit</td>
+                        <td>: 25/03/2015</td>
+                    </tr>
+                    <tr>
+                        <td>Revisi</td>
+                        <td>: 0</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Revisi</td>
+                        <td>: 0</td>
+                    </tr>
+                    <tr>
+                        <td>Hal</td>
+                        <td>: 1/1</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 
-    <div class="info-section">
-        <strong>Plant:</strong> {{ $plantName }} |
-        <strong>Exported at:</strong> {{ date('d/m/Y H:i') }}
+    <div style="margin-bottom: 10px;">
+        <strong>Periode:</strong>
+        {{ $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua' }} -
+        {{ $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua' }}
+        <br>
+        <strong>Plant:</strong> {{ strtoupper($plantName) }}
     </div>
 
-    <table class="main-table">
+    <table class="table">
         <thead>
             <tr>
                 <th class="col-no">No</th>
-                <th class="col-date">Tanggal</th>
+                <th class="col-date">Tanggal Claim</th>
                 <th class="col-cust">Customer</th>
-                <th class="col-plant-up">Plant Cust</th>
-                <th class="col-type">Type</th>
-                <th class="col-report">No Report</th>
-                <th class="col-source">Src</th>
-                <th class="col-project">Prj</th>
-                <th class="col-plant-ipp">IPP</th>
+                <th class="col-plant-up">Plant / UP (Cust.)</th>
+                <th class="col-type">Claim Type</th>
+                <th class="col-report">No. Report</th>
+                <th class="col-source">Source</th>
+                <th class="col-project">Proj</th>
                 <th class="col-part">Nama Part</th>
                 <th class="col-problem">Problem</th>
-                <th class="col-defect">Defect</th>
-                <th class="col-penyimpangan">Penyimpangan</th>
+                <th class="col-defect">Kategori Defect</th>
+                <th class="col-penyimpangan">Kat. Penyimpangan</th>
                 <th class="col-qty">Qty</th>
-                <th class="col-op">OP</th>
-                <th class="col-ins">INS</th>
-                <th class="col-frek">Frek</th>
-                <th class="col-pfrek">%</th>
-                <th class="col-action">Action</th>
-                <th class="col-cost">Cost</th>
+                <th class="col-op">Op</th>
+                <th class="col-ins">Ins</th>
+                <th class="col-akom">Akomodasi (Rp)</th>
+                <th class="col-ot">Overtime (Rp)</th>
+                <th class="col-action">Action Taken</th>
                 <th class="col-feed">Feedback</th>
-                <th class="col-sfeed">S.Fd</th>
-                <th class="col-scm">S.CM</th>
-                <th class="col-mon">Mon</th>
-                <th class="col-eval">Eval</th>
-                <th class="col-smon">S.Mon</th>
+                <th class="col-sfeed">Status Feed.</th>
+                <th class="col-scm">Status (C/M)</th>
+                <th class="col-mon">Monitoring</th>
+                <th class="col-eval">Evaluasi</th>
+                <th class="col-smon">Status Mon.</th>
+                <th class="col-file">File</th>
             </tr>
         </thead>
         <tbody>
             @foreach($records as $index => $record)
                 <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="text-center">{{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/y') : '-' }}
-                    </td>
-                    <td>{{ $record->customer }}</td>
-                    <td>{{ $record->plant_up_customer }}</td>
-                    <td class="text-center">{{ $record->claim_type }}</td>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}</td>
+                    <td style="text-transform: uppercase; font-weight: bold;">{{ $record->customer }}</td>
+                    <td>{{ Str::title($record->plant_up_customer) }}</td>
+                    <td>{{ $record->claim_type }}</td>
                     <td>{{ $record->no_report }}</td>
-                    <td class="text-center">{{ $record->source_type }}</td>
-                    <td class="text-center">{{ $record->project }}</td>
-                    <td class="text-center">{{ $record->plant->code }}</td>
-                    <td>{{ $record->nama_part }}</td>
-                    <td>{{ $record->problem }}</td>
-                    <td>{{ $record->kategori_defect }}</td>
-                    <td>{{ $record->kategori_penyimpangan }}</td>
-                    <td class="text-center">{{ $record->qty }}</td>
-                    <td class="text-center">{{ $record->initial_operator }}</td>
-                    <td class="text-center">{{ $record->initial_inspektor }}</td>
-                    <td class="text-center">{{ $record->frek }}</td>
-                    <td class="text-center">{{ $record->persen_frek }}</td>
-                    <td>{{ $record->action_taken }}</td>
-                    <td class="text-right">{{ number_format($record->total_cost, 0, ',', '.') }}</td>
-                    <td>{{ $record->feedback }}</td>
-                    <td class="text-center">{{ $record->status_feedback }}</td>
-                    <td class="text-center">{{ $record->status_cm }}</td>
-                    <td>{{ $record->monitoring }}</td>
+                    <td>{{ $record->source_type }}</td>
+                    <td>{{ $record->project }}</td>
+                    <td style="text-transform: uppercase;">{{ $record->nama_part }}</td>
+                    <td>{{ Str::title($record->problem) }}</td>
+                    <td>{{ Str::title($record->kategori_defect) }}</td>
+                    <td style="text-transform: uppercase;">{{ $record->kategori_penyimpangan }}</td>
+                    <td>{{ $record->qty }}</td>
+                    <td>{{ $record->initial_operator }}</td>
+                    <td>{{ $record->initial_inspektor }}</td>
+                    <td class="text-right">{{ number_format($record->total_akomodasi, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($record->total_overtime, 0, ',', '.') }}</td>
+                    <td>{{ Str::title($record->action_taken) }}</td>
+                    <td>{{ Str::title($record->feedback) }}</td>
+                    <td>{{ $record->status_feedback }}</td>
+                    <td>{{ Str::title($record->status_cm) }}</td>
+                    <td>{{ Str::title($record->monitoring) }}</td>
                     <td>{{ $record->evaluasi }}</td>
-                    <td class="text-center">{{ $record->monitoring_status }}</td>
+                    <td>{{ $record->monitoring_status }}</td>
+                    <td>{{ is_array($record->attachments) ? count($record->attachments) : 0 }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+
+    <div style="margin-top: 20px; font-size: 7px; text-align: right;">
+        Dicetak pada: {{ date('d/m/Y H:i:s') }}
+    </div>
 </body>
 
 </html>

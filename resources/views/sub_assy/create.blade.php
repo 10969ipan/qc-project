@@ -120,7 +120,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('checksheet.store') }}" method="POST">
+            <form action="{{ route('checksheet.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <input type="hidden" name="check_type" id="checkTypeInput" value="sampling">
@@ -427,11 +427,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
-            // Disable all form inputs until Start button is clicked
-            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            // Disable all form inputs in checksheetForm until Start button is clicked
+            var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
-            $('form').addClass('inputs-locked');
-            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
+            $('#checksheetForm').addClass('inputs-locked');
+            $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
             let pdfDoc = null;

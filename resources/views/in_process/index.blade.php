@@ -64,9 +64,10 @@
                                     class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
-                                <button type="button" id="exportPdfBtn" class="btn btn-danger btn-sm" title="Export to PDF">
+                                <a href="{{ route('in_process.export_pdf', request()->query()) }}"
+                                    class="btn btn-danger btn-sm" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -701,8 +702,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -731,293 +732,227 @@
                 });
             }
 
-            const { jsPDF } = window.jspdf;
+            // PDF Export Functionality Removed (Replaced by Server-Side Export)
+            noExportElements.forEach(el => el.remove());
 
-            document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
-                e.preventDefault();
+            tableClone.style.position = 'absolute';
+            tableClone.style.top = '-9999px';
+            tableClone.style.left = '-9999px';
+            document.body.appendChild(tableClone);
 
-                const doc = new jsPDF('landscape');
+            // Generate Main Data Table
+            doc.autoTable({
+                html: tableClone,
+                startY: finalY + 7,
+                theme: 'grid',
+                styles: {
+                    fontSize: 5,
+                    cellPadding: 1,
+                    valign: 'middle',
+                    halign: 'center',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                headStyles: {
+                    fillColor: [78, 115, 223],
+                    textColor: [255, 255, 255],
+                    valign: 'middle',
+                    halign: 'center',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                columnStyles: {
+                    11: { halign: 'left' } // Check Dimensi
+                },
+                didParseCell: function (data) {
+                    // Check Dimensi (Column 11) - Parse JSON to reserve space
+                    if (data.section === 'body' && data.column.index === 11) {
+                        try {
+                            const raw = data.cell.raw.getAttribute('data-dimensions');
+                            if (raw) {
+                                const dimensions = JSON.parse(raw);
+                                // Set text to newlines to reserve height for custom drawing
+                                // We need 1 row for header + 1 row per cavity
+                                if (dimensions && typeof dimensions === 'object') {
+                                    let lineCount = 1; // Header
+                                    lineCount += Object.keys(dimensions).length;
+                                    data.cell.text = Array(lineCount).fill(' ').join('\n');
 
-                // Generate Header Table
-                doc.autoTable({
-                    startY: 10,
-                    head: [],
-                    body: [
-                        [
-                            { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
-                            { content: 'LAPORAN CHECK SHEET INPROCESS', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                            { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: 'QC-KRW-F-0004', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '25/09/2015', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '30/09/2020', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ]
-                    ],
-                    theme: 'grid',
-                    styles: {
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1,
-                        cellPadding: 1.5
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 30 }, // Logo Column
-                        1: {}, // Title Column
-                        2: {}, // Label Column
-                        3: {}  // Value Column
-                    },
-                    didDrawCell: function (data) {
-                        // Draw Logo
-                        if (data.section === 'body' && data.column.index === 0) {
-                            const img = document.getElementById('pdf-logo');
-                            if (img) {
-                                try {
-                                    doc.addImage(img, 'PNG', data.cell.x + 2, data.cell.y + 2, 26, 21);
-                                } catch (err) {
-                                    console.warn('Error adding logo:', err);
-                                }
-                            }
-                        }
-                    }
-                });
-
-                const finalY = doc.lastAutoTable.finalY;
-                doc.setFontSize(6);
-                doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
-
-                // Clone table and remove 'Aksi' column
-                const originalTable = document.getElementById('checksheetTable');
-                const tableClone = originalTable.cloneNode(true);
-
-                const noExportElements = tableClone.querySelectorAll('.no-export');
-                noExportElements.forEach(el => el.remove());
-
-                tableClone.style.position = 'absolute';
-                tableClone.style.top = '-9999px';
-                tableClone.style.left = '-9999px';
-                document.body.appendChild(tableClone);
-
-                // Generate Main Data Table
-                doc.autoTable({
-                    html: tableClone,
-                    startY: finalY + 7,
-                    theme: 'grid',
-                    styles: {
-                        fontSize: 5,
-                        cellPadding: 1,
-                        valign: 'middle',
-                        halign: 'center',
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1
-                    },
-                    headStyles: {
-                        fillColor: [78, 115, 223],
-                        textColor: [255, 255, 255],
-                        valign: 'middle',
-                        halign: 'center',
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1
-                    },
-                    columnStyles: {
-                        11: { halign: 'left' } // Check Dimensi
-                    },
-                    didParseCell: function (data) {
-                        // Check Dimensi (Column 11) - Parse JSON to reserve space
-                        if (data.section === 'body' && data.column.index === 11) {
-                            try {
-                                const raw = data.cell.raw.getAttribute('data-dimensions');
-                                if (raw) {
-                                    const dimensions = JSON.parse(raw);
-                                    // Set text to newlines to reserve height for custom drawing
-                                    // We need 1 row for header + 1 row per cavity
-                                    if (dimensions && typeof dimensions === 'object') {
-                                        let lineCount = 1; // Header
-                                        lineCount += Object.keys(dimensions).length;
-                                        data.cell.text = Array(lineCount).fill(' ').join('\n');
-
-                                        // Store data for didDrawCell
-                                        data.cell.customDimensions = dimensions;
-                                        // Get part number from column 7 (index 7)
-                                        // Note: data.row.cells is an array-like object of Cell objects
-                                        // We can try to access the text of column 7. 
-                                        // Since didParseCell runs for each cell, the row might not be fully populated yet if we are at index 11.
-                                        // However, column 7 is before 11, so it should be parsed.
-                                        if (data.row.cells[7]) {
-                                            let partNo = data.row.cells[7].text;
-                                            if (Array.isArray(partNo)) partNo = partNo.join('');
-                                            data.cell.customPartNumber = partNo.trim();
-                                        }
+                                    // Store data for didDrawCell
+                                    data.cell.customDimensions = dimensions;
+                                    // Get part number from column 7 (index 7)
+                                    // Note: data.row.cells is an array-like object of Cell objects
+                                    // We can try to access the text of column 7. 
+                                    // Since didParseCell runs for each cell, the row might not be fully populated yet if we are at index 11.
+                                    // However, column 7 is before 11, so it should be parsed.
+                                    if (data.row.cells[7]) {
+                                        let partNo = data.row.cells[7].text;
+                                        if (Array.isArray(partNo)) partNo = partNo.join('');
+                                        data.cell.customPartNumber = partNo.trim();
                                     }
                                 }
-                            } catch (e) {
-                                console.error('Error parsing dimensions', e);
                             }
+                        } catch (e) {
+                            console.error('Error parsing dimensions', e);
                         }
+                    }
 
-                        // Detail NG (Col 14, 15) - Hide default text for manual drawing if multiple lines
-                        if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                data.cell.styles.textColor = [255, 255, 255];
-                            }
+                    // Detail NG (Col 14, 15) - Hide default text for manual drawing if multiple lines
+                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
+                        const td = data.cell.raw;
+                        if (td && td.children.length > 1) {
+                            data.cell.styles.textColor = [255, 255, 255];
                         }
-                    },
-                    didDrawCell: function (data) {
-                        // Check Dimensi (Column 11) - Manual Grid Draw
-                        if (data.section === 'body' && data.column.index === 11 && data.cell.customDimensions) {
-                            const dimensions = data.cell.customDimensions;
-                            const partNo = data.cell.customPartNumber;
-                            const standards = partDimensionStandards[partNo] || [];
+                    }
+                },
+                didDrawCell: function (data) {
+                    // Check Dimensi (Column 11) - Manual Grid Draw
+                    if (data.section === 'body' && data.column.index === 11 && data.cell.customDimensions) {
+                        const dimensions = data.cell.customDimensions;
+                        const partNo = data.cell.customPartNumber;
+                        const standards = partDimensionStandards[partNo] || [];
 
-                            const x = data.cell.x;
-                            const y = data.cell.y;
-                            const w = data.cell.width;
-                            const h = data.cell.height;
+                        const x = data.cell.x;
+                        const y = data.cell.y;
+                        const w = data.cell.width;
+                        const h = data.cell.height;
 
-                            // Calculate grid
-                            const cavities = Object.keys(dimensions);
-                            const rowCount = cavities.length + 1; // +1 for Header
-                            const colCount = 9; // Cav, 1..8
+                        // Calculate grid
+                        const cavities = Object.keys(dimensions);
+                        const rowCount = cavities.length + 1; // +1 for Header
+                        const colCount = 9; // Cav, 1..8
 
-                            const rowH = h / rowCount;
-                            const colW = w / colCount;
+                        const rowH = h / rowCount;
+                        const colW = w / colCount;
 
-                            doc.setFontSize(4); // Small font for grid
-                            doc.setLineWidth(0.05);
-                            doc.setDrawColor(0, 0, 0);
+                        doc.setFontSize(4); // Small font for grid
+                        doc.setLineWidth(0.05);
+                        doc.setDrawColor(0, 0, 0);
 
-                            // Draw Header Row
-                            const headers = ['Cv', '1', '2', '3', '4', '5', '6', '7', '8'];
-                            headers.forEach((hdr, i) => {
-                                // Draw cell border
-                                doc.rect(x + (i * colW), y, colW, rowH);
-                                // Draw text
-                                doc.setTextColor(0, 0, 0);
-                                doc.text(hdr, x + (i * colW) + (colW / 2), y + (rowH / 2), { align: 'center', baseline: 'middle' });
-                            });
+                        // Draw Header Row
+                        const headers = ['Cv', '1', '2', '3', '4', '5', '6', '7', '8'];
+                        headers.forEach((hdr, i) => {
+                            // Draw cell border
+                            doc.rect(x + (i * colW), y, colW, rowH);
+                            // Draw text
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(hdr, x + (i * colW) + (colW / 2), y + (rowH / 2), { align: 'center', baseline: 'middle' });
+                        });
 
-                            // Draw Data Rows
-                            cavities.forEach((cavity, rIndex) => {
-                                const cy = y + ((rIndex + 1) * rowH);
-                                const points = dimensions[cavity];
+                        // Draw Data Rows
+                        cavities.forEach((cavity, rIndex) => {
+                            const cy = y + ((rIndex + 1) * rowH);
+                            const points = dimensions[cavity];
 
-                                // Col 0: Cavity Name
-                                doc.rect(x, cy, colW, rowH);
-                                doc.setTextColor(0, 0, 0);
-                                doc.text(String(cavity), x + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                            // Col 0: Cavity Name
+                            doc.rect(x, cy, colW, rowH);
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(String(cavity), x + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
 
-                                // Cols 1..8: Points
-                                for (let j = 1; j <= 8; j++) {
-                                    const val = points[j];
-                                    const cx = x + (j * colW);
+                            // Cols 1..8: Points
+                            for (let j = 1; j <= 8; j++) {
+                                const val = points[j];
+                                const cx = x + (j * colW);
 
-                                    doc.rect(cx, cy, colW, rowH);
+                                doc.rect(cx, cy, colW, rowH);
 
-                                    if (val !== undefined && val !== null) {
-                                        // Check NG
-                                        let isNG = false;
-                                        if (standards[j] && !isNaN(val)) {
-                                            const std = standards[j];
-                                            const min = std.size - std.tolerance;
-                                            const max = std.size + std.tolerance;
-                                            if (val < min || val > max) {
-                                                isNG = true;
-                                            }
+                                if (val !== undefined && val !== null) {
+                                    // Check NG
+                                    let isNG = false;
+                                    if (standards[j] && !isNaN(val)) {
+                                        const std = standards[j];
+                                        const min = std.size - std.tolerance;
+                                        const max = std.size + std.tolerance;
+                                        if (val < min || val > max) {
+                                            isNG = true;
                                         }
+                                    }
 
-                                        if (isNG) {
-                                            doc.setTextColor(255, 0, 0);
-                                        } else {
-                                            doc.setTextColor(0, 0, 0);
-                                        }
-                                        doc.text(String(val), cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                                    if (isNG) {
+                                        doc.setTextColor(255, 0, 0);
                                     } else {
                                         doc.setTextColor(0, 0, 0);
-                                        doc.text('-', cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
                                     }
-                                }
-                            });
-
-                            // Prevent default text drawing (if any remains)
-                            return false;
-                        }
-
-                        // Detail NG (Col 14, 15) - Manual Draw
-                        if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                const count = td.children.length;
-                                const height = data.cell.height;
-                                const step = height / count;
-                                const textArray = data.cell.text;
-
-                                for (let i = 1; i < count; i++) {
-                                    const y = data.cell.y + (step * i);
-                                    doc.setDrawColor(0, 0, 0);
-                                    doc.setLineWidth(0.1);
-                                    doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
-                                }
-
-                                doc.setTextColor(0, 0, 0);
-                                doc.setFontSize(5);
-                                for (let i = 0; i < count; i++) {
-                                    const yCenter = data.cell.y + (step * i) + (step / 2);
-                                    const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
-                                    doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
+                                    doc.text(String(val), cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                                } else {
+                                    doc.setTextColor(0, 0, 0);
+                                    doc.text('-', cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
                                 }
                             }
+                        });
+
+                        // Prevent default text drawing (if any remains)
+                        return false;
+                    }
+
+                    // Detail NG (Col 14, 15) - Manual Draw
+                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
+                        const td = data.cell.raw;
+                        if (td && td.children.length > 1) {
+                            const count = td.children.length;
+                            const height = data.cell.height;
+                            const step = height / count;
+                            const textArray = data.cell.text;
+
+                            for (let i = 1; i < count; i++) {
+                                const y = data.cell.y + (step * i);
+                                doc.setDrawColor(0, 0, 0);
+                                doc.setLineWidth(0.1);
+                                doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
+                            }
+
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFontSize(5);
+                            for (let i = 0; i < count; i++) {
+                                const yCenter = data.cell.y + (step * i) + (step / 2);
+                                const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
+                                doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
+                            }
                         }
-                    },
-                    exportHiddenCells: false
-                });
-
-                document.body.removeChild(tableClone);
-                doc.save('Laporan_Checksheet_Inprocess_' + new Date().toISOString().slice(0, 10) + '.pdf');
+                    }
+                },
+                exportHiddenCells: false
             });
 
-            // Edit Modal Handler
-            $('.btn-edit-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+            document.body.removeChild(tableClone);
+            doc.save('Laporan_Checksheet_Inprocess_' + new Date().toISOString().slice(0, 10) + '.pdf');
+        });
 
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#editModalBody').html(response);
-                    },
-                    error: function () {
-                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
-                    }
-                });
-            });
+        // Edit Modal Handler
+        $('.btn-edit-modal').on('click', function (e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            $('#editModal').modal('show');
+            $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
 
-            // Status Modal Handler
-            $('.btn-status-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#statusModal').modal('show');
-                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#statusModalBody').html(response);
-                    },
-                    error: function () {
-                        $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
-                    }
-                });
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#editModalBody').html(response);
+                },
+                error: function () {
+                    $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                }
             });
         });
+
+        // Status Modal Handler
+        $('.btn-status-modal').on('click', function (e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            $('#statusModal').modal('show');
+            $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#statusModalBody').html(response);
+                },
+                error: function () {
+                    $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                }
+            });
+        });
+            });
     </script>
 @endpush

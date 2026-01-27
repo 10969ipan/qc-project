@@ -35,7 +35,7 @@
                 </form>
             @endif
 
-            <form action="{{ route('sortir.store') }}" method="POST">
+            <form action="{{ route('sortir.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <input type="hidden" name="source_type" id="sourceType">
@@ -416,15 +416,11 @@
             });
 
             // === INPUT LOCK UNTIL START ===
-            // Disable all form inputs until Start button is clicked
-            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            // Disable all form inputs in checksheetForm until Start button is clicked
+            var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
-
-            // Add visual indicator that inputs are locked
-            $('form').addClass('inputs-locked');
-
-            // Style for locked state (optional visual feedback)
-            $('<style>.inputs-locked input:disabled, .inputs-locked select:disabled, .inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
+            $('#checksheetForm').addClass('inputs-locked');
+            $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // AQL 0.65 Logic (Similar to In-Process)
             // In Sortir, we usually sort 100% of the NG lot.
@@ -542,7 +538,7 @@
                 var container = $('#imageContainer');
 
                 if (files && files.length > 0) {
-                    container.html('<button type="button" class="btn btn-danger btn-sm view-pdf-btn" data-id="' + itemId + '" data-count="' + files.length + '"><i class="fas fa-file-pdf"></i> View PDF (' + files.length + ')</button>');
+                    container.html('<button type="button" class="btn btn-danger btn-sm view-pdf-btn" data-id="' + itemId + '" data-count="' + files.length + '"><i class="fas fa-file-pdf"></i> PDF (' + files.length + ')</button>');
                 } else {
                     container.html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
                 }
@@ -599,14 +595,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                                                                    <div class="input-group mb-2 defect-row">
-                                                                                                                                 <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                                                                 <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                                                                 <div class="input-group-append">
-                                                                                                                                     <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
-                                                                                                                                 </div>
-                                                                                                                             </div>
-                                                                                                                            `;
+                                                                                                                                            <div class="input-group mb-2 defect-row">
+                                                                                                                                         <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                                         <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                                         <div class="input-group-append">
+                                                                                                                                             <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                         </div>
+                                                                                                                                     </div>
+                                                                                                                                    `;
                 $('#defectContainer').append(newRow);
             });
 

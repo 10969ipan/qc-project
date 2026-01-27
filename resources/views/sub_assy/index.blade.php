@@ -65,9 +65,10 @@
                                     class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
-                                <button type="button" id="exportPdfBtn" class="btn btn-danger btn-sm" title="Export to PDF">
+                                <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
+                                    class="btn btn-danger btn-sm" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -606,8 +607,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -638,156 +639,7 @@
                 });
             }
 
-            const { jsPDF } = window.jspdf;
-
-            document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
-                e.preventDefault();
-
-                const doc = new jsPDF('landscape'); // Landscape to fit columns
-
-                // Generate Header Table
-                doc.autoTable({
-                    startY: 10,
-                    head: [],
-                    body: [
-                        [
-                            { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
-                            { content: 'LAPORAN CHECK SHEET OUTGOING SUB ASSY INJECTION', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                            { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: 'QC-KRW-F-0213', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '25/03/2015', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '3', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '22/12/2025', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ]
-                    ],
-                    theme: 'grid',
-                    styles: {
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1,
-                        cellPadding: 1.5
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 30 }, // Logo Column
-                        1: {}, // Title Column (auto width)
-                        2: {}, // Label Column
-                        3: {}  // Value Column
-                    },
-                    didDrawCell: function (data) {
-                        // Draw Logo in the first cell of the body
-                        if (data.section === 'body' && data.column.index === 0) {
-                            const img = document.getElementById('pdf-logo');
-                            if (img) {
-                                try {
-                                    doc.addImage(img, 'PNG', data.cell.x + 2, data.cell.y + 2, 26, 21);
-                                } catch (err) {
-                                    console.warn('Error adding logo:', err);
-                                }
-                            }
-                        }
-                    }
-                });
-
-                // Capture the final Y position of the header table
-                const finalY = doc.lastAutoTable.finalY;
-
-                // Add Export Date below header
-                doc.setFontSize(6);
-                doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
-
-                // Clone the table to manipulate it for export (removing 'Aksi' column)
-                const originalTable = document.getElementById('checksheetTable');
-                const tableClone = originalTable.cloneNode(true);
-
-                // Remove all elements with class 'no-export' from the clone
-                const noExportElements = tableClone.querySelectorAll('.no-export');
-                noExportElements.forEach(el => el.remove());
-
-                // Temporarily append clone to DOM to ensure correct parsing
-                tableClone.style.position = 'absolute';
-                tableClone.style.top = '-9999px';
-                tableClone.style.left = '-9999px';
-                document.body.appendChild(tableClone);
-
-                // Generate Main Data Table
-                doc.autoTable({
-                    html: tableClone,
-                    startY: finalY + 7,
-                    theme: 'grid',
-                    styles: {
-                        fontSize: 5,
-                        cellPadding: 1.5,
-                        valign: 'middle',
-                        halign: 'center',
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1
-                    },
-                    headStyles: {
-                        fillColor: [78, 115, 223],
-                        textColor: [255, 255, 255],
-                        valign: 'middle',
-                        halign: 'center',
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1
-                    },
-                    columnStyles: {
-                        // Auto width for all columns
-                    },
-                    didParseCell: function (data) {
-                        // Hide default text for multi-item cells in Pcs (12) and Jenis NG (13) to draw manually later
-                        if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                data.cell.styles.textColor = [255, 255, 255]; // Hide original text
-                            }
-                        }
-                    },
-                    didDrawCell: function (data) {
-                        // Draw horizontal lines and manual text for separated defects in Pcs (12) and Jenis NG (13)
-                        if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                const count = td.children.length;
-                                const height = data.cell.height;
-                                const step = height / count;
-                                const textArray = data.cell.text; // Original text array
-
-                                // Draw horizontal lines between items
-                                for (let i = 1; i < count; i++) {
-                                    const y = data.cell.y + (step * i);
-                                    doc.setDrawColor(0, 0, 0); // Black line
-                                    doc.setLineWidth(0.1);
-                                    doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
-                                }
-
-                                // Draw text manually centered in each sub-cell
-                                doc.setTextColor(0, 0, 0);
-                                doc.setFontSize(5);
-                                for (let i = 0; i < count; i++) {
-                                    const yCenter = data.cell.y + (step * i) + (step / 2);
-                                    // Ensure text is string and handle array/string mismatch
-                                    const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
-                                    doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
-                                }
-                            }
-                        }
-                    },
-                    exportHiddenCells: false
-                });
-
-                // Remove the clone from DOM
-                document.body.removeChild(tableClone);
-
-                doc.save('Laporan_Checksheet_Sub_Assy_' + new Date().toISOString().slice(0, 10) + '.pdf');
-            });
+            // PDF Generation Removed (Server-side Export Implemented)
 
             // Edit Modal Handler
             $('.btn-edit-modal').on('click', function (e) {

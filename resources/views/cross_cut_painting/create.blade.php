@@ -48,7 +48,8 @@
                 </form>
             @endif
 
-            <form action="{{ route('cross_cut_painting.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('cross_cut_painting.store') }}" method="POST" enctype="multipart/form-data"
+                id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
@@ -260,8 +261,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var formInputs = $('form input:not([type="hidden"]):not(#startTimerBtn), form select, form textarea, form button:not(#startTimerBtn)');
+            var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
+            $('#checksheetForm').addClass('inputs-locked');
+            $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             var timerInterval = null, totalSeconds = 0, timerRunning = false;
             $('#startTimerBtn').click(function () {

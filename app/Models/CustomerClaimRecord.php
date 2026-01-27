@@ -24,13 +24,13 @@ class CustomerClaimRecord extends Model
         'qty',
         'initial_operator',
         'initial_inspektor',
-        'frek',
-        'persen_frek',
         'action_taken',
-        'total_cost',
+        'total_akomodasi',
+        'total_overtime',
         'feedback',
         'status_feedback',
         'status_cm',
+        'attachments',
         'monitoring',
         'evaluasi',
         'monitoring_status',
@@ -40,8 +40,10 @@ class CustomerClaimRecord extends Model
 
     protected $casts = [
         'tanggal_claim' => 'date',
-        'total_cost' => 'decimal:2',
+        'total_akomodasi' => 'decimal:2',
+        'total_overtime' => 'decimal:2',
         'qty' => 'integer',
+        'attachments' => 'array',
     ];
 
     /**
@@ -73,20 +75,11 @@ class CustomerClaimRecord extends Model
             'source_type',
             'project',
             'nama_part',
-            'problem',
-            'kategori_defect',
             'kategori_penyimpangan',
             'initial_operator',
             'initial_inspektor',
-            'frek',
-            'persen_frek',
-            'action_taken',
-            'feedback',
             'status_feedback',
-            'status_cm',
-            'monitoring',
             'evaluasi',
-            'monitoring_status',
         ];
 
         if (in_array($key, $uppercaseFields) && is_string($value)) {

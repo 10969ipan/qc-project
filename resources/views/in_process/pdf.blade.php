@@ -8,27 +8,39 @@
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
+            color: #333;
+            margin: 0;
+            padding: 0;
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
+            table-layout: fixed;
+            /* Fixed layout to respect widths */
         }
 
         .table th,
         .table td {
             border: 1px solid #000;
-            padding: 4px;
+            padding: 3px;
             text-align: center;
+            vertical-align: middle;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .table thead th {
             background-color: #f2f2f2;
             font-weight: bold;
+            text-transform: uppercase;
+            font-size: 7px;
         }
 
         .header-table {
             width: 100%;
+            border-collapse: collapse;
             margin-bottom: 15px;
         }
 
@@ -38,22 +50,49 @@
             vertical-align: middle;
         }
 
-        .header-table .logo {
+        .logo {
             width: 80px;
             text-align: center;
         }
 
-        .header-table .title {
+        .title {
             text-align: center;
             font-size: 14px;
             font-weight: bold;
+            color: #000;
         }
 
-        .header-table .doc-info {
+        .doc-info {
+            width: 150px;
             font-size: 9px;
             text-align: left;
         }
 
+        .doc-info table {
+            width: 100%;
+            border: none;
+        }
+
+        .doc-info td {
+            border: none;
+            padding: 1px 2px;
+            text-align: left;
+        }
+
+        /* Dimension table specific tweaks */
+        .dimension-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        .dimension-table td,
+        .dimension-table th {
+            padding: 1px;
+            font-size: 5px;
+            border: 1px solid #000;
+        }
+
+        /* Helpers */
         .text-success {
             color: #28a745;
         }
@@ -88,20 +127,6 @@
             color: #212529;
             background-color: #ffc107;
         }
-
-        .page-break {
-            page-break-after: always;
-        }
-
-        .dimension-table {
-            width: 100%;
-            font-size: 7px;
-        }
-
-        .dimension-table td,
-        .dimension-table th {
-            padding: 2px;
-        }
     </style>
 </head>
 
@@ -112,24 +137,69 @@
                 <img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 70px;">
             </td>
             <td class="title">LAPORAN CHECK SHEET INPROCESS</td>
-            <td class="doc-info" style="width: 120px;">
-                No. Dokumen: QC-KRW-F-0004<br>
-                Tgl. Terbit: 25/09/2015<br>
-                Revisi Ke: 3<br>
-                Tgl. Revisi: 30/09/2020
+            <td class="doc-info">
+                <table>
+                    <tr>
+                        <td>No. Dokumen</td>
+                        <td>: QC-KRW-F-0004</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Terbit</td>
+                        <td>: 25/09/2015</td>
+                    </tr>
+                    <tr>
+                        <td>Revisi Ke</td>
+                        <td>: 3</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Revisi</td>
+                        <td>: 30/09/2020</td>
+                    </tr>
+                    <tr>
+                        <td>Hal</td>
+                        <td>: 1/1</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 
-    <p style="font-size: 10px;">
+    <div style="margin-bottom: 10px;">
         <strong>Periode:</strong>
         {{ $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua' }} -
         {{ $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua' }}
         <br>
         <strong>Barang:</strong> {{ $request->item_id ? $items->find($request->item_id)->name : 'Semua Barang' }}
-    </p>
+        <br>
+        <strong>Plant:</strong>
+        {{ isset($plantCode) ? strtoupper($plantCode) : (isset($plantName) ? strtoupper($plantName) : 'KARAWANG') }}
+    </div>
 
     <table class="table">
+        <colgroup>
+            <col style="width: 2%;"> <!-- No -->
+            <col style="width: 6%;"> <!-- Tanggal -->
+            <col style="width: 3.5%;"> <!-- Jam Before -->
+            <col style="width: 3.5%;"> <!-- Jam After -->
+            <col style="width: 3%;"> <!-- Cycle -->
+            <col style="width: 2%;"> <!-- Shift -->
+            <col style="width: 7%;"> <!-- Barang -->
+            <col style="width: 7%;"> <!-- Part No -->
+            <col style="width: 6%;"> <!-- Customer -->
+            <col style="width: 3%;"> <!-- Total -->
+            <col style="width: 3%;"> <!-- Sampling -->
+            <col style="width: 20%;"> <!-- Check Dimensi -->
+            <col style="width: 3%;"> <!-- OK -->
+            <col style="width: 3%;"> <!-- NG -->
+            <col style="width: 2%;"> <!-- Pcs -->
+            <col style="width: 5%;"> <!-- Jenis NG -->
+            <col style="width: 4%;"> <!-- Judgment -->
+            <col style="width: 2%;"> <!-- Inisial -->
+            <col style="width: 4%;"> <!-- Kashift -->
+            <col style="width: 4%;"> <!-- Spv -->
+            <col style="width: 4%;"> <!-- Asst -->
+            <col style="width: 5%;"> <!-- Ket -->
+        </colgroup>
         <thead>
             <tr class="text-center">
                 <th rowspan="2">No</th>
@@ -174,21 +244,27 @@
                     <td>{{ $checksheet->total_qty }}</td>
                     <td>{{ $checksheet->sampling_qty }}</td>
 
-                    <td style="padding: 0;">
-                        @php $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true); @endphp
+                    <td style="padding: 0; vertical-align: top;">
+                        @php 
+                            $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true); 
+                        @endphp
                         @if(is_array($dimensions) && count($dimensions) > 0)
                             <table class="dimension-table">
                                 <thead>
                                     <tr>
-                                        <th>Cav</th>
+                                        <th style="width: 20%;">Cav</th>
                                         @php
-                                            // Find all unique dimension points across all cavities for this checksheet
+                                            // Determine max columns (points) dynamically or fixed 1-8 based on preference
+                                            // The previous logic found all unique points. Let's stick to that but sort numerically.
                                             $points = [];
                                             foreach ($dimensions as $cavityData) {
-                                                $points = array_merge($points, array_keys($cavityData));
+                                                if(is_array($cavityData)) {
+                                                    $points = array_merge($points, array_keys($cavityData));
+                                                }
                                             }
                                             $uniquePoints = array_unique($points);
-                                            sort($uniquePoints);
+                                            sort($uniquePoints, SORT_NUMERIC);
+                                            // Limit to max 8 columns to prevent overflow if desired, or let it handle it.
                                         @endphp
                                         @foreach($uniquePoints as $point)
                                             <th>Ø{{ $point }}</th>
@@ -207,7 +283,7 @@
                                 </tbody>
                             </table>
                         @else
-                            -
+                            <div style="padding: 5px;">-</div>
                         @endif
                     </td>
 

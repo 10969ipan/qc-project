@@ -23,9 +23,20 @@ class SubAssyChecksheetService extends BaseService
      * Get filtered checksheets with pagination
      * 
      * @param array $filters
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function getFilteredChecksheets(array $filters)
+    public function getQuery(array $filters)
+    {
+        return $this->buildFilteredQuery($filters);
+    }
+
+    /**
+     * Build the filtered query
+     * 
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function buildFilteredQuery(array $filters)
     {
         $query = SubAssyChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
@@ -71,7 +82,12 @@ class SubAssyChecksheetService extends BaseService
             $query->where('id', $filters['id']);
         }
 
-        return $query->paginate(10)->withQueryString();
+        return $query;
+    }
+
+    public function getFilteredChecksheets(array $filters)
+    {
+        return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
     }
 
     /**

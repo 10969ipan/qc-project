@@ -37,6 +37,17 @@ class SortirChecksheetService extends BaseService
      * @param array $filters
      * @return \Illuminate\Database\Eloquent\Builder
      */
+    public function getQuery(array $filters)
+    {
+        return $this->buildFilteredQuery($filters);
+    }
+
+    /**
+     * Build the filtered query
+     * 
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function buildFilteredQuery(array $filters)
     {
         $query = SortirChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');

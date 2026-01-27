@@ -5,46 +5,79 @@
     <title>Laporan Cross Cut Painting</title>
     <style>
         body {
-            font-family: sans-serif;
-            font-size: 10px;
+            font-family: 'Arial', sans-serif;
+            font-size: 8px;
+            color: #333;
+            margin: 0;
+            padding: 0;
         }
 
-        table {
+        .table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 10px;
+            table-layout: fixed;
         }
 
-        table,
-        th,
-        td {
-            border: 1px solid black;
-        }
-
-        th,
-        td {
+        .table th,
+        .table td {
+            border: 1px solid #000;
             padding: 4px;
             text-align: center;
+            vertical-align: middle;
             word-wrap: break-word;
         }
 
+        .table thead th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 7px;
+        }
+
         .header-table {
-            border: none;
-            margin-bottom: 10px;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
         }
 
         .header-table td {
-            border: none;
+            border: 1px solid #000;
+            padding: 5px;
+            vertical-align: middle;
+        }
+
+        .logo {
+            width: 80px;
+            text-align: center;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .doc-info {
+            width: 150px;
+            font-size: 9px;
             text-align: left;
-            padding: 2px;
+        }
+
+        .doc-info table {
+            width: 100%;
+            border: none;
+        }
+
+        .doc-info td {
+            border: none;
+            padding: 1px 2px;
+            text-align: left;
         }
 
         .text-bold {
             font-weight: bold;
-        }
-
-        .bg-gray {
-            background-color: #f2f2f2;
         }
 
         .page-break {
@@ -54,14 +87,49 @@
 </head>
 
 <body>
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h3>LAPORAN CROSS CUT PAINTING</h3>
-        <p>Periode: {{ $startDate ?? '-' }} s/d {{ $endDate ?? '-' }}</p>
+    <table class="header-table">
+        <tr>
+            <td class="logo">
+                <img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 70px;">
+            </td>
+            <td class="title">LAPORAN CROSS CUT PAINTING</td>
+            <td class="doc-info">
+                <table>
+                    <tr>
+                        <td>No. Dokumen</td>
+                        <td>: QC-KRW-F-XXXX</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Terbit</td>
+                        <td>: -</td>
+                    </tr>
+                    <tr>
+                        <td>Revisi Ke</td>
+                        <td>: 0</td>
+                    </tr>
+                    <tr>
+                        <td>Tgl. Revisi</td>
+                        <td>: -</td>
+                    </tr>
+                    <tr>
+                        <td>Hal</td>
+                        <td>: 1/1</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div style="margin-bottom: 10px; font-size: 10px;">
+        <strong>Periode:</strong>
+        {{ $startDate ?? '-' }} s/d {{ $endDate ?? '-' }}
+        <br>
+        <strong>Plant:</strong> {{ isset($plantName) ? strtoupper($plantName) : 'KARAWANG' }}
     </div>
 
-    <table>
+    <table class="table">
         <thead>
-            <tr class="bg-gray">
+            <tr>
                 <th rowspan="2">No</th>
                 <th rowspan="2">Tgl Prod</th>
                 <th rowspan="2">Shift Prod</th>
@@ -75,7 +143,7 @@
                 <th rowspan="2">Inisial</th>
                 <th colspan="6">Approval Status</th>
             </tr>
-            <tr class="bg-gray">
+            <tr>
                 <!-- Adjust Labels based on Plant -->
                 @if(request('plant') == 'jakarta')
                     <th>Karu</th>

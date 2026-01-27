@@ -78,9 +78,10 @@
                                     class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
-                                <button type="button" id="exportPdfBtn" class="btn btn-danger btn-sm" title="Export to PDF">
+                                <a href="{{ route('sortir.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm"
+                                    title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -486,111 +487,7 @@
                 });
             });
 
-            // PDF Export Functionality
-            const { jsPDF } = window.jspdf;
-            document.getElementById('exportPdfBtn').addEventListener('click', function (e) {
-                e.preventDefault();
-                const doc = new jsPDF('landscape');
-
-                // Header Table
-                doc.autoTable({
-                    startY: 10,
-                    head: [],
-                    body: [
-                        [
-                            { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
-                            { content: 'LAPORAN DATA HASIL SORTIR', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                            { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: 'QC-KRW-F-0214', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '01/01/2026', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '0', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ],
-                        [
-                            { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                            { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                        ]
-                    ],
-                    theme: 'grid',
-                    styles: { lineColor: [0, 0, 0], lineWidth: 0.1, cellPadding: 1.5 },
-                    columnStyles: { 0: { cellWidth: 30 } },
-                    didDrawCell: function (data) {
-                        if (data.section === 'body' && data.column.index === 0) {
-                            const img = document.getElementById('pdf-logo');
-                            if (img) {
-                                try { doc.addImage(img, 'PNG', data.cell.x + 2, data.cell.y + 2, 26, 21); }
-                                catch (err) { console.warn('Error adding logo:', err); }
-                            }
-                        }
-                    }
-                });
-
-                const finalY = doc.lastAutoTable.finalY;
-                doc.setFontSize(6);
-                doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
-
-                // Clone table and remove 'Aksi' column
-                const originalTable = document.getElementById('sortirTable');
-                const tableClone = originalTable.cloneNode(true);
-                const noExportElements = tableClone.querySelectorAll('.no-export');
-                noExportElements.forEach(el => el.remove());
-
-                tableClone.style.position = 'absolute';
-                tableClone.style.top = '-9999px';
-                tableClone.style.left = '-9999px';
-                document.body.appendChild(tableClone);
-
-                doc.autoTable({
-                    html: tableClone,
-                    startY: finalY + 7,
-                    theme: 'grid',
-                    styles: { fontSize: 5, cellPadding: 1, valign: 'middle', halign: 'center', lineColor: [0, 0, 0], lineWidth: 0.1 },
-                    headStyles: { fillColor: [78, 115, 223], textColor: [255, 255, 255], valign: 'middle', halign: 'center', lineColor: [0, 0, 0], lineWidth: 0.1 },
-                    didParseCell: function (data) {
-                        // Detail NG (Col 12, 13) - Hide default text for manual drawing if multiple lines
-                        if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                data.cell.styles.textColor = [255, 255, 255];
-                            }
-                        }
-                    },
-                    didDrawCell: function (data) {
-                        if (data.section === 'body' && (data.column.index === 12 || data.column.index === 13)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                const count = td.children.length;
-                                const height = data.cell.height;
-                                const step = height / count;
-                                const textArray = data.cell.text;
-
-                                for (let i = 1; i < count; i++) {
-                                    const yLine = data.cell.y + (step * i);
-                                    doc.setDrawColor(0, 0, 0);
-                                    doc.setLineWidth(0.1);
-                                    doc.line(data.cell.x, yLine, data.cell.x + data.cell.width, yLine);
-                                }
-
-                                doc.setTextColor(0, 0, 0);
-                                doc.setFontSize(5);
-                                for (let i = 0; i < count; i++) {
-                                    const yCenter = data.cell.y + (step * i) + (step / 2);
-                                    const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
-                                    doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
-                                }
-                            }
-                        }
-                    }
-                });
-
-                document.body.removeChild(tableClone);
-                doc.save('Laporan_Data_Hasil_Sortir_' + new Date().toISOString().slice(0, 10) + '.pdf');
-            });
+            // PDF Export Functionality Removed (Replaced by Server-Side Export)
         });
     </script>
 @endpush

@@ -11,6 +11,7 @@ use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SubAssyChecksheetController extends Controller
 {
@@ -238,5 +239,53 @@ class SubAssyChecksheetController extends Controller
         $this->checksheetService->updateApprovalStatus($id, $validated);
 
         return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        // Copy filter logic from index
+        $user = auth()->user();
+        $requestPlant = $request->get('plant');
+
+        // Apply same restricted roles logic
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        if (in_array($user->role, $restrictedRoles)) {
+            $request->merge(['plant' => $user->plant_id]);
+        }
+
+        // Apply filters via service
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift']);
+
+        // Ensure we get all records, not paginated
+        // The service's getFilteredChecksheets returns a Paginator if not careful. 
+        // We might need to adjust the query manually or add a 'no_pagination' option to the service.
+        // For now, let's manually build the query similar to index but get() instead of paginate()
+
+        /** @var \Illuminate\Database\Eloquent\Builder $query */
+        $query = $this->checksheetService->getQuery($filters);
+        $checksheets = $query->get();
+
+        // Plant info for header
+        $plantCode = 'karawang'; // default
+        $plantName = 'Karawang';
+
+        if ($request->plant) {
+            $plant = Plant::where('code', $request->plant)->orWhere('id', $request->plant)->first();
+            if ($plant) {
+                $plantCode = strtolower($plant->code);
+                $plantName = $plant->name;
+            }
+        } elseif ($user->plant) {
+            $plantCode = strtolower($user->plant->code);
+            $plantName = $user->plant->name;
+        }
+
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        $pdf = Pdf::loadView('sub_assy.pdf', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('Laporan_Sub_Assy_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }
