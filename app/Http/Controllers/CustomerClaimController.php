@@ -106,8 +106,14 @@ class CustomerClaimController extends Controller
 
         try {
             CustomerClaim::create($validated);
-            $redirectPlant = $request->plant ?: Plant::where('id', $validated['plant_id'])->value('code');
-            return redirect()->route('admin.customer-claims.index', ['plant' => $redirectPlant])
+            $queryParams = [
+                'plant' => $request->plant,
+                'year' => $validated['year'],
+                'month' => $validated['month'],
+            ];
+            $queryParams = array_filter($queryParams);
+
+            return redirect()->route('admin.customer-claims.index', $queryParams)
                 ->with('success', 'Data claim customer berhasil ditambahkan.');
         } catch (\Illuminate\Database\QueryException $e) {
             if ($e->getCode() == '23000') {
@@ -328,9 +334,13 @@ class CustomerClaimController extends Controller
             }
         }
 
-        $redirectPlant = $request->plant ?: Plant::where('id', $plantId)->value('code');
+        $queryParams = [
+            'plant' => $request->plant,
+            'year' => $year,
+        ];
+        $queryParams = array_filter($queryParams);
 
-        return redirect()->route('admin.customer-claims.index', ['plant' => $redirectPlant, 'year' => $year])
+        return redirect()->route('admin.customer-claims.index', $queryParams)
             ->with('success', "Data claim customer tahun $year berhasil diperbarui.");
     }
 }

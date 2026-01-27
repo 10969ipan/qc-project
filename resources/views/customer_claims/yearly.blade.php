@@ -8,18 +8,30 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Form Input - Tahun {{ $year }}</h6>
-            <form action="{{ route('admin.customer-claims.yearly') }}" method="GET" class="form-inline">
-                @if(request('plant'))
-                    <input type="hidden" name="plant" value="{{ request('plant') }}">
-                @endif
-                <label class="mr-2 small font-weight-bold">Ganti Tahun:</label>
-                <select name="year" class="form-control form-control-sm" onchange="this.form.submit()">
-                    @php $currentY = (int) date('Y'); @endphp
-                    @for($y = $currentY + 1; $y >= 2022; $y--)
-                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endfor
-                </select>
-            </form>
+            <div class="d-flex align-items-center">
+                <form action="{{ route('admin.customer-claims.yearly') }}" method="GET" class="form-inline mr-3">
+                    <label class="mr-2 small font-weight-bold">Plant:</label>
+                    <select name="plant" class="form-control form-control-sm" onchange="this.form.submit()">
+                        @foreach($plants as $p)
+                            <option value="{{ $p->code }}" {{ request('plant') == $p->code ? 'selected' : '' }}>
+                                {{ strtoupper($p->name) }}</option>
+                        @endforeach
+                    </select>
+                    <input type="hidden" name="year" value="{{ $year }}">
+                </form>
+                <form action="{{ route('admin.customer-claims.yearly') }}" method="GET" class="form-inline">
+                    @if(request('plant'))
+                        <input type="hidden" name="plant" value="{{ request('plant') }}">
+                    @endif
+                    <label class="mr-2 small font-weight-bold">Tahun:</label>
+                    <select name="year" class="form-control form-control-sm" onchange="this.form.submit()">
+                        @php $currentY = (int) date('Y'); @endphp
+                        @for($y = $currentY + 1; $y >= 2022; $y--)
+                            <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </form>
+            </div>
         </div>
         <div class="card-body">
             @if(session('success'))

@@ -26,9 +26,19 @@
             <form action="{{ route('admin.customer-claims.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
                     {{-- Preserve plant parameter --}}
-                    @if(request('plant'))
-                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    @endif
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="plant_filter" class="small font-weight-bold">Plant</label>
+                            <select name="plant" id="plant_filter" class="form-control form-control-sm">
+                                <option value="">Semua Plant</option>
+                                @foreach($plants as $p)
+                                    <option value="{{ $p->code }}" {{ request('plant') == $p->code ? 'selected' : '' }}>
+                                        {{ strtoupper($p->name) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
 
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
@@ -100,12 +110,9 @@
                             <th>Plant</th>
                             <th>Tahun</th>
                             <th>Bulan</th>
-                            @if(request('plant') === 'total')
-                                <th>Total Claim</th>
-                            @else
-                                <th>PPM Value</th>
-                                <th>Target</th>
-                            @endif
+                            <th>PPM Value</th>
+                            <th>Target PPM</th>
+                            <th>Total Claim</th>
                             <th>Dibuat Oleh</th>
                             <th>Aksi</th>
                         </tr>
@@ -121,26 +128,23 @@
                                 </td>
                                 <td class="align-middle">{{ $claim->year }}</td>
                                 <td class="align-middle">{{ $claim->month_name }}</td>
-                                @if(request('plant') === 'total')
-                                    <td class="align-middle">
-                                        <span class="badge badge-secondary">{{ number_format($claim->total_claims, 2) }}</span>
-                                    </td>
-                                @else
-                                    <td class="align-middle">
-                                        <span class="badge badge-primary">{{ number_format($claim->ppm_value, 2) }}</span>
-                                    </td>
-                                    <td class="align-middle">
-                                        <span class="badge badge-danger">{{ number_format($claim->target_value, 2) }}</span>
-                                    </td>
-                                @endif
+                                <td class="align-middle">
+                                    <span class="badge badge-primary">{{ $claim->ppm_value > 0 ? number_format($claim->ppm_value, 2) : '-' }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge badge-danger">{{ $claim->target_value > 0 ? number_format($claim->target_value, 2) : '-' }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge badge-secondary">{{ $claim->total_claims > 0 ? number_format($claim->total_claims, 2) : '-' }}</span>
+                                </td>
                                 <td class="align-middle">{{ $claim->creator->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">
                                     @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-claim" data-toggle="modal"
                                             data-target="#modalEditData" data-id="{{ $claim->id }}"
-                                            data-plant="{{ $claim->plant_id }}" data-year="{{ $claim->year }}"
+                                            data-plant="{{ $claim->plant_id }}" data-plant-code="{{ $claim->plant->code }}" data-year="{{ $claim->year }}"
                                             data-month="{{ $claim->month }}" data-ppm="{{ $claim->ppm_value }}"
-                                            data-target-val="{{ $claim->target_value }}" title="Edit">
+                                            data-target-val="{{ $claim->target_value }}" data-total="{{ $claim->total_claims }}" title="Edit">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
                                         <form action="{{ route('admin.customer-claims.destroy', $claim->id) }}" method="POST"
@@ -231,41 +235,34 @@
                                     </select>
                                 </div>
                             </div>
-                            @if(request('plant') !== 'total')
-                                <div class="col-md-6 text-left">
-                                    <div class="form-group">
-                                        <label for="modal_ppm_value" class="font-weight-bold small">PPM Value <span
-                                                class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" name="ppm_value" id="modal_ppm_value"
-                                            class="form-control form-control-sm" placeholder="0.00" required>
+                            <div class="col-md-6 text-left">
+                                <div class="row">
+                                    <div class="col-md-6 text-left modal-ppm-fields">
+                                        <div class="form-group">
+                                            <label for="modal_ppm_value" class="font-weight-bold small">PPM Value <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="number" step="0.01" name="ppm_value" id="modal_ppm_value"
+                                                class="form-control form-control-sm" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-left modal-ppm-fields">
+                                        <div class="form-group">
+                                            <label for="modal_target_value" class="font-weight-bold small">Target PPM <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="number" step="0.01" name="target_value" id="modal_target_value"
+                                                class="form-control form-control-sm" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 text-left modal-total-fields" style="display: none;">
+                                        <div class="form-group">
+                                            <label for="modal_total_claims" class="font-weight-bold small">Total Claim <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="number" step="0.01" name="total_claims" id="modal_total_claims"
+                                                class="form-control" placeholder="0">
+                                        </div>
                                     </div>
                                 </div>
-                            @else
-                                <input type="hidden" name="ppm_value" value="0">
-                            @endif
-                        </div>
-                        <div class="row">
-                            @if(request('plant') === 'total')
-                                <div class="col-md-6 text-left">
-                                    <div class="form-group">
-                                        <label for="modal_total_claims" class="font-weight-bold small">Total Claim <span
-                                                class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" name="total_claims" id="modal_total_claims"
-                                            class="form-control form-control-sm" placeholder="0" required>
-                                    </div>
-                                </div>
-                                <input type="hidden" name="target_value" value="0">
-                            @else
-                                <input type="hidden" name="total_claims" value="0">
-                                <div class="col-md-6 text-left">
-                                    <div class="form-group">
-                                        <label for="modal_target_value" class="font-weight-bold small">Target PPM <span
-                                                class="text-danger">*</span></label>
-                                        <input type="number" step="0.01" name="target_value" id="modal_target_value"
-                                            class="form-control form-control-sm" placeholder="0.00" required>
-                                    </div>
-                                </div>
-                            @endif
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
@@ -330,58 +327,43 @@
                                 <thead class="bg-light">
                                     <tr class="text-center small">
                                         <th width="150">Bulan</th>
-                                        @if(request('plant') === 'total')
-                                            <th>Total Claim</th>
-                                        @else
-                                            <th>PPM Value</th>
-                                            <th>Target PPM</th>
-                                        @endif
+                                        <th class="yearly-ppm-fields">PPM Value</th>
+                                        <th class="yearly-ppm-fields">Target PPM</th>
+                                        <th class="yearly-total-fields" style="display: none;">Total Claim</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{-- Row for Month 0 (Summary) --}}
                                     <tr class="bg-light font-weight-bold">
                                         <td class="align-middle text-info">TAHUNAN (0)</td>
-                                        @if(request('plant') === 'total')
-                                            <td>
-                                                <input type="number" step="0.01" name="total_claims"
-                                                    class="form-control form-control-sm" placeholder="0">
-                                                <input type="hidden" name="ppm_value" value="0">
-                                                <input type="hidden" name="target_value" value="0">
-                                            </td>
-                                        @else
-                                            <td>
-                                                <input type="number" step="0.01" name="ppm_value"
-                                                    class="form-control form-control-sm" placeholder="0.00">
-                                                <input type="hidden" name="total_claims" value="0">
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" name="target_value"
-                                                    class="form-control form-control-sm" placeholder="0.00">
-                                            </td>
-                                        @endif
+                                        <td class="yearly-ppm-fields">
+                                            <input type="number" step="0.01" name="ppm_value"
+                                                class="form-control form-control-sm" placeholder="0.00">
+                                        </td>
+                                        <td class="yearly-ppm-fields">
+                                            <input type="number" step="0.01" name="target_value"
+                                                class="form-control form-control-sm" placeholder="0.00">
+                                        </td>
+                                        <td class="yearly-total-fields" style="display: none;">
+                                            <input type="number" step="0.01" name="total_claims"
+                                                class="form-control form-control-sm" placeholder="0">
+                                        </td>
                                     </tr>
                                     @foreach($months as $num => $name)
                                         <tr class="small">
                                             <td class="align-middle">{{ $name }}</td>
-                                            @if(request('plant') === 'total')
-                                                <td>
-                                                    <input type="number" step="0.01" name="data[{{ $num }}][total_claims]"
-                                                        class="form-control form-control-sm" placeholder="0">
-                                                    <input type="hidden" name="data[{{ $num }}][ppm_value]" value="0">
-                                                    <input type="hidden" name="data[{{ $num }}][target_value]" value="0">
-                                                </td>
-                                            @else
-                                                <td>
-                                                    <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]"
-                                                        class="form-control form-control-sm" placeholder="0.00">
-                                                    <input type="hidden" name="data[{{ $num }}][total_claims]" value="0">
-                                                </td>
-                                                <td>
-                                                    <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
-                                                        class="form-control form-control-sm" placeholder="0.00">
-                                                </td>
-                                            @endif
+                                            <td class="yearly-ppm-fields">
+                                                <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]"
+                                                    class="form-control form-control-sm" placeholder="0.00">
+                                            </td>
+                                            <td class="yearly-ppm-fields">
+                                                <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
+                                                    class="form-control form-control-sm" placeholder="0.00">
+                                            </td>
+                                            <td class="yearly-total-fields" style="display: none;">
+                                                <input type="number" step="0.01" name="data[{{ $num }}][total_claims]"
+                                                    class="form-control form-control-sm" placeholder="0">
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -447,15 +429,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group mb-3">
-                            <label class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control"
-                                required>
+                        <div class="row edit-ppm-fields">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold">Target PPM <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" name="target_value" id="edit_target_value" class="form-control">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group mb-0">
-                            <label class="font-weight-bold">Target PPM <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="target_value" id="edit_target_value" class="form-control"
-                                required>
+                        <div class="form-group mb-0 edit-total-fields" style="display: none;">
+                            <label class="font-weight-bold">Total Claim <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="total_claims" id="edit_total_claims" class="form-control">
                         </div>
                     </div>
                     <div class="modal-footer bg-light p-2">
@@ -473,25 +463,72 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            function toggleFields(plantId, modalPrefix) {
+                // We need to fetch the plant code to decide which fields to show
+                // For simplicity, we can embed the plant mapping in a JS object
+                const plantMapping = {
+                    @foreach($plants as $p)
+                        '{{ $p->id }}': '{{ $p->code }}',
+                    @endforeach
+                };
+
+                const plantCode = plantMapping[plantId];
+                if (plantCode === 'total') {
+                    $(`.${modalPrefix}-ppm-fields`).hide().find('input').prop('required', false);
+                    $(`.${modalPrefix}-total-fields`).show().find('input').prop('required', true);
+                } else {
+                    $(`.${modalPrefix}-ppm-fields`).show().find('input').prop('required', true);
+                    $(`.${modalPrefix}-total-fields`).hide().find('input').prop('required', false);
+                }
+            }
+
+            // For Tambah Data Modal
+            $('#modal_plant_id').on('change', function() {
+                toggleFields($(this).val(), 'modal');
+            });
+            // Initial toggle for Tambah Data
+            if ($('#modal_plant_id').val()) {
+                toggleFields($('#modal_plant_id').val(), 'modal');
+            }
+
+            // For Input Per Tahun Modal
+            $('#yearly_plant_id').on('change', function() {
+                toggleFields($(this).val(), 'yearly');
+            });
+            // Initial toggle for Yearly
+            if ($('#yearly_plant_id').val()) {
+                toggleFields($('#yearly_plant_id').val(), 'yearly');
+            }
+
             // Edit Claim Logic
             $('.btn-edit-claim').on('click', function() {
                 var id = $(this).data('id');
-                var plant = $(this).data('plant');
+                var plantId = $(this).data('plant');
+                var plantCode = $(this).data('plant-code');
                 var year = $(this).data('year');
                 var month = $(this).data('month');
                 var ppm = $(this).data('ppm');
                 var target = $(this).data('target-val');
+                var total = $(this).data('total');
 
-                $('#edit_plant_id').val(plant);
+                $('#edit_plant_id').val(plantId);
                 $('#edit_year').val(year);
                 $('#edit_month').val(month);
                 $('#edit_ppm_value').val(ppm);
                 $('#edit_target_value').val(target);
+                $('#edit_total_claims').val(total);
+
+                toggleFields(plantId, 'edit');
 
                 // Update form action
                 var url = "{{ route('admin.customer-claims.update', ':id') }}";
                 url = url.replace(':id', id);
                 $('#formEditClaim').attr('action', url);
+            });
+
+            // Handle plant change in Edit modal
+            $('#edit_plant_id').on('change', function() {
+                toggleFields($(this).val(), 'edit');
             });
         });
     </script>
