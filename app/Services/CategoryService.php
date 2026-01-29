@@ -26,7 +26,9 @@ class CategoryService extends BaseService
      */
     public function createCategory(array $data): Category
     {
-        $data['plant_id'] = auth()->user()->plant_id;
+        if (empty($data['plant_id'])) {
+            $data['plant_id'] = auth()->user()->plant_id;
+        }
         return Category::create($data);
     }
 

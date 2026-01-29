@@ -97,23 +97,22 @@
                             <th>Plant / UP (Customer)</th>
                             <th>Officially / Non Officially / Suspect</th>
                             <th>No. Dokumen (Report)</th>
-                            <th>Internal / Eksternal</th>
                             <th>Project (NM/MP)</th>
                             <th>Nama Part</th>
                             <th style="min-width: 200px;">Problem</th>
-                            <th>Kategori (Qty, Appearance, Function, Performance, Handling)</th>
-                            <th>Kategori Penyimpangan (4M/IPQ/OTHER)</th>
                             <th>Qty (pcs)</th>
+                            <th>Kategori Problem</th>
+                            <th>Kategori Penyimpangan (4M/IPQ/OTHER)</th>
                             <th>Initial Operator</th>
                             <th>Initial Inspektor</th>
-                            <th style="min-width: 150px;">Report / No Report / Replacement / Sortir / Tukar Guling / Repair
+                            <th style="min-width: 150px;">Temporary Action
                             </th>
-                            <th>Total Akomodasi (Rp)</th>
-                            <th>Total Overtime (Rp)</th>
+                            <th>Cost Akomodasi (Rp)</th>
+                            <th>Cost Overtime (Rp)</th>
                             <th style="min-width: 150px;">Feedback</th>
                             <th>Status Feedback</th>
-                            <th>Status (C/M etc.)</th>
-                            <th>File</th>
+                            <th>Status (C/M)</th>
+                            <th>Dokumen Evidential</th>
                             <th>Monitoring</th>
                             <th>Evaluasi</th>
                             <th>Monitoring Status</th>
@@ -135,14 +134,13 @@
                                     </span>
                                 </td>
                                 <td class="align-middle">{{ $record->no_report }}</td>
-                                <td class="text-center align-middle small">{{ ucfirst(strtolower($record->source_type)) }}</td>
                                 <td class="text-center align-middle">{{ $record->project }}</td>
                                 <td class="align-middle text-uppercase">{{ $record->nama_part }}</td>
                                 <td class="align-middle small">{{ Str::title($record->problem) }}</td>
+                                <td class="text-center align-middle font-weight-bold text-primary">{{ $record->qty }}</td>
                                 <td class="align-middle text-center">{{ Str::title($record->kategori_defect) }}</td>
                                 <td class="align-middle text-center text-uppercase small">{{ $record->kategori_penyimpangan }}
                                 </td>
-                                <td class="text-center align-middle font-weight-bold text-primary">{{ $record->qty }}</td>
                                 <td class="text-center align-middle">{{ $record->initial_operator }}</td>
                                 <td class="text-center align-middle">{{ $record->initial_inspektor }}</td>
                                 <td class="align-middle small text-center">{{ Str::title($record->action_taken) }}</td>

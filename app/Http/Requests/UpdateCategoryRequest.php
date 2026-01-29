@@ -15,11 +15,16 @@ class UpdateCategoryRequest extends FormRequest
     {
         $category = $this->route('category');
         $id = $category instanceof \App\Models\Category ? $category->id : $category;
-        // Since we are updating, we should check against the plant of the CATEGORY itself, 
-        // in case Admin (Karawang) is editing Jakarta Category.
-        // If $category is just ID (rare if route model binding used), we might need to fetch it.
-        // Assuming Route Model Binding is active.
-        $plantId = $category instanceof \App\Models\Category ? $category->plant_id : auth()->user()->plant_id;
+
+        $user = auth()->user();
+        $plantId = $category instanceof \App\Models\Category ? $category->plant_id : $user->plant_id;
+
+        if ($this->has('plant')) {
+            $resolvedId = \App\Models\Plant::resolveId($this->input('plant'));
+            if ($resolvedId) {
+                $plantId = $resolvedId;
+            }
+        }
 
         return [
             'name' => [
@@ -30,6 +35,7 @@ class UpdateCategoryRequest extends FormRequest
                     return $query->where('plant_id', $plantId);
                 }),
             ],
+            'plant' => 'nullable|string',
         ];
     }
 }

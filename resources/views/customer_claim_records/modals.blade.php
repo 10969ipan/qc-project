@@ -81,15 +81,7 @@
                                     <input type="text" name="no_report" class="form-control form-control-sm">
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Internal / Eksternal</label>
-                                    <select name="source_type" class="form-control form-control-sm">
-                                        <option value="EKSTERNAL">EKSTERNAL</option>
-                                        <option value="INTERNAL">INTERNAL</option>
-                                    </select>
-                                </div>
-                            </div>
+
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Project (NM/MP)</label>
@@ -124,7 +116,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Kategori</label>
+                                    <label class="small font-weight-bold">Kategori Problem</label>
                                     <select name="kategori_defect" class="form-control form-control-sm">
                                         <option value="">-- Pilih --</option>
                                         <option value="Qty">Qty</option>
@@ -165,7 +157,7 @@
                                         required>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Action Taken</label>
+                                    <label class="small font-weight-bold">Temporary Action</label>
                                     <select name="action_taken" class="form-control form-control-sm">
                                         <option value="">-- Pilih --</option>
                                         <option value="Report">Report</option>
@@ -200,14 +192,14 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Total Akomodasi (Rp)</label>
+                                    <label class="small font-weight-bold">Cost Akomodasi (Rp)</label>
                                     <input type="number" step="1" name="total_akomodasi"
                                         class="form-control form-control-sm" value="0">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Total Overtime (Rp)</label>
+                                    <label class="small font-weight-bold">Cost Overtime (Rp)</label>
                                     <input type="number" step="1" name="total_overtime"
                                         class="form-control form-control-sm" value="0">
                                 </div>
@@ -237,7 +229,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Status (C/M etc.)</label>
+                                    <label class="small font-weight-bold">Status (C/M)</label>
                                     <select name="status_cm" class="form-control form-control-sm">
                                         <option value="">-- Pilih --</option>
                                         <option value="Progres">Progres</option>
@@ -248,7 +240,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Upload Files (PDF/XLS/PPT/DOC)</label>
+                                    <label class="small font-weight-bold">Dokumen Evidential (PDF/XLS/PPT/DOC)</label>
                                     <input type="file" name="attachments[]" class="form-control-file small" multiple>
                                 </div>
                             </div>
@@ -377,15 +369,7 @@
                                     <input type="text" name="no_report" class="form-control form-control-sm">
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Internal / Eksternal</label>
-                                    <select name="source_type" class="form-control form-control-sm">
-                                        <option value="EKSTERNAL">EKSTERNAL</option>
-                                        <option value="INTERNAL">INTERNAL</option>
-                                    </select>
-                                </div>
-                            </div>
+
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Project (NM/MP)</label>
@@ -420,7 +404,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Kategori</label>
+                                    <label class="small font-weight-bold">Kategori Problem</label>
                                     <select name="kategori_defect" class="form-control form-control-sm">
                                         <option value="">-- Pilih --</option>
                                         <option value="Qty">Qty</option>
@@ -460,7 +444,7 @@
                                     <input type="number" name="qty" class="form-control form-control-sm" required>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Action Taken</label>
+                                    <label class="small font-weight-bold">Temporary Action</label>
                                     <select name="action_taken" class="form-control form-control-sm">
                                         <option value="">-- Pilih --</option>
                                         <option value="Report">Report</option>
@@ -496,14 +480,14 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Total Akomodasi (Rp)</label>
+                                    <label class="small font-weight-bold">Cost Akomodasi (Rp)</label>
                                     <input type="number" step="1" name="total_akomodasi"
                                         class="form-control form-control-sm">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Total Overtime (Rp)</label>
+                                    <label class="small font-weight-bold">Cost Overtime (Rp)</label>
                                     <input type="number" step="1" name="total_overtime"
                                         class="form-control form-control-sm">
                                 </div>
@@ -533,7 +517,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Status (C/M etc.)</label>
+                                    <label class="small font-weight-bold">Status (C/M)</label>
                                     <select name="status_cm" class="form-control form-control-sm">
                                         <option value="">-- Pilih --</option>
                                         <option value="Progres">Progres</option>
@@ -544,7 +528,8 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Add More Files (PDF/XLS/PPT/DOC)</label>
+                                    <label class="small font-weight-bold">Add More Dokumen Evidential
+                                        (PDF/XLS/PPT/DOC)</label>
                                     <input type="file" name="attachments[]" class="form-control-file small" multiple>
                                     <div id="edit_attachments_list" class="mt-2">
                                         <!-- List of existing files will be populated here by JS -->

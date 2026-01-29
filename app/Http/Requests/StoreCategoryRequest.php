@@ -13,7 +13,16 @@ class StoreCategoryRequest extends FormRequest
 
     public function rules(): array
     {
-        $plantId = auth()->user()->plant_id;
+        $user = auth()->user();
+        $plantId = $user->plant_id;
+
+        // Give priority to the 'plant' input if present and valid
+        if ($this->has('plant')) {
+            $resolvedId = \App\Models\Plant::resolveId($this->input('plant'));
+            if ($resolvedId) {
+                $plantId = $resolvedId;
+            }
+        }
 
         return [
             'name' => [
@@ -24,6 +33,7 @@ class StoreCategoryRequest extends FormRequest
                     return $query->where('plant_id', $plantId);
                 }),
             ],
+            'plant' => 'nullable|string',
         ];
     }
 }

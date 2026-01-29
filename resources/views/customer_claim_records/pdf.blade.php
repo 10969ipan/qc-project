@@ -111,9 +111,7 @@
             width: 5%;
         }
 
-        .col-source {
-            width: 3%;
-        }
+
 
         .col-project {
             width: 2%;
@@ -124,7 +122,7 @@
         }
 
         .col-problem {
-            width: 8.5%;
+            width: 11.5%;
         }
 
         .col-defect {
@@ -240,25 +238,24 @@
                 <th class="col-plant-up">Plant / UP (Cust.)</th>
                 <th class="col-type">Claim Type</th>
                 <th class="col-report">No. Report</th>
-                <th class="col-source">Source</th>
                 <th class="col-project">Proj</th>
                 <th class="col-part">Nama Part</th>
                 <th class="col-problem">Problem</th>
-                <th class="col-defect">Kategori Defect</th>
-                <th class="col-penyimpangan">Kat. Penyimpangan</th>
                 <th class="col-qty">Qty</th>
+                <th class="col-defect">Kategori Problem</th>
+                <th class="col-penyimpangan">Kat. Penyimpangan</th>
                 <th class="col-op">Op</th>
                 <th class="col-ins">Ins</th>
-                <th class="col-akom">Akomodasi (Rp)</th>
-                <th class="col-ot">Overtime (Rp)</th>
-                <th class="col-action">Action Taken</th>
+                <th class="col-akom">Cost Akomodasi (Rp)</th>
+                <th class="col-ot">Cost Overtime (Rp)</th>
+                <th class="col-action">Temporary Action</th>
                 <th class="col-feed">Feedback</th>
                 <th class="col-sfeed">Status Feed.</th>
                 <th class="col-scm">Status (C/M)</th>
                 <th class="col-mon">Monitoring</th>
                 <th class="col-eval">Evaluasi</th>
                 <th class="col-smon">Status Mon.</th>
-                <th class="col-file">File</th>
+                <th class="col-file">Dokumen Evidential</th>
             </tr>
         </thead>
         <tbody>
@@ -270,13 +267,12 @@
                     <td>{{ Str::title($record->plant_up_customer) }}</td>
                     <td>{{ $record->claim_type }}</td>
                     <td>{{ $record->no_report }}</td>
-                    <td>{{ $record->source_type }}</td>
                     <td>{{ $record->project }}</td>
                     <td style="text-transform: uppercase;">{{ $record->nama_part }}</td>
                     <td>{{ Str::title($record->problem) }}</td>
+                    <td>{{ $record->qty }}</td>
                     <td>{{ Str::title($record->kategori_defect) }}</td>
                     <td style="text-transform: uppercase;">{{ $record->kategori_penyimpangan }}</td>
-                    <td>{{ $record->qty }}</td>
                     <td>{{ $record->initial_operator }}</td>
                     <td>{{ $record->initial_inspektor }}</td>
                     <td class="text-right">{{ number_format($record->total_akomodasi, 0, ',', '.') }}</td>

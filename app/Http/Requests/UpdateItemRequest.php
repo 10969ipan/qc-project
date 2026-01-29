@@ -31,13 +31,19 @@ class UpdateItemRequest extends FormRequest
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) use ($itemId) {
+                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                    $categoryId = request('category_id');
+                    $partNumber = request('part_number');
+
                     $exists = Item::where('name', $value)
-                        ->where('part_number', $this->part_number)
+                        ->where('part_number', $partNumber)
+                        ->where('plant_id', $plantId)
+                        ->where('category_id', $categoryId)
                         ->where('id', '!=', $itemId)
                         ->exists();
 
                     if ($exists) {
-                        $fail('Item dengan nama dan part number yang sama sudah ada.');
+                        $fail('Item dengan nama dan part number yang sama sudah ada di kategori ini.');
                     }
                 },
             ],

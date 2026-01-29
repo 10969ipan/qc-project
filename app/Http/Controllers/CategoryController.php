@@ -37,7 +37,17 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
-        $this->categoryService->createCategory($request->validated());
+        $data = $request->validated();
+
+        // Handle plant resolution for admin or explicit selection
+        if ($request->has('plant')) {
+            $resolvedId = \App\Models\Plant::resolveId($request->get('plant'));
+            if ($resolvedId) {
+                $data['plant_id'] = $resolvedId;
+            }
+        }
+
+        $this->categoryService->createCategory($data);
         return redirect()->route('admin.categories.index', ['plant' => $request->get('plant')])->with('success', 'Kategori berhasil ditambahkan.');
     }
 
