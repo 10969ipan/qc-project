@@ -48,7 +48,7 @@
                                 <th>Item Part</th>
                                 <th>Tanggal & Shift Produksi / QC</th>
                                 <th>Hasil Cross Cut</th>
-                                <th>Kimia</th>
+                                <th>Bak No</th>
                                 <th>Posisi Remark (Judgement / No Lot QC)</th>
                                 <th>Result Remark</th>
                                 <th>Inisial QC</th>
@@ -144,14 +144,10 @@
                                     <!-- File name display -->
                                     <small id="fileName" class="text-muted d-block"></small>
                                 </td>
-                                <!-- Kimia -->
+                                <!-- Bak No -->
                                 <td class="align-middle" style="min-width: 150px;">
-                                    <div class="form-group mb-2"><label>Copper</label><input type="text"
-                                            class="form-control" name="chemical_copper"></div>
-                                    <div class="form-group mb-2"><label>Nikel</label><input type="text" class="form-control"
-                                            name="chemical_nikel"></div>
-                                    <div class="form-group mb-2"><label>Eching</label><input type="text"
-                                            class="form-control" name="chemical_eching"></div>
+                                    <div class="form-group mb-2"><label>Catalyst</label><input type="text"
+                                            class="form-control" name="chemical_catalyst"></div>
                                     <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control"
                                             name="chemical_abu"></div>
                                 </td>

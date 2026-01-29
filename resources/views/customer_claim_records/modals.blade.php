@@ -210,7 +210,7 @@
                     {{-- Section: Feedback & Status --}}
                     <div class="mb-0">
                         <h6 class="text-primary font-weight-bold mb-3 border-bottom pb-2">
-                            <i class="fas fa-comments mr-1"></i> Feedback & Monitoring
+                            <i class="fas fa-comments mr-1"></i> Feedback & Evaluasi Problem
                         </h6>
                         <div class="row">
                             <div class="col-md-12">
@@ -258,7 +258,8 @@
                         <div class="row mt-2">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Evaluasi (Otomatis 6 Bulan Kedepan)</label>
+                                    <label class="small font-weight-bold">Evaluasi Problem (Otomatis 6 Bulan
+                                        Kedepan)</label>
                                     <input type="text" name="evaluasi" id="tambah_evaluasi"
                                         class="form-control form-control-sm bg-light" readonly>
                                 </div>
@@ -498,7 +499,7 @@
                     {{-- Section: Feedback & Status --}}
                     <div class="mb-0">
                         <h6 class="text-warning font-weight-bold mb-3 border-bottom pb-2">
-                            <i class="fas fa-comments mr-1"></i> Feedback & Monitoring
+                            <i class="fas fa-comments mr-1"></i> Feedback & Evaluasi Problem
                         </h6>
                         <div class="row">
                             <div class="col-md-12">
@@ -550,7 +551,8 @@
                         <div class="row mt-2">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold">Evaluasi (Otomatis 6 Bulan Kedepan)</label>
+                                    <label class="small font-weight-bold">Evaluasi Problem (Otomatis 6 Bulan
+                                        Kedepan)</label>
                                     <input type="text" name="evaluasi" id="edit_evaluasi"
                                         class="form-control form-control-sm bg-light" readonly>
                                 </div>

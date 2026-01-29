@@ -31,9 +31,12 @@ class DashboardService extends BaseService
 
         return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole) {
             $combinedStats = $this->calculateApprovalStats();
+            $dailyCombinedStats = $this->calculateApprovalStats(null, true);
 
             $statsJakarta = null;
             $statsKarawang = null;
+            $dailyStatsJakarta = null;
+            $dailyStatsKarawang = null;
 
             $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
 
@@ -43,6 +46,9 @@ class DashboardService extends BaseService
             if (in_array($authRole, $dualViewRoles)) {
                 $statsJakarta = $this->calculateApprovalStats('jakarta');
                 $statsKarawang = $this->calculateApprovalStats('karawang');
+
+                $dailyStatsJakarta = $this->calculateApprovalStats('jakarta', true);
+                $dailyStatsKarawang = $this->calculateApprovalStats('karawang', true);
 
                 $productionJakarta = $this->getProductionMonitoring('jakarta');
                 $productionKarawang = $this->getProductionMonitoring('karawang');
@@ -69,7 +75,7 @@ class DashboardService extends BaseService
             }
 
             return array_merge(
-                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap'),
+                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap'),
                 $productionMonitoring
             );
         });
@@ -78,7 +84,7 @@ class DashboardService extends BaseService
     /**
      * Calculate global approval statistics
      */
-    private function calculateApprovalStats(?string $plantOverride = null): array
+    private function calculateApprovalStats(?string $plantOverride = null, bool $dailyOnly = false): array
     {
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0];
         // Use override if provided, otherwise check request or auth user
@@ -91,19 +97,19 @@ class DashboardService extends BaseService
             $plantCode = Plant::where('id', $plantId)->value('code');
         }
 
-        $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId);
-        $this->processModelStats(InProcessChecksheet::class, $stats, $plantId);
+        $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly);
+        $this->processModelStats(InProcessChecksheet::class, $stats, $plantId, $dailyOnly);
 
         // Jakarta only shows Sub Assy and In Process per user request
         if ($plantCode !== 'jakarta') {
-            $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId);
-            $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId);
+            $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly);
+            $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly);
         }
 
         return $stats;
     }
 
-    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null): void
+    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false): void
     {
         $table = (new $modelClass)->getTable();
         $hasKaru = Schema::hasColumn($table, 'karu_qc');
@@ -112,10 +118,16 @@ class DashboardService extends BaseService
         if ($hasKaru)
             $columns[] = 'karu_qc';
 
+        $dateColumn = in_array($modelClass, [CrossCutChecksheet::class, CrossCutPaintingChecksheet::class]) ? 'production_datetime' : 'date';
+
         foreach ($columns as $column) {
             $query = DB::table($table);
             if ($plantId) {
                 $query->where('plant_id', $plantId);
+            }
+
+            if ($dailyOnly) {
+                $query->whereDate($dateColumn, now()->toDateString());
             }
 
             $results = $query->selectRaw("
@@ -236,6 +248,8 @@ class DashboardService extends BaseService
         $labels = [];
         $jakartaPpm = [];
         $karawangPpm = [];
+        $jakartaClaims = [];
+        $karawangClaims = [];
         $combinedTotal = [];
         $targets = [];
 
@@ -250,6 +264,8 @@ class DashboardService extends BaseService
 
             $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
             $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $jakartaClaims[] = (int) ($jkt->total_claims ?? 0);
+            $karawangClaims[] = (int) ($krw->total_claims ?? 0);
             $combinedTotal[] = (int) ($totalData->total_claims ?? 0);
             $targets[] = (float) $target;
         }
@@ -259,6 +275,8 @@ class DashboardService extends BaseService
             'labels' => $labels,
             'jakarta' => $jakartaPpm,
             'karawang' => $karawangPpm,
+            'jakarta_claims' => $jakartaClaims,
+            'karawang_claims' => $karawangClaims,
             'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => false
@@ -281,6 +299,8 @@ class DashboardService extends BaseService
         $labels = [];
         $jakartaPpm = [];
         $karawangPpm = [];
+        $jakartaClaims = [];
+        $karawangClaims = [];
         $combinedTotal = [];
         $targets = [];
 
@@ -291,19 +311,21 @@ class DashboardService extends BaseService
             $jktData = CustomerClaim::withoutGlobalScope('plant')
                 ->where('plant_id', $jakartaPlantId)
                 ->where('year', $year)
-                ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target')
+                ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target, SUM(total_claims) as sum_claims')
                 ->first();
 
             $jakartaPpm[] = $jktData->avg_ppm ? round($jktData->avg_ppm, 2) : 0;
+            $jakartaClaims[] = (int) ($jktData->sum_claims ?? 0);
 
             // Karawang average for the year
             $krwData = CustomerClaim::withoutGlobalScope('plant')
                 ->where('plant_id', $karawangPlantId)
                 ->where('year', $year)
-                ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target')
+                ->selectRaw('AVG(ppm_value) as avg_ppm, AVG(target_value) as avg_target, SUM(total_claims) as sum_claims')
                 ->first();
 
             $karawangPpm[] = $krwData->avg_ppm ? round($krwData->avg_ppm, 2) : 0;
+            $karawangClaims[] = (int) ($krwData->sum_claims ?? 0);
 
             // Total claims from plant 'total' (Month 0 for yearly summary)
             $totalYearlyData = CustomerClaim::withoutGlobalScope('plant')
@@ -329,6 +351,8 @@ class DashboardService extends BaseService
             'labels' => $labels,
             'jakarta' => $jakartaPpm,
             'karawang' => $karawangPpm,
+            'jakarta_claims' => $jakartaClaims,
+            'karawang_claims' => $karawangClaims,
             'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => true
@@ -367,6 +391,8 @@ class DashboardService extends BaseService
         $labels = [];
         $jakartaPpm = [];
         $karawangPpm = [];
+        $jakartaClaims = [];
+        $karawangClaims = [];
         $combinedTotal = [];
         $targets = [];
 
@@ -394,6 +420,8 @@ class DashboardService extends BaseService
 
             $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
             $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $jakartaClaims[] = (int) ($jkt->total_claims ?? 0);
+            $karawangClaims[] = (int) ($krw->total_claims ?? 0);
             $combinedTotal[] = (float) ($totalData->total_claims ?? 0);
             $targets[] = (float) ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
         }
@@ -413,6 +441,8 @@ class DashboardService extends BaseService
 
             $jakartaPpm[] = (float) ($jkt->ppm_value ?? 0);
             $karawangPpm[] = (float) ($krw->ppm_value ?? 0);
+            $jakartaClaims[] = (int) ($jkt->total_claims ?? 0);
+            $karawangClaims[] = (int) ($krw->total_claims ?? 0);
             $combinedTotal[] = (float) ($totalData->total_claims ?? 0);
             $targets[] = (float) ($jkt ? $jkt->target_value : ($krw ? $krw->target_value : 0));
         }
@@ -423,6 +453,8 @@ class DashboardService extends BaseService
             'labels' => $labels,
             'jakarta' => $jakartaPpm,
             'karawang' => $karawangPpm,
+            'jakarta_claims' => $jakartaClaims,
+            'karawang_claims' => $karawangClaims,
             'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => false // Using monthly-style rendering but with custom labels

@@ -12,7 +12,7 @@
                     <th>Part No</th>
                     <th>Tanggal & Shift Produksi / QC</th>
                     <th>Hasil Cross Cut</th>
-                    <th>Kimia</th>
+                    <th>Bak No</th>
                     <th>Posisi Remark (Judgement / No Lot)</th>
                     <th>Result Remark</th>
                     <th>Inisial QC</th>
@@ -88,14 +88,10 @@
                         <img src="{{ route('cross_cut.image', $checksheet->id) }}" alt="Current Image"
                             class="img-thumbnail" style="max-width: 150px;">
                     </td>
-                    <!-- Kimia -->
+                    <!-- Bak No -->
                     <td class="align-middle" style="min-width: 200px;">
-                        <div class="form-group mb-2"><label>Copper</label><input type="text" class="form-control"
-                                name="chemical_copper" value="{{ $checksheet->chemical_copper }}"></div>
-                        <div class="form-group mb-2"><label>Nikel</label><input type="text" class="form-control"
-                                name="chemical_nikel" value="{{ $checksheet->chemical_nikel }}"></div>
-                        <div class="form-group mb-2"><label>Eching</label><input type="text" class="form-control"
-                                name="chemical_eching" value="{{ $checksheet->chemical_eching }}"></div>
+                        <div class="form-group mb-2"><label>Catalyst</label><input type="text" class="form-control"
+                                name="chemical_catalyst" value="{{ $checksheet->chemical_catalyst }}"></div>
                         <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control"
                                 name="chemical_abu" value="{{ $checksheet->chemical_abu }}"></div>
                     </td>
@@ -137,7 +133,8 @@
                                         REPAIR</option>
                                     @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR']))
                                         <option value="{{ $checksheet->next_proses }}" selected>
-                                            {{ $checksheet->next_proses }}</option>
+                                            {{ $checksheet->next_proses }}
+                                        </option>
                                     @endif
                                 </select>
                             </div>
@@ -153,7 +150,8 @@
     <div class="row mt-4">
         <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
             <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay_edit">
-                {{ gmdate("H:i:s", $checksheet->cycle_time ?? 0) }}</h5>
+                {{ gmdate("H:i:s", $checksheet->cycle_time ?? 0) }}
+            </h5>
             <input type="hidden" name="cycle_time" id="cycleTimeInput_edit" value="{{ $checksheet->cycle_time ?? 0 }}">
 
             <button type="button" class="btn btn-success mr-3" id="startTimerBtn_edit">

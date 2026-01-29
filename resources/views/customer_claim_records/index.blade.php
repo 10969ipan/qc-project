@@ -113,8 +113,7 @@
                             <th>Status Feedback</th>
                             <th>Status (C/M)</th>
                             <th>Dokumen Evidential</th>
-                            <th>Monitoring</th>
-                            <th>Evaluasi</th>
+                            <th>Evaluasi Problem</th>
                             <th>Monitoring Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -176,7 +175,6 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="align-middle">{{ Str::title($record->monitoring) }}</td>
                                 <td class="align-middle small">{{ $record->evaluasi }}</td>
                                 <td class="text-center align-middle">
                                     <span
@@ -205,7 +203,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="27" class="text-center py-4 text-muted">Belum ada data claim</td>
+                                <td colspan="26" class="text-center py-4 text-muted">Belum ada data claim</td>
                             </tr>
                         @endforelse
                     </tbody>

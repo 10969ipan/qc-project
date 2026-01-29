@@ -165,7 +165,7 @@
                 <th>Jam After</th>
                 <th>Cycle (s)</th>
                 <th>Item Part</th>
-                <th>Kimia</th>
+                <th>Bak No</th>
                 <th>Posisi Remark</th>
                 <th>Result Remark</th>
                 <th>Inisial</th>
@@ -188,15 +188,7 @@
                         <table class="kimia-table">
                             <tr>
                                 <th>C</th>
-                                <td>{{ $checksheet->chemical_copper ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <th>N</th>
-                                <td>{{ $checksheet->chemical_nikel ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <th>E</th>
-                                <td>{{ $checksheet->chemical_eching ?? '-' }}</td>
+                                <td>{{ $checksheet->chemical_catalyst ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <th>A</th>
@@ -205,7 +197,8 @@
                         </table>
                     </td>
                     <td class="text-left">{{ $checksheet->position_remark_judgment }} -
-                        {{ $checksheet->position_remark_no_lot }}</td>
+                        {{ $checksheet->position_remark_no_lot }}
+                    </td>
                     <td class="text-left">{{ $checksheet->result_remark }}</td>
                     <td>{{ $checksheet->operator_initials }}</td>
                     <td>

@@ -169,16 +169,12 @@
             width: 3%;
         }
 
-        .col-mon {
-            width: 4%;
-        }
-
         .col-eval {
-            width: 4.5%;
+            width: 7.5%;
         }
 
         .col-smon {
-            width: 3.5%;
+            width: 4.5%;
         }
 
         .col-file {
@@ -252,8 +248,7 @@
                 <th class="col-feed">Feedback</th>
                 <th class="col-sfeed">Status Feed.</th>
                 <th class="col-scm">Status (C/M)</th>
-                <th class="col-mon">Monitoring</th>
-                <th class="col-eval">Evaluasi</th>
+                <th class="col-eval">Evaluasi Problem</th>
                 <th class="col-smon">Status Mon.</th>
                 <th class="col-file">Dokumen Evidential</th>
             </tr>
@@ -281,7 +276,6 @@
                     <td>{{ Str::title($record->feedback) }}</td>
                     <td>{{ $record->status_feedback }}</td>
                     <td>{{ Str::title($record->status_cm) }}</td>
-                    <td>{{ Str::title($record->monitoring) }}</td>
                     <td>{{ $record->evaluasi }}</td>
                     <td>{{ $record->monitoring_status }}</td>
                     <td>{{ is_array($record->attachments) ? count($record->attachments) : 0 }}</td>

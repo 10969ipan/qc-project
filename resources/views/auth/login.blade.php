@@ -448,12 +448,14 @@
                 </form>
             </div>
             <div class="login-side-image">
+                <img src="{{ asset('master item/PNG LOGO IPP.png') }}"
+                    style="position: absolute; top: 20px; right: 20px; width: 100px; z-index: 30;">
                 <div class="banner-content">
-                    <h2 class="banner-title">QC APPS<br>SYSTEM</h2>
+                    <h2 class="banner-title">QC APPS<br></h2>
                     <div class="banner-divider"></div>
                     <p class="banner-subtitle">
                         INTEGRATED DIGITAL QUALITY MANAGEMENT &<br>
-                        REAL-TIME ANALYTICS 
+                        REAL-TIME ANALYTICS
                     </p>
                 </div>
             </div>
