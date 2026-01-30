@@ -12,7 +12,9 @@
                 }
                 $plantCode = strtolower($plantCode);
             @endphp
-            <span class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} ml-2" style="font-size: 0.9rem;">
+            <span
+                class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
+                style="font-size: 0.9rem; width: fit-content;">
                 <i class="fas fa-building mr-1"></i>
                 Plant {{ ucfirst($plantCode) }}
             </span>
