@@ -12,15 +12,27 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $categories = [
-            ['name' => 'Sub Assy'],
-            ['name' => 'Inprosess'],
-            ['name' => 'Cross Cut Plating'],
-            ['name' => 'Cross Cut Painting'],
+        $categoryNames = [
+            'Sub Assy',
+            'Inprosess',
+            'Cross Cut Plating',
+            'Cross Cut Painting',
+            'Incoming Part',
+            'Incoming Material',
+            'Incoming Sub-Part',
+            'Incoming Export',
+            'Incoming Chemical',
         ];
 
-        foreach ($categories as $category) {
-            \App\Models\Category::create($category);
+        $plants = \App\Models\Plant::all();
+
+        foreach ($plants as $plant) {
+            foreach ($categoryNames as $name) {
+                \App\Models\Category::firstOrCreate([
+                    'plant_id' => $plant->id,
+                    'name' => $name,
+                ]);
+            }
         }
     }
 }

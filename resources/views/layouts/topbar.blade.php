@@ -153,7 +153,7 @@
                                         <li class="has-submenu">
                                             <a href="#" class="dropdown-item d-flex justify-content-between">CHECKSHEET <i
                                                     class="fas fa-chevron-right small"></i></a>
-                                            <ul class="dropdown-menu sub-menu">
+                                            <ul class="dropdown-menu sub-menu shadow">
                                                 <li><a class="dropdown-item"
                                                         href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub
                                                         Assy</a></li>
@@ -169,13 +169,18 @@
                                                 <li><a class="dropdown-item"
                                                         href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                                 </li>
+                                                <li><a class="dropdown-item" href="{{ route('incoming.parts.create', ['plant' => 'karawang']) }}">Incoming Part</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('incoming.materials.create', ['plant' => 'karawang']) }}">Incoming Material</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('incoming.sub_parts.create', ['plant' => 'karawang']) }}">Incoming Sub-Part</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('incoming.exports.create', ['plant' => 'karawang']) }}">Incoming Export</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('incoming.chemicals.create', ['plant' => 'karawang']) }}">Incoming Chemical</a></li>
                                             </ul>
                                         </li>
                                         @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">LAPORAN <i
                                                         class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu">
+                                                <ul class="dropdown-menu sub-menu shadow">
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('admin.checksheets.index', ['plant' => 'karawang']) }}">Sub
                                                             Assy</a></li>
@@ -191,6 +196,11 @@
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
                                                     </li>
+                                                    <li><a class="dropdown-item" href="{{ route('incoming.parts.index', ['plant' => 'karawang']) }}">Incoming Part</a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('incoming.materials.index', ['plant' => 'karawang']) }}">Incoming Material</a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('incoming.sub_parts.index', ['plant' => 'karawang']) }}">Incoming Sub-Part</a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('incoming.exports.index', ['plant' => 'karawang']) }}">Incoming Export</a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('incoming.chemicals.index', ['plant' => 'karawang']) }}">Incoming Chemical</a></li>
                                                 </ul>
                                             </li>
                                         @endif
@@ -399,19 +409,19 @@
                     const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
                     return `
-                                                                                                                                    <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                                                                                                        <div class="mr-3">
-                                                                                                                                            <div class="icon-circle ${iconClass}">
-                                                                                                                                                <i class="${icon} text-white"></i>
+                                                                                                                                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                                                                                                                                            <div class="mr-3">
+                                                                                                                                                <div class="icon-circle ${iconClass}">
+                                                                                                                                                    <i class="${icon} text-white"></i>
+                                                                                                                                                </div>
                                                                                                                                             </div>
-                                                                                                                                        </div>
-                                                                                                                                        <div>
-                                                                                                                                            <div class="small text-gray-500">${timeAgo}</div>
-                                                                                                                                            <span class="${unreadClass}">${notif.title}</span>
-                                                                                                                                            <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                                                                                                        </div>
-                                                                                                                                    </a>
-                                                                                                                                `;
+                                                                                                                                            <div>
+                                                                                                                                                <div class="small text-gray-500">${timeAgo}</div>
+                                                                                                                                                <span class="${unreadClass}">${notif.title}</span>
+                                                                                                                                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
+                                                                                                                                            </div>
+                                                                                                                                        </a>
+                                                                                                                                    `;
                 }).join('');
 
                 document.querySelectorAll('.notification-item').forEach(item => {
@@ -599,11 +609,32 @@
             background-color: #4e73df !important;
             border: none;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            max-height: 70vh; /* Responsive max height */
+            overflow-y: auto;  /* Enable vertical scroll */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        /* Scrollbar Styling for Dropdowns */
+        #topbar-nav-menu .dropdown-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+        #topbar-nav-menu .dropdown-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #topbar-nav-menu .dropdown-menu::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        #topbar-nav-menu .dropdown-menu::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.5);
         }
 
         #topbar-nav-menu .dropdown-item,
         #topbar-nav-menu .dropdown-menu .dropdown-item {
             color: #ffffff !important;
+            padding-top: 6px !important;    /* Reduced padding for compactness */
+            padding-bottom: 6px !important; /* Reduced padding for compactness */
         }
 
         #topbar-nav-menu .dropdown-item:hover,
@@ -650,10 +681,17 @@
         }
 
         .has-submenu>.sub-menu {
-            top: 0;
-            left: 100%;
-            margin-top: -1px;
-            z-index: 1001;
+            position: static !important; /* Make nested menu inline/accordion style */
+            width: 100% !important;
+            box-shadow: none !important;
+            background: rgba(0, 0, 0, 0.08) !important;
+            margin: 0 !important;
+            padding-left: 10px;
+            display: none;
+        }
+
+        .has-submenu>.sub-menu.show {
+            display: block;
         }
 
         /* Badge Positioning Fix */
@@ -728,6 +766,8 @@
                 box-shadow: none;
                 opacity: 1 !important;
                 transition: none;
+                max-height: none !important; /* Disable individual scroll on mobile */
+                overflow-y: visible !important;
             }
 
             #topbar-nav-menu .dropdown-menu.show {

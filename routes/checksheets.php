@@ -6,6 +6,11 @@ use App\Http\Controllers\InProcessChecksheetController;
 use App\Http\Controllers\CrossCutChecksheetController;
 use App\Http\Controllers\CrossCutPaintingChecksheetController;
 use App\Http\Controllers\SortirChecksheetController;
+use App\Http\Controllers\IncomingPartController;
+use App\Http\Controllers\IncomingMaterialController;
+use App\Http\Controllers\IncomingSubPartController;
+use App\Http\Controllers\IncomingExportController;
+use App\Http\Controllers\IncomingChemicalController;
 
 Route::middleware(['auth'])->group(function () {
     // --- Input Routes ---
@@ -36,6 +41,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet/sortir', [SortirChecksheetController::class, 'create'])->name('sortir.create');
     Route::post('/checksheet/sortir', [SortirChecksheetController::class, 'store'])->name('sortir.store');
 
+    // --- Incoming Routes (Input) ---
+    Route::get('/checksheet/incoming-part', [IncomingPartController::class, 'create'])->name('incoming.parts.create');
+    Route::post('/checksheet/incoming-part', [IncomingPartController::class, 'store'])->name('incoming.parts.store');
+    Route::get('/checksheet/incoming-material', [IncomingMaterialController::class, 'create'])->name('incoming.materials.create');
+    Route::post('/checksheet/incoming-material', [IncomingMaterialController::class, 'store'])->name('incoming.materials.store');
+    Route::get('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'create'])->name('incoming.sub_parts.create');
+    Route::post('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'store'])->name('incoming.sub_parts.store');
+    Route::get('/checksheet/incoming-export', [IncomingExportController::class, 'create'])->name('incoming.exports.create');
+    Route::post('/checksheet/incoming-export', [IncomingExportController::class, 'store'])->name('incoming.exports.store');
+    Route::get('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'create'])->name('incoming.chemicals.create');
+    Route::post('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'store'])->name('incoming.chemicals.store');
+
     // --- Report & Action Routes ---
 
     Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating'])->group(function () {
@@ -58,6 +75,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/sortir-checksheets/export', [SortirChecksheetController::class, 'export'])->name('sortir.export');
         Route::get('/report/sortir-checksheets/export-pdf', [SortirChecksheetController::class, 'exportPdf'])->name('sortir.export_pdf');
 
+        // --- Incoming Routes (Reports & Export) ---
+        Route::get('/report/incoming-part', [IncomingPartController::class, 'index'])->name('incoming.parts.index');
+        Route::get('/report/incoming-material', [IncomingMaterialController::class, 'index'])->name('incoming.materials.index');
+        Route::get('/report/incoming-sub-part', [IncomingSubPartController::class, 'index'])->name('incoming.sub_parts.index');
+        Route::get('/report/incoming-export', [IncomingExportController::class, 'index'])->name('incoming.exports.index');
+        Route::get('/report/incoming-chemical', [IncomingChemicalController::class, 'index'])->name('incoming.chemicals.index');
+        Route::get('/report/incoming-part/export-pdf', [IncomingPartController::class, 'exportPdf'])->name('incoming.parts.export_pdf');
+        Route::get('/report/incoming-material/export-pdf', [IncomingMaterialController::class, 'exportPdf'])->name('incoming.materials.export_pdf');
+        Route::get('/report/incoming-sub-part/export-pdf', [IncomingSubPartController::class, 'exportPdf'])->name('incoming.sub_parts.export_pdf');
+        Route::get('/report/incoming-export/export-pdf', [IncomingExportController::class, 'exportPdf'])->name('incoming.exports.export_pdf');
+        Route::get('/report/incoming-chemical/export-pdf', [IncomingChemicalController::class, 'exportPdf'])->name('incoming.chemicals.export_pdf');
+
         // Approval Actions
         Route::post('/checksheets/{id}/approve/{type}', [SubAssyChecksheetController::class, 'approve'])->name('admin.checksheets.approve');
         Route::post('/checksheets/{id}/reject/{type}', [SubAssyChecksheetController::class, 'reject'])->name('admin.checksheets.reject');
@@ -69,6 +98,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cross-cut-painting-checksheets/{id}/reject/{type}', [CrossCutPaintingChecksheetController::class, 'reject'])->name('cross_cut_painting.reject');
         Route::post('/sortir-checksheets/{id}/approve/{type}', [SortirChecksheetController::class, 'approve'])->name('sortir.approve');
         Route::post('/sortir-checksheets/{id}/reject/{type}', [SortirChecksheetController::class, 'reject'])->name('sortir.reject');
+
+        // --- Incoming Routes (Approval) ---
+        Route::post('/incoming-part/{id}/approve/{type}', [IncomingPartController::class, 'approve'])->name('incoming.parts.approve');
+        Route::post('/incoming-part/{id}/reject/{type}', [IncomingPartController::class, 'reject'])->name('incoming.parts.reject');
+        Route::post('/incoming-material/{id}/approve/{type}', [IncomingMaterialController::class, 'approve'])->name('incoming.materials.approve');
+        Route::post('/incoming-material/{id}/reject/{type}', [IncomingMaterialController::class, 'reject'])->name('incoming.materials.reject');
+        Route::post('/incoming-sub-part/{id}/approve/{type}', [IncomingSubPartController::class, 'approve'])->name('incoming.sub_parts.approve');
+        Route::post('/incoming-sub-part/{id}/reject/{type}', [IncomingSubPartController::class, 'reject'])->name('incoming.sub_parts.reject');
+        Route::post('/incoming-export/{id}/approve/{type}', [IncomingExportController::class, 'approve'])->name('incoming.exports.approve');
+        Route::post('/incoming-export/{id}/reject/{type}', [IncomingExportController::class, 'reject'])->name('incoming.exports.reject');
+        Route::post('/incoming-chemical/{id}/approve/{type}', [IncomingChemicalController::class, 'approve'])->name('incoming.chemicals.approve');
+        Route::post('/incoming-chemical/{id}/reject/{type}', [IncomingChemicalController::class, 'reject'])->name('incoming.chemicals.reject');
 
         // Edit/Update/Delete (General Management)
         Route::prefix('admin')->group(function () {
@@ -96,6 +137,23 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/sortir-checksheets/{id}/edit', [SortirChecksheetController::class, 'edit'])->name('sortir.edit');
             Route::put('/sortir-checksheets/{id}', [SortirChecksheetController::class, 'update'])->name('sortir.update');
             Route::delete('/sortir-checksheets/{id}', [SortirChecksheetController::class, 'destroy'])->name('sortir.destroy');
+
+            // --- Incoming Routes (Management) ---
+            Route::get('incoming-part/{id}/edit', [IncomingPartController::class, 'edit'])->name('incoming.parts.edit');
+            Route::put('incoming-part/{id}', [IncomingPartController::class, 'update'])->name('incoming.parts.update');
+            Route::delete('incoming-part/{id}', [IncomingPartController::class, 'destroy'])->name('incoming.parts.destroy');
+            Route::get('incoming-material/{id}/edit', [IncomingMaterialController::class, 'edit'])->name('incoming.materials.edit');
+            Route::put('incoming-material/{id}', [IncomingMaterialController::class, 'update'])->name('incoming.materials.update');
+            Route::delete('incoming-material/{id}', [IncomingMaterialController::class, 'destroy'])->name('incoming.materials.destroy');
+            Route::get('incoming-sub-part/{id}/edit', [IncomingSubPartController::class, 'edit'])->name('incoming.sub_parts.edit');
+            Route::put('incoming-sub-part/{id}', [IncomingSubPartController::class, 'update'])->name('incoming.sub_parts.update');
+            Route::delete('incoming-sub-part/{id}', [IncomingSubPartController::class, 'destroy'])->name('incoming.sub_parts.destroy');
+            Route::get('incoming-export/{id}/edit', [IncomingExportController::class, 'edit'])->name('incoming.exports.edit');
+            Route::put('incoming-export/{id}', [IncomingExportController::class, 'update'])->name('incoming.exports.update');
+            Route::delete('incoming-export/{id}', [IncomingExportController::class, 'destroy'])->name('incoming.exports.destroy');
+            Route::get('incoming-chemical/{id}/edit', [IncomingChemicalController::class, 'edit'])->name('incoming.chemicals.edit');
+            Route::put('incoming-chemical/{id}', [IncomingChemicalController::class, 'update'])->name('incoming.chemicals.update');
+            Route::delete('incoming-chemical/{id}', [IncomingChemicalController::class, 'destroy'])->name('incoming.chemicals.destroy');
         });
     });
 
@@ -109,5 +167,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('cross-cut-checksheets/{id}/update-approval', [CrossCutChecksheetController::class, 'updateApproval'])->name('cross_cut.update_approval');
         Route::get('cross-cut-painting-checksheets/{id}/edit-approval', [CrossCutPaintingChecksheetController::class, 'editApproval'])->name('cross_cut_painting.edit_approval');
         Route::put('cross-cut-painting-checksheets/{id}/update-approval', [CrossCutPaintingChecksheetController::class, 'updateApproval'])->name('cross_cut_painting.update_approval');
+
+        // --- Incoming Routes (Admin Overrides) ---
+        Route::get('incoming-part/{id}/edit-approval', [IncomingPartController::class, 'editApproval'])->name('incoming.parts.edit_approval');
+        Route::put('incoming-part/{id}/update-approval', [IncomingPartController::class, 'updateApproval'])->name('incoming.parts.update_approval');
+        Route::get('incoming-material/{id}/edit-approval', [IncomingMaterialController::class, 'editApproval'])->name('incoming.materials.edit_approval');
+        Route::put('incoming-material/{id}/update-approval', [IncomingMaterialController::class, 'updateApproval'])->name('incoming.materials.update_approval');
+        Route::get('incoming-sub-part/{id}/edit-approval', [IncomingSubPartController::class, 'editApproval'])->name('incoming.sub_parts.edit_approval');
+        Route::put('incoming-sub-part/{id}/update-approval', [IncomingSubPartController::class, 'updateApproval'])->name('incoming.sub_parts.update_approval');
+        Route::get('incoming-export/{id}/edit-approval', [IncomingExportController::class, 'editApproval'])->name('incoming.exports.edit_approval');
+        Route::put('incoming-export/{id}/update-approval', [IncomingExportController::class, 'updateApproval'])->name('incoming.exports.update_approval');
+        Route::get('incoming-chemical/{id}/edit-approval', [IncomingChemicalController::class, 'editApproval'])->name('incoming.chemicals.edit_approval');
+        Route::put('incoming-chemical/{id}/update-approval', [IncomingChemicalController::class, 'updateApproval'])->name('incoming.chemicals.update_approval');
     });
 });
