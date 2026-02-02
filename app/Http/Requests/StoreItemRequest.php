@@ -43,7 +43,17 @@ class StoreItemRequest extends FormRequest
                     }
                 },
             ],
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                    $category = \App\Models\Category::find($value);
+                    if ($category && $category->plant_id != $plantId) {
+                        $fail('Kategori yang dipilih tidak terdaftar untuk plant ini.');
+                    }
+                },
+            ],
             'plant' => 'required',
             'files' => 'required|array|min:1',
             'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
@@ -55,9 +65,12 @@ class StoreItemRequest extends FormRequest
                 'max:100',
                 function ($attribute, $value, $fail) {
                     if (!empty($value)) {
-                        $exists = Item::where('sap_code', $value)->exists();
+                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                        $exists = Item::where('sap_code', $value)
+                            ->where('plant_id', $plantId)
+                            ->exists();
                         if ($exists) {
-                            $fail('Kode SAP sudah digunakan oleh item lain.');
+                            $fail('Kode SAP sudah digunakan oleh item lain di plant ini.');
                         }
                     }
                 },

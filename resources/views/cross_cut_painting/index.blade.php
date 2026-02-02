@@ -454,7 +454,9 @@
 
             function setupApprovalForm(id, type, label, isReject) {
                 const form = $('#approvalForm');
-                form.attr('action', `/cross-cut-painting-checksheets/${id}/approve/${type}`);
+                var url = "{{ route('cross_cut_painting.approve', ['id' => ':id', 'type' => ':type']) }}";
+                url = url.replace(':id', id).replace(':type', type);
+                form.attr('action', url);
                 $('#approvalLabelText').text(label);
 
                 // Kashift Plating special requirement

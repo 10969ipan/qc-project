@@ -392,11 +392,15 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        var url = "{{ route('admin.customer-claim-records.attachment.destroy', [':id', ':index']) }}";
+                        url = url.replace(':id', id).replace(':index', index);
+
                         $.ajax({
-                            url: `/admin/customer-claim-records/${id}/attachment/${index}`,
+                            url: url,
                             type: 'DELETE',
                             data: {
-                                _token: $('meta[name="csrf-token"]').attr('content')
+                                _token: $('meta[name="csrf-token"]').attr('content'),
+                                plant: "{{ request('plant') }}"
                             },
                             success: function (response) {
                                 if (response.success) {
@@ -414,9 +418,16 @@
                                 }
                             },
                             error: function (xhr) {
+                                var message = 'Terjadi kesalahan saat menghapus file.';
+                                if (xhr.status === 404) {
+                                    message = 'File atau record tidak ditemukan.';
+                                } else if (xhr.status === 403) {
+                                    message = 'Anda tidak memiliki akses untuk menghapus file ini.';
+                                }
+                                
                                 Swal.fire(
                                     'Gagal!',
-                                    'Terjadi kesalahan saat menghapus file.',
+                                    message,
                                     'error'
                                 );
                             }

@@ -209,7 +209,21 @@ class CalibrationController extends Controller
             'plant' => 'required|string',
             'bagian' => 'required|string',
             'name_alat' => 'required|string',
-            'serial_number' => 'required|string',
+            'serial_number' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($request) {
+                    $plant = Plant::where('code', $request->plant)->first();
+                    if ($plant) {
+                        $exists = CalibrationTool::where('serial_number', $value)
+                            ->where('plant_id', $plant->id)
+                            ->exists();
+                        if ($exists) {
+                            $fail('Serial Number ini sudah terdaftar di plant ini.');
+                        }
+                    }
+                }
+            ],
             'range' => 'required|string',
             'resolusi' => 'required|string',
             'lokasi_pakai' => 'required|string',
@@ -275,7 +289,22 @@ class CalibrationController extends Controller
             'plant' => 'required|string',
             'bagian' => 'required|string',
             'name_alat' => 'required|string',
-            'serial_number' => 'required|string',
+            'serial_number' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($request, $id) {
+                    $plant = Plant::where('code', $request->plant)->first();
+                    if ($plant) {
+                        $exists = CalibrationTool::where('serial_number', $value)
+                            ->where('plant_id', $plant->id)
+                            ->where('id', '!=', $id)
+                            ->exists();
+                        if ($exists) {
+                            $fail('Serial Number ini sudah digunakan oleh alat lain di plant ini.');
+                        }
+                    }
+                }
+            ],
             'range' => 'required|string',
             'resolusi' => 'required|string',
             'lokasi_pakai' => 'required|string',

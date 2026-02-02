@@ -27,17 +27,20 @@
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 032/0' : 'QC-KRW-F-0212' }}</div>
+                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 032/0' : 'QC-KRW-F-0212' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}</div>
+                                {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}</div>
+                                {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
@@ -746,8 +749,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -974,8 +977,16 @@
                 success: function (response) {
                     $('#editModalBody').html(response);
                 },
-                error: function () {
-                    $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                error: function (xhr) {
+                    var message = 'Gagal memuat data checksheet.';
+                    if (xhr.status === 404) {
+                        message = 'Data checksheet tidak ditemukan.';
+                    } else if (xhr.status === 403) {
+                        message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
+                    } else if (xhr.status === 500) {
+                        message = 'Terjadi kesalahan pada server.';
+                    }
+                    $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
                 }
             });
         });
@@ -992,11 +1003,17 @@
                 success: function (response) {
                     $('#statusModalBody').html(response);
                 },
-                error: function () {
-                    $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                error: function (xhr) {
+                    var message = 'Gagal memuat data status approval.';
+                    if (xhr.status === 404) {
+                        message = 'Data tidak ditemukan.';
+                    } else if (xhr.status === 403) {
+                        message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
+                    }
+                    $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
                 }
             });
         });
-                                });
+                                    });
     </script>
 @endpush

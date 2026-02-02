@@ -146,6 +146,15 @@
                     @csrf
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                     <div class="modal-body">
+                        @if($errors->any() && old('_method') !== 'PUT')
+                            <div class="alert alert-danger py-2 mb-3 small">
+                                <ul class="mb-0 pl-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
                         <div class="form-group">
                             <label class="font-weight-bold">Plant</label>
@@ -185,6 +194,15 @@
                     @method('PUT')
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                     <div class="modal-body text-left">
+                        @if($errors->any() && old('_method') === 'PUT')
+                            <div class="alert alert-danger py-2 mb-3 small">
+                                <ul class="mb-0 pl-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
                         <div class="form-group">
                             <label class="font-weight-bold">Plant</label>
@@ -211,13 +229,27 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // Auto-open modal if there are validation errors
+            @if($errors->any())
+                @if(old('_method') === 'PUT')
+                    // For Category, Edit is also AJAX-based to load data, 
+                    // but we can try to re-open if we have old ID
+                    @if(old('id'))
+                         // This would require more logic to re-trigger the AJAX or pre-fill.
+                         // For now, let's at least handle the Add modal.
+                    @endif
+                @else
+                    $('#modalAddCategory').modal('show');
+                @endif
+            @endif
+
             $('.btn-edit-category').on('click', function() {
                 var id = $(this).data('id');
                 var btn = $(this);
                 btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
                 $.ajax({
-                    url: `/admin/categories/${id}/edit`,
+                    url: "{{ route('admin.categories.edit', ':id') }}".replace(':id', id),
                     type: 'GET',
                     success: function(response) {
                         $('#edit_category_name').val(response.category.name);
@@ -230,8 +262,16 @@
                         $('#modalEditCategory').modal('show');
                         btn.prop('disabled', false).html('<i class="fas fa-edit"></i> Edit');
                     },
-                    error: function() {
-                        alert('Gagal mengambil data kategori.');
+                    error: function (xhr) {
+                        var message = 'Gagal mengambil data kategori.';
+                        if (xhr.status === 404) {
+                            message = 'Kategori tidak ditemukan.';
+                        } else if (xhr.status === 403) {
+                            message = 'Anda tidak memiliki akses untuk mengedit kategori ini.';
+                        } else if (xhr.status === 500) {
+                            message = 'Terjadi kesalahan pada server saat mengambil data.';
+                        }
+                        alert(message);
                         btn.prop('disabled', false).html('<i class="fas fa-edit"></i> Edit');
                     }
                 });

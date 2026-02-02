@@ -481,8 +481,16 @@
                     success: function (response) {
                         $('#editModalBody').html(response);
                     },
-                    error: function () {
-                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                    error: function (xhr) {
+                        var message = 'Gagal memuat data checksheet.';
+                        if (xhr.status === 404) {
+                            message = 'Data checksheet tidak ditemukan.';
+                        } else if (xhr.status === 403) {
+                            message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
+                        } else if (xhr.status === 500) {
+                            message = 'Terjadi kesalahan pada server.';
+                        }
+                        $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
                     }
                 });
             });

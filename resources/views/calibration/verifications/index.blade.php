@@ -690,17 +690,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                        <tr>
-                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                            <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>`;
+                                            <tr>
+                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -726,8 +726,10 @@
                 var btn = $(this);
                 btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
+                var editUrl = "{{ route('calibration.verifications.edit', ':id') }}".replace(':id', id);
+
                 $.ajax({
-                    url: `/calibration/verifications/${id}/edit`,
+                    url: editUrl,
                     type: 'GET',
                     data: { plant: "{{ $plantCode }}" },
                     success: function (response) {
@@ -761,17 +763,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                            <tr>
-                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
-                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
-                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
-                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>`;
+                                                <tr>
+                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
+                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
+                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
+                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -784,8 +786,13 @@
                         $('#modalEditVerifikasi').modal('show');
                         btn.prop('disabled', false).html('<i class="fas fa-edit mr-1"></i> EDIT');
                     },
-                    error: function () {
-                        alert('Gagal mengambil data verifikasi.');
+                    error: function (xhr) {
+                        var errorMsg = 'Gagal mengambil data verifikasi.';
+                        if (xhr.status === 404) errorMsg += ' (Error 404: Data tidak ditemukan)';
+                        else if (xhr.status === 403) errorMsg += ' (Error 403: Anda tidak memiliki akses)';
+                        else if (xhr.status === 500) errorMsg += ' (Error 500: Terjadi kesalahan di server)';
+
+                        alert(errorMsg);
                         btn.prop('disabled', false).html('<i class="fas fa-edit mr-1"></i> EDIT');
                     }
                 });
@@ -793,17 +800,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                    <tr>
-                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>`;
+                                        <tr>
+                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });

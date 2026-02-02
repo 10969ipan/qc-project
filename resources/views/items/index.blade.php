@@ -257,8 +257,16 @@
                     <input type="hidden" name="filter_plant" value="{{ $plantCode }}">
                     <input type="hidden" name="plant" id="edit_plant">
 
-
                     <div class="modal-body">
+                        @if($errors->any())
+                            <div class="alert alert-danger py-2 mb-3 small">
+                                <ul class="mb-0 pl-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <div class="row">
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
@@ -359,6 +367,15 @@
                 <form action="{{ route('admin.items.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
+                        @if($errors->any())
+                            <div class="alert alert-danger py-2 mb-3 small">
+                                <ul class="mb-0 pl-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         @if(!$plantCode)
                             <div class="alert alert-warning py-2 mb-3 small">
                                 <i class="fas fa-exclamation-triangle mr-1"></i>
@@ -487,6 +504,17 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                // Auto-open modal if there are validation errors
+                @if($errors->any())
+                    @if(old('_method') === 'PUT')
+                        // For Edit Modal, we might need the ID, but usually old input is enough to show what went wrong.
+                        // However, since Edit is AJAX-based, it's safer to just handle Store for now 
+                        // or check if a specific flag was set in session.
+                    @else
+                        $('#modalTambahItem').modal('show');
+                    @endif
+                @endif
+
                 // Initialize PDF.js
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -621,16 +649,16 @@
                 // Add Dimension Row
                 $('.add-dimension-row').on('click', function () {
                     var newRow = `
-                                            <tr>
-                                                <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
-                                                <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>`;
+                                                                    <tr>
+                                                                        <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                        <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
+                                                                        <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>`;
                     $('#modal-dimension-table tbody').append(newRow);
                 });
 
@@ -667,7 +695,7 @@
                 btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
                 $.ajax({
-                    url: `/admin/items/${id}/edit`,
+                    url: "{{ route('admin.items.edit', ':id') }}".replace(':id', id),
                     type: 'GET',
                     success: function (response) {
                         var item = response.item;
@@ -685,17 +713,17 @@
                         if (item.file_paths && item.file_paths.length > 0) {
                             item.file_paths.forEach(function (path, index) {
                                 filesHtml += `
-                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
-                                                    <a href="/items/${item.id}/pdf/${index}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                </div>`;
+                                                                        <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                                            <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
+                                                                            <a href="/items/${item.id}/pdf/${index}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                        </div>`;
                             });
                         } else if (item.file_path) {
                             filesHtml += `
-                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
-                                                    <a href="/items/${item.id}/pdf" target="_blank" class="badge badge-info mr-1">View</a>
-                                                </div>`;
+                                                                        <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                                            <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
+                                                                            <a href="/items/${item.id}/pdf" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                        </div>`;
                         }
                         $('#edit_existing_files').html(item.file_paths || item.file_path ? '<label class="small font-weight-bold mb-1">File Terdaftar:</label>' + filesHtml : '');
 
@@ -704,29 +732,29 @@
                         if (item.dimension_standards && item.dimension_standards.length > 0) {
                             item.dimension_standards.forEach(function (dim) {
                                 dimHtml += `
-                                                <tr>
-                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
-                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
-                                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
-                                                    <td class="text-center">
-                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>`;
+                                                                        <tr>
+                                                                            <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
+                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
+                                                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
+                                                                            <td class="text-center">
+                                                                                <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                    <i class="fas fa-trash"></i>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>`;
                             });
                         } else {
                             dimHtml = `
-                                            <tr>
-                                                <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
-                                                <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>`;
+                                                                    <tr>
+                                                                        <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                        <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
+                                                                        <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>`;
                         }
                         $('#edit-modal-dimension-table tbody').html(dimHtml);
 
@@ -738,8 +766,16 @@
                         $('#modalEditItem').modal('show');
                         btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
                     },
-                    error: function () {
-                        alert('Gagal mengambil data item.');
+                    error: function (xhr) {
+                        var message = 'Gagal mengambil data item.';
+                        if (xhr.status === 404) {
+                            message = 'Item tidak ditemukan.';
+                        } else if (xhr.status === 403) {
+                            message = 'Anda tidak memiliki akses untuk mengedit item ini.';
+                        } else if (xhr.status === 500) {
+                            message = 'Terjadi kesalahan pada server saat mengambil data.';
+                        }
+                        alert(message);
                         btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
                     }
                 });
@@ -748,16 +784,16 @@
             // Add Dimension Row for Edit Modal
             $(document).on('click', '.add-edit-dimension-row', function () {
                 var newRow = `
-                                <tr>
-                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
-                                    <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>`;
+                                                        <tr>
+                                                            <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                            <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="Contoh: 10.5"></td>
+                                                            <td><input type="number" step="0.01" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="Contoh: 0.1"></td>
+                                                            <td class="text-center">
+                                                                <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>`;
                 $('#edit-modal-dimension-table tbody').append(newRow);
             });
         </script>

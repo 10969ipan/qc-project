@@ -14,7 +14,17 @@ class StoreSortirChecksheetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'item_id' => 'required|exists:items,id',
+            'item_id' => [
+                'required',
+                'exists:items,id',
+                function ($attribute, $value, $fail) {
+                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                    $item = \App\Models\Item::find($value);
+                    if ($item && $item->plant_id != $plantId) {
+                        $fail('Item yang dipilih tidak terdaftar untuk plant ini.');
+                    }
+                },
+            ],
             'source_type' => 'required|in:sub_assy,in_process,cross_cut',
             'plant' => 'required',
             'source_id' => 'required|integer',
