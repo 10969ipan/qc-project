@@ -257,6 +257,16 @@ class ItemService extends BaseService
         $item = Item::withoutGlobalScope('plant')->findOrFail($id);
         $filePaths = $item->file_paths;
 
+        // Handle legacy file_path if file_paths is empty
+        if (empty($filePaths) && $index == 0 && $item->file_path) {
+            $this->deleteFile($item->file_path);
+            $item->update([
+                'file_path' => null,
+                'file_paths' => []
+            ]);
+            return;
+        }
+
         if (isset($filePaths[$index])) {
             $pathToDelete = $filePaths[$index];
             $this->deleteFile($pathToDelete);
