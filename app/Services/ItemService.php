@@ -272,6 +272,7 @@ class ItemService extends BaseService
             $this->deleteFile($pathToDelete);
 
             array_splice($filePaths, $index, 1);
+            $filePaths = array_values($filePaths); // Ensure clean indexing
 
             $item->update([
                 'file_paths' => $filePaths,

@@ -298,8 +298,10 @@ class ItemController extends Controller
         try {
             $this->itemService->deleteItemPdf($id, $index);
             return response()->json(['success' => true, 'message' => 'PDF berhasil dihapus.']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Gagal menghapus PDF: ' . $e->getMessage()], 500);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to delete PDF for Item ID {$id}: " . $e->getMessage());
+            // Return a safe error message to avoid JSON encoding issues (e.g. malformed UTF-8 in exception message)
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus PDF. Silakan cek log server.'], 500);
         }
     }
 }
