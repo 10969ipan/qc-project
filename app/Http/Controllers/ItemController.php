@@ -192,7 +192,16 @@ class ItemController extends Controller
                 abort(404, 'PDF file path not found');
             }
 
-            $filePath = public_path($targetPath);
+            // Normalize path separators to forward slashes
+            $targetPath = str_replace('\\', '/', $targetPath);
+            // Remove leading slashes to ensure clean relative path
+            $targetPath = ltrim($targetPath, '/');
+            // Remove 'public/' prefix if present to prevent duplication with public_path()
+            if (strpos($targetPath, 'public/') === 0) {
+                $targetPath = substr($targetPath, 7);
+            }
+
+            $filePath = public_path(urldecode($targetPath));
 
             if (!file_exists($filePath)) {
                 // Try to resolve path dynamically (Self-healing with robust search)
