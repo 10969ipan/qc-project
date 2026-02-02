@@ -713,17 +713,19 @@
                         if (item.file_paths && item.file_paths.length > 0) {
                             item.file_paths.forEach(function (path, index) {
                                 filesHtml += `
-                                                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
-                                                                                    <a href="/items/${item.id}/pdf/${index}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                </div>`;
+                                    <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                        <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
+                                        <a href="/items/${item.id}/pdf/${index}" target="_blank" class="badge badge-info mr-1">View</a>
+                                        <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
+                                    </div>`;
                             });
                         } else if (item.file_path) {
                             filesHtml += `
-                                                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
-                                                                                    <a href="/items/${item.id}/pdf" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                </div>`;
+                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                    <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
+                                    <a href="/items/${item.id}/pdf" target="_blank" class="badge badge-info mr-1">View</a>
+                                    <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
+                                </div>`;
                         }
                         $('#edit_existing_files').html(item.file_paths || item.file_path ? '<label class="small font-weight-bold mb-1">File Terdaftar:</label>' + filesHtml : '');
 
@@ -777,6 +779,43 @@
                         }
                         alert(message);
                         btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                    }
+                });
+            });
+
+            // Delete PDF File
+            $(document).on('click', '.btn-delete-pdf', function() {
+                var btn = $(this);
+                var id = btn.data('id');
+                var index = btn.data('index');
+
+                if (!confirm('Apakah Anda yakin ingin menghapus file ini?')) return;
+
+                // Show loading state
+                var originalText = btn.text();
+                btn.text('...').prop('disabled', true);
+
+                $.ajax({
+                    url: "/admin/items/" + id + "/pdf/" + index,
+                    type: 'DELETE',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            btn.closest('div').remove();
+                        } else {
+                            alert('Gagal menghapus file: ' + response.message);
+                            btn.text(originalText).prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        var msg = 'Terjadi kesalahan saat menghapus file.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg += ' ' + xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                        btn.text(originalText).prop('disabled', false);
                     }
                 });
             });

@@ -560,7 +560,9 @@
             let currentItemId = null;
 
             function loadPdf(itemId, index) {
-                const url = `/items/${itemId}/pdf/${index}`;
+                // Use Laravel route helper to generate robust URL, replacing placeholders with actual values
+                const routePattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+                const url = routePattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
 
                 pdfDoc = null;
                 pageNum = 1;
