@@ -11,8 +11,8 @@ Route::middleware(['auth'])->group(function () {
     // Master Data Management (Admin & Staff)
     Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
         // Items
-        Route::resource('items', ItemController::class)->except(['create']);
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
+        Route::resource('items', ItemController::class)->except(['create']);
 
         // Categories
         Route::resource('categories', CategoryController::class)->except(['create']);
