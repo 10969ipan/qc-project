@@ -209,38 +209,32 @@ class ItemController extends Controller
                     }
                 }
 
-                // Generous list of folder variations for Linux case sensitivity
+                // Generous list of base folder variations
                 $baseFolders = ['master item', 'Master Item', 'Master item', 'MASTER ITEM'];
-                $subFolders = ['ahm', 'AHM', 'yimm', 'YIMM', 'others', 'Others'];
+                $subFolders = ['ahm', 'AHM', 'yimm', 'YIMM', 'others', 'Others', '']; // Added empty string for root search
 
                 $foundPath = null;
                 $foundRelativePath = null;
+                $targetFilenameLower = strtolower($filename);
 
-                // 1. Search in subfolders first
                 foreach ($baseFolders as $base) {
                     foreach ($subFolders as $sub) {
-                        foreach ($filenameVariations as $fname) {
-                            $relativePath = $base . '/' . $sub . '/' . $fname;
-                            $candidatePath = public_path($relativePath);
-                            if (file_exists($candidatePath)) {
-                                $foundPath = $candidatePath;
-                                $foundRelativePath = $relativePath; // Normalize to what we found
-                                break 3;
-                            }
-                        }
-                    }
-                }
+                        // Construct directory path to scan
+                        $relativeDir = $sub ? $base . '/' . $sub : $base;
+                        $absoluteDir = public_path($relativeDir);
 
-                // 2. Check root "master item" folder variations if not found in subfolders
-                if (!$foundPath) {
-                    foreach ($baseFolders as $base) {
-                        foreach ($filenameVariations as $fname) {
-                            $relativePath = $base . '/' . $fname;
-                            $candidatePath = public_path($relativePath);
-                            if (file_exists($candidatePath)) {
-                                $foundPath = $candidatePath;
-                                $foundRelativePath = $relativePath;
-                                break 2;
+                        if (is_dir($absoluteDir)) {
+                            // Scan directory for case-insensitive match
+                            $files = scandir($absoluteDir);
+                            foreach ($files as $file) {
+                                if ($file === '.' || $file === '..')
+                                    continue;
+
+                                if (strtolower($file) === $targetFilenameLower) {
+                                    $foundPath = $absoluteDir . '/' . $file;
+                                    $foundRelativePath = $relativeDir . '/' . $file;
+                                    break 3; // Found it!
+                                }
                             }
                         }
                     }
