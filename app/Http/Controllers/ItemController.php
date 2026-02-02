@@ -197,30 +197,55 @@ class ItemController extends Controller
             if (!file_exists($filePath)) {
                 // Try to resolve path dynamically (Self-healing)
                 $filename = basename($targetPath);
-                $subfolders = ['ahm', 'yimm', 'others'];
+
+                // Handle extension case sensitivity (.pdf vs .PDF)
+                $filenameVariations = [$filename];
+                $extension = pathinfo($filename, PATHINFO_EXTENSION);
+                if (strtolower($extension) === 'pdf') {
+                    if ($extension === 'pdf') {
+                        $filenameVariations[] = pathinfo($filename, PATHINFO_FILENAME) . '.PDF';
+                    } else {
+                        $filenameVariations[] = pathinfo($filename, PATHINFO_FILENAME) . '.pdf';
+                    }
+                }
+
+                // Generous list of folder variations for Linux case sensitivity
+                $baseFolders = ['master item', 'Master Item', 'Master item', 'MASTER ITEM'];
+                $subFolders = ['ahm', 'AHM', 'yimm', 'YIMM', 'others', 'Others'];
+
                 $foundPath = null;
                 $foundRelativePath = null;
 
-                // Check subfolders
-                foreach ($subfolders as $folder) {
-                    $relativePath = 'master item/' . $folder . '/' . $filename;
-                    $candidatePath = public_path($relativePath);
-                    if (file_exists($candidatePath)) {
-                        $foundPath = $candidatePath;
-                        $foundRelativePath = $relativePath;
-                        break;
+                // 1. Search in subfolders first
+                foreach ($baseFolders as $base) {
+                    foreach ($subFolders as $sub) {
+                        foreach ($filenameVariations as $fname) {
+                            $relativePath = $base . '/' . $sub . '/' . $fname;
+                            $candidatePath = public_path($relativePath);
+                            if (file_exists($candidatePath)) {
+                                $foundPath = $candidatePath;
+                                $foundRelativePath = $relativePath; // Normalize to what we found
+                                break 3;
+                            }
+                        }
                     }
                 }
 
-                // Check root "master item" folder if not found in subfolders
+                // 2. Check root "master item" folder variations if not found in subfolders
                 if (!$foundPath) {
-                    $relativePath = 'master item/' . $filename;
-                    $candidatePath = public_path($relativePath);
-                    if (file_exists($candidatePath)) {
-                        $foundPath = $candidatePath;
-                        $foundRelativePath = $relativePath;
+                    foreach ($baseFolders as $base) {
+                        foreach ($filenameVariations as $fname) {
+                            $relativePath = $base . '/' . $fname;
+                            $candidatePath = public_path($relativePath);
+                            if (file_exists($candidatePath)) {
+                                $foundPath = $candidatePath;
+                                $foundRelativePath = $relativePath;
+                                break 2;
+                            }
+                        }
                     }
                 }
+
 
                 if ($foundPath) {
                     // Update DB with correct path
