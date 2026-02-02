@@ -173,6 +173,9 @@ class ItemController extends Controller
     public function servePdf($id, $index = 0)
     {
         try {
+            // DEBUG LOGGING START
+            \Log::info("[PDF Debug] Request for Item ID: {$id}, Index: {$index}");
+
             $item = Item::withoutGlobalScope('plant')->findOrFail($id);
 
             // Fetch from file_paths if available, otherwise fallback to legacy file_path
@@ -182,32 +185,26 @@ class ItemController extends Controller
 
             if (!empty($filePaths) && isset($filePaths[$index])) {
                 $targetPath = $filePaths[$index];
+                \Log::info("[PDF Debug] Found path in file_paths[{$index}]: '{$targetPath}'");
             } elseif ($index == 0 && $item->file_path) {
                 $targetPath = $item->file_path;
                 $isLegacy = true;
+                \Log::info("[PDF Debug] Found legacy file_path: '{$targetPath}'");
             }
 
             if (!$targetPath) {
-                \Log::warning("PDF serve requested for Item ID {$id} index {$index} but path is empty.");
+                \Log::warning("[PDF Debug] Path is EMPTY for Item ID {$id} index {$index}.");
                 abort(404, 'PDF file path not found');
             }
 
             $filePath = public_path($targetPath);
+            \Log::info("[PDF Debug] Resolved public_path: '{$filePath}'");
 
             if (!file_exists($filePath)) {
+                \Log::warning("[PDF Debug] File NOT FOUND at: '{$filePath}'. Starting self-healing search...");
+
                 // Try to resolve path dynamically (Self-healing)
                 $filename = basename($targetPath);
-
-                // Handle extension case sensitivity (.pdf vs .PDF)
-                $filenameVariations = [$filename];
-                $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                if (strtolower($extension) === 'pdf') {
-                    if ($extension === 'pdf') {
-                        $filenameVariations[] = pathinfo($filename, PATHINFO_FILENAME) . '.PDF';
-                    } else {
-                        $filenameVariations[] = pathinfo($filename, PATHINFO_FILENAME) . '.pdf';
-                    }
-                }
 
                 // Generous list of base folder variations
                 $baseFolders = ['master item', 'Master Item', 'Master item', 'MASTER ITEM'];
@@ -217,6 +214,8 @@ class ItemController extends Controller
                 $foundRelativePath = null;
                 $targetFilenameLower = strtolower($filename);
 
+                \Log::info("[PDF Debug] Searching for filename (insensitive): '{$targetFilenameLower}'");
+
                 foreach ($baseFolders as $base) {
                     foreach ($subFolders as $sub) {
                         // Construct directory path to scan
@@ -224,7 +223,7 @@ class ItemController extends Controller
                         $absoluteDir = public_path($relativeDir);
 
                         if (is_dir($absoluteDir)) {
-                            // Scan directory for case-insensitive match
+                            // \Log::info("[PDF Debug] Scanning dir: {$absoluteDir}"); // Uncomment if needed, can be spammy
                             $files = scandir($absoluteDir);
                             foreach ($files as $file) {
                                 if ($file === '.' || $file === '..')
@@ -233,9 +232,12 @@ class ItemController extends Controller
                                 if (strtolower($file) === $targetFilenameLower) {
                                     $foundPath = $absoluteDir . '/' . $file;
                                     $foundRelativePath = $relativeDir . '/' . $file;
+                                    \Log::info("[PDF Debug] MATCH FOUND! Path: {$foundPath}");
                                     break 3; // Found it!
                                 }
                             }
+                        } else {
+                            // \Log::info("[PDF Debug] Dir skipped (not found): {$absoluteDir}");
                         }
                     }
                 }
@@ -264,11 +266,13 @@ class ItemController extends Controller
                     $item->save();
 
                     $filePath = $foundPath; // Use the found path
-                    \Log::info("Resolved missing PDF for Item ID {$id}. Updated path to: {$foundRelativePath}");
+                    \Log::info("[PDF Debug] DB Updated. Serving file from: {$filePath}");
                 } else {
-                    \Log::error("PDF file not found on server for Item ID {$id}. Attempted path: {$filePath}");
+                    \Log::error("[PDF Debug] Self-healing FAILED. File not found in any variation.");
                     abort(404, 'PDF file does not exist on server');
                 }
+            } else {
+                \Log::info("[PDF Debug] File exists at original path.");
             }
 
             return response()->file($filePath, [
@@ -276,7 +280,7 @@ class ItemController extends Controller
                 'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
             ]);
         } catch (\Exception $e) {
-            \Log::error("Error serving PDF for Item ID {$id}: " . $e->getMessage());
+            \Log::error("[PDF Debug] Exception: " . $e->getMessage());
             throw $e;
         }
     }
