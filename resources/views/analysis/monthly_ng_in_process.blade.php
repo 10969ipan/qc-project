@@ -115,9 +115,9 @@
     </div>
 
     <!-- Page level plugins -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+    <script src="{{ asset('js/vendor/chart.umd.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
 
     <script>
         // Set new default font family and font color to mimic Bootstrap's default styling

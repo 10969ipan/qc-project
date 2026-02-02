@@ -448,8 +448,8 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
     <script>
         $(document).ready(function () {
             // Live search functionality

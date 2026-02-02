@@ -358,18 +358,18 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
             // Disable all form inputs in checksheetForm until Start button is clicked
-            var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
+            const formInputs = $('#checksheetForm').find('input, select, textarea');
             formInputs.prop('disabled', true);
             $('#checksheetForm').addClass('inputs-locked');
             $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // --- PDF.js Logic ---
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
 
             let pdfDoc = null;
             let pageNum = 1;

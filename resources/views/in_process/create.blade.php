@@ -27,17 +27,20 @@
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 032/0' : 'QC-KRW-F-0212' }}</div>
+                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 032/0' : 'QC-KRW-F-0212' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}</div>
+                                {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}</div>
+                                {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
@@ -470,7 +473,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
@@ -481,7 +484,7 @@
             $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // --- PDF.js Logic ---
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
 
             let pdfDoc = null;
             let pageNum = 1;

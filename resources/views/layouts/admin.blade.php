@@ -26,16 +26,13 @@
         rel="stylesheet">
 
     <!-- Chart.js for Dashboard Charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="{{ asset('js/vendor/chart.umd.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}"></script>
 
     <!-- FusionCharts for Gauge Charts -->
-    <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/fusioncharts.js"></script>
-    <script type="text/javascript"
-        src="https://cdn.fusioncharts.com/fusioncharts/latest/themes/fusioncharts.theme.fusion.js"></script>
-    <script type="text/javascript"
-        src="https://cdn.fusioncharts.com/fusioncharts/latest/themes/fusioncharts.theme.gammel.js"></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
 
     <style>
         /* Professional Corporate Font - Inter */

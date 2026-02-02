@@ -637,8 +637,8 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Character counter for rejection remarks
@@ -654,8 +654,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
