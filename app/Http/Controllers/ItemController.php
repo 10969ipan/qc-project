@@ -178,11 +178,13 @@ class ItemController extends Controller
             // Fetch from file_paths if available, otherwise fallback to legacy file_path
             $filePaths = $item->file_paths;
             $targetPath = null;
+            $isLegacy = false;
 
             if (!empty($filePaths) && isset($filePaths[$index])) {
                 $targetPath = $filePaths[$index];
             } elseif ($index == 0 && $item->file_path) {
                 $targetPath = $item->file_path;
+                $isLegacy = true;
             }
 
             if (!$targetPath) {
@@ -193,8 +195,61 @@ class ItemController extends Controller
             $filePath = public_path($targetPath);
 
             if (!file_exists($filePath)) {
-                \Log::error("PDF file not found on server for Item ID {$id}. Attempted path: {$filePath}");
-                abort(404, 'PDF file does not exist on server');
+                // Try to resolve path dynamically (Self-healing)
+                $filename = basename($targetPath);
+                $subfolders = ['ahm', 'yimm', 'others'];
+                $foundPath = null;
+                $foundRelativePath = null;
+
+                // Check subfolders
+                foreach ($subfolders as $folder) {
+                    $relativePath = 'master item/' . $folder . '/' . $filename;
+                    $candidatePath = public_path($relativePath);
+                    if (file_exists($candidatePath)) {
+                        $foundPath = $candidatePath;
+                        $foundRelativePath = $relativePath;
+                        break;
+                    }
+                }
+
+                // Check root "master item" folder if not found in subfolders
+                if (!$foundPath) {
+                    $relativePath = 'master item/' . $filename;
+                    $candidatePath = public_path($relativePath);
+                    if (file_exists($candidatePath)) {
+                        $foundPath = $candidatePath;
+                        $foundRelativePath = $relativePath;
+                    }
+                }
+
+                if ($foundPath) {
+                    // Update DB with correct path
+                    if ($isLegacy) {
+                        $item->file_path = $foundRelativePath;
+                        // Also update file_paths if it was empty/syncing
+                        if (empty($item->file_paths)) {
+                            $item->file_paths = [$foundRelativePath];
+                        }
+                    } else {
+                        // Ensure array initialized
+                        if (!is_array($filePaths)) {
+                            $filePaths = [];
+                        }
+                        $filePaths[$index] = $foundRelativePath;
+                        $item->file_paths = $filePaths;
+                        // Sync legacy file_path if index 0
+                        if ($index == 0) {
+                            $item->file_path = $foundRelativePath;
+                        }
+                    }
+                    $item->save();
+
+                    $filePath = $foundPath; // Use the found path
+                    \Log::info("Resolved missing PDF for Item ID {$id}. Updated path to: {$foundRelativePath}");
+                } else {
+                    \Log::error("PDF file not found on server for Item ID {$id}. Attempted path: {$filePath}");
+                    abort(404, 'PDF file does not exist on server');
+                }
             }
 
             return response()->file($filePath, [
