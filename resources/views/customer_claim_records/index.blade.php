@@ -161,11 +161,11 @@
                                                 style="font-size: 0.7rem;">
                                                 <a href="javascript:void(0)" class="text-dark text-truncate mr-auto btn-preview-file"
                                                     style="max-width: 100px; text-decoration: none;"
-                                                    data-url="{{ asset('storage/' . $path) }}" data-name="{{ $displayFilename }}"
+                                                    data-url="/storage/{{ $path }}" data-name="{{ $displayFilename }}"
                                                     title="Preview: {{ $displayFilename }}">
                                                     {{ $displayFilename }}
                                                 </a>
-                                                <a href="{{ asset('storage/' . $path) }}" download class="text-primary ml-1"
+                                                <a href="/storage/{{ $path }}" download class="text-primary ml-1"
                                                     title="Download">
                                                     <i class="fas fa-download" style="font-size: 0.65rem;"></i>
                                                 </a>

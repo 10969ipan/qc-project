@@ -5,7 +5,7 @@
 @section('content')
     <x-plant-header title="Hasil Data Sortir" :plant="request()->get('plant')" />
     <!-- Hidden Logo for PDF Export -->
-    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
+    <img src="/master item/ipp.jpg" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -448,8 +448,8 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+    <script src="/js/vendor/jspdf.umd.min.js"></script>
+    <script src="/js/vendor/jspdf.plugin.autotable.min.js"></script>
     <script>
         $(document).ready(function () {
             // Live search functionality

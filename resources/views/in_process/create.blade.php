@@ -182,8 +182,8 @@
                                                 Item Part</option>
                                             @foreach($items as $item)
                                                 <option value="{{ $item->id }}"
-                                                    data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
-                                                    data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-image="{{ $item->image_path ? '/' . $item->image_path : '' }}"
+                                                    data-file="{{ $item->file_path ? '/items/' . $item->id . '/pdf' : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
                                                     data-description="{{ $item->description }}"
@@ -473,7 +473,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="/js/vendor/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
@@ -484,7 +484,7 @@
             $('<style>#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
 
             // --- PDF.js Logic ---
-            pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "/js/vendor/pdf.worker.min.js";
 
             let pdfDoc = null;
             let pageNum = 1;

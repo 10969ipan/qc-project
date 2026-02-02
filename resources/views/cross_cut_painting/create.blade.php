@@ -128,7 +128,7 @@
                                             <option value="" disabled selected>Pilih Item Part</option>
                                             @foreach($items as $item)
                                                 <option value="{{ $item->id }}"
-                                                    data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
+                                                    data-image="{{ $item->image_path ? '/' . $item->image_path : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-name="{{ $item->name }}"
                                                     data-description="{{ $item->description ?? '' }}"
@@ -299,7 +299,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="/js/vendor/pdf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');

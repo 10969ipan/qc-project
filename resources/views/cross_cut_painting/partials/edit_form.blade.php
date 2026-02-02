@@ -64,7 +64,7 @@
                     <td class="text-center">
                         @if ($checksheet->image_path)
                             <div class="mb-2">
-                                <img src="{{ asset('storage/' . $checksheet->image_path) }}" class="img-thumbnail"
+                                <img src="/storage/{{ $checksheet->image_path }}" class="img-thumbnail"
                                     style="max-height: 100px;">
                             </div>
                         @else

@@ -46,7 +46,7 @@
         </div>
     </div>
     <!-- Hidden Logo for PDF Export -->
-    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
+    <img src="/master item/ipp.jpg" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -836,8 +836,8 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+    <script src="/js/vendor/jspdf.umd.min.js"></script>
+    <script src="/js/vendor/jspdf.plugin.autotable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Character counter for rejection remarks
@@ -853,8 +853,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                            // Image Modal Handler
-                                                                                                        const imageModal = document.getElementById('imageModal');
+                                                                                                                                                                                        // Image Modal Handler
+                                                                                                                    const imageModal = document.getElementById('imageModal');
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
             viewImageBtns.forEach(btn => {
@@ -882,93 +882,93 @@
                         if (data.image_path) {
                             const imagePath = `/storage/${data.image_path}`;
                             imageContainer.innerHTML = `
-                                                                                                                            <img src="${imagePath}" 
-                                                                                                                                 class="img-fluid rounded shadow" 
-                                                                                                                                 alt="Cross Cut Image"
-                                                                                                                                 style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                                                                                                 onclick="window.open('${imagePath}', '_blank')">
-                                                                                                                        `;
+                                                                                                                                        <img src="${imagePath}" 
+                                                                                                                                             class="img-fluid rounded shadow" 
+                                                                                                                                             alt="Cross Cut Image"
+                                                                                                                                             style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                                                                                                             onclick="window.open('${imagePath}', '_blank')">
+                                                                                                                                    `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
                         } else {
                             imageContainer.innerHTML = `
-                                                                                                                            <div class="alert alert-warning">
-                                                                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                                                                                Tidak ada gambar untuk checksheet ini
-                                                                                                                            </div>
-                                                                                                                        `;
+                                                                                                                                        <div class="alert alert-warning">
+                                                                                                                                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                                                                            Tidak ada gambar untuk checksheet ini
+                                                                                                                                        </div>
+                                                                                                                                    `;
                             downloadBtn.style.display = 'none';
                         }
 
                         // Display details
                         const details = `
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Item Part:</th>
-                                                                                                                            <td>${data.item_name || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Customer:</th>
-                                                                                                                            <td>${data.customer || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Part No:</th>
-                                                                                                                            <td>${data.part_number || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Kode SAP:</th>
-                                                                                                                            <td>${data.sap_code || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Tanggal Produksi:</th>
-                                                                                                                            <td>${data.production_date || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Tanggal QC:</th>
-                                                                                                                            <td>${data.qc_date || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Shift Prod./QC:</th>
-                                                                                                                            <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Kimia Copper:</th>
-                                                                                                                            <td>${data.chemical_copper || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Kimia Nikel:</th>
-                                                                                                                            <td>${data.chemical_nikel || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Kimia Eching:</th>
-                                                                                                                            <td>${data.chemical_eching || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Kimia Abu:</th>
-                                                                                                                            <td>${data.chemical_abu || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Posisi Remark:</th>
-                                                                                                                            <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Result Remark:</th>
-                                                                                                                            <td>${data.result_remark || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                        <tr>
-                                                                                                                            <th class="text-nowrap">Operator:</th>
-                                                                                                                            <td>${data.operator_initials || '-'}</td>
-                                                                                                                        </tr>
-                                                                                                                    `;
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Item Part:</th>
+                                                                                                                                        <td>${data.item_name || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Customer:</th>
+                                                                                                                                        <td>${data.customer || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Part No:</th>
+                                                                                                                                        <td>${data.part_number || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Kode SAP:</th>
+                                                                                                                                        <td>${data.sap_code || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Tanggal Produksi:</th>
+                                                                                                                                        <td>${data.production_date || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Tanggal QC:</th>
+                                                                                                                                        <td>${data.qc_date || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Shift Prod./QC:</th>
+                                                                                                                                        <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Kimia Copper:</th>
+                                                                                                                                        <td>${data.chemical_copper || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Kimia Nikel:</th>
+                                                                                                                                        <td>${data.chemical_nikel || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Kimia Eching:</th>
+                                                                                                                                        <td>${data.chemical_eching || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Kimia Abu:</th>
+                                                                                                                                        <td>${data.chemical_abu || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Posisi Remark:</th>
+                                                                                                                                        <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Result Remark:</th>
+                                                                                                                                        <td>${data.result_remark || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                    <tr>
+                                                                                                                                        <th class="text-nowrap">Operator:</th>
+                                                                                                                                        <td>${data.operator_initials || '-'}</td>
+                                                                                                                                    </tr>
+                                                                                                                                `;
                         detailsContainer.innerHTML = details;
                     })
                     .catch(error => {
                         console.error('Error loading image:', error);
                         imageContainer.innerHTML = `
-                                                                                                                        <div class="alert alert-danger">
-                                                                                                                            <i class="fas fa-exclamation-circle mr-2"></i>
-                                                                                                                            Gagal memuat gambar. Silakan coba lagi.
-                                                                                                                        </div>
-                                                                                                                    `;
+                                                                                                                                    <div class="alert alert-danger">
+                                                                                                                                        <i class="fas fa-exclamation-circle mr-2"></i>
+                                                                                                                                        Gagal memuat gambar. Silakan coba lagi.
+                                                                                                                                    </div>
+                                                                                                                                `;
                         detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
@@ -1276,8 +1276,8 @@
 @endforeach
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+    <script src="/js/vendor/jspdf.umd.min.js"></script>
+    <script src="/js/vendor/jspdf.plugin.autotable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Character counter for rejection remarks
@@ -1293,8 +1293,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                // Live Search Functionality
-                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                            // Live Search Functionality
+                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
@@ -1482,7 +1482,7 @@
                     doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 });
             });
-                                                }
+                                                            }
 
         // Edit Modal Handler
         $('.btn-edit-modal').on('click', function (e) {
@@ -1525,6 +1525,6 @@
                 }
             });
         });
-                                            });
+                                                        });
     </script>
 @endpush

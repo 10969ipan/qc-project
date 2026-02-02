@@ -10,12 +10,12 @@
 
     <title>MASUK - QC APPS</title>
 
-    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
-        rel="stylesheet" type="text/css">
-    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
+    <link href="/startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"
+        type="text/css">
+    <link href="/fonts/inter.css" rel="stylesheet">
 
-    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
+    <link href="/startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/css/custom-responsive.css" rel="stylesheet">
 
     <style>
         * {
@@ -38,7 +38,7 @@
             align-items: center;
             justify-content: center;
             background-color: #ffffff;
-            background-image: url('{{ asset("master item/bg_pattern.png") }}');
+            background-image: url('/master item/bg_pattern.png');
             background-size: 400px;
             background-repeat: repeat;
             position: relative;
@@ -95,7 +95,7 @@
 
         .login-side-image {
             flex: 1.3;
-            background-image: url('{{ asset("master item/indoplat.jpg") }}');
+            background-image: url('/master item/indoplat.jpg');
             background-size: cover;
             background-position: center;
             position: relative;
@@ -448,7 +448,7 @@
                 </form>
             </div>
             <div class="login-side-image">
-                <img src="{{ asset('master item/PNG LOGO IPP.png') }}"
+                <img src="/master item/PNG LOGO IPP.png"
                     style="position: absolute; top: 20px; right: 20px; width: 100px; z-index: 30;">
                 <div class="banner-content">
                     <h2 class="banner-title">QC APPS<br></h2>
@@ -462,13 +462,12 @@
         </div>
     </div>
 
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js') }}"></script>
-    <script
-        src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js"></script>
 
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

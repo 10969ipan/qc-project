@@ -383,8 +383,7 @@
 
                                         @if($tool->certification_path)
                                             <button type="button" class="btn btn-sm btn-primary view-pdf" data-toggle="modal"
-                                                data-target="#pdfModal"
-                                                data-url="{{ asset('storage/' . $tool->certification_path) }}"
+                                                data-target="#pdfModal" data-url="/storage/{{ $tool->certification_path }}"
                                                 data-title="Sertifikat - {{ $tool->name_alat }}">
                                                 <i class="fas fa-file-pdf"></i>
                                             </button>
@@ -853,14 +852,14 @@
             // Modal Add Schedule rows
             $('#modal-add-schedule-btn').click(function () {
                 var html = `
-                                                                    <div class="input-group input-group-sm mb-2">
-                                                                        <input type="date" name="schedule_planning[]" class="form-control" required>
-                                                                        <div class="input-group-append">
-                                                                            <button class="btn btn-danger modal-remove-schedule" type="button">
-                                                                                <i class="fas fa-minus"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>`;
+                                                                        <div class="input-group input-group-sm mb-2">
+                                                                            <input type="date" name="schedule_planning[]" class="form-control" required>
+                                                                            <div class="input-group-append">
+                                                                                <button class="btn btn-danger modal-remove-schedule" type="button">
+                                                                                    <i class="fas fa-minus"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>`;
                 $('#modal-schedule-container').append(html);
             });
 
@@ -915,17 +914,17 @@
 
             $('#modal-verif-add-row').on('click', function () {
                 var newRow = `
-                                                    <tr>
-                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                                        <td class="text-center">
-                                                            <button type="button" class="btn btn-sm btn-outline-danger modal-verif-remove-row">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>`;
+                                                        <tr>
+                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                            <td class="text-center">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger modal-verif-remove-row">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>`;
                 $('#modal-verif-verification-body').append(newRow);
                 modalVerifUpdateRemoveButtons();
             });
@@ -1126,26 +1125,26 @@
                     if (tool.schedules && tool.schedules.length > 0) {
                         tool.schedules.forEach(function (sch) {
                             schHtml += `
-                                                        <tr>
-                                                            <td>
-                                                                <input type="hidden" name="schedule_ids[]" value="${sch.id}">
-                                                                <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date.substring(0, 10)}" required>
-                                                            </td>
-                                                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                                        </tr>`;
+                                                            <tr>
+                                                                <td>
+                                                                    <input type="hidden" name="schedule_ids[]" value="${sch.id}">
+                                                                    <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date.substring(0, 10)}" required>
+                                                                </td>
+                                                                <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                                            </tr>`;
                         });
                     } else if (tool.schedule_planning) {
                         schHtml = `
-                                                    <tr>
-                                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}" required></td>
-                                                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                                    </tr>`;
+                                                        <tr>
+                                                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}" required></td>
+                                                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                                        </tr>`;
                     } else {
                         schHtml = `
-                                                    <tr>
-                                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
-                                                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                                    </tr>`;
+                                                        <tr>
+                                                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                                        </tr>`;
                     }
                     $('#edit-schedule-table tbody').html(schHtml);
 
@@ -1171,10 +1170,10 @@
 
         $(document).on('click', '.add-edit-schedule-row', function () {
             var newRow = `
-                                        <tr>
-                                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
-                                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>`;
+                                            <tr>
+                                                <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                                            </tr>`;
             $('#edit-schedule-table tbody').append(newRow);
         });
 

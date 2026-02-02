@@ -186,7 +186,7 @@
                                     @if ($checksheet->image_path)
                                         <button type="button" class="btn btn-sm btn-info view-image-btn p-1 px-2" data-toggle="modal"
                                             data-target="#viewImageModal"
-                                            data-image="{{ asset('storage/' . $checksheet->image_path) }}">
+                                            data-image="/storage/{{ $checksheet->image_path }}">
                                             <i class="fas fa-image"></i>
                                         </button>
                                         <small class="d-block mt-1">Tap: {{ $checksheet->tap_test ?? '-' }}</small>

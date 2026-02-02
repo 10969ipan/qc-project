@@ -7,31 +7,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard')</title>
-    <link rel="icon" href="{{ asset('master item/PNG LOGO IPP.png') }}" type="image/png">
+    <link rel="icon" href="/master item/PNG LOGO IPP.png" type="image/png">
 
-    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
-        rel="stylesheet" type="text/css">
+    <link href="/startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"
+        type="text/css">
 
     <!-- Professional Corporate Fonts (Localized) -->
-    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
-    <link href="{{ asset('fonts/nunito.css') }}" rel="stylesheet">
+    <link href="/fonts/inter.css" rel="stylesheet">
+    <link href="/fonts/nunito.css" rel="stylesheet">
 
-    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/custom-responsive.css') }}?v={{ time() }}" rel="stylesheet">
+    <link href="/startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/css/custom-responsive.css?v={{ time() }}" rel="stylesheet">
 
     <!-- Custom styles for DataTables -->
-    <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.css') }}"
-        rel="stylesheet">
+    <link href="/startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
     <!-- Chart.js for Dashboard Charts -->
-    <script src="{{ asset('js/vendor/chart.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}"></script>
+    <script src="/js/vendor/chart.umd.min.js"></script>
+    <script src="/js/vendor/chartjs-plugin-datalabels.min.js"></script>
 
     <!-- FusionCharts for Gauge Charts -->
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.widgets.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
+    <script type="text/javascript" src="/js/vendor/fusioncharts.js"></script>
+    <script type="text/javascript" src="/js/vendor/fusioncharts.widgets.js"></script>
+    <script type="text/javascript" src="/js/vendor/fusioncharts.theme.fusion.js"></script>
+    <script type="text/javascript" src="/js/vendor/fusioncharts.theme.gammel.js"></script>
 
     <style>
         /* Professional Corporate Font - Inter */
@@ -1109,21 +1108,19 @@
         @csrf
     </form>
 
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js') }}"></script>
-    <script
-        src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js"></script>
 
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js"></script>
 
     <!-- Page level plugins -->
-    <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/jquery.dataTables.min.js') }}"></script>
-    <script
-        src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="/startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
     {{-- SweetAlert2 --}}
-    <script src="{{ asset('sweetalert/sweetalert2.all.min.js') }}"></script>
+    <script src="/sweetalert/sweetalert2.all.min.js"></script>
     <script>
         // Flash Messages
         @if(session('success'))
@@ -1239,7 +1236,7 @@
     </script>
 
     {{-- Sticky Horizontal Scroll --}}
-    <script src="{{ asset('js/sticky-scroll.js') }}?v={{ time() }}"></script>
+    <script src="/js/sticky-scroll.js?v={{ time() }}"></script>
 
     {{-- Tambahkan script lain yang dibutuhkan di sini --}}
     @stack('scripts')

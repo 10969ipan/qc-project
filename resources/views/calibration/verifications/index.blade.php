@@ -111,7 +111,7 @@
                                 <td class="text-center align-middle">
                                     @if($v->certification_path)
                                         <button type="button" class="btn btn-sm btn-primary view-pdf" data-toggle="modal"
-                                            data-target="#pdfModal" data-url="{{ asset('storage/' . $v->certification_path) }}"
+                                            data-target="#pdfModal" data-url="/storage/{{ $v->certification_path }}"
                                             data-title="Sertifikat - {{ $v->name_alat }}">
                                             <i class="fas fa-file-pdf"></i>
                                         </button>
@@ -690,17 +690,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                            <tr>
-                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>`;
+                                                <tr>
+                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -763,17 +763,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                                <tr>
-                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
-                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
-                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
-                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
-                                                    <td class="text-center">
-                                                        <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>`;
+                                                    <tr>
+                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
+                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
+                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
+                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -800,17 +800,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                        <tr>
-                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                            <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>`;
+                                            <tr>
+                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });

@@ -340,7 +340,7 @@
                 </div>
                 <img class="img-profile rounded-circle"
                     style="width: 32px; height: 32px; border: 2px solid rgba(255,255,255,0.3);"
-                    src="{{ asset('startbootstrap-sb-admin-2-gh-pages/img/undraw_profile.svg') }}">
+                    src="/startbootstrap-sb-admin-2-gh-pages/img/undraw_profile.svg">
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
                 <a class="dropdown-item btn-logout" href="#">
