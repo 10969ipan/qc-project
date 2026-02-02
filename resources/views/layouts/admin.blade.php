@@ -12,11 +12,9 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
 
-    <!-- Professional Corporate Font - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+    <!-- Professional Corporate Fonts (Localized) -->
+    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
+    <link href="{{ asset('fonts/nunito.css') }}" rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}?v={{ time() }}" rel="stylesheet">
