@@ -29,7 +29,9 @@ class DashboardService extends BaseService
         $plantId = auth()->user()->plant_id;
         $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant');
 
-        return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole) {
+        // TEMPORARILY BYPASSING CACHE FOR DEBUGGING
+        // return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole) {
+        return (function () use ($authRole) {
             $combinedStats = $this->calculateApprovalStats();
             $dailyCombinedStats = $this->calculateApprovalStats(null, true);
 
@@ -74,11 +76,14 @@ class DashboardService extends BaseService
                 }
             }
 
+            // Flag for dual view mode
+            $isDualView = in_array($authRole, $dualViewRoles);
+
             return array_merge(
-                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap'),
+                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView'),
                 $productionMonitoring
             );
-        });
+        })();
     }
 
     /**
