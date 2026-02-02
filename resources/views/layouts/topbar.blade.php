@@ -12,7 +12,7 @@
         <button class="menu-toggle mr-2" id="mobile-menu-toggle">
             <i class="fas fa-bars"></i>
         </button>
-        <a class="sidebar-brand d-flex align-items-center text-decoration-none mr-3" href="/">
+        <a class="sidebar-brand d-flex align-items-center text-decoration-none mr-3" href="{{ url('/') }}">
             <div class="sidebar-brand-icon rotate-n-15 mr-2">
                 <i class="fas fa-laugh-wink text-white" style="font-size: 1.4rem;"></i>
             </div>
@@ -33,8 +33,8 @@
                 QC APPS
             </div>
             <ul class="main-nav d-flex align-items-center list-unstyled mb-0">
-                <li class="{{ Request::is('/') ? 'active' : '' }}">
-                    <a href="/"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
+                <li class="{{ url()->current() === url('/dashboard') ? 'active' : '' }}">
+                    <a href="{{ url('/') }}"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
                 </li>
 
                 <!-- Quality Control Dropdown -->
