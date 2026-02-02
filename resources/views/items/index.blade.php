@@ -710,20 +710,24 @@
 
                         // Existing files
                         var filesHtml = '';
+                        const viewPdfUrlTemplate = "{{ route('items.pdf', ['id' => '__ID__']) }}";
+
                         if (item.file_paths && item.file_paths.length > 0) {
                             item.file_paths.forEach(function (path, index) {
+                                let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/' + index;
                                 filesHtml += `
                                     <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
                                         <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
-                                        <a href="/items/${item.id}/pdf/${index}" target="_blank" class="badge badge-info mr-1">View</a>
+                                        <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
                                         <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
                                     </div>`;
                             });
                         } else if (item.file_path) {
+                            let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id);
                             filesHtml += `
                                 <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
                                     <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
-                                    <a href="/items/${item.id}/pdf" target="_blank" class="badge badge-info mr-1">View</a>
+                                    <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
                                     <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
                                 </div>`;
                         }
@@ -795,8 +799,11 @@
                 var originalText = btn.text();
                 btn.text('...').prop('disabled', true);
 
+                var deletePdfUrlTemplate = "{{ route('admin.items.delete-pdf', ['id' => '__ID__', 'index' => '__INDEX__']) }}";
+                var url = deletePdfUrlTemplate.replace('__ID__', id).replace('__INDEX__', index);
+
                 $.ajax({
-                    url: "/admin/items/" + id + "/pdf/" + index,
+                    url: url,
                     type: 'DELETE',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')
