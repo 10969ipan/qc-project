@@ -29,6 +29,7 @@
 
     <!-- FusionCharts for Gauge Charts -->
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.widgets.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
 
