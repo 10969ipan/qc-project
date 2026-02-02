@@ -106,7 +106,13 @@ abstract class BaseService
     protected function deleteFile(?string $filePath): bool
     {
         if ($filePath && file_exists(public_path($filePath))) {
-            return unlink(public_path($filePath));
+            try {
+                return unlink(public_path($filePath));
+            } catch (\Exception $e) {
+                // Log error but generally return false or suppress so calling process continues
+                \Illuminate\Support\Facades\Log::error("Failed to delete file at {$filePath}: " . $e->getMessage());
+                return false;
+            }
         }
 
         return false;

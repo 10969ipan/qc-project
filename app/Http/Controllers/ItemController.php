@@ -211,11 +211,13 @@ class ItemController extends Controller
                 $foundRelativePath = null;
 
                 // Helper to find file case-insensitively in a directory
-                $findFileInDir = function($dir, $fname) {
-                    if (!is_dir($dir)) return null;
+                $findFileInDir = function ($dir, $fname) {
+                    if (!is_dir($dir))
+                        return null;
                     $files = scandir($dir);
                     foreach ($files as $file) {
-                        if ($file === '.' || $file === '..') continue;
+                        if ($file === '.' || $file === '..')
+                            continue;
                         if (strtolower($file) === strtolower($fname)) {
                             return $file; // Return actual filename found on disk
                         }
@@ -225,14 +227,14 @@ class ItemController extends Controller
 
                 foreach ($searchFolders as $folderRelative) {
                     $dir = public_path($folderRelative);
-                    
+
                     // Try to find the file (either exact or case-insensitive)
                     // First try raw filename
                     $actualFilename = $findFileInDir($dir, $filename);
-                    
+
                     // If not found, try decoded filename
                     if (!$actualFilename && $filename !== $decodedFilename) {
-                         $actualFilename = $findFileInDir($dir, $decodedFilename);
+                        $actualFilename = $findFileInDir($dir, $decodedFilename);
                     }
 
                     if ($actualFilename) {
@@ -272,9 +274,12 @@ class ItemController extends Controller
                 }
             }
 
+            // Sanitize filename for Content-Disposition header (remove quotes to prevent breaking header)
+            $safeFilename = str_replace('"', '', basename($filePath));
+
             return response()->file($filePath, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+                'Content-Disposition' => 'inline; filename="' . $safeFilename . '"'
             ]);
         } catch (\Exception $e) {
             \Log::error("Error serving PDF for Item ID {$id}: " . $e->getMessage());
