@@ -170,17 +170,27 @@ class InProcessChecksheetService extends BaseService
                         $floatValue = (float) $value;
 
                         // Use min/max if both are set, otherwise fallback to size +/- tolerance
-                        if ($standard['min'] !== null && $standard['max'] !== null) {
-                            $lowerBound = $standard['min'];
-                            $upperBound = $standard['max'];
-                        } elseif ($standard['size'] !== null && $standard['tolerance'] !== null) {
-                            $lowerBound = $standard['size'] - $standard['tolerance'];
-                            $upperBound = $standard['size'] + $standard['tolerance'];
-                        } else {
-                            continue;
+                        $isPointInvalid = false;
+
+                        if ($standard['min'] !== null && $floatValue < $standard['min']) {
+                            $isPointInvalid = true;
+                        }
+                        if ($standard['max'] !== null && $floatValue > $standard['max']) {
+                            $isPointInvalid = true;
                         }
 
-                        if ($floatValue < $lowerBound || $floatValue > $upperBound) {
+                        // Fallback to size +/- tolerance if no Min/Max is set
+                        if ($standard['min'] === null && $standard['max'] === null) {
+                            if ($standard['size'] !== null && $standard['tolerance'] !== null) {
+                                $lowerBound = $standard['size'] - $standard['tolerance'];
+                                $upperBound = $standard['size'] + $standard['tolerance'];
+                                if ($floatValue < $lowerBound || $floatValue > $upperBound) {
+                                    $isPointInvalid = true;
+                                }
+                            }
+                        }
+
+                        if ($isPointInvalid) {
                             $isAnyInvalid = true;
                             break 2;
                         }

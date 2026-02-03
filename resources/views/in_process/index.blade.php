@@ -282,19 +282,23 @@
                                                                     $isNG = false;
                                                                     if (isset($standards[$j]) && is_numeric($val)) {
                                                                         $std = $standards[$j];
-                                                                        if ($std['min'] !== null && $std['max'] !== null) {
-                                                                            $min = $std['min'];
-                                                                            $max = $std['max'];
-                                                                        } elseif ($std['size'] !== null && $std['tolerance'] !== null) {
-                                                                            $min = $std['size'] - $std['tolerance'];
-                                                                            $max = $std['size'] + $std['tolerance'];
-                                                                        } else {
-                                                                            $min = null;
-                                                                            $max = null;
+
+                                                                        if ($std['min'] !== null && $val < $std['min']) {
+                                                                            $isNG = true;
+                                                                        }
+                                                                        if ($std['max'] !== null && $val > $std['max']) {
+                                                                            $isNG = true;
                                                                         }
 
-                                                                        if ($min !== null && ($val < $min || $val > $max)) {
-                                                                            $isNG = true;
+                                                                        // Fallback to size +/- tolerance
+                                                                        if (!$isNG && $std['min'] === null && $std['max'] === null) {
+                                                                            if ($std['size'] !== null && $std['tolerance'] !== null) {
+                                                                                $min = $std['size'] - $std['tolerance'];
+                                                                                $max = $std['size'] + $std['tolerance'];
+                                                                                if ($val < $min || $val > $max) {
+                                                                                    $isNG = true;
+                                                                                }
+                                                                            }
                                                                         }
                                                                     }
                                                                 @endphp
@@ -789,8 +793,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1054,6 +1058,6 @@
                 }
             });
         });
-                                                        });
+                                                            });
     </script>
 @endpush

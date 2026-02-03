@@ -1069,20 +1069,27 @@
                         // Calculate or use the valid range.
                         let lowerBound, upperBound;
 
-                        if (standard.min !== null && standard.max !== null) {
-                            lowerBound = standard.min;
-                            upperBound = standard.max;
-                        } else if (standard.size !== null && standard.tolerance !== null) {
-                            lowerBound = standard.size - standard.tolerance;
-                            upperBound = standard.size + standard.tolerance;
-                        } else {
-                            // Skip if we don't have enough data to validate
-                            $(this).removeClass('is-invalid');
-                            return;
+                        let isInvalid = false;
+
+                        if (standard.min !== null && value < standard.min) {
+                            isInvalid = true;
+                        }
+                        if (standard.max !== null && value > standard.max) {
+                            isInvalid = true;
                         }
 
-                        // Compare the entered value against the valid range.
-                        if (value < lowerBound || value > upperBound) {
+                        // Fallback to Size +/- Tolerance if no Min/Max is set at all
+                        if (standard.min === null && standard.max === null) {
+                            if (standard.size !== null && standard.tolerance !== null) {
+                                const lowerBound = standard.size - standard.tolerance;
+                                const upperBound = standard.size + standard.tolerance;
+                                if (value < lowerBound || value > upperBound) {
+                                    isInvalid = true;
+                                }
+                            }
+                        }
+
+                        if (isInvalid) {
                             $(this).addClass('is-invalid');
                         } else {
                             $(this).removeClass('is-invalid');
@@ -1106,15 +1113,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                            <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                style="min-width: 60px;"
-                                                                name="dimensions[${currentCavities}][${j}]" 
-                                                                placeholder="P${j}">
-                                                        </td>`;
+                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                    style="min-width: 60px;"
+                                                                    name="dimensions[${currentCavities}][${j}]" 
+                                                                    placeholder="P${j}">
+                                                            </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1133,11 +1140,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                            <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                style="min-width: 60px;"
-                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                placeholder="P${currentPoints}">
-                                                        </td>`);
+                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                    style="min-width: 60px;"
+                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                    placeholder="P${currentPoints}">
+                                                            </td>`);
                     });
                 } else {
                     alert('Maximum 20 points reached');

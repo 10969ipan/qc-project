@@ -335,19 +335,27 @@
                     // Calculate or use the valid range.
                     let lowerBound, upperBound;
 
-                    if (standard.min !== null && standard.max !== null) {
-                        lowerBound = standard.min;
-                        upperBound = standard.max;
-                    } else if (standard.size !== null && standard.tolerance !== null) {
-                        lowerBound = standard.size - standard.tolerance;
-                        upperBound = standard.size + standard.tolerance;
-                    } else {
-                        // Skip if we don't have enough data to validate
-                        $(this).removeClass('is-invalid');
-                        return;
+                    let isInvalid = false;
+
+                    if (standard.min !== null && value < standard.min) {
+                        isInvalid = true;
+                    }
+                    if (standard.max !== null && value > standard.max) {
+                        isInvalid = true;
                     }
 
-                    if (value < lowerBound || value > upperBound) {
+                    // Fallback to Size +/- Tolerance if no Min/Max is set at all
+                    if (standard.min === null && standard.max === null) {
+                        if (standard.size !== null && standard.tolerance !== null) {
+                            const lowerBound = standard.size - standard.tolerance;
+                            const upperBound = standard.size + standard.tolerance;
+                            if (value < lowerBound || value > upperBound) {
+                                isInvalid = true;
+                            }
+                        }
+                    }
+
+                    if (isInvalid) {
                         $(this).addClass('is-invalid');
                     } else {
                         $(this).removeClass('is-invalid');
