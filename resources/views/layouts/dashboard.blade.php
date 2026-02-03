@@ -552,7 +552,7 @@
                             renderChart("chartKarawang", "STATUS APPROVAL - KARAWANG", statsKarawang);
                         }
                     @else
-                                        var combinedStats = @json($combinedStats ?? null);
+                                                                        var combinedStats = @json($combinedStats ?? null);
                         if (combinedStats && document.getElementById("chartContainer")) {
                             renderChart("chartContainer", "Status Approval", combinedStats);
                         }
@@ -612,9 +612,9 @@
                         },
                         colorRange: {
                             color: [
-                                { minValue: "0", maxValue: "50", code: "#F2726F" },
-                                { minValue: "50", maxValue: "75", code: "#FFC533" },
-                                { minValue: "75", maxValue: "100", code: "#62B58F" }
+                                { minValue: "0", maxValue: "50", code: "#e74c3c" },
+                                { minValue: "50", maxValue: "75", code: "#f39c12" },
+                                { minValue: "75", maxValue: "100", code: "#27ae60" }
                             ]
                         },
                         dials: {
@@ -696,7 +696,7 @@
                             var dp = { label: claimData.labels[index], y: val, claim_count: count };
                             if (val > 0) {
                                 dp.indexLabel = val.toString();
-                                dp.indexLabelFontColor = "#4e73df";
+                                dp.indexLabelFontColor = "#2e59d9";
                                 dp.indexLabelFontWeight = "bold";
                                 dp.indexLabelFontSize = 10;
                             }
@@ -707,7 +707,7 @@
                             let dp = { label: claimData.labels[i], y: v };
                             if (i === 0 || i === claimData.target.length - 1) {
                                 dp.indexLabel = v.toString();
-                                dp.indexLabelFontColor = "#e74a3b";
+                                dp.indexLabelFontColor = "#c0392b";
                                 dp.indexLabelFontSize = 9;
                                 dp.indexLabelFontWeight = "bold";
                             }
@@ -727,7 +727,7 @@
                                     type: "splineArea",
                                     name: "Jakarta PPM",
                                     showInLegend: true,
-                                    color: "rgba(78, 115, 223, 0.7)",
+                                    color: "rgba(46, 89, 217, 0.8)",
                                     markerSize: 5,
                                     dataPoints: dataJkt
                                 },
@@ -736,7 +736,7 @@
                                     name: "Total Claim Jakarta-Karawang",
                                     axisYType: "secondary",
                                     showInLegend: true,
-                                    color: "#f6c23e",
+                                    color: "#d39e00",
                                     markerSize: 5,
                                     dataPoints: jktTotalClaims
                                 },
@@ -744,7 +744,7 @@
                                     type: "line",
                                     name: "Target",
                                     showInLegend: true,
-                                    color: "#e74a3b",
+                                    color: "#c0392b",
                                     lineDashType: "dash",
                                     markerSize: 0,
                                     dataPoints: jktTarget
@@ -761,7 +761,7 @@
                             var dp = { label: claimData.labels[index], y: val, claim_count: count };
                             if (val > 0) {
                                 dp.indexLabel = val.toString();
-                                dp.indexLabelFontColor = "#1cc88a";
+                                dp.indexLabelFontColor = "#17a673";
                                 dp.indexLabelFontWeight = "bold";
                                 dp.indexLabelFontSize = 10;
                             }
@@ -772,7 +772,7 @@
                             let dp = { label: claimData.labels[i], y: v };
                             if (i === 0 || i === claimData.target.length - 1) {
                                 dp.indexLabel = v.toString();
-                                dp.indexLabelFontColor = "#e74a3b";
+                                dp.indexLabelFontColor = "#c0392b";
                                 dp.indexLabelFontSize = 9;
                                 dp.indexLabelFontWeight = "bold";
                             }
@@ -792,7 +792,7 @@
                                     type: "splineArea",
                                     name: "Karawang PPM",
                                     showInLegend: true,
-                                    color: "rgba(28, 200, 138, 0.7)",
+                                    color: "rgba(23, 166, 115, 0.8)",
                                     markerSize: 5,
                                     dataPoints: dataKrw
                                 },
@@ -801,7 +801,7 @@
                                     name: "Total Claim Jakarta-Karawang",
                                     axisYType: "secondary",
                                     showInLegend: true,
-                                    color: "#f6c23e",
+                                    color: "#d39e00",
                                     markerSize: 5,
                                     dataPoints: krwTotalClaims
                                 },
@@ -809,7 +809,7 @@
                                     type: "line",
                                     name: "Target",
                                     showInLegend: true,
-                                    color: "#e74a3b",
+                                    color: "#c0392b",
                                     lineDashType: "dash",
                                     markerSize: 0,
                                     dataPoints: targetData
@@ -855,14 +855,14 @@
                                     type: "bar",
                                     name: "Jakarta",
                                     showInLegend: true,
-                                    color: "#4e73df",
+                                    color: "#2e59d9",
                                     dataPoints: jktFreqPpm
                                 },
                                 {
                                     type: "bar",
                                     name: "Karawang",
                                     showInLegend: true,
-                                    color: "#1cc88a",
+                                    color: "#17a673",
                                     dataPoints: krwFreqPpm
                                 }
                             ]
@@ -902,9 +902,9 @@
                             toolTipContent: "{name}: <strong>{y}</strong>",
                             indexLabel: "{name} - {y}",
                             dataPoints: [
-                                { y: stats.pending, name: "Pending", color: "#f6c23e", exploded: true },
-                                { y: stats.approved, name: "Approved", color: "#1cc88a" },
-                                { y: stats.rejected, name: "Rejected", color: "#e74a3b" }
+                                { y: stats.pending, name: "Pending", color: "#f39c12", exploded: true },
+                                { y: stats.approved, name: "Approved", color: "#27ae60" },
+                                { y: stats.rejected, name: "Rejected", color: "#e74c3c" }
                             ]
                         }]
                     });
@@ -952,6 +952,7 @@
                         series.push({
                             type: "spline",
                             name: "Sub Assy",
+                            color: "#0d6efd",
                             showInLegend: true,
                             yValueFormatString: "##0.00'%'",
                             dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.sub_assy[i] }))
@@ -962,6 +963,7 @@
                         series.push({
                             type: "spline",
                             name: "In Process",
+                            color: "#198754",
                             showInLegend: true,
                             yValueFormatString: "##0.00'%'",
                             dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.in_process[i] }))
@@ -972,6 +974,7 @@
                         series.push({
                             type: "spline",
                             name: "Cross Cut",
+                            color: "#6f42c1",
                             showInLegend: true,
                             yValueFormatString: "##0.00'%'",
                             dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.cross_cut[i] }))
@@ -982,7 +985,7 @@
                         series.push({
                             type: "spline",
                             name: "Sortir",
-                            color: "#5a5c69",
+                            color: "#d63384",
                             showInLegend: true,
                             yValueFormatString: "##0.00'%'",
                             dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.sortir[i] }))
@@ -2015,125 +2018,125 @@
 
             if (status === 'active') {
                 content = `
-                                                                                                                                                                                                <div class="space-y-6 text-slate-800 dark:text-slate-200">
-                                                                                                                                                                                                    <!-- Part Info Section -->
-                                                                                                                                                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-                                                                                                                                                                                                        <div class="flex items-center gap-2 mb-4">
-                                                                                                                                                                                                            <span class="material-icons-round text-primary">inventory_2</span>
-                                                                                                                                                                                                            <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Informasi Produk</h6>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                                                                                                                                                            <div class="space-y-1">
-                                                                                                                                                                                                                <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Part Number</p>
-                                                                                                                                                                                                                <p class="text-sm font-mono font-bold">${partNumber}</p>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                            <div class="space-y-1">
-                                                                                                                                                                                                                <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Item Name</p>
-                                                                                                                                                                                                                <p class="text-sm font-bold">${itemName}</p>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                            <div class="space-y-1">
-                                                                                                                                                                                                                <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Kapasitas (Tonnage)</p>
-                                                                                                                                                                                                                <p class="text-sm font-bold">${tonnage}T</p>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                            <div class="space-y-1">
-                                                                                                                                                                                                                <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Waktu Update</p>
-                                                                                                                                                                                                                <p class="text-sm font-bold">${time} WIB</p>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                    </div>
-
-                                                                                                                                                                                                    <!-- Quality Control Section -->
-                                                                                                                                                                                                    <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
-                                                                                                                                                                                                        <div class="flex items-center gap-2 mb-4">
-                                                                                                                                                                                                            <span class="material-icons-round text-indigo-600">verified_user</span>
-                                                                                                                                                                                                            <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Quality Control (QC)</h6>
-                                                                                                                                                                                                        </div>
-
-                                                                                                                                                                                                        <div class="grid grid-cols-2 gap-4 mb-4">
-                                                                                                                                                                                                            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                                                                                                                                                                                                <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Sampling Rate</p>
-                                                                                                                                                                                                                <div class="flex items-end gap-1">
-                                                                                                                                                                                                                    <span class="text-xl font-bold">${samplingQty}</span>
-                                                                                                                                                                                                                    <span class="text-[0.65rem] text-slate-400 mb-1">/ ${totalQty} pcs</span>
+                                                                                                                                                                                                        <div class="space-y-6 text-slate-800 dark:text-slate-200">
+                                                                                                                                                                                                            <!-- Part Info Section -->
+                                                                                                                                                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+                                                                                                                                                                                                                <div class="flex items-center gap-2 mb-4">
+                                                                                                                                                                                                                    <span class="material-icons-round text-primary">inventory_2</span>
+                                                                                                                                                                                                                    <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Informasi Produk</h6>
+                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                                                                                                                                                    <div class="space-y-1">
+                                                                                                                                                                                                                        <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Part Number</p>
+                                                                                                                                                                                                                        <p class="text-sm font-mono font-bold">${partNumber}</p>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                    <div class="space-y-1">
+                                                                                                                                                                                                                        <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Item Name</p>
+                                                                                                                                                                                                                        <p class="text-sm font-bold">${itemName}</p>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                    <div class="space-y-1">
+                                                                                                                                                                                                                        <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Kapasitas (Tonnage)</p>
+                                                                                                                                                                                                                        <p class="text-sm font-bold">${tonnage}T</p>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                    <div class="space-y-1">
+                                                                                                                                                                                                                        <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Waktu Update</p>
+                                                                                                                                                                                                                        <p class="text-sm font-bold">${time} WIB</p>
+                                                                                                                                                                                                                    </div>
                                                                                                                                                                                                                 </div>
                                                                                                                                                                                                             </div>
-                                                                                                                                                                                                            <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                                                                                                                                                                                                <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Status Judgment</p>
-                                                                                                                                                                                                                <div class="flex items-center gap-1.5">
-                                                                                                                                                                                                                    <span class="w-2 h-2 rounded-full ${judgment === 'OK' ? 'bg-green-500' : 'bg-red-500'}"></span>
-                                                                                                                                                                                                                    <span class="text-sm font-extrabold ${judgment === 'OK' ? 'text-green-600' : 'text-red-600'}">${judgment}</span>
-                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                        </div>
 
-                                                                                                                                                                                                        <div class="grid grid-cols-2 gap-4">
-                                                                                                                                                                                                            <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 p-2.5 rounded-xl border border-green-100 dark:border-green-900/30">
-                                                                                                                                                                                                                <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">OK</div>
-                                                                                                                                                                                                                <div>
-                                                                                                                                                                                                                    <p class="text-[0.6rem] text-green-700 dark:text-green-400 font-bold uppercase">Total OK</p>
-                                                                                                                                                                                                                    <p class="text-sm font-bold">${okCount}</p>
+                                                                                                                                                                                                            <!-- Quality Control Section -->
+                                                                                                                                                                                                            <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
+                                                                                                                                                                                                                <div class="flex items-center gap-2 mb-4">
+                                                                                                                                                                                                                    <span class="material-icons-round text-indigo-600">verified_user</span>
+                                                                                                                                                                                                                    <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Quality Control (QC)</h6>
                                                                                                                                                                                                                 </div>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                            <div class="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-xl border border-red-100 dark:border-red-900/30">
-                                                                                                                                                                                                                <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">NG</div>
-                                                                                                                                                                                                                <div>
-                                                                                                                                                                                                                    <p class="text-[0.6rem] text-red-700 dark:text-red-400 font-bold uppercase">Total NG</p>
-                                                                                                                                                                                                                    <p class="text-sm font-bold">${ngCount}</p>
-                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                    </div>
 
-                                                                                                                                                                                                    <!-- Operator Info -->
-                                                                                                                                                                                                    <div class="flex items-center justify-between px-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                                                                                                                                                                                        <div class="flex items-center gap-2">
-                                                                                                                                                                                                            <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                                                                                                                                                                                                <span class="material-icons-round text-lg">person</span>
+                                                                                                                                                                                                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                                                                                                                                                                                                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                                                                                                                                                                                                        <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Sampling Rate</p>
+                                                                                                                                                                                                                        <div class="flex items-end gap-1">
+                                                                                                                                                                                                                            <span class="text-xl font-bold">${samplingQty}</span>
+                                                                                                                                                                                                                            <span class="text-[0.65rem] text-slate-400 mb-1">/ ${totalQty} pcs</span>
+                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                    <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                                                                                                                                                                                                        <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Status Judgment</p>
+                                                                                                                                                                                                                        <div class="flex items-center gap-1.5">
+                                                                                                                                                                                                                            <span class="w-2 h-2 rounded-full ${judgment === 'OK' ? 'bg-green-500' : 'bg-red-500'}"></span>
+                                                                                                                                                                                                                            <span class="text-sm font-extrabold ${judgment === 'OK' ? 'text-green-600' : 'text-red-600'}">${judgment}</span>
+                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                </div>
+
+                                                                                                                                                                                                                <div class="grid grid-cols-2 gap-4">
+                                                                                                                                                                                                                    <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 p-2.5 rounded-xl border border-green-100 dark:border-green-900/30">
+                                                                                                                                                                                                                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">OK</div>
+                                                                                                                                                                                                                        <div>
+                                                                                                                                                                                                                            <p class="text-[0.6rem] text-green-700 dark:text-green-400 font-bold uppercase">Total OK</p>
+                                                                                                                                                                                                                            <p class="text-sm font-bold">${okCount}</p>
+                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                    <div class="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-xl border border-red-100 dark:border-red-900/30">
+                                                                                                                                                                                                                        <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">NG</div>
+                                                                                                                                                                                                                        <div>
+                                                                                                                                                                                                                            <p class="text-[0.6rem] text-red-700 dark:text-red-400 font-bold uppercase">Total NG</p>
+                                                                                                                                                                                                                            <p class="text-sm font-bold">${ngCount}</p>
+                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                </div>
                                                                                                                                                                                                             </div>
-                                                                                                                                                                                                            <div>
-                                                                                                                                                                                                                <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Operator QC</p>
-                                                                                                                                                                                                                <p class="text-xs font-bold leading-none">${operator}</p>
+
+                                                                                                                                                                                                            <!-- Operator Info -->
+                                                                                                                                                                                                            <div class="flex items-center justify-between px-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                                                                                                                                                                                <div class="flex items-center gap-2">
+                                                                                                                                                                                                                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                                                                                                                                                                                                        <span class="material-icons-round text-lg">person</span>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                    <div>
+                                                                                                                                                                                                                        <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Operator QC</p>
+                                                                                                                                                                                                                        <p class="text-xs font-bold leading-none">${operator}</p>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                <div class="text-right">
+                                                                                                                                                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Shift / Tanggal</p>
+                                                                                                                                                                                                                    <p class="text-xs font-medium leading-none">Shift ${shift} | ${date}</p>
+                                                                                                                                                                                                                </div>
                                                                                                                                                                                                             </div>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                        <div class="text-right">
-                                                                                                                                                                                                            <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Shift / Tanggal</p>
-                                                                                                                                                                                                            <p class="text-xs font-medium leading-none">Shift ${shift} | ${date}</p>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                        </div>`;
             } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
                 let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
                 let color = status === 'maintenance' ? 'yellow' : (status === 'stopped' ? 'gray' : 'red');
                 let icon = status === 'maintenance' ? 'engineering' : (status === 'stopped' ? 'pause_circle_outline' : 'warning');
 
                 content = `
-                                                                                                                                                                                                <div class="text-center py-6 text-slate-800 dark:text-slate-200">
-                                                                                                                                                                                                    <div class="w-20 h-20 bg-${color}-50 dark:bg-${color}-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-${color}-100 dark:border-${color}-900/30">
-                                                                                                                                                                                                        <span class="material-icons-round text-4xl text-${color}-600 dark:text-${color}-400">${icon}</span>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                    <h4 class="text-xl font-black mb-2 uppercase italic">${unitLabel} IN ${badge}</h4>
-                                                                                                                                                                                                    <div class="max-w-xs mx-auto bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mt-6">
-                                                                                                                                                                                                        <p class="text-[0.65rem] text-slate-500 uppercase font-bold mb-2">Keterangan / Masalah</p>
-                                                                                                                                                                                                        <p class="text-sm font-medium italic">"${manualDescription || 'Tidak ada keterangan tambahan'}"</p>
-                                                                                                                                                                                                        <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-[0.6rem]">
-                                                                                                                                                                                                            <span class="text-slate-400 uppercase font-bold">Dibuat Oleh: ${manualBy}</span>
-                                                                                                                                                                                                            <span class="text-slate-400 font-medium">${manualUpdated}</span>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                        <div class="text-center py-6 text-slate-800 dark:text-slate-200">
+                                                                                                                                                                                                            <div class="w-20 h-20 bg-${color}-50 dark:bg-${color}-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-${color}-100 dark:border-${color}-900/30">
+                                                                                                                                                                                                                <span class="material-icons-round text-4xl text-${color}-600 dark:text-${color}-400">${icon}</span>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                            <h4 class="text-xl font-black mb-2 uppercase italic">${unitLabel} IN ${badge}</h4>
+                                                                                                                                                                                                            <div class="max-w-xs mx-auto bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mt-6">
+                                                                                                                                                                                                                <p class="text-[0.65rem] text-slate-500 uppercase font-bold mb-2">Keterangan / Masalah</p>
+                                                                                                                                                                                                                <p class="text-sm font-medium italic">"${manualDescription || 'Tidak ada keterangan tambahan'}"</p>
+                                                                                                                                                                                                                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-[0.6rem]">
+                                                                                                                                                                                                                    <span class="text-slate-400 uppercase font-bold">Dibuat Oleh: ${manualBy}</span>
+                                                                                                                                                                                                                    <span class="text-slate-400 font-medium">${manualUpdated}</span>
+                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                        </div>`;
             } else {
                 content = `
-                                                                                                                                                                                                <div class="text-center py-12 text-slate-800 dark:text-slate-200">
-                                                                                                                                                                                                    <div class="relative w-24 h-24 mx-auto mb-6">
-                                                                                                                                                                                                        <div class="absolute inset-0 bg-slate-100 dark:bg-slate-800 rounded-full animate-ping opacity-25"></div>
-                                                                                                                                                                                                        <div class="relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-inner">
-                                                                                                                                                                                                            <span class="material-icons-round text-4xl text-slate-400">hourglass_empty</span>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                    <h4 class="text-lg font-bold mb-2 tracking-tight">Status: ${unitLabel} IDLE</h4>
-                                                                                                                                                                                                    <p class="text-sm text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto">Menunggu pengecekan dari tim Quality Control.</p>
-                                                                                                                                                                                                    <button class="mt-8 px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:scale-105 transition-transform" data-dismiss="modal">Tutup Detail</button>
-                                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                        <div class="text-center py-12 text-slate-800 dark:text-slate-200">
+                                                                                                                                                                                                            <div class="relative w-24 h-24 mx-auto mb-6">
+                                                                                                                                                                                                                <div class="absolute inset-0 bg-slate-100 dark:bg-slate-800 rounded-full animate-ping opacity-25"></div>
+                                                                                                                                                                                                                <div class="relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-inner">
+                                                                                                                                                                                                                    <span class="material-icons-round text-4xl text-slate-400">hourglass_empty</span>
+                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                            <h4 class="text-lg font-bold mb-2 tracking-tight">Status: ${unitLabel} IDLE</h4>
+                                                                                                                                                                                                            <p class="text-sm text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto">Menunggu pengecekan dari tim Quality Control.</p>
+                                                                                                                                                                                                            <button class="mt-8 px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:scale-105 transition-transform" data-dismiss="modal">Tutup Detail</button>
+                                                                                                                                                                                                        </div>`;
             }
 
             // Set modal content
