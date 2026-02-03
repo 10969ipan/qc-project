@@ -67,11 +67,20 @@ class InProcessChecksheetService extends BaseService
 
                     if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
                         $pointKey = (string) ($index + 1);
+
+                        // Robust float conversion helper
+                        $toFloat = function ($val) {
+                            if ($val === null || $val === '')
+                                return null;
+                            $val = str_replace(',', '.', (string) $val);
+                            return is_numeric($val) ? (float) $val : null;
+                        };
+
                         $itemStandards[$pointKey] = [
-                            'size' => isset($std['size']) && $std['size'] !== '' ? (float) str_replace(',', '.', $std['size']) : null,
-                            'tolerance' => isset($std['tolerance']) && $std['tolerance'] !== '' ? (float) str_replace(',', '.', $std['tolerance']) : null,
-                            'min' => isset($std['min']) && $std['min'] !== '' ? (float) str_replace(',', '.', $std['min']) : null,
-                            'max' => isset($std['max']) && $std['max'] !== '' ? (float) str_replace(',', '.', $std['max']) : null,
+                            'size' => $toFloat($std['size'] ?? null),
+                            'tolerance' => $toFloat($std['tolerance'] ?? null),
+                            'min' => $toFloat($std['min'] ?? null),
+                            'max' => $toFloat($std['max'] ?? null),
                         ];
                     }
                 }
@@ -575,15 +584,21 @@ class InProcessChecksheetService extends BaseService
     }
 
     /**
-     * Normalize part number for consistent matching
-     * (Trim, handle EN DASH vs HYPHEN)
+     * Normalize part number for consistent internal matching
+     * Removes ALL spaces and unifies EN/EM dashes to hyphen
      */
     private function normalizePartNumber(?string $pn): string
     {
-        if (is_null($pn))
+        if (is_null($pn) || $pn === '')
             return '';
-        // Replace EN DASH (\u2013) and EM DASH (\u2014) with normal HYPHEN-MINUS (-)
-        $pn = str_replace(["\xe2\x80\x93", "\xe2\x80\x94"], '-', $pn);
-        return trim($pn);
+
+        // Unify various dashes: EN DASH (e2 80 93), EM DASH (e2 80 94), MINUS SIGN (e2 88 92)
+        $dashes = ["\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"];
+        $pn = str_replace($dashes, '-', $pn);
+
+        // Remove ALL spaces (regular, non-breaking, etc.)
+        $pn = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', $pn);
+
+        return strtoupper($pn);
     }
 }

@@ -250,7 +250,8 @@
                             $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check :
                                 json_decode($checksheet->dimension_check, true);
                             $dimensions = $dimensions ?: [];
-                            $itemPartNumber = str_replace(["\xe2\x80\x93", "\xe2\x80\x94"], '-', trim($checksheet->item->part_number ?? ''));
+                            $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
+                            $itemPartNumber = strtoupper($itemPartNumber);
                             $standards = $partDimensionStandards[$itemPartNumber] ?? [];
 
                             // Find actual max cavity and point

@@ -313,8 +313,9 @@
         function normalizePartNumber(pn) {
             if (!pn) return '';
             return pn.toString()
-                .replace(/[\u2013\u2014]/g, '-') // Replace EN/EM DASH with hyphen
-                .trim();
+                .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
+                .replace(/\s+/g, '') // Remove all whitespace
+                .toUpperCase();
         }
 
         function validateDimensions() {
