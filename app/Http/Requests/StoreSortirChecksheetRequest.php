@@ -35,7 +35,15 @@ class StoreSortirChecksheetRequest extends FormRequest
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
             'total_ng' => 'required|integer|min:0',
-            'judgment' => 'required|in:OK,NG',
+            'judgment' => [
+                'required',
+                'in:OK,NG',
+                function ($attribute, $value, $fail) {
+                    if (request('total_ng') > 0 && $value !== 'NG') {
+                        $fail('Untuk hasil sortir dengan NG > 0, Judgment harus NG.');
+                    }
+                }
+            ],
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'cycle_time' => 'nullable|integer',

@@ -447,23 +447,15 @@
                 var ng = parseInt($('input[name="total_ng"]').val()) || 0;
                 var ok = parseInt($('input[name="total_ok"]').val()) || 0;
 
-                // Sync OK and NG to match Sampling
-                // If it's called from NG input, update OK
-                // But we don't know the caller here easily, so we assume NG is the primary result of sorting.
-
-                var limits = getAqlLimits(sampling);
-                $('#acc_val').text(limits.acc);
-                $('#rej_val').text(limits.rej);
-                $('#aql_info').show();
+                // Sortir is 100% check, bypass AQL
+                $('#aql_info').hide();
 
                 var judgmentSelect = $('#judgmentSelect');
                 if (sampling > 0 || ng > 0) {
-                    if (ng >= limits.rej) {
+                    if (ng > 0) {
                         judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
-                    } else if (ng <= limits.acc) {
-                        judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
                     } else {
-                        judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                        judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
                     }
                 } else {
                     judgmentSelect.val('').removeClass('text-success text-danger');
@@ -597,14 +589,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                                                                                <div class="input-group mb-2 defect-row">
-                                                                                                                                             <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                                                                             <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                                                                             <div class="input-group-append">
-                                                                                                                                                 <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                                    <div class="input-group mb-2 defect-row">
+                                                                                                                                                 <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                                                 <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                                                 <div class="input-group-append">
+                                                                                                                                                     <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                                 </div>
                                                                                                                                              </div>
-                                                                                                                                         </div>
-                                                                                                                                        `;
+                                                                                                                                            `;
                 $('#defectContainer').append(newRow);
             });
 
