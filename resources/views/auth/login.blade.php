@@ -449,7 +449,7 @@
                 </form>
             </div>
             <div class="login-side-image">
-                <img src="{{ asset('master item/PNG LOGO IPP.png') }}" alt="Logo IPP"
+                <img src="{{ asset('master item/logo-ipp.png') }}" alt="Logo IPP"
                     style="position: absolute; top: 20px; right: 20px; width: 100px; z-index: 30;">
                 <div class="banner-content">
                     <h2 class="banner-title">QC APPS<br></h2>
