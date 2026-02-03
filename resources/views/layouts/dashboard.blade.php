@@ -40,7 +40,7 @@
             7 => ['brand' => '-', 'tonnage' => '360'],
             8 => ['brand' => '-', 'tonnage' => '210'],
             9 => ['brand' => '-', 'tonnage' => '210'],
-            11 => ['brand' => '-', 'tonnage' => '-'],
+            11 => ['brand' => '-', 'tonnage' => '160'],
             12 => ['brand' => '-', 'tonnage' => '80'],
             14 => ['brand' => '-', 'tonnage' => '120'],
             15 => ['brand' => '-', 'tonnage' => '160'],

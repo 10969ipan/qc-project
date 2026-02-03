@@ -224,8 +224,30 @@
                                                         <th class="p-1">Std</th>
                                                         @for ($j = 1; $j <= $displayMaxPoint; $j++)
                                                             <th class="p-1 text-muted">
-                                                                @if(isset($standards[$j]))
-                                                                    {{ $standards[$j]['size'] }}
+                                                                {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
+                                                            </th>
+                                                        @endfor
+                                                    </tr>
+                                                    {{-- Min Row --}}
+                                                    <tr class="bg-light" style="font-size: 0.55rem;">
+                                                        <th class="p-1">Min</th>
+                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                                            <th class="p-1 text-muted">
+                                                                @if(isset($standards[$j]) && $standards[$j]['min'] !== null)
+                                                                    {{ $standards[$j]['min'] }}
+                                                                @else
+                                                                    -
+                                                                @endif
+                                                            </th>
+                                                        @endfor
+                                                    </tr>
+                                                    {{-- Max Row --}}
+                                                    <tr class="bg-light" style="font-size: 0.55rem;">
+                                                        <th class="p-1">Max</th>
+                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                                            <th class="p-1 text-muted">
+                                                                @if(isset($standards[$j]) && $standards[$j]['max'] !== null)
+                                                                    {{ $standards[$j]['max'] }}
                                                                 @else
                                                                     -
                                                                 @endif
@@ -237,11 +259,7 @@
                                                         <th class="p-1">Tol</th>
                                                         @for ($j = 1; $j <= $displayMaxPoint; $j++)
                                                             <th class="p-1 text-muted">
-                                                                @if(isset($standards[$j]))
-                                                                    ±{{ $standards[$j]['tolerance'] }}
-                                                                @else
-                                                                    -
-                                                                @endif
+                                                                {{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}
                                                             </th>
                                                         @endfor
                                                     </tr>
@@ -264,8 +282,14 @@
                                                                     $isNG = false;
                                                                     if (isset($standards[$j]) && is_numeric($val)) {
                                                                         $std = $standards[$j];
-                                                                        $min = $std['size'] - $std['tolerance'];
-                                                                        $max = $std['size'] + $std['tolerance'];
+                                                                        if ($std['min'] !== null && $std['max'] !== null) {
+                                                                            $min = $std['min'];
+                                                                            $max = $std['max'];
+                                                                        } else {
+                                                                            $min = $std['size'] - $std['tolerance'];
+                                                                            $max = $std['size'] + $std['tolerance'];
+                                                                        }
+
                                                                         if ($val < $min || $val > $max) {
                                                                             $isNG = true;
                                                                         }
@@ -762,8 +786,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1027,6 +1051,6 @@
                 }
             });
         });
-                                                });
+                                                    });
     </script>
 @endpush

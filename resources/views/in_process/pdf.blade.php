@@ -85,6 +85,7 @@
             border-collapse: collapse;
             margin: 0;
         }
+
         .dimension-table td,
         .dimension-table th {
             padding: 1px;
@@ -245,33 +246,51 @@
                     <td>{{ $checksheet->sampling_qty }}</td>
 
                     <td style="padding: 0; vertical-align: top;">
-                        @php 
-                            $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true); 
-                            $dimensions = $dimensions ?: [];
-                            
-                            // Find actual max cavity and point
-                            $actualMaxCavity = 0;
-                            $actualMaxPoint = 0;
-                            foreach ($dimensions as $cavKey => $points) {
-                                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
-                                $actualMaxCavity = max($actualMaxCavity, $cavNum);
-                                if (is_array($points)) {
-                                    foreach ($points as $pKey => $pVal) {
-                                        $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
-                                    }
-                                }
-                            }
-                            
-                            $displayMaxCavity = max(5, $actualMaxCavity);
-                            $displayMaxPoint = max(5, $actualMaxPoint);
+                        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check :
+                        json_decode($checksheet->dimension_check, true);
+                        $dimensions = $dimensions ?: [];
+                        $itemPartNumber = $checksheet->item->part_number ?? '';
+                        $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+
+                        // Find actual max cavity and point
+                        $actualMaxCavity = 0;
+                        $actualMaxPoint = 0;
+                        foreach ($dimensions as $cavKey => $points) {
+                        $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                        $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                        if (is_array($points)) {
+                        foreach ($points as $pKey => $pVal) {
+                        $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
+                        }
+                        }
+                        }
+
+                        $displayMaxCavity = max(5, $actualMaxCavity);
+                        $displayMaxPoint = max(5, $actualMaxPoint);
                         @endphp
                         @if(count($dimensions) > 0 || $displayMaxCavity > 0)
                             <table class="dimension-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 20%;">Cav</th>
+                                        <th style="width: 15%;">Cav</th>
                                         @for ($j = 1; $j <= $displayMaxPoint; $j++)
                                             <th>Ø{{ $j }}</th>
+                                        @endfor
+                                    </tr>
+                                    <tr style="font-size: 5px; background-color: #f0f0f0; border-bottom: 0.5px solid #000;">
+                                        <th style="font-weight: normal;">Limit</th>
+                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                            <th style="font-weight: normal; color: #666;">
+                                                @if(isset($standards[$j]))
+                                                    @if($standards[$j]['min'] !== null && $standards[$j]['max'] !== null)
+                                                        {{ $standards[$j]['min'] }}-{{ $standards[$j]['max'] }}
+                                                    @else
+                                                        {{ $standards[$j]['size'] }}±{{ $standards[$j]['tolerance'] }}
+                                                    @endif
+                                                @else
+                                                    -
+                                                @endif
+                                            </th>
                                         @endfor
                                     </tr>
                                 </thead>
@@ -280,7 +299,25 @@
                                         <tr>
                                             <td>{{ $i }}</td>
                                             @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                                <td>{{ $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-') }}</td>
+                                                @php
+                                                    $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
+                                                    $isNG = false;
+                                                    if (isset($standards[$j]) && is_numeric($val)) {
+                                                        $std = $standards[$j];
+                                                        if ($std['min'] !== null && $std['max'] !== null) {
+                                                            $min = $std['min'];
+                                                            $max = $std['max'];
+                                                        } else {
+                                                            $min = $std['size'] - $std['tolerance'];
+                                                            $max = $std['size'] + $std['tolerance'];
+                                                        }
+                                                        if ($val < $min || $val > $max) {
+                                                            $isNG = true;
+                                                        }
+                                                    }
+                                                @endphp
+                                                <td @if($isNG) style="color: #dc3545; font-weight: bold; background-color: #ffeef0;"
+                                                @endif>{{ $val }}</td>
                                             @endfor
                                         </tr>
                                     @endfor

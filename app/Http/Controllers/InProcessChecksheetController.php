@@ -260,7 +260,8 @@ class InProcessChecksheetController extends Controller
         $checksheets = $this->inProcessService->buildFilteredQuery($filters)->limit(10)->get();
         $items = Item::orderBy('name')->get();
 
-        $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request'));
+        $partDimensionStandards = $this->getConsolidatedStandards();
+        $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request', 'partDimensionStandards'));
         return $pdf->setPaper('a4', 'landscape')->stream('laporan-checksheet-inprocess.pdf');
     }
 

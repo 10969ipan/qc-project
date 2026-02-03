@@ -332,8 +332,16 @@
                 const value = parseFloat(valStr);
 
                 if (standard && valStr !== '' && !isNaN(value)) {
-                    const lowerBound = standard.size - standard.tolerance;
-                    const upperBound = standard.size + standard.tolerance;
+                    // Calculate or use the valid range.
+                    let lowerBound, upperBound;
+
+                    if (standard.min !== null && standard.max !== null) {
+                        lowerBound = standard.min;
+                        upperBound = standard.max;
+                    } else {
+                        lowerBound = standard.size - standard.tolerance;
+                        upperBound = standard.size + standard.tolerance;
+                    }
 
                     if (value < lowerBound || value > upperBound) {
                         $(this).addClass('is-invalid');

@@ -84,6 +84,8 @@ class UpdateItemRequest extends FormRequest
             'dimension_points' => 'nullable|array',
             'dimension_sizes' => 'nullable|array',
             'dimension_tolerances' => 'nullable|array',
+            'dimension_mins' => 'nullable|array',
+            'dimension_maxs' => 'nullable|array',
         ];
     }
 

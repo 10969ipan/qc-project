@@ -62,7 +62,9 @@ class InProcessChecksheetService extends BaseService
                         $pointKey = (string) ($index + 1);
                         $itemStandards[$pointKey] = [
                             'size' => (float) $std['size'],
-                            'tolerance' => (float) $std['tolerance']
+                            'tolerance' => (float) $std['tolerance'],
+                            'min' => isset($std['min']) && $std['min'] !== '' ? (float) $std['min'] : null,
+                            'max' => isset($std['max']) && $std['max'] !== '' ? (float) $std['max'] : null,
                         ];
                     }
                 }
@@ -163,8 +165,15 @@ class InProcessChecksheetService extends BaseService
                         $hasValidDimensions = true;
                         $standard = $dimensionStandards[$point];
                         $floatValue = (float) $value;
-                        $lowerBound = $standard['size'] - $standard['tolerance'];
-                        $upperBound = $standard['size'] + $standard['tolerance'];
+
+                        // Use min/max if both are set, otherwise fallback to size +/- tolerance
+                        if ($standard['min'] !== null && $standard['max'] !== null) {
+                            $lowerBound = $standard['min'];
+                            $upperBound = $standard['max'];
+                        } else {
+                            $lowerBound = $standard['size'] - $standard['tolerance'];
+                            $upperBound = $standard['size'] + $standard['tolerance'];
+                        }
 
                         if ($floatValue < $lowerBound || $floatValue > $upperBound) {
                             $isAnyInvalid = true;
