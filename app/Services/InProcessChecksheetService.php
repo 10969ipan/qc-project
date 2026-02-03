@@ -59,7 +59,7 @@ class InProcessChecksheetService extends BaseService
                 $itemStandards = [];
                 foreach ($item->dimension_standards as $index => $std) {
                     $hasSizeTol = isset($std['size']) && $std['size'] !== '' && isset($std['tolerance']) && $std['tolerance'] !== '';
-                    $hasMinMax = isset($std['min']) && $std['min'] !== '' && isset($std['max']) && $std['max'] !== '';
+                    $hasMinMax = (isset($std['min']) && $std['min'] !== '') || (isset($std['max']) && $std['max'] !== '');
 
                     if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
                         $pointKey = (string) ($index + 1);
