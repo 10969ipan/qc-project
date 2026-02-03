@@ -29,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Customer Claim Records (Detailed List)
         Route::get('customer-claim-records-export', [CustomerClaimRecordController::class, 'exportPdf'])->name('customer-claim-records.export');
-        Route::delete('customer-claim-records/{id}/attachment/{index}', [CustomerClaimRecordController::class, 'deleteAttachment'])->name('customer-claim-records.delete-attachment');
+        Route::delete('customer-claim-records/{id}/attachment/{index}', [CustomerClaimRecordController::class, 'deleteAttachment'])->name('customer-claim-records.attachment.destroy');
         Route::post('customer-claim-records/{customer_claim_record}', [CustomerClaimRecordController::class, 'update'])->name('customer-claim-records.update.post');
         Route::resource('customer-claim-records', CustomerClaimRecordController::class)->names('customer-claim-records');
     });

@@ -193,8 +193,7 @@
                                             method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-xs py-0"
-                                                onclick="return confirm('Hapus data ini?')">
+                                            <button type="button" class="btn btn-danger btn-xs py-0 btn-delete-record">
                                                 <i class="fas fa-trash fa-xs"></i>
                                             </button>
                                         </form>
@@ -432,6 +431,27 @@
                                 );
                             }
                         });
+                    }
+                });
+            });
+
+            // SweetAlert Delete Record Confirmation
+            $('.btn-delete-record').click(function(e) {
+                e.preventDefault();
+                const form = $(this).closest('form');
+                
+                Swal.fire({
+                    title: 'Hapus data claim?',
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
                     }
                 });
             });
