@@ -1076,6 +1076,126 @@
                 /* Hide dividers in vertical list */
             }
         }
+
+        /* --- ULTRA-MODERN GLOBAL LOADER (Glassmorphism + Premium Pulse) --- */
+        #global-loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .loader-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 2.5rem 3.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: loaderPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes loaderPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Modern Modern Triple-Dot DNA Loader */
+        .dna-loader {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .dna-dot {
+            width: 16px;
+            height: 16px;
+            background: #4e73df;
+            border-radius: 50%;
+            animation: dnaPulse 1.2s infinite ease-in-out;
+        }
+
+        .dna-dot:nth-child(2) {
+            animation-delay: 0.2s;
+            background: #224abe;
+        }
+
+        .dna-dot:nth-child(3) {
+            animation-delay: 0.4s;
+            background: #26d873ff;
+        }
+
+        @keyframes dnaPulse {
+
+            0%,
+            100% {
+                transform: scale(0.8);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.4);
+                opacity: 1;
+                box-shadow: 0 0 20px rgba(78, 115, 223, 0.4);
+            }
+        }
+
+        .loader-brand {
+            font-size: 1.1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .loader-status {
+            color: #5a5c69;
+            font-weight: 500;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loader-status::after {
+            content: "";
+            width: 12px;
+            height: 12px;
+            border: 2px solid #4e73df;
+            border-top-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            animation: miniSpin 0.6s linear infinite;
+        }
+
+        @keyframes miniSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 
 </head>
@@ -1235,6 +1355,59 @@
                         return response;
                     });
             };
+
+            // Global Form Submission Loader
+            $(document).on('submit', 'form', function (e) {
+                // Ignore search/filter forms with GET method
+                if ($(this).attr('method') && $(this).attr('method').toUpperCase() === 'GET') {
+                    return;
+                }
+
+                // Ignore if form is invalid (standard browser validation)
+                if (this.checkValidity && !this.checkValidity()) {
+                    return;
+                }
+
+                // For checksheet form, specific checks if needed
+                if ($(this).attr('id') === 'checksheetForm') {
+                    // Form is already validated by judgment logic usually
+                }
+
+                // Show loader
+                $('#global-loader').css('display', 'flex');
+
+                // Optional: Disable submit button to prevent double clicks
+                // But wait a tick so the browser can actually start the submission
+                setTimeout(() => {
+                    $(this).find('button[type="submit"]').prop('disabled', true);
+                }, 10);
+            });
+
+            // Page Navigation Loader (when switching menus)
+            $(document).on('click', 'a', function (e) {
+                const href = $(this).attr('href');
+
+                // Conditions to NOT show the loader:
+                // 1. Link is empty or just '#'
+                // 2. Link is a javascript action
+                // 3. Link has target="_blank" (opens in new tab)
+                // 4. Link is an anchor on the same page (starts with #)
+                // 5. Link is for Logout (handled by form submission separately)
+                // 6. Link has some specific classes to ignore
+                if (!href ||
+                    href === '#' ||
+                    href.startsWith('javascript:') ||
+                    $(this).attr('target') === '_blank' ||
+                    href.startsWith('#') ||
+                    $(this).hasClass('no-loader') ||
+                    $(this).hasClass('btn-logout') ||
+                    $(this).hasClass('dropdown-toggle')) {
+                    return;
+                }
+
+                // Show loader on page transition
+                $('#global-loader').css('display', 'flex');
+            });
         });
     </script>
 
@@ -1242,6 +1415,18 @@
     <script src="{{ asset('js/sticky-scroll.js') }}?v={{ time() }}"></script>
 
     {{-- Tambahkan script lain yang dibutuhkan di sini --}}
+    <div id="global-loader">
+        <div class="loader-card">
+            <div class="dna-loader">
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+            </div>
+            <div class="loader-brand">QC APPS</div>
+            <div class="loader-status">Sedang memproses...</div>
+        </div>
+    </div>
+
     @stack('scripts')
 
 </body>

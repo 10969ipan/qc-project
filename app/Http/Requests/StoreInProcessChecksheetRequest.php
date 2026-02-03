@@ -20,6 +20,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
                     $item = \App\Models\Item::find($value);
+
                     if ($item && $item->plant_id != $plantId) {
                         $fail('Item yang dipilih tidak terdaftar untuk plant ini.');
                     }
@@ -40,7 +41,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'required_if:judgment,NG|string',
+            'next_proses' => 'required_if:judgment,NG|nullable|string',
         ];
     }
 

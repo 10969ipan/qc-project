@@ -12,6 +12,38 @@
         }
     @endphp
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(isset($errors) && (is_array($errors) ? count($errors) > 0 : $errors->any()))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class="font-weight-bold">Terjadi Kesalahan!</h6>
+            <ul class="mb-0">
+                @foreach(is_array($errors) ? $errors : $errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Input Data Sortir (Item NG dari Sub Assy, In-Process & Cross Cut)
@@ -589,14 +621,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                                                                                    <div class="input-group mb-2 defect-row">
-                                                                                                                                                 <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                                                                                 <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                                                                                 <div class="input-group-append">
-                                                                                                                                                     <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
-                                                                                                                                                 </div>
-                                                                                                                                             </div>
-                                                                                                                                            `;
+                                                                                                                                                            <div class="input-group mb-2 defect-row">
+                                                                                                                                                         <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                                                         <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                                                         <div class="input-group-append">
+                                                                                                                                                             <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                                         </div>
+                                                                                                                                                     </div>
+                                                                                                                                                    `;
                 $('#defectContainer').append(newRow);
             });
 

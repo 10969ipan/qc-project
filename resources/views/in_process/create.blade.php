@@ -69,6 +69,29 @@
         </div>
     @endif
 
+    @if(isset($errors) && (is_array($errors) ? count($errors) > 0 : $errors->any()))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class="font-weight-bold">Terjadi Kesalahan!</h6>
+            <ul class="mb-0">
+                @foreach(is_array($errors) ? $errors : $errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     <div class="card shadow mb-4 border-left-info">
         <a href="#collapseMachineStatus" class="d-block card-header py-3" data-toggle="collapse" role="button"
             aria-expanded="true" aria-controls="collapseMachineStatus">
@@ -1111,15 +1134,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                            style="min-width: 60px;"
-                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                            placeholder="P${j}">
-                                                                                    </td>`;
+                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                    style="min-width: 60px;"
+                                                                                                    name="dimensions[${currentCavities}][${j}]" 
+                                                                                                    placeholder="P${j}">
+                                                                                            </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1138,11 +1161,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                            style="min-width: 60px;"
-                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                            placeholder="P${currentPoints}">
-                                                                                    </td>`);
+                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                    style="min-width: 60px;"
+                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                    placeholder="P${currentPoints}">
+                                                                                            </td>`);
                     });
                 } else {
                     alert('Maximum 20 points reached');

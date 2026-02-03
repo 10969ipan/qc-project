@@ -27,17 +27,20 @@
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 034/0' : 'QC-KRW-F-0213' }}</div>
+                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 034/0' : 'QC-KRW-F-0213' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '18.02.2022' : '25/03/2015' }}</div>
+                                {{ $plantCode === 'jakarta' ? '18.02.2022' : '25/03/2015' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '0 / 30-Dec-99' : '3 / 22/12/2025' }}</div>
+                                {{ $plantCode === 'jakarta' ? '0 / 30-Dec-99' : '3 / 22/12/2025' }}
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
@@ -62,6 +65,29 @@
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(isset($errors) && (is_array($errors) ? count($errors) > 0 : $errors->any()))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class="font-weight-bold">Terjadi Kesalahan!</h6>
+            <ul class="mb-0">
+                @foreach(is_array($errors) ? $errors : $errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
