@@ -51,11 +51,14 @@ class InProcessChecksheetService extends BaseService
      */
     public function getConsolidatedStandards(): array
     {
-        $standards = $this->hardcodedStandards;
+        $standards = [];
+        foreach ($this->hardcodedStandards as $pn => $stds) {
+            $standards[$this->normalizePartNumber($pn)] = $stds;
+        }
 
         $dbItems = Item::whereNotNull('dimension_standards')->get();
         foreach ($dbItems as $item) {
-            $partNum = trim($item->part_number ?? '');
+            $partNum = $this->normalizePartNumber($item->part_number ?? '');
             if ($partNum !== '' && !empty($item->dimension_standards)) {
                 $itemStandards = [];
                 foreach ($item->dimension_standards as $index => $std) {
@@ -65,10 +68,10 @@ class InProcessChecksheetService extends BaseService
                     if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
                         $pointKey = (string) ($index + 1);
                         $itemStandards[$pointKey] = [
-                            'size' => isset($std['size']) && $std['size'] !== '' ? (float) $std['size'] : null,
-                            'tolerance' => isset($std['tolerance']) && $std['tolerance'] !== '' ? (float) $std['tolerance'] : null,
-                            'min' => isset($std['min']) && $std['min'] !== '' ? (float) $std['min'] : null,
-                            'max' => isset($std['max']) && $std['max'] !== '' ? (float) $std['max'] : null,
+                            'size' => isset($std['size']) && $std['size'] !== '' ? (float) str_replace(',', '.', $std['size']) : null,
+                            'tolerance' => isset($std['tolerance']) && $std['tolerance'] !== '' ? (float) str_replace(',', '.', $std['tolerance']) : null,
+                            'min' => isset($std['min']) && $std['min'] !== '' ? (float) str_replace(',', '.', $std['min']) : null,
+                            'max' => isset($std['max']) && $std['max'] !== '' ? (float) str_replace(',', '.', $std['max']) : null,
                         ];
                     }
                 }
@@ -155,9 +158,10 @@ class InProcessChecksheetService extends BaseService
     {
         $item = Item::find($itemId);
         $allStandards = $this->getConsolidatedStandards();
+        $partNum = $item ? $this->normalizePartNumber($item->part_number ?? '') : '';
 
-        if ($item && isset($allStandards[$item->part_number]) && !empty($data['dimensions'])) {
-            $dimensionStandards = $allStandards[$item->part_number];
+        if ($item && isset($allStandards[$partNum]) && !empty($data['dimensions'])) {
+            $dimensionStandards = $allStandards[$partNum];
             $isAnyInvalid = false;
             $hasValidDimensions = false;
 
@@ -568,5 +572,18 @@ class InProcessChecksheetService extends BaseService
             $checksheet->$nameField = null;
             $checksheet->$dateField = null;
         }
+    }
+
+    /**
+     * Normalize part number for consistent matching
+     * (Trim, handle EN DASH vs HYPHEN)
+     */
+    private function normalizePartNumber(?string $pn): string
+    {
+        if (is_null($pn))
+            return '';
+        // Replace EN DASH (\u2013) and EM DASH (\u2014) with normal HYPHEN-MINUS (-)
+        $pn = str_replace(["\xe2\x80\x93", "\xe2\x80\x94"], '-', $pn);
+        return trim($pn);
     }
 }

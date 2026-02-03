@@ -310,12 +310,17 @@
             }
         }
 
+        function normalizePartNumber(pn) {
+            if (!pn) return '';
+            return pn.toString()
+                .replace(/[\u2013\u2014]/g, '-') // Replace EN/EM DASH with hyphen
+                .trim();
+        }
+
         function validateDimensions() {
             const selectedOption = $('#item_id').find('option:selected');
-            let itemPartNumber = selectedOption.data('part-number');
-            if (itemPartNumber) {
-                itemPartNumber = itemPartNumber.toString().trim();
-            }
+            const rawPartNumber = selectedOption.data('part-number');
+            const itemPartNumber = normalizePartNumber(rawPartNumber);
             const dimensionStandards = partDimensionStandards[itemPartNumber];
 
             $('.edit-dimension-input').each(function () {

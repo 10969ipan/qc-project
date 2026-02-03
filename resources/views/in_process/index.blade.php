@@ -195,7 +195,7 @@
                                     @php
                                         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
                                         $dimensions = $dimensions ?: [];
-                                        $itemPartNumber = trim($checksheet->item->part_number ?? '');
+                                        $itemPartNumber = str_replace(["\xe2\x80\x93", "\xe2\x80\x94"], '-', trim($checksheet->item->part_number ?? ''));
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
 
                                         // Find actual max cavity and point
@@ -793,8 +793,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1058,6 +1058,6 @@
                 }
             });
         });
-                                                                });
+                                                                    });
     </script>
 @endpush
