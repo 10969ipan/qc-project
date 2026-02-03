@@ -58,11 +58,14 @@ class InProcessChecksheetService extends BaseService
             if ($item->part_number && !empty($item->dimension_standards)) {
                 $itemStandards = [];
                 foreach ($item->dimension_standards as $index => $std) {
-                    if (is_array($std) && isset($std['size']) && isset($std['tolerance'])) {
+                    $hasSizeTol = isset($std['size']) && $std['size'] !== '' && isset($std['tolerance']) && $std['tolerance'] !== '';
+                    $hasMinMax = isset($std['min']) && $std['min'] !== '' && isset($std['max']) && $std['max'] !== '';
+
+                    if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
                         $pointKey = (string) ($index + 1);
                         $itemStandards[$pointKey] = [
-                            'size' => (float) $std['size'],
-                            'tolerance' => (float) $std['tolerance'],
+                            'size' => isset($std['size']) && $std['size'] !== '' ? (float) $std['size'] : null,
+                            'tolerance' => isset($std['tolerance']) && $std['tolerance'] !== '' ? (float) $std['tolerance'] : null,
                             'min' => isset($std['min']) && $std['min'] !== '' ? (float) $std['min'] : null,
                             'max' => isset($std['max']) && $std['max'] !== '' ? (float) $std['max'] : null,
                         ];
@@ -170,9 +173,11 @@ class InProcessChecksheetService extends BaseService
                         if ($standard['min'] !== null && $standard['max'] !== null) {
                             $lowerBound = $standard['min'];
                             $upperBound = $standard['max'];
-                        } else {
+                        } elseif ($standard['size'] !== null && $standard['tolerance'] !== null) {
                             $lowerBound = $standard['size'] - $standard['tolerance'];
                             $upperBound = $standard['size'] + $standard['tolerance'];
+                        } else {
+                            continue;
                         }
 
                         if ($floatValue < $lowerBound || $floatValue > $upperBound) {

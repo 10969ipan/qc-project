@@ -307,11 +307,15 @@
                                                         if ($std['min'] !== null && $std['max'] !== null) {
                                                             $min = $std['min'];
                                                             $max = $std['max'];
-                                                        } else {
+                                                        } elseif ($std['size'] !== null && $std['tolerance'] !== null) {
                                                             $min = $std['size'] - $std['tolerance'];
                                                             $max = $std['size'] + $std['tolerance'];
+                                                        } else {
+                                                            $min = null;
+                                                            $max = null;
                                                         }
-                                                        if ($val < $min || $val > $max) {
+
+                                                        if ($min !== null && ($val < $min || $val > $max)) {
                                                             $isNG = true;
                                                         }
                                                     }

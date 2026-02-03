@@ -338,9 +338,13 @@
                     if (standard.min !== null && standard.max !== null) {
                         lowerBound = standard.min;
                         upperBound = standard.max;
-                    } else {
+                    } else if (standard.size !== null && standard.tolerance !== null) {
                         lowerBound = standard.size - standard.tolerance;
                         upperBound = standard.size + standard.tolerance;
+                    } else {
+                        // Skip if we don't have enough data to validate
+                        $(this).removeClass('is-invalid');
+                        return;
                     }
 
                     if (value < lowerBound || value > upperBound) {

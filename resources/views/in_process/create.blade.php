@@ -1072,9 +1072,13 @@
                         if (standard.min !== null && standard.max !== null) {
                             lowerBound = standard.min;
                             upperBound = standard.max;
-                        } else {
+                        } else if (standard.size !== null && standard.tolerance !== null) {
                             lowerBound = standard.size - standard.tolerance;
                             upperBound = standard.size + standard.tolerance;
+                        } else {
+                            // Skip if we don't have enough data to validate
+                            $(this).removeClass('is-invalid');
+                            return;
                         }
 
                         // Compare the entered value against the valid range.
@@ -1102,15 +1106,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                            style="min-width: 60px;"
-                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                            placeholder="P${j}">
-                                                    </td>`;
+                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                style="min-width: 60px;"
+                                                                name="dimensions[${currentCavities}][${j}]" 
+                                                                placeholder="P${j}">
+                                                        </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1129,11 +1133,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                            style="min-width: 60px;"
-                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                            placeholder="P${currentPoints}">
-                                                    </td>`);
+                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                style="min-width: 60px;"
+                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                placeholder="P${currentPoints}">
+                                                        </td>`);
                     });
                 } else {
                     alert('Maximum 20 points reached');
