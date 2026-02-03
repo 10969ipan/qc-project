@@ -1039,18 +1039,14 @@
 
             function validateDimensions() {
                 const selectedOption = $('#itemSelect').find('option:selected');
-                const itemPartNumber = selectedOption.data('part-number');
+                let itemPartNumber = selectedOption.data('part-number');
+
+                if (itemPartNumber) {
+                    itemPartNumber = itemPartNumber.toString().trim();
+                }
 
                 // Get the dimension standards for the currently selected item.
                 const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-                // If no specific standards exist for this part, clear any validation and exit.
-                if (!dimensionStandards) {
-                    $('input[name^="dimensions"]').removeClass('is-invalid');
-                    updateJudgment();
-                    checkSaveButtonState();
-                    return;
-                }
 
                 $('input[name^="dimensions"]').each(function () {
                     const name = $(this).attr('name');
@@ -1060,15 +1056,12 @@
 
                     const point = match[2]; // The point number (e.g., '1', '2', '3').
                     // Look up the standard for the current point for the selected part.
-                    const standard = dimensionStandards[point];
+                    const standard = dimensionStandards ? dimensionStandards[point] : null;
                     const valStr = $(this).val().trim();
-                    const value = parseFloat(valStr); // The user-entered dimension value.
+                    const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
 
                     // Check if a standard exists for this point and the input is a valid number.
                     if (standard && valStr !== '' && !isNaN(value)) {
-                        // Calculate or use the valid range.
-                        let lowerBound, upperBound;
-
                         let isInvalid = false;
 
                         if (standard.min !== null && value < standard.min) {
@@ -1101,6 +1094,7 @@
 
                 // Trigger judgment update to reflect dimension status
                 updateJudgment();
+                checkSaveButtonState();
             }
 
             // --- Dynamic Dimension Expansion Logistic ---
@@ -1113,15 +1107,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                    style="min-width: 60px;"
-                                                                    name="dimensions[${currentCavities}][${j}]" 
-                                                                    placeholder="P${j}">
-                                                            </td>`;
+                                                                    <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                        style="min-width: 60px;"
+                                                                        name="dimensions[${currentCavities}][${j}]" 
+                                                                        placeholder="P${j}">
+                                                                </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1140,11 +1134,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                    style="min-width: 60px;"
-                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                    placeholder="P${currentPoints}">
-                                                            </td>`);
+                                                                    <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                        style="min-width: 60px;"
+                                                                        name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                        placeholder="P${currentPoints}">
+                                                                </td>`);
                     });
                 } else {
                     alert('Maximum 20 points reached');

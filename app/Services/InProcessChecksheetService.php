@@ -55,7 +55,8 @@ class InProcessChecksheetService extends BaseService
 
         $dbItems = Item::whereNotNull('dimension_standards')->get();
         foreach ($dbItems as $item) {
-            if ($item->part_number && !empty($item->dimension_standards)) {
+            $partNum = trim($item->part_number ?? '');
+            if ($partNum !== '' && !empty($item->dimension_standards)) {
                 $itemStandards = [];
                 foreach ($item->dimension_standards as $index => $std) {
                     $hasSizeTol = isset($std['size']) && $std['size'] !== '' && isset($std['tolerance']) && $std['tolerance'] !== '';
@@ -73,7 +74,7 @@ class InProcessChecksheetService extends BaseService
                 }
 
                 if (!empty($itemStandards)) {
-                    $standards[$item->part_number] = $itemStandards;
+                    $standards[$partNum] = $itemStandards;
                 }
             }
         }
@@ -98,8 +99,9 @@ class InProcessChecksheetService extends BaseService
      * @param array $filters
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function buildFilteredQuery(array $filters)
+    public function buildFilteredQuery(array $filters): \Illuminate\Database\Eloquent\Builder
     {
+        /** @var \Illuminate\Database\Eloquent\Builder $query */
         $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present

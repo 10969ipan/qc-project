@@ -312,14 +312,11 @@
 
         function validateDimensions() {
             const selectedOption = $('#item_id').find('option:selected');
-            const itemPartNumber = selectedOption.data('part-number');
-            const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-            if (!dimensionStandards) {
-                $('.edit-dimension-input').removeClass('is-invalid');
-                updateJudgment();
-                return;
+            let itemPartNumber = selectedOption.data('part-number');
+            if (itemPartNumber) {
+                itemPartNumber = itemPartNumber.toString().trim();
             }
+            const dimensionStandards = partDimensionStandards[itemPartNumber];
 
             $('.edit-dimension-input').each(function () {
                 const name = $(this).attr('name');
@@ -327,14 +324,11 @@
                 if (!match) return;
 
                 const point = match[2];
-                const standard = dimensionStandards[point];
+                const standard = dimensionStandards ? dimensionStandards[point] : null;
                 const valStr = $(this).val().trim();
-                const value = parseFloat(valStr);
+                const value = parseFloat(valStr.replace(',', '.'));
 
                 if (standard && valStr !== '' && !isNaN(value)) {
-                    // Calculate or use the valid range.
-                    let lowerBound, upperBound;
-
                     let isInvalid = false;
 
                     if (standard.min !== null && value < standard.min) {
@@ -344,7 +338,7 @@
                         isInvalid = true;
                     }
 
-                    // Fallback to Size +/- Tolerance if no Min/Max is set at all
+                    // Fallback to Size +/- Tolerance
                     if (standard.min === null && standard.max === null) {
                         if (standard.size !== null && standard.tolerance !== null) {
                             const lowerBound = standard.size - standard.tolerance;

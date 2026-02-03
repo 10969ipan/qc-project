@@ -246,27 +246,28 @@
                     <td>{{ $checksheet->sampling_qty }}</td>
 
                     <td style="padding: 0; vertical-align: top;">
-                        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check :
-                        json_decode($checksheet->dimension_check, true);
-                        $dimensions = $dimensions ?: [];
-                        $itemPartNumber = $checksheet->item->part_number ?? '';
-                        $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+                        @php
+                            $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check :
+                                json_decode($checksheet->dimension_check, true);
+                            $dimensions = $dimensions ?: [];
+                            $itemPartNumber = trim($checksheet->item->part_number ?? '');
+                            $standards = $partDimensionStandards[$itemPartNumber] ?? [];
 
-                        // Find actual max cavity and point
-                        $actualMaxCavity = 0;
-                        $actualMaxPoint = 0;
-                        foreach ($dimensions as $cavKey => $points) {
-                        $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
-                        $actualMaxCavity = max($actualMaxCavity, $cavNum);
-                        if (is_array($points)) {
-                        foreach ($points as $pKey => $pVal) {
-                        $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
-                        }
-                        }
-                        }
+                            // Find actual max cavity and point
+                            $actualMaxCavity = 0;
+                            $actualMaxPoint = 0;
+                            foreach ($dimensions as $cavKey => $points) {
+                                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                                $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                                if (is_array($points)) {
+                                    foreach ($points as $pKey => $pVal) {
+                                        $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
+                                    }
+                                }
+                            }
 
-                        $displayMaxCavity = max(5, $actualMaxCavity);
-                        $displayMaxPoint = max(5, $actualMaxPoint);
+                            $displayMaxCavity = max(5, $actualMaxCavity);
+                            $displayMaxPoint = max(5, $actualMaxPoint);
                         @endphp
                         @if(count($dimensions) > 0 || $displayMaxCavity > 0)
                             <table class="dimension-table">
