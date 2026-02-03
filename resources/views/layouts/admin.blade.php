@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard')</title>
-    <link rel="icon" href="{{ asset('master item/PNG LOGO IPP.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('master item/ipp.png') }}" type="image/png">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
