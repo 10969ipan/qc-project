@@ -40,7 +40,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'next_proses' => 'required_if:judgment,NG|string',
         ];
     }
 

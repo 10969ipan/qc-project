@@ -47,7 +47,7 @@ class StoreSubAssyChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'nullable|string',
+            'next_proses' => 'required_if:judgment,NG|string',
         ];
     }
 
@@ -70,6 +70,7 @@ class StoreSubAssyChecksheetRequest extends FormRequest
             'total_ng.required' => 'Total NG wajib diisi.',
             'judgment.required' => 'Judgment wajib dipilih.',
             'judgment.in' => 'Judgment harus OK atau NG.',
+            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }

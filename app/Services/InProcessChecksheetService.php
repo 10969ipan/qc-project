@@ -280,7 +280,7 @@ class InProcessChecksheetService extends BaseService
                 'dimension_check' => $dimensionCheck,
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => json_encode($defects),
-                'next_proses' => $data['next_proses'] ?? null,
+                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ]);
 
             DB::commit();
@@ -361,7 +361,7 @@ class InProcessChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
-                'next_proses' => $data['next_proses'] ?? null,
+                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ];
 
             // Update created_at and cycle_time if user has authority

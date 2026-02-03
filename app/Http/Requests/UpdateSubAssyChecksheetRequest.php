@@ -36,7 +36,7 @@ class UpdateSubAssyChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
-            'next_proses' => 'nullable|string',
+            'next_proses' => 'required_if:judgment,NG|string',
         ];
     }
 
@@ -59,6 +59,7 @@ class UpdateSubAssyChecksheetRequest extends FormRequest
             'total_ng.required' => 'Total NG wajib diisi.',
             'judgment.required' => 'Judgment wajib dipilih.',
             'judgment.in' => 'Judgment harus OK atau NG.',
+            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }

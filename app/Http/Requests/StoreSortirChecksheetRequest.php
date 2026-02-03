@@ -41,7 +41,14 @@ class StoreSortirChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'nullable|string',
+            'next_proses' => 'required_if:judgment,NG|string',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }
