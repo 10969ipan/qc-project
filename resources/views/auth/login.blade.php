@@ -9,7 +9,7 @@
     <meta name="author" content="">
 
     <title>MASUK - QC APPS</title>
-    <link rel="icon" href="{{ asset('master item/ipp.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('ipp.png') }}" type="image/png">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
@@ -39,7 +39,7 @@
             align-items: center;
             justify-content: center;
             background-color: #ffffff;
-            background-image: url('{{ asset("master item/bg_pattern.png") }}');
+            background-image: url('{{ asset("bg_pattern.png") }}');
             background-size: 400px;
             background-repeat: repeat;
             position: relative;
@@ -96,7 +96,7 @@
 
         .login-side-image {
             flex: 1.3;
-            background-image: url('{{ asset("master item/indoplat.jpg") }}');
+            background-image: url('{{ asset("indoplat.jpg") }}');
             background-size: cover;
             background-position: center;
             position: relative;
@@ -449,7 +449,7 @@
                 </form>
             </div>
             <div class="login-side-image">
-                <img src="{{ asset('master item/logo-ipp.png') }}" alt="Logo IPP"
+                <img src="{{ asset('logo-ipp.png') }}" alt="Logo IPP"
                     style="position: absolute; top: 20px; right: 20px; width: 100px; z-index: 30;">
                 <div class="banner-content">
                     <h2 class="banner-title">QC APPS<br></h2>
