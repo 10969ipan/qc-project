@@ -54,7 +54,7 @@
     @php
         $plantCode = strtolower(request('plant') ?? (auth()->user()->plant ? auth()->user()->plant->code : ''));
         $jakartaMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-        $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 14, 15, 16, 17, 18, 19];
+        $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
         $machineNumbers = ($plantCode === 'jakarta') ? $jakartaMachineNumbers : $karawangMachineNumbers;
     @endphp
 
@@ -242,34 +242,49 @@
 
                                 <!-- Check Dimensi (Cavity & Points) -->
                                 <td class="align-middle">
-                                    <table class="table table-sm table-bordered mb-0" style="min-width: 800px;">
-                                        <thead class="text-center">
-                                            <tr>
-                                                <th style="width: 25%;">Cavity</th>
-                                                <th>Point 1</th>
-                                                <th>Point 2</th>
-                                                <th>Point 3</th>
-                                                <th>Point 4</th>
-                                                <th>Point 5</th>
-                                                <th>Point 6</th>
-                                                <th>Point 7</th>
-                                                <th>Point 8</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @for ($i = 1; $i <= 8; $i++)
-                                                <tr>
-                                                    <td class="text-center font-weight-bold">Cav {{ $i }}</td>
-                                                    @for ($j = 1; $j <= 8; $j++)
-                                                        <td>
-                                                            <input type="text" class="form-control" style="min-width: 50px;"
-                                                                name="dimensions[{{ $i }}][{{ $j }}]" placeholder="Ø{{ $j }}">
-                                                        </td>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-primary btn-xs" id="addPointBtn"
+                                                title="Tambah Point">
+                                                <i class="fas fa-plus"></i> Point
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info btn-xs" id="addCavityBtn"
+                                                title="Tambah Cavity">
+                                                <i class="fas fa-plus"></i> Cavity
+                                            </button>
+                                        </div>
+                                        <small class="text-muted" id="dimensionCounter">Max 20x20 (Default 5x5)</small>
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 400px; overflow: auto;">
+                                        <table class="table table-sm table-bordered mb-0" id="dimensionTable">
+                                            <thead class="text-center bg-light">
+                                                <tr id="dimensionHeadRow">
+                                                    <th
+                                                        style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">
+                                                        Cavity</th>
+                                                    @for ($j = 1; $j <= 5; $j++)
+                                                        <th class="point-header">Point {{ $j }}</th>
                                                     @endfor
                                                 </tr>
-                                            @endfor
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody id="dimensionBody">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <tr class="cavity-row" data-cavity="{{ $i }}">
+                                                        <td class="text-center font-weight-bold bg-light"
+                                                            style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
+                                                        @for ($j = 1; $j <= 5; $j++)
+                                                            <td class="point-cell">
+                                                                <input type="text"
+                                                                    class="form-control form-control-sm dimension-input"
+                                                                    style="min-width: 60px;" name="dimensions[{{ $i }}][{{ $j }}]"
+                                                                    placeholder="P{{ $j }}">
+                                                            </td>
+                                                        @endfor
+                                                    </tr>
+                                                @endfor
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
@@ -615,7 +630,6 @@
             // Trigger PDF Modal from dynamic button (delegated event) - Legacy support removed in replace
 
             // --- Existing Logic ---
-            // AQL 0.65 Logic
             function getSampleSize(lotSize) {
                 if (lotSize >= 500001) return 1250;
                 if (lotSize >= 150001) return 800;
@@ -966,10 +980,8 @@
 
                     // === UNLOCK ALL INPUTS ===
                     formInputs.prop('disabled', false);
-                    $('form').removeClass('inputs-locked');
-
-                    // Instead of enabling directly, check state
-                    checkSaveButtonState();
+                    $('#checksheetForm').removeClass('inputs-locked');
+                    $('#saveBtn').prop('disabled', false);
 
                     timerInterval = setInterval(function () {
                         totalSeconds++;
@@ -1011,70 +1023,19 @@
                 totalSeconds = 0;
                 updateTimerDisplay();
                 $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('form').addClass('inputs-locked');
+                $('#saveBtn').prop('disabled', true);
+                $('#addDefectBtn').hide();
+                $('.defect-row').not(':first').remove();
             });
 
             // --- Centralized Dimension Validation Logic ---
             // The dimension standards are now passed from the controller.
             const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
-            function checkSaveButtonState() {
-                // Check if timer is running (or has been started, implying we can save)
-                // The existing logic sets timerRunning = true when started.
-                // But we need to make sure we don't enable it if timer hasn't started.
-                if (!timerRunning) {
-                    $('#saveBtn').prop('disabled', true);
-                    return;
-                }
-
-                // Check if at least one required dimension is filled
-                const selectedOption = $('#itemSelect').find('option:selected');
-                const itemPartNumber = selectedOption.data('part-number');
-                const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-                let anyRequiredFilled = false;
-                let hasStandards = false;
-
-                if (dimensionStandards) {
-                    // Check if the part has any standards defined
-                    // If it's an object/array, verify it has keys/items
-                    if (Object.keys(dimensionStandards).length > 0) {
-                        hasStandards = true;
-                    }
-
-                    if (hasStandards) {
-                        $('input[name^="dimensions"]').each(function () {
-                            const name = $(this).attr('name');
-                            const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                            if (!match) return;
-
-                            const point = match[2];
-                            const standard = dimensionStandards[point];
-
-                            // If a standard exists for this point, check if it has a value
-                            if (standard) {
-                                if ($(this).val().trim() !== '') {
-                                    anyRequiredFilled = true;
-                                    return false; // Break the loop, we found one
-                                }
-                            }
-                        });
-                    } else {
-                        // No standards for this part, so dimension check is not applicable/mandatory
-                        // Treat as "filled" (or not required)
-                        anyRequiredFilled = true;
-                    }
-                } else {
-                    // No standards data found at all for this part
-                    anyRequiredFilled = true;
-                }
-
-                // Enable save button only if timer is running AND at least one required field is filled (if standards exist)
-                if (anyRequiredFilled) {
-                    $('#saveBtn').prop('disabled', false);
-                } else {
-                    $('#saveBtn').prop('disabled', true);
-                }
-            }
 
             function validateDimensions() {
                 const selectedOption = $('#itemSelect').find('option:selected');
@@ -1122,17 +1083,63 @@
 
                 // Trigger judgment update to reflect dimension status
                 updateJudgment();
-                checkSaveButtonState();
             }
 
-            $(document).on('input', 'input[name^="dimensions"]', validateDimensions);
-            $('#itemSelect').on('change', function () {
-                $('input[name^="dimensions"]').removeClass('is-invalid').val('');
-                validateDimensions();
+            // --- Dynamic Dimension Expansion Logistic ---
+            let currentCavities = 5;
+            let currentPoints = 5;
+            const maxCavities = 20;
+            const maxPoints = 20;
+
+            $('#addCavityBtn').click(function () {
+                if (currentCavities < maxCavities) {
+                    currentCavities++;
+                    let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
+                                                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+
+                    for (let j = 1; j <= currentPoints; j++) {
+                        newRow += `<td class="point-cell">
+                                                    <input type="text" class="form-control form-control-sm dimension-input" 
+                                                        style="min-width: 60px;"
+                                                        name="dimensions[${currentCavities}][${j}]" 
+                                                        placeholder="P${j}">
+                                                </td>`;
+                    }
+                    newRow += `</tr>`;
+                    $('#dimensionBody').append(newRow);
+                } else {
+                    alert('Maximum 20 cavities reached');
+                }
             });
 
+            $('#addPointBtn').click(function () {
+                if (currentPoints < maxPoints) {
+                    currentPoints++;
+                    // Add header
+                    $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
+
+                    // Add cells to each row
+                    $('.cavity-row').each(function () {
+                        let cavityNum = $(this).data('cavity');
+                        $(this).append(`<td class="point-cell">
+                                                    <input type="text" class="form-control form-control-sm dimension-input" 
+                                                        style="min-width: 60px;"
+                                                        name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                        placeholder="P${currentPoints}">
+                                                </td>`);
+                    });
+                } else {
+                    alert('Maximum 20 points reached');
+                }
+            });
+
+            $(document).on('input', '.dimension-input', validateDimensions);
+
             // Add CSS for invalid inputs
-            $('<style>.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }</style>').appendTo('head');
+            $('<style>' +
+                '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
+                '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
+                '</style>').appendTo('head');
         });
     </script>
 @endpush

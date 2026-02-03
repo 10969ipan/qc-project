@@ -191,20 +191,38 @@
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
 
                                 {{-- Dimension Check Detail --}}
-                                <td class="align-middle p-0" data-dimensions='@json($checksheet->dimension_check)'>
+                                <td class="align-middle p-0">
                                     @php
                                         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
+                                        $dimensions = $dimensions ?: [];
                                         $itemPartNumber = $checksheet->item->part_number ?? '';
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+
+                                        // Find actual max cavity and point
+                                        $actualMaxCavity = 0;
+                                        $actualMaxPoint = 0;
+                                        foreach ($dimensions as $cavKey => $pointsData) {
+                                            // Extract numeric part from cavity key (e.g., "Cav 1" or "1")
+                                            $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                                            $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                                            if (is_array($pointsData)) {
+                                                foreach ($pointsData as $pKey => $pVal) {
+                                                    $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
+                                                }
+                                            }
+                                        }
+
+                                        $displayMaxCavity = max(5, $actualMaxCavity);
+                                        $displayMaxPoint = max(5, $actualMaxPoint);
                                     @endphp
-                                    @if(is_array($dimensions) && count($dimensions) > 0)
-                                        <div style="max-height: 170px; overflow-y: auto; font-size: 0.7rem;">
+                                    @if(count($dimensions) > 0 || $displayMaxCavity > 0)
+                                        <div style="max-height: 200px; overflow-y: auto; font-size: 0.7rem;">
                                             <table class="table table-bordered table-sm m-0">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
                                                     {{-- Standard Row --}}
                                                     <tr class="bg-light" style="font-size: 0.55rem;">
                                                         <th class="p-1">Std</th>
-                                                        @for ($j = 1; $j <= 8; $j++)
+                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
                                                             <th class="p-1 text-muted">
                                                                 @if(isset($standards[$j]))
                                                                     {{ $standards[$j]['size'] }}
@@ -217,7 +235,7 @@
                                                     {{-- Tolerance Row --}}
                                                     <tr class="bg-light" style="font-size: 0.55rem;">
                                                         <th class="p-1">Tol</th>
-                                                        @for ($j = 1; $j <= 8; $j++)
+                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
                                                             <th class="p-1 text-muted">
                                                                 @if(isset($standards[$j]))
                                                                     ±{{ $standards[$j]['tolerance'] }}
@@ -230,24 +248,19 @@
                                                     {{-- Main Header Row --}}
                                                     <tr>
                                                         <th>Cav</th>
-                                                        <th>Ø1</th>
-                                                        <th>Ø2</th>
-                                                        <th>Ø3</th>
-                                                        <th>Ø4</th>
-                                                        <th>Ø5</th>
-                                                        <th>Ø6</th>
-                                                        <th>Ø7</th>
-                                                        <th>Ø8</th>
+                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                                            <th>Ø{{ $j }}</th>
+                                                        @endfor
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {{-- Actual Measurements --}}
-                                                    @foreach($dimensions as $cavity => $points)
+                                                    @for ($i = 1; $i <= $displayMaxCavity; $i++)
                                                         <tr>
-                                                            <td class="font-weight-bold p-1">{{ $cavity }}</td>
-                                                            @for ($j = 1; $j <= 8; $j++)
+                                                            <td class="font-weight-bold p-1">{{ $i }}</td>
+                                                            @for ($j = 1; $j <= $displayMaxPoint; $j++)
                                                                 @php
-                                                                    $val = $points[$j] ?? '-';
+                                                                    $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
                                                                     $isNG = false;
                                                                     if (isset($standards[$j]) && is_numeric($val)) {
                                                                         $std = $standards[$j];
@@ -264,7 +277,7 @@
                                                                 </td>
                                                             @endfor
                                                         </tr>
-                                                    @endforeach
+                                                    @endfor
                                                 </tbody>
                                             </table>
                                         </div>
@@ -749,8 +762,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1014,6 +1027,6 @@
                 }
             });
         });
-                                        });
+                                                });
     </script>
 @endpush

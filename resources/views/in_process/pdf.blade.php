@@ -247,39 +247,43 @@
                     <td style="padding: 0; vertical-align: top;">
                         @php 
                             $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true); 
+                            $dimensions = $dimensions ?: [];
+                            
+                            // Find actual max cavity and point
+                            $actualMaxCavity = 0;
+                            $actualMaxPoint = 0;
+                            foreach ($dimensions as $cavKey => $points) {
+                                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                                $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                                if (is_array($points)) {
+                                    foreach ($points as $pKey => $pVal) {
+                                        $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
+                                    }
+                                }
+                            }
+                            
+                            $displayMaxCavity = max(5, $actualMaxCavity);
+                            $displayMaxPoint = max(5, $actualMaxPoint);
                         @endphp
-                        @if(is_array($dimensions) && count($dimensions) > 0)
+                        @if(count($dimensions) > 0 || $displayMaxCavity > 0)
                             <table class="dimension-table">
                                 <thead>
                                     <tr>
                                         <th style="width: 20%;">Cav</th>
-                                        @php
-                                            // Determine max columns (points) dynamically or fixed 1-8 based on preference
-                                            // The previous logic found all unique points. Let's stick to that but sort numerically.
-                                            $points = [];
-                                            foreach ($dimensions as $cavityData) {
-                                                if(is_array($cavityData)) {
-                                                    $points = array_merge($points, array_keys($cavityData));
-                                                }
-                                            }
-                                            $uniquePoints = array_unique($points);
-                                            sort($uniquePoints, SORT_NUMERIC);
-                                            // Limit to max 8 columns to prevent overflow if desired, or let it handle it.
-                                        @endphp
-                                        @foreach($uniquePoints as $point)
-                                            <th>Ø{{ $point }}</th>
-                                        @endforeach
+                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                            <th>Ø{{ $j }}</th>
+                                        @endfor
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($dimensions as $cavity => $cavityData)
+                                    @for ($i = 1; $i <= $displayMaxCavity; $i++)
                                         <tr>
-                                            <td>{{ $cavity }}</td>
-                                            @foreach($uniquePoints as $point)
-                                                <td>{{ $cavityData[$point] ?? '-' }}</td>
-                                            @endforeach
+                                            <td>{{ $i }}</td>
+                                            @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                                <td>{{ $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-') }}</td>
+                                            @endfor
                                         </tr>
-                                    @endforeach
+                                    @endfor
                                 </tbody>
                             </table>
                         @else
