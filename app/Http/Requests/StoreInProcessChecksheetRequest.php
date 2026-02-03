@@ -40,7 +40,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'nullable|string',
+            'next_proses' => 'required_if:judgment,NG|nullable|string',
         ];
     }
 
@@ -52,6 +52,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'shift.required' => 'Shift wajib dipilih.',
             'code_machine.required' => 'Kode mesin wajib diisi.',
             'judgment.in' => 'Judgment harus OK atau NG.',
+            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }

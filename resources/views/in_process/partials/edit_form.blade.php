@@ -1,4 +1,5 @@
-<form action="{{ route('in_process.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
+<form id="editChecksheetForm"
+    action="{{ route('in_process.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
     @csrf
     @method('PUT')
     <input type="hidden" name="plant" value="{{ request('plant') }}">
@@ -185,7 +186,8 @@
 
     <div id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
         <div class="form-group">
-            <label for="next_proses" class="text-danger font-weight-bold">Next Proses</label>
+            <label for="next_proses" class="text-danger font-weight-bold">Next Proses <span
+                    class="text-danger">*</span></label>
             <select name="next_proses" id="next_proses" class="form-control">
                 <option value="">-- Pilih Next Proses --</option>
                 <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
@@ -371,6 +373,24 @@
         $(document).on('input', '.edit-dimension-input', validateDimensions);
         $('#sampling_qty, #total_ng').on('input', updateJudgment);
         $('#item_id').on('change', validateDimensions);
+
+        // Form Submit Validation
+        $('#editChecksheetForm').on('submit', function (e) {
+            const judgment = $('#judgment').val();
+            const nextProses = $('#next_proses').val();
+
+            if (judgment === 'NG' && !nextProses) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Next Proses Wajib Dipilih',
+                    text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                    confirmButtonColor: '#3085d6'
+                });
+                $('#next_proses').focus();
+                return false;
+            }
+        });
 
         // Initial check
         validateDimensions();

@@ -29,7 +29,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
-            'next_proses' => 'nullable|string',
+            'next_proses' => 'required_if:judgment,NG|nullable|string',
         ];
     }
 
@@ -41,6 +41,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'shift.required' => 'Shift wajib dipilih.',
             'code_machine.required' => 'Kode mesin wajib diisi.',
             'judgment.in' => 'Judgment harus OK atau NG.',
+            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }
