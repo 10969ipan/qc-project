@@ -149,8 +149,8 @@
                 <div class="col-6">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">Total OK (pcs) <span class="text-danger">*</span></label>
-                        <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm bg-light"
-                            value="{{ $checksheet->total_ok }}" min="0" required readonly>
+                        <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm"
+                            value="{{ $checksheet->total_ok }}" min="0" required>
                     </div>
                 </div>
                 <div class="col-6">
