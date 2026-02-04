@@ -380,6 +380,7 @@
             $(document).on('input', '.edit-dimension-input', validateDimensions);
             $('#sampling_qty, #total_ng').on('input', updateJudgment);
             $('#item_id').on('change', validateDimensions);
+            $('#judgment').on('change', toggleNextProses);
 
             // Form Submit Validation
             $('#editChecksheetForm').on('submit', function (e) {
