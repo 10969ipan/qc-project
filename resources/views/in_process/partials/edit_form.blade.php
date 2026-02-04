@@ -23,7 +23,8 @@
         <div class="col-md-3">
             <div class="form-group">
                 <label for="date">Tanggal</label>
-                <input type="date" name="date" id="date" class="form-control" value="{{ $checksheet->date }}" required>
+                <input type="date" name="date" id="date" class="form-control"
+                    value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
             </div>
         </div>
         <div class="col-md-3">
@@ -207,195 +208,202 @@
         <textarea name="remarks" id="remarks" class="form-control" rows="3">{{ $checksheet->remarks }}</textarea>
     </div>
 
-    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
 </form>
 
-<script>
-    (function () {
-        // Use PHP to inject the variable
-        const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
+@push('scripts')
+    <script>
+        (function () {
+            // Use PHP to inject the variable
+            const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
-        // Initial counts from PHP
-        let currentCavities = {{ $maxCavityFound }};
-        let currentPoints = {{ $maxPointFound }};
-        const maxCavities = 30;
-        const maxPoints = 30;
+            // Initial counts from PHP
+            let currentCavities = {{ $maxCavityFound }};
+            let currentPoints = {{ $maxPointFound }};
+            const maxCavities = 30;
+            const maxPoints = 30;
 
-        $('#editAddCavityBtn').click(function () {
-            if (currentCavities < maxCavities) {
-                currentCavities++;
-                let newRow = `<tr class="edit-cavity-row" data-cavity="${currentCavities}">
-                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+            $('#editAddCavityBtn').click(function () {
+                if (currentCavities < maxCavities) {
+                    currentCavities++;
+                    let newRow = `<tr class="edit-cavity-row" data-cavity="${currentCavities}">
+                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
-                for (let j = 1; j <= currentPoints; j++) {
-                    newRow += `<td class="point-cell">
-                        <input type="text" class="form-control form-control-sm edit-dimension-input" 
-                            style="min-width: 60px;"
-                            name="dimensions[${currentCavities}][${j}]" 
-                            placeholder="P${j}">
-                    </td>`;
-                }
-                newRow += `</tr>`;
-                $('#editDimensionBody').append(newRow);
-            } else {
-                alert('Maximum 30 cavities reached');
-            }
-        });
-
-        $('#editAddPointBtn').click(function () {
-            if (currentPoints < maxPoints) {
-                currentPoints++;
-                // Add header
-                $('#editDimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
-
-                // Add cells to each row
-                $('.edit-cavity-row').each(function () {
-                    let cavityNum = $(this).data('cavity');
-                    $(this).append(`<td class="point-cell">
-                        <input type="text" class="form-control form-control-sm edit-dimension-input" 
-                            style="min-width: 60px;"
-                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                            placeholder="P${currentPoints}">
-                    </td>`);
-                });
-            } else {
-                alert('Maximum 30 points reached');
-            }
-        });
-
-        function getAqlLimits(sampleSize) {
-            if (sampleSize >= 1250) return { acc: 14, rej: 15 };
-            if (sampleSize >= 800) return { acc: 10, rej: 11 };
-            if (sampleSize >= 500) return { acc: 7, rej: 8 };
-            if (sampleSize >= 315) return { acc: 5, rej: 6 };
-            if (sampleSize >= 200) return { acc: 3, rej: 4 };
-            if (sampleSize >= 125) return { acc: 2, rej: 3 };
-            if (sampleSize >= 80) return { acc: 1, rej: 2 };
-            if (sampleSize >= 20) return { acc: 0, rej: 1 };
-            return { acc: 0, rej: 1 };
-        }
-
-        function updateJudgment() {
-            const sampling = parseInt($('#sampling_qty').val()) || 0;
-            const ng = parseInt($('#total_ng').val()) || 0;
-            const isDimensiInvalid = $('.is-invalid').length > 0;
-
-            if (sampling >= ng) {
-                $('#total_ok').val(sampling - ng);
-            } else {
-                $('#total_ok').val(0);
-            }
-
-            const limits = getAqlLimits(sampling);
-            const judgmentSelect = $('#judgment');
-
-            if (ng > 0 || sampling > 0 || isDimensiInvalid) {
-                if (isDimensiInvalid || ng >= limits.rej) {
-                    judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
-                } else if (ng <= limits.acc) {
-                    judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+                    for (let j = 1; j <= currentPoints; j++) {
+                        newRow += `<td class="point-cell">
+                            <input type="text" class="form-control form-control-sm edit-dimension-input" 
+                                style="min-width: 60px;"
+                                name="dimensions[${currentCavities}][${j}]" 
+                                placeholder="P${j}">
+                        </td>`;
+                    }
+                    newRow += `</tr>`;
+                    $('#editDimensionBody').append(newRow);
                 } else {
-                    judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
-                }
-            }
-            toggleNextProses();
-        }
-
-        function toggleNextProses() {
-            const judgment = $('#judgment').val();
-            const container = $('#nextProsesContainer');
-            if (judgment === 'NG') {
-                container.slideDown();
-            } else {
-                container.slideUp();
-                $('#next_proses').val('');
-            }
-        }
-
-        function normalizePartNumber(pn) {
-            if (!pn) return '';
-            return pn.toString()
-                .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
-                .replace(/\s+/g, '') // Remove all whitespace
-                .toUpperCase();
-        }
-
-        function validateDimensions() {
-            const selectedOption = $('#item_id').find('option:selected');
-            const rawPartNumber = selectedOption.data('part-number');
-            const itemPartNumber = normalizePartNumber(rawPartNumber);
-            const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-            $('.edit-dimension-input').each(function () {
-                const name = $(this).attr('name');
-                const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                if (!match) return;
-
-                const point = match[2];
-                const standard = dimensionStandards ? dimensionStandards[point] : null;
-                const valStr = $(this).val().trim();
-                const value = parseFloat(valStr.replace(',', '.'));
-
-                if (standard && valStr !== '' && !isNaN(value)) {
-                    let isInvalid = false;
-
-                    if (standard.min !== null && value < standard.min) {
-                        isInvalid = true;
-                    }
-                    if (standard.max !== null && value > standard.max) {
-                        isInvalid = true;
-                    }
-
-                    // Fallback to Size +/- Tolerance
-                    if (standard.min === null && standard.max === null) {
-                        if (standard.size !== null && standard.tolerance !== null) {
-                            const lowerBound = standard.size - standard.tolerance;
-                            const upperBound = standard.size + standard.tolerance;
-                            if (value < lowerBound || value > upperBound) {
-                                isInvalid = true;
-                            }
-                        }
-                    }
-
-                    if (isInvalid) {
-                        $(this).addClass('is-invalid');
-                    } else {
-                        $(this).removeClass('is-invalid');
-                    }
-                } else {
-                    $(this).removeClass('is-invalid');
+                    alert('Maximum 30 cavities reached');
                 }
             });
 
-            updateJudgment();
-        }
+            $('#editAddPointBtn').click(function () {
+                if (currentPoints < maxPoints) {
+                    currentPoints++;
+                    // Add header
+                    $('#editDimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
 
-        $(document).on('input', '.edit-dimension-input', validateDimensions);
-        $('#sampling_qty, #total_ng').on('input', updateJudgment);
-        $('#item_id').on('change', validateDimensions);
+                    // Add cells to each row
+                    $('.edit-cavity-row').each(function () {
+                        let cavityNum = $(this).data('cavity');
+                        $(this).append(`<td class="point-cell">
+                            <input type="text" class="form-control form-control-sm edit-dimension-input" 
+                                style="min-width: 60px;"
+                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                placeholder="P${currentPoints}">
+                        </td>`);
+                    });
+                } else {
+                    alert('Maximum 30 points reached');
+                }
+            });
 
-        // Form Submit Validation
-        $('#editChecksheetForm').on('submit', function (e) {
-            const judgment = $('#judgment').val();
-            const nextProses = $('#next_proses').val();
-
-            if (judgment === 'NG' && !nextProses) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Next Proses Wajib Dipilih',
-                    text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
-                    confirmButtonColor: '#3085d6'
-                });
-                $('#next_proses').focus();
-                return false;
+            function getAqlLimits(sampleSize) {
+                if (sampleSize >= 1250) return { acc: 14, rej: 15 };
+                if (sampleSize >= 800) return { acc: 10, rej: 11 };
+                if (sampleSize >= 500) return { acc: 7, rej: 8 };
+                if (sampleSize >= 315) return { acc: 5, rej: 6 };
+                if (sampleSize >= 200) return { acc: 3, rej: 4 };
+                if (sampleSize >= 125) return { acc: 2, rej: 3 };
+                if (sampleSize >= 80) return { acc: 1, rej: 2 };
+                if (sampleSize >= 20) return { acc: 0, rej: 1 };
+                return { acc: 0, rej: 1 };
             }
-        });
 
-        // Initial check
-        validateDimensions();
-    })();
-</script>
+            function updateJudgment() {
+                const sampling = parseInt($('#sampling_qty').val()) || 0;
+                const ng = parseInt($('#total_ng').val()) || 0;
+                const isDimensiInvalid = $('.is-invalid').length > 0;
+
+                if (sampling >= ng) {
+                    $('#total_ok').val(sampling - ng);
+                } else {
+                    $('#total_ok').val(0);
+                }
+
+                const limits = getAqlLimits(sampling);
+                const judgmentSelect = $('#judgment');
+
+                if (ng > 0 || sampling > 0 || isDimensiInvalid) {
+                    if (isDimensiInvalid || ng >= limits.rej) {
+                        judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                    } else if (ng <= limits.acc) {
+                        judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+                    } else {
+                        judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                    }
+                }
+                toggleNextProses();
+            }
+
+            function toggleNextProses() {
+                const judgment = $('#judgment').val();
+                const container = $('#nextProsesContainer');
+                if (judgment === 'NG') {
+                    container.slideDown();
+                } else {
+                    container.slideUp();
+                    $('#next_proses').val('');
+                }
+            }
+
+            function normalizePartNumber(pn) {
+                if (!pn) return '';
+                return pn.toString()
+                    .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
+                    .replace(/\s+/g, '') // Remove all whitespace
+                    .toUpperCase();
+            }
+
+            function validateDimensions() {
+                const selectedOption = $('#item_id').find('option:selected');
+                const rawPartNumber = selectedOption.data('part-number');
+                const itemPartNumber = normalizePartNumber(rawPartNumber);
+                const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+                $('.edit-dimension-input').each(function () {
+                    const name = $(this).attr('name');
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (!match) return;
+
+                    const point = match[2];
+                    const standard = dimensionStandards ? dimensionStandards[point] : null;
+                    const valStr = $(this).val().trim();
+                    const value = parseFloat(valStr.replace(',', '.'));
+
+                    if (standard && valStr !== '' && !isNaN(value)) {
+                        let isInvalid = false;
+
+                        if (standard.min !== null && value < standard.min) {
+                            isInvalid = true;
+                        }
+                        if (standard.max !== null && value > standard.max) {
+                            isInvalid = true;
+                        }
+
+                        // Fallback to Size +/- Tolerance
+                        if (standard.min === null && standard.max === null) {
+                            if (standard.size !== null && standard.tolerance !== null) {
+                                const lowerBound = standard.size - standard.tolerance;
+                                const upperBound = standard.size + standard.tolerance;
+                                if (value < lowerBound || value > upperBound) {
+                                    isInvalid = true;
+                                }
+                            }
+                        }
+
+                        if (isInvalid) {
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                        }
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                updateJudgment();
+            }
+
+            $(document).on('input', '.edit-dimension-input', validateDimensions);
+            $('#sampling_qty, #total_ng').on('input', updateJudgment);
+            $('#item_id').on('change', validateDimensions);
+
+            // Form Submit Validation
+            $('#editChecksheetForm').on('submit', function (e) {
+                const judgment = $('#judgment').val();
+                const nextProses = $('#next_proses').val();
+
+                if (judgment === 'NG' && !nextProses) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Next Proses Wajib Dipilih',
+                        text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    $('#next_proses').focus();
+                    return false;
+                }
+            });
+
+            // Initial check
+            validateDimensions();
+        })();
+    </script>
+@endpush
 <style>
     .is-invalid {
         border-color: #dc3545 !important;

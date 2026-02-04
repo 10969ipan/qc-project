@@ -27,17 +27,20 @@
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 032/0' : 'QC-KRW-F-0212' }}</div>
+                                {{ $plantCode === 'jakarta' ? 'QC - JKT - F - 032/0' : 'QC-KRW-F-0212' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}</div>
+                                {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}
+                            </div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
                             <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}</div>
+                                {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
@@ -50,8 +53,12 @@
     </div>
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Form Edit Checksheet Inprocess</h6>
+            <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}"
+                class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
+            </a>
         </div>
         <div class="card-body">
             @include('in_process.partials.edit_form')
