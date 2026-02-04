@@ -348,6 +348,9 @@ class InProcessChecksheetService extends BaseService
             // Process dimensions
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
 
+            // Process defects (Fix: Enable defect updates)
+            $defects = $this->processDefects($data);
+
             $updateData = [
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
@@ -361,6 +364,7 @@ class InProcessChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
+                'defects' => json_encode($defects),
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ];
 

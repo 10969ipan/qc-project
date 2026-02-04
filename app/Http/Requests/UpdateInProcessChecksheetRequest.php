@@ -30,6 +30,10 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
             'next_proses' => 'required_if:judgment,NG|string',
+            'defect_types' => 'nullable|array',
+            'defect_types.*' => 'nullable|string',
+            'defect_quantities' => 'nullable|array',
+            'defect_quantities.*' => 'nullable|numeric|min:1',
         ];
     }
 
