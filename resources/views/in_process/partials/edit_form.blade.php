@@ -181,7 +181,7 @@
                 </tbody>
             </table>
         </div>
-        <small class="text-muted">Max 20x20. Default 5x5 (atau sesuai data).</small>
+        <small class="text-muted">Max 30x30. Default 5x5 (atau sesuai data).</small>
     </div>
 
     <div id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
@@ -218,8 +218,8 @@
         // Initial counts from PHP
         let currentCavities = {{ $maxCavityFound }};
         let currentPoints = {{ $maxPointFound }};
-        const maxCavities = 20;
-        const maxPoints = 20;
+        const maxCavities = 30;
+        const maxPoints = 30;
 
         $('#editAddCavityBtn').click(function () {
             if (currentCavities < maxCavities) {
@@ -238,7 +238,7 @@
                 newRow += `</tr>`;
                 $('#editDimensionBody').append(newRow);
             } else {
-                alert('Maximum 20 cavities reached');
+                alert('Maximum 30 cavities reached');
             }
         });
 
@@ -259,7 +259,7 @@
                     </td>`);
                 });
             } else {
-                alert('Maximum 20 points reached');
+                alert('Maximum 30 points reached');
             }
         });
 

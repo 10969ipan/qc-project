@@ -1079,7 +1079,7 @@
                                                 data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                                 data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
                                                 data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}" data-shift="{{ $data->shift ?? '-' }}"
                                             data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
                                             @if($manualStatus && $manualStatus->status !== 'normal')
                                                 data-manual-description="{{ $manualStatus->description }}"
@@ -1139,6 +1139,11 @@
                                                         <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
                                                             class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                        <span
+                                                            class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }} WIB</span>
                                                     </div>
                                                     <div class="flex items-center justify-between text-[0.65rem] leading-tight">
                                                         <span class="text-slate-500 dark:text-slate-400">QC</span>
@@ -1226,7 +1231,7 @@
                                                 data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                                 data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
                                                 data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}" data-shift="{{ $data->shift ?? '-' }}"
                                             data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
                                             @if($manualStatus && $manualStatus->status !== 'normal')
                                                 data-manual-description="{{ $manualStatus->description }}"
@@ -1286,6 +1291,11 @@
                                                         <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
                                                             class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                        <span
+                                                            class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }} WIB</span>
                                                     </div>
                                                     <div class="flex items-center justify-between text-[0.65rem] leading-tight">
                                                         <span class="text-slate-500 dark:text-slate-400">QC</span>
@@ -1373,7 +1383,7 @@
                                                 data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                                 data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
                                                 data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}" data-shift="{{ $data->shift ?? '-' }}"
                                                 data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
                                             data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
                                                 data-manual-description="{{ $manualStatus->description }}"
@@ -1437,6 +1447,11 @@
                                                         <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
                                                             class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                        <span
+                                                            class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }} WIB</span>
                                                     </div>
                                                     <div class="flex items-center justify-between text-[0.65rem] leading-tight">
                                                         <span class="text-slate-500 dark:text-slate-400">QC</span>
@@ -1525,7 +1540,7 @@
                                                 data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                                 data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
                                                 data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}" data-shift="{{ $data->shift ?? '-' }}"
                                                 data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
                                             data-tonnage="{{ $machineInfo['tonnage'] ?? '-' }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
                                                 data-manual-description="{{ $manualStatus->description }}"
@@ -1589,6 +1604,11 @@
                                                         <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
                                                             class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                        <span
+                                                            class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }} WIB</span>
                                                     </div>
                                                     <div class="flex items-center justify-between text-[0.65rem] leading-tight">
                                                         <span class="text-slate-500 dark:text-slate-400">QC</span>
@@ -1693,7 +1713,7 @@
                                                 data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                                 data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
                                                 data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}" data-shift="{{ $data->shift ?? '-' }}"
                                             data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
                                             @if($manualStatus && $manualStatus->status !== 'normal')
                                                 data-manual-description="{{ $manualStatus->description }}"
@@ -1753,6 +1773,11 @@
                                                         <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
                                                             class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                        <span
+                                                            class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }} WIB</span>
                                                     </div>
                                                     <div class="flex items-center justify-between text-[0.65rem] leading-tight">
                                                         <span class="text-slate-500 dark:text-slate-400">QC</span>
@@ -1853,7 +1878,7 @@
                                                 data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
                                                 data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
                                                 data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
-                                                data-date="{{ $data->date ?? '-' }}" data-shift="{{ $data->shift ?? '-' }}"
+                                                data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}" data-shift="{{ $data->shift ?? '-' }}"
                                                 data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}"
                                             data-tonnage="{{ $tonnage }}" @endif @if($manualStatus && $manualStatus->status !== 'normal')
                                                 data-manual-description="{{ $manualStatus->description }}"
@@ -1917,6 +1942,11 @@
                                                         <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                         <span
                                                             class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                        <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                        <span
+                                                            class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }} WIB</span>
                                                     </div>
                                                     <div class="flex items-center justify-between text-[0.65rem] leading-tight">
                                                         <span class="text-slate-500 dark:text-slate-400">QC</span>

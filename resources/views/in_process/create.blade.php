@@ -276,7 +276,7 @@
                                                 <i class="fas fa-plus"></i> Cavity
                                             </button>
                                         </div>
-                                        <small class="text-muted" id="dimensionCounter">Max 20x20 (Default 5x5)</small>
+                                        <small class="text-muted" id="dimensionCounter">Max 30x30 (Default 5x5)</small>
                                     </div>
                                     <div class="table-responsive" style="max-height: 400px; overflow: auto;">
                                         <table class="table table-sm table-bordered mb-0" id="dimensionTable">
@@ -1127,27 +1127,27 @@
             // --- Dynamic Dimension Expansion Logistic ---
             let currentCavities = 5;
             let currentPoints = 5;
-            const maxCavities = 20;
-            const maxPoints = 20;
+            const maxCavities = 30;
+            const maxPoints = 30;
 
             $('#addCavityBtn').click(function () {
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                    style="min-width: 60px;"
-                                                                                                    name="dimensions[${currentCavities}][${j}]" 
-                                                                                                    placeholder="P${j}">
-                                                                                            </td>`;
+                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                            style="min-width: 60px;"
+                                                                                                            name="dimensions[${currentCavities}][${j}]" 
+                                                                                                            placeholder="P${j}">
+                                                                                                    </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
                 } else {
-                    alert('Maximum 20 cavities reached');
+                    alert('Maximum 30 cavities reached');
                 }
             });
 
@@ -1161,14 +1161,14 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                    style="min-width: 60px;"
-                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                    placeholder="P${currentPoints}">
-                                                                                            </td>`);
+                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                            style="min-width: 60px;"
+                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                            placeholder="P${currentPoints}">
+                                                                                                    </td>`);
                     });
                 } else {
-                    alert('Maximum 20 points reached');
+                    alert('Maximum 30 points reached');
                 }
             });
 
