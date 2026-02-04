@@ -18,7 +18,8 @@
                     <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
                     @foreach($items as $item)
                         <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
-                            data-part-number="{{ $item->part_number }}">
+                            data-part-number="{{ $item->part_number }}"
+                            data-defects="{{ json_encode($item->defects) }}">
                             {{ $item->name }} ({{ $item->customer }})
                         </option>
                     @endforeach
@@ -107,6 +108,42 @@
                     </div>
                 </div>
             @endif
+
+            <div class="row">
+                <div class="col-12">
+                     <div class="form-group mb-2">
+                        <label class="small font-weight-bold">Detail NG (Defect List)</label>
+                        <div id="editDefectContainer">
+                            {{-- Rows will be populated by JS or Server-side loop --}}
+                            @php
+                                $defects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
+                            @endphp
+                            
+                            @if(count($defects) > 0)
+                                @foreach($defects as $index => $defect)
+                                    <div class="input-group mb-2 defect-row">
+                                        <select class="form-control form-control-sm defect-select" name="defect_types[]">
+                                            <option value="">-- Pilih Defect --</option>
+                                            <option value="{{ $defect['type'] }}" selected>{{ $defect['type'] }}</option>
+                                        </select>
+                                        <input type="number" class="form-control form-control-sm defect-qty" name="defect_quantities[]" 
+                                            value="{{ $defect['qty'] }}" min="1" placeholder="Qty" style="max-width: 80px;">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                {{-- Empty initial row for structure, hidden or shown based on needs --}}
+                                <div class="input-group mb-2 defect-row" style="display:none"></div>
+                            @endif
+                        </div>
+                        <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs mt-1" style="{{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
+                            <i class="fas fa-plus"></i> Tambah Jenis
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-6">
@@ -414,6 +451,123 @@
 
         // Initial check
         validateDimensions();
+
+        // --- Defect & NG Logic (Copied/Adapted from create.blade.php) ---
+        var defaultDefects = [
+            { value: 'scratch', text: 'BARET' },
+            { value: 'silver', text: 'SILVER' },
+            { value: 'flow', text: 'FLOW' },
+            { value: 'flash', text: 'FLASH' },
+            { value: 'shoot_mold', text: 'SHOOT MOLD' },
+            { value: 'bending', text: 'BENDING' },
+            { value: 'sinkmark', text: 'SINKMARK' },
+            { value: 'dimension', text: 'Dimensi' }
+        ];
+
+        function updateDefectOptions() {
+            var selectedOption = $('#item_id').find('option:selected');
+            var defectsData = selectedOption.data('defects');
+
+            // Normalize defectsData
+            if (typeof defectsData === 'string') {
+                try {
+                    defectsData = JSON.parse(defectsData);
+                } catch (e) {
+                    defectsData = [];
+                }
+            }
+
+            // Provide options for ALL defect selects
+            $('.defect-select').each(function() {
+                var currentVal = $(this).val(); // preserve selection
+                $(this).empty();
+                $(this).append('<option value="">-- Pilih Defect --</option>');
+
+                if (Array.isArray(defectsData) && defectsData.length > 0) {
+                    var that = this;
+                    $.each(defectsData, function (index, value) {
+                        $(that).append('<option value="' + value + '">' + value + '</option>');
+                    });
+                } else {
+                    var that = this;
+                    $.each(defaultDefects, function (index, defect) {
+                        $(that).append('<option value="' + defect.text + '">' + defect.text + '</option>'); // Using text as value to match existing data likely
+                    });
+                }
+                
+                if (currentVal) {
+                    $(this).val(currentVal);
+                }
+            });
+        }
+
+        // Run updates on item change
+        $('#item_id').change(function() {
+            updateDefectOptions();
+            validateDimensions(); // existing call
+        });
+
+        // Trigger on load to ensure dropdowns have options (if not already populated nicely)
+        // Since we manually put the 'selected' option in HTML, we just need to fill the rest.
+        updateDefectOptions();
+
+        $('#editAddDefectBtn').click(function () {
+            var rowCount = $('.defect-row').length;
+            if (rowCount < 5) { // Limit to reasonable number
+                var newRow = $('<div class="input-group mb-2 defect-row">' +
+                    '<select class="form-control form-control-sm defect-select" name="defect_types[]">' +
+                    '<option value="">-- Pilih Defect --</option>' +
+                    '</select>' +
+                    '<input type="number" class="form-control form-control-sm defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;">' +
+                    '<div class="input-group-append">' +
+                    '<button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
+                    '</div>' +
+                    '</div>');
+                
+                $('#editDefectContainer').append(newRow);
+                updateDefectOptions(); // Populate options for new row
+            }
+        });
+
+        $(document).on('click', '.remove-defect-btn', function () {
+            $(this).closest('.defect-row').remove();
+            calculateTotalNG();
+        });
+
+        function calculateTotalNG() {
+            var total = 0;
+            $('.defect-qty').each(function () {
+                var qty = parseInt($(this).val()) || 0;
+                total += qty;
+            });
+            $('#total_ng').val(total).trigger('input');
+            
+            // Toggle Add Defect button
+            if (total >= 0 || $('.defect-row').length > 0) {
+                 $('#editAddDefectBtn').show();
+            }
+        }
+
+        $(document).on('input', '.defect-qty', function () {
+            calculateTotalNG();
+        });
+
+        // Toggle "Add Defect" button based on NG count
+        $('#total_ng').on('input', function () {
+            var ng = parseInt($(this).val()) || 0;
+            // If user manually types NG, we should ensure there is at least one defect row if NG > 0
+            // But if they just want to type NG without details, we shouldn't force it?
+            // The constraint is matching NG to defects. 
+            // Let's just show the button if NG > 0
+            if (ng > 0) {
+                $('#editAddDefectBtn').show();
+            } 
+            // Logic to add a row if none exists but NG > 0? 
+            if (ng > 0 && $('.defect-row').length === 0) {
+                // Perhaps auto-add one?
+                $('#editAddDefectBtn').trigger('click');
+            }
+        });
     })();
 </script>
 <style>
