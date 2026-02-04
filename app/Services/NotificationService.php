@@ -40,7 +40,11 @@ class NotificationService
                     'type' => 'ng_finding',
                     'title' => $title,
                     'message' => $message,
-                    'data' => ['url' => $url],
+                    'data' => [
+                        'url' => $url,
+                        'checksheet_id' => $checksheet->id,  // Tambahkan ID untuk auto-hide
+                        'checksheet_type' => $type
+                    ],
                 ]);
             }
         } catch (\Exception $e) {
@@ -75,7 +79,11 @@ class NotificationService
                     'type' => 'abnormal', // Using abnormal type for rejections (yellow icons)
                     'title' => $title,
                     'message' => $message,
-                    'data' => ['url' => $url],
+                    'data' => [
+                        'url' => $url,
+                        'checksheet_id' => $checksheet->id,  // Tambahkan ID untuk auto-hide
+                        'checksheet_type' => $type
+                    ],
                 ]);
             }
         } catch (\Exception $e) {
@@ -114,7 +122,11 @@ class NotificationService
                     'type' => 'approval',
                     'title' => $title,
                     'message' => $message,
-                    'data' => ['url' => $url],
+                    'data' => [
+                        'url' => $url,
+                        'checksheet_id' => $checksheet->id,  // Tambahkan ID untuk auto-hide
+                        'checksheet_type' => $type
+                    ],
                 ]);
             }
         } catch (\Exception $e) {
@@ -200,6 +212,7 @@ class NotificationService
             : Carbon::parse($checksheet->date)->format('Y-m-d');
 
         $params = [
+            'id' => $checksheet->id,  // Filter langsung ke checksheet spesifik
             'plant' => $checksheet->plant->code,
             'search' => $checksheet->item->name,
             'start_date' => $dateStr,
@@ -251,6 +264,34 @@ class NotificationService
             case 'Sortir':
             default:
                 return $checksheet->line ?? null;
+        }
+    }
+
+    /**
+     * Delete all notifications related to a specific checksheet
+     * This is called after approval to remove the notification from list
+     */
+    public function markChecksheetNotificationsAsRead($checksheet, $type = 'In Process')
+    {
+        try {
+            // Delete all notifications related to this checksheet
+            $deleted = Notification::whereJsonContains('data->checksheet_id', $checksheet->id)
+                ->whereJsonContains('data->checksheet_type', $type)
+                ->delete();
+
+            Log::info("Deleted {$deleted} notifications for checksheet ID: {$checksheet->id}, Type: {$type}");
+        } catch (\Exception $e) {
+            Log::error('Error deleting notifications: ' . $e->getMessage());
+
+            // Fallback: Try to mark as read if delete fails
+            try {
+                Notification::whereJsonContains('data->checksheet_id', $checksheet->id)
+                    ->where('is_read', false)
+                    ->update(['is_read' => true]);
+                Log::info("Fallback: Marked notifications as read for checksheet ID: {$checksheet->id}");
+            } catch (\Exception $e2) {
+                Log::error('Fallback also failed: ' . $e2->getMessage());
+            }
         }
     }
 }

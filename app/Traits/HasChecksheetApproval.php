@@ -100,6 +100,24 @@ trait HasChecksheetApproval
 
             $checksheet->save();
 
+            // Mark related notifications as read after successful approval
+            try {
+                $notificationService = app(\App\Services\NotificationService::class);
+                $typeLabel = 'Checksheet';
+                if (strpos($modelClass, 'SubAssy') !== false)
+                    $typeLabel = 'Sub Assy';
+                if (strpos($modelClass, 'InProcess') !== false)
+                    $typeLabel = 'In Process';
+                if (strpos($modelClass, 'CrossCut') !== false)
+                    $typeLabel = 'Cross Cut';
+                if (strpos($modelClass, 'Sortir') !== false)
+                    $typeLabel = 'Sortir';
+
+                $notificationService->markChecksheetNotificationsAsRead($checksheet, $typeLabel);
+            } catch (\Exception $ne) {
+                Log::error('Gagal mark notifications as read: ' . $ne->getMessage());
+            }
+
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
