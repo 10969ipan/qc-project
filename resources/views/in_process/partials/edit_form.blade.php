@@ -262,12 +262,33 @@
     </div>
 </form>
 
+<!-- Loading Overlay -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="text-center">
+        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div class="text-white mt-3 font-weight-bold">Menyimpan data...</div>
+    </div>
+</div>
+
 @php
 // We remove @push because this is loaded via AJAX and @push doesn't work in AJAX responses.
 // The script will execute normally when inserted into the DOM.
 @endphp
 <script>
-    (function () {
+    // Ensure jQuery is loaded before executing
+    (function() {
+        // Check if jQuery is available
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded! Waiting for it...');
+            // Retry after a short delay
+            setTimeout(arguments.callee, 50);
+            return;
+        }
+        
+        // jQuery is available, proceed with initialization
+        (function ($) {
         // Use PHP to inject the variable
         const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
@@ -436,8 +457,49 @@
             const judgment = $('#judgment').val();
             const nextProses = $('#next_proses').val();
 
+            // Log data yang akan dikirim untuk debugging
+            console.log('=== Form Edit Checksheet Submit ===');
+            console.log('Judgment:', judgment);
+            console.log('Next Proses:', nextProses);
+            
+            // Collect dimension data
+            const dimensionData = {};
+            $('.edit-dimension-input').each(function() {
+                const name = $(this).attr('name');
+                const value = $(this).val();
+                if (value && value.trim() !== '') {
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (match) {
+                        const cavity = match[1];
+                        const point = match[2];
+                        if (!dimensionData[cavity]) dimensionData[cavity] = {};
+                        dimensionData[cavity][point] = value;
+                    }
+                }
+            });
+            console.log('Dimension Data:', dimensionData);
+            console.log('Dimension Count:', Object.keys(dimensionData).length);
+            
+            // Collect defect data
+            const defectData = [];
+            $('.defect-row').each(function() {
+                const type = $(this).find('.defect-select').val();
+                const qty = $(this).find('.defect-qty').val();
+                if (type && qty) {
+                    defectData.push({ type, qty });
+                }
+            });
+            console.log('Defect Data:', defectData);
+            console.log('Defect Count:', defectData.length);
+            
+            // Collect all form data
+            const formData = $(this).serializeArray();
+            console.log('All Form Data:', formData);
+            console.log('===================================');
+
             if (judgment === 'NG' && !nextProses) {
                 e.preventDefault();
+                console.warn('Validation Failed: Next Proses required for NG judgment');
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
@@ -447,6 +509,27 @@
                 $('#next_proses').focus();
                 return false;
             }
+            
+            console.log('Form validation passed, submitting...');
+            
+            // Pastikan tidak ada input yang disabled (yang bisa menghalangi data terkirim)
+            $('#editChecksheetForm').find(':input:disabled').each(function() {
+                console.warn('Found disabled input:', $(this).attr('name'), '- Enabling temporarily');
+                $(this).prop('disabled', false).addClass('was-disabled');
+            });
+            
+            // Show loading overlay
+            $('#loadingOverlay').css('display', 'flex');
+            
+            // Disable submit button to prevent double submit
+            $('#btnSubmit').prop('disabled', true);
+        });
+        
+        // Re-enable disabled inputs after form is processed (in case of error)
+        $(document).on('ajaxComplete ajaxError', function() {
+            $('.was-disabled').prop('disabled', true).removeClass('was-disabled');
+            $('#loadingOverlay').hide();
+            $('#btnSubmit').prop('disabled', false);
         });
 
         // Initial check
@@ -568,7 +651,8 @@
                 $('#editAddDefectBtn').trigger('click');
             }
         });
-    })();
+        })(jQuery); // Pass jQuery to the function
+    })(); // Self-executing function
 </script>
 <style>
     .is-invalid {

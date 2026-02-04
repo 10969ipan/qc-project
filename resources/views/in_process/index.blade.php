@@ -805,8 +805,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1095,22 +1095,41 @@
             // Disable button and show loading
             $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
 
+            // Log AJAX request untuk debugging
+            var formData = $form.serializeArray();
+            console.log('=== AJAX Form Submit ===');
+            console.log('URL:', $form.attr('action'));
+            console.log('Method:', $form.attr('method'));
+            console.log('Form Data:', formData);
+            console.log('========================');
+
             $.ajax({
                 url: $form.attr('action'),
                 method: $form.attr('method'),
                 data: $form.serialize(),
                 dataType: 'json',
                 success: function (response) {
+                    console.log('=== AJAX Success Response ===');
+                    console.log('Response:', response);
+                    console.log('=============================');
+
                     if (response.success) {
                         // Success! Reload to the provided URL (to preserve parameters) or current URL
+                        console.log('Redirecting to:', response.redirect || window.location.href);
                         window.location.href = response.redirect || window.location.href;
                     } else {
                         // Error but handled
+                        console.warn('Response success=false:', response.message);
                         showModalError($modalErrors, response.message || 'Terjadi kesalahan saat menyimpan data.');
                         $submitBtn.prop('disabled', false).html($originalBtnHtml);
                     }
                 },
                 error: function (xhr) {
+                    console.error('=== AJAX Error Response ===');
+                    console.error('Status:', xhr.status);
+                    console.error('Response:', xhr.responseJSON);
+                    console.error('===========================');
+
                     $submitBtn.prop('disabled', false).html($originalBtnHtml);
 
                     if (xhr.status === 422) {
@@ -1119,6 +1138,7 @@
                         var errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
 
                         if (errors) {
+                            console.error('Validation Errors:', errors);
                             $.each(errors, function (field, messages) {
                                 errorHtml += '<li>' + messages[0] + '</li>';
 
@@ -1140,6 +1160,7 @@
                     } else {
                         // General error
                         var message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
+                        console.error('General Error:', message);
                         showModalError($modalErrors, '<div class="alert alert-danger">' + message + '</div>');
                     }
 
@@ -1157,6 +1178,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                });
+                                                                                                                    });
     </script>
 @endpush

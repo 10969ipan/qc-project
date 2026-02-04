@@ -221,7 +221,20 @@ class InProcessChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $this->inProcessService->updateChecksheet($id, $request->validated());
+            $validatedData = $request->validated();
+
+            // Log data yang diterima untuk debugging
+            \Log::info('Update Checksheet In Process', [
+                'checksheet_id' => $id,
+                'user_id' => auth()->id(),
+                'validated_data' => $validatedData,
+                'has_dimensions' => isset($validatedData['dimensions']),
+                'has_defects' => isset($validatedData['defect_types']),
+                'dimension_count' => isset($validatedData['dimensions']) ? count($validatedData['dimensions']) : 0,
+                'defect_count' => isset($validatedData['defect_types']) ? count($validatedData['defect_types']) : 0,
+            ]);
+
+            $this->inProcessService->updateChecksheet($id, $validatedData);
 
             // Only preserve specific navigation and filter parameters
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
@@ -237,6 +250,14 @@ class InProcessChecksheetController extends Controller
 
             return redirect()->route('in_process.index', $redirectParams)->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
         } catch (\Exception $e) {
+            // Log error untuk debugging
+            \Log::error('Gagal update Checksheet In Process', [
+                'checksheet_id' => $id,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
