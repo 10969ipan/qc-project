@@ -515,7 +515,7 @@
                                         @if($canApproveKashift)
                                             <form
                                                 action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}"
-                                                method="POST" class="d-inline">
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -524,7 +524,7 @@
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
@@ -539,7 +539,7 @@
                                         @if($canApproveSupervisor)
                                             <form
                                                 action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}"
-                                                method="POST" class="d-inline">
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -548,7 +548,7 @@
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
@@ -563,7 +563,7 @@
                                         @if($canApproveAsst)
                                             <form
                                                 action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}"
-                                                method="POST" class="d-inline">
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -571,7 +571,7 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
-                                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -587,7 +587,7 @@
                                         @if($canApproveManager)
                                             <form
                                                 action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}"
-                                                method="POST" class="d-inline">
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -596,7 +596,7 @@
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
@@ -624,7 +624,7 @@
                                             </a>
                                             <form
                                                 action="{{ route('in_process.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                method="POST" class="d-inline">
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
@@ -736,8 +736,9 @@
                             </div>
                             <form
                                 action="{{ route('in_process.reject', array_merge(['id' => $cs->id, 'type' => $rejectType], request()->all())) }}"
-                                method="POST">
+                                method="POST" class="ajax-form">
                                 @csrf
+                                <div id="modal-errors" class="mx-3 mt-3" style="display: none;"></div>
                                 <div class="modal-body">
                                     <div class="alert alert-warning">
                                         <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
@@ -798,8 +799,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1063,6 +1064,93 @@
                 }
             });
         });
-                                                                                        });
+        // AJAX Form Submission for All Checksheet Actions (Edit, Status, Approve, Reject)
+        $(document).on('submit', '.ajax-form', function (e) {
+            var $form = $(this);
+            
+            // Special confirmation for Delete actions
+            if ($form.find('input[name="_method"]').val() === 'DELETE') {
+                if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            e.preventDefault();
+            var $submitBtn = $form.find('button[type="submit"]');
+            var $modalErrors = $form.find('#modal-errors');
+            var $originalBtnHtml = $submitBtn.html();
+
+            // Clear previous errors
+            $modalErrors.hide().html('');
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $form.find('.invalid-feedback').remove();
+
+            // Disable button and show loading
+            $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        // Success! Reload to the provided URL (to preserve parameters) or current URL
+                        window.location.href = response.redirect || window.location.href;
+                    } else {
+                        // Error but handled
+                        showModalError($modalErrors, response.message || 'Terjadi kesalahan saat menyimpan data.');
+                        $submitBtn.prop('disabled', false).html($originalBtnHtml);
+                    }
+                },
+                error: function (xhr) {
+                    $submitBtn.prop('disabled', false).html($originalBtnHtml);
+
+                    if (xhr.status === 422) {
+                        // Validation errors
+                        var errors = xhr.responseJSON.errors;
+                        var errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+
+                        if (errors) {
+                            $.each(errors, function (field, messages) {
+                                errorHtml += '<li>' + messages[0] + '</li>';
+
+                                // Highlight individual fields
+                                var $input = $form.find('[name="' + field + '"]');
+                                if ($input.length) {
+                                    $input.addClass('is-invalid');
+                                    if (!$input.next('.invalid-feedback').length) {
+                                        $input.after('<div class="invalid-feedback">' + messages[0] + '</div>');
+                                    }
+                                }
+                            });
+                        } else {
+                            errorHtml += '<li>' + (xhr.responseJSON.message || 'Validasi gagal.') + '</li>';
+                        }
+
+                        errorHtml += '</ul></div>';
+                        showModalError($modalErrors, errorHtml);
+                    } else {
+                        // General error
+                        var message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
+                        showModalError($modalErrors, '<div class="alert alert-danger">' + message + '</div>');
+                    }
+
+                    // Scroll to top of modal if inside one, otherwise scroll window
+                    var $modalBody = $form.closest('.modal-body');
+                    if ($modalBody.length) {
+                        $modalBody.animate({ scrollTop: 0 }, 'fast');
+                    } else {
+                        $('html, body').animate({ scrollTop: $form.offset().top - 100 }, 'fast');
+                    }
+                }
+            });
+        });
+
+        function showModalError($container, html) {
+            $container.html(html).fadeIn();
+        }
+                                                                                                    });
     </script>
 @endpush

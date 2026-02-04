@@ -101,7 +101,21 @@ trait HasChecksheetApproval
             $checksheet->save();
 
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Checksheet berhasil disetujui.',
+                'redirect' => url()->previous()
+            ]);
         }
 
         return redirect()->back()->with('success', 'Data Checksheet berhasil disetujui.');
@@ -190,7 +204,21 @@ trait HasChecksheetApproval
             }
 
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Checksheet berhasil ditolak.',
+                'redirect' => url()->previous()
+            ]);
         }
 
         return redirect()->back()->with('success', 'Data Checksheet berhasil ditolak.');

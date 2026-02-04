@@ -224,12 +224,25 @@ class InProcessChecksheetController extends Controller
             $this->inProcessService->updateChecksheet($id, $request->validated());
 
             // Only preserve specific navigation and filter parameters
-            // Exclude fields that might collide with form data (item_id, next_proses)
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Checksheet Inprocess berhasil diperbarui.',
+                    'redirect' => route('in_process.index', $redirectParams)
+                ]);
+            }
+
             return redirect()->route('in_process.index', $redirectParams)->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui data: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
     }
@@ -247,9 +260,23 @@ class InProcessChecksheetController extends Controller
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Checksheet Inprocess berhasil dihapus.',
+                    'redirect' => route('in_process.index', $redirectParams)
+                ]);
+            }
+
             return redirect()->route('in_process.index', $redirectParams)
                 ->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus data: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
@@ -297,8 +324,22 @@ class InProcessChecksheetController extends Controller
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Status approval berhasil diperbarui oleh Admin.',
+                    'redirect' => route('in_process.index', $redirectParams)
+                ]);
+            }
+
             return redirect()->route('in_process.index', $redirectParams)->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui status approval: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }
     }

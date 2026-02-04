@@ -2,7 +2,9 @@
     <h6 class="align-middle m-0 font-weight-bold">Checksheet ID: {{ $checksheet->id }}</h6>
 </div>
 
-<form action="{{ route('admin.in_process.update_approval', $checksheet->id) }}" method="POST">
+<form id="statusApprovalForm" class="ajax-form"
+    action="{{ route('admin.in_process.update_approval', $checksheet->id) }}" method="POST">
+    <div id="modal-errors" class="mb-3" style="display: none;"></div>
     @csrf
     @method('PUT')
     {{-- Preserve all filter and pagination parameters --}}
