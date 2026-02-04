@@ -289,7 +289,11 @@ class InProcessChecksheetController extends Controller
 
         try {
             $this->inProcessService->updateApprovalStatus($id, $validated);
-            return redirect()->route('in_process.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+
+            // Stay in the same page and plant after updating approval status
+            $redirectParams = $request->except(['_token', '_method', 'kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc']);
+
+            return redirect()->route('in_process.index', $redirectParams)->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }

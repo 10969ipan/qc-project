@@ -5,6 +5,12 @@
 <form action="{{ route('admin.in_process.update_approval', $checksheet->id) }}" method="POST">
     @csrf
     @method('PUT')
+    {{-- Preserve all filter and pagination parameters --}}
+    @foreach(request()->all() as $key => $value)
+        @if(!in_array($key, ['_token', '_method', 'id', 'kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc']))
+            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+        @endif
+    @endforeach
 
     <div class="row mb-3">
         <div class="col-md-12">

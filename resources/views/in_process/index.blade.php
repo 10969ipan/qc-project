@@ -514,7 +514,7 @@
 
                                         @if($canApproveKashift)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
+                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -523,7 +523,8 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
@@ -537,7 +538,7 @@
                                         @endif
                                         @if($canApproveSupervisor)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}"
+                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -546,7 +547,8 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
@@ -560,7 +562,7 @@
                                         @endif
                                         @if($canApproveAsst)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager', 'plant' => request('plant')]) }}"
+                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -569,6 +571,7 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -583,7 +586,7 @@
                                         @endif
                                         @if($canApproveManager)
                                             <form
-                                                action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}"
+                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -592,7 +595,8 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
@@ -606,7 +610,7 @@
                                         @endif
 
                                         @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.in_process.edit_approval', $checksheet->id) }}"
+                                            <a href="{{ route('admin.in_process.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) }}"
                                                 class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
@@ -731,7 +735,7 @@
                                 </button>
                             </div>
                             <form
-                                action="{{ route('in_process.reject', ['id' => $cs->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
+                                action="{{ route('in_process.reject', array_merge(['id' => $cs->id, 'type' => $rejectType], request()->all())) }}"
                                 method="POST">
                                 @csrf
                                 <div class="modal-body">
@@ -794,8 +798,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1059,6 +1063,6 @@
                 }
             });
         });
-                                                                                });
+                                                                                        });
     </script>
 @endpush
