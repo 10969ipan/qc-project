@@ -214,7 +214,25 @@ class InProcessChecksheetService extends BaseService
             }
 
             if ($hasValidDimensions) {
-                $data['judgment'] = $isAnyInvalid ? 'NG' : 'OK';
+                if ($isAnyInvalid) {
+                    $data['judgment'] = 'NG';
+                } else {
+                    // Only set to OK if it's currently NG but purely due to dimensions (which are now valid)
+                    // BUT, if total_ng > 0, it MUST remain NG.
+                    // If the user submitted a judgment, we should generally respect it unless dimensions fail.
+                    // However, let's enforce: If Total NG > 0 -> NG.
+                    if (isset($data['total_ng']) && $data['total_ng'] > 0) {
+                        $data['judgment'] = 'NG';
+                    }
+                    // If no defects and dimensions are OK, we leave the judgment input from the form 
+                    // (which should be OK, or user manually set it).
+                    // Or strictly: if ($data['total_ng'] == 0) $data['judgment'] = 'OK'; ? 
+                    // Let's safe-guard: If we are here, dimensions are VALID. 
+                    // If total_ng is 0, then Judgment SHOULD be OK (unless there's some other reason).
+                    // The safest approach for "Edits" is: Don't force OK if the user specifically sent NG. 
+                    // But if the user sent OK and dimensions are NG, we handled that above.
+                    // So we do nothing here, essentially trusting $data['judgment'], EXCEPT if total_ng > 0.
+                }
             }
         }
 
