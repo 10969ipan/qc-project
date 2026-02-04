@@ -343,7 +343,7 @@ class InProcessChecksheetService extends BaseService
             $checksheet = InProcessChecksheet::findOrFail($id);
 
             // Validate dimensions and auto-set judgment
-            $data = $this->validateDimensions($data, $data['item_id']);
+            $data = $this->validateDimensions($data, (int) $data['item_id']);
 
             // Process dimensions
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
