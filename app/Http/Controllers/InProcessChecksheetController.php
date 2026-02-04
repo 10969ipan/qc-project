@@ -223,10 +223,8 @@ class InProcessChecksheetController extends Controller
         try {
             $this->inProcessService->updateChecksheet($id, $request->validated());
 
-            $redirectParams = [];
-            if ($request->has('plant')) {
-                $redirectParams['plant'] = $request->input('plant');
-            }
+            // Stay in the same page and plant after editing
+            $redirectParams = $request->except(['_token', '_method']);
 
             return redirect()->route('in_process.index', $redirectParams)->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
         } catch (\Exception $e) {
@@ -243,11 +241,8 @@ class InProcessChecksheetController extends Controller
         try {
             $this->inProcessService->deleteChecksheet($id);
 
-            // Preserve plant parameter when redirecting back
-            $redirectParams = [];
-            if ($request->has('plant')) {
-                $redirectParams['plant'] = $request->input('plant');
-            }
+            // Stay in the same page and plant after deleting
+            $redirectParams = $request->except(['_token', '_method']);
 
             return redirect()->route('in_process.index', $redirectParams)
                 ->with('success', 'Data Checksheet Inprocess berhasil dihapus.');

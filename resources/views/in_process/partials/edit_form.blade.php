@@ -2,7 +2,12 @@
     action="{{ route('in_process.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
     @csrf
     @method('PUT')
-    <input type="hidden" name="plant" value="{{ request('plant') }}">
+    {{-- Preserve all filter and pagination parameters --}}
+    @foreach(request()->all() as $key => $value)
+        @if(!in_array($key, ['_token', '_method', 'id']))
+            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+        @endif
+    @endforeach
 
     <div class="row">
         <div class="col-md-6">
@@ -232,15 +237,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="edit-cavity-row" data-cavity="${currentCavities}">
-                                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                    <input type="text" class="form-control form-control-sm edit-dimension-input" 
-                                        style="min-width: 60px;"
-                                        name="dimensions[${currentCavities}][${j}]" 
-                                        placeholder="P${j}">
-                                </td>`;
+                                        <input type="text" class="form-control form-control-sm edit-dimension-input" 
+                                            style="min-width: 60px;"
+                                            name="dimensions[${currentCavities}][${j}]" 
+                                            placeholder="P${j}">
+                                    </td>`;
                     }
                     newRow += `</tr>`;
                     $('#editDimensionBody').append(newRow);
@@ -259,11 +264,11 @@
                     $('.edit-cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                    <input type="text" class="form-control form-control-sm edit-dimension-input" 
-                                        style="min-width: 60px;"
-                                        name="dimensions[${cavityNum}][${currentPoints}]" 
-                                        placeholder="P${currentPoints}">
-                                </td>`);
+                                        <input type="text" class="form-control form-control-sm edit-dimension-input" 
+                                            style="min-width: 60px;"
+                                            name="dimensions[${cavityNum}][${currentPoints}]" 
+                                            placeholder="P${currentPoints}">
+                                    </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');
@@ -290,7 +295,7 @@
                 if (sampling >= ng) {
                     $('#total_ok').val(sampling - ng);
                 } else {
-                    $('#total_ok').val(0);
+                    $('#total_ok').val(Math.max(0, sampling - ng));
                 }
 
                 const limits = getAqlLimits(sampling);

@@ -613,13 +613,13 @@
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('in_process.edit', $checksheet->id) }}"
+                                            <a href="{{ route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
                                                 class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
                                             <form
-                                                action="{{ route('in_process.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                action="{{ route('in_process.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -794,8 +794,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1059,6 +1059,6 @@
                 }
             });
         });
-                                                                            });
+                                                                                });
     </script>
 @endpush

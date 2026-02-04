@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <title>Laporan Checksheet Inprocess</title>
     <style>
+        @page {
+            margin: 10px;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
@@ -35,7 +39,8 @@
             background-color: #f2f2f2;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 7px;
+            font-size: 6px;
+            /* Slightly smaller header font */
         }
 
         .header-table {
@@ -90,7 +95,16 @@
         .dimension-table th {
             padding: 1px;
             font-size: 5px;
+            line-height: 1;
             border: 1px solid #000;
+            text-align: center;
+        }
+
+        .dimension-table tr.limit-row th {
+            font-size: 4px;
+            /* Even smaller for limits */
+            color: #555;
+            font-weight: normal;
         }
 
         /* Helpers */
@@ -176,54 +190,54 @@
         {{ isset($plantCode) ? strtoupper($plantCode) : (isset($plantName) ? strtoupper($plantName) : 'KARAWANG') }}
     </div>
 
-    <table class="table">
+    <table class="table" style="table-layout: fixed; width: 100%;">
         <colgroup>
-            <col style="width: 2%;"> <!-- No -->
-            <col style="width: 6%;"> <!-- Tanggal -->
-            <col style="width: 3.5%;"> <!-- Jam Before -->
-            <col style="width: 3.5%;"> <!-- Jam After -->
-            <col style="width: 3%;"> <!-- Cycle -->
+            <col style="width: 1.5%;"> <!-- No -->
+            <col style="width: 8%;"> <!-- Tgl -->
+            <col style="width: 4%;"> <!-- Jam Bef -->
+            <col style="width: 4%;"> <!-- Jam Aft -->
+            <col style="width: 2%;"> <!-- Cycle -->
             <col style="width: 2%;"> <!-- Shift -->
-            <col style="width: 7%;"> <!-- Barang -->
-            <col style="width: 7%;"> <!-- Part No -->
-            <col style="width: 6%;"> <!-- Customer -->
-            <col style="width: 3%;"> <!-- Total -->
-            <col style="width: 3%;"> <!-- Sampling -->
-            <col style="width: 20%;"> <!-- Check Dimensi -->
-            <col style="width: 3%;"> <!-- OK -->
-            <col style="width: 3%;"> <!-- NG -->
+            <col style="width: 8%;"> <!-- Barang -->
+            <col style="width: 8%;"> <!-- Part No -->
+            <col style="width: 6%;"> <!-- Cust -->
+            <col style="width: 2.5%;"> <!-- Total -->
+            <col style="width: 2.5%;"> <!-- Smpl -->
+            <col style="width: 30%;"> <!-- Check Dimensi -->
+            <col style="width: 2%;"> <!-- OK -->
+            <col style="width: 2%;"> <!-- NG -->
             <col style="width: 2%;"> <!-- Pcs -->
-            <col style="width: 5%;"> <!-- Jenis NG -->
-            <col style="width: 4%;"> <!-- Judgment -->
-            <col style="width: 2%;"> <!-- Inisial -->
-            <col style="width: 4%;"> <!-- Kashift -->
-            <col style="width: 4%;"> <!-- Spv -->
-            <col style="width: 4%;"> <!-- Asst -->
-            <col style="width: 5%;"> <!-- Ket -->
+            <col style="width: 4%;"> <!-- Jenis NG -->
+            <col style="width: 2.5%;"> <!-- Judg -->
+            <col style="width: 2.5%;"> <!-- Insl -->
+            <col style="width: 3%;"> <!-- Kashift -->
+            <col style="width: 3%;"> <!-- SPV -->
+            <col style="width: 3%;"> <!-- Asst. Mgr -->
+            <col style="width: 5.5%;"> <!-- Ket -->
         </colgroup>
         <thead>
             <tr class="text-center">
                 <th rowspan="2">No</th>
-                <th rowspan="2">Tanggal</th>
-                <th rowspan="2">Jam (Before)</th>
-                <th rowspan="2">Jam (After)</th>
-                <th rowspan="2">Cycle Time</th>
+                <th rowspan="2">Tgl</th>
+                <th rowspan="2">Jam (Bef)</th>
+                <th rowspan="2">Jam (Aft)</th>
+                <th rowspan="2">Cycle</th>
                 <th rowspan="2">Shift</th>
                 <th rowspan="2">Barang</th>
                 <th rowspan="2">Part No</th>
-                <th rowspan="2">Customer</th>
-                <th rowspan="2">Total Qty</th>
-                <th rowspan="2">Sampling Qty</th>
+                <th rowspan="2">Cust</th>
+                <th rowspan="2">Total</th>
+                <th rowspan="2">Smpl</th>
                 <th rowspan="2">Check Dimensi</th>
                 <th rowspan="2">OK</th>
                 <th rowspan="2">NG</th>
                 <th colspan="2">Detail NG</th>
-                <th rowspan="2">Judgment</th>
-                <th rowspan="2">Inisial</th>
-                <th rowspan="2">Kashift QC</th>
-                <th rowspan="2">Supervisor QC</th>
-                <th rowspan="2">Asst. Manager QC</th>
-                <th rowspan="2">Keterangan</th>
+                <th rowspan="2">Judg</th>
+                <th rowspan="2">Insl</th>
+                <th rowspan="2">Kashift</th>
+                <th rowspan="2">SPV</th>
+                <th rowspan="2">Asst. Mgr</th>
+                <th rowspan="2">Ket</th>
             </tr>
             <tr>
                 <th>Pcs</th>
@@ -234,7 +248,7 @@
             @foreach($checksheets as $checksheet)
                 <tr class="text-center">
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $checksheet->date }}</td>
+                    <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }}</td>
                     <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td>{{ $checksheet->created_at->format('H:i') }}</td>
                     <td>{{ $checksheet->cycle_time ?? '-' }}</td>
@@ -254,34 +268,54 @@
                             $itemPartNumber = strtoupper($itemPartNumber);
                             $standards = $partDimensionStandards[$itemPartNumber] ?? [];
 
-                            // Find actual max cavity and point
-                            $actualMaxCavity = 0;
-                            $actualMaxPoint = 0;
+                            // Find active points
+                            $activePoints = [];
                             foreach ($dimensions as $cavKey => $points) {
-                                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
-                                $actualMaxCavity = max($actualMaxCavity, $cavNum);
                                 if (is_array($points)) {
                                     foreach ($points as $pKey => $pVal) {
-                                        $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
+                                        if ($pVal !== null && $pVal !== '' && $pVal !== '-' && $pVal !== 0 && $pVal !== '0') {
+                                            $activePoints[$pKey] = true;
+                                        }
                                     }
                                 }
                             }
+                            foreach ($standards as $pKey => $std) {
+                                $activePoints[$pKey] = true;
+                            }
+                            $activePoints = array_keys($activePoints);
+                            sort($activePoints);
 
+                            if (empty($activePoints)) {
+                                $activePoints = range(1, 5);
+                            }
+
+                            $actualMaxCavity = 0;
+                            foreach ($dimensions as $cavKey => $points) {
+                                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                                $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                            }
                             $displayMaxCavity = max(5, $actualMaxCavity);
-                            $displayMaxPoint = max(5, $actualMaxPoint);
                         @endphp
                         @if(count($dimensions) > 0 || $displayMaxCavity > 0)
-                            <table class="dimension-table">
+                            @php
+                                $pointCount = count($activePoints);
+                                $pointWidth = $pointCount > 0 ? (90 / $pointCount) : 0;
+                                $fontSize = 5;
+                                if ($pointCount > 20) $fontSize = 3.5;
+                                elseif ($pointCount > 10) $fontSize = 4.5;
+                            @endphp
+                            <table class="dimension-table"
+                                style="table-layout: fixed; width: 100%; border-collapse: collapse; border: none; font-size: {{ $fontSize }}px;">
                                 <thead>
                                     <tr>
-                                        <th style="width: 15%;">Cav</th>
-                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                            <th>Ø{{ $j }}</th>
-                                        @endfor
+                                        <th style="width: 10%; border-top: none; border-left: none;">Cav</th>
+                                        @foreach ($activePoints as $j)
+                                            <th style="width: {{ $pointWidth }}%; border-top: none;">Ø{{ $j }}</th>
+                                        @endforeach
                                     </tr>
-                                    <tr style="font-size: 5px; background-color: #f0f0f0; border-bottom: 0.5px solid #000;">
-                                        <th style="font-weight: normal;">Limit</th>
-                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                    <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
+                                        <th style="border-left: none; font-weight: normal;">Limit</th>
+                                        @foreach ($activePoints as $j)
                                             <th style="font-weight: normal; color: #666;">
                                                 @if(isset($standards[$j]))
                                                     @if($standards[$j]['min'] !== null && $standards[$j]['max'] !== null)
@@ -293,42 +327,34 @@
                                                     -
                                                 @endif
                                             </th>
-                                        @endfor
+                                        @endforeach
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @for ($i = 1; $i <= $displayMaxCavity; $i++)
                                         <tr>
-                                            <td>{{ $i }}</td>
-                                            @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                            <td style="background-color: #f9f9f9; border-left: none; text-align: center; font-weight: bold; @if($i == $displayMaxCavity) border-bottom: none; @endif">{{ $i }}</td>
+                                            @foreach ($activePoints as $j)
                                                 @php
-                                                    $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
+                                                    $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
                                                     $isNG = false;
                                                     if (isset($standards[$j]) && is_numeric($val)) {
                                                         $std = $standards[$j];
-
-                                                        if ($std['min'] !== null && $val < $std['min']) {
-                                                            $isNG = true;
-                                                        }
-                                                        if ($std['max'] !== null && $val > $std['max']) {
-                                                            $isNG = true;
-                                                        }
-
-                                                        // Fallback to size +/- tolerance
+                                                        if ($std['min'] !== null && $val < $std['min']) $isNG = true;
+                                                        if ($std['max'] !== null && $val > $std['max']) $isNG = true;
                                                         if (!$isNG && $std['min'] === null && $std['max'] === null) {
                                                             if ($std['size'] !== null && $std['tolerance'] !== null) {
                                                                 $min = $std['size'] - $std['tolerance'];
                                                                 $max = $std['size'] + $std['tolerance'];
-                                                                if ($val < $min || $val > $max) {
-                                                                    $isNG = true;
-                                                                }
+                                                                if ($val < $min || $val > $max) $isNG = true;
                                                             }
                                                         }
                                                     }
                                                 @endphp
-                                                <td @if($isNG) style="color: #dc3545; font-weight: bold; background-color: #ffeef0;"
-                                                @endif>{{ $val }}</td>
-                                            @endfor
+                                                <td style="@if($isNG) color: #dc3545; font-weight: bold; background-color: #ffeef0; @endif @if($i == $displayMaxCavity) border-bottom: none; @endif @if($loop->last) border-right: none; @endif; text-align: center;">
+                                                    {{ $val }}
+                                                </td>
+                                            @endforeach
                                         </tr>
                                     @endfor
                                 </tbody>
