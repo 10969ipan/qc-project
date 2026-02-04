@@ -148,9 +148,10 @@ class InProcessChecksheetController extends Controller
         }
 
         $items = $query->get();
-        $now = now();
-        $defaultDate = ShiftHelper::getProductionDate($now);
-        $defaultShift = ShiftHelper::getShift($now);
+        // Pre-fill date with the most recent checksheet entry's date for better UX
+        $lastChecksheet = InProcessChecksheet::latest('created_at')->first();
+        $defaultDate = $lastChecksheet ? \Carbon\Carbon::parse($lastChecksheet->date)->format('Y-m-d') : ShiftHelper::getProductionDate(now());
+        $defaultShift = ShiftHelper::getShift(now());
 
         return view('in_process.create', [
             'items' => $items,
@@ -221,7 +222,13 @@ class InProcessChecksheetController extends Controller
         }
         try {
             $this->inProcessService->updateChecksheet($id, $request->validated());
-            return redirect()->route('in_process.index')->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
+
+            $redirectParams = [];
+            if ($request->has('plant')) {
+                $redirectParams['plant'] = $request->input('plant');
+            }
+
+            return redirect()->route('in_process.index', $redirectParams)->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
