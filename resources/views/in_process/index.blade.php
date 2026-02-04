@@ -649,14 +649,17 @@
     <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit Checksheet Inprocess</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="editModalLabel">
+                        <i class="fas fa-edit mr-2"></i> Edit Checksheet In-Process
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" id="editModalBody">
+                    <!-- Loaded via AJAX -->
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
@@ -667,18 +670,21 @@
         </div>
     </div>
 
-    <!-- Status Modal -->
+    <!-- Status Modal (Admin) -->
     <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
+            <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="statusModalLabel">Edit Status Approval</h5>
+                    <h5 class="modal-title" id="statusModalLabel">
+                        <i class="fas fa-tasks mr-2"></i> Update Status Approval Admin
+                    </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" id="statusModalBody">
+                    <!-- Loaded via AJAX -->
                     <div class="text-center py-5">
                         <div class="spinner-border text-info" role="status">
                             <span class="sr-only">Loading...</span>
@@ -799,8 +805,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1067,7 +1073,7 @@
         // AJAX Form Submission for All Checksheet Actions (Edit, Status, Approve, Reject)
         $(document).on('submit', '.ajax-form', function (e) {
             var $form = $(this);
-            
+
             // Special confirmation for Delete actions
             if ($form.find('input[name="_method"]').val() === 'DELETE') {
                 if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
@@ -1151,6 +1157,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                    });
+                                                                                                                });
     </script>
 @endpush
