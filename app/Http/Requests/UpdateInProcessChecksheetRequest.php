@@ -11,6 +11,27 @@ class UpdateInProcessChecksheetRequest extends FormRequest
         return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
     }
 
+    protected function prepareForValidation()
+    {
+        // Clean up defects arrays
+        if ($this->has('defect_types') && is_array($this->defect_types)) {
+            $types = [];
+            $quantities = [];
+
+            foreach ($this->defect_types as $index => $type) {
+                if (!empty($type)) {
+                    $types[] = $type;
+                    $quantities[] = $this->defect_quantities[$index] ?? 1;
+                }
+            }
+
+            $this->merge([
+                'defect_types' => $types,
+                'defect_quantities' => $quantities,
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
