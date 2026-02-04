@@ -223,8 +223,10 @@ class InProcessChecksheetController extends Controller
         try {
             $this->inProcessService->updateChecksheet($id, $request->validated());
 
-            // Stay in the same page and plant after editing
-            $redirectParams = $request->except(['_token', '_method']);
+            // Only preserve specific navigation and filter parameters
+            // Exclude fields that might collide with form data (item_id, next_proses)
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $redirectParams = $request->only($preservationKeys);
 
             return redirect()->route('in_process.index', $redirectParams)->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
         } catch (\Exception $e) {
@@ -241,8 +243,9 @@ class InProcessChecksheetController extends Controller
         try {
             $this->inProcessService->deleteChecksheet($id);
 
-            // Stay in the same page and plant after deleting
-            $redirectParams = $request->except(['_token', '_method']);
+            // Only preserve specific navigation and filter parameters
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $redirectParams = $request->only($preservationKeys);
 
             return redirect()->route('in_process.index', $redirectParams)
                 ->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
@@ -290,8 +293,9 @@ class InProcessChecksheetController extends Controller
         try {
             $this->inProcessService->updateApprovalStatus($id, $validated);
 
-            // Stay in the same page and plant after updating approval status
-            $redirectParams = $request->except(['_token', '_method', 'kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc']);
+            // Only preserve specific navigation and filter parameters
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $redirectParams = $request->only($preservationKeys);
 
             return redirect()->route('in_process.index', $redirectParams)->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
