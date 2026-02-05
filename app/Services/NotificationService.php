@@ -275,20 +275,30 @@ class NotificationService
     {
         try {
             // Delete all notifications related to this checksheet
-            $deleted = Notification::whereJsonContains('data->checksheet_id', $checksheet->id)
-                ->whereJsonContains('data->checksheet_type', $type)
+            // Using whereRaw for better compatibility across database drivers
+            $deleted = Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$checksheet->id])
+                ->whereRaw("JSON_EXTRACT(data, '$.checksheet_type') = ?", [$type])
                 ->delete();
 
             Log::info("Deleted {$deleted} notifications for checksheet ID: {$checksheet->id}, Type: {$type}");
+
+            // If no notifications were deleted, log for debugging
+            if ($deleted === 0) {
+                Log::warning("No notifications found to delete for checksheet ID: {$checksheet->id}, Type: {$type}");
+
+                // Check if any notifications exist for this checksheet (for debugging)
+                $count = Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$checksheet->id])->count();
+                Log::info("Total notifications with checksheet_id {$checksheet->id}: {$count}");
+            }
         } catch (\Exception $e) {
             Log::error('Error deleting notifications: ' . $e->getMessage());
 
             // Fallback: Try to mark as read if delete fails
             try {
-                Notification::whereJsonContains('data->checksheet_id', $checksheet->id)
+                $updated = Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$checksheet->id])
                     ->where('is_read', false)
                     ->update(['is_read' => true]);
-                Log::info("Fallback: Marked notifications as read for checksheet ID: {$checksheet->id}");
+                Log::info("Fallback: Marked {$updated} notifications as read for checksheet ID: {$checksheet->id}");
             } catch (\Exception $e2) {
                 Log::error('Fallback also failed: ' . $e2->getMessage());
             }
