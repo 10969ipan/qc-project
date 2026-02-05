@@ -282,22 +282,44 @@ class NotificationService
 
             Log::info("Deleted {$deleted} notifications for checksheet ID: {$checksheet->id}, Type: {$type}");
 
-            // If no notifications were deleted, log for debugging
+            // If no notifications were deleted, try fallback for old notifications without checksheet_id
             if ($deleted === 0) {
-                Log::warning("No notifications found to delete for checksheet ID: {$checksheet->id}, Type: {$type}");
+                Log::warning("No notifications found with checksheet_id. Trying fallback for old notifications...");
 
-                // Check if any notifications exist for this checksheet (for debugging)
-                $count = Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$checksheet->id])->count();
-                Log::info("Total notifications with checksheet_id {$checksheet->id}: {$count}");
+                // Fallback: Delete old notifications by parsing URL (for notifications created before checksheet_id was added)
+                $url = $this->getChecksheetUrl($checksheet, $type);
+
+                // Delete notifications where URL contains id parameter
+                $deletedOld = Notification::where('data->url', 'LIKE', "%id={$checksheet->id}%")
+                    ->orWhere('data->url', 'LIKE', "%id%3D{$checksheet->id}%") // URL encoded =
+                    ->delete();
+
+                Log::info("Fallback: Deleted {$deletedOld} old notifications by URL for checksheet ID: {$checksheet->id}");
+
+                if ($deletedOld === 0) {
+                    // Last resort: check total notifications
+                    $count = Notification::where('is_read', false)->count();
+                    Log::warning("No notifications deleted at all. Total unread notifications: {$count}");
+                }
             }
         } catch (\Exception $e) {
             Log::error('Error deleting notifications: ' . $e->getMessage());
 
-            // Fallback: Try to mark as read if delete fails
+            // Final fallback: Try to mark as read
             try {
+                // Try with checksheet_id first
                 $updated = Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$checksheet->id])
                     ->where('is_read', false)
                     ->update(['is_read' => true]);
+
+                // If nothing updated, try URL fallback
+                if ($updated === 0) {
+                    $updated = Notification::where('data->url', 'LIKE', "%id={$checksheet->id}%")
+                        ->orWhere('data->url', 'LIKE', "%id%3D{$checksheet->id}%")
+                        ->where('is_read', false)
+                        ->update(['is_read' => true]);
+                }
+
                 Log::info("Fallback: Marked {$updated} notifications as read for checksheet ID: {$checksheet->id}");
             } catch (\Exception $e2) {
                 Log::error('Fallback also failed: ' . $e2->getMessage());
