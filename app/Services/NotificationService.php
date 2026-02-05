@@ -207,16 +207,10 @@ class NotificationService
      */
     private function getChecksheetUrl($checksheet, $type)
     {
-        $dateStr = ($checksheet->date instanceof Carbon)
-            ? $checksheet->date->format('Y-m-d')
-            : Carbon::parse($checksheet->date)->format('Y-m-d');
-
+        // Only use ID parameter to filter directly to the specific checksheet
+        // Remove search, plant, and date parameters to avoid showing multiple results
         $params = [
             'id' => $checksheet->id,  // Filter langsung ke checksheet spesifik
-            'plant' => $checksheet->plant->code,
-            'search' => $checksheet->item->name,
-            'start_date' => $dateStr,
-            'end_date' => $dateStr,
         ];
 
         switch ($type) {
