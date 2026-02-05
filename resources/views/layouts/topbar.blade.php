@@ -1,9 +1,9 @@
 @php
     // Roles that can VIEW all plants (for reports/laporan)
-    $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
+    $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 
     // Roles that can INPUT in all plants
-    $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']);
+    $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 @endphp
 
 <nav class="navbar topbar static-top shadow px-4 py-0 d-flex align-items-center justify-content-between">
@@ -38,7 +38,7 @@
                 </li>
 
                 <!-- Quality Control Dropdown -->
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating'])))
+                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating', 'oshef'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-clipboard-check mr-1"></i> Quality Control <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
@@ -49,7 +49,7 @@
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
                                             class="fas fa-chevron-right small"></i></a>
                                     <ul class="dropdown-menu sub-menu">
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">MASTER DATA <i
                                                         class="fas fa-chevron-right small"></i></a>
@@ -63,7 +63,7 @@
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">ANALYSIS <i
                                                         class="fas fa-chevron-right small"></i></a>
@@ -92,7 +92,7 @@
                                                 </li>
                                             </ul>
                                         </li>
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">LAPORAN <i
                                                         class="fas fa-chevron-right small"></i></a>
@@ -119,7 +119,7 @@
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
                                             class="fas fa-chevron-right small"></i></a>
                                     <ul class="dropdown-menu sub-menu">
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">MASTER DATA <i
                                                         class="fas fa-chevron-right small"></i></a>
@@ -133,7 +133,7 @@
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager']))
+                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">ANALYSIS <i
                                                         class="fas fa-chevron-right small"></i></a>
@@ -176,7 +176,7 @@
                                                 <li><a class="dropdown-item" href="{{ route('incoming.chemicals.create', ['plant' => 'karawang']) }}">Incoming Chemical</a></li>
                                             </ul>
                                         </li>
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
                                             <li class="has-submenu">
                                                 <a href="#" class="dropdown-item d-flex justify-content-between">LAPORAN <i
                                                         class="fas fa-chevron-right small"></i></a>
@@ -212,7 +212,7 @@
                 @endif
 
                 <!-- Quality Assurance -->
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
+                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-award mr-1"></i> Quality Assurance <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
@@ -239,7 +239,7 @@
                                     </ul>
                                 </li>
                             @endif
-                            @if($canInputAllPlants)
+                            @if($canInputAllPlants || auth()->user()->role === 'oshef')
                                 <li>
                                     <a class="dropdown-item font-weight-bold text-primary"
                                         href="{{ route('admin.customer-claims.index') }}">
@@ -252,7 +252,7 @@
                 @endif
 
                 <!-- Quality System -->
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
+                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-chart-bar mr-1"></i> Quality System <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
