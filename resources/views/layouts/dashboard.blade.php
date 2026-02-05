@@ -1153,7 +1153,7 @@
                                                         class="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
@@ -1307,7 +1307,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
@@ -1465,7 +1465,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
@@ -1624,7 +1624,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
@@ -1795,7 +1795,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
@@ -1966,7 +1966,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.6rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
