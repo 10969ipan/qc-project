@@ -1309,7 +1309,7 @@
                                                 <div>
                                                     <div class="flex justify-between text-[0.7rem] mb-1 font-medium">
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter text-sm">Status</span>
                                                         <span
                                                             class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
                                                     </div>
@@ -1468,7 +1468,7 @@
                                                 <div>
                                                     <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter text-sm">Status</span>
                                                         <span
                                                             class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
                                                     </div>
@@ -1627,7 +1627,7 @@
                                                 <div>
                                                     <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter text-sm">Status</span>
                                                         <span
                                                             class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
                                                     </div>
@@ -1798,7 +1798,7 @@
                                                 <div>
                                                     <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter text-sm">Status</span>
                                                         <span
                                                             class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
                                                     </div>
@@ -1970,7 +1970,7 @@
                                                 <div>
                                                     <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter text-sm">Status</span>
                                                         <span
                                                             class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
                                                     </div>
