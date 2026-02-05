@@ -8,7 +8,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Data Claim Customer</h6>
-            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
                 <div class="d-flex align-items-center">
                     <button type="button" class="btn btn-info btn-sm mr-2 shadow-sm" data-toggle="modal"
                         data-target="#modalInputTahunan">
@@ -139,7 +139,7 @@
                                 </td>
                                 <td class="align-middle">{{ $claim->creator->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">
-                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-claim" data-toggle="modal"
                                             data-target="#modalEditData" data-id="{{ $claim->id }}"
                                             data-plant="{{ $claim->plant_id }}" data-plant-code="{{ $claim->plant->code }}" data-year="{{ $claim->year }}"

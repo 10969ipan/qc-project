@@ -8,7 +8,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Claim Customer</h6>
-            @if (!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+            @if (!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
                 <div class="d-flex">
                     <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'customer'])) }}"
                         class="btn btn-danger btn-sm shadow-sm mr-2">
@@ -183,7 +183,7 @@
                                     </span>
                                 </td>
                                 <td class="text-center align-middle text-nowrap">
-                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
                                         <button type="button" class="btn btn-warning btn-xs py-0 btn-edit-record"
                                             data-toggle="modal" data-target="#modalEditRecord" data-id="{{ $record->id }}"
                                             data-json="{{ json_encode($record) }}">
