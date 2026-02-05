@@ -105,6 +105,7 @@ if (!function_exists('getRoleDisplayName')) {
     {
         $roles = [
             'admin' => 'Administrator',
+            'oshef' => 'Sub Administrator',
             'inspector' => 'Inspector QC',
             'karu_qc' => 'Kepala Regu',
             'supervisor' => 'Supervisor QC',

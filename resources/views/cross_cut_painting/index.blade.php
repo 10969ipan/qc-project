@@ -239,7 +239,7 @@
                                     @endif
                                 </td>
 
-                                @if(auth()->user()->role !== 'inspector')
+                                @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 150px;">
                                         @php
                                             $user = auth()->user();

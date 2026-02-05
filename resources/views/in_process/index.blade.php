@@ -492,7 +492,7 @@
                                 </td>
 
 
-                                @if(auth()->user()->role !== 'inspector')
+                                @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         {{-- Action Buttons for Approvals --}}
                                         @php
@@ -805,8 +805,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1178,6 +1178,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                    });
+                                                                                                                        });
     </script>
 @endpush
