@@ -82,8 +82,9 @@ class NotificationService
                     'message' => $message,
                     'data' => [
                         'url' => $url,
-                        'checksheet_id' => $checksheet->id,  // Tambahkan ID untuk auto-hide
-                        'checksheet_type' => $type
+                        'checksheet_id' => $checksheet->id,
+                        'checksheet_type' => $type,
+                        'plant_id' => $checksheet->plant_id  // Filter per plant
                     ],
                 ]);
             }
@@ -125,8 +126,9 @@ class NotificationService
                     'message' => $message,
                     'data' => [
                         'url' => $url,
-                        'checksheet_id' => $checksheet->id,  // Tambahkan ID untuk auto-hide
-                        'checksheet_type' => $type
+                        'checksheet_id' => $checksheet->id,
+                        'checksheet_type' => $type,
+                        'plant_id' => $checksheet->plant_id  // Filter per plant
                     ],
                 ]);
             }
