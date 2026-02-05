@@ -147,7 +147,7 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="6" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(auth()->user()->role !== 'inspector')
+                            @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
                             @endif
                         </tr>

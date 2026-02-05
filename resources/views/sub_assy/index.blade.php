@@ -158,7 +158,7 @@
 
                             <th colspan="4" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(auth()->user()->role !== 'inspector')
+                            @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
                             @endif
                         </tr>
@@ -654,8 +654,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

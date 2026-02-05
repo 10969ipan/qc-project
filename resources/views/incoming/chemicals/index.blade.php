@@ -115,7 +115,8 @@
                                 </td>
                                 <td class="p-0 align-middle">
                                     @foreach($defects ?? [] as $d) <div class="border-bottom py-1 text-nowrap px-1">
-                                    {{ $d['type'] ?? '-' }}</div> @endforeach
+                                        {{ $d['type'] ?? '-' }}
+                                    </div> @endforeach
                                 </td>
                                 <td class="align-middle">{{ $cs->operator_initials }}</td>
                                 @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
@@ -128,7 +129,7 @@
                                 @endforeach
                                 <td class="align-middle">
                                     <div class="btn-group">
-                                        @if(auth()->user()->role !== 'inspector')
+                                        @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                             <a href="{{ route('incoming.chemicals.edit', $cs->id) }}"
                                                 class="btn btn-warning btn-xs px-2"><i class="fas fa-edit"></i></a>
                                             <form action="{{ route('incoming.chemicals.destroy', $cs->id) }}" method="POST"
