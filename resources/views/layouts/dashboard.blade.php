@@ -1069,7 +1069,7 @@
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }
                                 @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                     <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                         onclick="showDetailModal(this)"
                                         data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
@@ -1219,7 +1219,7 @@
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }
                                 @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                     <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                         onclick="showDetailModal(this)"
                                         data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
@@ -1286,28 +1286,28 @@
                                                     </p>
                                                 </div>
                                             @elseif($isActive)
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <div class="flex items-center justify-between text-[0.55rem] leading-tight">
                                                     <span class="text-slate-500 dark:text-slate-400">Part No.</span>
                                                     <span
                                                         class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
                                                 </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <div class="flex items-center justify-between text-[0.55rem] leading-tight">
                                                     <span class="text-slate-500 dark:text-slate-400">Jam</span>
                                                     <span
                                                         class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}
                                                         WIB</span>
                                                 </div>
-                                                <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <div class="flex items-center justify-between text-[0.55rem] leading-tight">
                                                     <span class="text-slate-500 dark:text-slate-400">QC</span>
                                                     <div
                                                         class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
-                                                        <span class="material-icons-round text-[0.65rem]">person</span>
+                                                        <span class="material-icons-round text-[0.45rem]">person</span>
                                                         <span
                                                             class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
+                                                    <div class="flex justify-between text-[0.7rem] mb-1 font-medium">
                                                         <span
                                                             class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
                                                         <span
@@ -1373,7 +1373,7 @@
                                     }
                                     $machineInfo = $jakartaMachines[$i] ?? null;
                                 @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                     <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                         onclick="showDetailModal(this)"
                                         data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
@@ -1532,7 +1532,7 @@
                                     }
                                     $machineInfo = $karawangMachines[$i] ?? null;
                                 @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                     <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                         onclick="showDetailModal(this)"
                                         data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
@@ -1707,7 +1707,7 @@
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }
                                 @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                     <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                         onclick="showDetailModal(this)"
                                         data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
@@ -1874,7 +1874,7 @@
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }
                                 @endphp
-                                <div class="col-6 col-md-4 col-lg-3 mb-4 px-2">
+                                <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                     <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-trouble' || $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                         onclick="showDetailModal(this)"
                                         data-status="{{ $manualStatus && $manualStatus->status !== 'normal' ? $manualStatus->status : ($isActive ? 'active' : 'idle') }}"
