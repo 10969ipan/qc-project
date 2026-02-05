@@ -1155,13 +1155,13 @@
                                                 <div>
                                                     <div class="flex justify-between text-[0.5rem] mb-1 font-medium">
                                                         <span
-                                                            class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                            class="text-slate-500 dark:text-slate-500 uppercase tracking-tighter">Status</span>
                                                         <span
                                                             class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold text-lg">{{ $data->judgment }}</span>
                                                     </div>
                                                     <div
                                                         class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full"
+                                                        <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-500 to-green-500' : 'from-red-500 to-red-500' }} h-full rounded-full"
                                                             style="width: 100%"></div>
                                                     </div>
                                                 </div>
@@ -1321,7 +1321,7 @@
                                                 </div>
                                             @else
                                                 <div
-                                                    class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
+                                                    class="text-center flex flex-col items-center justify-center h-full">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
                                                         Setup</p>
@@ -1479,7 +1479,7 @@
                                                     </div>
                                                 </div>
                                             @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                <div class="text-center">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
                                                         Setup</p>
@@ -1638,7 +1638,7 @@
                                                     </div>
                                                 </div>
                                             @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                <div class="text-center">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
                                                         Setup</p>
@@ -1810,7 +1810,7 @@
                                                 </div>
                                             @else
                                                 <div
-                                                    class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
+                                                    class="text-center flex flex-col items-center justify-center h-full">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
                                                         Setup</p>
@@ -1981,7 +1981,7 @@
                                                     </div>
                                                 </div>
                                             @else
-                                                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-2 rounded-lg text-center">
+                                                <div class="text-center">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
                                                         Setup</p>
