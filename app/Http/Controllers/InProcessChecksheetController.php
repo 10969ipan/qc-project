@@ -135,7 +135,7 @@ class InProcessChecksheetController extends Controller
         $user = auth()->user();
 
         // Roles that can switch between plants via request parameter
-        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager'];
+        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager', 'oshef'];
 
         if (in_array($user->role, $canSwitchPlants)) {
             // These roles can filter by request plant parameter

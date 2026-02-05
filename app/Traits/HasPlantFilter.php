@@ -16,7 +16,7 @@ trait HasPlantFilter
                 $role = Auth::user()->role;
                 $userPlantId = Auth::user()->plant_id;
 
-                $exemptRoles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc'];
+                $exemptRoles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'oshef'];
 
                 if (!in_array($role, $exemptRoles)) {
                     $query->where($query->getModel()->getTable() . '.plant_id', $userPlantId);

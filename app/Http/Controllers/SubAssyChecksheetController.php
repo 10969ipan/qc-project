@@ -121,7 +121,7 @@ class SubAssyChecksheetController extends Controller
         $user = auth()->user();
 
         // Roles that can switch between plants via request parameter
-        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager'];
+        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager', 'oshef'];
 
         // IMPORTANT: Inspector role is NOT in exemptRoles of HasPlantFilter trait,
         // so global scope already filters by plant. We need to remove it to prevent double filtering.
