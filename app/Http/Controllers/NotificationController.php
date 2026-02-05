@@ -14,22 +14,42 @@ class NotificationController extends Controller
     {
         $user = auth()->user();
 
-        $notifications = Notification::where(function ($query) use ($user) {
+        $query = Notification::where(function ($q) use ($user) {
             // Personal notifications
-            $query->where('user_id', $user->id)
-                // Or global notifications for their plant
+            $q->where('user_id', $user->id)
+                // Or global notifications
                 ->orWhereNull('user_id');
-        })
-            ->orderBy('created_at', 'desc')
+        });
+
+        // Filter by plant for non-admin users
+        if ($user->role !== 'admin') {
+            $query->where(function ($q) use ($user) {
+                // Only show notifications for user's plant
+                // Check if data->plant_id exists and matches user's plant
+                $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
+                    // Or notifications without plant_id (old notifications or global)
+                    ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+            });
+        }
+
+        $notifications = $query->orderBy('created_at', 'desc')
             ->limit(20)
             ->get();
 
-        $unreadCount = Notification::where(function ($query) use ($user) {
-            $query->where('user_id', $user->id)
+        $unreadCountQuery = Notification::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
                 ->orWhereNull('user_id');
-        })
-            ->unread()
-            ->count();
+        });
+
+        // Apply same plant filter for unread count
+        if ($user->role !== 'admin') {
+            $unreadCountQuery->where(function ($q) use ($user) {
+                $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
+                    ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+            });
+        }
+
+        $unreadCount = $unreadCountQuery->unread()->count();
 
         return response()->json([
             'notifications' => $notifications,
