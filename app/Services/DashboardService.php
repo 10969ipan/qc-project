@@ -40,7 +40,7 @@ class DashboardService extends BaseService
             $dailyStatsJakarta = null;
             $dailyStatsKarawang = null;
 
-            $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
+            $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc', 'oshef'];
 
             $productionJakarta = [];
             $productionKarawang = [];
