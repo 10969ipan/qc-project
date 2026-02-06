@@ -50,7 +50,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
-            'next_proses' => 'required_if:judgment,NG|string',
+            'next_proses' => 'required_if:judgment,NG|nullable|string',
             'defect_types' => 'nullable|array',
             'defect_types.*' => 'nullable|string',
             'defect_quantities' => 'nullable|array',
