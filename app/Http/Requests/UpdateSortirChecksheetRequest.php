@@ -34,7 +34,7 @@ class UpdateSortirChecksheetRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
-            'next_proses' => 'required_if:judgment,NG|string',
+            'next_proses' => 'required_if:judgment,NG|nullable|string',
         ];
     }
 
