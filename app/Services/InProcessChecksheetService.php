@@ -301,6 +301,20 @@ class InProcessChecksheetService extends BaseService
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ]);
 
+            // Clear manual machine status override
+            \App\Models\MachineStatus::updateOrCreate(
+                [
+                    'plant_id' => $checksheet->plant_id,
+                    'type' => 'machine',
+                    'number' => $checksheet->code_machine,
+                ],
+                [
+                    'status' => 'normal',
+                    'description' => 'Automatically cleared by checksheet input',
+                    'created_by' => 'System'
+                ]
+            );
+
             DB::commit();
 
             Log::info('Checksheet In Process berhasil dibuat', [
@@ -411,6 +425,20 @@ class InProcessChecksheetService extends BaseService
             }
 
             $checksheet->update($updateData);
+
+            // Clear manual machine status override
+            \App\Models\MachineStatus::updateOrCreate(
+                [
+                    'plant_id' => $checksheet->plant_id,
+                    'type' => 'machine',
+                    'number' => $checksheet->code_machine,
+                ],
+                [
+                    'status' => 'normal',
+                    'description' => 'Automatically cleared by checksheet update',
+                    'created_by' => 'System'
+                ]
+            );
 
             DB::commit();
 

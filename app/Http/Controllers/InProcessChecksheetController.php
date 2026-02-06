@@ -148,10 +148,9 @@ class InProcessChecksheetController extends Controller
         }
 
         $items = $query->get();
-        // Pre-fill date with the most recent checksheet entry's date for better UX
-        $lastChecksheet = InProcessChecksheet::latest('created_at')->first();
-        $defaultDate = $lastChecksheet ? \Carbon\Carbon::parse($lastChecksheet->date)->format('Y-m-d') : ShiftHelper::getProductionDate(now());
-        $defaultShift = ShiftHelper::getShift(now());
+        $now = now();
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
 
         return view('in_process.create', [
             'items' => $items,

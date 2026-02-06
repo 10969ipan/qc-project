@@ -123,6 +123,20 @@ class SubAssyChecksheetService extends BaseService
                 'defects' => json_encode($defects),
             ]);
 
+            // Clear manual line status override
+            \App\Models\MachineStatus::updateOrCreate(
+                [
+                    'plant_id' => $checksheet->plant_id,
+                    'type' => 'line',
+                    'number' => $checksheet->line,
+                ],
+                [
+                    'status' => 'normal',
+                    'description' => 'Automatically cleared by checksheet input',
+                    'created_by' => 'System'
+                ]
+            );
+
             DB::commit();
 
             Log::info('Checksheet Sub Assy berhasil dibuat', [
@@ -222,6 +236,20 @@ class SubAssyChecksheetService extends BaseService
             }
 
             $checksheet->update($updateData);
+
+            // Clear manual line status override
+            \App\Models\MachineStatus::updateOrCreate(
+                [
+                    'plant_id' => $checksheet->plant_id,
+                    'type' => 'line',
+                    'number' => $checksheet->line,
+                ],
+                [
+                    'status' => 'normal',
+                    'description' => 'Automatically cleared by checksheet update',
+                    'created_by' => 'System'
+                ]
+            );
 
             DB::commit();
 
