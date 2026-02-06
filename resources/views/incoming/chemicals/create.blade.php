@@ -81,8 +81,8 @@
                                         @endforeach
                                     </select>
                                 </td>
-                                <td><input type="date" class="form-control" name="date" value="{{ date('Y-m-d') }}"
-                                        required></td>
+                                <td><input type="date" class="form-control" name="date" value="{{ $defaultDate }}" required>
+                                </td>
                                 <td><input type="date" class="form-control" name="tanggal_datang" required></td>
                                 <td><input type="text" class="form-control" name="lot_batch_number" required></td>
                                 <td><input type="number" step="0.01" class="form-control text-center" name="quantity_kg"

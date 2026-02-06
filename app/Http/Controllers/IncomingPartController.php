@@ -8,6 +8,7 @@ use App\Services\IncomingPartService;
 use App\Http\Requests\StoreIncomingPartRequest;
 use App\Http\Requests\UpdateIncomingPartRequest;
 use App\Models\Plant;
+use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -81,7 +82,11 @@ class IncomingPartController extends Controller
         }
 
         $items = $query->get();
-        return view('incoming.parts.create', compact('items'));
+        $now = now();
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
+
+        return view('incoming.parts.create', compact('items', 'defaultDate', 'defaultShift'));
     }
 
     public function store(StoreIncomingPartRequest $request)

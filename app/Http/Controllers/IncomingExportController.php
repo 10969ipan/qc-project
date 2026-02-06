@@ -8,6 +8,7 @@ use App\Services\IncomingExportService;
 use App\Http\Requests\StoreIncomingExportRequest;
 use App\Http\Requests\UpdateIncomingExportRequest;
 use App\Models\Plant;
+use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -79,7 +80,11 @@ class IncomingExportController extends Controller
         }
 
         $items = $query->get();
-        return view('incoming.exports.create', compact('items'));
+        $now = now();
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
+
+        return view('incoming.exports.create', compact('items', 'defaultDate', 'defaultShift'));
     }
 
     public function store(StoreIncomingExportRequest $request)

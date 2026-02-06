@@ -94,8 +94,7 @@
 
                                 <!-- Tanggal Check -->
                                 <td>
-                                    <input type="date" class="form-control" name="date" value="{{ date('Y-m-d') }}"
-                                        required>
+                                    <input type="date" class="form-control" name="date" value="{{ $defaultDate }}" required>
                                 </td>
 
                                 <!-- Tanggal Datang -->

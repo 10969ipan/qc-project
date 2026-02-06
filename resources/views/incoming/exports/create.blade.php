@@ -74,7 +74,7 @@
                                     </select>
                                 </td>
                                 <td><input type="date" class="form-control text-center" name="date"
-                                        value="{{ date('Y-m-d') }}" required></td>
+                                        value="{{ $defaultDate }}" required></td>
                                 <td><input type="date" class="form-control text-center" name="tanggal_delivery" required>
                                 </td>
                                 <td>

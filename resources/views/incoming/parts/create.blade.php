@@ -90,12 +90,12 @@
 
                                 <!-- Date & Shift -->
                                 <td>
-                                    <input type="date" class="form-control mb-2" name="date" value="{{ date('Y-m-d') }}"
+                                    <input type="date" class="form-control mb-2" name="date" value="{{ $defaultDate }}"
                                         required>
                                     <select class="form-control" name="shift" required>
-                                        <option value="1">Shift 1</option>
-                                        <option value="2">Shift 2</option>
-                                        <option value="3">Shift 3</option>
+                                        <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
+                                        <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
+                                        <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
                                 </td>
 

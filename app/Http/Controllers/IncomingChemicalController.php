@@ -8,6 +8,7 @@ use App\Services\IncomingChemicalService;
 use App\Http\Requests\StoreIncomingChemicalRequest;
 use App\Http\Requests\UpdateIncomingChemicalRequest;
 use App\Models\Plant;
+use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -87,7 +88,11 @@ class IncomingChemicalController extends Controller
         }
 
         $items = $query->get();
-        return view('incoming.chemicals.create', compact('items'));
+        $now = now();
+        $defaultDate = ShiftHelper::getProductionDate($now);
+        $defaultShift = ShiftHelper::getShift($now);
+
+        return view('incoming.chemicals.create', compact('items', 'defaultDate', 'defaultShift'));
     }
 
     public function store(StoreIncomingChemicalRequest $request)
