@@ -8,6 +8,8 @@ use App\Models\Plant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use setasign\Fpdi\Fpdi;
 
 class CalibrationController extends Controller
 {
@@ -450,6 +452,163 @@ class CalibrationController extends Controller
             ->setPaper('a4', 'landscape');
 
         return $pdf->stream('Laporan_Hasil_Verifikasi_' . date('Ymd_His') . '.pdf');
+    }
+
+    public function verificationsQrPdf($id)
+    {
+        $verification = CalibrationVerification::with('tool')->findOrFail($id);
+        $plantCode = $verification->plant ? $verification->plant->code : 'jakarta';
+
+        // Prepare data for QR Code
+        $data = "CALIBRATION VERIFICATION REPORT\n";
+        $data .= "-------------------------------\n";
+        $data .= "Nama Alat: " . $verification->name_alat . "\n";
+        $data .= "Merk: " . $verification->merk . "\n";
+        $data .= "Serial Number: " . $verification->serial_number . "\n";
+        $data .= "Rentang Ukur: " . $verification->rentang_ukur . "\n";
+        $data .= "Resolusi: " . $verification->resolusi . "\n";
+        $data .= "Lokasi: " . $verification->lokasi_penyimpanan . "\n";
+        $data .= "Tgl Kalibrasi: " . ($verification->tanggal_kalibrasi ? \Carbon\Carbon::parse($verification->tanggal_kalibrasi)->format('d/m/Y') : '-') . "\n";
+        $data .= "Tgl Verifikasi: " . ($verification->tanggal_verifikasi ? \Carbon\Carbon::parse($verification->tanggal_verifikasi)->format('d/m/Y') : '-') . "\n";
+        $data .= "Next Kalibrasi: " . ($verification->next_kalibrasi ? \Carbon\Carbon::parse($verification->next_kalibrasi)->format('d/m/Y') : '-') . "\n";
+
+        $data .= "\nHASIL PENGUKURAN:\n";
+        if (is_array($verification->nilai_alat)) {
+            foreach ($verification->nilai_alat as $index => $nilai) {
+                $data .= "- Nilai: $nilai, Koreksi: " . ($verification->nilai_koreksi[$index] ?? '-') .
+                    ", Hasil: " . ($verification->hasil_verifikasi[$index] ?? '-') . "\n";
+            }
+        }
+
+        $data .= "\nJUDGMENT: " . $verification->judgment . "\n";
+        $data .= "-------------------------------\n";
+        $data .= "QC IPP - " . date('Y');
+
+        // Generate QR Code as base64 (SVG format is more compatible)
+        $qrCode = base64_encode(QrCode::format('svg')
+            ->size(200)
+            ->margin(1)
+            ->errorCorrection('H')
+            ->generate($data));
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', compact('verification', 'plantCode', 'qrCode'))
+            ->setPaper('a4', 'portrait');
+
+        $safeSerialNumber = str_replace(['/', '\\'], '_', $verification->serial_number);
+        return $pdf->stream('QR_Verification_' . $safeSerialNumber . '_' . date('Ymd_His') . '.pdf');
+    }
+
+    public function verificationsQrData($id)
+    {
+        $verification = CalibrationVerification::with('tool')->findOrFail($id);
+
+        // Public download URL (for scanning)
+        // Use QR_BASE_URL from .env if available, otherwise fallback to route()
+        $baseUrl = env('QR_BASE_URL');
+        if ($baseUrl) {
+            $baseUrl = rtrim($baseUrl, '/');
+            $downloadUrl = $baseUrl . '/public/calibration/verification/' . $verification->id . '/download';
+        } else {
+            $downloadUrl = route('public.calibration.download', $verification->id);
+        }
+
+        // Generate QR Code as SVG
+        $qrCode = QrCode::format('svg')
+            ->size(250)
+            ->margin(1)
+            ->errorCorrection('H')
+            ->generate($downloadUrl);
+
+        return response()->json([
+            'verification' => $verification,
+            'qr_code' => base64_encode($qrCode),
+            'download_url' => $downloadUrl
+        ]);
+    }
+
+    public function publicVerificationsDownload($id)
+    {
+        $verification = CalibrationVerification::with(['tool', 'plant'])->findOrFail($id);
+        $plantCode = $verification->plant ? $verification->plant->code : 'jakarta';
+
+        // 1. Generate Laporan Hasil (Halaman 1)
+        // Kita gunakan data yang sama seperti verificationsQrPdf tetapi link QR di hal 1 dibuang atau tetap ada?
+        // Untuk memudahkan, kita generate Hal 1 dulu.
+        $dataReport = "CALIBRATION VERIFICATION REPORT\n";
+        // ... (data string QR yang sebelumnya) ...
+        // Sebenarnya kita tidak perlu QR Code di dalam PDF yang didownload via QR (agar tidak rekursif/bingung)
+        // Kita buat Hal 1 tanpa QR Code dominan atau gunakan template yang ada.
+
+        // Kita generate QR Code khusus untuk ditampilkan di Hal 1 (mungkin di pojok)
+        $baseUrl = env('QR_BASE_URL');
+        if ($baseUrl) {
+            $baseUrl = rtrim($baseUrl, '/');
+            $downloadUrl = $baseUrl . '/public/calibration/verification/' . $verification->id . '/download';
+        } else {
+            $downloadUrl = route('public.calibration.download', $verification->id);
+        }
+
+        $qrCodeHal1 = base64_encode(QrCode::format('svg')
+            ->size(100)
+            ->margin(1)
+            ->generate($downloadUrl));
+
+        $pdfReport = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', [
+            'verification' => $verification,
+            'plantCode' => $plantCode,
+            'qrCode' => $qrCodeHal1
+        ])->setPaper('a4', 'portrait');
+
+        $reportContent = $pdfReport->output();
+
+        // 2. Jika tidak ada sertifikat, kirim Hal 1 saja
+        if (!$verification->certification_path) {
+            $safeSerialNumber = str_replace(['/', '\\'], '_', $verification->serial_number);
+            return response($reportContent)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="Verification_Report_' . $safeSerialNumber . '.pdf"');
+        }
+
+        // 3. Gabungkan Hal 1 dan Sertifikat (Halaman 2+) menggunakan FPDI
+        $pdfMerge = new Fpdi();
+
+        // Simpan sementara Hal 1
+        $tempReportPath = tempnam(sys_get_temp_dir(), 'report_') . '.pdf';
+        file_put_contents($tempReportPath, $reportContent);
+
+        // Tambahkan Halaman dari Laporan QC
+        $pageCount = $pdfMerge->setSourceFile($tempReportPath);
+        for ($n = 1; $n <= $pageCount; $n++) {
+            $tplIdx = $pdfMerge->importPage($n);
+            $pdfMerge->AddPage();
+            $pdfMerge->useTemplate($tplIdx);
+        }
+
+        // Tambahkan Halaman dari Sertifikat Asli
+        $certificatePath = storage_path('app/public/' . $verification->certification_path);
+        if (file_exists($certificatePath)) {
+            try {
+                $certPageCount = $pdfMerge->setSourceFile($certificatePath);
+                for ($n = 1; $n <= $certPageCount; $n++) {
+                    $tplIdx = $pdfMerge->importPage($n);
+                    $pdfMerge->AddPage();
+                    $pdfMerge->useTemplate($tplIdx);
+                }
+            } catch (\Exception $e) {
+                // Jika sertifikat gagal di-import (misal versi PDF tidak kompatibel), kita skip atau tetap kirim Hal 1?
+                // Untuk sekarang kita lanjut saja dengan Hal 1 yang sudah ada.
+            }
+        }
+
+        $safeSerialNumber = str_replace(['/', '\\'], '_', $verification->serial_number);
+        $finalOutput = $pdfMerge->Output('S', 'Laporan_Lengkap_' . $safeSerialNumber . '.pdf');
+
+        // Clean up temp file
+        @unlink($tempReportPath);
+
+        return response($finalOutput)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="Laporan_Lengkap_' . $safeSerialNumber . '.pdf"');
     }
 
 

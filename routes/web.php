@@ -21,6 +21,9 @@ Route::get('/', function () {
 // Modular Routes (Public)
 require __DIR__ . '/auth.php';
 
+// Public Calibration Download (Auto-download via QR)
+Route::get('/public/calibration/verification/{id}/download', [\App\Http\Controllers\CalibrationController::class, 'publicVerificationsDownload'])->name('public.calibration.download');
+
 // Main Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
