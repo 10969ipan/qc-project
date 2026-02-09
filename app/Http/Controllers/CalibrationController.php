@@ -618,28 +618,33 @@ class CalibrationController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action.');
         }
-        $request->validate([
-            'tool_id' => 'required|exists:calibration_tools,id',
-            'name_alat' => 'required|string',
-            'merk' => 'required|string',
-            'serial_number' => 'required|string',
-            'rentang_ukur' => 'required|string',
-            'resolusi' => 'required|string',
-            'frekuensi_kalibrasi' => 'required|string',
-            'lokasi_penyimpanan' => 'required|string',
-            'tanggal_kalibrasi' => 'required|date',
-            'tanggal_verifikasi' => 'required|date',
-            'next_kalibrasi' => 'required|date',
-            'nilai_alat' => 'required|array',
-            'nilai_koreksi' => 'required|array',
-            'nilai_ketidakpastian' => 'required|array',
-            'hasil_verifikasi' => 'required|array',
-            'judgment' => 'required|string',
-            'std_toleransi' => 'required|string',
-            'acuan_toleransi' => 'required|string',
-            'certification' => 'nullable|file|mimes:pdf|max:10240',
-            'plant' => 'required|string',
-        ]);
+        try {
+            $request->validate([
+                'tool_id' => 'required|exists:calibration_tools,id',
+                'name_alat' => 'required|string',
+                'merk' => 'required|string',
+                'serial_number' => 'required|string',
+                'rentang_ukur' => 'required|string',
+                'resolusi' => 'required|string',
+                'frekuensi_kalibrasi' => 'required|string',
+                'lokasi_penyimpanan' => 'required|string',
+                'tanggal_kalibrasi' => 'required|date',
+                'tanggal_verifikasi' => 'required|date',
+                'next_kalibrasi' => 'required|date',
+                'nilai_alat' => 'required|array',
+                'nilai_koreksi' => 'required|array',
+                'nilai_ketidakpastian' => 'required|array',
+                'hasil_verifikasi' => 'required|array',
+                'judgment' => 'required|string',
+                'std_toleransi' => 'required|string',
+                'acuan_toleransi' => 'required|string',
+                'certification' => 'nullable|file|mimes:pdf|max:10240',
+                'plant' => 'required|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            session()->flash('modal', 'create');
+            throw $e;
+        }
 
         $plant = Plant::where('code', $request->plant)->firstOrFail();
 
@@ -698,28 +703,34 @@ class CalibrationController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action.');
         }
-        $request->validate([
-            'tool_id' => 'required|exists:calibration_tools,id',
-            'name_alat' => 'required|string',
-            'merk' => 'required|string',
-            'serial_number' => 'required|string',
-            'rentang_ukur' => 'required|string',
-            'resolusi' => 'required|string',
-            'frekuensi_kalibrasi' => 'required|string',
-            'lokasi_penyimpanan' => 'required|string',
-            'tanggal_kalibrasi' => 'required|date',
-            'tanggal_verifikasi' => 'required|date',
-            'next_kalibrasi' => 'required|date',
-            'nilai_alat' => 'required|array',
-            'nilai_koreksi' => 'required|array',
-            'nilai_ketidakpastian' => 'required|array',
-            'hasil_verifikasi' => 'required|array',
-            'judgment' => 'required|string',
-            'std_toleransi' => 'required|string',
-            'acuan_toleransi' => 'required|string',
-            'certification' => 'nullable|file|mimes:pdf|max:10240',
-            'plant' => 'required|string',
-        ]);
+        try {
+            $request->validate([
+                'tool_id' => 'required|exists:calibration_tools,id',
+                'name_alat' => 'required|string',
+                'merk' => 'required|string',
+                'serial_number' => 'required|string',
+                'rentang_ukur' => 'required|string',
+                'resolusi' => 'required|string',
+                'frekuensi_kalibrasi' => 'required|string',
+                'lokasi_penyimpanan' => 'required|string',
+                'tanggal_kalibrasi' => 'required|date',
+                'tanggal_verifikasi' => 'required|date',
+                'next_kalibrasi' => 'required|date',
+                'nilai_alat' => 'required|array',
+                'nilai_koreksi' => 'required|array',
+                'nilai_ketidakpastian' => 'required|array',
+                'hasil_verifikasi' => 'required|array',
+                'judgment' => 'required|string',
+                'std_toleransi' => 'required|string',
+                'acuan_toleransi' => 'required|string',
+                'certification' => 'nullable|file|mimes:pdf|max:10240',
+                'plant' => 'required|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            session()->flash('modal', 'edit');
+            session()->flash('edit_id', $id);
+            throw $e;
+        }
 
         $verification = CalibrationVerification::findOrFail($id);
         $data = $request->except(['certification', 'plant', '_token', '_method']);

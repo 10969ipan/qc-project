@@ -136,7 +136,7 @@
                 <table>
                     <tr>
                         <td>No. Dokumen</td>
-                        <td>: QC-KRW-F-XXXX</td>
+                        <td>: QC-KRW-F-0230</td>
                     </tr>
                     <tr>
                         <td>Tgl. Terbit</td>
