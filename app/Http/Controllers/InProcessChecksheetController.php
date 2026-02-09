@@ -313,10 +313,16 @@ class InProcessChecksheetController extends Controller
     // Export Checksheets to PDF
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'plant']);
+        // For restricted roles (inspector, plating), override request plant to their own plant
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        if (in_array(auth()->user()->role, $restrictedRoles)) {
+            $request->merge(['plant' => auth()->user()->plant_id]);
+        }
 
-        // Limit to 10 records as requested
-        $checksheets = $this->inProcessService->buildFilteredQuery($filters)->limit(10)->get();
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
+
+        // Fetch filtered records without limit to reflect user's selection
+        $checksheets = $this->inProcessService->buildFilteredQuery($filters)->get();
         $items = Item::orderBy('name')->get();
 
         $partDimensionStandards = $this->getConsolidatedStandards();
