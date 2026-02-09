@@ -24,10 +24,10 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('calibration_verifications', function (Blueprint $table) {
-            $table->decimal('nilai_alat', 12, 4)->change();
-            $table->decimal('nilai_koreksi', 12, 4)->change();
-            $table->decimal('nilai_ketidakpastian', 12, 4)->change();
-            $table->string('hasil_verifikasi')->change();
+            $table->decimal('nilai_alat', 12, 4)->nullable()->change();
+            $table->decimal('nilai_koreksi', 12, 4)->nullable()->change();
+            $table->decimal('nilai_ketidakpastian', 12, 4)->nullable()->change();
+            $table->string('hasil_verifikasi')->nullable()->change();
         });
     }
 };
