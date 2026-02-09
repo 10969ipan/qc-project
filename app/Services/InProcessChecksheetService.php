@@ -130,7 +130,21 @@ class InProcessChecksheetService extends BaseService
         }
 
         if (!empty($filters['item_id'])) {
-            $query->where('item_id', $filters['item_id']);
+            $query->where('items.id', $filters['item_id'])
+                ->leftJoin('items', 'in_process_checksheets.item_id', '=', 'items.id')
+                ->select('in_process_checksheets.*');
+        }
+
+        if (!empty($filters['customer'])) {
+            $query->whereHas('item', function ($q) use ($filters) {
+                $q->where('customer', $filters['customer']);
+            });
+        }
+
+        if (!empty($filters['part_no'])) {
+            $query->whereHas('item', function ($q) use ($filters) {
+                $q->where('part_number', $filters['part_no']);
+            });
         }
 
         if (!empty($filters['next_proses'])) {

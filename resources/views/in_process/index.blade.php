@@ -68,34 +68,77 @@
 
 
                     <!-- Live Search -->
-                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
                             <label for="search" class="small font-weight-bold">Pencarian</label>
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
-                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
+                                <input type="text" id="liveSearch" name="search" class="form-control" placeholder="Cari..."
                                     value="{{ request('search') }}">
                             </div>
                         </div>
                     </div>
 
-
-
                     <!-- Filter Tanggal -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
                             <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
                             <input type="date" name="start_date" id="start_date" class="form-control form-control-sm"
                                 value="{{ request('start_date') }}">
                         </div>
                     </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
                             <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
                             <input type="date" name="end_date" id="end_date" class="form-control form-control-sm"
                                 value="{{ request('end_date') }}">
+                        </div>
+                    </div>
+
+                    <!-- Item Part Filter -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="item_id" class="small font-weight-bold">Item Part</label>
+                            <select name="item_id" id="item_id" class="form-control form-control-sm select2">
+                                <option value="">-- Semua Item --</option>
+                                @foreach($items as $item)
+                                    <option value="{{ $item->id }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                        {{ $item->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Customer Filter -->
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="customer" class="small font-weight-bold">Customer</label>
+                            <select name="customer" id="customer" class="form-control form-control-sm select2">
+                                <option value="">-- Semua Customer --</option>
+                                @foreach($customers as $customer)
+                                    <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>
+                                        {{ $customer }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Part No Filter -->
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="part_no" class="small font-weight-bold">Part No</label>
+                            <select name="part_no" id="part_no" class="form-control form-control-sm select2">
+                                <option value="">-- Semua Part No --</option>
+                                @foreach($partNumbers as $pNo)
+                                    <option value="{{ $pNo }}" {{ request('part_no') == $pNo ? 'selected' : '' }}>
+                                        {{ $pNo }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
@@ -805,8 +848,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -822,12 +865,20 @@
                         // Get current filter values
                         const startDate = document.getElementById('start_date').value;
                         const endDate = document.getElementById('end_date').value;
+                        const itemId = document.getElementById('item_id').value;
+                        const customer = document.getElementById('customer').value;
+                        const partNo = document.getElementById('part_no').value;
+                        const plant = '{{ request('plant') }}';
 
                         // Build URL with all parameters
                         const params = new URLSearchParams();
                         if (searchTerm) params.append('search', searchTerm);
                         if (startDate) params.append('start_date', startDate);
                         if (endDate) params.append('end_date', endDate);
+                        if (itemId) params.append('item_id', itemId);
+                        if (customer) params.append('customer', customer);
+                        if (partNo) params.append('part_no', partNo);
+                        if (plant) params.append('plant', plant);
 
                         // Redirect to index with search parameter
                         window.location.href = '{{ route('in_process.index') }}?' + params.toString();
@@ -1178,6 +1229,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                            });
+                                                                                                                                });
     </script>
 @endpush

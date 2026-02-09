@@ -111,16 +111,23 @@ class InProcessChecksheetController extends Controller
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
             'item_id' => $request->item_id,
+            'customer' => $request->customer,
+            'part_no' => $request->part_no,
             'next_proses' => $request->next_proses,
             'id' => $request->id,
             'search' => $request->search,
         ];
 
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
+
+        // Fetch lists for filter dropdowns
         $items = Item::orderBy('name')->get();
+        $customers = Item::whereNotNull('customer')->distinct()->orderBy('customer')->pluck('customer');
+        $partNumbers = Item::whereNotNull('part_number')->distinct()->orderBy('part_number')->pluck('part_number');
+
         $partDimensionStandards = $this->getConsolidatedStandards();
 
-        return view('in_process.index', compact('checksheets', 'items', 'partDimensionStandards'));
+        return view('in_process.index', compact('checksheets', 'items', 'customers', 'partNumbers', 'partDimensionStandards'));
     }
 
     // Show form (updated to pass items)
