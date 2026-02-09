@@ -12,8 +12,17 @@
         </x-plant-header>
 
         @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show mx-3" role="alert">
                 {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
+                <strong><i class="fas fa-exclamation-circle mr-1"></i> Kesalahan Sistem:</strong> {{ session('error') }}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -604,7 +613,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-2">
-                                    <label class="small font-weight-bold">Judgment <span class="text-danger">*</span></label>
+                                    <label class="small font-weight-bold">Judgment <span
+                                            class="text-danger">*</span></label>
                                     <select name="judgment" class="form-control form-control-sm" required>
                                         <option value="OK">OK</option>
                                         <option value="NG">NG</option>
@@ -613,13 +623,15 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-2">
-                                    <label class="small font-weight-bold">Std. Toleransi <span class="text-danger">*</span></label>
+                                    <label class="small font-weight-bold">Std. Toleransi <span
+                                            class="text-danger">*</span></label>
                                     <input type="text" name="std_toleransi" class="form-control form-control-sm" required>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group mb-2">
-                                    <label class="small font-weight-bold">Acuan Toleransi <span class="text-danger">*</span></label>
+                                    <label class="small font-weight-bold">Acuan Toleransi <span
+                                            class="text-danger">*</span></label>
                                     <input type="text" name="acuan_toleransi" class="form-control form-control-sm" required>
                                 </div>
                             </div>
@@ -694,7 +706,7 @@
                     $('#modal_resolusi').val(selected.data('resolusi'));
                     $('#modal_frekuensi_kalibrasi').val(selected.data('frekuensi'));
                     $('#modal_lokasi_penyimpanan').val(selected.data('lokasi'));
-                    
+
                     // Clear fields that are not in the tool data
                     // We don't have merk/toleransi in Tool model, so user must fill them
                     // but we clear them to avoid leftover data
@@ -734,17 +746,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                                                <tr>
-                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                                                    <td class="text-center">
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                                            <i class="fas fa-trash"></i>
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>`;
+                                                                        <tr>
+                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                                            <td class="text-center">
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                                                    <i class="fas fa-trash"></i>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -808,17 +820,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                                                    <tr>
-                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
-                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
-                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
-                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
-                                                                        <td class="text-center">
-                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                <i class="fas fa-trash"></i>
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>`;
+                                                                            <tr>
+                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
+                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
+                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
+                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
+                                                                                <td class="text-center">
+                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -845,17 +857,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                                            <tr>
-                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                                                <td class="text-center">
-                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                        <i class="fas fa-trash"></i>
-                                                                    </button>
-                                                                </td>
-                                                            </tr>`;
+                                                                    <tr>
+                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });

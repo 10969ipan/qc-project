@@ -615,65 +615,78 @@ class CalibrationController extends Controller
 
     public function verificationsStore(Request $request)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action.');
-        }
         try {
-            $request->validate([
-                'tool_id' => 'required|exists:calibration_tools,id',
-                'name_alat' => 'required|string',
-                'merk' => 'required|string',
-                'serial_number' => 'required|string',
-                'rentang_ukur' => 'required|string',
-                'resolusi' => 'required|string',
-                'frekuensi_kalibrasi' => 'required|string',
-                'lokasi_penyimpanan' => 'required|string',
-                'tanggal_kalibrasi' => 'required|date',
-                'tanggal_verifikasi' => 'required|date',
-                'next_kalibrasi' => 'required|date',
-                'nilai_alat' => 'required|array',
-                'nilai_koreksi' => 'required|array',
-                'nilai_ketidakpastian' => 'required|array',
-                'hasil_verifikasi' => 'required|array',
-                'judgment' => 'required|string',
-                'std_toleransi' => 'required|string',
-                'acuan_toleransi' => 'required|string',
-                'certification' => 'nullable|file|mimes:pdf|max:10240',
-                'plant' => 'required|string',
-            ]);
+            if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+                abort(403, 'Unauthorized action.');
+            }
+            try {
+                $request->validate([
+                    'tool_id' => 'required|exists:calibration_tools,id',
+                    'name_alat' => 'required|string',
+                    'merk' => 'required|string',
+                    'serial_number' => 'required|string',
+                    'rentang_ukur' => 'required|string',
+                    'resolusi' => 'required|string',
+                    'frekuensi_kalibrasi' => 'required|string',
+                    'lokasi_penyimpanan' => 'required|string',
+                    'tanggal_kalibrasi' => 'required|date',
+                    'tanggal_verifikasi' => 'required|date',
+                    'next_kalibrasi' => 'required|date',
+                    'nilai_alat' => 'required|array',
+                    'nilai_koreksi' => 'required|array',
+                    'nilai_ketidakpastian' => 'required|array',
+                    'hasil_verifikasi' => 'required|array',
+                    'judgment' => 'required|string',
+                    'std_toleransi' => 'required|string',
+                    'acuan_toleransi' => 'required|string',
+                    'certification' => 'nullable|file|mimes:pdf|max:10240',
+                    'plant' => 'required|string',
+                ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                session()->flash('modal', 'create');
+                throw $e;
+            }
+
+            $plant = Plant::where('code', $request->plant)->firstOrFail();
+
+            $data = $request->except(['certification', 'plant', '_token']);
+            $data['plant_id'] = $plant->id;
+
+            if ($request->hasFile('certification')) {
+                $file = $request->file('certification');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('calibration/verifications', $filename, 'public');
+                $data['certification_path'] = $path;
+            }
+
+            CalibrationVerification::create($data);
+
+            // Update tool's schedule planning
+            $tool = CalibrationTool::find($request->tool_id);
+            if ($tool) {
+                $tool->update(['schedule_planning' => $request->next_kalibrasi]);
+
+                // Sync next_kalibrasi to schedules table if it doesn't exist
+                $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
+                if (!$exists) {
+                    $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
+                }
+            }
+
+            return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
+                ->with('success', 'Data Verifikasi berhasil disimpan.');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Illuminate\Support\Facades\Log::warning('Validation Failed:', $e->errors());
             session()->flash('modal', 'create');
             throw $e;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Calibration Store Error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request' => $request->all()
+            ]);
+            return back()->withInput()->with('error', 'Gagal menyimpan data ke database: ' . $e->getMessage());
         }
-
-        $plant = Plant::where('code', $request->plant)->firstOrFail();
-
-        $data = $request->except(['certification', 'plant', '_token']);
-        $data['plant_id'] = $plant->id;
-
-        if ($request->hasFile('certification')) {
-            $file = $request->file('certification');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('calibration/verifications', $filename, 'public');
-            $data['certification_path'] = $path;
-        }
-
-        CalibrationVerification::create($data);
-
-        // Update tool's schedule planning
-        $tool = CalibrationTool::find($request->tool_id);
-        if ($tool) {
-            $tool->update(['schedule_planning' => $request->next_kalibrasi]);
-
-            // Sync next_kalibrasi to schedules table if it doesn't exist
-            $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
-            if (!$exists) {
-                $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
-            }
-        }
-
-        return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
-            ->with('success', 'Data Verifikasi berhasil disimpan.');
     }
 
     public function verificationsEdit($id, Request $request)
@@ -700,69 +713,83 @@ class CalibrationController extends Controller
 
     public function verificationsUpdate(Request $request, $id)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action.');
-        }
         try {
-            $request->validate([
-                'tool_id' => 'required|exists:calibration_tools,id',
-                'name_alat' => 'required|string',
-                'merk' => 'required|string',
-                'serial_number' => 'required|string',
-                'rentang_ukur' => 'required|string',
-                'resolusi' => 'required|string',
-                'frekuensi_kalibrasi' => 'required|string',
-                'lokasi_penyimpanan' => 'required|string',
-                'tanggal_kalibrasi' => 'required|date',
-                'tanggal_verifikasi' => 'required|date',
-                'next_kalibrasi' => 'required|date',
-                'nilai_alat' => 'required|array',
-                'nilai_koreksi' => 'required|array',
-                'nilai_ketidakpastian' => 'required|array',
-                'hasil_verifikasi' => 'required|array',
-                'judgment' => 'required|string',
-                'std_toleransi' => 'required|string',
-                'acuan_toleransi' => 'required|string',
-                'certification' => 'nullable|file|mimes:pdf|max:10240',
-                'plant' => 'required|string',
-            ]);
+            if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+                abort(403, 'Unauthorized action.');
+            }
+            try {
+                $request->validate([
+                    'tool_id' => 'required|exists:calibration_tools,id',
+                    'name_alat' => 'required|string',
+                    'merk' => 'required|string',
+                    'serial_number' => 'required|string',
+                    'rentang_ukur' => 'required|string',
+                    'resolusi' => 'required|string',
+                    'frekuensi_kalibrasi' => 'required|string',
+                    'lokasi_penyimpanan' => 'required|string',
+                    'tanggal_kalibrasi' => 'required|date',
+                    'tanggal_verifikasi' => 'required|date',
+                    'next_kalibrasi' => 'required|date',
+                    'nilai_alat' => 'required|array',
+                    'nilai_koreksi' => 'required|array',
+                    'nilai_ketidakpastian' => 'required|array',
+                    'hasil_verifikasi' => 'required|array',
+                    'judgment' => 'required|string',
+                    'std_toleransi' => 'required|string',
+                    'acuan_toleransi' => 'required|string',
+                    'certification' => 'nullable|file|mimes:pdf|max:10240',
+                    'plant' => 'required|string',
+                ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                session()->flash('modal', 'edit');
+                session()->flash('edit_id', $id);
+                throw $e;
+            }
+
+            $verification = CalibrationVerification::findOrFail($id);
+            $data = $request->except(['certification', 'plant', '_token', '_method']);
+
+            if ($request->hasFile('certification')) {
+                // Delete old file
+                if ($verification->certification_path) {
+                    Storage::disk('public')->delete($verification->certification_path);
+                }
+
+                $file = $request->file('certification');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('calibration/verifications', $filename, 'public');
+                $data['certification_path'] = $path;
+            }
+
+            $verification->update($data);
+
+            // Update tool's schedule planning if next_kalibrasi is later
+            $tool = CalibrationTool::find($request->tool_id);
+            if ($tool) {
+                $tool->update(['schedule_planning' => $request->next_kalibrasi]);
+
+                // Sync next_kalibrasi to schedules table if it doesn't exist
+                $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
+                if (!$exists) {
+                    $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
+                }
+            }
+
+            return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
+                ->with('success', 'Data Verifikasi berhasil diperbarui.');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Illuminate\Support\Facades\Log::warning('Validation Failed (Update):', $e->errors());
             session()->flash('modal', 'edit');
             session()->flash('edit_id', $id);
             throw $e;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Calibration Update Error (ID: ' . $id . '): ' . $e->getMessage(), [
+                'exception' => $e,
+                'request' => $request->all()
+            ]);
+            return back()->withInput()->with('error', 'Gagal memperbarui data di database: ' . $e->getMessage());
         }
-
-        $verification = CalibrationVerification::findOrFail($id);
-        $data = $request->except(['certification', 'plant', '_token', '_method']);
-
-        if ($request->hasFile('certification')) {
-            // Delete old file
-            if ($verification->certification_path) {
-                Storage::disk('public')->delete($verification->certification_path);
-            }
-
-            $file = $request->file('certification');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('calibration/verifications', $filename, 'public');
-            $data['certification_path'] = $path;
-        }
-
-        $verification->update($data);
-
-        // Update tool's schedule planning if next_kalibrasi is later
-        $tool = CalibrationTool::find($request->tool_id);
-        if ($tool) {
-            $tool->update(['schedule_planning' => $request->next_kalibrasi]);
-
-            // Sync next_kalibrasi to schedules table if it doesn't exist
-            $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
-            if (!$exists) {
-                $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
-            }
-        }
-
-        return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
-            ->with('success', 'Data Verifikasi berhasil diperbarui.');
     }
 
     public function verificationsDestroy($id, Request $request)
