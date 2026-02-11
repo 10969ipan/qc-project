@@ -538,24 +538,14 @@ class CalibrationController extends Controller
 
             return response()->json([
                 'verification' => $verification,
-                'qr_code' => base64_encode($qrCode),
+                'qr_code' => base64_encode((string)$qrCode),
                 'download_url' => $downloadUrl
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            \Log::error('QR Data - Verification not found', ['id' => $id]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('QR Data Error: ' . $e->getMessage());
             return response()->json([
-                'error' => 'Verification not found',
-                'message' => 'Data verifikasi tidak ditemukan'
-            ], 404);
-        } catch (\Exception $e) {
-            \Log::error('QR Data Generation Error', [
-                'id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'error' => 'QR Code generation failed',
-                'message' => 'Gagal generate QR Code: ' . $e->getMessage()
+                'error' => true,
+                'message' => 'Failed to generate QR Code: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -898,11 +888,11 @@ class CalibrationController extends Controller
             if (!$file->isValid()) {
                 $error = $file->getError();
                 $message = $file->getErrorMessage();
-
+                
                 if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
                     $message = "File size exceeds server limit (upload_max_filesize: " . ini_get('upload_max_filesize') . ").";
                 }
-
+                
                 throw ValidationException::withMessages([$key => $message]);
             }
         }
