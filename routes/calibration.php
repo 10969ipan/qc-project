@@ -22,6 +22,8 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
     Route::put('verifications/{id}', [CalibrationController::class, 'verificationsUpdate'])->name('verifications.update');
     Route::get('verifications/export-pdf', [CalibrationController::class, 'verificationsPdf'])->name('verifications.pdf');
     Route::get('verifications/{id}/qr-pdf', [CalibrationController::class, 'verificationsQrPdf'])->name('verifications.qr-pdf');
-    Route::get('verifications/{id}/qr-data', [CalibrationController::class, 'verificationsQrData'])->name('verifications.qr-data');
+    Route::get('verifications/{id}/qr-data', [CalibrationController::class, 'verificationsQrData'])
+        ->where('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+        ->name('verifications.qr-data');
     Route::delete('verifications/{id}', [CalibrationController::class, 'verificationsDestroy'])->name('verifications.destroy');
 });
