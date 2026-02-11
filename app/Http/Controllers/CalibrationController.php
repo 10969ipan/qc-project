@@ -8,7 +8,7 @@ use App\Models\Plant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+// use SimpleSoftwareIO\QrCode\Facades\QrCode; // Temporarily disabled - install library first
 use setasign\Fpdi\Fpdi;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\UploadedFile;
@@ -501,11 +501,13 @@ class CalibrationController extends Controller
         $data .= "QC IPP - " . date('Y');
 
         // Generate QR Code as base64 (SVG format is more compatible)
-        $qrCode = base64_encode(QrCode::format('svg')
-            ->size(200)
-            ->margin(1)
-            ->errorCorrection('H')
-            ->generate($data));
+        // TEMPORARILY DISABLED - Install simplesoftwareio/simple-qrcode first
+        // $qrCode = base64_encode(QrCode::format('svg')
+        //     ->size(200)
+        //     ->margin(1)
+        //     ->errorCorrection('H')
+        //     ->generate($data));
+        $qrCode = base64_encode('<svg></svg>'); // Placeholder
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', compact('verification', 'plantCode', 'qrCode'))
             ->setPaper('a4', 'portrait');
@@ -530,15 +532,17 @@ class CalibrationController extends Controller
             }
 
             // Generate QR Code as SVG
-            $qrCode = QrCode::format('svg')
-                ->size(250)
-                ->margin(1)
-                ->errorCorrection('H')
-                ->generate($downloadUrl);
+            // TEMPORARILY DISABLED - Install simplesoftwareio/simple-qrcode first
+            // $qrCode = QrCode::format('svg')
+            //     ->size(250)
+            //     ->margin(1)
+            //     ->errorCorrection('H')
+            //     ->generate($downloadUrl);
+            $qrCode = '<svg><text>QR Code disabled - install library</text></svg>'; // Placeholder
 
             return response()->json([
                 'verification' => $verification,
-                'qr_code' => base64_encode((string)$qrCode),
+                'qr_code' => base64_encode((string) $qrCode),
                 'download_url' => $downloadUrl
             ]);
         } catch (\Throwable $e) {
@@ -572,10 +576,12 @@ class CalibrationController extends Controller
             $downloadUrl = route('public.calibration.download', $verification->id);
         }
 
-        $qrCodeHal1 = base64_encode(QrCode::format('svg')
-            ->size(100)
-            ->margin(1)
-            ->generate($downloadUrl));
+        // TEMPORARILY DISABLED - Install simplesoftwareio/simple-qrcode first
+        // $qrCodeHal1 = base64_encode(QrCode::format('svg')
+        //     ->size(100)
+        //     ->margin(1)
+        //     ->generate($downloadUrl));
+        $qrCodeHal1 = base64_encode('<svg></svg>'); // Placeholder
 
         $pdfReport = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', [
             'verification' => $verification,
@@ -888,11 +894,11 @@ class CalibrationController extends Controller
             if (!$file->isValid()) {
                 $error = $file->getError();
                 $message = $file->getErrorMessage();
-                
+
                 if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
                     $message = "File size exceeds server limit (upload_max_filesize: " . ini_get('upload_max_filesize') . ").";
                 }
-                
+
                 throw ValidationException::withMessages([$key => $message]);
             }
         }
