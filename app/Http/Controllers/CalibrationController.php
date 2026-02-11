@@ -234,7 +234,7 @@ class CalibrationController extends Controller
             'jenis_kalibrasi' => 'required|string',
             'schedule_planning' => 'required|array',
             'schedule_planning.*' => 'required|date',
-            'certification' => 'nullable|file|mimes:pdf|max:10240',
+            'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
         ]);
 
         $plant = Plant::where('code', $request->plant)->first();
@@ -315,7 +315,7 @@ class CalibrationController extends Controller
             'jenis_kalibrasi' => 'required|string',
             'schedule_planning' => 'required|array',
             'schedule_planning.*' => 'required|date',
-            'certification' => 'nullable|file|mimes:pdf|max:10240',
+            'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
         ]);
 
         $tool = CalibrationTool::findOrFail($id);
@@ -639,7 +639,7 @@ class CalibrationController extends Controller
                     'judgment' => 'required|string',
                     'std_toleransi' => 'required|string',
                     'acuan_toleransi' => 'required|string',
-                    'certification' => 'nullable|file|mimes:pdf|max:10240',
+                    'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
                     'plant' => 'required|string',
                 ]);
             } catch (\Illuminate\Validation\ValidationException $e) {
@@ -737,7 +737,7 @@ class CalibrationController extends Controller
                     'judgment' => 'required|string',
                     'std_toleransi' => 'required|string',
                     'acuan_toleransi' => 'required|string',
-                    'certification' => 'nullable|file|mimes:pdf|max:10240',
+                    'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
                     'plant' => 'required|string',
                 ]);
             } catch (\Illuminate\Validation\ValidationException $e) {
