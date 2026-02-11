@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use setasign\Fpdi\Fpdi;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Http\UploadedFile;
 
 class CalibrationController extends Controller
 {
@@ -207,6 +209,9 @@ class CalibrationController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action.');
         }
+
+        $this->validateFileUpload($request, 'certification');
+
         $request->validate([
             'plant' => 'required|string',
             'bagian' => 'required|string',
@@ -246,6 +251,10 @@ class CalibrationController extends Controller
         $data['schedule_planning'] = $request->schedule_planning[0];
 
         if ($request->hasFile('certification')) {
+            if (!Storage::disk('public')->exists('calibration/tools')) {
+                Storage::disk('public')->makeDirectory('calibration/tools');
+            }
+
             $file = $request->file('certification');
             $filename = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('calibration/tools', $filename, 'public');
@@ -287,6 +296,9 @@ class CalibrationController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action.');
         }
+
+        $this->validateFileUpload($request, 'certification');
+
         $request->validate([
             'plant' => 'required|string',
             'bagian' => 'required|string',
@@ -325,6 +337,10 @@ class CalibrationController extends Controller
         $data['schedule_planning'] = $request->schedule_planning[0];
 
         if ($request->hasFile('certification')) {
+            if (!Storage::disk('public')->exists('calibration/tools')) {
+                Storage::disk('public')->makeDirectory('calibration/tools');
+            }
+
             // Delete old file if exists
             if ($tool->certification_path) {
                 Storage::disk('public')->delete($tool->certification_path);
@@ -620,6 +636,8 @@ class CalibrationController extends Controller
                 abort(403, 'Unauthorized action.');
             }
             try {
+                $this->validateFileUpload($request, 'certification');
+
                 $request->validate([
                     'tool_id' => 'required|exists:calibration_tools,id',
                     'name_alat' => 'required|string',
@@ -653,6 +671,10 @@ class CalibrationController extends Controller
             $data['plant_id'] = $plant->id;
 
             if ($request->hasFile('certification')) {
+                if (!Storage::disk('public')->exists('calibration/verifications')) {
+                    Storage::disk('public')->makeDirectory('calibration/verifications');
+                }
+
                 $file = $request->file('certification');
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('calibration/verifications', $filename, 'public');
@@ -718,6 +740,8 @@ class CalibrationController extends Controller
                 abort(403, 'Unauthorized action.');
             }
             try {
+                $this->validateFileUpload($request, 'certification');
+
                 $request->validate([
                     'tool_id' => 'required|exists:calibration_tools,id',
                     'name_alat' => 'required|string',
@@ -750,6 +774,10 @@ class CalibrationController extends Controller
             $data = $request->except(['certification', 'plant', '_token', '_method']);
 
             if ($request->hasFile('certification')) {
+                if (!Storage::disk('public')->exists('calibration/verifications')) {
+                    Storage::disk('public')->makeDirectory('calibration/verifications');
+                }
+
                 // Delete old file
                 if ($verification->certification_path) {
                     Storage::disk('public')->delete($verification->certification_path);
@@ -843,5 +871,22 @@ class CalibrationController extends Controller
             'message' => 'PR berhasil diperbarui.',
             'pr_date' => $schedule->pr_date ? \Carbon\Carbon::parse($schedule->pr_date)->format('d/m/Y') : '-'
         ]);
+    }
+
+    private function validateFileUpload(Request $request, $key)
+    {
+        if ($request->hasFile($key)) {
+            $file = $request->file($key);
+            if (!$file->isValid()) {
+                $error = $file->getError();
+                $message = $file->getErrorMessage();
+                
+                if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+                    $message = "File size exceeds server limit (upload_max_filesize: " . ini_get('upload_max_filesize') . ").";
+                }
+                
+                throw ValidationException::withMessages([$key => $message]);
+            }
+        }
     }
 }
