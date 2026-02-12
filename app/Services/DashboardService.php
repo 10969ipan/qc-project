@@ -10,6 +10,7 @@ use App\Models\SortirChecksheet;
 use App\Models\MachineStatus;
 use App\Models\MonthlyReport;
 use App\Models\CustomerClaim;
+use App\Models\CustomerClaimRecord;
 use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Schema;
@@ -79,8 +80,11 @@ class DashboardService extends BaseService
             // Flag for dual view mode
             $isDualView = in_array($authRole, $dualViewRoles);
 
+            // Claim Frequency Data (from list claim records)
+            $claimFrequency = $this->getClaimFrequencyData();
+
             return array_merge(
-                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView'),
+                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView', 'claimFrequency'),
                 $productionMonitoring
             );
         })();
@@ -463,6 +467,49 @@ class DashboardService extends BaseService
             'combined_total' => $combinedTotal,
             'target' => $targets,
             'is_yearly' => false // Using monthly-style rendering but with custom labels
+        ];
+    }
+
+    /**
+     * Get Claim Frequency Data from CustomerClaimRecord (list claim)
+     * Counts how many claim records per month per plant
+     *
+     * @param int|null $year
+     * @return array
+     */
+    public function getClaimFrequencyData($year = null): array
+    {
+        $year = $year ?? (int) date('Y');
+
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+
+        // Query claim records grouped by month and plant
+        $records = CustomerClaimRecord::withoutGlobalScope('plant')
+            ->whereYear('tanggal_claim', $year)
+            ->selectRaw('MONTH(tanggal_claim) as month, plant_id, COUNT(*) as total')
+            ->groupBy('month', 'plant_id')
+            ->get();
+
+        $labels = [];
+        $jakartaCounts = [];
+        $karawangCounts = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $labels[] = \Carbon\Carbon::createFromDate($year, $m, 1)->format('M');
+
+            $jkt = $records->where('month', $m)->where('plant_id', $jakartaPlantId)->first();
+            $krw = $records->where('month', $m)->where('plant_id', $karawangPlantId)->first();
+
+            $jakartaCounts[] = (int) ($jkt->total ?? 0);
+            $karawangCounts[] = (int) ($krw->total ?? 0);
+        }
+
+        return [
+            'year' => $year,
+            'labels' => $labels,
+            'jakarta' => $jakartaCounts,
+            'karawang' => $karawangCounts,
         ];
     }
 
