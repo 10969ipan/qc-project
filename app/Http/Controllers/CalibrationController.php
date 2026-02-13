@@ -502,17 +502,17 @@ class CalibrationController extends Controller
         $data .= "-------------------------------\n";
         $data .= "QC IPP - " . date('Y');
 
-        // Generate QR Code with library's base64 helper
+        // Generate QR Code with library's base64 helper (Now using PNG)
         $options = new QROptions([
-            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
             'eccLevel' => QRCode::ECC_H,
-            'addQuietzone' => false,
-            'svgAddXmlDeclaration' => false,
+            'addQuietzone' => true,
             'outputBase64' => true,
+            'imageTransparent' => false,
         ]);
         $qrCodeDataUrl = (new QRCode($options))->render($data);
 
-        // Strip the data URL prefix "data:image/svg+xml;base64," for existing template compatibility
+        // Strip the data URL prefix "data:image/png;base64," for existing template compatibility
         $qrCode = $qrCodeDataUrl;
         if (strpos($qrCodeDataUrl, ',') !== false) {
             $qrCode = substr($qrCodeDataUrl, strpos($qrCodeDataUrl, ',') + 1);
@@ -540,13 +540,13 @@ class CalibrationController extends Controller
                 $downloadUrl = route('public.calibration.download', $verification->id);
             }
 
-            // Generate QR Code using library's base64 output
+            // Generate QR Code using library's base64 output (Now using PNG)
             $options = new QROptions([
-                'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+                'outputType' => QRCode::OUTPUT_IMAGE_PNG,
                 'eccLevel' => QRCode::ECC_H,
-                'addQuietzone' => false,
-                'svgAddXmlDeclaration' => false,
+                'addQuietzone' => true,
                 'outputBase64' => true,
+                'imageTransparent' => false,
             ]);
             $qrCodeDataUrl = (new QRCode($options))->render($downloadUrl);
 
@@ -592,13 +592,13 @@ class CalibrationController extends Controller
             $downloadUrl = route('public.calibration.download', $verification->id);
         }
 
-        // Generate Hal 1 QR Code using library's base64 helper
+        // Generate Hal 1 QR Code using PNG
         $options = new QROptions([
-            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
             'eccLevel' => QRCode::ECC_H,
-            'addQuietzone' => false,
-            'svgAddXmlDeclaration' => false,
+            'addQuietzone' => true,
             'outputBase64' => true,
+            'imageTransparent' => false,
         ]);
         $qrCodeDataUrlHal1 = (new QRCode($options))->render($downloadUrl);
 

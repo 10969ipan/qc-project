@@ -133,7 +133,7 @@
             </td>
             <td class="title">LAPORAN HASIL VERIFIKASI ALAT UKUR</td>
             <td class="logo" style="width: 80px;">
-                <img src="data:image/svg+xml;base64,{{ $qrCode }}" style="width: 80px; height: 80px;">
+                <img src="data:image/png;base64,{{ $qrCode }}" style="width: 80px; height: 80px;">
             </td>
             <td class="doc-info">
                 <table>

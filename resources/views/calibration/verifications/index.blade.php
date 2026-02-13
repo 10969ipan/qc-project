@@ -746,17 +746,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                                                        <tr>
-                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                                                            <td class="text-center">
-                                                                                <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                                                    <i class="fas fa-trash"></i>
-                                                                                </button>
-                                                                            </td>
-                                                                        </tr>`;
+                                                                            <tr>
+                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                                                <td class="text-center">
+                                                                                    <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -820,17 +820,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                                                            <tr>
-                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
-                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
-                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
-                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
-                                                                                <td class="text-center">
-                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                        <i class="fas fa-trash"></i>
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>`;
+                                                                                <tr>
+                                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}" required></td>
+                                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" value="${nilaiKoreksi[i] || ''}" required></td>
+                                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" value="${nilaiKetidakpastian[i] || ''}" required></td>
+                                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" value="${hasilVerifikasi[i] || ''}" required></td>
+                                                                                    <td class="text-center">
+                                                                                        <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                            <i class="fas fa-trash"></i>
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -857,17 +857,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                                                    <tr>
-                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
-                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
-                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
-                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
-                                                                        <td class="text-center">
-                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                <i class="fas fa-trash"></i>
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>`;
+                                                                        <tr>
+                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" required></td>
+                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm" required></td>
+                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm" required></td>
+                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm" required></td>
+                                                                            <td class="text-center">
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                    <i class="fas fa-trash"></i>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });
@@ -902,7 +902,7 @@
                         var qrSvgBase64 = response.qr_code;
                         var downloadUrl = response.download_url;
 
-                        $('#qr-modal-image').html(`<img src="data:image/svg+xml;base64,${qrSvgBase64}" id="qr-svg-img" style="width: 250px; height: 250px;">`);
+                        $('#qr-modal-image').html(`<img src="data:image/png;base64,${qrSvgBase64}" id="qr-img" style="width: 250px; height: 250px;">`);
                         $('#qr-modal-tool-name').text(v.name_alat);
                         $('#qr-modal-serial').text(v.serial_number);
                         $('#qr-modal-date').text(v.tanggal_verifikasi ? new Date(v.tanggal_verifikasi).toLocaleDateString('id-ID') : '-');
@@ -912,7 +912,12 @@
 
                         // Set up PNG download
                         $('#qr-modal-download-img').off('click').on('click', function () {
-                            downloadQrAsPng(qrSvgBase64, `QR_${v.serial_number}.png`);
+                            var downloadLink = document.createElement("a");
+                            downloadLink.href = "data:image/png;base64," + qrSvgBase64;
+                            downloadLink.download = `QR_${v.serial_number}.png`;
+                            document.body.appendChild(downloadLink);
+                            downloadLink.click();
+                            document.body.removeChild(downloadLink);
                         });
 
                         $('#modalQrCode').modal('show');
@@ -944,7 +949,7 @@
                     downloadLink.click();
                     document.body.removeChild(downloadLink);
                 };
-                img.src = "data:image/svg+xml;base64," + svgBase64;
+                img.src = "data:image/png;base64," + svgBase64;
             }
         });
     </script>
