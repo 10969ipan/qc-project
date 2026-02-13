@@ -201,102 +201,101 @@
                                         $scheduledStatuses = $tool->getScheduledStatuses(date('Y'));
                                     @endphp
                                     @if(!empty($scheduledStatuses))
-                                        @foreach($scheduledStatuses as $item)
-                                            <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
-                                                style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                                <span
-                                                    class="badge badge-info">{{ \Carbon\Carbon::parse($item->schedule_date)->format('d/m/Y') }}</span>
-                                            </div>
-                                        @endforeach
+                                        @php $first = $scheduledStatuses[0]; $count = count($scheduledStatuses); @endphp
+                                        <div class="mb-1 pb-1 schedule-item"
+                                            style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <span class="badge badge-info">{{ \Carbon\Carbon::parse($first->schedule_date)->format('d/m/Y') }}</span>
+                                            @if($count > 1)
+                                                <span class="badge badge-light border mt-1" style="font-size: 0.7rem;">+{{ $count - 1 }} more</span>
+                                            @endif
+                                        </div>
                                     @else
                                         -
                                     @endif
                                 </td>
                                 <td>
                                     @if(!empty($scheduledStatuses))
-                                        @foreach($scheduledStatuses as $item)
-                                            <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
-                                                style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                                <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
-                                                    <input type="text" class="form-control form-control-sm pr-input text-center"
-                                                        data-schedule-id="{{ $item->id }}" placeholder="PR..."
-                                                        value="{{ $item->pr_number }}" style="width: 70px;">
-                                                    @if($item->pr_number)
-                                                        <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
-                                                            data-schedule-id="{{ $item->id }}" title="Reset PR">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td>
-                                    @if(!empty($scheduledStatuses))
-                                        @foreach($scheduledStatuses as $item)
-                                            <div class="mb-1 pb-1 border-bottom last-child-no-border schedule-item"
-                                                style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                                @php
-                                                    $planningDate = \Carbon\Carbon::parse($item->schedule_date);
-                                                    $today = now()->startOfDay();
-                                                    $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
-
-                                                    $icon = '<div class="d-inline-block position-relative" title="Belum PR" style="width: 25px; height: 25px; vertical-align: middle;">' .
-                                                        '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
-                                                        '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                        '</div>';
-                                                    $isClickable = false;
-                                                    $statusText = 'Belum PR';
-
-                                                    if ($item->is_ok) {
-                                                        $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
-                                                        $statusText = 'Sudah Verifikasi';
-                                                        $isClickable = true;
-                                                    } elseif ($tool->jenis_kalibrasi === 'INTERNAL') {
-                                                        $icon = '<div class="d-inline-block position-relative" title="Siap Verifikasi" style="width: 25px; height: 25px; vertical-align: middle;">' .
-                                                            '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
-                                                            '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                            '</div>';
-                                                        $statusText = 'Siap Verifikasi';
-                                                    } elseif ($item->pr_number) {
-                                                        $diffDays = $today->diffInDays($planningDate, false);
-
-                                                        if ($diffDays < 0) {
-                                                            $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
-                                                            $statusText = 'Melewati Jadwal';
-                                                        } elseif ($diffDays >= 30) {
-                                                            $icon = '<i class="fas fa-hourglass-half text-info fa-lg" title="On Progress"></i>';
-                                                            $statusText = 'On Progress';
-                                                        } else {
-                                                            $icon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Segera Verifikasi"></i>';
-                                                            $statusText = 'Segera Verifikasi';
-                                                        }
-                                                    } elseif ($today->gt($planningDate)) {
-                                                        $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
-                                                        $statusText = 'Melewati Jadwal';
-                                                    }
-                                                @endphp
-
-                                                @if($isClickable)
-                                                                    <a href="{{ route('calibration.verifications.index', [
-                                                        'plant' => $plantCode,
-                                                        'tool_id' => $tool->id,
-                                                        'start_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
-                                                        'end_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
-                                                    ]) }}" style="text-decoration: none;">
-                                                                        {!! $icon !!}
-                                                                    </a>
-                                                @else
-                                                    {!! $icon !!}
+                                        @php $first = $scheduledStatuses[0]; @endphp
+                                        <div class="mb-1 pb-1 schedule-item"
+                                            style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
+                                                <input type="text" class="form-control form-control-sm pr-input text-center"
+                                                    data-schedule-id="{{ $first->id }}" placeholder="PR..."
+                                                    value="{{ $first->pr_number }}" style="width: 70px;">
+                                                @if($first->pr_number)
+                                                    <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
+                                                        data-schedule-id="{{ $first->id }}" title="Reset PR">
+                                                        <i class="fas fa-undo"></i>
+                                                    </button>
                                                 @endif
-                                                <small class="pr-date-display text-muted mt-1" id="pr-date-{{ $item->id }}">
-                                                    {{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}
-                                                </small>
                                             </div>
-                                        @endforeach
+                                        </div>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>
+                                    @if(!empty($scheduledStatuses))
+                                        @php
+                                            $item = $scheduledStatuses[0];
+                                            $planningDate = \Carbon\Carbon::parse($item->schedule_date);
+                                            $today = now()->startOfDay();
+                                            $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
+
+                                            $icon = '<div class="d-inline-block position-relative" title="Belum PR" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                                '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
+                                                '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                '</div>';
+                                            $isClickable = false;
+                                            $statusText = 'Belum PR';
+
+                                            if ($item->is_ok) {
+                                                $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
+                                                $statusText = 'Sudah Verifikasi';
+                                                $isClickable = true;
+                                            } elseif ($tool->jenis_kalibrasi === 'INTERNAL') {
+                                                $icon = '<div class="d-inline-block position-relative" title="Siap Verifikasi" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                                    '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
+                                                    '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                    '</div>';
+                                                $statusText = 'Siap Verifikasi';
+                                            } elseif ($item->pr_number) {
+                                                $diffDays = $today->diffInDays($planningDate, false);
+
+                                                if ($diffDays < 0) {
+                                                    $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
+                                                    $statusText = 'Melewati Jadwal';
+                                                } elseif ($diffDays >= 30) {
+                                                    $icon = '<i class="fas fa-hourglass-half text-info fa-lg" title="On Progress"></i>';
+                                                    $statusText = 'On Progress';
+                                                } else {
+                                                    $icon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Segera Verifikasi"></i>';
+                                                    $statusText = 'Segera Verifikasi';
+                                                }
+                                            } elseif ($today->gt($planningDate)) {
+                                                $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
+                                                $statusText = 'Melewati Jadwal';
+                                            }
+                                        @endphp
+
+                                        <div class="mb-1 pb-1 schedule-item"
+                                            style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                            @if($isClickable)
+                                                <a href="{{ route('calibration.verifications.index', [
+                                                    'plant' => $plantCode,
+                                                    'tool_id' => $tool->id,
+                                                    'start_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
+                                                    'end_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
+                                                ]) }}" style="text-decoration: none;">
+                                                    {!! $icon !!}
+                                                </a>
+                                            @else
+                                                {!! $icon !!}
+                                            @endif
+                                            <small class="pr-date-display text-muted mt-1" id="pr-date-{{ $item->id }}">
+                                                {{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}
+                                            </small>
+                                        </div>
                                     @else
                                         -
                                     @endif
@@ -566,6 +565,7 @@
                                     <thead class="bg-light small text-center">
                                         <tr>
                                             <th>Tanggal Planning</th>
+                                            <th>PR Number</th>
                                             <th width="40"><button type="button"
                                                     class="btn btn-xs btn-success add-edit-schedule-row"><i
                                                         class="fas fa-plus"></i></button></th>
@@ -1061,7 +1061,7 @@
                     $('#edit_range').val(tool.range);
                     $('#edit_resolusi').val(tool.resolusi);
                     $('#edit_lokasi_pakai').val(tool.lokasi_pakai);
-                    $('#edit_tanggal_beli').val(tool.tanggal_beli ? tool.tanggal_beli.substring(0, 10) : '');
+                    $('#edit_tanggal_beli').val(tool.tanggal_beli_formatted ? tool.tanggal_beli_formatted : '');
                     $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
                     $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);
                     $('#edit_riwayat_kalibrasi').val(tool.riwayat_kalibrasi);
@@ -1081,7 +1081,10 @@
                                                                         <tr>
                                                                             <td>
                                                                                 <input type="hidden" name="schedule_ids[]" value="${sch.id}">
-                                                                                <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date.substring(0, 10)}" required>
+                                                                                <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date_formatted}" required>
+                                                                            </td>
+                                                                            <td>
+                                                                                <input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm" value="${sch.pr_number || ''}" placeholder="PR Number...">
                                                                             </td>
                                                                             <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                                         </tr>`;
@@ -1090,12 +1093,14 @@
                         schHtml = `
                                                                     <tr>
                                                                         <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}" required></td>
+                                                                        <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm" placeholder="PR Number..."></td>
                                                                         <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                                     </tr>`;
                     } else {
                         schHtml = `
                                                                     <tr>
                                                                         <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                                        <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm" placeholder="PR Number..."></td>
                                                                         <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                                     </tr>`;
                     }
@@ -1125,6 +1130,7 @@
             var newRow = `
                                                         <tr>
                                                             <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                            <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm" placeholder="PR Number..."></td>
                                                             <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                         </tr>`;
             $('#edit-schedule-table tbody').append(newRow);

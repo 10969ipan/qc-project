@@ -285,8 +285,19 @@ class CalibrationController extends Controller
         $tool = CalibrationTool::findOrFail($id);
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         if ($request->ajax()) {
+            $tool->load('schedules');
+
+            // Format dates to prevent timezone shifts in JS serialization
+            if ($tool->tanggal_beli) {
+                $tool->tanggal_beli_formatted = $tool->tanggal_beli->format('Y-m-d');
+            }
+
+            $tool->schedules->each(function ($sch) {
+                $sch->schedule_date_formatted = $sch->schedule_date->format('Y-m-d');
+            });
+
             return response()->json([
-                'tool' => $tool->load('schedules'),
+                'tool' => $tool,
                 'plantCode' => $plantCode
             ]);
         }
@@ -362,6 +373,7 @@ class CalibrationController extends Controller
         // Sync schedules: Match by ID to preserve PR numbers/dates
         $inputDates = $request->schedule_planning;
         $inputIds = $request->input('schedule_ids', []); // IDs of existing schedules to keep/update
+        $inputPrNumbers = $request->input('schedule_pr_numbers', []); // PR numbers from edit form
 
         $existingIds = $tool->schedules()->pluck('id')->toArray();
 
@@ -374,13 +386,28 @@ class CalibrationController extends Controller
         // 2. Update or Create schedules
         foreach ($inputDates as $index => $date) {
             $scheduleId = isset($inputIds[$index]) ? $inputIds[$index] : null;
+            $prNumber = isset($inputPrNumbers[$index]) ? $inputPrNumbers[$index] : null;
 
             if ($scheduleId && in_array($scheduleId, $existingIds)) {
                 // Update existing
-                $tool->schedules()->where('id', $scheduleId)->update(['schedule_date' => $date]);
+                $updateData = ['schedule_date' => $date];
+
+                // Only update PR if it's provided in the edit form
+                // This allows maintaining existing PRs if they were already there
+                $currentSch = $tool->schedules()->find($scheduleId);
+                if ($prNumber !== null && $currentSch->pr_number !== $prNumber) {
+                    $updateData['pr_number'] = $prNumber;
+                    $updateData['pr_date'] = empty($prNumber) ? null : now();
+                }
+
+                $tool->schedules()->where('id', $scheduleId)->update($updateData);
             } else {
                 // Create new
-                $tool->schedules()->create(['schedule_date' => $date]);
+                $tool->schedules()->create([
+                    'schedule_date' => $date,
+                    'pr_number' => $prNumber,
+                    'pr_date' => empty($prNumber) ? null : now()
+                ]);
             }
         }
 
@@ -895,11 +922,11 @@ class CalibrationController extends Controller
             $schedule->pr_number = null;
             $schedule->pr_date = null;
         } else {
-            // If PR Number is changed or new, set the PR Date to today
+            // Updated logic: PR date is only updated if the PR number is NEW or CHANGED
             if ($schedule->pr_number !== $request->pr_number) {
+                $schedule->pr_number = $request->pr_number;
                 $schedule->pr_date = now();
             }
-            $schedule->pr_number = $request->pr_number;
         }
 
         $schedule->save();
