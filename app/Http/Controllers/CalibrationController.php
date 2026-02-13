@@ -507,8 +507,15 @@ class CalibrationController extends Controller
             'outputType' => QRCode::OUTPUT_MARKUP_SVG,
             'eccLevel' => QRCode::ECC_H,
             'addQuietzone' => false,
+            'svgAddXmlDeclaration' => false,
         ]);
-        $qrCode = base64_encode((new QRCode($options))->render($data));
+        $qrCodeMarkup = (new QRCode($options))->render($data);
+
+        // Strip XML header
+        if (strpos($qrCodeMarkup, '<svg') !== false) {
+            $qrCodeMarkup = substr($qrCodeMarkup, strpos($qrCodeMarkup, '<svg'));
+        }
+        $qrCode = base64_encode(trim((string) $qrCodeMarkup));
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', compact('verification', 'plantCode', 'qrCode'))
             ->setPaper('a4', 'portrait');
@@ -537,12 +544,18 @@ class CalibrationController extends Controller
                 'outputType' => QRCode::OUTPUT_MARKUP_SVG,
                 'eccLevel' => QRCode::ECC_H,
                 'addQuietzone' => false,
+                'svgAddXmlDeclaration' => false, // Try to disable XML declaration in library options if supported
             ]);
             $qrCode = (new QRCode($options))->render($downloadUrl);
 
+            // Manual cleanup: Ensure we only have the SVG part and no XML header for data URI compatibility
+            if (strpos($qrCode, '<svg') !== false) {
+                $qrCode = substr($qrCode, strpos($qrCode, '<svg'));
+            }
+
             return response()->json([
                 'verification' => $verification,
-                'qr_code' => base64_encode((string) $qrCode),
+                'qr_code' => base64_encode(trim((string) $qrCode)),
                 'download_url' => $downloadUrl
             ]);
         } catch (\Throwable $e) {
@@ -581,8 +594,13 @@ class CalibrationController extends Controller
             'outputType' => QRCode::OUTPUT_MARKUP_SVG,
             'eccLevel' => QRCode::ECC_H,
             'addQuietzone' => false,
+            'svgAddXmlDeclaration' => false,
         ]);
-        $qrCodeHal1 = base64_encode((new QRCode($options))->render($downloadUrl));
+        $qrCodeMarkupHal1 = (new QRCode($options))->render($downloadUrl);
+        if (strpos($qrCodeMarkupHal1, '<svg') !== false) {
+            $qrCodeMarkupHal1 = substr($qrCodeMarkupHal1, strpos($qrCodeMarkupHal1, '<svg'));
+        }
+        $qrCodeHal1 = base64_encode(trim((string) $qrCodeMarkupHal1));
 
         $pdfReport = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', [
             'verification' => $verification,
