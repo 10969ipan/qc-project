@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container-fluid">
-        <x-plant-header title="Jadwal Kalibrasi" :plant="$plantCode">
+        <x-plant-header title="Schedule Kalibrasi" :plant="$plantCode">
             <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
                 class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                 <i class="fas fa-list fa-sm text-white-50"></i> Daftar Alat

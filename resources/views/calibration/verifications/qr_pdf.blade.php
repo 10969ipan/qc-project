@@ -131,10 +131,7 @@
             <td class="logo">
                 <img src="{{ public_path('master item/ipp.jpg') }}" style="max-height: 50px;">
             </td>
-            <td class="title">LAPORAN HASIL VERIFIKASI ALAT UKUR</td>
-            <td class="logo" style="width: 80px;">
-                <img src="data:image/png;base64,{{ $qrCode }}" style="width: 80px; height: 80px;">
-            </td>
+            <td class="title">HASIL VERIFIKASI ALAT UKUR</td>
             <td class="doc-info">
                 <table>
                     <tr>

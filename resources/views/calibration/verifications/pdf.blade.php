@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Hasil Verifikasi Alat Ukur</title>
+    <title>Hasil Verifikasi Alat Ukur</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;

@@ -567,7 +567,7 @@
                         </div>
 
                         <div class="form-group text-left mb-2">
-                            <label class="small font-weight-bold">Jadwal Kalibrasi (Planning) <span
+                            <label class="small font-weight-bold">Schedule Kalibrasi (Planning) <span
                                     class="text-danger">*</span></label>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-sm mb-0" id="edit-schedule-table">
