@@ -531,14 +531,19 @@ class CalibrationController extends Controller
             $verification = CalibrationVerification::with('tool')->findOrFail($id);
 
             // Public download URL (for scanning)
-            // Use QR_BASE_URL from .env if available, otherwise fallback to route()
+            // Use route() which is more reliable for subfolders, but allow override if needed
+            $downloadUrl = route('public.calibration.download', ['id' => $verification->id]);
+
             $baseUrl = env('QR_BASE_URL');
             if ($baseUrl) {
                 $baseUrl = rtrim($baseUrl, '/');
-                $downloadUrl = $baseUrl . '/public/calibration/verification/' . $verification->id . '/download';
-            } else {
-                $downloadUrl = route('public.calibration.download', $verification->id);
+                // If QR_BASE_URL is set, we replace the scheme/host/port part of the route
+                $parsedRoute = parse_url($downloadUrl);
+                $path = $parsedRoute['path'] ?? '';
+                $downloadUrl = $baseUrl . $path;
             }
+
+            \Illuminate\Support\Facades\Log::info('QR Generated for Verification: ' . $verification->id . ' | URL: ' . $downloadUrl);
 
             // Generate QR Code using library's base64 output (Now using PNG)
             $options = new QROptions([
@@ -583,13 +588,15 @@ class CalibrationController extends Controller
         // Sebenarnya kita tidak perlu QR Code di dalam PDF yang didownload via QR (agar tidak rekursif/bingung)
         // Kita buat Hal 1 tanpa QR Code dominan atau gunakan template yang ada.
 
-        // Kita generate QR Code khusus untuk ditampilkan di Hal 1 (mungkin di pojok)
+        // Public download URL
+        $downloadUrl = route('public.calibration.download', ['id' => $verification->id]);
+
         $baseUrl = env('QR_BASE_URL');
         if ($baseUrl) {
             $baseUrl = rtrim($baseUrl, '/');
-            $downloadUrl = $baseUrl . '/public/calibration/verification/' . $verification->id . '/download';
-        } else {
-            $downloadUrl = route('public.calibration.download', $verification->id);
+            $parsedRoute = parse_url($downloadUrl);
+            $path = $parsedRoute['path'] ?? '';
+            $downloadUrl = $baseUrl . $path;
         }
 
         // Generate Hal 1 QR Code using PNG
