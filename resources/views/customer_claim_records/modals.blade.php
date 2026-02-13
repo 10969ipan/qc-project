@@ -52,7 +52,7 @@
                                         <option value="OTHER">Other (Type manually...)</option>
                                     </select>
                                     <input type="text" name="customer" id="tambah_customer_manual"
-                                        class="form-control form-control-sm mt-2 customer-manual d-none text-uppercase"
+                                        class="form-control form-control-sm mt-2 customer-manual d-none"
                                         placeholder="Enter customer name">
                                 </div>
                             </div>
@@ -104,8 +104,7 @@
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Nama Part <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" name="nama_part"
-                                        class="form-control form-control-sm text-uppercase" required>
+                                    <input type="text" name="nama_part" class="form-control form-control-sm" required>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Problem <span
@@ -128,8 +127,7 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Kategori Penyimpangan</label>
-                                    <select name="kategori_penyimpangan"
-                                        class="form-control form-control-sm text-uppercase">
+                                    <select name="kategori_penyimpangan" class="form-control form-control-sm">
                                         <option value="">-- PILIH --</option>
                                         <optgroup label="4M">
                                             <option value="4M - MAN">4M - MAN</option>
@@ -341,8 +339,7 @@
                                         <option value="OTHER">Other (Type manually...)</option>
                                     </select>
                                     <input type="text" name="customer" id="edit_customer_manual"
-                                        class="form-control form-control-sm mt-2 customer-manual d-none text-uppercase"
-                                        required>
+                                        class="form-control form-control-sm mt-2 customer-manual d-none" required>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -393,8 +390,7 @@
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Nama Part <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" name="nama_part"
-                                        class="form-control form-control-sm text-uppercase" required>
+                                    <input type="text" name="nama_part" class="form-control form-control-sm" required>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Problem <span
@@ -417,8 +413,7 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-bold">Kategori Penyimpangan</label>
-                                    <select name="kategori_penyimpangan"
-                                        class="form-control form-control-sm text-uppercase">
+                                    <select name="kategori_penyimpangan" class="form-control form-control-sm">
                                         <option value="">-- PILIH --</option>
                                         <optgroup label="4M">
                                             <option value="4M - MAN">4M - MAN</option>
@@ -591,7 +586,7 @@
                     const year = date.getFullYear();
                     const month = String(date.getMonth() + 1).padStart(2, '0');
                     const day = String(date.getDate()).padStart(2, '0');
-                    $(targetSelector).val(`${year}-${month}-${day}`);
+                    $(targetSelector).val(`${day}-${month}-${year}`);
                 }
             }
 

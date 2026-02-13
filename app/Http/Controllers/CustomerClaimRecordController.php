@@ -135,7 +135,7 @@ class CustomerClaimRecordController extends Controller
 
         // Backend fallback for evaluasi date if not provided
         if (empty($data['evaluasi']) && !empty($data['tanggal_claim'])) {
-            $data['evaluasi'] = date('Y-m-d', strtotime($data['tanggal_claim'] . ' +6 months'));
+            $data['evaluasi'] = date('d-m-Y', strtotime($data['tanggal_claim'] . ' +6 months'));
         }
 
         CustomerClaimRecord::create($data);

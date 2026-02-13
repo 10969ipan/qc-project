@@ -98,8 +98,8 @@
                             <th>Officially / Non Officially / Suspect</th>
                             <th>No. Dokumen (Report)</th>
                             <th>Project (NM/MP)</th>
-                            <th>Nama Part</th>
-                            <th style="min-width: 200px;">Problem</th>
+                            <th class="col-part">Nama Part</th>
+                            <th class="col-problem">Problem</th>
                             <th>Qty (pcs)</th>
                             <th>Kategori Problem</th>
                             <th>Kategori Penyimpangan (4M/IPQ/OTHER)</th>
@@ -125,7 +125,7 @@
                                 <td class="text-nowrap align-middle text-center">
                                     {{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}
                                 </td>
-                                <td class="align-middle text-uppercase font-weight-bold">{{ $record->customer }}</td>
+                                <td class="align-middle font-weight-bold">{{ $record->customer }}</td>
                                 <td class="align-middle">{{ Str::title($record->plant_up_customer) }}</td>
                                 <td class="text-center align-middle">
                                     <span class="badge badge-{{ $record->claim_type == 'OFFICIAL' ? 'danger' : 'warning' }}">
@@ -134,7 +134,7 @@
                                 </td>
                                 <td class="align-middle">{{ $record->no_report }}</td>
                                 <td class="text-center align-middle">{{ $record->project }}</td>
-                                <td class="align-middle text-uppercase">{{ $record->nama_part }}</td>
+                                <td class="align-middle">{{ $record->nama_part }}</td>
                                 <td class="align-middle small">{{ Str::title($record->problem) }}</td>
                                 <td class="text-center align-middle font-weight-bold text-primary">{{ $record->qty }}</td>
                                 <td class="align-middle text-center">{{ Str::title($record->kategori_defect) }}</td>
@@ -247,6 +247,13 @@
 
 @push('styles')
     <style>
+        .col-part {
+            width: 30% !important;
+        }
+
+        .col-problem {
+            width: 10% !important;
+        }
         .text-xs {
             font-size: 0.75rem;
         }

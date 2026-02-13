@@ -392,6 +392,11 @@
                                             <option value="SORTIR">SORTIR</option>
                                             <option value="FINISHING">FINISHING</option>
                                             <option value="REPAIR">REPAIR</option>
+                                            <option value="SORTIR + FINISHING">SORTIR + FINISHING</option>
+                                            <option value="FINISHING + PASANG SUB PART">FINISHING + PASANG SUB PART</option>
+                                            <option value="FINISHING + PACKING">FINISHING + PACKING</option>
+                                            <option value="REBUS + FINISHING + PACKING">REBUS + FINISHING + PACKING</option>
+                                            <option value="SORTIR + CRUSHING">SORTIR + CRUSHING</option>
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="remarks" rows="4"
@@ -738,7 +743,7 @@
                     $('#nextProsesContainer').slideDown();
                 } else {
                     $('#nextProsesContainer').slideUp();
-                    $('#nextProses').val(''); // Reset selection
+                    // Removed reset to prevent accidental clearing during auto-calculations
                 }
             }
 
@@ -1027,7 +1032,14 @@
                         text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
                         confirmButtonColor: '#3085d6'
                     });
-                    $('#nextProses').focus();
+
+                    // Specific highlight
+                    var $nextProses = $('#nextProses');
+                    $nextProses.addClass('is-invalid').focus();
+                    setTimeout(function () {
+                        $nextProses.removeClass('is-invalid');
+                    }, 3000);
+
                     return false;
                 }
 
@@ -1134,15 +1146,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                            style="min-width: 60px;"
-                                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                                            placeholder="P${j}">
-                                                                                                    </td>`;
+                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                            style="min-width: 60px;"
+                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                            placeholder="P${j}">
+                                                                                                                    </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1161,11 +1173,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                            style="min-width: 60px;"
-                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                            placeholder="P${currentPoints}">
-                                                                                                    </td>`);
+                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                            style="min-width: 60px;"
+                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                            placeholder="P${currentPoints}">
+                                                                                                                    </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

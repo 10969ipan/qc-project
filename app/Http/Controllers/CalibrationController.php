@@ -264,7 +264,7 @@ class CalibrationController extends Controller
         }
 
         if (isset($data['jenis_kalibrasi'])) {
-            $data['jenis_kalibrasi'] = str_replace('EXTERNAL', 'EKSTERNAL', strtoupper($data['jenis_kalibrasi']));
+            $data['jenis_kalibrasi'] = strtoupper($data['jenis_kalibrasi']);
         }
         $tool = CalibrationTool::create($data);
 
@@ -355,7 +355,7 @@ class CalibrationController extends Controller
         }
 
         if (isset($data['jenis_kalibrasi'])) {
-            $data['jenis_kalibrasi'] = str_replace('EXTERNAL', 'EKSTERNAL', strtoupper($data['jenis_kalibrasi']));
+            $data['jenis_kalibrasi'] = strtoupper($data['jenis_kalibrasi']);
         }
         $tool->update($data);
 
@@ -890,13 +890,6 @@ class CalibrationController extends Controller
         ]);
 
         $schedule = \App\Models\CalibrationToolSchedule::with('tool')->findOrFail($request->schedule_id);
-
-        if ($schedule->tool->jenis_kalibrasi === 'INTERNAL') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Alat internal tidak memerlukan PR.'
-            ], 422);
-        }
 
         if (empty($request->pr_number)) {
             $schedule->pr_number = null;

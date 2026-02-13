@@ -133,7 +133,6 @@
                                         </div>
                                     </div>
                                 @endforeach
-                            @else
                                 {{-- Empty initial row for structure, hidden or shown based on needs --}}
                                 <div class="input-group mb-2 defect-row" style="display:none"></div>
                             @endif
@@ -175,13 +174,18 @@
                 <div class="col-6" id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
-                        <select name="next_proses" id="next_proses" class="form-control form-control-sm border-danger">
+                        <select class="form-control" id="next_proses" name="next_proses">
                             <option value="">-- Pilih Next Proses --</option>
                             <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
                             <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR</option>
                             <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
                             <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR</option>
-                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR']))
+                            <option value="SORTIR + FINISHING" {{ $checksheet->next_proses == 'SORTIR + FINISHING' ? 'selected' : '' }}>SORTIR + FINISHING</option>
+                            <option value="FINISHING + PASANG SUB PART" {{ $checksheet->next_proses == 'FINISHING + PASANG SUB PART' ? 'selected' : '' }}>FINISHING + PASANG SUB PART</option>
+                            <option value="FINISHING + PACKING" {{ $checksheet->next_proses == 'FINISHING + PACKING' ? 'selected' : '' }}>FINISHING + PACKING</option>
+                            <option value="REBUS + FINISHING + PACKING" {{ $checksheet->next_proses == 'REBUS + FINISHING + PACKING' ? 'selected' : '' }}>REBUS + FINISHING + PACKING</option>
+                            <option value="SORTIR + CRUSHING" {{ $checksheet->next_proses == 'SORTIR + CRUSHING' ? 'selected' : '' }}>SORTIR + CRUSHING</option>
+                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'SORTIR + FINISHING', 'FINISHING + PASANG SUB PART', 'FINISHING + PACKING', 'REBUS + FINISHING + PACKING', 'SORTIR + CRUSHING']))
                                 <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                             @endif
                         </select>
@@ -385,7 +389,7 @@
                 container.slideDown();
             } else {
                 container.slideUp();
-                $('#next_proses').val('');
+                // Removed reset to prevent accidental clearing during auto-calculations
             }
         }
 
@@ -506,7 +510,14 @@
                     text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
                     confirmButtonColor: '#3085d6'
                 });
-                $('#next_proses').focus();
+                
+                // Specific highlight
+                const $nextProses = $('#next_proses');
+                $nextProses.addClass('is-invalid').focus();
+                setTimeout(function() {
+                    $nextProses.removeClass('is-invalid');
+                }, 3000);
+                
                 return false;
             }
             
