@@ -67,7 +67,7 @@
                         <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}" class="btn btn-secondary btn-sm mr-2">
                             <i class="fas fa-undo"></i> Reset
                         </a>
-                        <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm">
+                        <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm no-loader btn-download">
                             <i class="fas fa-file-pdf"></i> Export
                         </a>
                     </div>

@@ -1408,6 +1408,15 @@
                 // Show loader on page transition
                 $('#global-loader').css('display', 'flex');
             });
+
+            // Specific handler for downloads (PDF exports)
+            // Since downloads don't trigger page navigation, we need to hide the loader after a timeout
+            $(document).on('click', '.btn-download', function () {
+                $('#global-loader').css('display', 'flex');
+                setTimeout(function () {
+                    $('#global-loader').fadeOut();
+                }, 5000); // 5 seconds is usually enough for the server to generate and the browser to start downloading
+            });
         });
     </script>
 

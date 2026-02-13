@@ -110,7 +110,7 @@
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('in_process.export_pdf', request()->query()) }}"
-                                    class="btn btn-danger btn-sm" title="Export to PDF">
+                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
                                 </a>
                             </div>
@@ -197,116 +197,180 @@
                                         $itemPartNumber = strtoupper($itemPartNumber);
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
 
-                                        // Find actual max cavity and point
-                                        $actualMaxCavity = 0;
-                                        $actualMaxPoint = 0;
-                                        foreach ($dimensions as $cavKey => $pointsData) {
-                                            // Extract numeric part from cavity key (e.g., "Cav 1" or "1")
-                                            $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
-                                            $actualMaxCavity = max($actualMaxCavity, $cavNum);
-                                            if (is_array($pointsData)) {
-                                                foreach ($pointsData as $pKey => $pVal) {
-                                                    $actualMaxPoint = max($actualMaxPoint, (int) $pKey);
+                                        // Find active points (columns that have data or are defined in standards)
+                                        $activePoints = [];
+                                        foreach ($dimensions as $cavKey => $points) {
+                                            if (is_array($points)) {
+                                                foreach ($points as $pKey => $pVal) {
+                                                    if ($pVal !== null && $pVal !== '' && $pVal !== '-' && $pVal !== 0 && $pVal !== '0') {
+                                                        $activePoints[$pKey] = true;
+                                                    }
                                                 }
                                             }
                                         }
+                                        foreach ($standards as $pKey => $std) {
+                                            $activePoints[$pKey] = true;
+                                        }
+                                        $activePoints = array_keys($activePoints);
+                                        sort($activePoints);
 
+                                        // Default points if none found
+                                        if (empty($activePoints)) {
+                                            $activePoints = range(1, 5);
+                                        }
+
+                                        // Find max cavity for rendering rows
+                                        $actualMaxCavity = 0;
+                                        foreach ($dimensions as $cavKey => $pointsData) {
+                                            $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                                            $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                                        }
                                         $displayMaxCavity = max(5, $actualMaxCavity);
-                                        $displayMaxPoint = max(5, $actualMaxPoint);
                                     @endphp
                                     @if(count($dimensions) > 0 || $displayMaxCavity > 0)
                                         <div style="max-height: 200px; overflow-y: auto; font-size: 0.7rem;">
                                             <table class="table table-bordered table-sm m-0">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
                                                     {{-- Standard Row --}}
-                                                    <tr class="bg-light" style="font-size: 0.55rem;">
-                                                        <th class="p-1">Std</th>
-                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                                            <th class="p-1 text-muted">
-                                                                {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
-                                                            </th>
-                                                        @endfor
-                                                    </tr>
+                                                    @php
+                                                        $hasStdData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && ($standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-')) {
+                                                                $hasStdData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasStdData)
+                                                        <tr class="bg-light" style="font-size: 0.55rem;">
+                                                            <th class="p-1">Std</th>
+                                                            @foreach ($activePoints as $j)
+                                                                <th class="p-1 text-muted">
+                                                                    {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
+                                                                </th>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
                                                     {{-- Min Row --}}
-                                                    <tr class="bg-light" style="font-size: 0.55rem;">
-                                                        <th class="p-1">Min</th>
-                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                                            <th class="p-1 text-muted">
-                                                                @if(isset($standards[$j]) && $standards[$j]['min'] !== null)
-                                                                    {{ $standards[$j]['min'] }}
-                                                                @else
-                                                                    -
-                                                                @endif
-                                                            </th>
-                                                        @endfor
-                                                    </tr>
+                                                    @php
+                                                        $hasMinData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && $standards[$j]['min'] !== null && $standards[$j]['min'] !== '' && $standards[$j]['min'] !== '-') {
+                                                                $hasMinData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasMinData)
+                                                        <tr class="bg-light" style="font-size: 0.55rem;">
+                                                            <th class="p-1">Min</th>
+                                                            @foreach ($activePoints as $j)
+                                                                <th class="p-1 text-muted">
+                                                                    {{ (isset($standards[$j]) && $standards[$j]['min'] !== null) ? $standards[$j]['min'] : '-' }}
+                                                                </th>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
                                                     {{-- Max Row --}}
-                                                    <tr class="bg-light" style="font-size: 0.55rem;">
-                                                        <th class="p-1">Max</th>
-                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                                            <th class="p-1 text-muted">
-                                                                @if(isset($standards[$j]) && $standards[$j]['max'] !== null)
-                                                                    {{ $standards[$j]['max'] }}
-                                                                @else
-                                                                    -
-                                                                @endif
-                                                            </th>
-                                                        @endfor
-                                                    </tr>
+                                                    @php
+                                                        $hasMaxData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && $standards[$j]['max'] !== null && $standards[$j]['max'] !== '' && $standards[$j]['max'] !== '-') {
+                                                                $hasMaxData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasMaxData)
+                                                        <tr class="bg-light" style="font-size: 0.55rem;">
+                                                            <th class="p-1">Max</th>
+                                                            @foreach ($activePoints as $j)
+                                                                <th class="p-1 text-muted">
+                                                                    {{ (isset($standards[$j]) && $standards[$j]['max'] !== null) ? $standards[$j]['max'] : '-' }}
+                                                                </th>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
                                                     {{-- Tolerance Row --}}
-                                                    <tr class="bg-light" style="font-size: 0.55rem;">
-                                                        <th class="p-1">Tol</th>
-                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                                            <th class="p-1 text-muted">
-                                                                {{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}
-                                                            </th>
-                                                        @endfor
-                                                    </tr>
+                                                    @php
+                                                        $hasTolData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && $standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '' && $standards[$j]['tolerance'] !== '-') {
+                                                                $hasTolData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasTolData)
+                                                        <tr class="bg-light" style="font-size: 0.55rem;">
+                                                            <th class="p-1">Tol</th>
+                                                            @foreach ($activePoints as $j)
+                                                                <th class="p-1 text-muted">
+                                                                    {{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}
+                                                                </th>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
                                                     {{-- Main Header Row --}}
                                                     <tr>
                                                         <th>Cav</th>
-                                                        @for ($j = 1; $j <= $displayMaxPoint; $j++)
+                                                        @foreach ($activePoints as $j)
                                                             <th>Ø{{ $j }}</th>
-                                                        @endfor
+                                                        @endforeach
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {{-- Actual Measurements --}}
                                                     @for ($i = 1; $i <= $displayMaxCavity; $i++)
-                                                        <tr>
-                                                            <td class="font-weight-bold p-1">{{ $i }}</td>
-                                                            @for ($j = 1; $j <= $displayMaxPoint; $j++)
-                                                                @php
-                                                                    $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
-                                                                    $isNG = false;
-                                                                    if (isset($standards[$j]) && is_numeric($val)) {
-                                                                        $std = $standards[$j];
+                                                        @php
+                                                            $rowHasData = false;
+                                                            foreach ($activePoints as $j) {
+                                                                $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null);
+                                                                if ($val !== null && $val !== '' && $val !== '-' && $val !== 0 && $val !== '0') {
+                                                                    $rowHasData = true;
+                                                                    break;
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        @if($rowHasData)
+                                                            <tr>
+                                                                <td class="font-weight-bold p-1">{{ $i }}</td>
+                                                                @foreach ($activePoints as $j)
+                                                                    @php
+                                                                        $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
+                                                                        $isNG = false;
+                                                                        if (isset($standards[$j]) && is_numeric($val)) {
+                                                                            $std = $standards[$j];
 
-                                                                        if ($std['min'] !== null && $val < $std['min']) {
-                                                                            $isNG = true;
-                                                                        }
-                                                                        if ($std['max'] !== null && $val > $std['max']) {
-                                                                            $isNG = true;
-                                                                        }
+                                                                            if ($std['min'] !== null && $val < $std['min']) {
+                                                                                $isNG = true;
+                                                                            }
+                                                                            if ($std['max'] !== null && $val > $std['max']) {
+                                                                                $isNG = true;
+                                                                            }
 
-                                                                        // Fallback to size +/- tolerance
-                                                                        if (!$isNG && $std['min'] === null && $std['max'] === null) {
-                                                                            if ($std['size'] !== null && $std['tolerance'] !== null) {
-                                                                                $min = $std['size'] - $std['tolerance'];
-                                                                                $max = $std['size'] + $std['tolerance'];
-                                                                                if ($val < $min || $val > $max) {
-                                                                                    $isNG = true;
+                                                                            if (!$isNG && $std['min'] === null && $std['max'] === null) {
+                                                                                if ($std['size'] !== null && $std['tolerance'] !== null) {
+                                                                                    $min = $std['size'] - $std['tolerance'];
+                                                                                    $max = $std['size'] + $std['tolerance'];
+                                                                                    if ($val < $min || $val > $max) {
+                                                                                        $isNG = true;
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         }
-                                                                    }
-                                                                @endphp
-                                                                <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
-                                                                style="color: #dc3545 !important; font-weight: bold !important;" @endif>
-                                                                    {{ $val }}
-                                                                </td>
-                                                            @endfor
-                                                        </tr>
+                                                                    @endphp
+                                                                    <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
+                                                                    style="color: #dc3545 !important; font-weight: bold !important;" @endif>
+                                                                        {{ $val }}
+                                                                    </td>
+                                                                @endforeach
+                                                            </tr>
+                                                        @endif
                                                     @endfor
                                                 </tbody>
                                             </table>
@@ -786,398 +850,398 @@
     <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
     <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
     <script>
-            // Pass standards to JS
+        // Pass standards to JS
         const partDimensionStandards = @json($partDimensionStandards);
 
-            document.addEventListener('DOMContentLoaded', function () {
-                // Character counter for rejection remarks
-                @foreach($checksheets as $cs)
-                    @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-                        const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
-                        const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
-                        if (textarea{{ $cs->id }}{{ $rejectType }}) {
-                            textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function () {
-                                charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
-                            });
-                        }
-                    @endforeach
+        document.addEventListener('DOMContentLoaded', function () {
+            // Character counter for rejection remarks
+            @foreach($checksheets as $cs)
+                @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+                    const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
+                    const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
+                    if (textarea{{ $cs->id }}{{ $rejectType }}) {
+                        textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function () {
+                            charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
+                        });
+                    }
                 @endforeach
+            @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
-                if (liveSearchInput) {
-                    let searchTimeout;
+            if (liveSearchInput) {
+                let searchTimeout;
 
-                    liveSearchInput.addEventListener('keyup', function () {
-                        const searchTerm = this.value.trim();
+                liveSearchInput.addEventListener('keyup', function () {
+                    const searchTerm = this.value.trim();
 
-                        // Clear previous timeout
-                        clearTimeout(searchTimeout);
+                    // Clear previous timeout
+                    clearTimeout(searchTimeout);
 
-                        // Debounce: wait 500ms after user stops typing
-                        searchTimeout = setTimeout(function () {
-                            // Get current filter values
-                            const startDate = document.getElementById('start_date').value;
-                            const endDate = document.getElementById('end_date').value;
-                            const plant = '{{ request('plant') }}';
+                    // Debounce: wait 500ms after user stops typing
+                    searchTimeout = setTimeout(function () {
+                        // Get current filter values
+                        const startDate = document.getElementById('start_date').value;
+                        const endDate = document.getElementById('end_date').value;
+                        const plant = '{{ request('plant') }}';
 
-                            // Build URL with all parameters
-                            const params = new URLSearchParams();
-                            if (searchTerm) params.append('search', searchTerm);
-                            if (startDate) params.append('start_date', startDate);
-                            if (endDate) params.append('end_date', endDate);
-                            if (plant) params.append('plant', plant);
+                        // Build URL with all parameters
+                        const params = new URLSearchParams();
+                        if (searchTerm) params.append('search', searchTerm);
+                        if (startDate) params.append('start_date', startDate);
+                        if (endDate) params.append('end_date', endDate);
+                        if (plant) params.append('plant', plant);
 
-                            // Redirect to index with search parameter
-                            window.location.href = '{{ route('in_process.index') }}?' + params.toString();
-                        }, 500);
-                    });
-                }
+                        // Redirect to index with search parameter
+                        window.location.href = '{{ route('in_process.index') }}?' + params.toString();
+                    }, 500);
+                });
+            }
 
-                // PDF Export Functionality Removed (Replaced by Server-Side Export)
-                noExportElements.forEach(el => el.remove());
+            // PDF Export Functionality Removed (Replaced by Server-Side Export)
+            noExportElements.forEach(el => el.remove());
 
-                tableClone.style.position = 'absolute';
-                tableClone.style.top = '-9999px';
-                tableClone.style.left = '-9999px';
-                document.body.appendChild(tableClone);
+            tableClone.style.position = 'absolute';
+            tableClone.style.top = '-9999px';
+            tableClone.style.left = '-9999px';
+            document.body.appendChild(tableClone);
 
-                // Generate Main Data Table
-                doc.autoTable({
-                    html: tableClone,
-                    startY: finalY + 7,
-                    theme: 'grid',
-                    styles: {
-                        fontSize: 5,
-                        cellPadding: 1,
-                        valign: 'middle',
-                        halign: 'center',
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1
-                    },
-                    headStyles: {
-                        fillColor: [78, 115, 223],
-                        textColor: [255, 255, 255],
-                        valign: 'middle',
-                        halign: 'center',
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.1
-                    },
-                    columnStyles: {
-                        11: { halign: 'left' } // Check Dimensi
-                    },
-                    didParseCell: function (data) {
-                        // Check Dimensi (Column 11) - Parse JSON to reserve space
-                        if (data.section === 'body' && data.column.index === 11) {
-                            try {
-                                const raw = data.cell.raw.getAttribute('data-dimensions');
-                                if (raw) {
-                                    const dimensions = JSON.parse(raw);
-                                    // Set text to newlines to reserve height for custom drawing
-                                    // We need 1 row for header + 1 row per cavity
-                                    if (dimensions && typeof dimensions === 'object') {
-                                        let lineCount = 1; // Header
-                                        lineCount += Object.keys(dimensions).length;
-                                        data.cell.text = Array(lineCount).fill(' ').join('\n');
+            // Generate Main Data Table
+            doc.autoTable({
+                html: tableClone,
+                startY: finalY + 7,
+                theme: 'grid',
+                styles: {
+                    fontSize: 5,
+                    cellPadding: 1,
+                    valign: 'middle',
+                    halign: 'center',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                headStyles: {
+                    fillColor: [78, 115, 223],
+                    textColor: [255, 255, 255],
+                    valign: 'middle',
+                    halign: 'center',
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.1
+                },
+                columnStyles: {
+                    11: { halign: 'left' } // Check Dimensi
+                },
+                didParseCell: function (data) {
+                    // Check Dimensi (Column 11) - Parse JSON to reserve space
+                    if (data.section === 'body' && data.column.index === 11) {
+                        try {
+                            const raw = data.cell.raw.getAttribute('data-dimensions');
+                            if (raw) {
+                                const dimensions = JSON.parse(raw);
+                                // Set text to newlines to reserve height for custom drawing
+                                // We need 1 row for header + 1 row per cavity
+                                if (dimensions && typeof dimensions === 'object') {
+                                    let lineCount = 1; // Header
+                                    lineCount += Object.keys(dimensions).length;
+                                    data.cell.text = Array(lineCount).fill(' ').join('\n');
 
-                                        // Store data for didDrawCell
-                                        data.cell.customDimensions = dimensions;
-                                        // Get part number from column 7 (index 7)
-                                        // Note: data.row.cells is an array-like object of Cell objects
-                                        // We can try to access the text of column 7. 
-                                        // Since didParseCell runs for each cell, the row might not be fully populated yet if we are at index 11.
-                                        // However, column 7 is before 11, so it should be parsed.
-                                        if (data.row.cells[7]) {
-                                            let partNo = data.row.cells[7].text;
-                                            if (Array.isArray(partNo)) partNo = partNo.join('');
-                                            data.cell.customPartNumber = partNo.trim();
-                                        }
+                                    // Store data for didDrawCell
+                                    data.cell.customDimensions = dimensions;
+                                    // Get part number from column 7 (index 7)
+                                    // Note: data.row.cells is an array-like object of Cell objects
+                                    // We can try to access the text of column 7. 
+                                    // Since didParseCell runs for each cell, the row might not be fully populated yet if we are at index 11.
+                                    // However, column 7 is before 11, so it should be parsed.
+                                    if (data.row.cells[7]) {
+                                        let partNo = data.row.cells[7].text;
+                                        if (Array.isArray(partNo)) partNo = partNo.join('');
+                                        data.cell.customPartNumber = partNo.trim();
                                     }
                                 }
-                            } catch (e) {
-                                console.error('Error parsing dimensions', e);
                             }
+                        } catch (e) {
+                            console.error('Error parsing dimensions', e);
                         }
+                    }
 
-                        // Detail NG (Col 14, 15) - Hide default text for manual drawing if multiple lines
-                        if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                data.cell.styles.textColor = [255, 255, 255];
-                            }
+                    // Detail NG (Col 14, 15) - Hide default text for manual drawing if multiple lines
+                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
+                        const td = data.cell.raw;
+                        if (td && td.children.length > 1) {
+                            data.cell.styles.textColor = [255, 255, 255];
                         }
-                    },
-                    didDrawCell: function (data) {
-                        // Check Dimensi (Column 11) - Manual Grid Draw
-                        if (data.section === 'body' && data.column.index === 11 && data.cell.customDimensions) {
-                            const dimensions = data.cell.customDimensions;
-                            const partNo = data.cell.customPartNumber;
-                            const standards = partDimensionStandards[partNo] || [];
+                    }
+                },
+                didDrawCell: function (data) {
+                    // Check Dimensi (Column 11) - Manual Grid Draw
+                    if (data.section === 'body' && data.column.index === 11 && data.cell.customDimensions) {
+                        const dimensions = data.cell.customDimensions;
+                        const partNo = data.cell.customPartNumber;
+                        const standards = partDimensionStandards[partNo] || [];
 
-                            const x = data.cell.x;
-                            const y = data.cell.y;
-                            const w = data.cell.width;
-                            const h = data.cell.height;
+                        const x = data.cell.x;
+                        const y = data.cell.y;
+                        const w = data.cell.width;
+                        const h = data.cell.height;
 
-                            // Calculate grid
-                            const cavities = Object.keys(dimensions);
-                            const rowCount = cavities.length + 1; // +1 for Header
-                            const colCount = 9; // Cav, 1..8
+                        // Calculate grid
+                        const cavities = Object.keys(dimensions);
+                        const rowCount = cavities.length + 1; // +1 for Header
+                        const colCount = 9; // Cav, 1..8
 
-                            const rowH = h / rowCount;
-                            const colW = w / colCount;
+                        const rowH = h / rowCount;
+                        const colW = w / colCount;
 
-                            doc.setFontSize(4); // Small font for grid
-                            doc.setLineWidth(0.05);
-                            doc.setDrawColor(0, 0, 0);
+                        doc.setFontSize(4); // Small font for grid
+                        doc.setLineWidth(0.05);
+                        doc.setDrawColor(0, 0, 0);
 
-                            // Draw Header Row
-                            const headers = ['Cv', '1', '2', '3', '4', '5', '6', '7', '8'];
-                            headers.forEach((hdr, i) => {
-                                // Draw cell border
-                                doc.rect(x + (i * colW), y, colW, rowH);
-                                // Draw text
-                                doc.setTextColor(0, 0, 0);
-                                doc.text(hdr, x + (i * colW) + (colW / 2), y + (rowH / 2), { align: 'center', baseline: 'middle' });
-                            });
+                        // Draw Header Row
+                        const headers = ['Cv', '1', '2', '3', '4', '5', '6', '7', '8'];
+                        headers.forEach((hdr, i) => {
+                            // Draw cell border
+                            doc.rect(x + (i * colW), y, colW, rowH);
+                            // Draw text
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(hdr, x + (i * colW) + (colW / 2), y + (rowH / 2), { align: 'center', baseline: 'middle' });
+                        });
 
-                            // Draw Data Rows
-                            cavities.forEach((cavity, rIndex) => {
-                                const cy = y + ((rIndex + 1) * rowH);
-                                const points = dimensions[cavity];
+                        // Draw Data Rows
+                        cavities.forEach((cavity, rIndex) => {
+                            const cy = y + ((rIndex + 1) * rowH);
+                            const points = dimensions[cavity];
 
-                                // Col 0: Cavity Name
-                                doc.rect(x, cy, colW, rowH);
-                                doc.setTextColor(0, 0, 0);
-                                doc.text(String(cavity), x + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                            // Col 0: Cavity Name
+                            doc.rect(x, cy, colW, rowH);
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(String(cavity), x + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
 
-                                // Cols 1..8: Points
-                                for (let j = 1; j <= 8; j++) {
-                                    const val = points[j];
-                                    const cx = x + (j * colW);
+                            // Cols 1..8: Points
+                            for (let j = 1; j <= 8; j++) {
+                                const val = points[j];
+                                const cx = x + (j * colW);
 
-                                    doc.rect(cx, cy, colW, rowH);
+                                doc.rect(cx, cy, colW, rowH);
 
-                                    if (val !== undefined && val !== null) {
-                                        // Check NG
-                                        let isNG = false;
-                                        if (standards[j] && !isNaN(val)) {
-                                            const std = standards[j];
-                                            const min = std.size - std.tolerance;
-                                            const max = std.size + std.tolerance;
-                                            if (val < min || val > max) {
-                                                isNG = true;
-                                            }
+                                if (val !== undefined && val !== null) {
+                                    // Check NG
+                                    let isNG = false;
+                                    if (standards[j] && !isNaN(val)) {
+                                        const std = standards[j];
+                                        const min = std.size - std.tolerance;
+                                        const max = std.size + std.tolerance;
+                                        if (val < min || val > max) {
+                                            isNG = true;
                                         }
+                                    }
 
-                                        if (isNG) {
-                                            doc.setTextColor(255, 0, 0);
-                                        } else {
-                                            doc.setTextColor(0, 0, 0);
-                                        }
-                                        doc.text(String(val), cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                                    if (isNG) {
+                                        doc.setTextColor(255, 0, 0);
                                     } else {
                                         doc.setTextColor(0, 0, 0);
-                                        doc.text('-', cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                                    }
+                                    doc.text(String(val), cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                                } else {
+                                    doc.setTextColor(0, 0, 0);
+                                    doc.text('-', cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
+                                }
+                            }
+                        });
+
+                        // Prevent default text drawing (if any remains)
+                        return false;
+                    }
+
+                    // Detail NG (Col 14, 15) - Manual Draw
+                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
+                        const td = data.cell.raw;
+                        if (td && td.children.length > 1) {
+                            const count = td.children.length;
+                            const height = data.cell.height;
+                            const step = height / count;
+                            const textArray = data.cell.text;
+
+                            for (let i = 1; i < count; i++) {
+                                const y = data.cell.y + (step * i);
+                                doc.setDrawColor(0, 0, 0);
+                                doc.setLineWidth(0.1);
+                                doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
+                            }
+
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFontSize(5);
+                            for (let i = 0; i < count; i++) {
+                                const yCenter = data.cell.y + (step * i) + (step / 2);
+                                const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
+                                doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
+                            }
+                        }
+                    }
+                },
+                exportHiddenCells: false
+            });
+
+            document.body.removeChild(tableClone);
+            doc.save('Laporan_Checksheet_Inprocess_' + new Date().toISOString().slice(0, 10) + '.pdf');
+        });
+
+        // Edit Modal Handler
+        $('.btn-edit-modal').on('click', function (e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            $('#editModal').modal('show');
+            $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#editModalBody').html(response);
+                },
+                error: function (xhr) {
+                    var message = 'Gagal memuat data checksheet.';
+                    if (xhr.status === 404) {
+                        message = 'Data checksheet tidak ditemukan.';
+                    } else if (xhr.status === 403) {
+                        message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
+                    } else if (xhr.status === 500) {
+                        message = 'Terjadi kesalahan pada server.';
+                    }
+                    $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
+                }
+            });
+        });
+
+        // Status Modal Handler
+        $('.btn-status-modal').on('click', function (e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            $('#statusModal').modal('show');
+            $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#statusModalBody').html(response);
+                },
+                error: function (xhr) {
+                    var message = 'Gagal memuat data status approval.';
+                    if (xhr.status === 404) {
+                        message = 'Data tidak ditemukan.';
+                    } else if (xhr.status === 403) {
+                        message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
+                    }
+                    $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
+                }
+            });
+        });
+        // AJAX Form Submission for All Checksheet Actions (Edit, Status, Approve, Reject)
+        $(document).on('submit', '.ajax-form', function (e) {
+            var $form = $(this);
+
+            // Special confirmation for Delete actions
+            if ($form.find('input[name="_method"]').val() === 'DELETE') {
+                if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            e.preventDefault();
+            var $submitBtn = $form.find('button[type="submit"]');
+            var $modalErrors = $form.find('#modal-errors');
+            var $originalBtnHtml = $submitBtn.html();
+
+            // Clear previous errors
+            $modalErrors.hide().html('');
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $form.find('.invalid-feedback').remove();
+
+            // Disable button and show loading
+            $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
+
+            // Log AJAX request untuk debugging
+            var formData = $form.serializeArray();
+            console.log('=== AJAX Form Submit ===');
+            console.log('URL:', $form.attr('action'));
+            console.log('Method:', $form.attr('method'));
+            console.log('Form Data:', formData);
+            console.log('========================');
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (response) {
+                    console.log('=== AJAX Success Response ===');
+                    console.log('Response:', response);
+                    console.log('=============================');
+
+                    if (response.success) {
+                        // Success! Reload to the provided URL (to preserve parameters) or current URL
+                        console.log('Redirecting to:', response.redirect || window.location.href);
+                        window.location.href = response.redirect || window.location.href;
+                    } else {
+                        // Error but handled
+                        console.warn('Response success=false:', response.message);
+                        showModalError($modalErrors, response.message || 'Terjadi kesalahan saat menyimpan data.');
+                        $submitBtn.prop('disabled', false).html($originalBtnHtml);
+                    }
+                },
+                error: function (xhr) {
+                    console.error('=== AJAX Error Response ===');
+                    console.error('Status:', xhr.status);
+                    console.error('Response:', xhr.responseJSON);
+                    console.error('===========================');
+
+                    $submitBtn.prop('disabled', false).html($originalBtnHtml);
+
+                    if (xhr.status === 422) {
+                        // Validation errors
+                        var errors = xhr.responseJSON.errors;
+                        var errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+
+                        if (errors) {
+                            console.error('Validation Errors:', errors);
+                            $.each(errors, function (field, messages) {
+                                errorHtml += '<li>' + messages[0] + '</li>';
+
+                                // Highlight individual fields
+                                var $input = $form.find('[name="' + field + '"]');
+                                if ($input.length) {
+                                    $input.addClass('is-invalid');
+                                    if (!$input.next('.invalid-feedback').length) {
+                                        $input.after('<div class="invalid-feedback">' + messages[0] + '</div>');
                                     }
                                 }
                             });
-
-                            // Prevent default text drawing (if any remains)
-                            return false;
+                        } else {
+                            errorHtml += '<li>' + (xhr.responseJSON.message || 'Validasi gagal.') + '</li>';
                         }
 
-                        // Detail NG (Col 14, 15) - Manual Draw
-                        if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
-                            const td = data.cell.raw;
-                            if (td && td.children.length > 1) {
-                                const count = td.children.length;
-                                const height = data.cell.height;
-                                const step = height / count;
-                                const textArray = data.cell.text;
-
-                                for (let i = 1; i < count; i++) {
-                                    const y = data.cell.y + (step * i);
-                                    doc.setDrawColor(0, 0, 0);
-                                    doc.setLineWidth(0.1);
-                                    doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
-                                }
-
-                                doc.setTextColor(0, 0, 0);
-                                doc.setFontSize(5);
-                                for (let i = 0; i < count; i++) {
-                                    const yCenter = data.cell.y + (step * i) + (step / 2);
-                                    const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
-                                    doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
-                                }
-                            }
-                        }
-                    },
-                    exportHiddenCells: false
-                });
-
-                document.body.removeChild(tableClone);
-                doc.save('Laporan_Checksheet_Inprocess_' + new Date().toISOString().slice(0, 10) + '.pdf');
-            });
-
-            // Edit Modal Handler
-            $('.btn-edit-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#editModalBody').html(response);
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal memuat data checksheet.';
-                        if (xhr.status === 404) {
-                            message = 'Data checksheet tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
-                        } else if (xhr.status === 500) {
-                            message = 'Terjadi kesalahan pada server.';
-                        }
-                        $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
+                        errorHtml += '</ul></div>';
+                        showModalError($modalErrors, errorHtml);
+                    } else {
+                        // General error
+                        var message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
+                        console.error('General Error:', message);
+                        showModalError($modalErrors, '<div class="alert alert-danger">' + message + '</div>');
                     }
-                });
-            });
 
-            // Status Modal Handler
-            $('.btn-status-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#statusModal').modal('show');
-                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#statusModalBody').html(response);
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal memuat data status approval.';
-                        if (xhr.status === 404) {
-                            message = 'Data tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
-                        }
-                        $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                    }
-                });
-            });
-            // AJAX Form Submission for All Checksheet Actions (Edit, Status, Approve, Reject)
-            $(document).on('submit', '.ajax-form', function (e) {
-                var $form = $(this);
-
-                // Special confirmation for Delete actions
-                if ($form.find('input[name="_method"]').val() === 'DELETE') {
-                    if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                        e.preventDefault();
-                        return false;
+                    // Scroll to top of modal if inside one, otherwise scroll window
+                    var $modalBody = $form.closest('.modal-body');
+                    if ($modalBody.length) {
+                        $modalBody.animate({ scrollTop: 0 }, 'fast');
+                    } else {
+                        $('html, body').animate({ scrollTop: $form.offset().top - 100 }, 'fast');
                     }
                 }
-
-                e.preventDefault();
-                var $submitBtn = $form.find('button[type="submit"]');
-                var $modalErrors = $form.find('#modal-errors');
-                var $originalBtnHtml = $submitBtn.html();
-
-                // Clear previous errors
-                $modalErrors.hide().html('');
-                $form.find('.is-invalid').removeClass('is-invalid');
-                $form.find('.invalid-feedback').remove();
-
-                // Disable button and show loading
-                $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
-
-                // Log AJAX request untuk debugging
-                var formData = $form.serializeArray();
-                console.log('=== AJAX Form Submit ===');
-                console.log('URL:', $form.attr('action'));
-                console.log('Method:', $form.attr('method'));
-                console.log('Form Data:', formData);
-                console.log('========================');
-
-                $.ajax({
-                    url: $form.attr('action'),
-                    method: $form.attr('method'),
-                    data: $form.serialize(),
-                    dataType: 'json',
-                    success: function (response) {
-                        console.log('=== AJAX Success Response ===');
-                        console.log('Response:', response);
-                        console.log('=============================');
-
-                        if (response.success) {
-                            // Success! Reload to the provided URL (to preserve parameters) or current URL
-                            console.log('Redirecting to:', response.redirect || window.location.href);
-                            window.location.href = response.redirect || window.location.href;
-                        } else {
-                            // Error but handled
-                            console.warn('Response success=false:', response.message);
-                            showModalError($modalErrors, response.message || 'Terjadi kesalahan saat menyimpan data.');
-                            $submitBtn.prop('disabled', false).html($originalBtnHtml);
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error('=== AJAX Error Response ===');
-                        console.error('Status:', xhr.status);
-                        console.error('Response:', xhr.responseJSON);
-                        console.error('===========================');
-
-                        $submitBtn.prop('disabled', false).html($originalBtnHtml);
-
-                        if (xhr.status === 422) {
-                            // Validation errors
-                            var errors = xhr.responseJSON.errors;
-                            var errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
-
-                            if (errors) {
-                                console.error('Validation Errors:', errors);
-                                $.each(errors, function (field, messages) {
-                                    errorHtml += '<li>' + messages[0] + '</li>';
-
-                                    // Highlight individual fields
-                                    var $input = $form.find('[name="' + field + '"]');
-                                    if ($input.length) {
-                                        $input.addClass('is-invalid');
-                                        if (!$input.next('.invalid-feedback').length) {
-                                            $input.after('<div class="invalid-feedback">' + messages[0] + '</div>');
-                                        }
-                                    }
-                                });
-                            } else {
-                                errorHtml += '<li>' + (xhr.responseJSON.message || 'Validasi gagal.') + '</li>';
-                            }
-
-                            errorHtml += '</ul></div>';
-                            showModalError($modalErrors, errorHtml);
-                        } else {
-                            // General error
-                            var message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
-                            console.error('General Error:', message);
-                            showModalError($modalErrors, '<div class="alert alert-danger">' + message + '</div>');
-                        }
-
-                        // Scroll to top of modal if inside one, otherwise scroll window
-                        var $modalBody = $form.closest('.modal-body');
-                        if ($modalBody.length) {
-                            $modalBody.animate({ scrollTop: 0 }, 'fast');
-                        } else {
-                            $('html, body').animate({ scrollTop: $form.offset().top - 100 }, 'fast');
-                        }
-                    }
-                });
             });
+        });
 
-            function showModalError($container, html) {
-                $container.html(html).fadeIn();
-            }
-                                                                                                                                    });
-        </script>
+        function showModalError($container, html) {
+            $container.html(html).fadeIn();
+        }
+                                                                                                                                                });
+    </script>
 @endpush

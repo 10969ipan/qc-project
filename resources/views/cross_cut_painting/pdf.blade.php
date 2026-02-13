@@ -141,20 +141,8 @@
                 <th rowspan="2" style="width: 10%;">Pengujian</th>
                 <th rowspan="2">Judgement</th>
                 <th rowspan="2">Inisial</th>
-                <th colspan="6">Approval Status</th>
             </tr>
             <tr>
-                <!-- Adjust Labels based on Plant -->
-                @if(request('plant') == 'jakarta')
-                    <th>Karu</th>
-                @else
-                    <th>Kepala Regu QC</th>
-                @endif
-                <th>Kepala Shift Plating</th>
-                <th>Supervisor Quality</th>
-                <th>Supervisor Plating</th>
-                <th>Manager QC</th>
-                <th>Manager Plating</th>
             </tr>
         </thead>
         <tbody>
@@ -182,14 +170,6 @@
                     </td>
 
                     <td>{{ $row->operator_initials }}</td>
-
-                    <td>{{ $row->karu_qc ? 'Appr' : ($row->karu_qc === 'REJECTED' ? 'Rej' : '-') }}</td>
-                    <td>{{ $row->kashift_plating ? 'Appr' : ($row->kashift_plating === 'REJECTED' ? 'Rej' : '-') }}</td>
-                    <td>{{ $row->supervisor_plating ? 'Appr' : ($row->supervisor_plating === 'REJECTED' ? 'Rej' : '-') }}
-                    </td>
-                    <td>{{ $row->supervisor_qc ? 'Appr' : ($row->supervisor_qc === 'REJECTED' ? 'Rej' : '-') }}</td>
-                    <td>{{ $row->manager_plating ? 'Appr' : ($row->manager_plating === 'REJECTED' ? 'Rej' : '-') }}</td>
-                    <td>{{ $row->manager_qc ? 'Appr' : ($row->manager_qc === 'REJECTED' ? 'Rej' : '-') }}</td>
                 </tr>
             @endforeach
         </tbody>

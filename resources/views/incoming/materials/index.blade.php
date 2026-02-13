@@ -74,7 +74,7 @@
                             <i class="fas fa-undo"></i> Reset
                         </a>
                         <a href="{{ route('incoming.materials.export_pdf', request()->query()) }}"
-                            class="btn btn-danger btn-sm">
+                            class="btn btn-danger btn-sm no-loader btn-download">
                             <i class="fas fa-file-pdf"></i> Export
                         </a>
                     </div>

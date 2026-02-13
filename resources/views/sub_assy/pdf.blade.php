@@ -180,21 +180,11 @@
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2">Jdg</th>
                 <th rowspan="2">Inisial</th>
-                <th colspan="4">Approval Status</th>
                 <th rowspan="2">Ket</th>
             </tr>
             <tr>
                 <th>Pcs</th>
                 <th>Jenis</th>
-
-                @if($plantCode == 'jakarta')
-                    <th>Kepala Regu</th>
-                @else
-                    <th>Kashift QC</th>
-                @endif
-                <th>SPV</th>
-                <th>Asst Mgr</th>
-                <th>Mgr</th>
             </tr>
         </thead>
         <tbody>
@@ -247,15 +237,6 @@
                         </span>
                     </td>
                     <td>{{ $checksheet->operator_initials }}</td>
-
-                    {{-- Approvals (Simplified for PDF) --}}
-                    <td>{{ $checksheet->kashift_qc ? ($checksheet->kashift_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}</td>
-                    <td>{{ $checksheet->supervisor_qc ? ($checksheet->supervisor_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}
-                    </td>
-                    <td>{{ $checksheet->asst_manager_qc ? ($checksheet->asst_manager_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}
-                    </td>
-                    <td>{{ $checksheet->manager_qc ? ($checksheet->manager_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}</td>
-
                     <td>{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

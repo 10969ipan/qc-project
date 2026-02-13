@@ -258,7 +258,13 @@ class CrossCutChecksheetController extends Controller
     {
         $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status']);
 
-        $checksheets = $this->crossCutService->buildFilteredQuery($filters)->get();
+        $query = $this->crossCutService->buildFilteredQuery($filters)->latest();
+
+        if ($request->has('page')) {
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            $checksheets = $query->limit(10)->get();
+        }
 
         $itemName = null;
         if ($request->filled('item_id')) {
@@ -268,11 +274,12 @@ class CrossCutChecksheetController extends Controller
 
         $viewData = [
             'checksheets' => $checksheets,
-            'startDate' => $request->start_date,
-            'endDate' => $request->end_date,
+            'startDate' => $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua',
+            'endDate' => $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua',
             'item_id' => $request->item_id,
             'itemName' => $itemName,
             'approval_status' => $request->approval_status,
+            'plantName' => \App\Models\Plant::resolveName($request->plant ?? auth()->user()->plant_id),
         ];
 
         $pdf = Pdf::loadView('cross_cut.pdf', $viewData);

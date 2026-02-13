@@ -199,8 +199,13 @@ class SortirChecksheetController extends Controller
         $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type']);
 
         // Get data (using service logic but without pagination)
-        $query = $this->sortirService->getQuery($filters);
-        $checksheets = $query->get();
+        $query = $this->sortirService->getQuery($filters)->latest();
+
+        if ($request->has('page')) {
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            $checksheets = $query->limit(10)->get();
+        }
 
         // Plant info for header
         $plantCode = 'karawang'; // default

@@ -78,8 +78,8 @@
                                     class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('sortir.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm"
-                                    title="Export to PDF">
+                                <a href="{{ route('sortir.export_pdf', request()->query()) }}"
+                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
                                 </a>
                             </div>

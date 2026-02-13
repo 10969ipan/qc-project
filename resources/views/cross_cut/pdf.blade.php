@@ -169,7 +169,6 @@
                 <th>Posisi Remark</th>
                 <th>Result Remark</th>
                 <th>Inisial</th>
-                <th>Approval</th>
             </tr>
         </thead>
         <tbody>
@@ -201,19 +200,10 @@
                     </td>
                     <td class="text-left">{{ $checksheet->result_remark }}</td>
                     <td>{{ $checksheet->operator_initials }}</td>
-                    <td>
-                        @if($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED')
-                            Approved
-                        @elseif($checksheet->kashift_qc === 'REJECTED' || $checksheet->supervisor_qc === 'REJECTED' || $checksheet->asst_manager_qc === 'REJECTED' || $checksheet->manager_qc === 'REJECTED')
-                            Rejected
-                        @else
-                            Pending
-                        @endif
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="13" class="text-center">Tidak ada data yang sesuai dengan filter yang diterapkan.</td>
+                    <td colspan="12" class="text-center">Tidak ada data yang sesuai dengan filter yang diterapkan.</td>
                 </tr>
             @endforelse
         </tbody>

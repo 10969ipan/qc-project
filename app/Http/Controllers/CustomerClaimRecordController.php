@@ -74,7 +74,11 @@ class CustomerClaimRecordController extends Controller
             $query->where('customer', 'LIKE', '%' . $request->customer . '%');
         }
 
-        $records = $query->get();
+        if ($request->has('page')) {
+            $records = $query->paginate(15)->getCollection();
+        } else {
+            $records = $query->limit(10)->get();
+        }
 
         // Resolve plant name for display
         $plantName = 'ALL PLANTS';
@@ -88,7 +92,10 @@ class CustomerClaimRecordController extends Controller
             }
         }
 
-        $pdf = Pdf::loadView('customer_claim_records.pdf', compact('records', 'plantName', 'request'))
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        $pdf = Pdf::loadView('customer_claim_records.pdf', compact('records', 'plantName', 'request', 'startDate', 'endDate'))
             ->setPaper('a4', 'landscape');
 
         $filename = 'List_Claim_Customer_' . str_replace(' ', '_', $plantName) . '_' . date('Ymd_His') . '.pdf';

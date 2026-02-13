@@ -58,7 +58,7 @@
                         <a href="{{ route('incoming.exports.index', ['plant' => request('plant')]) }}"
                             class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Reset</a>
                         <a href="{{ route('incoming.exports.export_pdf', request()->query()) }}"
-                            class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+                            class="btn btn-danger btn-sm no-loader btn-download"><i class="fas fa-file-pdf"></i> PDF</a>
                     </div>
                 </div>
             </form>

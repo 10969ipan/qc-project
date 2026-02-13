@@ -261,9 +261,14 @@ class SubAssyChecksheetController extends Controller
         // We might need to adjust the query manually or add a 'no_pagination' option to the service.
         // For now, let's manually build the query similar to index but get() instead of paginate()
 
-        /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = $this->checksheetService->getQuery($filters);
-        $checksheets = $query->get();
+        // Ensure we get records matching current view (paginated or latest 10)
+        $query = $this->checksheetService->getQuery($filters)->latest();
+
+        if ($request->has('page')) {
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            $checksheets = $query->limit(10)->get();
+        }
 
         // Plant info for header
         $plantCode = 'karawang'; // default

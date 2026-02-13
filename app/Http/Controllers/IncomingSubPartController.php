@@ -128,10 +128,19 @@ class IncomingSubPartController extends Controller
     public function exportPdf(Request $request)
     {
         $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
-        $checksheets = $this->checksheetService->getQuery($filters)->get();
-        $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $query = $this->checksheetService->getQuery($filters)->latest();
 
-        $pdf = Pdf::loadView('incoming.sub_parts.pdf', compact('checksheets', 'plantName'))
+        if ($request->has('page')) {
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            $checksheets = $query->limit(10)->get();
+        }
+        $plantCode = strtolower($request->plant ?? auth()->user()->plant->code ?? 'karawang');
+        $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        $pdf = Pdf::loadView('incoming.sub_parts.pdf', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('Incoming_SubPart_' . date('Ymd_His') . '.pdf');

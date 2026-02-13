@@ -113,7 +113,7 @@
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
-                                    class="btn btn-danger btn-sm" title="Export to PDF">
+                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
                                 </a>
                             </div>
@@ -654,8 +654,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

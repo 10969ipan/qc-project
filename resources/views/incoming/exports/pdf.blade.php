@@ -131,16 +131,11 @@
                 <th rowspan="2" style="width: 30px;">Jdg</th>
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2" style="width: 40px;">QC</th>
-                <th colspan="4">Approval Status</th>
                 <th rowspan="2">Ket</th>
             </tr>
             <tr>
                 <th style="width: 25px;">Pcs</th>
                 <th>Jenis NG</th>
-                <th>KS</th>
-                <th>SPV</th>
-                <th>AM</th>
-                <th>MGR</th>
             </tr>
         </thead>
         <tbody>
@@ -165,10 +160,6 @@
                         </div> @endforeach
                     </td>
                     <td>{{ $cs->operator_initials }}</td>
-                    <td>{{ $cs->kashift_qc ? ($cs->kashift_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}</td>
-                    <td>{{ $cs->supervisor_qc ? ($cs->supervisor_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}</td>
-                    <td>{{ $cs->asst_manager_qc ? ($cs->asst_manager_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}</td>
-                    <td>{{ $cs->manager_qc ? ($cs->manager_qc === 'REJECTED' ? 'REJ' : 'APP') : '-' }}</td>
                     <td>{{ $cs->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

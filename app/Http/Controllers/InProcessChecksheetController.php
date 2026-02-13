@@ -316,13 +316,41 @@ class InProcessChecksheetController extends Controller
 
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
 
-        // Fetch filtered records without limit to reflect user's selection
-        $checksheets = $this->inProcessService->buildFilteredQuery($filters)->get();
+        // Fetch filtered records with pagination support
+        $query = $this->inProcessService->buildFilteredQuery($filters)->latest();
+
+        if ($request->has('page')) {
+            // Get records for the specific page
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            // Default to latest 10 if no page specified
+            $checksheets = $query->limit(10)->get();
+        }
         $items = Item::orderBy('name')->get();
 
         $partDimensionStandards = $this->getConsolidatedStandards();
-        $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request', 'partDimensionStandards'));
-        return $pdf->setPaper('a4', 'landscape')->stream('laporan-checksheet-inprocess.pdf');
+
+        // Plant info for header
+        $user = auth()->user();
+        $plantCode = 'karawang'; // default
+        $plantName = 'Karawang';
+
+        if ($request->plant) {
+            $plant = \App\Models\Plant::where('code', $request->plant)->orWhere('id', $request->plant)->first();
+            if ($plant) {
+                $plantCode = strtolower($plant->code);
+                $plantName = $plant->name;
+            }
+        } elseif ($user->plant) {
+            $plantCode = strtolower($user->plant->code);
+            $plantName = $user->plant->name;
+        }
+
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request', 'partDimensionStandards', 'startDate', 'endDate', 'plantName', 'plantCode'));
+        return $pdf->setPaper('a4', 'landscape')->download('Laporan_Inprocess_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 
     // Tampilkan form untuk admin mengedit status approval

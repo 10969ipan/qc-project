@@ -120,7 +120,7 @@
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('cross_cut_painting.export_pdf', request()->all()) }}"
-                                    class="btn btn-danger btn-sm" title="Export to PDF" target="_blank">
+                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF" target="_blank">
                                     <i class="fas fa-file-pdf"></i> Export
                                 </a>
                             </div>
