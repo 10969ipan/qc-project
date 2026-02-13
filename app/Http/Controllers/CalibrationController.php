@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 // use SimpleSoftwareIO\QrCode\Facades\QrCode; // Temporarily disabled - install library first
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use setasign\Fpdi\Fpdi;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\UploadedFile;
@@ -501,13 +503,12 @@ class CalibrationController extends Controller
         $data .= "QC IPP - " . date('Y');
 
         // Generate QR Code as base64 (SVG format is more compatible)
-        // TEMPORARILY DISABLED - Install simplesoftwareio/simple-qrcode first
-        // $qrCode = base64_encode(QrCode::format('svg')
-        //     ->size(200)
-        //     ->margin(1)
-        //     ->errorCorrection('H')
-        //     ->generate($data));
-        $qrCode = base64_encode('<svg></svg>'); // Placeholder
+        $options = new QROptions([
+            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'eccLevel' => QRCode::ECC_H,
+            'addQuietzone' => false,
+        ]);
+        $qrCode = base64_encode((new QRCode($options))->render($data));
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', compact('verification', 'plantCode', 'qrCode'))
             ->setPaper('a4', 'portrait');
@@ -532,13 +533,12 @@ class CalibrationController extends Controller
             }
 
             // Generate QR Code as SVG
-            // TEMPORARILY DISABLED - Install simplesoftwareio/simple-qrcode first
-            // $qrCode = QrCode::format('svg')
-            //     ->size(250)
-            //     ->margin(1)
-            //     ->errorCorrection('H')
-            //     ->generate($downloadUrl);
-            $qrCode = '<svg><text>QR Code disabled - install library</text></svg>'; // Placeholder
+            $options = new QROptions([
+                'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+                'eccLevel' => QRCode::ECC_H,
+                'addQuietzone' => false,
+            ]);
+            $qrCode = (new QRCode($options))->render($downloadUrl);
 
             return response()->json([
                 'verification' => $verification,
@@ -576,12 +576,13 @@ class CalibrationController extends Controller
             $downloadUrl = route('public.calibration.download', $verification->id);
         }
 
-        // TEMPORARILY DISABLED - Install simplesoftwareio/simple-qrcode first
-        // $qrCodeHal1 = base64_encode(QrCode::format('svg')
-        //     ->size(100)
-        //     ->margin(1)
-        //     ->generate($downloadUrl));
-        $qrCodeHal1 = base64_encode('<svg></svg>'); // Placeholder
+        // Generate Hal 1 QR Code
+        $options = new QROptions([
+            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'eccLevel' => QRCode::ECC_H,
+            'addQuietzone' => false,
+        ]);
+        $qrCodeHal1 = base64_encode((new QRCode($options))->render($downloadUrl));
 
         $pdfReport = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', [
             'verification' => $verification,
@@ -674,7 +675,7 @@ class CalibrationController extends Controller
                     'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
                     'plant' => 'required|string',
                 ]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            } catch (ValidationException $e) {
                 session()->flash('modal', 'create');
                 throw $e;
             }
@@ -712,7 +713,7 @@ class CalibrationController extends Controller
             return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
                 ->with('success', 'Data Verifikasi berhasil disimpan.');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             \Illuminate\Support\Facades\Log::warning('Validation Failed:', $e->errors());
             session()->flash('modal', 'create');
             throw $e;
@@ -778,7 +779,7 @@ class CalibrationController extends Controller
                     'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
                     'plant' => 'required|string',
                 ]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            } catch (ValidationException $e) {
                 session()->flash('modal', 'edit');
                 session()->flash('edit_id', $id);
                 throw $e;
@@ -820,7 +821,7 @@ class CalibrationController extends Controller
             return redirect()->route('calibration.verifications.index', ['plant' => $request->plant])
                 ->with('success', 'Data Verifikasi berhasil diperbarui.');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             \Illuminate\Support\Facades\Log::warning('Validation Failed (Update):', $e->errors());
             session()->flash('modal', 'edit');
             session()->flash('edit_id', $id);
