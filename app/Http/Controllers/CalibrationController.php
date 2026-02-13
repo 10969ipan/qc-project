@@ -511,9 +511,12 @@ class CalibrationController extends Controller
         ]);
         $qrCodeMarkup = (new QRCode($options))->render($data);
 
-        // Strip XML header
+        // Strip XML header and ensure xmlns is present for browser compatibility
         if (strpos($qrCodeMarkup, '<svg') !== false) {
             $qrCodeMarkup = substr($qrCodeMarkup, strpos($qrCodeMarkup, '<svg'));
+            if (strpos($qrCodeMarkup, 'xmlns="http://www.w3.org/2000/svg"') === false) {
+                $qrCodeMarkup = str_replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ', $qrCodeMarkup);
+            }
         }
         $qrCode = base64_encode(trim((string) $qrCodeMarkup));
 
@@ -550,7 +553,12 @@ class CalibrationController extends Controller
 
             // Manual cleanup: Ensure we only have the SVG part and no XML header for data URI compatibility
             if (strpos($qrCode, '<svg') !== false) {
+                // Remove everything before <svg
                 $qrCode = substr($qrCode, strpos($qrCode, '<svg'));
+                // Ensure xmlns is present for browser compatibility
+                if (strpos($qrCode, 'xmlns="http://www.w3.org/2000/svg"') === false) {
+                    $qrCode = str_replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ', $qrCode);
+                }
             }
 
             return response()->json([
@@ -599,6 +607,9 @@ class CalibrationController extends Controller
         $qrCodeMarkupHal1 = (new QRCode($options))->render($downloadUrl);
         if (strpos($qrCodeMarkupHal1, '<svg') !== false) {
             $qrCodeMarkupHal1 = substr($qrCodeMarkupHal1, strpos($qrCodeMarkupHal1, '<svg'));
+            if (strpos($qrCodeMarkupHal1, 'xmlns="http://www.w3.org/2000/svg"') === false) {
+                $qrCodeMarkupHal1 = str_replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ', $qrCodeMarkupHal1);
+            }
         }
         $qrCodeHal1 = base64_encode(trim((string) $qrCodeMarkupHal1));
 
