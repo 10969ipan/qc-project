@@ -11,6 +11,8 @@ use App\Http\Controllers\IncomingMaterialController;
 use App\Http\Controllers\IncomingSubPartController;
 use App\Http\Controllers\IncomingExportController;
 use App\Http\Controllers\IncomingChemicalController;
+use App\Http\Controllers\PlatingChecksheetController;
+use App\Http\Controllers\DoubleTapeChecksheetController;
 
 Route::middleware(['auth'])->group(function () {
     // --- Input Routes ---
@@ -18,6 +20,14 @@ Route::middleware(['auth'])->group(function () {
     // Sub Assy
     Route::get('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'create'])->name('checksheet.sub_assy');
     Route::post('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'store'])->name('checksheet.store');
+
+    // Plating
+    Route::get('/checksheet/plating', [PlatingChecksheetController::class, 'create'])->name('plating.create');
+    Route::post('/checksheet/plating', [PlatingChecksheetController::class, 'store'])->name('plating.store');
+
+    // Double Tape
+    Route::get('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'create'])->name('double_tape.create');
+    Route::post('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'store'])->name('double_tape.store');
 
     // In-Process
     Route::get('/checksheet/in-process', [InProcessChecksheetController::class, 'create'])->name('in_process.create');
@@ -58,6 +68,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating'])->group(function () {
         // Index Pages
         Route::get('/report/checksheets', [SubAssyChecksheetController::class, 'index'])->name('admin.checksheets.index');
+        Route::get('/report/plating-checksheets', [PlatingChecksheetController::class, 'index'])->name('plating.index');
+        Route::get('/report/double-tape-checksheets', [DoubleTapeChecksheetController::class, 'index'])->name('double_tape.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
         Route::get('/report/cross-cut-painting-checksheets', [CrossCutPaintingChecksheetController::class, 'index'])->name('cross_cut_painting.index');
@@ -68,6 +80,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::get('/report/checksheets/export-pdf', [SubAssyChecksheetController::class, 'exportPdf'])->name('admin.checksheets.export_pdf');
         Route::post('/report/checksheets/sync', [SubAssyChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
+        Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
+        Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');
         Route::post('/report/in-process-checksheets/sync', [InProcessChecksheetController::class, 'syncToGoogleSheets'])->name('in_process.sync');
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
@@ -90,6 +104,18 @@ Route::middleware(['auth'])->group(function () {
         // Approval Actions
         Route::post('/checksheets/{id}/approve/{type}', [SubAssyChecksheetController::class, 'approve'])->name('admin.checksheets.approve');
         Route::post('/checksheets/{id}/reject/{type}', [SubAssyChecksheetController::class, 'reject'])->name('admin.checksheets.reject');
+
+        // Plating Approval
+        Route::get('/report/plating-checksheets/{id}/edit-approval', [PlatingChecksheetController::class, 'editApproval'])->name('plating.edit_approval');
+        Route::put('/report/plating-checksheets/{id}/update-approval', [PlatingChecksheetController::class, 'updateApproval'])->name('plating.update_approval');
+        Route::post('/plating-checksheets/{id}/approve/{type}', [PlatingChecksheetController::class, 'approve'])->name('plating.approve');
+        Route::post('/plating-checksheets/{id}/reject/{type}', [PlatingChecksheetController::class, 'reject'])->name('plating.reject');
+
+        // Double Tape Approval
+        Route::get('/report/double-tape-checksheets/{id}/edit-approval', [DoubleTapeChecksheetController::class, 'editApproval'])->name('double_tape.edit_approval');
+        Route::put('/report/double-tape-checksheets/{id}/update-approval', [DoubleTapeChecksheetController::class, 'updateApproval'])->name('double_tape.update_approval');
+        Route::post('/double-tape-checksheets/{id}/approve/{type}', [DoubleTapeChecksheetController::class, 'approve'])->name('double_tape.approve');
+        Route::post('/double-tape-checksheets/{id}/reject/{type}', [DoubleTapeChecksheetController::class, 'reject'])->name('double_tape.reject');
         Route::post('/in-process-checksheets/{id}/approve/{type}', [InProcessChecksheetController::class, 'approve'])->name('in_process.approve');
         Route::post('/in-process-checksheets/{id}/reject/{type}', [InProcessChecksheetController::class, 'reject'])->name('in_process.reject');
         Route::post('/cross-cut-checksheets/{id}/approve/{type}', [CrossCutChecksheetController::class, 'approve'])->name('cross_cut.approve');
@@ -117,6 +143,16 @@ Route::middleware(['auth'])->group(function () {
             Route::get('checksheets/{checksheet}/edit', [SubAssyChecksheetController::class, 'edit'])->name('admin.checksheets.edit');
             Route::put('checksheets/{checksheet}', [SubAssyChecksheetController::class, 'update'])->name('admin.checksheets.update');
             Route::delete('checksheets/{checksheet}', [SubAssyChecksheetController::class, 'destroy'])->name('admin.checksheets.destroy');
+
+            // Plating Edit/Update/Delete
+            Route::get('plating-checksheets/{id}/edit', [PlatingChecksheetController::class, 'edit'])->name('plating.edit');
+            Route::put('plating-checksheets/{id}', [PlatingChecksheetController::class, 'update'])->name('plating.update');
+            Route::delete('plating-checksheets/{id}', [PlatingChecksheetController::class, 'destroy'])->name('plating.destroy');
+
+            // Double Tape Edit/Update/Delete
+            Route::get('double-tape-checksheets/{id}/edit', [DoubleTapeChecksheetController::class, 'edit'])->name('double_tape.edit');
+            Route::put('double-tape-checksheets/{id}', [DoubleTapeChecksheetController::class, 'update'])->name('double_tape.update');
+            Route::delete('double-tape-checksheets/{id}', [DoubleTapeChecksheetController::class, 'destroy'])->name('double_tape.destroy');
 
             // In-Process
             Route::get('in-process-checksheets/{id}/edit', [InProcessChecksheetController::class, 'edit'])->name('in_process.edit');

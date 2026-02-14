@@ -159,6 +159,8 @@
                                     <a class="collapse-item"
                                         href="{{ route('cross_cut_painting.create', ['plant' => 'karawang']) }}">Cross Cut
                                         Painting</a>
+                                    <a class="collapse-item" href="{{ route('plating.create') }}">Plating</a>
+                                    <a class="collapse-item" href="{{ route('double_tape.create') }}">Double Tape</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -178,6 +180,8 @@
                                     <a class="collapse-item"
                                         href="{{ route('cross_cut_painting.index', ['plant' => 'karawang']) }}">Cross Cut
                                         Painting</a>
+                                    <a class="collapse-item" href="{{ route('plating.index') }}">Plating</a>
+                                    <a class="collapse-item" href="{{ route('double_tape.index') }}">Double Tape</a>
                                     <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
                                 </div>
                             @endif

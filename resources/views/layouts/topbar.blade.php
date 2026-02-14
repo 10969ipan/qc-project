@@ -169,6 +169,8 @@
                                                 <li><a class="dropdown-item"
                                                         href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                                 </li>
+                                                <li><a class="dropdown-item" href="{{ route('plating.create') }}">Plating</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('double_tape.create') }}">Double Tape</a></li>
                                                 <li><a class="dropdown-item" href="{{ route('incoming.parts.create', ['plant' => 'karawang']) }}">Incoming Part</a></li>
                                                 <li><a class="dropdown-item" href="{{ route('incoming.materials.create', ['plant' => 'karawang']) }}">Incoming Material</a></li>
                                                 <li><a class="dropdown-item" href="{{ route('incoming.sub_parts.create', ['plant' => 'karawang']) }}">Incoming Sub-Part</a></li>
@@ -196,6 +198,8 @@
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
                                                     </li>
+                                                    <li><a class="dropdown-item" href="{{ route('plating.index') }}">Plating</a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('double_tape.index') }}">Double Tape</a></li>
                                                     <li><a class="dropdown-item" href="{{ route('incoming.parts.index', ['plant' => 'karawang']) }}">Incoming Part</a></li>
                                                     <li><a class="dropdown-item" href="{{ route('incoming.materials.index', ['plant' => 'karawang']) }}">Incoming Material</a></li>
                                                     <li><a class="dropdown-item" href="{{ route('incoming.sub_parts.index', ['plant' => 'karawang']) }}">Incoming Sub-Part</a></li>
