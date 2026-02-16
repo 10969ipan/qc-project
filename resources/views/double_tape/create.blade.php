@@ -277,14 +277,17 @@
                         </button>
                     </div>
                     <div id="standardPdfContainer" class="rounded overflow-hidden border"
-                        style="height: 800px; position: relative; background-color: #eee;">
+                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="standardPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
                             <i class="fas fa-file-pdf fa-3x mb-3"></i>
                             <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
                         </div>
-                        <iframe id="standardPdfFrame" src="" width="100%" height="100%" frameborder="0"
-                            style="display:none; position: absolute; top:0; left:0;"></iframe>
+                        <canvas id="standardPdfCanvas" style="display:none; margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-flex align-items-center justify-content-center"
+                            style="display:none !important;">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -296,15 +299,18 @@
                         </button>
                     </div>
                     <div id="similarPdfContainer" class="rounded overflow-hidden border"
-                        style="height: 800px; position: relative; background-color: #eee;">
+                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="similarPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
-                            <i class="fas fa-copy fa-3x mb-3"></i>
+                            <i class="fas fa-file-alt fa-3x mb-3"></i>
                             <p class="mb-0">Pilih Item untuk menampilkan Similar Part</p>
                             <p class="small mt-2" id="similarStatusText"></p>
                         </div>
-                        <iframe id="similarPdfFrame" src="" width="100%" height="100%" frameborder="0"
-                            style="display:none; position: absolute; top:0; left:0;"></iframe>
+                        <canvas id="similarPdfCanvas" style="display:none; margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-flex align-items-center justify-content-center"
+                            style="display:none !important;">
+                            <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -402,8 +408,11 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
         $(document).ready(function () {
+            // PDF.js worker configuration
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
             // === INPUT LOCK UNTIL START (SUB ASSY LOGIC) ===
             var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
@@ -585,26 +594,22 @@
                 var standardPdf = selectedOption.data('standard');
                 var similarPdf = selectedOption.data('similar');
 
-                // Update Side-by-Side PDF Frames
+                // Update Side-by-Side PDF Previews (Canvas based for Mobile)
                 if (standardPdf) {
-                    var stdUrl = standardPdf + '#view=FitH&navpanes=0&toolbar=1';
-                    $('#standardPdfFrame').attr('src', stdUrl).show();
-                    $('#standardPdfPlaceholder').hide();
+                    renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading');
                     $('#fullStandardBtn').attr('data-id', itemId).attr('data-count', files ? files.length : 1).show();
                 } else {
-                    $('#standardPdfFrame').hide().attr('src', '');
+                    $('#standardPdfCanvas').hide();
                     $('#standardPdfPlaceholder').show().find('p').text('Standard PDF tidak tersedia');
                     $('#fullStandardBtn').hide();
                 }
 
                 if (similarPdf) {
-                    var simUrl = similarPdf + '#view=FitH&navpanes=0&toolbar=1';
-                    $('#similarPdfFrame').attr('src', simUrl).show();
-                    $('#similarPdfPlaceholder').hide();
+                    renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading');
                     $('#fullSimilarBtn').attr('data-id', itemId).data('similar', true).show();
                     $('#similarStatusText').text('');
                 } else {
-                    $('#similarPdfFrame').hide().attr('src', '');
+                    $('#similarPdfCanvas').hide();
                     $('#similarPdfPlaceholder').show();
                     $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
                     $('#fullSimilarBtn').hide();
@@ -736,6 +741,44 @@
                 });
             });
 
+            function renderPdfToCanvas(url, canvasId, placeholderId, loadingId) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const placeholder = $('#' + placeholderId);
+                const loading = $('#' + loadingId);
+
+                // Reset
+                placeholder.hide();
+                loading.show();
+                $(canvas).hide();
+
+                pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                    pdf.getPage(1).then(function (page) {
+                        const containerWidth = $('#' + canvasId).parent().width();
+                        const viewport = page.getViewport({ scale: 1.0 });
+                        const scale = (containerWidth - 20) / viewport.width;
+                        const scaledViewport = page.getViewport({ scale: scale });
+
+                        canvas.height = scaledViewport.height;
+                        canvas.width = scaledViewport.width;
+
+                        const renderContext = {
+                            canvasContext: ctx,
+                            viewport: scaledViewport
+                        };
+
+                        page.render(renderContext).promise.then(function () {
+                            loading.hide();
+                            $(canvas).show();
+                        });
+                    });
+                }).catch(function (error) {
+                    console.error('Error rendering preview PDF:', error);
+                    loading.hide();
+                    placeholder.show().find('p').text('Gagal memuat PDF');
+                });
+            }
+
             function resetState() {
                 clearInterval(timerInterval);
                 timerRunning = false;
@@ -756,9 +799,8 @@
                 $('#nextProsesContainer').hide();
 
                 // Reset PDF views
-                $('#standardPdfFrame').attr('src', '').hide();
+                $('#standardPdfCanvas, #similarPdfCanvas').hide();
                 $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                $('#similarPdfFrame').attr('src', '').hide();
                 $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
                 $('#similarStatusText').text('');
                 $('#fullStandardBtn, #fullSimilarBtn').hide();
