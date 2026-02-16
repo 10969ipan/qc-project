@@ -265,7 +265,7 @@
     <!-- PDF Side-by-Side Display Section -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
         <div class="card-header py-3 bg-light">
-            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i> Reference View</h6>
+            <h6 class="m-0 font-weight-bold text-primary">STANDARD</h6>
         </div>
         <div class="card-body">
             <div class="row">
@@ -457,6 +457,7 @@
                     $('#samplingQty').prop('readonly', isFullcheck);
                 }
                 $('#totalQty').trigger('input');
+                $('#totalNG').trigger('input'); // Trigger judgment update
             });
 
             // AQL Sampling Logic
@@ -504,10 +505,15 @@
                 $('input[name="total_ok"]').val(ok < 0 ? 0 : ok);
 
                 if (total > 0 || ng > 0) {
-                    let limits = getAqlLimits(total);
-                    $('#acc_val').text(limits.acc);
-                    $('#rej_val').text(limits.rej);
-                    $('#aql_info').show();
+                    let limits = isFullcheck ? { acc: 0, rej: 1 } : getAqlLimits(total);
+
+                    if (!isFullcheck) {
+                        $('#acc_val').text(limits.acc);
+                        $('#rej_val').text(limits.rej);
+                        $('#aql_info').show();
+                    } else {
+                        $('#aql_info').hide();
+                    }
 
                     if (ng <= limits.acc) {
                         $('#judgmentSelect').val('OK').trigger('change');
