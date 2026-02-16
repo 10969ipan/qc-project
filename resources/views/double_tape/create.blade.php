@@ -84,7 +84,6 @@
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
                             <th rowspan="2" style="align-middle">Item Part</th>
-                            <th rowspan="2" style="align-middle">Item Part</th>
                             <th rowspan="2" style="align-middle">Tanggal / Shift</th>
                             <th rowspan="2" style="align-middle">Total Qty (Lot)</th>
                             <th rowspan="2" style="align-middle">Sampling Qty</th>
@@ -517,19 +516,28 @@
 
                     if (ng <= limits.acc) {
                         $('#judgmentSelect').val('OK').trigger('change');
+                        $('#judgmentSelect').removeClass('bg-danger').addClass('bg-success text-white');
                     } else {
                         $('#judgmentSelect').val('NG').trigger('change');
+                        $('#judgmentSelect').removeClass('bg-success').addClass('bg-danger text-white');
                     }
                 } else {
                     $('#aql_info').hide();
                     $('#judgmentSelect').val('');
+                    $('#judgmentSelect').removeClass('bg-success bg-danger text-white');
                 }
             });
 
             $('#judgmentSelect').change(function () {
-                if ($(this).val() === 'NG') {
+                var val = $(this).val();
+                if (val === 'OK') {
+                    $(this).removeClass('bg-danger').addClass('bg-success text-white');
+                    $('#nextProsesContainer').slideUp();
+                } else if (val === 'NG') {
+                    $(this).removeClass('bg-success').addClass('bg-danger text-white');
                     $('#nextProsesContainer').slideDown();
                 } else {
+                    $(this).removeClass('bg-success bg-danger text-white');
                     $('#nextProsesContainer').slideUp();
                 }
             });
