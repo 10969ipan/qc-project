@@ -91,9 +91,29 @@ class IncomingPartController extends Controller
 
     public function store(StoreIncomingPartRequest $request)
     {
-        $result = $this->checksheetService->createChecksheet($request->validated());
-        return redirect()->route('incoming.parts.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
-            ->with('success', 'Data Incoming Part berhasil disimpan.');
+        try {
+            $this->checksheetService->createChecksheet($request->validated());
+            $message = 'Data Incoming Part berhasil disimpan.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('incoming.parts.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
+                ]);
+            }
+
+            return redirect()->route('incoming.parts.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        }
     }
 
     public function edit($id)

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class SortirChecksheetService extends BaseService
 {
+    use \App\Traits\ChecksheetServiceTrait;
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
@@ -50,6 +51,7 @@ class SortirChecksheetService extends BaseService
      */
     public function buildFilteredQuery(array $filters)
     {
+        /** @var \Illuminate\Database\Eloquent\Builder $query */
         $query = SortirChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present
@@ -191,15 +193,7 @@ class SortirChecksheetService extends BaseService
     {
         DB::beginTransaction();
         try {
-            $defects = [];
-            if (!empty($data['defect_types'])) {
-                foreach ($data['defect_types'] as $index => $type) {
-                    if ($type) {
-                        $qty = $data['defect_quantities'][$index] ?? 1;
-                        $defects[] = ['type' => $type, 'qty' => (int) $qty];
-                    }
-                }
-            }
+            $defects = $this->processDefects($data);
 
             $sortir = SortirChecksheet::create(array_merge($data, [
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
@@ -346,48 +340,4 @@ class SortirChecksheetService extends BaseService
 
 
 
-    /**
-     * Apply approval status filter
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $status
-     * @return void
-     */
-    private function applyApprovalStatusFilter($query, string $status): void
-    {
-        if ($status === 'Pending') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Pending')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->whereNull('supervisor_qc')
-                            ->where(function ($rej) {
-                                $rej->where('kashift_qc', '!=', 'REJECTED')
-                                    ->orWhereNull('kashift_qc');
-                            });
-                    });
-            });
-        } elseif ($status === 'Approved') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Approved')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->whereNotNull('supervisor_qc')
-                            ->where('supervisor_qc', '!=', 'REJECTED');
-                    });
-            });
-        } elseif ($status === 'Rejected') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Rejected')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->where(function ($rej) {
-                                $rej->where('kashift_qc', 'REJECTED')
-                                    ->orWhere('supervisor_qc', 'REJECTED')
-                                    ->orWhere('asst_manager_qc', 'REJECTED');
-                            });
-                    });
-            });
-        }
-    }
 }

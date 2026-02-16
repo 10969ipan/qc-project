@@ -49,7 +49,7 @@
         </div>
     @endif
 
-    @if($errors->any())
+    @if(isset($errors) && $errors instanceof \Illuminate\Support\ViewErrorBag && $errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <h6 class="font-weight-bold">Terjadi Kesalahan!</h6>
             <ul class="mb-0">
@@ -71,7 +71,7 @@
             <form action="{{ route('plating.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="karawang">
-                
+
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
@@ -90,7 +90,8 @@
                             <tr>
                                 <!-- Ilustrasi Barang -->
                                 <td class="align-middle text-center" id="imageContainer">
-                                    <div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <div
+                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                         <i class="fas fa-image fa-2x text-gray-300"></i>
                                     </div>
                                 </td>
@@ -99,12 +100,14 @@
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold">Kode SAP</label>
-                                        <input type="text" class="form-control" id="sapCodeInput" placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <input type="text" class="form-control" id="sapCodeInput"
+                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold">Item Part</label>
-                                        <select class="form-control" name="item_id" id="itemSelect" required style="min-width: 300px;">
+                                        <select class="form-control" name="item_id" id="itemSelect" required
+                                            style="min-width: 300px;">
                                             <option value="" disabled selected>Pilih Item Part</option>
                                             @foreach($items as $item)
                                                 <option value="{{ $item->id }}"
@@ -125,7 +128,8 @@
                                 <!-- Tanggal / Shift -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <input type="date" class="form-control" style="min-width: 110px;" name="date" value="{{ $defaultDate }}" required>
+                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
+                                            value="{{ $defaultDate }}" required>
                                     </div>
                                     <div class="form-group mb-2">
                                         <select class="form-control" style="min-width: 80px;" name="shift" required>
@@ -146,31 +150,37 @@
 
                                 <!-- Total Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;" name="total_qty" id="totalQty" placeholder="0" min="0" required>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="total_qty" id="totalQty" placeholder="0" min="0" required>
                                 </td>
 
                                 <!-- Check Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;" name="sampling_qty" id="samplingQty" placeholder="0" min="0" required readonly>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="sampling_qty" id="samplingQty" placeholder="0" min="0" required readonly>
                                     <small class="text-muted d-block text-center mt-1">100% Insp.</small>
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK (Pass All)</label>
+                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK (Pass
+                                            All)</label>
                                     </div>
                                     <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]" id="defectSelect">
+                                            <select class="form-control defect-select" style="min-width: 180px;"
+                                                name="defect_types[]" id="defectSelect">
                                                 <option value="">-- Pilih Defect --</option>
                                             </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
+                                                name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1" style="display: none;">
+                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
+                                        style="display: none;">
                                         <i class="fas fa-plus"></i> Tambah Jenis
                                     </button>
                                 </td>
@@ -178,22 +188,31 @@
                                 <!-- Total OK / NG -->
                                 <td class="align-middle" style="min-width: 120px;">
                                     <div class="row no-gutters mb-1">
-                                        <div class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">OK</div>
+                                        <div
+                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
+                                            OK</div>
                                         <div class="col-8">
-                                            <input type="number" class="form-control form-control-sm rounded-0 rounded-right text-center" name="total_ok" placeholder="0" min="0" required readonly>
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                name="total_ok" placeholder="0" min="0" required readonly>
                                         </div>
                                     </div>
                                     <div class="row no-gutters">
-                                        <div class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">NG</div>
+                                        <div
+                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
+                                            NG</div>
                                         <div class="col-8">
-                                            <input type="number" class="form-control form-control-sm rounded-0 rounded-right text-center" name="total_ng" id="totalNG" placeholder="0" min="0" required>
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                name="total_ng" id="totalNG" placeholder="0" min="0" required>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Judgment -->
                                 <td class="align-middle">
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect" required>
+                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                        required>
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
                                         <option value="NG" class="text-danger">NG</option>
@@ -202,13 +221,16 @@
 
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 60px;" name="operator_initials" value="{{ auth()->user()->initials ?? '' }}" placeholder="Inisial" required>
+                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                        name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
+                                        placeholder="Inisial" required>
                                 </td>
 
                                 <!-- Keterangan -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                        <label for="nextProses" class="font-weight-bold text-danger small">Next Proses:</label>
+                                        <label for="nextProses" class="font-weight-bold text-danger small">Next
+                                            Proses:</label>
                                         <select class="form-control form-control-sm" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih --</option>
                                             <option value="CRUSHING">CRUSHING</option>
@@ -216,7 +238,8 @@
                                             <option value="REPAIR">REPAIR</option>
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="remarks" rows="4" placeholder="Catatan..."></textarea>
+                                    <textarea class="form-control" name="remarks" rows="4"
+                                        placeholder="Catatan..."></textarea>
                                 </td>
                             </tr>
                         </tbody>
@@ -293,7 +316,7 @@
                     // === UNLOCK ALL INPUTS ===
                     formInputs.prop('disabled', false);
                     $('#checksheetForm').removeClass('inputs-locked');
-                    
+
                     // Specific readonly for Plating
                     $('#samplingQty').prop('readonly', true);
                     $('input[name="total_ok"]').prop('readonly', true);
@@ -302,7 +325,7 @@
                         totalSeconds++;
                         updateTimerDisplay();
                     }, 1000);
-                    
+
                     $('#itemSelect').focus();
                 }
             });
@@ -381,7 +404,7 @@
                 // Reset and populate defect selection
                 var defectSelect = $('#defectSelect');
                 defectSelect.html('<option value="">-- Pilih Defect --</option>');
-                
+
                 if (typeof defects === 'string') {
                     try { defects = JSON.parse(defects); } catch (e) { defects = null; }
                 }
@@ -424,11 +447,12 @@
 
             // Stop timer on form submit & Validate NG
             $('#checksheetForm').on('submit', function (e) {
+                e.preventDefault(); // Always prevent default for AJAX
+
                 var judgment = $('#judgmentSelect').val();
                 var nextProses = $('#nextProses').val();
 
                 if (judgment === 'NG' && !nextProses) {
-                    e.preventDefault();
                     Swal.fire({
                         icon: 'warning',
                         title: 'Next Proses Wajib Dipilih',
@@ -444,7 +468,80 @@
                     timerRunning = false;
                     $('#cycleTimeInput').val(totalSeconds);
                 }
+
+                // Show loading state
+                var saveBtn = $('#saveBtn');
+                var originalHtml = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#global-loader').hide();
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Lihat Data',
+                                cancelButtonText: 'Tutup',
+                                reverseButtons: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = response.index_url;
+                                } else {
+                                    // Reset Form & Re-lock
+                                    $('#checksheetForm')[0].reset();
+                                    resetState();
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#global-loader').hide();
+                        var errorMsg = 'Gagal menyimpan data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg
+                        });
+                        saveBtn.prop('disabled', false).html(originalHtml);
+                    }
+                });
             });
+
+            function resetState() {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                totalSeconds = 0;
+                updateTimerDisplay();
+                $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('#checksheetForm').addClass('inputs-locked');
+                $('#saveBtn').prop('disabled', true);
+
+                // Reset specific elements
+                $('#addDefectBtn').hide();
+                $('#defectContainer').find('.defect-row').not(':first').remove();
+                $('#imageContainer').html('<div style="width:100px; height:100px; background-color:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; margin:0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+                $('#itemSelect').val('').trigger('change');
+                $('#aql_info').hide();
+                $('#nextProsesContainer').hide();
+            }
         });
     </script>
 @endpush

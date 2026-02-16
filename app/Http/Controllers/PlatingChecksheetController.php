@@ -135,9 +135,23 @@ class PlatingChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
+            $message = 'Data Checksheet Plating berhasil disimpan.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('plating.index')
+                ]);
+            }
             return redirect()->route('plating.index')
-                ->with('success', 'Data Checksheet Plating berhasil disimpan.');
+                ->with('success', $message);
         } else {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data.'
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data.');
         }
     }

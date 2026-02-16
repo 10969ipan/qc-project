@@ -241,38 +241,33 @@
                                             $planningDate = \Carbon\Carbon::parse($item->schedule_date);
                                             $today = now()->startOfDay();
                                             $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
-
-                                            $icon = '<div class="d-inline-block position-relative" title="Belum PR" style="width: 25px; height: 25px; vertical-align: middle;">' .
-                                                '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
-                                                '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                '</div>';
                                             $isClickable = false;
-                                            $statusText = 'Belum PR';
+
+                                            $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                                '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
+                                                '<i class="fas fa-clock %COLOR_CLASS%" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                '</div>';
 
                                             if ($item->is_ok) {
                                                 $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
                                                 $statusText = 'Sudah Verifikasi';
                                                 $isClickable = true;
-                                            } elseif ($tool->jenis_kalibrasi === 'INTERNAL') {
-                                                $icon = '<div class="d-inline-block position-relative" title="Siap Verifikasi" style="width: 25px; height: 25px; vertical-align: middle;">' .
-                                                    '<i class="fas fa-calendar text-secondary" style="font-size: 1.3rem;"></i>' .
-                                                    '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                    '</div>';
-                                                $statusText = 'Siap Verifikasi';
                                             } elseif ($item->pr_number) {
-                                                $diffDays = $today->diffInDays($planningDate, false);
+                                                // PR filled but not verified yet - Blue Hourglass (Requested)
+                                                $icon = '<i class="fas fa-hourglass-half text-primary fa-lg" title="PR Out - Menunggu Verifikasi"></i>';
+                                                $statusText = 'PR Out - Menunggu Verifikasi';
+                                            } elseif ($tool->jenis_kalibrasi === 'INTERNAL') {
+                                                // Internal doesn't need PR, so it's ready once scheduled
+                                                $icon = str_replace(['%COLOR_CLASS%', 'title="Belum PR"'], ['text-secondary', 'title="Siap Verifikasi"'], $icon_base);
+                                                $statusText = 'Siap Verifikasi';
+                                            } else {
+                                                // Default: External without PR yet
+                                                $icon = str_replace(['%COLOR_CLASS%'], ['text-secondary'], $icon_base);
+                                                $statusText = 'Belum PR';
+                                            }
 
-                                                if ($diffDays < 0) {
-                                                    $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
-                                                    $statusText = 'Melewati Jadwal';
-                                                } elseif ($diffDays >= 30) {
-                                                    $icon = '<i class="fas fa-hourglass-half text-info fa-lg" title="On Progress"></i>';
-                                                    $statusText = 'On Progress';
-                                                } else {
-                                                    $icon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Segera Verifikasi"></i>';
-                                                    $statusText = 'Segera Verifikasi';
-                                                }
-                                            } elseif ($today->gt($planningDate)) {
+                                            // Overdue check regardless of PR status if not verified
+                                            if (!$item->is_ok && $today->gt($planningDate)) {
                                                 $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
                                                 $statusText = 'Melewati Jadwal';
                                             }

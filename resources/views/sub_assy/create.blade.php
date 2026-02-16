@@ -1017,7 +1017,9 @@
             });
 
             // Stop timer on form submit
-            $('form').on('submit', function (e) {
+            $('#checksheetForm').on('submit', function (e) {
+                e.preventDefault(); // Always prevent default at the start for AJAX
+
                 // Validate: If NG, next_proses must be selected
                 var judgment = $('#judgmentSelect').val();
                 var nextProses = $('#nextProses').val();
@@ -1034,21 +1036,88 @@
                     return false;
                 }
 
+                // Stop timer if running
                 if (timerRunning) {
                     clearInterval(timerInterval);
                     timerRunning = false;
-                    // Update final value
                     $('#cycleTimeInput').val(totalSeconds);
                 }
+
+                // Show loading state
+                var saveBtn = $('#saveBtn');
+                var originalHtml = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#global-loader').hide();
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Lihat Data',
+                                cancelButtonText: 'Tutup',
+                                reverseButtons: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = response.index_url;
+                                } else {
+                                    // Reset Form & Re-lock
+                                    $('#checksheetForm')[0].reset();
+                                    resetState();
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#global-loader').hide();
+                        var errorMsg = 'Gagal menyimpan data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg
+                        });
+                        saveBtn.prop('disabled', false).html(originalHtml);
+                    }
+                });
             });
 
-            // Optional: Reset timer on form reset
-            $('button[type="reset"]').click(function () {
+            function resetState() {
                 clearInterval(timerInterval);
                 timerRunning = false;
                 totalSeconds = 0;
                 updateTimerDisplay();
                 $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('#checksheetForm').addClass('inputs-locked');
+                $('#saveBtn').prop('disabled', true);
+                $('#addDefectBtn').hide();
+                $('.defect-row').not(':first').remove();
+
+                // Clear images/standard info
+                $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+                $('#itemSelect').val('').trigger('change');
+            }
+
+            // Optional: Reset timer on form reset
+            $('button[type="reset"]').click(function () {
+                resetState();
             });
         });
     </script>

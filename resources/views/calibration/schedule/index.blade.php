@@ -135,6 +135,10 @@
                 <div class="small">
                     <span class="badge" style="background-color: #1cc88a; color: white;">P</span> Plan
                     <span class="badge ml-2" style="background-color: #36b9cc; color: white;">A</span> Actual
+                    <span class="badge ml-2 bg-white border shadow-sm" style="padding: 2px 5px;">
+                        <i class="fas fa-hourglass-half text-primary" style="font-size: 0.9rem;"></i>
+                        <span class="small ml-1">PR Out</span>
+                    </span>
                 </div>
             </div>
             <div class="card-body">
@@ -248,6 +252,21 @@
                                             $w = 4;
                                         $actuals[$m][$w] = true;
                                     }
+
+                                    // Identify PR Pending (PR exists, but no Actual yet in that month/week)
+                                    $prPendings = [];
+                                    foreach ($tool->schedules as $s) {
+                                        if (!empty($s->pr_number)) {
+                                            $m = (int) $s->schedule_date->format('n');
+                                            $d = (int) $s->schedule_date->format('j');
+                                            $w = (int) ceil($d / 7.75);
+                                            if ($w > 4) $w = 4;
+                                            // Only if not already verification exists
+                                            if (!isset($actuals[$m][$w])) {
+                                                $prPendings[$m][$w] = true;
+                                            }
+                                        }
+                                    }
                                 @endphp
                                 <!-- Plan Row -->
                                 <tr>
@@ -284,12 +303,17 @@
                                     <td class="status-col text-center" style="border-bottom: 2px solid #dee2e6;">A</td>
                                     @for($m = 1; $m <= 12; $m++)
                                         @for($w = 1; $w <= 4; $w++)
-                                            @php $isActual = isset($actuals[$m][$w]); @endphp
+                                            @php 
+                                                $isActual = isset($actuals[$m][$w]); 
+                                                $isPrPending = isset($prPendings[$m][$w]);
+                                            @endphp
                                             <td class="{{ $isActual ? 'marker-a' : '' }}">
                                                 @if($isActual)
                                                     <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'tool_id' => $tool->id]) }}"
                                                         class="marker-link"
                                                         title="Klik untuk lihat hasil verifikasi: {{ $tool->name_alat }}"></a>
+                                                @elseif($isPrPending)
+                                                    <i class="fas fa-hourglass-half text-primary" title="PR Out: Menunggu Verifikasi" style="font-size: 1rem;"></i>
                                                 @endif
                                             </td>
                                         @endfor

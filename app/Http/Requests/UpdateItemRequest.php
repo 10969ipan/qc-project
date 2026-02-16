@@ -61,6 +61,7 @@ class UpdateItemRequest extends FormRequest
             'plant' => 'required|string',
             'files' => 'nullable|array',
             'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
+            'similar_part_file' => 'nullable|mimes:pdf|max:10240',
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'sap_code' => [

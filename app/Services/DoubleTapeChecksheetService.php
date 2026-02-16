@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class DoubleTapeChecksheetService extends BaseService
 {
+    use \App\Traits\ChecksheetServiceTrait;
     protected $googleSheetService;
     protected $notificationService;
 
@@ -26,6 +27,7 @@ class DoubleTapeChecksheetService extends BaseService
 
     public function buildFilteredQuery(array $filters)
     {
+        /** @var \Illuminate\Database\Eloquent\Builder $query */
         $query = DoubleTapeChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if (isset($filters['plant'])) {
@@ -160,25 +162,8 @@ class DoubleTapeChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             $checksheet = DoubleTapeChecksheet::findOrFail($id);
-            $user = auth()->user();
 
-            $this->updateApprovalLevel($checksheet, 'kashift', $data['kashift_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'supervisor', $data['supervisor_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'asst_manager', $data['asst_manager_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'manager', $data['manager_qc'], $user);
-
-            if (
-                $checksheet->manager_qc === 'REJECTED' ||
-                $checksheet->asst_manager_qc === 'REJECTED' ||
-                $checksheet->supervisor_qc === 'REJECTED' ||
-                $checksheet->kashift_qc === 'REJECTED'
-            ) {
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($checksheet->manager_qc) {
-                $checksheet->approval_status = 'Approved';
-            } else {
-                $checksheet->approval_status = 'Pending';
-            }
+            $this->processFullApprovalUpdate($checksheet, $data);
 
             $checksheet->save();
             DB::commit();
@@ -189,48 +174,4 @@ class DoubleTapeChecksheetService extends BaseService
         }
     }
 
-    private function processDefects(array $data): array
-    {
-        $defects = [];
-        if (isset($data['defect_types'])) {
-            foreach ($data['defect_types'] as $index => $type) {
-                if ($type) {
-                    $qty = $data['defect_quantities'][$index] ?? 1;
-                    $defects[] = ['type' => $type, 'qty' => (int) $qty];
-                }
-            }
-        }
-        return $defects;
-    }
-
-    private function applyApprovalStatusFilter($query, string $status): void
-    {
-        if ($status === 'Pending') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Pending')
-                    ->orWhereNull('approval_status');
-            });
-        } elseif ($status === 'Approved') {
-            $query->where('approval_status', 'Approved');
-        } elseif ($status === 'Rejected') {
-            $query->where('approval_status', 'Rejected');
-        }
-    }
-
-    private function updateApprovalLevel(DoubleTapeChecksheet $checksheet, string $level, string $status, $user): void
-    {
-        $nameField = "{$level}_qc";
-        $dateField = "{$level}_approved_at";
-
-        if ($status === 'Approved') {
-            $checksheet->$nameField = $user->name;
-            $checksheet->$dateField = now();
-        } elseif ($status === 'Rejected') {
-            $checksheet->$nameField = 'REJECTED';
-            $checksheet->$dateField = now();
-        } else {
-            $checksheet->$nameField = null;
-            $checksheet->$dateField = null;
-        }
-    }
 }

@@ -166,7 +166,6 @@
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
-                            <th rowspan="2" style="align-middle">Standard</th>
                             <th rowspan="2" style="align-middle">Item Part</th>
                             <th rowspan="2" style="align-middle">Tanggal / Shift</th>
                             <th rowspan="2" style="align-middle">Total Qty</th>
@@ -180,13 +179,6 @@
                         </tr>
                         <tbody>
                             <tr>
-                                <!-- Ilustrasi Barang -->
-                                <td class="align-middle text-center" id="imageContainer">
-                                    <div
-                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                        <i class="fas fa-image fa-2x text-gray-300"></i>
-                                    </div>
-                                </td>
 
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
@@ -208,6 +200,8 @@
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
+                                                    data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
                                                     data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
                                                     data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
@@ -265,18 +259,29 @@
 
                                 <!-- Check Dimensi (Cavity & Points) -->
                                 <td class="align-middle">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-outline-primary btn-xs" id="addPointBtn"
-                                                title="Tambah Point">
-                                                <i class="fas fa-plus"></i> Point
-                                            </button>
-                                            <button type="button" class="btn btn-outline-info btn-xs" id="addCavityBtn"
-                                                title="Tambah Cavity">
-                                                <i class="fas fa-plus"></i> Cavity
-                                            </button>
+                                    <div class="d-flex justify-content-center mb-2">
+                                        <div class="btn-toolbar bg-white border rounded shadow-sm p-1" role="toolbar">
+                                            <div class="btn-group mr-2" role="group">
+                                                <button type="button" class="btn btn-primary btn-xs" id="addCavityBtn"
+                                                    title="Tambah Cavity">
+                                                    <i class="fas fa-plus"></i> Cavity
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-xs"
+                                                    id="deleteCavityBtn" title="Hapus Cavity Terakhir">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-info btn-xs" id="addPointBtn"
+                                                    title="Tambah Point">
+                                                    <i class="fas fa-plus"></i> Point
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-xs"
+                                                    id="deletePointBtn" title="Hapus Point Terakhir">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <small class="text-muted" id="dimensionCounter">Max 30x30 (Default 5x5)</small>
                                     </div>
                                     <div class="table-responsive" style="max-height: 400px; overflow: auto;">
                                         <table class="table table-sm table-bordered mb-0" id="dimensionTable">
@@ -291,7 +296,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="dimensionBody">
-                                                @for ($i = 1; $i <= 5; $i++)
+                                                @for ($i = 1; $i <= 2; $i++)
                                                     <tr class="cavity-row" data-cavity="{{ $i }}">
                                                         <td class="text-center font-weight-bold bg-light"
                                                             style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
@@ -424,6 +429,57 @@
         </div>
     </div>
 
+    <!-- PDF Side-by-Side Display Section -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>Reference View</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP DAN DIMENSI</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
+                            style="display:none;">
+                            <i class="fas fa-expand"></i> Full
+                        </button>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded overflow-hidden border"
+                        style="height: 800px; position: relative; background-color: #eee;">
+                        <!-- Updated default state: message shown when no item selected -->
+                        <div id="standardPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                        </div>
+                        <iframe id="standardPdfFrame" src="" width="100%" height="100%" frameborder="0"
+                            style="display:none; position: absolute; top:0; left:0;"></iframe>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
+                            style="display:none;">
+                            <i class="fas fa-expand"></i> Full
+                        </button>
+                    </div>
+                    <div id="similarPdfContainer" class="rounded overflow-hidden border"
+                        style="height: 800px; position: relative; background-color: #eee;">
+                        <div id="similarPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-copy fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Similar Part</p>
+                            <p class="small mt-2" id="similarStatusText"></p>
+                        </div>
+                        <iframe id="similarPdfFrame" src="" width="100%" height="100%" frameborder="0"
+                            style="display:none; position: absolute; top:0; left:0;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Image Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
         aria-hidden="true">
@@ -468,7 +524,7 @@
         <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="pdfModalLabel">STANDARD (PDF)</h5>
+                    <h5 class="modal-title" id="pdfModalLabel">Preview</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -611,7 +667,14 @@
                 pageNum = 1;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 document.getElementById('pageInfo').textContent = 'Loading...';
-                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
+
+                if (index === 'similar') {
+                    document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
+                    $('#prevPdf, #nextPdf').hide();
+                } else {
+                    document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
+                    $('#prevPdf, #nextPdf').show();
+                }
 
                 pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
                     pdfDoc = pdfDoc_;
@@ -645,13 +708,20 @@
             // Trigger PDF Modal from dynamic button (delegated event)
             $(document).on('click', '.view-pdf-btn', function () {
                 currentItemId = $(this).data('id');
-                totalPdfFiles = $(this).data('count');
-                currentPdfIndex = 0;
+                var isSimilar = $(this).data('similar');
+
+                if (isSimilar) {
+                    totalPdfFiles = 1;
+                    currentPdfIndex = 'similar';
+                } else {
+                    totalPdfFiles = $(this).data('count');
+                    currentPdfIndex = 0;
+                }
 
                 // Show modal
                 $('#pdfModal').modal('show');
 
-                // Load first PDF
+                // Load PDF
                 loadPdf(currentItemId, currentPdfIndex);
             });
 
@@ -776,6 +846,35 @@
                 var name = selectedOption.data('name');
                 var description = selectedOption.data('description');
                 var defectsData = selectedOption.data('defects');
+
+                // PDFs for Side-by-Side
+                var standardPdf = selectedOption.data('standard');
+                var similarPdf = selectedOption.data('similar');
+
+                // Update Side-by-Side PDF Frames
+                if (standardPdf) {
+                    var stdUrl = standardPdf + '#view=FitH&navpanes=0&toolbar=1';
+                    $('#standardPdfFrame').attr('src', stdUrl).show();
+                    $('#standardPdfPlaceholder').hide();
+                    $('#fullStandardBtn').attr('data-id', itemId).attr('data-count', files ? files.length : 1).show();
+                } else {
+                    $('#standardPdfFrame').hide().attr('src', '');
+                    $('#standardPdfPlaceholder').show().find('p').text('Standard PDF tidak tersedia');
+                    $('#fullStandardBtn').hide();
+                }
+
+                if (similarPdf) {
+                    var simUrl = similarPdf + '#view=FitH&navpanes=0&toolbar=1';
+                    $('#similarPdfFrame').attr('src', simUrl).show();
+                    $('#similarPdfPlaceholder').hide();
+                    $('#fullSimilarBtn').attr('data-id', itemId).data('similar', true).show();
+                    $('#similarStatusText').text('');
+                } else {
+                    $('#similarPdfFrame').hide().attr('src', '');
+                    $('#similarPdfPlaceholder').show();
+                    $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
+                    $('#fullSimilarBtn').hide();
+                }
 
                 var container = $('#imageContainer');
                 var htmlContent = '';
@@ -1018,14 +1117,15 @@
                 }
             });
 
-            // Stop timer on form submit
+            // Handle form submission via AJAX
             $('#checksheetForm').on('submit', function (e) {
+                e.preventDefault();
+
                 // Validate: If NG, next_proses must be selected
                 var judgment = $('#judgmentSelect').val();
                 var nextProses = $('#nextProses').val();
 
                 if (judgment === 'NG' && !nextProses) {
-                    e.preventDefault();
                     Swal.fire({
                         icon: 'warning',
                         title: 'Next Proses Wajib Dipilih',
@@ -1049,10 +1149,61 @@
                     // Update final value
                     $('#cycleTimeInput').val(totalSeconds);
                 }
+
+                // Show loading state
+                var saveBtn = $('#saveBtn');
+                var originalHtml = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#global-loader').hide();
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Lihat Data',
+                                cancelButtonText: 'Tutup',
+                                reverseButtons: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = response.index_url;
+                                } else {
+                                    // Reset Form & Re-lock
+                                    $('#checksheetForm')[0].reset();
+                                    resetState();
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#global-loader').hide();
+                        var errorMsg = 'Gagal menyimpan data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg
+                        });
+                        saveBtn.prop('disabled', false).html(originalHtml);
+                    }
+                });
             });
 
-            // Optional: Reset timer on form reset
-            $('button[type="reset"]').click(function () {
+            function resetState() {
                 clearInterval(timerInterval);
                 timerRunning = false;
                 totalSeconds = 0;
@@ -1061,10 +1212,21 @@
 
                 // RE-LOCK INPUTS
                 formInputs.prop('disabled', true);
-                $('form').addClass('inputs-locked');
+                $('#checksheetForm').addClass('inputs-locked');
                 $('#saveBtn').prop('disabled', true);
                 $('#addDefectBtn').hide();
                 $('.defect-row').not(':first').remove();
+
+                // Clear images/standard info
+                $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+
+                // Reset select2 if used (standard select used here)
+                $('#itemSelect').val('').trigger('change');
+            }
+
+            // Optional: Reset timer on form reset
+            $('button[type="reset"]').click(function () {
+                resetState();
             });
 
             // --- Centralized Dimension Validation Logic ---
@@ -1137,7 +1299,7 @@
             }
 
             // --- Dynamic Dimension Expansion Logistic ---
-            let currentCavities = 5;
+            let currentCavities = 2;
             let currentPoints = 5;
             const maxCavities = 30;
             const maxPoints = 30;
@@ -1146,20 +1308,28 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                            style="min-width: 60px;"
-                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                            placeholder="P${j}">
-                                                                                                                    </td>`;
+                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                style="min-width: 60px;"
+                                                                                name="dimensions[${currentCavities}][${j}]" 
+                                                                                placeholder="P${j}">
+                                                                        </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
                 } else {
                     alert('Maximum 30 cavities reached');
+                }
+            });
+
+            $('#deleteCavityBtn').click(function () {
+                if (currentCavities > 1) {
+                    $('#dimensionBody tr:last-child').remove();
+                    currentCavities--;
+                    updateJudgment();
                 }
             });
 
@@ -1173,14 +1343,27 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                            style="min-width: 60px;"
-                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                            placeholder="P${currentPoints}">
-                                                                                                                    </td>`);
+                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                style="min-width: 60px;"
+                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                placeholder="P${currentPoints}">
+                                                                        </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');
+                }
+            });
+
+            $('#deletePointBtn').click(function () {
+                if (currentPoints > 1) {
+                    // Remove last header
+                    $('#dimensionHeadRow th.point-header:last-child').remove();
+                    // Remove last cell from each row
+                    $('.cavity-row').each(function () {
+                        $(this).find('td.point-cell:last-child').remove();
+                    });
+                    currentPoints--;
+                    updateJudgment();
                 }
             });
 

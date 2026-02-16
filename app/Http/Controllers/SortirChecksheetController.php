@@ -118,8 +118,23 @@ class SortirChecksheetController extends Controller
         }
         try {
             $this->sortirService->createSortirChecksheet($request->validated());
-            return redirect()->back()->with('success', 'Data Sortir berhasil disimpan.');
+            $message = 'Data Sortir berhasil disimpan.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('sortir.index', ['plant' => $request->get('plant')])
+                ]);
+            }
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data Sortir: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data Sortir: ' . $e->getMessage());
         }
     }

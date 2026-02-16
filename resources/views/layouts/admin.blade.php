@@ -1431,8 +1431,6 @@
                 <div class="dna-dot"></div>
                 <div class="dna-dot"></div>
             </div>
-            <div class="loader-brand">QC APPS</div>
-            <div class="loader-status">Sedang memproses...</div>
         </div>
     </div>
 

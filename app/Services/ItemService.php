@@ -71,6 +71,11 @@ class ItemService extends BaseService
             // Process dimension standards
             $dimensionStandards = $this->processDimensionStandards($data);
 
+            // Handle similar part file upload
+            if ($file = request()->file('similar_part_file')) {
+                $data['similar_part_file_path'] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+            }
+
             // Create item
             $item = Item::create([
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
@@ -78,6 +83,7 @@ class ItemService extends BaseService
                 'category_id' => $data['category_id'],
                 'file_path' => $filePaths[0] ?? null, // Fallback for legacy
                 'file_paths' => $filePaths,
+                'similar_part_file_path' => $data['similar_part_file_path'] ?? null,
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
@@ -114,20 +120,29 @@ class ItemService extends BaseService
             $customerChanged = $item->customer !== ($data['customer'] ?? null);
             $filePaths = $item->file_paths ?? [];
 
-            // Handle file upload
-            if (isset($data['files'])) {
-                foreach ($data['files'] as $file) {
-                    $filePaths[] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+            // Handle similar part file upload
+            if ($file = request()->file('similar_part_file')) {
+                // Delete old file if exists
+                if ($item->similar_part_file_path) {
+                    $this->deleteFile($item->similar_part_file_path);
                 }
+                $data['similar_part_file_path'] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+            } else {
+                $data['similar_part_file_path'] = $item->similar_part_file_path;
             }
 
             // If customer changed, move all existing files
-            if ($customerChanged && !empty($filePaths)) {
-                $newFilePaths = [];
-                foreach ($filePaths as $path) {
-                    $newFilePaths[] = $this->moveFilePathToCustomerFolder($path, $data['customer'] ?? null);
+            if ($customerChanged) {
+                if (!empty($filePaths)) {
+                    $newFilePaths = [];
+                    foreach ($filePaths as $path) {
+                        $newFilePaths[] = $this->moveFilePathToCustomerFolder($path, $data['customer'] ?? null);
+                    }
+                    $filePaths = $newFilePaths;
                 }
-                $filePaths = $newFilePaths;
+                if ($data['similar_part_file_path']) {
+                    $data['similar_part_file_path'] = $this->moveFilePathToCustomerFolder($data['similar_part_file_path'], $data['customer'] ?? null);
+                }
             }
 
             // Process defects
@@ -146,6 +161,7 @@ class ItemService extends BaseService
                 'sap_code' => $data['sap_code'] ?? null,
                 'file_path' => $filePaths[0] ?? null,
                 'file_paths' => $filePaths,
+                'similar_part_file_path' => $data['similar_part_file_path'],
                 'defects' => $defects,
                 'dimension_standards' => $dimensionStandards,
             ]);
@@ -181,6 +197,10 @@ class ItemService extends BaseService
                 }
             } elseif ($item->file_path) {
                 $this->deleteFile($item->file_path);
+            }
+
+            if ($item->similar_part_file_path) {
+                $this->deleteFile($item->similar_part_file_path);
             }
 
             $item->delete();

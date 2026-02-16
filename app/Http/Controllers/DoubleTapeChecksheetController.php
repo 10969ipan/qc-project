@@ -135,9 +135,23 @@ class DoubleTapeChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
+            $message = 'Data Checksheet Double Tape berhasil disimpan.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('double_tape.index')
+                ]);
+            }
             return redirect()->route('double_tape.index')
-                ->with('success', 'Data Checksheet Double Tape berhasil disimpan.');
+                ->with('success', $message);
         } else {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data.'
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data.');
         }
     }

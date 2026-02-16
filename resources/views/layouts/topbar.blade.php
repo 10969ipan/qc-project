@@ -6,7 +6,7 @@
     $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 @endphp
 
-<nav class="navbar topbar static-top shadow px-4 py-0 d-flex align-items-center justify-content-between">
+<nav class="navbar topbar static-top shadow px-4 d-flex align-items-center justify-content-between">
     <!-- Left Section: Branding, Plant, & Navigation -->
     <div class="d-flex align-items-center flex-grow-1">
         <button class="menu-toggle mr-2" id="mobile-menu-toggle">
@@ -605,6 +605,43 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+
+        /* Desktop Navigation System */
+        .main-nav > li {
+            position: relative;
+            margin: 0 2px;
+        }
+
+        .main-nav > li > a {
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.6rem 0.9rem !important;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            text-decoration: none !important;
+        }
+
+        .main-nav > li > a:hover,
+        .main-nav > li.dropdown-item-hover > a.expanded {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .main-nav > li.active > a {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .main-nav > li > a i {
+            font-size: 1rem;
+            opacity: 0.9;
         }
 
         /* Navigation Sub-menus Blue Style */

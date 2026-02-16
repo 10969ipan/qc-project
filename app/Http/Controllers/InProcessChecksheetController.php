@@ -174,13 +174,24 @@ class InProcessChecksheetController extends Controller
                 fn($c) => $this->mapExportRow($c)
             );
 
-            $message = 'Data Checksheet Inprocess berhasil disimpan (Local Only).';
-            // if (!$result['google_sheets_success']) {
-            //    $message = 'Data Checksheet Inprocess berhasil disimpan lokal, namun GAGAL kirim ke Google Sheets. Error: ' . $result['error'];
-            // }
+            $message = 'Data Checksheet Inprocess berhasil disimpan.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('in_process.index', ['plant' => $request->input('plant')])
+                ]);
+            }
 
             return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }

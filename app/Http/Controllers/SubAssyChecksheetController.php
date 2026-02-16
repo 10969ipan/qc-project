@@ -158,11 +158,26 @@ class SubAssyChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
-            // Preserve plant parameter in redirect
+            $message = 'Data Checksheet berhasil disimpan.';
             $plantParam = $request->input('plant') ?? auth()->user()->plant_id;
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('admin.checksheets.index', ['plant' => $plantParam])
+                ]);
+            }
+
             return redirect()->route('checksheet.sub_assy', ['plant' => $plantParam])
-                ->with('success', 'Data Checksheet berhasil disimpan (Local Only).');
+                ->with('success', $message);
         } else {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data.'
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data.');
         }
     }

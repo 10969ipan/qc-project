@@ -31,6 +31,7 @@ class Item extends Model
         'category_id',
         'file_path',
         'file_paths',
+        'similar_part_file_path',
         'customer',
         'part_number',
         'sap_code',

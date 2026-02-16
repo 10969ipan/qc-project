@@ -61,12 +61,14 @@
                 <div class="alert alert-info mb-3">
                     <div class="row align-items-center">
                         <div class="col-md-3">
-                            <label class="font-weight-bold mb-0"><i class="fas fa-clipboard-check"></i> Tipe Pengecekan:</label>
+                            <label class="font-weight-bold mb-0"><i class="fas fa-clipboard-check"></i> Tipe
+                                Pengecekan:</label>
                         </div>
                         <div class="col-md-9">
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">
                                 <label class="btn btn-outline-primary active" id="labelSampling">
-                                    <input type="radio" name="check_type_option" id="checkTypeSampling" value="sampling" checked>
+                                    <input type="radio" name="check_type_option" id="checkTypeSampling" value="sampling"
+                                        checked>
                                     <i class="fas fa-chart-pie"></i> Sampling (AQL 0.65)
                                 </label>
                                 <label class="btn btn-outline-success" id="labelFullcheck">
@@ -81,7 +83,7 @@
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
-                            <th rowspan="2" style="align-middle">Standard</th>
+                            <th rowspan="2" style="align-middle">Item Part</th>
                             <th rowspan="2" style="align-middle">Item Part</th>
                             <th rowspan="2" style="align-middle">Tanggal / Shift</th>
                             <th rowspan="2" style="align-middle">Total Qty (Lot)</th>
@@ -94,29 +96,27 @@
                         </tr>
                         <tbody>
                             <tr>
-                                <!-- Ilustrasi Barang -->
-                                <td class="align-middle text-center" id="imageContainer">
-                                    <div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                        <i class="fas fa-image fa-2x text-gray-300"></i>
-                                    </div>
-                                </td>
 
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold">Kode SAP</label>
-                                        <input type="text" class="form-control" id="sapCodeInput" placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <input type="text" class="form-control" id="sapCodeInput"
+                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold">Item Part</label>
-                                        <select class="form-control" name="item_id" id="itemSelect" required style="min-width: 300px;">
+                                        <select class="form-control" name="item_id" id="itemSelect" required
+                                            style="min-width: 300px;">
                                             <option value="" disabled selected>Pilih Item Part</option>
                                             @foreach($items as $item)
                                                 <option value="{{ $item->id }}"
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
+                                                    data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
                                                     data-name="{{ $item->name }}" data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
@@ -131,7 +131,8 @@
                                 <!-- Tanggal / Shift -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <input type="date" class="form-control" style="min-width: 110px;" name="date" value="{{ $defaultDate }}" required>
+                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
+                                            value="{{ $defaultDate }}" required>
                                     </div>
                                     <div class="form-group mb-0">
                                         <select class="form-control" style="min-width: 80px;" name="shift" required>
@@ -144,13 +145,16 @@
 
                                 <!-- Total Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;" name="total_qty" id="totalQty" placeholder="0" min="0" required>
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="total_qty" id="totalQty" placeholder="0" min="0" required>
                                 </td>
 
                                 <!-- Sampling Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;" name="sampling_qty" id="samplingQty" placeholder="0" min="0" required>
-                                    <div id="aql_info" class="text-xs text-center mt-1 font-weight-bold" style="display: none;">
+                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                        name="sampling_qty" id="samplingQty" placeholder="0" min="0" required>
+                                    <div id="aql_info" class="text-xs text-center mt-1 font-weight-bold"
+                                        style="display: none;">
                                         <span class="text-success">Acc: <span id="acc_val">0</span></span> |
                                         <span class="text-danger">Rej: <span id="rej_val">1</span></span>
                                     </div>
@@ -159,19 +163,23 @@
                                 <td class="align-middle" style="min-width: 280px;">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK (Pass All)</label>
+                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK (Pass
+                                            All)</label>
                                     </div>
                                     <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]" id="defectSelect">
+                                            <select class="form-control defect-select" style="min-width: 180px;"
+                                                name="defect_types[]" id="defectSelect">
                                                 <option value="">-- Pilih Defect --</option>
                                             </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
+                                                name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1" style="display: none;">
+                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
+                                        style="display: none;">
                                         <i class="fas fa-plus"></i> Tambah Jenis
                                     </button>
                                 </td>
@@ -179,22 +187,31 @@
                                 <!-- Total OK / NG -->
                                 <td class="align-middle" style="min-width: 120px;">
                                     <div class="row no-gutters mb-1">
-                                        <div class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">OK</div>
+                                        <div
+                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
+                                            OK</div>
                                         <div class="col-8">
-                                            <input type="number" class="form-control form-control-sm rounded-0 rounded-right text-center" name="total_ok" placeholder="0" min="0" required readonly>
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                name="total_ok" placeholder="0" min="0" required readonly>
                                         </div>
                                     </div>
                                     <div class="row no-gutters">
-                                        <div class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">NG</div>
+                                        <div
+                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
+                                            NG</div>
                                         <div class="col-8">
-                                            <input type="number" class="form-control form-control-sm rounded-0 rounded-right text-center" name="total_ng" id="totalNG" placeholder="0" min="0" required>
+                                            <input type="number"
+                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                name="total_ng" id="totalNG" placeholder="0" min="0" required>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Judgment -->
                                 <td class="align-middle">
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect" required>
+                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                        required>
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
                                         <option value="NG" class="text-danger">NG</option>
@@ -203,13 +220,16 @@
 
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 60px;" name="operator_initials" value="{{ auth()->user()->initials ?? '' }}" placeholder="Inisial" required>
+                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                        name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
+                                        placeholder="Inisial" required>
                                 </td>
 
                                 <!-- Keterangan -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                        <label for="nextProses" class="font-weight-bold text-danger small">Next Proses:</label>
+                                        <label for="nextProses" class="font-weight-bold text-danger small">Next
+                                            Proses:</label>
                                         <select class="form-control form-control-sm" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih --</option>
                                             <option value="CRUSHING">CRUSHING</option>
@@ -217,7 +237,8 @@
                                             <option value="REPAIR">REPAIR</option>
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="remarks" rows="4" placeholder="Catatan..."></textarea>
+                                    <textarea class="form-control" name="remarks" rows="4"
+                                        placeholder="Catatan..."></textarea>
                                 </td>
                             </tr>
                         </tbody>
@@ -241,20 +262,140 @@
         </div>
     </div>
 
+    <!-- PDF Side-by-Side Display Section -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i> Reference View</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
+                            style="display:none;">
+                            <i class="fas fa-expand"></i> Full
+                        </button>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded overflow-hidden border"
+                        style="height: 800px; position: relative; background-color: #eee;">
+                        <div id="standardPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                        </div>
+                        <iframe id="standardPdfFrame" src="" width="100%" height="100%" frameborder="0"
+                            style="display:none; position: absolute; top:0; left:0;"></iframe>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
+                            style="display:none;">
+                            <i class="fas fa-expand"></i> Full
+                        </button>
+                    </div>
+                    <div id="similarPdfContainer" class="rounded overflow-hidden border"
+                        style="height: 800px; position: relative; background-color: #eee;">
+                        <div id="similarPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-copy fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Similar Part</p>
+                            <p class="small mt-2" id="similarStatusText"></p>
+                        </div>
+                        <iframe id="similarPdfFrame" src="" width="100%" height="100%" frameborder="0"
+                            style="display:none; position: absolute; top:0; left:0;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Image Modal -->
-    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">STANDARD</h5>
+                    <h5 class="modal-title" id="imageModalLabel">Preview (Image)</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body text-center">
-                    <img id="modalImage" src="" class="img-fluid mb-3">
-                    <h5 id="modalTitle" class="font-weight-bold"></h5>
-                    <p id="modalDescription"></p>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-center mb-2">
+                        <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomIn">
+                            <i class="fas fa-search-plus"></i> Zoom In
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="zoomReset">
+                            <i class="fas fa-sync-alt"></i> Reset
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="zoomOut">
+                            <i class="fas fa-search-minus"></i> Zoom Out
+                        </button>
+                    </div>
+                    <div class="text-center" style="overflow: auto; max-height: 70vh;">
+                        <img id="modalImage" src="" class="img-fluid mb-3" alt="Detail Gambar"
+                            style="transition: transform 0.2s ease;">
+                    </div>
+                    <div class="text-center">
+                        <h5 id="modalTitle" class="font-weight-bold"></h5>
+                        <p id="modalDescription"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Modal -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
+                        <div class="mr-3 mb-2">
+                            <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
+                                <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
+                            <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
+                                <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
+                            </button>
+                        </div>
+                        <div class="mr-3 mb-2 border-left pl-3">
+                            <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="pageInfo" class="mx-2">Page 1 of ?</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="border-left pl-3 mb-2">
+                            <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">
+                        <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -295,7 +436,7 @@
                     // === UNLOCK ALL INPUTS ===
                     formInputs.prop('disabled', false);
                     $('#checksheetForm').removeClass('inputs-locked');
-                    
+
                     // Specific readonly logic
                     $('#samplingQty').prop('readonly', isFullcheck);
                     $('input[name="total_ok"]').prop('readonly', true);
@@ -304,7 +445,7 @@
                         totalSeconds++;
                         updateTimerDisplay();
                     }, 1000);
-                    
+
                     $('#itemSelect').focus();
                 }
             });
@@ -418,22 +559,51 @@
 
             // Item Selection - load image and defects
             $('#itemSelect').change(function () {
-                var selected = $(this).find('option:selected');
-                var img = selected.data('image');
-                var name = selected.data('name');
-                var desc = selected.data('description');
-                var defects = selected.data('defects');
+                var selectedOption = $(this).find('option:selected');
+                var imageUrl = selectedOption.data('image');
+                var files = selectedOption.data('files');
+                var itemId = selectedOption.val();
+                var name = selectedOption.data('name');
+                var description = selectedOption.data('description');
+                var defects = selectedOption.data('defects');
 
-                if (img) {
-                    $('#imageContainer').html(`<img src="${img}" class="img-thumbnail" style="max-width:100px; cursor:pointer;" data-toggle="modal" data-target="#imageModal" onclick="$('#modalImage').attr('src', '${img}'); $('#modalTitle').text('${name}'); $('#modalDescription').text('${desc}');">`);
+                // PDFs for Side-by-Side
+                var standardPdf = selectedOption.data('standard');
+                var similarPdf = selectedOption.data('similar');
+
+                // Update Side-by-Side PDF Frames
+                if (standardPdf) {
+                    var stdUrl = standardPdf + '#view=FitH&navpanes=0&toolbar=1';
+                    $('#standardPdfFrame').attr('src', stdUrl).show();
+                    $('#standardPdfPlaceholder').hide();
+                    $('#fullStandardBtn').attr('data-id', itemId).attr('data-count', files ? files.length : 1).show();
                 } else {
-                    $('#imageContainer').html('<div style="width:100px; height:100px; background-color:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; margin:0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+                    $('#standardPdfFrame').hide().attr('src', '');
+                    $('#standardPdfPlaceholder').show().find('p').text('Standard PDF tidak tersedia');
+                    $('#fullStandardBtn').hide();
+                }
+
+                if (similarPdf) {
+                    var simUrl = similarPdf + '#view=FitH&navpanes=0&toolbar=1';
+                    $('#similarPdfFrame').attr('src', simUrl).show();
+                    $('#similarPdfPlaceholder').hide();
+                    $('#fullSimilarBtn').attr('data-id', itemId).data('similar', true).show();
+                    $('#similarStatusText').text('');
+                } else {
+                    $('#similarPdfFrame').hide().attr('src', '');
+                    $('#similarPdfPlaceholder').show();
+                    $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
+                    $('#fullSimilarBtn').hide();
+                }
+
+                if (imageUrl) {
+                    // Update preview at bottom if needed, but here we just keep it in modal
                 }
 
                 // Reset and populate defect selection
                 var defectSelect = $('#defectSelect');
                 defectSelect.html('<option value="">-- Pilih Defect --</option>');
-                
+
                 if (typeof defects === 'string') {
                     try { defects = JSON.parse(defects); } catch (e) { defects = null; }
                 }
@@ -476,11 +646,13 @@
 
             // Stop timer on form submit & Validate NG
             $('#checksheetForm').on('submit', function (e) {
+                e.preventDefault(); // Always prevent default for AJAX
+
+                // Validate: If NG, next_proses must be selected
                 var judgment = $('#judgmentSelect').val();
                 var nextProses = $('#nextProses').val();
 
                 if (judgment === 'NG' && !nextProses) {
-                    e.preventDefault();
                     Swal.fire({
                         icon: 'warning',
                         title: 'Next Proses Wajib Dipilih',
@@ -496,7 +668,269 @@
                     timerRunning = false;
                     $('#cycleTimeInput').val(totalSeconds);
                 }
+
+                // Show loading state
+                var saveBtn = $('#saveBtn');
+                var originalHtml = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#global-loader').hide();
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Lihat Data',
+                                cancelButtonText: 'Tutup',
+                                reverseButtons: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = response.index_url;
+                                } else {
+                                    // Reset Form & Re-lock
+                                    $('#checksheetForm')[0].reset();
+                                    resetState();
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#global-loader').hide();
+                        var errorMsg = 'Gagal menyimpan data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg
+                        });
+                        saveBtn.prop('disabled', false).html(originalHtml);
+                    }
+                });
             });
+
+            function resetState() {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                totalSeconds = 0;
+                updateTimerDisplay();
+                $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('#checksheetForm').addClass('inputs-locked');
+                $('#saveBtn').prop('disabled', true);
+
+                // Reset specific elements
+                $('#addDefectBtn').hide();
+                $('#defectContainer').find('.defect-row').not(':first').remove();
+                $('#itemSelect').val('').trigger('change');
+                $('#aql_info').hide();
+                $('#nextProsesContainer').hide();
+
+                // Reset PDF views
+                $('#standardPdfFrame').attr('src', '').hide();
+                $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
+                $('#similarPdfFrame').attr('src', '').hide();
+                $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
+                $('#similarStatusText').text('');
+                $('#fullStandardBtn, #fullSimilarBtn').hide();
+
+                // Reset radio buttons to default (sampling)
+                $('#checkTypeSampling').prop('checked', true).trigger('change');
+                $('#labelSampling').addClass('active');
+                $('#labelFullcheck').removeClass('active');
+            }
         });
+
+        // --- PDF.js Integration ---
+        var pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.getElementById('the-canvas'),
+            ctx = canvas.getContext('2d');
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function (page) {
+                var viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                var renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                var renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+            document.getElementById('pageInfo').textContent = `Page ${num} of ${pdfDoc.numPages}`;
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        document.getElementById('prevPage').addEventListener('click', function () {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function () {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('pdfZoomIn').addEventListener('click', function () {
+            scale += 0.25;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('pdfZoomOut').addEventListener('click', function () {
+            if (scale > 0.25) {
+                scale -= 0.25;
+                queueRenderPage(pageNum);
+            }
+        });
+
+        document.getElementById('pdfZoomReset').addEventListener('click', function () {
+            scale = 1.0;
+            queueRenderPage(pageNum);
+        });
+
+        let currentPdfIndex = 0;
+        let totalPdfFiles = 0;
+        let currentItemId = null;
+
+        function loadPdf(itemId, index) {
+            const routePattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+            const url = routePattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
+
+            pdfDoc = null;
+            pageNum = 1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('pageInfo').textContent = 'Loading...';
+
+            if (index === 'similar') {
+                document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
+                $('#prevPdf, #nextPdf').hide();
+            } else {
+                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
+                if (totalPdfFiles <= 1) {
+                    $('#prevPdf, #nextPdf').hide();
+                } else {
+                    $('#prevPdf, #nextPdf').show();
+                }
+            }
+
+            pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+                pdfDoc = pdfDoc_;
+                document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
+                renderPage(pageNum);
+            }, function (reason) {
+                console.error(reason);
+                let errorMsg = 'Error loading PDF. ';
+                if (reason.name === 'MissingPDFException') {
+                    errorMsg += 'The PDF file could not be found on the server.';
+                } else {
+                    errorMsg += reason.message || reason;
+                }
+                document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                alert(errorMsg);
+            });
+        }
+
+        document.getElementById('prevPdf').addEventListener('click', function () {
+            if (currentPdfIndex <= 0) return;
+            currentPdfIndex--;
+            loadPdf(currentItemId, currentPdfIndex);
+        });
+
+        document.getElementById('nextPdf').addEventListener('click', function () {
+            if (currentPdfIndex >= totalPdfFiles - 1) return;
+            currentPdfIndex++;
+            loadPdf(currentItemId, currentPdfIndex);
+        });
+
+        // Trigger PDF Modal from dynamic button (delegated event)
+        $(document).on('click', '.view-pdf-btn', function () {
+            currentItemId = $(this).data('id');
+            var isSimilar = $(this).data('similar');
+
+            if (isSimilar) {
+                totalPdfFiles = 1;
+                currentPdfIndex = 'similar';
+            } else {
+                totalPdfFiles = $(this).data('count');
+                currentPdfIndex = 0;
+            }
+
+            $('#pdfModal').modal('show');
+            loadPdf(currentItemId, currentPdfIndex);
+        });
+
+        // Image Zoom Logic
+        var currentZoom = 1;
+        $('#zoomIn').click(function () {
+            currentZoom += 0.2;
+            $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
+        });
+        $('#zoomOut').click(function () {
+            if (currentZoom > 0.4) {
+                currentZoom -= 0.2;
+                $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
+            }
+        });
+        $('#zoomReset').click(function () {
+            currentZoom = 1;
+            $('#modalImage').css('transform', 'scale(1)');
+        });
+
+        $('#imageModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var image = button.data('image') || button.attr('src');
+            var title = button.data('name') || "Detail Gambar";
+            var desc = button.data('description') || "";
+
+            $('#modalImage').attr('src', image).css('transform', 'scale(1)');
+            $('#modalTitle').text(title);
+            $('#modalDescription').text(desc);
+            currentZoom = 1;
+        });
+
+        // Script loading for pdf.js
+        if (typeof pdfjsLib === 'undefined') {
+            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js').done(function () {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            });
+        }
     </script>
 @endpush

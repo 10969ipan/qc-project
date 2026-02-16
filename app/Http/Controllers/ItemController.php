@@ -179,8 +179,11 @@ class ItemController extends Controller
             $filePaths = $item->file_paths;
             $targetPath = null;
             $isLegacy = false;
+            $isSimilar = ($index === 'similar');
 
-            if (!empty($filePaths) && isset($filePaths[$index])) {
+            if ($isSimilar) {
+                $targetPath = $item->similar_part_file_path;
+            } elseif (!empty($filePaths) && isset($filePaths[$index])) {
                 $targetPath = $filePaths[$index];
             } elseif ($index == 0 && $item->file_path) {
                 $targetPath = $item->file_path;
@@ -188,7 +191,7 @@ class ItemController extends Controller
             }
 
             if (!$targetPath) {
-                \Log::warning("PDF serve requested for Item ID {$id} index {$index} but path is empty.");
+                \Log::warning("PDF serve requested for Item ID {$id} type/index {$index} but path is empty.");
                 abort(404, 'PDF file path not found');
             }
 
@@ -255,7 +258,9 @@ class ItemController extends Controller
 
                 if ($foundPath) {
                     // Update DB with correct path
-                    if ($isLegacy) {
+                    if ($isSimilar) {
+                        $item->similar_part_file_path = $foundRelativePath;
+                    } elseif ($isLegacy) {
                         $item->file_path = $foundRelativePath;
                         // Also update file_paths if it was empty/syncing
                         if (empty($item->file_paths)) {

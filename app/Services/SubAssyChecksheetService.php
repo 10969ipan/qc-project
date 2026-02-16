@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class SubAssyChecksheetService extends BaseService
 {
+    use \App\Traits\ChecksheetServiceTrait;
     protected $googleSheetService;
     protected $notificationService;
 
@@ -38,6 +39,7 @@ class SubAssyChecksheetService extends BaseService
      */
     public function buildFilteredQuery(array $filters)
     {
+        /** @var \Illuminate\Database\Eloquent\Builder $query */
         $query = SubAssyChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present (Global scope handles restrictions for non-exempt roles)
@@ -319,27 +321,8 @@ class SubAssyChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             $checksheet = SubAssyChecksheet::findOrFail($id);
-            $user = auth()->user();
 
-            // Update each approval level
-            $this->updateApprovalLevel($checksheet, 'kashift', $data['kashift_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'supervisor', $data['supervisor_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'asst_manager', $data['asst_manager_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'manager', $data['manager_qc'], $user);
-
-            // Update overall approval status
-            if (
-                $checksheet->manager_qc === 'REJECTED' ||
-                $checksheet->asst_manager_qc === 'REJECTED' ||
-                $checksheet->supervisor_qc === 'REJECTED' ||
-                $checksheet->kashift_qc === 'REJECTED'
-            ) {
-                $checksheet->approval_status = 'Rejected';
-            } elseif ($checksheet->manager_qc) {
-                $checksheet->approval_status = 'Approved';
-            } else {
-                $checksheet->approval_status = 'Pending';
-            }
+            $this->processFullApprovalUpdate($checksheet, $data);
 
             $checksheet->save();
 
@@ -351,98 +334,4 @@ class SubAssyChecksheetService extends BaseService
         }
     }
 
-    /**
-     * Process defects from request
-     * 
-     * @param array $data
-     * @return array
-     */
-    private function processDefects(array $data): array
-    {
-        $defects = [];
-        if (isset($data['defect_types'])) {
-            foreach ($data['defect_types'] as $index => $type) {
-                if ($type) {
-                    $qty = $data['defect_quantities'][$index] ?? 1;
-                    $defects[] = ['type' => $type, 'qty' => (int) $qty];
-                }
-            }
-        }
-        return $defects;
-    }
-
-    /**
-     * Apply approval status filter to query
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $status
-     * @return void
-     */
-    private function applyApprovalStatusFilter($query, string $status): void
-    {
-        if ($status === 'Pending') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Pending')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->whereNull('supervisor_qc')
-                            ->where(function ($rej) {
-                                $rej->where('kashift_qc', '!=', 'REJECTED')
-                                    ->orWhereNull('kashift_qc');
-                            });
-                    });
-            });
-        } elseif ($status === 'Approved') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Approved')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->whereNotNull('supervisor_qc')
-                            ->where('supervisor_qc', '!=', 'REJECTED');
-                    });
-            });
-        } elseif ($status === 'Rejected') {
-            $query->where(function ($q) {
-                $q->where('approval_status', 'Rejected')
-                    ->orWhere(function ($sub) {
-                        $sub->whereNull('approval_status')
-                            ->where(function ($rej) {
-                                $rej->where('kashift_qc', 'REJECTED')
-                                    ->orWhere('supervisor_qc', 'REJECTED')
-                                    ->orWhere('asst_manager_qc', 'REJECTED');
-                            });
-                    });
-            });
-        }
-    }
-
-    /**
-     * Update single approval level
-     * 
-     * @param SubAssyChecksheet $checksheet
-     * @param string $level
-     * @param string $status
-     * @param \App\Models\User $user
-     * @return void
-     */
-    private function updateApprovalLevel(SubAssyChecksheet $checksheet, string $level, string $status, $user): void
-    {
-        $nameField = "{$level}_qc";
-        $dateField = "{$level}_approved_at";
-
-        if ($status === 'Approved') {
-            if (is_null($checksheet->$nameField) || $checksheet->$nameField === 'REJECTED') {
-                $checksheet->$nameField = $user->name;
-                $checksheet->$dateField = now();
-            }
-        } elseif ($status === 'Rejected') {
-            if ($checksheet->$nameField !== 'REJECTED') {
-                $checksheet->$nameField = 'REJECTED';
-                $checksheet->$dateField = now();
-            }
-        } else { // Pending
-            $checksheet->$nameField = null;
-            $checksheet->$dateField = null;
-        }
-    }
 }

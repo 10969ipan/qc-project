@@ -112,8 +112,24 @@ class CrossCutChecksheetController extends Controller
         }
         try {
             $this->crossCutService->createChecksheet($request->validated());
-            return redirect()->route('cross_cut.create')->with('success', 'Cross Cut Checksheet created successfully.');
+            $message = 'Cross Cut Checksheet created successfully.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('cross_cut.index', ['plant' => $request->get('plant')])
+                ]);
+            }
+
+            return redirect()->route('cross_cut.create')->with('success', $message);
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }

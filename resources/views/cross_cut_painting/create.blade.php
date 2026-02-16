@@ -693,13 +693,14 @@
             // Initialize on page load
             toggleNextProsesDropdown();
 
-            document.querySelector('form[action*="store"]').addEventListener('submit', function (e) {
+            document.querySelector('#checksheetForm').addEventListener('submit', function (e) {
+                e.preventDefault(); // Always prevent default for AJAX
+
                 // Validate: If NG, next_proses must be selected
                 var judgment = $('select[name="position_remark_judgment"]').val();
                 var nextProses = $('#nextProses').val();
 
                 if (judgment === 'NG' && !nextProses) {
-                    e.preventDefault();
                     Swal.fire({
                         icon: 'warning',
                         title: 'Next Proses Wajib Dipilih',
@@ -715,7 +716,88 @@
                     timerRunning = false;
                     cycleTimeInput.value = totalSeconds;
                 }
+
+                // Show loading state
+                var $saveBtn = $(saveBtn);
+                var originalHtml = $saveBtn.html();
+                $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#global-loader').hide();
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Lihat Data',
+                                cancelButtonText: 'Tutup',
+                                reverseButtons: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = response.index_url;
+                                } else {
+                                    // Reset Form & Re-lock
+                                    $('#checksheetForm')[0].reset();
+                                    resetState();
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#global-loader').hide();
+                        var errorMsg = 'Gagal menyimpan data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg
+                        });
+                        $saveBtn.prop('disabled', false).html(originalHtml);
+                    }
+                });
             });
+
+            function resetState() {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                totalSeconds = 0;
+                updateTimerDisplay();
+
+                startTimerBtn.classList.remove('btn-secondary');
+                startTimerBtn.classList.add('btn-success');
+                startTimerBtn.disabled = false;
+                startTimerBtn.innerHTML = '<i class="fas fa-play"></i> Start';
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('#checksheetForm').addClass('inputs-locked');
+                saveBtn.disabled = true;
+
+                // Reset specific elements
+                $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+                $('#item_id').val('').trigger('change');
+                $('#nextProsesContainer').hide();
+
+                // Reset image capture
+                $('#fileName').text('');
+                $('#captureBtnText').html('Buka Kamera / Pilih Foto');
+                $('#captureBtn').removeClass('btn-warning').addClass('btn-primary');
+                $('#previewBtn').hide();
+                $('#previewImage').attr('src', '');
+            }
         });
     </script>
 @endpush

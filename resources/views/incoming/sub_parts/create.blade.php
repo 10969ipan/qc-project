@@ -174,6 +174,69 @@
                 $('#totalNgInput').val(totalNg);
                 $('#judgmentSelect').val(totalNg > 0 ? 'NG' : 'OK');
             });
+
+            $('#checksheetForm').on('submit', function (e) {
+                e.preventDefault(); // Always prevent default for AJAX
+
+                // Show loading state
+                var saveBtn = $(this).find('button[type="submit"]');
+                var originalHtml = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#global-loader').hide();
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data Berhasil Disimpan',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Lihat Data',
+                                cancelButtonText: 'Tutup',
+                                reverseButtons: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = response.index_url;
+                                } else {
+                                    // Reset Form & Defect Rows
+                                    resetState();
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#global-loader').hide();
+                        var errorMsg = 'Gagal menyimpan data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg
+                        });
+                        saveBtn.prop('disabled', false).html(originalHtml);
+                    }
+                });
+            });
+
+            function resetState() {
+                $('#checksheetForm')[0].reset();
+                $('#itemSelect').val('').trigger('change');
+                $('#defectContainer').find('.defect-row').not(':first').remove();
+                $('#totalNgInput').val(0);
+                $('#judgmentSelect').val('OK');
+            }
         });
     </script>
 @endpush

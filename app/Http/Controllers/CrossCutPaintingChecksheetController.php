@@ -109,8 +109,24 @@ class CrossCutPaintingChecksheetController extends Controller
         }
         try {
             $this->paintingService->createChecksheet($request->validated());
-            return redirect()->route('cross_cut_painting.create')->with('success', 'Cross Cut Painting Checksheet created successfully.');
+            $message = 'Cross Cut Painting Checksheet created successfully.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('cross_cut_painting.index', ['plant' => $request->get('plant')])
+                ]);
+            }
+
+            return redirect()->route('cross_cut_painting.create')->with('success', $message);
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
