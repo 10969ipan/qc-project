@@ -103,28 +103,6 @@ class CalibrationController extends Controller
 
         $tools = $query->get();
 
-        // Auto-create schedule records for tools that have no schedules in the current year
-        // so every tool always has a schedule record with an ID for inline PR input
-        foreach ($tools as $tool) {
-            if ($tool->schedules->isEmpty()) {
-                // Use legacy schedule_planning if available, otherwise use today's date
-                $scheduleDate = ($tool->schedule_planning)
-                    ? $tool->schedule_planning
-                    : now()->toDateString();
-
-                \App\Models\CalibrationToolSchedule::create([
-                    'tool_id' => $tool->id,
-                    'schedule_date' => $scheduleDate,
-                ]);
-                // Reload schedules relation so it's available in the view
-                $tool->load([
-                    'schedules' => function ($q) use ($year) {
-                        $q->whereYear('schedule_date', $year);
-                    }
-                ]);
-            }
-        }
-
         return view('calibration.schedule.index', compact('tools', 'plantCode'));
     }
 
@@ -201,6 +179,27 @@ class CalibrationController extends Controller
         }
 
         $tools = $query->get();
+
+        // Auto-create schedule records for tools that have no schedules in the current year
+        // so every tool always has a schedule record with an ID for inline PR input
+        $currentYear = date('Y');
+        foreach ($tools as $tool) {
+            if ($tool->schedules->isEmpty()) {
+                $scheduleDate = ($tool->schedule_planning)
+                    ? $tool->schedule_planning
+                    : now()->toDateString();
+
+                \App\Models\CalibrationToolSchedule::create([
+                    'tool_id' => $tool->id,
+                    'schedule_date' => $scheduleDate,
+                ]);
+                $tool->load([
+                    'schedules' => function ($q) use ($currentYear) {
+                        $q->whereYear('schedule_date', $currentYear);
+                    }
+                ]);
+            }
+        }
 
         // Filter by Verification Status (OK / Belum Verifikasi)
         if ($request->filled('verification_status')) {
