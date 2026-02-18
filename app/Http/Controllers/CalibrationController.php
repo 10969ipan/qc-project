@@ -180,25 +180,6 @@ class CalibrationController extends Controller
 
         $tools = $query->get();
 
-        // Auto-create schedule records for tools that have no schedules in the current year
-        // so every tool always has a schedule record with an ID for inline PR input
-        $currentYear = date('Y');
-        foreach ($tools as $tool) {
-            if ($tool->schedules->isEmpty()) {
-                // Always use today's date to ensure the record is in the current year
-                // (legacy schedule_planning may be from past years like 2022)
-                \App\Models\CalibrationToolSchedule::create([
-                    'tool_id' => $tool->id,
-                    'schedule_date' => now()->toDateString(),
-                ]);
-                $tool->load([
-                    'schedules' => function ($q) use ($currentYear) {
-                        $q->whereYear('schedule_date', $currentYear);
-                    }
-                ]);
-            }
-        }
-
         // Filter by Verification Status (OK / Belum Verifikasi)
         if ($request->filled('verification_status')) {
             $statusFilter = $request->verification_status;
@@ -931,17 +912,26 @@ class CalibrationController extends Controller
     public function updatePr(Request $request)
     {
         $request->validate([
-            'schedule_id' => 'required|exists:calibration_tool_schedules,id',
+            'tool_id' => 'required|exists:calibration_tools,id',
             'pr_number' => 'nullable|string',
         ]);
 
-        $schedule = \App\Models\CalibrationToolSchedule::with('tool')->findOrFail($request->schedule_id);
+        // Find or create a schedule record for this tool in the current year
+        $schedule = \App\Models\CalibrationToolSchedule::where('tool_id', $request->tool_id)
+            ->whereYear('schedule_date', date('Y'))
+            ->first();
+
+        if (!$schedule) {
+            $schedule = \App\Models\CalibrationToolSchedule::create([
+                'tool_id' => $request->tool_id,
+                'schedule_date' => now()->toDateString(),
+            ]);
+        }
 
         if (empty($request->pr_number)) {
             $schedule->pr_number = null;
             $schedule->pr_date = null;
         } else {
-            // Updated logic: PR date is only updated if the PR number is NEW or CHANGED
             if ($schedule->pr_number !== $request->pr_number) {
                 $schedule->pr_number = $request->pr_number;
                 $schedule->pr_date = now();

@@ -214,24 +214,35 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if(!empty($scheduledStatuses))
-                                        @php $first = $scheduledStatuses[0]; @endphp
+                                    @if(strtoupper($tool->jenis_kalibrasi) === 'EKSTERNAL')
+                                        @php
+                                            // Get existing PR from any schedule in current year
+                                            $existingPr = null;
+                                            $existingPrDate = null;
+                                            foreach ($tool->schedules as $sch) {
+                                                if ($sch->pr_number) {
+                                                    $existingPr = $sch->pr_number;
+                                                    $existingPrDate = $sch->pr_date;
+                                                    break;
+                                                }
+                                            }
+                                        @endphp
                                         <div class="mb-1 pb-1 schedule-item"
                                             style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                             <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
                                                 <input type="text" class="form-control form-control-sm pr-input text-center"
-                                                    data-schedule-id="{{ $first->id }}" placeholder="PR..."
-                                                    value="{{ $first->pr_number }}" style="width: 70px;">
-                                                @if($first->pr_number)
+                                                    data-tool-id="{{ $tool->id }}" placeholder="PR..."
+                                                    value="{{ $existingPr }}" style="width: 70px;">
+                                                @if($existingPr)
                                                     <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
-                                                        data-schedule-id="{{ $first->id }}" title="Reset PR">
+                                                        data-tool-id="{{ $tool->id }}" title="Reset PR">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 @endif
                                             </div>
                                         </div>
                                     @else
-                                        -
+                                        <span class="text-muted">-</span>
                                     @endif
                                 </td>
                                 <td>
@@ -933,21 +944,19 @@
             // PR Input Change
             $('.pr-input').on('change', function () {
                 var input = $(this);
-                var scheduleId = input.data('schedule-id');
+                var toolId = input.data('tool-id');
                 var prNumber = input.val();
-                var display = $('#pr-date-' + scheduleId);
 
                 $.ajax({
                     url: "{{ route('calibration.tools.update-pr') }}",
                     method: 'POST',
                     data: {
                         _token: "{{ csrf_token() }}",
-                        schedule_id: scheduleId,
+                        tool_id: toolId,
                         pr_number: prNumber
                     },
                     success: function (response) {
                         if (response.success) {
-                            display.text(response.pr_date);
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
@@ -976,7 +985,7 @@
             // Reset PR Click
             $('.reset-pr').on('click', function () {
                 var button = $(this);
-                var scheduleId = button.data('schedule-id');
+                var toolId = button.data('tool-id');
 
                 Swal.fire({
                     title: 'Reset PR?',
@@ -994,7 +1003,7 @@
                             method: 'POST',
                             data: {
                                 _token: "{{ csrf_token() }}",
-                                schedule_id: scheduleId,
+                                tool_id: toolId,
                                 pr_number: "" // Send empty to reset
                             },
                             success: function (response) {
