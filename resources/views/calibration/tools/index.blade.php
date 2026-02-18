@@ -417,6 +417,10 @@
                                     <input type="text" name="name_alat" class="form-control form-control-sm" required>
                                 </div>
                                 <div class="form-group mb-2">
+                                    <label class="small font-weight-bold">Merk</label>
+                                    <input type="text" name="merk" class="form-control form-control-sm">
+                                </div>
+                                <div class="form-group mb-2">
                                     <label class="small font-weight-bold">No. Seri</label>
                                     <input type="text" name="serial_number" class="form-control form-control-sm" required>
                                 </div>
@@ -521,6 +525,11 @@
                                             class="text-danger">*</span></label>
                                     <input type="text" name="name_alat" id="edit_name_alat"
                                         class="form-control form-control-sm" required>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="small font-weight-bold">Merk</label>
+                                    <input type="text" name="merk" id="edit_merk"
+                                        class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">No. Seri <span
@@ -1073,6 +1082,8 @@
                     var tool = response.tool;
                     $('#edit_bagian').val(tool.bagian);
                     $('#edit_name_alat').val(tool.name_alat);
+                    $('#edit_merk').val(tool.merk);
+                    $('#edit_merk').val(tool.merk);
                     $('#edit_serial_number').val(tool.serial_number);
                     $('#edit_range').val(tool.range);
                     $('#edit_resolusi').val(tool.resolusi);
