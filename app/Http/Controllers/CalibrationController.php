@@ -218,6 +218,7 @@ class CalibrationController extends Controller
             'plant' => 'required|string',
             'bagian' => 'required|string',
             'name_alat' => 'required|string',
+            'merk' => 'nullable|string',
             'serial_number' => [
                 'required',
                 'string',
@@ -316,6 +317,7 @@ class CalibrationController extends Controller
             'plant' => 'required|string',
             'bagian' => 'required|string',
             'name_alat' => 'required|string',
+            'merk' => 'nullable|string',
             'serial_number' => [
                 'required',
                 'string',

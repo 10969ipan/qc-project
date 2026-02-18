@@ -168,6 +168,7 @@
                             <th class="align-middle col-no">NO.</th>
                             <th class="align-middle col-bagian">BAGIAN</th>
                             <th class="align-middle col-name">NAMA ALAT</th>
+                            <th class="align-middle col-merk">MERK</th>
                             <th class="align-middle col-seri">NO. SERI</th>
                             <th class="align-middle col-range">RANGE</th>
                             <th class="align-middle col-res">RESOLUSI</th>
@@ -188,6 +189,7 @@
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $tool->bagian }}</td>
                                 <td>{{ $tool->name_alat }}</td>
+                                <td>{{ $tool->merk ?? '-' }}</td>
                                 <td>{{ $tool->serial_number }}</td>
                                 <td>{{ $tool->range }}</td>
                                 <td>{{ $tool->resolusi }}</td>
@@ -352,7 +354,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="14" class="text-center">Tidak ada data alat.</td>
+                                <td colspan="15" class="text-center">Tidak ada data alat.</td>
                             </tr>
                         @endforelse
                     </tbody>

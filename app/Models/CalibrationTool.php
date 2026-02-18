@@ -12,6 +12,7 @@ class CalibrationTool extends Model
     protected $fillable = [
         'bagian',
         'name_alat',
+        'merk',
         'serial_number',
         'range',
         'resolusi',
