@@ -280,7 +280,19 @@
                                         } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
                                             $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
                                         } else {
-                                            $statIcon = $icon_base;
+                                            // Default icon - but check if approaching schedule (within 1 month)
+                                            $schedulePlanDate = $tool->schedule_planning ? \Carbon\Carbon::parse((string) $tool->schedule_planning) : null;
+                                            $today = now()->startOfDay();
+
+                                            if ($schedulePlanDate && $today->gte($schedulePlanDate->copy()->subMonth()) && $today->lte($schedulePlanDate)) {
+                                                // Within 1 month before schedule planning → yellow warning
+                                                $statIcon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Mendekati Jadwal Kalibrasi"></i>';
+                                            } elseif ($schedulePlanDate && $today->gt($schedulePlanDate)) {
+                                                // Past schedule planning date → red danger
+                                                $statIcon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal Kalibrasi"></i>';
+                                            } else {
+                                                $statIcon = $icon_base;
+                                            }
                                         }
                                     @endphp
 
