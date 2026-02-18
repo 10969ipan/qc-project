@@ -246,65 +246,57 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if(!empty($scheduledStatuses))
-                                        @php
-                                            $item = $scheduledStatuses[0];
-                                            $planningDate = \Carbon\Carbon::parse($item->schedule_date);
-                                            $today = now()->startOfDay();
-                                            $prDate = $item->pr_date ? \Carbon\Carbon::parse($item->pr_date) : null;
-                                            $isClickable = false;
+                                    @php
+                                        // Determine status icon using schedules directly (not getScheduledStatuses)
+                                        $statIcon = '-';
+                                        $statPrDate = '-';
+                                        $statIsClickable = false;
+                                        $statLinkParams = [];
 
-                                            $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
-                                                '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
-                                                '<i class="fas fa-clock %COLOR_CLASS%" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                '</div>';
+                                        // Check for schedule with PR in current year
+                                        $currentSchedule = $tool->schedules->first();
+                                        $hasVerification = !empty($scheduledStatuses) && $scheduledStatuses[0]->is_ok;
 
-                                            if ($item->is_ok) {
-                                                $icon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
-                                                $statusText = 'Sudah Verifikasi';
-                                                $isClickable = true;
-                                            } elseif ($item->pr_number) {
-                                                // PR filled but not verified yet - Blue Hourglass (Requested)
-                                                $icon = '<i class="fas fa-hourglass-half text-primary fa-lg" title="PR Out - Menunggu Verifikasi"></i>';
-                                                $statusText = 'PR Out - Menunggu Verifikasi';
-                                            } elseif ($tool->jenis_kalibrasi === 'INTERNAL') {
-                                                // Internal doesn't need PR, so it's ready once scheduled
-                                                $icon = str_replace(['%COLOR_CLASS%', 'title="Belum PR"'], ['text-secondary', 'title="Siap Verifikasi"'], $icon_base);
-                                                $statusText = 'Siap Verifikasi';
-                                            } else {
-                                                // Default: External without PR yet
-                                                $icon = str_replace(['%COLOR_CLASS%'], ['text-secondary'], $icon_base);
-                                                $statusText = 'Belum PR';
-                                            }
+                                        $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                            '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
+                                            '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                            '</div>';
 
-                                            // Overdue check regardless of PR status if not verified
-                                            if (!$item->is_ok && $today->gt($planningDate)) {
-                                                $icon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal"></i>';
-                                                $statusText = 'Melewati Jadwal';
-                                            }
-                                        @endphp
-
-                                        <div class="mb-1 pb-1 schedule-item"
-                                            style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                            @if($isClickable)
-                                                <a href="{{ route('calibration.verifications.index', [
+                                        if ($hasVerification) {
+                                            $statIcon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
+                                            $statIsClickable = true;
+                                            if ($currentSchedule) {
+                                                $statPrDate = $currentSchedule->pr_date ? \Carbon\Carbon::parse($currentSchedule->pr_date)->format('d/m/Y') : '-';
+                                                $statLinkParams = [
                                                     'plant' => $plantCode,
                                                     'tool_id' => $tool->id,
-                                                    'start_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
-                                                    'end_date' => \Carbon\Carbon::parse($item->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
-                                                ]) }}" style="text-decoration: none;">
-                                                    {!! $icon !!}
-                                                </a>
-                                            @else
-                                                {!! $icon !!}
-                                            @endif
-                                            <small class="pr-date-display text-muted mt-1" id="pr-date-{{ $item->id }}">
-                                                {{ $item->pr_date ? \Carbon\Carbon::parse($item->pr_date)->format('d/m/Y') : '-' }}
-                                            </small>
-                                        </div>
-                                    @else
-                                        -
-                                    @endif
+                                                    'start_date' => \Carbon\Carbon::parse($currentSchedule->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
+                                                    'end_date' => \Carbon\Carbon::parse($currentSchedule->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
+                                                ];
+                                            }
+                                        } elseif ($currentSchedule && $currentSchedule->pr_number) {
+                                            $statIcon = '<i class="fas fa-hourglass-half text-primary fa-lg" title="PR Out - Menunggu Verifikasi"></i>';
+                                            $statPrDate = $currentSchedule->pr_date ? \Carbon\Carbon::parse($currentSchedule->pr_date)->format('d/m/Y') : '-';
+                                        } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
+                                            $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
+                                        } else {
+                                            $statIcon = $icon_base;
+                                        }
+                                    @endphp
+
+                                    <div class="mb-1 pb-1 schedule-item"
+                                        style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        @if($statIsClickable && !empty($statLinkParams))
+                                            <a href="{{ route('calibration.verifications.index', $statLinkParams) }}" style="text-decoration: none;">
+                                                {!! $statIcon !!}
+                                            </a>
+                                        @else
+                                            {!! $statIcon !!}
+                                        @endif
+                                        <small class="pr-date-display text-muted mt-1">
+                                            {{ $statPrDate }}
+                                        </small>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-center" style="gap: 5px; white-space: nowrap;">
