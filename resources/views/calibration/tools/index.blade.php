@@ -941,8 +941,8 @@
                 $(this).find('#pdfFrame').attr('src', '');
             });
 
-            // PR Input Change
-            $('.pr-input').on('change', function () {
+            // PR Input Change (delegated for DataTables pagination)
+            $(document).on('change', '.pr-input', function () {
                 var input = $(this);
                 var toolId = input.data('tool-id');
                 var prNumber = input.val();
@@ -982,8 +982,8 @@
                 });
             });
 
-            // Reset PR Click
-            $('.reset-pr').on('click', function () {
+            // Reset PR Click (delegated for DataTables pagination)
+            $(document).on('click', '.reset-pr', function () {
                 var button = $(this);
                 var toolId = button.data('tool-id');
 
