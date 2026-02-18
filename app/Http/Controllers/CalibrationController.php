@@ -347,7 +347,9 @@ class CalibrationController extends Controller
         $data = $request->except(['certification', 'plant', 'schedule_planning']);
 
         // Use the first schedule as the main schedule_planning for legacy purposes
-        $data['schedule_planning'] = !empty($request->schedule_planning) ? $request->schedule_planning[0] : null;
+        if (!empty($request->schedule_planning)) {
+            $data['schedule_planning'] = $request->schedule_planning[0];
+        }
 
         if ($request->hasFile('certification')) {
             if (!Storage::disk('public')->exists('calibration/tools')) {
