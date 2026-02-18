@@ -45,6 +45,10 @@
             width: 110px;
         }
 
+        .col-merk {
+            width: 60px;
+        }
+
         .col-seri {
             width: 80px;
         }
