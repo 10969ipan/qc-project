@@ -103,13 +103,18 @@ class CalibrationController extends Controller
 
         $tools = $query->get();
 
-        // Auto-migrate legacy schedule_planning tools into calibration_tool_schedules
-        // so every tool has a schedule record with an ID for inline PR input
+        // Auto-create schedule records for tools that have no schedules in the current year
+        // so every tool always has a schedule record with an ID for inline PR input
         foreach ($tools as $tool) {
-            if ($tool->schedules->isEmpty() && $tool->schedule_planning && \Carbon\Carbon::parse((string) $tool->schedule_planning)->format('Y') == $year) {
-                $newSchedule = \App\Models\CalibrationToolSchedule::create([
+            if ($tool->schedules->isEmpty()) {
+                // Use legacy schedule_planning if available, otherwise use today's date
+                $scheduleDate = ($tool->schedule_planning)
+                    ? $tool->schedule_planning
+                    : now()->toDateString();
+
+                \App\Models\CalibrationToolSchedule::create([
                     'tool_id' => $tool->id,
-                    'schedule_date' => $tool->schedule_planning,
+                    'schedule_date' => $scheduleDate,
                 ]);
                 // Reload schedules relation so it's available in the view
                 $tool->load([
