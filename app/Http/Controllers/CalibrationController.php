@@ -185,13 +185,11 @@ class CalibrationController extends Controller
         $currentYear = date('Y');
         foreach ($tools as $tool) {
             if ($tool->schedules->isEmpty()) {
-                $scheduleDate = ($tool->schedule_planning)
-                    ? $tool->schedule_planning
-                    : now()->toDateString();
-
+                // Always use today's date to ensure the record is in the current year
+                // (legacy schedule_planning may be from past years like 2022)
                 \App\Models\CalibrationToolSchedule::create([
                     'tool_id' => $tool->id,
-                    'schedule_date' => $scheduleDate,
+                    'schedule_date' => now()->toDateString(),
                 ]);
                 $tool->load([
                     'schedules' => function ($q) use ($currentYear) {
