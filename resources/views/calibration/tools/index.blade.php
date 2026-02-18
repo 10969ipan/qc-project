@@ -12,7 +12,6 @@
 
         #dataTable {
             font-size: 0.75rem;
-            table-layout: fixed;
         }
 
         #dataTable thead th {
@@ -46,7 +45,8 @@
         }
 
         .col-merk {
-            width: 60px;
+            width: 1%;
+            white-space: nowrap !important;
         }
 
         .col-seri {
