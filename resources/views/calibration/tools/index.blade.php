@@ -1147,9 +1147,7 @@
         });
 
         $(document).on('click', '.remove-schedule-row', function () {
-            if ($('#edit-schedule-table tbody tr').length > 1 || $(this).closest('table').attr('id') === 'schedule-table') {
-                $(this).closest('tr').remove();
-            }
+            $(this).closest('tr').remove();
         });
     </script>
 @endpush

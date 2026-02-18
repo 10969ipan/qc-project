@@ -338,8 +338,8 @@ class CalibrationController extends Controller
             'tanggal_beli' => 'required|date',
             'frekuensi_kalibrasi' => 'required|string',
             'jenis_kalibrasi' => 'required|string',
-            'schedule_planning' => 'required|array',
-            'schedule_planning.*' => 'required|date',
+            'schedule_planning' => 'nullable|array',
+            'schedule_planning.*' => 'nullable|date',
             'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
         ]);
 
@@ -347,7 +347,7 @@ class CalibrationController extends Controller
         $data = $request->except(['certification', 'plant', 'schedule_planning']);
 
         // Use the first schedule as the main schedule_planning for legacy purposes
-        $data['schedule_planning'] = $request->schedule_planning[0];
+        $data['schedule_planning'] = !empty($request->schedule_planning) ? $request->schedule_planning[0] : null;
 
         if ($request->hasFile('certification')) {
             if (!Storage::disk('public')->exists('calibration/tools')) {
@@ -371,7 +371,7 @@ class CalibrationController extends Controller
         $tool->update($data);
 
         // Sync schedules: Match by ID to preserve PR numbers/dates
-        $inputDates = $request->schedule_planning;
+        $inputDates = $request->input('schedule_planning', []);
         $inputIds = $request->input('schedule_ids', []); // IDs of existing schedules to keep/update
         $inputPrNumbers = $request->input('schedule_pr_numbers', []); // PR numbers from edit form
 
