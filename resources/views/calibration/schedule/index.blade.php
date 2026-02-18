@@ -24,8 +24,8 @@
             .schedule-table {
                 table-layout: fixed;
                 border-collapse: collapse !important;
-                width: 1650px; /* 180 + 120 + 100 + 90 + (48 * 25) */
-                min-width: 1650px;
+                width: 1790px; /* 180 + 120 + 100 + 140 + 90 + (48 * 25) */
+                min-width: 1790px;
                 background-color: white;
             }
 
@@ -64,10 +64,18 @@
                 z-index: 30;
             }
 
+            .pr-col {
+                width: 140px;
+                min-width: 140px;
+                left: 400px;
+                position: sticky;
+                z-index: 30;
+            }
+
             .status-col {
                 width: 90px;
                 min-width: 90px;
-                left: 400px;
+                left: 540px;
                 position: sticky;
                 z-index: 30;
                 border-right: 2px solid #5a5c69 !important;
@@ -90,6 +98,12 @@
                 white-space: normal;
             }
 
+            tbody td.pr-col {
+                background-color: white !important;
+                z-index: 20;
+                padding: 2px 4px !important;
+            }
+
             tbody td.status-col {
                 background-color: #f8f9fc !important;
                 z-index: 20;
@@ -107,9 +121,47 @@
                 height: 25px;
             }
 
-            .schedule-table td:not(.tool-name-col):not(.serial-col):not(.status-col) {
+            .schedule-table td:not(.tool-name-col):not(.serial-col):not(.status-col):not(.pr-col) {
                 width: 25px;
                 height: 25px;
+            }
+
+            .pr-inline-wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+            }
+            .pr-inline-wrap .pr-input-row {
+                display: flex;
+                align-items: center;
+                gap: 3px;
+            }
+            .pr-inline-wrap input.pr-input {
+                width: 80px;
+                height: 22px;
+                font-size: 9px;
+                padding: 1px 4px;
+                border: 1px solid #d1d3e2;
+                border-radius: 3px;
+                text-align: center;
+            }
+            .pr-inline-wrap input.pr-input:focus {
+                border-color: #4e73df;
+                box-shadow: 0 0 0 0.15rem rgba(78,115,223,.25);
+                outline: none;
+            }
+            .pr-inline-wrap .btn-reset-pr {
+                width: 18px;
+                height: 18px;
+                padding: 0;
+                font-size: 8px;
+                line-height: 18px;
+                border-radius: 50%;
+            }
+            .pr-inline-wrap .pr-date-label {
+                font-size: 8px;
+                color: #858796;
             }
 
             .marker-p { background-color: #1cc88a !important; }
@@ -204,6 +256,7 @@
                                 <th rowspan="2" class="align-middle tool-name-col text-center">NAMA ALAT</th>
                                 <th rowspan="2" class="align-middle serial-col text-center">NO. SERI</th>
                                 <th rowspan="2" class="align-middle jenis-col text-center">JENIS KALIBRASI</th>
+                                <th rowspan="2" class="align-middle pr-col text-center" style="font-size: 9px;">PR NO.</th>
                                 <th rowspan="2" class="align-middle status-col text-center">PLANING/<br>AKTUAL</th>
                                 @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agust', 'Sept', 'Okt', 'Nov', 'Des'] as $m)
                                     <th colspan="4" class="month-header">{{ $m }}</th>
@@ -282,7 +335,32 @@
                                         style="border-bottom: 2px solid #dee2e6;">
                                         <div class="small">{{ $tool->jenis_kalibrasi }}</div>
                                     </td>
-                                    {{-- Status column removed as per request --}}
+                                    {{-- Inline PR Input Column --}}
+                                    <td rowspan="2" class="pr-col align-middle" style="border-bottom: 2px solid #dee2e6;">
+                                        @foreach($tool->schedules as $sch)
+                                            <div class="pr-inline-wrap mb-1">
+                                                <div class="pr-input-row">
+                                                    <input type="text" class="pr-input"
+                                                        data-schedule-id="{{ $sch->id }}"
+                                                        value="{{ $sch->pr_number }}"
+                                                        placeholder="PR..."
+                                                        title="Schedule: {{ $sch->schedule_date->format('d/m/Y') }}">
+                                                    @if($sch->pr_number)
+                                                        <button type="button" class="btn btn-outline-danger btn-reset-pr"
+                                                            data-schedule-id="{{ $sch->id }}" title="Reset PR">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                                <span class="pr-date-label" id="sch-pr-date-{{ $sch->id }}">
+                                                    {{ $sch->pr_date ? \Carbon\Carbon::parse($sch->pr_date)->format('d/m/Y') : '-' }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                        @if($tool->schedules->isEmpty())
+                                            <span class="text-muted" style="font-size: 9px;">-</span>
+                                        @endif
+                                    </td>
                                     <td class="status-col text-center">P</td>
                                     @for($m = 1; $m <= 12; $m++)
                                         @for($w = 1; $w <= 4; $w++)
@@ -331,7 +409,96 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            // No DataTable needed here as we removed the tool list
+            // --- Inline PR Save (on change / Enter) ---
+            $(document).on('change', '.pr-input', function () {
+                var input = $(this);
+                var scheduleId = input.data('schedule-id');
+                var prNumber = input.val().trim();
+                var dateLabel = $('#sch-pr-date-' + scheduleId);
+
+                input.prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ route('calibration.tools.update-pr') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        schedule_id: scheduleId,
+                        pr_number: prNumber
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            dateLabel.text(response.pr_date);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+
+                            // Reload after short delay to refresh PR pending icons
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1500);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memperbarui PR.' });
+                        input.prop('disabled', false);
+                    }
+                });
+            });
+
+            // --- Reset PR Button ---
+            $(document).on('click', '.btn-reset-pr', function () {
+                var btn = $(this);
+                var scheduleId = btn.data('schedule-id');
+
+                Swal.fire({
+                    title: 'Reset PR?',
+                    text: 'Nomor dan tanggal PR akan dihapus.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74a3b',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Reset!',
+                    cancelButtonText: 'Batal'
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('calibration.tools.update-pr') }}",
+                            method: 'POST',
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                schedule_id: scheduleId,
+                                pr_number: ''
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: 'PR telah direset.',
+                                        toast: true,
+                                        position: 'top-end',
+                                        showConfirmButton: false,
+                                        timer: 2000
+                                    });
+                                    setTimeout(function () {
+                                        location.reload();
+                                    }, 1500);
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mereset PR.' });
+                            }
+                        });
+                    }
+                });
+            });
         });
     </script>
 @endpush
