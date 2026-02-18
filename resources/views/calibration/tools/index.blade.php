@@ -280,18 +280,20 @@
                                         } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
                                             $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
                                         } else {
-                                            // Default icon - but check if approaching schedule (within 1 month)
+                                            $statIcon = $icon_base;
+                                        }
+
+                                        // Override: warning for approaching/past schedule (only if NOT verified and NO PR)
+                                        if (!$hasVerification && !($currentSchedule && $currentSchedule->pr_number)) {
                                             $schedulePlanDate = $tool->schedule_planning ? \Carbon\Carbon::parse((string) $tool->schedule_planning) : null;
                                             $today = now()->startOfDay();
 
-                                            if ($schedulePlanDate && $today->gte($schedulePlanDate->copy()->subMonth()) && $today->lte($schedulePlanDate)) {
-                                                // Within 1 month before schedule planning → yellow warning
-                                                $statIcon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Mendekati Jadwal Kalibrasi"></i>';
-                                            } elseif ($schedulePlanDate && $today->gt($schedulePlanDate)) {
+                                            if ($schedulePlanDate && $today->gt($schedulePlanDate)) {
                                                 // Past schedule planning date → red danger
                                                 $statIcon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal Kalibrasi"></i>';
-                                            } else {
-                                                $statIcon = $icon_base;
+                                            } elseif ($schedulePlanDate && $today->gte($schedulePlanDate->copy()->subMonth())) {
+                                                // Within 1 month before schedule planning → yellow warning
+                                                $statIcon = '<i class="fas fa-exclamation-triangle text-warning fa-lg" title="Mendekati Jadwal Kalibrasi"></i>';
                                             }
                                         }
                                     @endphp
