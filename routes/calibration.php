@@ -13,6 +13,11 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
     Route::get('tools/{id}/edit', [CalibrationController::class, 'toolsEdit'])->name('tools.edit');
     Route::put('tools/{id}', [CalibrationController::class, 'toolsUpdate'])->name('tools.update');
     Route::post('tools/update-pr', [CalibrationController::class, 'updatePr'])->name('tools.update-pr');
+    Route::post('tools/problem-log', [CalibrationController::class, 'storeProblemLog'])->name('tools.store-problem');
+    Route::post('tools/problem-log/{id}/judgment', [CalibrationController::class, 'updateProblemJudgment'])->name('tools.update-judgment');
+    Route::put('tools/problem-log/{id}', [CalibrationController::class, 'updateProblemLog'])->name('tools.update-problem');
+    Route::delete('tools/problem-log/{id}', [CalibrationController::class, 'destroyProblemLog'])->name('tools.destroy-problem');
+    Route::get('tools/problem-logs', [CalibrationController::class, 'problemLogs'])->name('tools.problem-logs');
     Route::delete('tools/{id}', [CalibrationController::class, 'toolsDestroy'])->name('tools.destroy');
 
     // Verifications

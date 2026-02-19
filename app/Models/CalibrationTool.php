@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CalibrationTool extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasUuid;
+    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasUuid, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'bagian',
@@ -24,6 +24,7 @@ class CalibrationTool extends Model
         'schedule_planning',
         'certification_path',
         'plant_id',
+        'status',
     ];
 
     protected $casts = [
@@ -34,6 +35,11 @@ class CalibrationTool extends Model
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(CalibrationToolLog::class, 'calibration_tool_id');
     }
 
     public function verifications()

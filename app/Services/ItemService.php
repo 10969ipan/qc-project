@@ -145,6 +145,13 @@ class ItemService extends BaseService
                 }
             }
 
+            // Handle new standard file uploads
+            if (isset($data['files'])) {
+                foreach ($data['files'] as $file) {
+                    $filePaths[] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+                }
+            }
+
             // Process defects
             $defects = $this->processDefects($data['defects'] ?? null);
 

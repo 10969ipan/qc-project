@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CalibrationTool;
+use App\Models\CalibrationToolLog;
 use App\Models\CalibrationVerification;
 use App\Models\Plant;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class CalibrationController extends Controller
         $endDate = $request->get('end_date');
 
         $query = CalibrationTool::where('plant_id', $plant->id)
+            ->where('status', '!=', 'BROKEN')
             ->with([
                 'verifications' => function ($q) use ($year, $startDate, $endDate) {
                     $q->whereYear('tanggal_verifikasi', $year);
@@ -264,9 +266,7 @@ class CalibrationController extends Controller
             $data['certification_path'] = $path;
         }
 
-        if (isset($data['jenis_kalibrasi'])) {
-            $data['jenis_kalibrasi'] = strtoupper($data['jenis_kalibrasi']);
-        }
+        // Removal of strtoupper logic for jenis_kalibrasi as per user request for case-sensitive data
         $tool = CalibrationTool::create($data);
 
         // Save multiple schedules
@@ -367,9 +367,7 @@ class CalibrationController extends Controller
             $data['certification_path'] = $path;
         }
 
-        if (isset($data['jenis_kalibrasi'])) {
-            $data['jenis_kalibrasi'] = strtoupper($data['jenis_kalibrasi']);
-        }
+        // Removal of strtoupper logic for jenis_kalibrasi as per user request for case-sensitive data
         $tool->update($data);
 
         // Sync schedules: Match by ID to preserve PR numbers/dates
@@ -441,6 +439,189 @@ class CalibrationController extends Controller
 
         return redirect()->route('calibration.tools.index', ['plant' => $request->get('plant', 'jakarta')])
             ->with('success', 'Master Data Alat dan seluruh riwayat verifikasinya berhasil dihapus.');
+    }
+
+    public function storeProblemLog(Request $request)
+    {
+        $request->validate([
+            'calibration_tool_id' => 'required|exists:calibration_tools,id',
+            'problem_type' => 'required|in:ERROR,RUSAK',
+            'description' => 'required|string',
+            'reported_date' => 'required|date',
+            'action_taken' => 'required|string',
+            'plant' => 'required|string',
+            'evidence_report' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $tool = CalibrationTool::findOrFail($request->calibration_tool_id);
+        $actionTaken = $request->action_taken;
+
+        if ($request->problem_type === 'RUSAK') {
+            $tool->update(['status' => 'BROKEN']);
+            // Soft Delete schedules so they can be restored if judgment is OK
+            $tool->schedules()->delete();
+        }
+
+        $evidencePath = null;
+        if ($request->hasFile('evidence_report')) {
+            $evidencePath = $request->file('evidence_report')->store('calibration/evidence', 'public');
+        }
+
+        $tool->logs()->create([
+            'problem_type' => $request->problem_type,
+            'action_taken' => $actionTaken,
+            'description' => $request->description,
+            'reported_date' => $request->reported_date,
+            'evidence_report' => $evidencePath,
+            'user_id' => auth()->id(),
+        ]);
+
+        return redirect()->route('calibration.tools.index', ['plant' => $request->plant])
+            ->with('success', 'Laporan masalah berhasil disimpan.');
+    }
+
+    public function updateProblemJudgment(Request $request, $id)
+    {
+        $log = CalibrationToolLog::findOrFail($id);
+        $tool = $log->tool;
+
+        // Authorization check (moved from original position, but still relevant)
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'judgment_status' => 'required|in:OK,NG',
+            'judgment_remarks' => 'nullable|string',
+            'plant' => 'required|string',
+            'evidence_judgment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $updateData = [
+            'judgment_status' => $request->judgment_status,
+            'judgment_remarks' => $request->judgment_remarks,
+            'judged_by' => auth()->id(),
+            'judged_at' => now(),
+        ];
+
+        if ($request->hasFile('evidence_judgment')) {
+            // Delete old file if exists
+            if ($log->evidence_judgment) {
+                Storage::disk('public')->delete($log->evidence_judgment);
+            }
+            $updateData['evidence_judgment'] = $request->file('evidence_judgment')->store('calibration/evidence', 'public');
+        }
+
+        $log->update($updateData);
+
+        if ($request->judgment_status === 'OK') {
+            // Restore tool if it was broken
+            if ($tool->status === 'BROKEN') {
+                $tool->update(['status' => 'ACTIVE']);
+                // Restore soft-deleted schedules
+                $tool->schedules()->restore();
+            }
+            $message = 'Judgment OK berhasil disimpan. Alat kembali ACTIVE dan jadwal direstore.';
+        } else {
+            // If NG, soft-delete the tool to remove from master data & schedules
+            // Log will remain visible because we'll use withTrashed() in the report query
+            $tool->schedules()->delete();
+            $tool->delete();
+            $message = 'Judgment NG berhasil disimpan. Alat telah dihapus dari master data.';
+        }
+
+        return redirect()->route('calibration.tools.problem-logs', ['plant' => $request->plant])
+            ->with('success', $message);
+    }
+
+    public function updateProblemLog(Request $request, $id)
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $log = CalibrationToolLog::findOrFail($id);
+        $tool = $log->tool;
+
+        $request->validate([
+            'problem_type' => 'required|in:ERROR,RUSAK',
+            'description' => 'required|string',
+            'reported_date' => 'required|date',
+            'action_taken' => 'required|string',
+            'plant' => 'required|string',
+            'evidence_report' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $oldType = $log->problem_type;
+        $newType = $request->problem_type;
+
+        if ($oldType !== $newType) {
+            if ($newType === 'RUSAK') {
+                $tool->update(['status' => 'BROKEN']);
+                $tool->schedules()->delete();
+            } else {
+                $tool->update(['status' => 'ACTIVE']);
+                $tool->schedules()->restore();
+            }
+        }
+
+        $updateData = [
+            'problem_type' => $request->problem_type,
+            'description' => $request->description,
+            'reported_date' => $request->reported_date,
+            'action_taken' => $request->action_taken,
+        ];
+
+        if ($request->hasFile('evidence_report')) {
+            // Delete old file if exists
+            if ($log->evidence_report) {
+                Storage::disk('public')->delete($log->evidence_report);
+            }
+            $updateData['evidence_report'] = $request->file('evidence_report')->store('calibration/evidence', 'public');
+        }
+
+        $log->update($updateData);
+
+        return redirect()->back()->with('success', 'Laporan masalah berhasil diperbarui.');
+    }
+
+    public function destroyProblemLog($id, Request $request)
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $log = CalibrationToolLog::findOrFail($id);
+
+        if ($log->problem_type === 'RUSAK' && $log->tool->status === 'BROKEN') {
+            $log->tool->update(['status' => 'ACTIVE']);
+            $log->tool->schedules()->restore();
+        }
+
+        $log->delete();
+
+        return redirect()->back()->with('success', 'Laporan masalah berhasil dihapus.');
+    }
+
+    public function problemLogs(Request $request)
+    {
+        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+
+        $logs = CalibrationToolLog::with([
+            'tool' => function ($q) {
+                $q->withTrashed();
+            },
+            'tool.plant',
+            'user'
+        ])
+            ->whereHas('tool', function ($q) use ($plant) {
+                $q->withTrashed()->where('plant_id', $plant->id);
+            })
+            ->latest('reported_date')
+            ->get();
+
+        return view('calibration.tools.problem_logs', compact('logs', 'plantCode'));
     }
 
     public function verificationsIndex(Request $request)

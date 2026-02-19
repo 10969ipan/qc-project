@@ -153,7 +153,6 @@
                 <th rowspan="2">Rentang Ukur</th>
                 <th rowspan="2">Resolusi</th>
                 <th rowspan="2">Frekuensi</th>
-                <th rowspan="2">Lokasi</th>
                 <th rowspan="2">Tanggal Kalibrasi</th>
                 <th colspan="4">Detail Verifikasi Alat</th>
                 <th rowspan="2">Judgment</th>
@@ -177,7 +176,6 @@
                     <td>{{ $v->rentang_ukur }}</td>
                     <td>{{ $v->resolusi }}</td>
                     <td>{{ $v->frekuensi_kalibrasi }}</td>
-                    <td>{{ $v->lokasi_penyimpanan }}</td>
                     <td>{{ $v->tanggal_kalibrasi ? $v->tanggal_kalibrasi->format('d/m/Y') : '-' }}</td>
                     <td style="padding: 0;">
                         @if(is_array($v->nilai_alat))

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CalibrationToolSchedule extends Model
 {
-    use HasFactory;
+    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'tool_id',

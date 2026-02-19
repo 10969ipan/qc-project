@@ -113,12 +113,18 @@
     </style>
     <div class="container-fluid">
         <x-plant-header title="Master Data Alat" :plant="$plantCode">
-            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
-                <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
-                    data-target="#modalTambahAlat">
-                    <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Alat
-                </button>
-            @endif
+            <div class="d-flex align-items-center">
+                @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
+                    <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
+                        data-target="#modalTambahAlat">
+                        <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Alat
+                    </button>
+                @endif
+                <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode]) }}"
+                    class="btn btn-sm btn-info shadow-sm ml-2">
+                    <i class="fas fa-history fa-sm text-white-50"></i> Laporan Problem Alat
+                </a>
+            </div>
         </x-plant-header>
 
         @if(session('success'))
@@ -141,10 +147,10 @@
 
                     <div class="col-md-10">
                         <div class="form-group mb-0">
-                            <label class="small font-weight-bold text-dark">Pencarian Global</label>
+                            <label class="small font-weight-bold text-dark">Pencarian</label>
                             <div class="input-group shadow-sm">
                                 <input type="text" name="search" class="form-control form-control-sm"
-                                    placeholder="Cari Nama Alat, No. Seri, Bagian, Lokasi, Jenis, atau Status..."
+                                    placeholder="Cari.. ."
                                     value="{{ request('search') }}">
                                 <div class="input-group-append">
                                     <button type="submit" class="btn btn-primary btn-sm px-4">
@@ -176,7 +182,6 @@
                             <th class="align-middle col-seri">NO. SERI</th>
                             <th class="align-middle col-range">RANGE</th>
                             <th class="align-middle col-res">RESOLUSI</th>
-                            <th class="align-middle col-lokasi">LOKASI PAKAI</th>
                             <th class="align-middle col-tgl">TANGGAL BELI</th>
                             <th class="align-middle col-freq">FREKUENSI KALIBRASI</th>
                             <th class="align-middle col-hist">RIWAYAT</th>
@@ -191,13 +196,17 @@
                         @forelse($tools as $index => $tool)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>{{ $tool->bagian }}</td>
+                                <td>
+                                    {{ $tool->bagian }}
+                                    @if($tool->status === 'BROKEN')
+                                        <br><span class="badge badge-danger" style="font-size: 0.65rem;">BROKEN</span>
+                                    @endif
+                                </td>
                                 <td>{{ $tool->name_alat }}</td>
                                 <td>{{ $tool->merk ?? '-' }}</td>
                                 <td>{{ $tool->serial_number }}</td>
                                 <td>{{ $tool->range }}</td>
                                 <td>{{ $tool->resolusi }}</td>
-                                <td>{{ $tool->lokasi_pakai }}</td>
                                 <td>{{ $tool->tanggal_beli ? $tool->tanggal_beli->format('d/m/Y') : '-' }}</td>
                                 <td>{{ $tool->frekuensi_kalibrasi }}</td>
                                 <td>{{ $tool->riwayat_kalibrasi ?? '-' }}</td>
@@ -207,12 +216,15 @@
                                         $scheduledStatuses = $tool->getScheduledStatuses(date('Y'));
                                     @endphp
                                     @if(!empty($scheduledStatuses))
-                                        @php $first = $scheduledStatuses[0]; $count = count($scheduledStatuses); @endphp
+                                        @php $first = $scheduledStatuses[0];
+                                        $count = count($scheduledStatuses); @endphp
                                         <div class="mb-1 pb-1 schedule-item"
                                             style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                            <span class="badge badge-info">{{ \Carbon\Carbon::parse($first->schedule_date)->format('d/m/Y') }}</span>
+                                            <span
+                                                class="badge badge-info">{{ \Carbon\Carbon::parse($first->schedule_date)->format('d/m/Y') }}</span>
                                             @if($count > 1)
-                                                <span class="badge badge-light border mt-1" style="font-size: 0.7rem;">+{{ $count - 1 }} more</span>
+                                                <span class="badge badge-light border mt-1" style="font-size: 0.7rem;">+{{ $count - 1 }}
+                                                    more</span>
                                             @endif
                                         </div>
                                     @else
@@ -237,8 +249,8 @@
                                             style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                             <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
                                                 <input type="text" class="form-control form-control-sm pr-input text-center"
-                                                    data-tool-id="{{ $tool->id }}" placeholder="PR..."
-                                                    value="{{ $existingPr }}" style="width: 70px;">
+                                                    data-tool-id="{{ $tool->id }}" placeholder="PR..." value="{{ $existingPr }}"
+                                                    style="width: 70px;">
                                                 @if($existingPr)
                                                     <button type="button" class="btn btn-sm btn-outline-danger reset-pr"
                                                         data-tool-id="{{ $tool->id }}" title="Reset PR">
@@ -307,7 +319,8 @@
                                     <div class="mb-1 pb-1 schedule-item"
                                         style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                         @if($statIsClickable && !empty($statLinkParams))
-                                            <a href="{{ route('calibration.verifications.index', $statLinkParams) }}" style="text-decoration: none;">
+                                            <a href="{{ route('calibration.verifications.index', $statLinkParams) }}"
+                                                style="text-decoration: none;">
                                                 {!! $statIcon !!}
                                             </a>
                                         @else
@@ -330,6 +343,12 @@
                                             <button type="button" class="btn btn-sm btn-info btn-edit-tool"
                                                 data-id="{{ $tool->id }}" title="Edit">
                                                 <i class="fas fa-edit"></i>
+                                            </button>
+
+                                            <button type="button" class="btn btn-sm btn-warning btn-report-problem"
+                                                data-toggle="modal" data-target="#modalReportProblem" data-tool-id="{{ $tool->id }}"
+                                                data-tool-name="{{ $tool->name_alat }}" title="Lapor Masalah">
+                                                <i class="fas fa-exclamation-triangle"></i>
                                             </button>
 
                                             <button type="button" class="btn btn-sm btn-danger"
@@ -439,10 +458,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-group mb-2">
-                                    <label class="small font-weight-bold">Lokasi Pakai</label>
-                                    <input type="text" name="lokasi_pakai" class="form-control form-control-sm" required>
-                                </div>
                             </div>
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-2">
@@ -528,8 +543,7 @@
                                 </div>
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">Merk</label>
-                                    <input type="text" name="merk" id="edit_merk"
-                                        class="form-control form-control-sm">
+                                    <input type="text" name="merk" id="edit_merk" class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">No. Seri <span
@@ -555,12 +569,6 @@
                                 </div>
                             </div>
                             <div class="col-md-6 text-left">
-                                <div class="form-group mb-2">
-                                    <label class="small font-weight-bold">Lokasi Pakai <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" name="lokasi_pakai" id="edit_lokasi_pakai"
-                                        class="form-control form-control-sm" required>
-                                </div>
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">Tgl. Beli</label>
                                     <input type="date" name="tanggal_beli" id="edit_tanggal_beli"
@@ -819,6 +827,78 @@
             </div>
         </div>
     </div>
+    <!-- Modal Lapor Masalah -->
+        <div class="modal fade" id="modalReportProblem" tabindex="-1" role="dialog" aria-labelledby="modalReportProblemLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="modalReportProblemLabel">
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Lapor Masalah Alat
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ route('calibration.tools.store-problem') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="plant" value="{{ $plantCode }}">
+                        <input type="hidden" name="calibration_tool_id" id="problem_tool_id">
+                        <div class="modal-body text-left">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold">Nama Alat</label>
+                                <input type="text" id="problem_tool_name" class="form-control form-control-sm bg-light" readonly>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold">Tanggal Kejadian <span class="text-danger">*</span></label>
+                                <input type="date" name="reported_date" class="form-control form-control-sm" 
+                                    value="{{ date('Y-m-d') }}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold">Jenis Problem <span class="text-danger">*</span></label>
+                                <select name="problem_type" id="problem_type" class="form-control form-control-sm" required>
+                                    <option value="">-- Pilih Jenis --</option>
+                                    <option value="ERROR">ERROR (Masih bisa diperbaiki)</option>
+                                    <option value="RUSAK">RUSAK (Mati total / pecah / tidak bisa dipakai)</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3" id="action_taken_wrapper" style="display: none;">
+                                <label class="small font-weight-bold">Aksi Lanjut <span class="text-danger">*</span></label>
+                                <input type="text" name="action_taken" id="action_taken" class="form-control form-control-sm" 
+                                    placeholder="Contoh: Service Internal, PO GA, dll..." list="action_suggestions">
+                                <datalist id="action_suggestions">
+                                    <option value="SERVICE_INTERNAL">
+                                    <option value="SERVICE_EXTERNAL">
+                                    <option value="PO_GA">
+                                    <option value="REPLACE">
+                                </datalist>
+                                <div class="alert alert-danger small mt-2 py-1 mb-0" id="rusak_info" style="display: none;">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>
+                                    Alat <strong>RUSAK</strong> akan otomatis di-set statusnya menjadi <strong>BROKEN</strong> dan seluruh jadwal mendatang akan dihapus.
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold">Bukti Foto / PDF</label>
+                                <input type="file" name="evidence_report" class="form-control-file form-control-sm" 
+                                    accept=".jpg,.jpeg,.png,.pdf">
+                                <small class="text-muted">Max: 5MB (JPG/PDF)</small>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold">Detail Masalah <span class="text-danger">*</span></label>
+                                <textarea name="description" class="form-control form-control-sm" rows="3" 
+                                    placeholder="Jelaskan detail masalahnya..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light p-2">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-warning btn-sm px-4 shadow-sm">
+                                <i class="fas fa-paper-plane mr-1"></i> Kirim Laporan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 @endsection
 
 @push('scripts')
@@ -1087,7 +1167,7 @@
                     $('#edit_serial_number').val(tool.serial_number);
                     $('#edit_range').val(tool.range);
                     $('#edit_resolusi').val(tool.resolusi);
-                    $('#edit_lokasi_pakai').val(tool.lokasi_pakai);
+                    $('#edit_resolusi').val(tool.resolusi);
                     $('#edit_tanggal_beli').val(tool.tanggal_beli_formatted ? tool.tanggal_beli_formatted : '');
                     $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
                     $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);
@@ -1165,6 +1245,39 @@
 
         $(document).on('click', '.remove-schedule-row', function () {
             $(this).closest('tr').remove();
+        });
+
+        // Report Problem Logic
+        $(document).on('click', '.btn-report-problem', function() {
+            var toolId = $(this).data('tool-id');
+            var toolName = $(this).data('tool-name');
+
+            $('#problem_tool_id').val(toolId);
+            $('#problem_tool_name').val(toolName);
+
+            // Reset modal
+            $('#problem_type').val('');
+            $('#action_taken_wrapper').hide();
+            $('#action_taken').prop('required', false);
+            $('#action_taken').val('');
+            $('#rusak_info').hide();
+        });
+
+        $('#problem_type').on('change', function() {
+            var type = $(this).val();
+            if (type === 'ERROR' || type === 'RUSAK') {
+                $('#action_taken_wrapper').show();
+                $('#action_taken').prop('required', true);
+                
+                if (type === 'RUSAK') {
+                    $('#rusak_info').show();
+                } else {
+                    $('#rusak_info').hide();
+                }
+            } else {
+                $('#action_taken_wrapper').hide();
+                $('#action_taken').prop('required', false);
+            }
         });
     </script>
 @endpush
