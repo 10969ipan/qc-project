@@ -24,8 +24,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('monthly-reports/{id}/set-active', [MonthlyReportController::class, 'setActive'])->name('monthly_reports.set_active');
 
         // Customer Claims
-        Route::get('customer-claims/yearly', [CustomerClaimController::class, 'yearly'])->name('customer-claims.yearly');
-        Route::post('customer-claims/yearly', [CustomerClaimController::class, 'storeYearly'])->name('customer-claims.store-yearly');
+
         Route::resource('customer-claims', CustomerClaimController::class)->except(['create', 'edit']);
 
         // Customer Claim Records (Detailed List)
