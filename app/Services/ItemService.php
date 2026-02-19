@@ -309,6 +309,30 @@ class ItemService extends BaseService
     }
 
     /**
+     * Delete similar part PDF from an item
+     * 
+     * @param string $id
+     * @return void
+     */
+    public function deleteItemSimilarPdf(string $id): void
+    {
+        // Use withoutGlobalScope if needed, similar to deleteItemPdf logic
+        if (auth()->user()->role === 'admin') {
+            $item = Item::withoutGlobalScope('plant')->findOrFail($id);
+        } else {
+            $item = Item::findOrFail($id);
+        }
+
+        if ($item->similar_part_file_path) {
+            $this->deleteFile($item->similar_part_file_path);
+
+            $item->update([
+                'similar_part_file_path' => null
+            ]);
+        }
+    }
+
+    /**
      * Determine customer folder
      * 
      * @param string|null $customer

@@ -12,6 +12,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,supervisor,kashift,asst_manager,manager'])->prefix('admin')->name('admin.')->group(function () {
         // Items
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
+        Route::delete('items/{id}/pdf-similar', [ItemController::class, 'deleteSimilarPdf'])->name('items.delete-similar-pdf');
         Route::resource('items', ItemController::class)->except(['create']);
 
         // Categories

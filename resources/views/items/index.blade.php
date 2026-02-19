@@ -779,6 +779,7 @@
                                                 <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small text-primary font-weight-bold">
                                                     <span class="text-truncate mr-2" style="max-width: 150px;">${item.similar_part_file_path.split('/').pop()}</span>
                                                     <a href="/public/${item.similar_part_file_path}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                    <button type="button" class="badge badge-danger border-0 btn-delete-similar-pdf" data-id="${item.id}" style="cursor: pointer;">Hapus</button>
                                                 </div>`;
                         }
                         $('#edit_existing_similar_file').html(similarFileHtml ? '<label class="small font-weight-bold mb-1">Similar Part PDF Terdaftar:</label>' + similarFileHtml : '');
@@ -865,6 +866,46 @@
                     success: function (response) {
                         if (response.success) {
                             btn.closest('div').remove();
+                        } else {
+                            alert('Gagal menghapus file: ' + response.message);
+                            btn.text(originalText).prop('disabled', false);
+                        }
+                    },
+                    error: function (xhr) {
+                        var msg = 'Terjadi kesalahan saat menghapus file.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg += ' ' + xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                        btn.text(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Delete Similar PDF File
+            $(document).on('click', '.btn-delete-similar-pdf', function () {
+                var btn = $(this);
+                var id = btn.data('id');
+
+                if (!confirm('Apakah Anda yakin ingin menghapus file Similar Part ini?')) return;
+
+                var originalText = btn.text();
+                btn.text('...').prop('disabled', true);
+
+                var url = "{{ route('admin.items.delete-similar-pdf', ':id') }}".replace(':id', id);
+
+                $.ajax({
+                    url: url,
+                    type: 'DELETE',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            btn.closest('div').remove();
+                            // Clear the file input if needed or just let the user upload a new one
+                            $('#edit_existing_similar_file').empty();
+                            alert(response.message);
                         } else {
                             alert('Gagal menghapus file: ' + response.message);
                             btn.text(originalText).prop('disabled', false);

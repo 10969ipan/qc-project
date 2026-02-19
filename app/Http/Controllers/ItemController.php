@@ -318,4 +318,22 @@ class ItemController extends Controller
             return response()->json(['success' => false, 'message' => 'Gagal menghapus PDF. Silakan cek log server.'], 500);
         }
     }
+
+    /**
+     * Menghapus Similar Part PDF dari item
+     */
+    public function deleteSimilarPdf(Request $request, $id)
+    {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+        }
+        try {
+            $this->itemService->deleteItemSimilarPdf($id);
+            return response()->json(['success' => true, 'message' => 'PDF Similar Part berhasil dihapus.']);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to delete Similar Part PDF for Item ID {$id}: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus PDF. Silakan cek log server.'], 500);
+        }
+    }
+
 }
