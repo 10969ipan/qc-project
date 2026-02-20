@@ -440,8 +440,33 @@
                 <div class="col-md-6 border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="font-weight-bold text-dark mb-0">PCCP DAN DIMENSI</h6>
+                        <div class="d-flex align-items-center standard-nav-controls" style="display:none !important;">
+                            <div class="mr-2 border-right pr-2 d-flex align-items-center file-nav"
+                                style="display:none !important;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardFile"
+                                    title="Previous File">
+                                    <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left fa-xs"></i>
+                                </button>
+                                <span id="standardFileInfo" class="small font-weight-bold mx-1">1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardFile"
+                                    title="Next File">
+                                    <i class="fas fa-arrow-right fa-xs"></i> <i class="fas fa-file-pdf"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center page-nav">
+                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevStandardPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextStandardPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
                         <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
-                            style="display:none;">
+                            style="display:none !important;">
                             <i class="fas fa-expand"></i> Full
                         </button>
                     </div>
@@ -462,8 +487,21 @@
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <div class="d-flex align-items-center similar-nav-controls" style="display:none !important;">
+                            <div class="d-flex align-items-center page-nav">
+                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
                         <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
-                            style="display:none;">
+                            style="display:none !important;">
                             <i class="fas fa-expand"></i> Full
                         </button>
                     </div>
@@ -579,7 +617,7 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListe        ner('DOMContentLoaded', function () {
             // === INPUT LOCK UNTIL START ===
             // Disable all form inputs in checksheetForm until Start button is clicked
             var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
@@ -952,33 +990,41 @@
 
                 console.log("Selected Item:", itemId, "Standard:", standardPdf, "Similar:", similarPdf);
 
+                // Reset Reference View State
+                refStandardPdfDoc = null;
+                refStandardPageNum = 1;
+                refStandardFileIndex = 0;
+                refStandardFiles = selectedOption.data('files') || [];
+
+                refSimilarPdfDoc = null;
+                refSimilarPageNum = 1;
+
                 // Update Side-by-Side PDF Previews (Canvas based for Mobile)
                 if (standardPdf) {
                     if (window.renderPdfToCanvas) {
-                        window.renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading');
+                        window.renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
                     } else {
-                        // Fallback or retry?
                         console.error("renderPdfToCanvas not defined yet");
                     }
-                    $('#fullStandardBtn').attr('data-id', itemId).attr('data-count', files ? files.length : 1).show();
                 } else {
                     $('#standardPdfCanvas').addClass('d-none').hide();
                     $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Standard PDF tidak tersedia');
-                    $('#fullStandardBtn').hide();
+                    $('.standard-nav-controls').hide();
                 }
 
                 if (similarPdf) {
                     if (window.renderPdfToCanvas) {
-                        window.renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading');
+                        window.renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', 1);
                     }
-                    $('#fullSimilarBtn').attr('data-id', itemId).data('similar', true).show();
                     $('#similarStatusText').text('');
                 } else {
                     $('#similarPdfCanvas').addClass('d-none').hide();
                     $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex');
                     $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
-                    $('#fullSimilarBtn').hide();
+                    $('.similar-nav-controls').hide();
                 }
+
+                updateRefNavControls();
 
                 var container = $('#imageContainer');
                 var htmlContent = '';
@@ -1110,11 +1156,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                <input type="text"
-                                                                    class="form-control form-control-sm dimension-input"
-                                                                    style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                    placeholder="P${j}">
-                                                            </td>`;
+                                                                            <input type="text"
+                                                                                class="form-control form-control-sm dimension-input"
+                                                                                style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                placeholder="P${j}">
+                                                                        </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1444,43 +1490,7 @@
                 });
             });
 
-            function renderPdfToCanvas(url, canvasId, placeholderId, loadingId) {
-                const canvas = document.getElementById(canvasId);
-                const ctx = canvas.getContext('2d');
-                const placeholder = $('#' + placeholderId);
-                const loading = $('#' + loadingId);
 
-                // Reset
-                placeholder.hide();
-                loading.show();
-                $(canvas).hide();
-
-                pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                    pdf.getPage(1).then(function (page) {
-                        const containerWidth = $('#' + canvasId).parent().width();
-                        const viewport = page.getViewport({ scale: 1.0 });
-                        const scale = (containerWidth - 20) / viewport.width;
-                        const scaledViewport = page.getViewport({ scale: scale });
-
-                        canvas.height = scaledViewport.height;
-                        canvas.width = scaledViewport.width;
-
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: scaledViewport
-                        };
-
-                        page.render(renderContext).promise.then(function () {
-                            loading.hide();
-                            $(canvas).show();
-                        });
-                    });
-                }).catch(function (error) {
-                    console.error('Error rendering preview PDF:', error);
-                    loading.hide();
-                    placeholder.show().find('p').text('Gagal memuat PDF');
-                });
-            }
 
             function resetState() {
                 clearInterval(timerInterval);
@@ -1505,6 +1515,15 @@
                 $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
                 $('#similarStatusText').text('');
                 $('#fullStandardBtn, #fullSimilarBtn').hide();
+                $('.standard-nav-controls, .similar-nav-controls').hide();
+
+                // Reset PDF Reference State
+                refStandardPdfDoc = null;
+                refStandardPageNum = 1;
+                refStandardFileIndex = 0;
+                refStandardFiles = [];
+                refSimilarPdfDoc = null;
+                refSimilarPageNum = 1;
 
                 // Reset select2 if used (standard select used here)
                 $('#itemSelect').val('').trigger('change');
@@ -1642,15 +1661,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                style="min-width: 60px;"
-                                                                                                                                                                name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                placeholder="P${j}">
-                                                                                                                                                        </td>`;
+                                                                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                            style="min-width: 60px;"
+                                                                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                            placeholder="P${j}">
+                                                                                                                                                                    </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1677,11 +1696,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                style="min-width: 60px;"
-                                                                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                placeholder="P${currentPoints}">
-                                                                                                                                                        </td>`);
+                                                                                                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                            style="min-width: 60px;"
+                                                                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                            placeholder="P${currentPoints}">
+                                                                                                                                                                    </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');
@@ -1706,8 +1725,17 @@
             // --- PDF Cache & Render Logic (Global/Robust) ---
             const pdfCache = {};
 
+            // State for Reference Views
+            let refStandardPdfDoc = null;
+            let refStandardPageNum = 1;
+            let refStandardFileIndex = 0;
+            let refStandardFiles = [];
+
+            let refSimilarPdfDoc = null;
+            let refSimilarPageNum = 1;
+
             // Ensure function is available globally or within this closure safely
-            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId) {
+            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
                 const canvas = document.getElementById(canvasId);
                 const ctx = canvas.getContext('2d');
                 const $placeholder = $('#' + placeholderId);
@@ -1716,22 +1744,20 @@
 
                 // Reset UI: Show Loading, Hide others
                 $placeholder.removeClass('d-flex').addClass('d-none');
-                $canvas.addClass('d-none').hide(); // Double hide to be safe
+                $canvas.addClass('d-none').hide();
                 $loading.removeClass('d-none').addClass('d-flex');
 
-                console.log("Starting render for:", url);
+                console.log("Starting render for:", url, "Page:", pageNum);
 
                 // Check Cache first
                 if (pdfCache[url]) {
-                    console.log("PDF loaded from cache:", url);
-                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas);
+                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
                     return;
                 }
 
                 pdfjsLib.getDocument(url).promise.then(function (pdf) {
                     pdfCache[url] = pdf; // Store in cache
-                    console.log("PDF loaded from server:", url);
-                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas);
+                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
                 }).catch(function (error) {
                     console.error('Error rendering preview PDF:', error);
                     $loading.removeClass('d-flex').addClass('d-none');
@@ -1739,8 +1765,8 @@
                 });
             };
 
-            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas) {
-                pdf.getPage(1).then(function (page) {
+            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+                pdf.getPage(pageNum).then(function (page) {
                     const containerWidth = $(canvas).parent().width() || 500;
                     // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
                     const availableWidth = containerWidth - 40;
@@ -1761,12 +1787,100 @@
                     };
 
                     page.render(renderContext).promise.then(function () {
-                        console.log("PDF Rendered to canvas. Scale:", scale);
                         $loading.removeClass('d-flex').addClass('d-none');
                         $canvas.removeClass('d-none').show();
+
+                        // Update info labels if this is a reference canvas
+                        if (canvasId === 'standardPdfCanvas') {
+                            refStandardPdfDoc = pdf;
+                            $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                        } else if (canvasId === 'similarPdfCanvas') {
+                            refSimilarPdfDoc = pdf;
+                            $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                        }
                     });
+                }).catch(function (err) {
+                    console.error("Error rendering page:", pageNum, err);
+                    $loading.removeClass('d-flex').addClass('d-none');
                 });
             }
+
+            function updateRefNavControls() {
+                // Standard
+                if (refStandardFiles && refStandardFiles.length > 0) {
+                    $('.standard-nav-controls').show().css('display', 'flex');
+                    if (refStandardFiles.length > 1) {
+                        $('.standard-nav-controls .file-nav').show().css('display', 'flex');
+                        $('#standardFileInfo').text((refStandardFileIndex + 1) + '/' + refStandardFiles.length);
+                    } else {
+                        $('.standard-nav-controls .file-nav').hide();
+                    }
+                } else {
+                    $('.standard-nav-controls').hide();
+                }
+
+                // Similar
+                if (refSimilarPdfDoc) {
+                    $('.similar-nav-controls').show().css('display', 'flex');
+                } else {
+                    $('.similar-nav-controls').hide();
+                }
+            }
+
+            // Reference View Navigation Events
+            $('#prevStandardPage').click(function () {
+                if (refStandardPageNum > 1) {
+                    refStandardPageNum--;
+                    renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                }
+            });
+
+            $('#nextStandardPage').click(function () {
+                if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
+                    refStandardPageNum++;
+                    renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                }
+            });
+
+            $('#prevStandardFile').click(function () {
+                if (refStandardFileIndex > 0) {
+                    refStandardFileIndex--;
+                    refStandardPageNum = 1;
+                    const itemId = $('#itemSelect').val();
+                    const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                        .replace('ID_PLACEHOLDER', itemId)
+                        .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
+                    window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+                    updateRefNavControls();
+                }
+            });
+
+            $('#nextStandardFile').click(function () {
+                if (refStandardFileIndex < refStandardFiles.length - 1) {
+                    refStandardFileIndex++;
+                    refStandardPageNum = 1;
+                    const itemId = $('#itemSelect').val();
+                    const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                        .replace('ID_PLACEHOLDER', itemId)
+                        .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
+                    window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+                    updateRefNavControls();
+                }
+            });
+
+            $('#prevSimilarPage').click(function () {
+                if (refSimilarPageNum > 1) {
+                    refSimilarPageNum--;
+                    renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                }
+            });
+
+            $('#nextSimilarPage').click(function () {
+                if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
+                    refSimilarPageNum++;
+                    renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                }
+            });
 
             // Force trigger change if item is already selected (e.g. browser cache or default)
             setTimeout(function () {
