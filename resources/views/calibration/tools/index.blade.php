@@ -458,6 +458,10 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="form-group mb-2">
+                                    <label class="small font-weight-bold">Lokasi Pakai</label>
+                                    <input type="text" name="lokasi_pakai" class="form-control form-control-sm" required>
+                                </div>
                             </div>
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-2">
@@ -566,6 +570,12 @@
                                                 class="form-control form-control-sm">
                                         </div>
                                     </div>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="small font-weight-bold">Lokasi Pakai <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" name="lokasi_pakai" id="edit_lokasi_pakai"
+                                        class="form-control form-control-sm" required>
                                 </div>
                             </div>
                             <div class="col-md-6 text-left">
@@ -1167,7 +1177,7 @@
                     $('#edit_serial_number').val(tool.serial_number);
                     $('#edit_range').val(tool.range);
                     $('#edit_resolusi').val(tool.resolusi);
-                    $('#edit_resolusi').val(tool.resolusi);
+                    $('#edit_lokasi_pakai').val(tool.lokasi_pakai);
                     $('#edit_tanggal_beli').val(tool.tanggal_beli_formatted ? tool.tanggal_beli_formatted : '');
                     $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
                     $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);

@@ -334,10 +334,10 @@ class CalibrationController extends Controller
                     }
                 }
             ],
-            'range' => 'required|string',
-            'resolusi' => 'required|string',
-            'lokasi_pakai' => 'required|string',
-            'tanggal_beli' => 'required|date',
+            'range' => 'nullable|string',
+            'resolusi' => 'nullable|string',
+            'lokasi_pakai' => 'nullable|string',
+            'tanggal_beli' => 'nullable|date',
             'frekuensi_kalibrasi' => 'required|string',
             'jenis_kalibrasi' => 'required|string',
             'schedule_planning' => 'nullable|array',

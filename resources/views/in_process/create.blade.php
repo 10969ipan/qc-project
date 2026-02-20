@@ -1044,10 +1044,24 @@
                     });
                 }
 
-                // --- Dynamic Cavity Logic (Karawang Only) ---
+                // --- Dynamic Cavity & Point Logic (Karawang On                    ly) ---
                 const cavityCount = selectedOption.data('cavity');
-                if (currentPlant === 'karawang' && cavityCount) {
-                    updateCavityRows(cavityCount);
+
+                // Calculate Point Count from Dimension Standards
+                let pointCount = 5; // Default
+                const dimStandards = selectedOption.data('dimension-standards');
+                if (dimStandards) {
+                    // specific parsing if it's an object/array
+                    // Assuming keys are '1', '2', etc.
+                    const keys = Object.keys(dimStandards).map(k => parseInt(k));
+                    if (keys.length > 0) {
+                        pointCount = Math.max(...keys);
+                    }
+                }
+
+                if (currentPlant === 'karawang') {
+                    // Update rows AND columns
+                    updateCavityRows(cavityCount || 1, pointCount);
                     toggleManualCavityButtons(true);
                 } else {
                     // Start with default 2 if not Karawang or no cavity data,
@@ -1070,7 +1084,7 @@
             // Pass PHP plant variable to JS
             const currentPlant = '{{ request('plant') ?? auth()->user()->plant_id }}'; // Or use a cleaner way if available
 
-            function updateCavityRows(cavityCount) {
+            function updateCavityRows(cavityCount, pointCount = 5) {
                 // Only run this logic if plant is Karawang
                 if (currentPlant !== 'karawang') {
                     return;
@@ -1081,30 +1095,24 @@
                 tbody.empty(); // Clear existing rows
 
                 // --- Update Header ---
-                // Keep "Cavity" header
                 let headerHtml = '<th style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">Cavity</th>';
-                // Count existing points (cols) - assuming 5 for now or based on current structure.
-                // Ideally we should preserve the number of points.
-                // Let's count current points from the header if possible, or default to 5.
-                // A safer approach is to rebuild headers based on a fixed number or previous state.
-                // For now, let's assume 5 points as per original code.
-                for (let j = 1; j <= 5; j++) {
+
+                for (let j = 1; j <= pointCount; j++) {
                     headerHtml += `<th class="point-header">Point ${j}</th>`;
                 }
                 theadRow.html(headerHtml);
-
 
                 // --- Generate Rows ---
                 for (let i = 1; i <= cavityCount; i++) {
                     let rowHtml = `<tr class="cavity-row" data-cavity="${i}">`;
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
-                    for (let j = 1; j <= 5; j++) {
+                    for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                <input type="text"
-                                                    class="form-control form-control-sm dimension-input"
-                                                    style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                    placeholder="P${j}">
-                                            </td>`;
+                                                            <input type="text"
+                                                                class="form-control form-control-sm dimension-input"
+                                                                style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                placeholder="P${j}">
+                                                        </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1581,6 +1589,7 @@
                 const dimensionStandards = partDimensionStandards[itemPartNumber];
 
                 if (!dimensionStandards) return true; // No standards, no mandatory checks
+                if (currentPlant === 'jakarta') return true; // Jakarta allows manual/partial input
 
                 let allFilled = true;
                 let firstEmptyInput = null;
@@ -1631,15 +1640,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                style="min-width: 60px;"
-                                                                                                                                                name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                placeholder="P${j}">
-                                                                                                                                        </td>`;
+                                                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                            style="min-width: 60px;"
+                                                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                            placeholder="P${j}">
+                                                                                                                                                    </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1666,11 +1675,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                style="min-width: 60px;"
-                                                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                placeholder="P${currentPoints}">
-                                                                                                                                        </td>`);
+                                                                                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                            style="min-width: 60px;"
+                                                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                            placeholder="P${currentPoints}">
+                                                                                                                                                    </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

@@ -415,22 +415,9 @@
     <script>
         $(document).ready(function() {
             function toggleFields(plantId, modalPrefix) {
-                // We need to fetch the plant code to decide which fields to show
-                // For simplicity, we can embed the plant mapping in a JS object
-                const plantMapping = {
-                    @foreach($plants as $p)
-                        '{{ $p->id }}': '{{ $p->code }}',
-                    @endforeach
-                };
-
-                const plantCode = plantMapping[plantId];
-                if (plantCode === 'total') {
-                    $(`.${modalPrefix}-ppm-fields`).hide();
-                    $(`.${modalPrefix}-total-fields`).show();
-                } else {
-                    $(`.${modalPrefix}-ppm-fields`).show();
-                    $(`.${modalPrefix}-total-fields`).hide();
-                }
+                // Always show detailed fields for all plants including TOTAL
+                $(`.${modalPrefix}-ppm-fields`).show();
+                $(`.${modalPrefix}-total-fields`).hide();
             }
 
             // Calculation Logic
