@@ -206,6 +206,7 @@
                                                     data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}"
+                                                    data-cavity="{{ $item->cavity }}"
                                                     data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
@@ -749,7 +750,7 @@
             // AQL 0.65 Standard Table (Acc/Rej Limits)
             function getAqlLimits(sampleSize) {
                 // Mapping based on standard AQL 0.65 (General Inspection Level II)
-                // The user requested details if LOT SIZE check exceeds standard. 
+                // The user requested details if LOT SIZE check exceeds standard.
                 // We interpret this as ensuring the logic handles any sample size correctly.
                 if (sampleSize >= 1250) return { acc: 14, rej: 15 };
                 if (sampleSize >= 800) return { acc: 10, rej: 11 };
@@ -795,16 +796,28 @@
                     if (isDimensiInvalid || ng >= limits.rej) {
                         judgmentSelect.val('NG');
                         judgmentSelect.removeClass('text-success').addClass('text-danger');
+                        // Lock OK (Pass) checkbox if Dimension is NG
+                        $('#checkOK').prop('checked', false).prop('disabled', true);
+
+                        //                    Auto-select Defect 'Dimensi'
+                        autoAddDimensionDefect();
                     } else if (ng <= limits.acc) {
                         judgmentSelect.val('OK');
                         judgmentSelect.removeClass('text-danger').addClass('text-success');
+                        // Unlock OK (Pass) checkbox if valid
+                        $('#checkOK').prop('disabled', false);
+
+                        // Auto-remove Defect 'Dimensi' if exists
+                        autoRemoveDimensionDefect();
                     } else {
                         judgmentSelect.val('NG'); // Fail safe
                         judgmentSelect.removeClass('text-success').addClass('text-danger');
+                        $('#checkOK').prop('checked', false).prop('disabled', true);
                     }
                 } else {
                     judgmentSelect.val('');
                     judgmentSelect.removeClass('text-success text-danger');
+                    $('#checkOK').prop('disabled', false);
                 }
 
                 // Show/Hide Next Proses dropdown based on judgment
@@ -829,6 +842,88 @@
             $('#judgmentSelect').on('change', function () {
                 toggleNextProsesDropdown();
             });
+
+            function autoAddDimensionDefect() {
+                // Check if 'dimension' or 'Dimensi' is already selected
+                var alreadySelected = false;
+                $('.defect-select').each(function () {
+                    var val = $(this).val();
+                    var text = $(this).find('option:selected').text();
+                    if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
+                        alreadySelected = true;
+                        return false; // break
+                    }
+                });
+
+                if (alreadySelected) return;
+
+                // Try to find an empty slot first
+                var targetSelect = null;
+                $('.defect-select').each(function () {
+                    if ($(this).val() === '') {
+                        targetSelect = $(this);
+                        return false; // break
+                    }
+                });
+
+                // If no empty slot, add a new row if possible
+                if (!targetSelect) {
+                    if ($('.defect-row').length < 4) {
+                        $('#addDefectBtn').trigger('click');
+                        targetSelect = $('.defect-select').last();
+                    } else {
+                        // Full, maybe alert or just use the last one (overwrite)? No, safer to just notify or do nothing.
+                        // If full and no empty, we can't add.
+                        return;
+                    }
+                }
+
+                if (targetSelect) {
+                    // Try setting value 'dimension'
+                    var options = targetSelect.find('option');
+                    var foundVal = '';
+                    options.each(function () {
+                        if ($(this).val() === 'dimension' || $(this).text().toLowerCase() === 'dimensi') {
+                            foundVal = $(this).val();
+                            return false;
+                        }
+                    });
+
+                    if (foundVal) {
+                        targetSelect.val(foundVal).trigger('change');
+                        // Removed focus to prevent interruption while typing dimension
+                        // targetSelect.closest('.defect-row').find('.defect-qty').focus();
+                    } else {
+                        console.warn("Defect 'Dimensi' not found in options");
+                    }
+                }
+            }
+
+            function autoRemoveDimensionDefect() {
+                $('.defect-select').each(function () {
+                    var val = $(this).val();
+                    var text = $(this).find('option:selected').text();
+
+                    if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
+                        var row = $(this).closest('.defect-row');
+
+                        // If it's the only row, reset it
+                        if ($('.defect-row').length === 1) {
+                            $(this).val('').trigger('change');
+                            row.find('.defect-qty').val('');
+                        } else {
+                            // If multiple rows, remove this row
+                            row.remove();
+                            // Show add button if we dropped below limit
+                            if ($('.defect-row').length < 4) {
+                                $('#addDefectBtn').show();
+                            }
+                        }
+                    }
+                });
+                // Recalculate Total NG after removal/reset
+                calculateTotalNG();
+            }
 
             // Store default defects for fallback
             var defaultDefects = [
@@ -949,10 +1044,98 @@
                     });
                 }
 
+                // --- Dynamic Cavity Logic (Karawang Only) ---
+                const cavityCount = selectedOption.data('cavity');
+                if (currentPlant === 'karawang' && cavityCount) {
+                    updateCavityRows(cavityCount);
+                    toggleManualCavityButtons(true);
+                } else {
+                    // Start with default 2 if not Karawang or no cavity data,
+                    // BUT only if we want to reset.
+                    // For now, if not Karawang, we leave it as is or reset to default?
+                    // Let's stick to: if not Karawang, do nothing (retain existing behavior/rows)
+                    if (currentPlant === 'karawang') {
+                        // usage case: item has no cavity set? Default to 1 or 2?
+                        // If item has no cavity data, maybe fall back to manual?
+                        updateCavityRows(1); // Default to 1 if undefined for Karawang?
+                        toggleManualCavityButtons(true);
+                    }
+                }
+                // ---------------------------------------------
+
                 calculateTotalNG();
             });
 
-            // SAP Code Auto-Selection Logic
+            // Initial Cavity Generation Logic (Karawang Only)
+            // Pass PHP plant variable to JS
+            const currentPlant = '{{ request('plant') ?? auth()->user()->plant_id }}'; // Or use a cleaner way if available
+
+            function updateCavityRows(cavityCount) {
+                // Only run this logic if plant is Karawang
+                if (currentPlant !== 'karawang') {
+                    return;
+                }
+
+                const tbody = $('#dimensionBody');
+                const theadRow = $('#dimensionHeadRow');
+                tbody.empty(); // Clear existing rows
+
+                // --- Update Header ---
+                // Keep "Cavity" header
+                let headerHtml = '<th style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">Cavity</th>';
+                // Count existing points (cols) - assuming 5 for now or based on current structure.
+                // Ideally we should preserve the number of points.
+                // Let's count current points from the header if possible, or default to 5.
+                // A safer approach is to rebuild headers based on a fixed number or previous state.
+                // For now, let's assume 5 points as per original code.
+                for (let j = 1; j <= 5; j++) {
+                    headerHtml += `<th class="point-header">Point ${j}</th>`;
+                }
+                theadRow.html(headerHtml);
+
+
+                // --- Generate Rows ---
+                for (let i = 1; i <= cavityCount; i++) {
+                    let rowHtml = `<tr class="cavity-row" data-cavity="${i}">`;
+                    rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
+                    for (let j = 1; j <= 5; j++) {
+                        rowHtml += `<td class="point-cell">
+                                            <input type="text"
+                                                class="form-control form-control-sm dimension-input"
+                                                style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                placeholder="P${j}">
+                                        </td>`;
+                    }
+                    rowHtml += `</tr>`;
+                    tbody.append(rowHtml);
+                }
+
+                // Update global counter
+                currentCavities = cavityCount;
+
+                // Re-bind events if necessary (e.g. input validation)
+                // Since we use delegated events (on document or table), specific re-binding might not be needed
+                // IF the validation uses $(document).on('change', '.dimension-input', ...)
+            }
+
+            // Function to toggle Manual Add/Delete buttons
+            function toggleManualCavityButtons(isDynamic) {
+                if (currentPlant !== 'karawang') {
+                    // For non-Karawang, always show buttons (or leave as is)
+                    $('#addCavityBtn').show();
+                    $('#deleteCavityBtn').show();
+                    return;
+                }
+
+                if (isDynamic) {
+                    $('#addCavityBtn').hide();
+                    $('#deleteCavityBtn').hide();
+                } else {
+                    $('#addCavityBtn').show();
+                    $('#deleteCavityBtn').show();
+                }
+            }
+
             $('#sapCodeInput').on('input', function () {
                 var sapCode = $(this).val().trim();
 
@@ -1024,7 +1207,7 @@
 
             $('#checkOK').change(function () {
                 if ($(this).is(':checked')) {
-                    $('select[name="judgment"]').val('OK');
+                    $('select[name="judgment"]').val('OK').trigger('change');
                     // We don't clear defect selects here anymore because user might want to log 'minor' defects even if overall OK
                     // OR more likely, if OK, there are no defects. But let's leave that to user discretion or specific requirement.
                     // The previous code cleared #defectSelect. With multiple rows, clearing all might be annoying if accidental click.
@@ -1149,6 +1332,39 @@
                         $nextProses.removeClass('is-invalid');
                     }, 3000);
 
+                    return false;
+                }
+
+                // Validate Mandatory Dimensions
+                if (!checkMandatoryDimensions()) {
+                    return false;
+                }
+
+                // Validate Defect Qty if Dimension defect is selected
+                var dimensionDefectSelected = false;
+                var dimensionQtyEmpty = false;
+                $('.defect-select').each(function () {
+                    var val = $(this).val();
+                    var text = $(this).find('option:selected').text();
+                    if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
+                        dimensionDefectSelected = true;
+                        var qtyInput = $(this).closest('.defect-row').find('.defect-qty');
+                        if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                            dimensionQtyEmpty = true;
+                            qtyInput.addClass('is-invalid');
+                        } else {
+                            qtyInput.removeClass('is-invalid');
+                        }
+                    }
+                });
+
+                if (dimensionDefectSelected && dimensionQtyEmpty) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Qty Defect Dimensi Wajib Diisi',
+                        text: 'Karena ditemukan NG Dimensi, anda wajib mengisi Qty pada Defect List!',
+                        confirmButtonColor: '#3085d6'
+                    });
                     return false;
                 }
 
@@ -1352,6 +1568,53 @@
                 updateJudgment();
             }
 
+            function checkMandatoryDimensions() {
+                const selectedOption = $('#itemSelect').find('option:selected');
+                const rawPartNumber = selectedOption.data('part-number');
+                const itemPartNumber = normalizePartNumber(rawPartNumber);
+                const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+                if (!dimensionStandards) return true; // No standards, no mandatory checks
+
+                let allFilled = true;
+                let firstEmptyInput = null;
+
+                // Loop through all visible dimension inputs
+                $('.dimension-input').each(function () {
+                    const name = $(this).attr('name');
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (!match) return;
+
+                    const point = match[2];
+                    // Only check if a standard exists for this point
+                    if (dimensionStandards[point]) {
+                        const val = $(this).val().trim();
+                        if (val === '') {
+                            allFilled = false;
+                            $(this).addClass('is-invalid');
+                            if (!firstEmptyInput) firstEmptyInput = $(this);
+                        }
+                    }
+                });
+
+                if (!allFilled) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Dimensi Belum Lengkap',
+                        text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    if (firstEmptyInput) {
+                        $('html, body').animate({
+                            scrollTop: firstEmptyInput.offset().top - 200
+                        }, 500);
+                        firstEmptyInput.focus();
+                    }
+                    return false;
+                }
+                return true;
+            }
+
             // --- Dynamic Dimension Expansion Logistic ---
             let currentCavities = 2;
             let currentPoints = 5;
@@ -1362,15 +1625,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                style="min-width: 60px;"
-                                                                                                                name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                placeholder="P${j}">
-                                                                                                        </td>`;
+                                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                            style="min-width: 60px;"
+                                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                            placeholder="P${j}">
+                                                                                                                                    </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1397,11 +1660,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                style="min-width: 60px;"
-                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                placeholder="P${currentPoints}">
-                                                                                                        </td>`);
+                                                                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                            style="min-width: 60px;"
+                                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                            placeholder="P${currentPoints}">
+                                                                                                                                    </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

@@ -193,6 +193,19 @@
                                     @php
                                         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
                                         $dimensions = $dimensions ?: [];
+
+                                        // Check if there is any actual user input
+                                        $hasUserInputs = false;
+                                        foreach ($dimensions as $cavPoints) {
+                                            if (is_array($cavPoints)) {
+                                                foreach ($cavPoints as $val) {
+                                                    if ($val !== null && $val !== '' && $val !== '-') {
+                                                        $hasUserInputs = true;
+                                                        break 2;
+                                                    }
+                                                }
+                                            }
+                                        }
                                         $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
                                         $itemPartNumber = strtoupper($itemPartNumber);
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
@@ -227,7 +240,7 @@
                                         }
                                         $displayMaxCavity = max(5, $actualMaxCavity);
                                     @endphp
-                                    @if(count($dimensions) > 0 || $displayMaxCavity > 0)
+                                    @if($hasUserInputs)
                                         <div style="max-height: 200px; overflow-y: auto; font-size: 0.7rem;">
                                             <table class="table table-bordered table-sm m-0">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
@@ -376,7 +389,8 @@
                                             </table>
                                         </div>
                                     @else
-                                        <span class="text-muted">-</span>
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.8rem;">TIDAK ADA PENGUKURAN
+                                            DIMENSI</span>
                                     @endif
                                 </td>
 
@@ -867,8 +881,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1242,6 +1256,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                });
+                                                                                                                                                    });
     </script>
 @endpush

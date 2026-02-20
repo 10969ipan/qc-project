@@ -122,7 +122,8 @@ class ItemController extends Controller
             'category' => $request->input('filter_category'),
             'customer' => $request->input('filter_customer'),
             'part_number' => $request->input('filter_part_number'),
-            'plant' => $request->input('plant'), // Add plant parameter
+            'sap_code' => $request->input('filter_sap_code'),
+            'plant' => $request->input('filter_plant'), // Use filter_plant for redirection context
         ];
 
         // Remove null values

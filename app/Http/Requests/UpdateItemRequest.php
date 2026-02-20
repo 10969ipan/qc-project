@@ -64,6 +64,7 @@ class UpdateItemRequest extends FormRequest
             'similar_part_file' => 'nullable|mimes:pdf|max:10240',
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
+            'cavity' => 'nullable|integer|min:1',
             'sap_code' => [
                 'nullable',
                 'string',

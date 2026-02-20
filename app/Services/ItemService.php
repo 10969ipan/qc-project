@@ -87,6 +87,7 @@ class ItemService extends BaseService
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
+                'cavity' => $data['cavity'] ?? 1,
                 'defects' => $defects,
                 'dimension_standards' => $dimensionStandards,
             ]);
@@ -169,6 +170,7 @@ class ItemService extends BaseService
                 'file_path' => $filePaths[0] ?? null,
                 'file_paths' => $filePaths,
                 'similar_part_file_path' => $data['similar_part_file_path'],
+                'cavity' => $data['cavity'] ?? 1,
                 'defects' => $defects,
                 'dimension_standards' => $dimensionStandards,
             ]);

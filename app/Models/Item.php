@@ -37,6 +37,7 @@ class Item extends Model
         'sap_code',
         'dimension_standards',
         'defects',
+        'cavity',
     ];
 
     protected $casts = [
