@@ -153,6 +153,8 @@
                                                                     data-year="{{ $claim->year }}"
                                                                     data-month="{{ $claim->month }}" data-ppm="{{ $claim->ppm_value }}"
                                                                     data-target-val="{{ $claim->target_value }}" data-total="{{ $claim->total_claims }}" 
+                                                                    data-total-claim-pcs="{{ $claim->total_claim_pcs }}"
+                                                                    data-total-delivery="{{ $claim->total_delivery }}"
                                                                     title="Edit">
                                                                     <i class="fas fa-edit"></i>
                                                                 </button>
@@ -245,6 +247,8 @@
                                 <thead class="bg-light">
                                     <tr class="text-center small">
                                         <th width="150">Bulan</th>
+                                        <th class="modal-ppm-fields">Total Claim (pcs)</th>
+                                        <th class="modal-ppm-fields">Total Delivery</th>
                                         <th class="modal-ppm-fields">PPM Value</th>
                                         <th class="modal-ppm-fields">Target PPM</th>
                                         <th class="modal-total-fields" style="display: none;">Total Claim</th>
@@ -255,8 +259,16 @@
                                     <tr class="bg-light font-weight-bold">
                                         <td class="align-middle text-info pl-3">TAHUNAN (0)</td>
                                         <td class="modal-ppm-fields">
-                                            <input type="number" step="0.01" name="ppm_value"
-                                                class="form-control form-control-sm" placeholder="0.00">
+                                             <input type="number" step="0.01" name="total_claim_pcs"
+                                                class="form-control form-control-sm calc-input-summary" data-month="summary" placeholder="0">
+                                        </td>
+                                        <td class="modal-ppm-fields">
+                                             <input type="number" step="0.01" name="total_delivery"
+                                                class="form-control form-control-sm calc-input-summary" data-month="summary" placeholder="0">
+                                        </td>
+                                        <td class="modal-ppm-fields">
+                                            <input type="number" step="0.01" name="ppm_value" id="ppm_value_summary"
+                                                class="form-control form-control-sm bg-light" placeholder="0.00" readonly>
                                         </td>
                                         <td class="modal-ppm-fields">
                                             <input type="number" step="0.01" name="target_value"
@@ -271,8 +283,16 @@
                                         <tr class="small">
                                             <td class="align-middle pl-3">{{ $name }}</td>
                                             <td class="modal-ppm-fields">
-                                                <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]"
-                                                    class="form-control form-control-sm" placeholder="0.00">
+                                                <input type="number" step="0.01" name="data[{{ $num }}][total_claim_pcs]"
+                                                    class="form-control form-control-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
+                                            </td>
+                                            <td class="modal-ppm-fields">
+                                                <input type="number" step="0.01" name="data[{{ $num }}][total_delivery]"
+                                                    class="form-control form-control-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
+                                            </td>
+                                            <td class="modal-ppm-fields">
+                                                <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]" id="ppm_value_{{ $num }}"
+                                                    class="form-control form-control-sm bg-light" placeholder="0.00" readonly>
                                             </td>
                                             <td class="modal-ppm-fields">
                                                 <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
@@ -349,10 +369,22 @@
                             </div>
                         </div>
                         <div class="row edit-ppm-fields">
+                             <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Total Claim (pcs)</label>
+                                    <input type="number" step="0.01" name="total_claim_pcs" id="edit_total_claim_pcs" class="form-control calc-input-edit">
+                                </div>
+                            </div>
+                             <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Total Delivery</label>
+                                    <input type="number" step="0.01" name="total_delivery" id="edit_total_delivery" class="form-control calc-input-edit">
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control">
+                                    <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control bg-light" readonly>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -401,6 +433,43 @@
                 }
             }
 
+            // Calculation Logic
+            function calculatePPM(pcs, delivery) {
+                if (pcs && delivery && delivery > 0) {
+                    return ((pcs / delivery) * 1000000).toFixed(2);
+                }
+                return '';
+            }
+
+            // Calculation for Tambah Data Modal
+            $(document).on('input', '.calc-input-summary, [class*="calc-input-"]', function() {
+                let month = $(this).data('month');
+                let pcsInput, deliveryInput, ppmInput;
+
+                if (month === 'summary') {
+                    pcsInput = $('input[name="total_claim_pcs"]');
+                    deliveryInput = $('input[name="total_delivery"]');
+                    ppmInput = $('#ppm_value_summary');
+                } else {
+                    pcsInput = $(`input[name="data[${month}][total_claim_pcs]"]`);
+                    deliveryInput = $(`input[name="data[${month}][total_delivery]"]`);
+                    ppmInput = $(`#ppm_value_${month}`);
+                }
+
+                let pcs = parseFloat(pcsInput.val());
+                let delivery = parseFloat(deliveryInput.val());
+
+                ppmInput.val(calculatePPM(pcs, delivery));
+            });
+
+             // Calculation for Edit Modal
+            $(document).on('input', '.calc-input-edit', function() {
+                let pcs = parseFloat($('#edit_total_claim_pcs').val());
+                let delivery = parseFloat($('#edit_total_delivery').val());
+                $('#edit_ppm_value').val(calculatePPM(pcs, delivery));
+            });
+
+
             // For Tambah Data Modal
             $('#modal_plant_id').on('change', function() {
                 toggleFields($(this).val(), 'modal');
@@ -420,6 +489,12 @@
                 var ppm = $(this).data('ppm');
                 var target = $(this).data('target-val');
                 var total = $(this).data('total');
+                // We need to fetch the new fields if they exist in the row data, 
+                // but since they might not be in the table view yet, we might need to rely on what's available or fetch via ajax. 
+                // For now, assuming we might need to add data attributes to the button.
+                // Assuming the button attributes for new fields are added in the blade loop.
+                var pcs = $(this).data('total-claim-pcs');
+                var delivery = $(this).data('total-delivery');
 
                 $('#edit_plant_id').val(plantId);
                 $('#edit_year').val(year);
@@ -427,6 +502,8 @@
                 $('#edit_ppm_value').val(ppm);
                 $('#edit_target_value').val(target);
                 $('#edit_total_claims').val(total);
+                $('#edit_total_claim_pcs').val(pcs);
+                $('#edit_total_delivery').val(delivery);
 
                 toggleFields(plantId, 'edit');
 

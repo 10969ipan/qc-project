@@ -90,10 +90,14 @@ class CustomerClaimController extends Controller
             'data.*.ppm_value' => 'nullable|numeric|min:0',
             'data.*.target_value' => 'nullable|numeric|min:0',
             'data.*.total_claims' => 'nullable|numeric|min:0',
+            'data.*.total_claim_pcs' => 'nullable|numeric|min:0',
+            'data.*.total_delivery' => 'nullable|numeric|min:0',
             // Validation for annual summary (Month 0)
             'ppm_value' => 'nullable|numeric|min:0',
             'target_value' => 'nullable|numeric|min:0',
             'total_claims' => 'nullable|numeric|min:0',
+            'total_claim_pcs' => 'nullable|numeric|min:0',
+            'total_delivery' => 'nullable|numeric|min:0',
         ]);
 
         $plantId = $request->plant_id;
@@ -103,8 +107,16 @@ class CustomerClaimController extends Controller
         $ppmValue = $request->input('ppm_value');
         $targetValue = $request->input('target_value');
         $totalClaims = $request->input('total_claims');
+        $totalClaimPcs = $request->input('total_claim_pcs');
+        $totalDelivery = $request->input('total_delivery');
 
-        if (($ppmValue !== null && $ppmValue !== '') || ($targetValue !== null && $targetValue !== '') || ($totalClaims !== null && $totalClaims !== '')) {
+        if (
+            ($ppmValue !== null && $ppmValue !== '') ||
+            ($targetValue !== null && $targetValue !== '') ||
+            ($totalClaims !== null && $totalClaims !== '') ||
+            ($totalClaimPcs !== null && $totalClaimPcs !== '') ||
+            ($totalDelivery !== null && $totalDelivery !== '')
+        ) {
             CustomerClaim::withoutGlobalScope('plant')->updateOrCreate(
                 [
                     'plant_id' => $plantId,
@@ -115,6 +127,8 @@ class CustomerClaimController extends Controller
                     'ppm_value' => $ppmValue,
                     'target_value' => $targetValue,
                     'total_claims' => $totalClaims,
+                    'total_claim_pcs' => $totalClaimPcs,
+                    'total_delivery' => $totalDelivery,
                     'created_by' => auth()->id(),
                 ]
             );
@@ -127,7 +141,9 @@ class CustomerClaimController extends Controller
                 if (
                     ($values['ppm_value'] !== null && $values['ppm_value'] !== '') ||
                     ($values['target_value'] !== null && $values['target_value'] !== '') ||
-                    ($values['total_claims'] !== null && $values['total_claims'] !== '')
+                    ($values['total_claims'] !== null && $values['total_claims'] !== '') ||
+                    ($values['total_claim_pcs'] !== null && $values['total_claim_pcs'] !== '') ||
+                    ($values['total_delivery'] !== null && $values['total_delivery'] !== '')
                 ) {
                     CustomerClaim::withoutGlobalScope('plant')->updateOrCreate(
                         [
@@ -139,6 +155,8 @@ class CustomerClaimController extends Controller
                             'ppm_value' => $values['ppm_value'],
                             'target_value' => $values['target_value'],
                             'total_claims' => $values['total_claims'],
+                            'total_claim_pcs' => $values['total_claim_pcs'],
+                            'total_delivery' => $values['total_delivery'],
                             'created_by' => auth()->id(),
                         ]
                     );
@@ -180,6 +198,8 @@ class CustomerClaimController extends Controller
             'ppm_value' => 'nullable|numeric|min:0',
             'target_value' => 'nullable|numeric|min:0',
             'total_claims' => 'nullable|numeric|min:0',
+            'total_claim_pcs' => 'nullable|numeric|min:0',
+            'total_delivery' => 'nullable|numeric|min:0',
         ]);
 
 

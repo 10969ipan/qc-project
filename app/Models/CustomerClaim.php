@@ -15,6 +15,8 @@ class CustomerClaim extends Model
         'ppm_value',
         'target_value',
         'total_claims',
+        'total_claim_pcs',
+        'total_delivery',
         'created_by',
     ];
 
@@ -22,6 +24,8 @@ class CustomerClaim extends Model
         'ppm_value' => 'decimal:2',
         'target_value' => 'decimal:2',
         'total_claims' => 'decimal:2',
+        'total_claim_pcs' => 'decimal:2',
+        'total_delivery' => 'decimal:2',
     ];
 
     /**
