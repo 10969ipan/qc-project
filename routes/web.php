@@ -12,7 +12,7 @@ use App\Http\Controllers\MachineStatusController;
 
 // Rute Default Landing Page
 // Rute Default Landing Page
-Route::get('/', [AuthController::class, 'index'])->name('home');
+Route::any('/', [AuthController::class, 'index'])->name('home');
 
 // Modular Routes (Public)
 require __DIR__ . '/auth.php';
