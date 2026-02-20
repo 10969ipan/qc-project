@@ -9,6 +9,14 @@ class AuthController extends Controller
 {
     // ... (metode-metode lain seperti login, register, logout)
 
+    public function index()
+    {
+        if (Auth::check()) {
+            return redirect('/dashboard');
+        }
+        return view('auth.login');
+    }
+
     public function login()
     {
         // Variabel untuk menampung data login yang tersimpan (Remember Me)

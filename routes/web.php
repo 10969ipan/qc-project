@@ -11,12 +11,8 @@ use App\Http\Controllers\CrossCutChecksheetController;
 use App\Http\Controllers\MachineStatusController;
 
 // Rute Default Landing Page
-Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect('/dashboard');
-    }
-    return view('auth.login');
-});
+// Rute Default Landing Page
+Route::get('/', [AuthController::class, 'index'])->name('home');
 
 // Modular Routes (Public)
 require __DIR__ . '/auth.php';
