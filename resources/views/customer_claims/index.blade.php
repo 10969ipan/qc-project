@@ -8,7 +8,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Data Claim Customer</h6>
-            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
+            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                 <div class="d-flex align-items-center">
 
                     <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal"
@@ -144,7 +144,7 @@
                                                         {{ $claim->total_claims !== null ? number_format($claim->total_claims, 0) : '-' }}
                                                     </td>
                                                     <td class="align-middle py-2">
-                                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
+                                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                                             <div class="btn-group btn-group-sm">
                                                                 <button type="button" class="btn btn-transparent text-primary btn-edit-claim p-0 mr-2" 
                                                                     data-toggle="modal"
