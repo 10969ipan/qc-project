@@ -276,16 +276,15 @@
                             <i class="fas fa-expand"></i> Full
                         </button>
                     </div>
-                    <div id="standardPdfContainer" class="rounded overflow-hidden border"
+                    <div id="standardPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="standardPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
                             <i class="fas fa-file-pdf fa-3x mb-3"></i>
                             <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
                         </div>
-                        <canvas id="standardPdfCanvas" style="display:none; margin: 0 auto;"></canvas>
-                        <div id="standardPdfLoading" class="h-100 d-flex align-items-center justify-content-center"
-                            style="display:none !important;">
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
                             <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
                         </div>
                     </div>
@@ -298,7 +297,7 @@
                             <i class="fas fa-expand"></i> Full
                         </button>
                     </div>
-                    <div id="similarPdfContainer" class="rounded overflow-hidden border"
+                    <div id="similarPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="similarPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
@@ -306,9 +305,8 @@
                             <p class="mb-0">Pilih Item untuk menampilkan Similar Part</p>
                             <p class="small mt-2" id="similarStatusText"></p>
                         </div>
-                        <canvas id="similarPdfCanvas" style="display:none; margin: 0 auto;"></canvas>
-                        <div id="similarPdfLoading" class="h-100 d-flex align-items-center justify-content-center"
-                            style="display:none !important;">
+                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
                             <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
                         </div>
                     </div>
@@ -595,22 +593,27 @@
                 var similarPdf = selectedOption.data('similar');
 
                 // Update Side-by-Side PDF Previews (Canvas based for Mobile)
+                // Update Side-by-Side PDF Previews (Canvas based for Mobile)
                 if (standardPdf) {
-                    renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading');
+                    if (window.renderPdfToCanvas) {
+                        window.renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading');
+                    }
                     $('#fullStandardBtn').attr('data-id', itemId).attr('data-count', files ? files.length : 1).show();
                 } else {
-                    $('#standardPdfCanvas').hide();
-                    $('#standardPdfPlaceholder').show().find('p').text('Standard PDF tidak tersedia');
+                    $('#standardPdfCanvas').addClass('d-none').hide();
+                    $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Standard PDF tidak tersedia');
                     $('#fullStandardBtn').hide();
                 }
 
                 if (similarPdf) {
-                    renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading');
+                    if (window.renderPdfToCanvas) {
+                        window.renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading');
+                    }
                     $('#fullSimilarBtn').attr('data-id', itemId).data('similar', true).show();
                     $('#similarStatusText').text('');
                 } else {
-                    $('#similarPdfCanvas').hide();
-                    $('#similarPdfPlaceholder').show();
+                    $('#similarPdfCanvas').addClass('d-none').hide();
+                    $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex');
                     $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
                     $('#fullSimilarBtn').hide();
                 }
@@ -741,43 +744,71 @@
                 });
             });
 
-            function renderPdfToCanvas(url, canvasId, placeholderId, loadingId) {
+            // --- PDF Cache & Render Logic (Global/Robust) ---
+            const pdfCache = {};
+
+            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId) {
                 const canvas = document.getElementById(canvasId);
                 const ctx = canvas.getContext('2d');
-                const placeholder = $('#' + placeholderId);
-                const loading = $('#' + loadingId);
+                const $placeholder = $('#' + placeholderId);
+                const $loading = $('#' + loadingId);
+                const $canvas = $(canvas);
 
-                // Reset
-                placeholder.hide();
-                loading.show();
-                $(canvas).hide();
+                // Reset UI
+                $placeholder.removeClass('d-flex').addClass('d-none');
+                $canvas.addClass('d-none').hide();
+                $loading.removeClass('d-none').addClass('d-flex');
+
+                // Check Cache first
+                if (pdfCache[url]) {
+                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas);
+                    return;
+                }
 
                 pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                    pdf.getPage(1).then(function (page) {
-                        const containerWidth = $('#' + canvasId).parent().width();
-                        const viewport = page.getViewport({ scale: 1.0 });
-                        const scale = (containerWidth - 20) / viewport.width;
-                        const scaledViewport = page.getViewport({ scale: scale });
-
-                        canvas.height = scaledViewport.height;
-                        canvas.width = scaledViewport.width;
-
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: scaledViewport
-                        };
-
-                        page.render(renderContext).promise.then(function () {
-                            loading.hide();
-                            $(canvas).show();
-                        });
-                    });
+                    pdfCache[url] = pdf; // Store in cache
+                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas);
                 }).catch(function (error) {
                     console.error('Error rendering preview PDF:', error);
-                    loading.hide();
-                    placeholder.show().find('p').text('Gagal memuat PDF');
+                    $loading.removeClass('d-flex').addClass('d-none');
+                    $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF');
+                });
+            };
+
+            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas) {
+                pdf.getPage(1).then(function (page) {
+                    const containerWidth = $(canvas).parent().width() || 500;
+                    // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
+                    const availableWidth = containerWidth - 40;
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const scale = availableWidth / viewport.width;
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+
+                    // Force CSS to fit container
+                    $canvas.css('width', '100%');
+                    $canvas.css('height', 'auto');
+
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: scaledViewport
+                    };
+
+                    page.render(renderContext).promise.then(function () {
+                        $loading.removeClass('d-flex').addClass('d-none');
+                        $canvas.removeClass('d-none').show();
+                    });
                 });
             }
+
+            // Force trigger if item selected
+            setTimeout(function () {
+                if ($('#itemSelect').val()) {
+                    $('#itemSelect').trigger('change');
+                }
+            }, 500);
 
             function resetState() {
                 clearInterval(timerInterval);
@@ -799,9 +830,9 @@
                 $('#nextProsesContainer').hide();
 
                 // Reset PDF views
-                $('#standardPdfCanvas, #similarPdfCanvas').hide();
-                $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
+                $('#standardPdfCanvas, #similarPdfCanvas').addClass('d-none').hide();
+                $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Standard PDF');
+                $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Similar Part');
                 $('#similarStatusText').text('');
                 $('#fullStandardBtn, #fullSimilarBtn').hide();
 

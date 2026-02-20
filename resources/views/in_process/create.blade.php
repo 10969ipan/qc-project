@@ -444,7 +444,7 @@
                             <i class="fas fa-expand"></i> Full
                         </button>
                     </div>
-                    <div id="standardPdfContainer" class="rounded overflow-hidden border"
+                    <div id="standardPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
                         <!-- Updated default state: message shown when no item selected -->
                         <div id="standardPdfPlaceholder"
@@ -452,9 +452,8 @@
                             <i class="fas fa-file-pdf fa-3x mb-3"></i>
                             <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
                         </div>
-                        <canvas id="standardPdfCanvas" style="display:none; margin: 0 auto;"></canvas>
-                        <div id="standardPdfLoading" class="h-100 d-flex align-items-center justify-content-center"
-                            style="display:none !important;">
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
                             <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
                         </div>
                     </div>
@@ -467,7 +466,7 @@
                             <i class="fas fa-expand"></i> Full
                         </button>
                     </div>
-                    <div id="similarPdfContainer" class="rounded overflow-hidden border"
+                    <div id="similarPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="similarPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
@@ -475,9 +474,8 @@
                             <p class="mb-0">Pilih Item untuk menampilkan Similar Part</p>
                             <p class="small mt-2" id="similarStatusText"></p>
                         </div>
-                        <canvas id="similarPdfCanvas" style="display:none; margin: 0 auto;"></canvas>
-                        <div id="similarPdfLoading" class="h-100 d-flex align-items-center justify-content-center"
-                            style="display:none !important;">
+                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
                             <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
                         </div>
                     </div>
@@ -857,23 +855,32 @@
                 var standardPdf = selectedOption.data('standard');
                 var similarPdf = selectedOption.data('similar');
 
+                console.log("Selected Item:", itemId, "Standard:", standardPdf, "Similar:", similarPdf);
+
                 // Update Side-by-Side PDF Previews (Canvas based for Mobile)
                 if (standardPdf) {
-                    renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading');
+                    if (window.renderPdfToCanvas) {
+                        window.renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading');
+                    } else {
+                        // Fallback or retry?
+                        console.error("renderPdfToCanvas not defined yet");
+                    }
                     $('#fullStandardBtn').attr('data-id', itemId).attr('data-count', files ? files.length : 1).show();
                 } else {
-                    $('#standardPdfCanvas').hide();
-                    $('#standardPdfPlaceholder').show().find('p').text('Standard PDF tidak tersedia');
+                    $('#standardPdfCanvas').addClass('d-none').hide();
+                    $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Standard PDF tidak tersedia');
                     $('#fullStandardBtn').hide();
                 }
 
                 if (similarPdf) {
-                    renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading');
+                    if (window.renderPdfToCanvas) {
+                        window.renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading');
+                    }
                     $('#fullSimilarBtn').attr('data-id', itemId).data('similar', true).show();
                     $('#similarStatusText').text('');
                 } else {
-                    $('#similarPdfCanvas').hide();
-                    $('#similarPdfPlaceholder').show();
+                    $('#similarPdfCanvas').addClass('d-none').hide();
+                    $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex');
                     $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
                     $('#fullSimilarBtn').hide();
                 }
@@ -1206,221 +1213,293 @@
             });
 
             function renderPdfToCanvas(url, canvasId, placeholderId, loadingId) {
-                    const canvas = document.getElementById(canvasId);
-                    const ctx = canvas.getContext('2d');
-                    const placeholder = $('#' + placeholderId);
-                    const loading = $('#' + loadingId);
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const placeholder = $('#' + placeholderId);
+                const loading = $('#' + loadingId);
 
-                    // Reset
-                    placeholder.hide();
-                    loading.show();
-                    $(canvas).hide();
+                // Reset
+                placeholder.hide();
+                loading.show();
+                $(canvas).hide();
 
-                    pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                        pdf.getPage(1).then(function (page) {
-                            const containerWidth = $('#' + canvasId).parent().width();
-                            const viewport = page.getViewport({ scale: 1.0 });
-                            const scale = (containerWidth - 20) / viewport.width;
-                            const scaledViewport = page.getViewport({ scale: scale });
+                pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                    pdf.getPage(1).then(function (page) {
+                        const containerWidth = $('#' + canvasId).parent().width();
+                        const viewport = page.getViewport({ scale: 1.0 });
+                        const scale = (containerWidth - 20) / viewport.width;
+                        const scaledViewport = page.getViewport({ scale: scale });
 
-                            canvas.height = scaledViewport.height;
-                            canvas.width = scaledViewport.width;
+                        canvas.height = scaledViewport.height;
+                        canvas.width = scaledViewport.width;
 
-                            const renderContext = {
-                                canvasContext: ctx,
-                                viewport: scaledViewport
-                            };
+                        const renderContext = {
+                            canvasContext: ctx,
+                            viewport: scaledViewport
+                        };
 
-                            page.render(renderContext).promise.then(function () {
-                                loading.hide();
-                                $(canvas).show();
-                            });
+                        page.render(renderContext).promise.then(function () {
+                            loading.hide();
+                            $(canvas).show();
                         });
-                    }).catch(function (error) {
-                        console.error('Error rendering preview PDF:', error);
-                        loading.hide();
-                        placeholder.show().find('p').text('Gagal memuat PDF');
                     });
-                }
-
-                function resetState() {
-                    clearInterval(timerInterval);
-                    timerRunning = false;
-                    totalSeconds = 0;
-                    updateTimerDisplay();
-                    $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
-
-                    // RE-LOCK INPUTS
-                    formInputs.prop('disabled', true);
-                    $('#checksheetForm').addClass('inputs-locked');
-                    $('#saveBtn').prop('disabled', true);
-                    $('#addDefectBtn').hide();
-                    $('.defect-row').not(':first').remove();
-
-                    // Clear images/standard info
-                    $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
-
-                    // Reset PDF views
-                    $('#standardPdfCanvas, #similarPdfCanvas').hide();
-                    $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                    $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
-                    $('#similarStatusText').text('');
-                    $('#fullStandardBtn, #fullSimilarBtn').hide();
-
-                    // Reset select2 if used (standard select used here)
-                    $('#itemSelect').val('').trigger('change');
-                }
-
-                // Optional: Reset timer on form reset
-                $('button[type="reset"]').click(function () {
-                    resetState();
+                }).catch(function (error) {
+                    console.error('Error rendering preview PDF:', error);
+                    loading.hide();
+                    placeholder.show().find('p').text('Gagal memuat PDF');
                 });
+            }
 
-                // --- Centralized Dimension Validation Logic ---
-                // The dimension standards are now passed from the controller.
-                const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
+            function resetState() {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                totalSeconds = 0;
+                updateTimerDisplay();
+                $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('#checksheetForm').addClass('inputs-locked');
+                $('#saveBtn').prop('disabled', true);
+                $('#addDefectBtn').hide();
+                $('.defect-row').not(':first').remove();
+
+                // Clear images/standard info
+                $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+
+                // Reset PDF views
+                $('#standardPdfCanvas, #similarPdfCanvas').hide();
+                $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
+                $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
+                $('#similarStatusText').text('');
+                $('#fullStandardBtn, #fullSimilarBtn').hide();
+
+                // Reset select2 if used (standard select used here)
+                $('#itemSelect').val('').trigger('change');
+            }
+
+            // Optional: Reset timer on form reset
+            $('button[type="reset"]').click(function () {
+                resetState();
+            });
+
+            // --- Centralized Dimension Validation Logic ---
+            // The dimension standards are now passed from the controller.
+            const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
 
-                function normalizePartNumber(pn) {
-                    if (!pn) return '';
-                    return pn.toString()
-                        .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
-                        .replace(/\s+/g, '') // Remove all whitespace
-                        .toUpperCase();
-                }
+            function normalizePartNumber(pn) {
+                if (!pn) return '';
+                return pn.toString()
+                    .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
+                    .replace(/\s+/g, '') // Remove all whitespace
+                    .toUpperCase();
+            }
 
-                function validateDimensions() {
-                    const selectedOption = $('#itemSelect').find('option:selected');
-                    const rawPartNumber = selectedOption.data('part-number');
-                    const itemPartNumber = normalizePartNumber(rawPartNumber);
+            function validateDimensions() {
+                const selectedOption = $('#itemSelect').find('option:selected');
+                const rawPartNumber = selectedOption.data('part-number');
+                const itemPartNumber = normalizePartNumber(rawPartNumber);
 
-                    // Get the dimension standards for the currently selected item.
-                    const dimensionStandards = partDimensionStandards[itemPartNumber];
+                // Get the dimension standards for the currently selected item.
+                const dimensionStandards = partDimensionStandards[itemPartNumber];
 
-                    $('input[name^="dimensions"]').each(function () {
-                        const name = $(this).attr('name');
-                        // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
-                        const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                        if (!match) return;
+                $('input[name^="dimensions"]').each(function () {
+                    const name = $(this).attr('name');
+                    // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (!match) return;
 
-                        const point = match[2]; // The point number (e.g., '1', '2', '3').
-                        // Look up the standard for the current point for the selected part.
-                        const standard = dimensionStandards ? dimensionStandards[point] : null;
-                        const valStr = $(this).val().trim();
-                        const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
+                    const point = match[2]; // The point number (e.g., '1', '2', '3').
+                    // Look up the standard for the current point for the selected part.
+                    const standard = dimensionStandards ? dimensionStandards[point] : null;
+                    const valStr = $(this).val().trim();
+                    const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
 
-                        // Check if a standard exists for this point and the input is a valid number.
-                        if (standard && valStr !== '' && !isNaN(value)) {
-                            let isInvalid = false;
+                    // Check if a standard exists for this point and the input is a valid number.
+                    if (standard && valStr !== '' && !isNaN(value)) {
+                        let isInvalid = false;
 
-                            if (standard.min !== null && value < standard.min) {
-                                isInvalid = true;
-                            }
-                            if (standard.max !== null && value > standard.max) {
-                                isInvalid = true;
-                            }
+                        if (standard.min !== null && value < standard.min) {
+                            isInvalid = true;
+                        }
+                        if (standard.max !== null && value > standard.max) {
+                            isInvalid = true;
+                        }
 
-                            // Fallback to Size +/- Tolerance if no Min/Max is set at all
-                            if (standard.min === null && standard.max === null) {
-                                if (standard.size !== null && standard.tolerance !== null) {
-                                    const lowerBound = standard.size - standard.tolerance;
-                                    const upperBound = standard.size + standard.tolerance;
-                                    if (value < lowerBound || value > upperBound) {
-                                        isInvalid = true;
-                                    }
+                        // Fallback to Size +/- Tolerance if no Min/Max is set at all
+                        if (standard.min === null && standard.max === null) {
+                            if (standard.size !== null && standard.tolerance !== null) {
+                                const lowerBound = standard.size - standard.tolerance;
+                                const upperBound = standard.size + standard.tolerance;
+                                if (value < lowerBound || value > upperBound) {
+                                    isInvalid = true;
                                 }
                             }
+                        }
 
-                            if (isInvalid) {
-                                $(this).addClass('is-invalid');
-                            } else {
-                                $(this).removeClass('is-invalid');
-                            }
+                        if (isInvalid) {
+                            $(this).addClass('is-invalid');
                         } else {
                             $(this).removeClass('is-invalid');
                         }
-                    });
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
 
-                    // Trigger judgment update to reflect dimension status
+                // Trigger judgment update to reflect dimension status
+                updateJudgment();
+            }
+
+            // --- Dynamic Dimension Expansion Logistic ---
+            let currentCavities = 2;
+            let currentPoints = 5;
+            const maxCavities = 30;
+            const maxPoints = 30;
+
+            $('#addCavityBtn').click(function () {
+                if (currentCavities < maxCavities) {
+                    currentCavities++;
+                    let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
+                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+
+                    for (let j = 1; j <= currentPoints; j++) {
+                        newRow += `<td class="point-cell">
+                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                style="min-width: 60px;"
+                                                                                                                name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                placeholder="P${j}">
+                                                                                                        </td>`;
+                    }
+                    newRow += `</tr>`;
+                    $('#dimensionBody').append(newRow);
+                } else {
+                    alert('Maximum 30 cavities reached');
+                }
+            });
+
+            $('#deleteCavityBtn').click(function () {
+                if (currentCavities > 1) {
+                    $('#dimensionBody tr:last-child').remove();
+                    currentCavities--;
                     updateJudgment();
                 }
-
-                // --- Dynamic Dimension Expansion Logistic ---
-                let currentCavities = 2;
-                let currentPoints = 5;
-                const maxCavities = 30;
-                const maxPoints = 30;
-
-                $('#addCavityBtn').click(function () {
-                    if (currentCavities < maxCavities) {
-                        currentCavities++;
-                        let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
-
-                        for (let j = 1; j <= currentPoints; j++) {
-                            newRow += `<td class="point-cell">
-                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                            style="min-width: 60px;"
-                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                            placeholder="P${j}">
-                                                                                    </td>`;
-                        }
-                        newRow += `</tr>`;
-                        $('#dimensionBody').append(newRow);
-                    } else {
-                        alert('Maximum 30 cavities reached');
-                    }
-                });
-
-                $('#deleteCavityBtn').click(function () {
-                    if (currentCavities > 1) {
-                        $('#dimensionBody tr:last-child').remove();
-                        currentCavities--;
-                        updateJudgment();
-                    }
-                });
-
-                $('#addPointBtn').click(function () {
-                    if (currentPoints < maxPoints) {
-                        currentPoints++;
-                        // Add header
-                        $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
-
-                        // Add cells to each row
-                        $('.cavity-row').each(function () {
-                            let cavityNum = $(this).data('cavity');
-                            $(this).append(`<td class="point-cell">
-                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                            style="min-width: 60px;"
-                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                            placeholder="P${currentPoints}">
-                                                                                    </td>`);
-                        });
-                    } else {
-                        alert('Maximum 30 points reached');
-                    }
-                });
-
-                $('#deletePointBtn').click(function () {
-                    if (currentPoints > 1) {
-                        // Remove last header
-                        $('#dimensionHeadRow th.point-header:last-child').remove();
-                        // Remove last cell from each row
-                        $('.cavity-row').each(function () {
-                            $(this).find('td.point-cell:last-child').remove();
-                        });
-                        currentPoints--;
-                        updateJudgment();
-                    }
-                });
-
-                $(document).on('input', '.dimension-input', validateDimensions);
-
-                // Add CSS for invalid inputs
-                $('<style>' +
-                    '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
-                    '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
-                    '</style>').appendTo('head');
             });
-        </script>
+
+            $('#addPointBtn').click(function () {
+                if (currentPoints < maxPoints) {
+                    currentPoints++;
+                    // Add header
+                    $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
+
+                    // Add cells to each row
+                    $('.cavity-row').each(function () {
+                        let cavityNum = $(this).data('cavity');
+                        $(this).append(`<td class="point-cell">
+                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                style="min-width: 60px;"
+                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                placeholder="P${currentPoints}">
+                                                                                                        </td>`);
+                    });
+                } else {
+                    alert('Maximum 30 points reached');
+                }
+            });
+
+            $('#deletePointBtn').click(function () {
+                if (currentPoints > 1) {
+                    // Remove last header
+                    $('#dimensionHeadRow th.point-header:last-child').remove();
+                    // Remove last cell from each row
+                    $('.cavity-row').each(function () {
+                        $(this).find('td.point-cell:last-child').remove();
+                    });
+                    currentPoints--;
+                    updateJudgment();
+                }
+            });
+
+            $(document).on('input', '.dimension-input', validateDimensions);
+
+            // --- PDF Cache & Render Logic (Global/Robust) ---
+            const pdfCache = {};
+
+            // Ensure function is available globally or within this closure safely
+            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const $placeholder = $('#' + placeholderId);
+                const $loading = $('#' + loadingId);
+                const $canvas = $(canvas);
+
+                // Reset UI: Show Loading, Hide others
+                $placeholder.removeClass('d-flex').addClass('d-none');
+                $canvas.addClass('d-none').hide(); // Double hide to be safe
+                $loading.removeClass('d-none').addClass('d-flex');
+
+                console.log("Starting render for:", url);
+
+                // Check Cache first
+                if (pdfCache[url]) {
+                    console.log("PDF loaded from cache:", url);
+                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas);
+                    return;
+                }
+
+                pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                    pdfCache[url] = pdf; // Store in cache
+                    console.log("PDF loaded from server:", url);
+                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas);
+                }).catch(function (error) {
+                    console.error('Error rendering preview PDF:', error);
+                    $loading.removeClass('d-flex').addClass('d-none');
+                    $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF: ' + (error.message || 'Unknown error'));
+                });
+            };
+
+            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas) {
+                pdf.getPage(1).then(function (page) {
+                    const containerWidth = $(canvas).parent().width() || 500;
+                    // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
+                    const availableWidth = containerWidth - 40;
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const scale = availableWidth / viewport.width;
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+
+                    // Force CSS to fit container
+                    $canvas.css('width', '100%');
+                    $canvas.css('height', 'auto');
+
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: scaledViewport
+                    };
+
+                    page.render(renderContext).promise.then(function () {
+                        console.log("PDF Rendered to canvas. Scale:", scale);
+                        $loading.removeClass('d-flex').addClass('d-none');
+                        $canvas.removeClass('d-none').show();
+                    });
+                });
+            }
+
+            // Force trigger change if item is already selected (e.g. browser cache or default)
+            setTimeout(function () {
+                if ($('#itemSelect').val()) {
+                    $('#itemSelect').trigger('change');
+                }
+            }, 500);
+
+            // Add CSS for invalid inputs
+            $('<style>' +
+                '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
+                '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
+                '</style>').appendTo('head');
+        });
+    </script>
 @endpush
