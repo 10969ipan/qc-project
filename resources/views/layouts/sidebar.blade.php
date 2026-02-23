@@ -87,6 +87,8 @@
                                         Assy</a>
                                     <a class="collapse-item"
                                         href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -101,6 +103,8 @@
                                         Assy</a>
                                     <a class="collapse-item"
                                         href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
                                     <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -154,6 +158,8 @@
                                         Assy</a>
                                     <a class="collapse-item"
                                         href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('first_piece_approval.create', ['plant' => 'karawang']) }}">FPA</a>
                                     <a class="collapse-item" href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
                                         Cut Plating</a>
                                     <a class="collapse-item"
@@ -175,6 +181,8 @@
                                         Assy</a>
                                     <a class="collapse-item"
                                         href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
+                                    <a class="collapse-item"
+                                        href="{{ route('first_piece_approval.index', ['plant' => 'karawang']) }}">FPA</a>
                                     <a class="collapse-item" href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross
                                         Cut Plating</a>
                                     <a class="collapse-item"

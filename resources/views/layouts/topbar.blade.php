@@ -88,6 +88,9 @@
                                                         href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
                                                 </li>
                                                 <li><a class="dropdown-item"
+                                                        href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
+                                                </li>
+                                                <li><a class="dropdown-item"
                                                         href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                                                 </li>
                                             </ul>
@@ -102,6 +105,9 @@
                                                             Assy</a></li>
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item"
+                                                            href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
                                                     </li>
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
@@ -161,6 +167,9 @@
                                                         href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
                                                 </li>
                                                 <li><a class="dropdown-item"
+                                                        href="{{ route('first_piece_approval.create', ['plant' => 'karawang']) }}">FPA</a>
+                                                </li>
+                                                <li><a class="dropdown-item"
                                                         href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
                                                         Cut Plating</a></li>
                                                 <li><a class="dropdown-item"
@@ -188,6 +197,9 @@
                                                             Assy</a></li>
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item"
+                                                            href="{{ route('first_piece_approval.index', ['plant' => 'karawang']) }}">FPA</a>
                                                     </li>
                                                     <li><a class="dropdown-item"
                                                             href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross Cut

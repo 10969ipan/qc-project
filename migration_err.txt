@@ -1,0 +1,26 @@
+
+   INFO  Running migrations.  
+
+  2026_02_23_000000_create_first_piece_approvals_table  6.74ms FAIL
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'first_piece_approvals' already exists (Connection: mysql, SQL: create table `first_piece_approvals` (`id` bigint unsigned not null auto_increment primary key, `plant_id` char(36) null, `item_id` char(36) not null, `date` date not null, `shift` varchar(255) not null, `code_machine` varchar(255) null, `total_qty` int not null default '0', `sampling_qty` int not null default '0', `total_ok` int not null default '0', `total_ng` int not null default '0', `judgment` varchar(255) not null, `operator_initials` varchar(255) null, `remarks` text null, `next_proses` varchar(255) null, `dimension_check` text null, `defects` json null, `cycle_time` int null, `approval_status` varchar(255) null, `kashift_qc` varchar(255) null, `kashift_approved_at` timestamp null, `supervisor_qc` varchar(255) null, `supervisor_approved_at` timestamp null, `asst_manager_qc` varchar(255) null, `asst_manager_approved_at` timestamp null, `manager_qc` varchar(255) null, `manager_approved_at` timestamp null, `rejection_remarks` text null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:826
+    822▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    823▕                 );
+    824▕             }
+    825▕ 
+  ➜ 826▕             throw new QueryException(
+    827▕                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    828▕             );
+    829▕         }
+    830▕     }
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:570
+      PDOException::("SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'first_piece_approvals' already exists")
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:570
+      PDOStatement::execute()
+

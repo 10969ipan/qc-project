@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FirstPieceApprovalController;
 use App\Http\Controllers\SubAssyChecksheetController;
 use App\Http\Controllers\InProcessChecksheetController;
 use App\Http\Controllers\CrossCutChecksheetController;
@@ -32,6 +33,10 @@ Route::middleware(['auth'])->group(function () {
     // In-Process
     Route::get('/checksheet/in-process', [InProcessChecksheetController::class, 'create'])->name('in_process.create');
     Route::post('/checksheet/in-process', [InProcessChecksheetController::class, 'store'])->name('in_process.store');
+
+    // First Piece Approval (FPA)
+    Route::get('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'create'])->name('first_piece_approval.create');
+    Route::post('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'store'])->name('first_piece_approval.store');
 
     // Cross Cut
     Route::get('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'create'])->name('cross_cut.create');
@@ -71,12 +76,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/plating-checksheets', [PlatingChecksheetController::class, 'index'])->name('plating.index');
         Route::get('/report/double-tape-checksheets', [DoubleTapeChecksheetController::class, 'index'])->name('double_tape.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
+        Route::get('/report/first-piece-approvals', [FirstPieceApprovalController::class, 'index'])->name('first_piece_approval.index');
         Route::get('/report/cross-cut-checksheets', [CrossCutChecksheetController::class, 'index'])->name('cross_cut.index');
         Route::get('/report/cross-cut-painting-checksheets', [CrossCutPaintingChecksheetController::class, 'index'])->name('cross_cut_painting.index');
         Route::get('/report/sortir-checksheets', [SortirChecksheetController::class, 'index'])->name('sortir.index');
 
         // Export & Sync
         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
+        Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
         Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::get('/report/checksheets/export-pdf', [SubAssyChecksheetController::class, 'exportPdf'])->name('admin.checksheets.export_pdf');
         Route::post('/report/checksheets/sync', [SubAssyChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
@@ -84,6 +91,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');
         Route::post('/report/in-process-checksheets/sync', [InProcessChecksheetController::class, 'syncToGoogleSheets'])->name('in_process.sync');
+        Route::get('/report/first-piece-approvals/export', [FirstPieceApprovalController::class, 'export'])->name('first_piece_approval.export');
+        Route::post('/report/first-piece-approvals/sync', [FirstPieceApprovalController::class, 'syncToGoogleSheets'])->name('first_piece_approval.sync');
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
         Route::get('/report/cross-cut-painting-checksheets/export-pdf', [CrossCutPaintingChecksheetController::class, 'exportPdf'])->name('cross_cut_painting.export_pdf');
         Route::get('/report/sortir-checksheets/export', [SortirChecksheetController::class, 'export'])->name('sortir.export');
@@ -118,6 +127,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/double-tape-checksheets/{id}/reject/{type}', [DoubleTapeChecksheetController::class, 'reject'])->name('double_tape.reject');
         Route::post('/in-process-checksheets/{id}/approve/{type}', [InProcessChecksheetController::class, 'approve'])->name('in_process.approve');
         Route::post('/in-process-checksheets/{id}/reject/{type}', [InProcessChecksheetController::class, 'reject'])->name('in_process.reject');
+        Route::post('/first-piece-approvals/{id}/approve/{type}', [FirstPieceApprovalController::class, 'approve'])->name('first_piece_approval.approve');
+        Route::post('/first-piece-approvals/{id}/reject/{type}', [FirstPieceApprovalController::class, 'reject'])->name('first_piece_approval.reject');
         Route::post('/cross-cut-checksheets/{id}/approve/{type}', [CrossCutChecksheetController::class, 'approve'])->name('cross_cut.approve');
         Route::post('/cross-cut-checksheets/{id}/reject/{type}', [CrossCutChecksheetController::class, 'reject'])->name('cross_cut.reject');
         Route::post('/cross-cut-painting-checksheets/{id}/approve/{type}', [CrossCutPaintingChecksheetController::class, 'approve'])->name('cross_cut_painting.approve');
@@ -159,6 +170,11 @@ Route::middleware(['auth'])->group(function () {
             Route::put('in-process-checksheets/{id}', [InProcessChecksheetController::class, 'update'])->name('in_process.update');
             Route::delete('in-process-checksheets/{id}', [InProcessChecksheetController::class, 'destroy'])->name('in_process.destroy');
 
+            // First Piece Approval
+            Route::get('first-piece-approvals/{id}/edit', [FirstPieceApprovalController::class, 'edit'])->name('first_piece_approval.edit');
+            Route::put('first-piece-approvals/{id}', [FirstPieceApprovalController::class, 'update'])->name('first_piece_approval.update');
+            Route::delete('first-piece-approvals/{id}', [FirstPieceApprovalController::class, 'destroy'])->name('first_piece_approval.destroy');
+
             // Cross Cut
             Route::get('/cross-cut-checksheets/{id}/edit', [CrossCutChecksheetController::class, 'edit'])->name('cross_cut.edit');
             Route::put('/cross-cut-checksheets/{id}', [CrossCutChecksheetController::class, 'update'])->name('cross_cut.update');
@@ -199,6 +215,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('checksheets/{id}/update-approval', [SubAssyChecksheetController::class, 'updateApproval'])->name('checksheets.update_approval');
         Route::get('in-process-checksheets/{id}/edit-approval', [InProcessChecksheetController::class, 'editApproval'])->name('in_process.edit_approval');
         Route::put('in-process-checksheets/{id}/update-approval', [InProcessChecksheetController::class, 'updateApproval'])->name('in_process.update_approval');
+        Route::get('first-piece-approvals/{id}/edit-approval', [FirstPieceApprovalController::class, 'editApproval'])->name('first_piece_approval.edit_approval');
+        Route::put('first-piece-approvals/{id}/update-approval', [FirstPieceApprovalController::class, 'updateApproval'])->name('first_piece_approval.update_approval');
         Route::get('cross-cut-checksheets/{id}/edit-approval', [CrossCutChecksheetController::class, 'editApproval'])->name('cross_cut.edit_approval');
         Route::put('cross-cut-checksheets/{id}/update-approval', [CrossCutChecksheetController::class, 'updateApproval'])->name('cross_cut.update_approval');
         Route::get('cross-cut-painting-checksheets/{id}/edit-approval', [CrossCutPaintingChecksheetController::class, 'editApproval'])->name('cross_cut_painting.edit_approval');
