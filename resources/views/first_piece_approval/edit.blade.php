@@ -8,7 +8,7 @@
             <div class="row align-items-start">
                 <div class="col-md-8 border-right">
                     <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        EDIT DATA CHECKSHEET First Piece Approval
+                        EDIT DATA CHECKSHEET FIRST PIECE APPROVAL
                         @php
                             $plant = request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Checksheet FPA</title>
+    <title>Laporan Checksheet First Piece Approval</title>
     <style>
         @page {
             margin: 10px;
@@ -175,7 +175,7 @@
     <table class="header-table">
         <tr>
             <td class="logo"><img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 60px;"></td>
-            <td class="title">LAPORAN CHECK SHEET First Piece Approval</td>
+            <td class="title">LAPORAN DATA CHECKSHEET FIRST PIECE APPROVAL</td>
             <td class="doc-info">
                 <table>
                     <tr>

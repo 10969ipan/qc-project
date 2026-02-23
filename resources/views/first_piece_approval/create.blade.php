@@ -8,7 +8,7 @@
             <div class="row align-items-start">
                 <div class="col-md-8 border-right">
                     <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        CHECK SHEET FPA
+                        CHECK SHEET FIRST PIECE APPROVAL
                         @php
                             $plant = request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
@@ -140,7 +140,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet FPA</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet First Piece Approval</h6>
         </div>
         <div class="card-body">
             <!-- Plant Selector for Admin -->

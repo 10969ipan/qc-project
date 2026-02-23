@@ -8,7 +8,7 @@
             <div class="row align-items-start">
                 <div class="col-md-8 border-right">
                     <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        LAPORAN DATA CHECKSHEET FPA
+                        LAPORAN DATA CHECKSHEET FIRST PIECE APPROVAL
                         @php
                             $plant = request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
@@ -56,7 +56,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk FPA</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Data Masuk First Piece Approval</h6>
         </div>
         <div class="card-body">
             <form action="{{ route('first_piece_approval.index') }}" method="GET" class="mb-4">
