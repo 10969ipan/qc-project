@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\InProcessChecksheet;
+use App\Models\FirstPieceApproval;
 use App\Models\SubAssyChecksheet;
 use App\Models\CrossCutChecksheet;
 use App\Models\CrossCutPaintingChecksheet;
@@ -108,6 +109,7 @@ class DashboardService extends BaseService
 
         $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly);
         $this->processModelStats(InProcessChecksheet::class, $stats, $plantId, $dailyOnly);
+        $this->processModelStats(FirstPieceApproval::class, $stats, $plantId, $dailyOnly);
 
         // Jakarta only shows Sub Assy and In Process per user request
         if ($plantCode !== 'jakarta') {
@@ -193,7 +195,6 @@ class DashboardService extends BaseService
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
 
-        // Active In Process Machines - Filter by current shift and date
         $machinesQuery = InProcessChecksheet::with('item')
             ->whereDate('date', $currentProductionDate)
             ->where('shift', $currentShift)
@@ -203,7 +204,23 @@ class DashboardService extends BaseService
         if ($plantId)
             $machinesQuery->where('plant_id', $plantId);
 
-        $activeMachines = $machinesQuery->get()
+        $inProcessMachines = $machinesQuery->get();
+
+        // Active First Piece Approval Machines
+        $fpaQuery = FirstPieceApproval::with('item')
+            ->whereDate('date', $currentProductionDate)
+            ->where('shift', $currentShift)
+            ->whereNotNull('code_machine')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId)
+            $fpaQuery->where('plant_id', $plantId);
+
+        $fpaMachines = $fpaQuery->get();
+
+        // Combine both into one collection and take the most recent input for each machine
+        $activeMachines = $inProcessMachines->concat($fpaMachines)
+            ->sortByDesc('created_at')
             ->unique('code_machine')
             ->mapWithKeys(fn($item) => [(int) $item->code_machine => $item]);
 
@@ -532,8 +549,8 @@ class DashboardService extends BaseService
 
         return [
             'labels' => $dates,
-            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process']),
-            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'cross_cut_plating', 'cross_cut_painting']),
+            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa']),
+            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting']),
         ];
     }
 
@@ -553,6 +570,13 @@ class DashboardService extends BaseService
                     ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
             } elseif ($type === 'in_process') {
                 $records = InProcessChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+            } elseif ($type === 'fpa') {
+                $records = FirstPieceApproval::where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
                     ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
