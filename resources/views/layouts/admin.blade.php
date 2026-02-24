@@ -1326,7 +1326,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Auto Uppercase for all text inputs and textareas
-            $(document).on('input', 'input[type="text"], textarea', function () {
+            $(document).on('input', 'input[type="text"]:not(.no-autoupper), textarea:not(.no-autoupper)', function () {
                 let start = this.selectionStart;
                 let end = this.selectionEnd;
                 this.value = this.value.toUpperCase();

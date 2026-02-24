@@ -23,14 +23,48 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group mb-2">
-                            <label class="small font-weight-bold">Tanggal</label>
+                            <label
+                                class="small font-weight-bold font-italic text-primary border-bottom pb-1 w-100">Injection
+                                (Tgl/Shf)</label>
+                            <input type="date" class="form-control form-control-sm mb-1" name="injection_date"
+                                value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}">
+                            <select class="form-control form-control-sm" name="injection_shift">
+                                <option value="">- Shift -</option>
+                                <option value="1" {{ $checksheet->injection_shift == 1 ? 'selected' : '' }}>1</option>
+                                <option value="2" {{ $checksheet->injection_shift == 2 ? 'selected' : '' }}>2</option>
+                                <option value="3" {{ $checksheet->injection_shift == 3 ? 'selected' : '' }}>3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group mb-2">
+                            <label class="small font-weight-bold font-italic text-info border-bottom pb-1 w-100">Plating
+                                (Tgl/Shf/Lot)</label>
+                            <input type="date" class="form-control form-control-sm mb-1" name="plating_date"
+                                value="{{ $checksheet->plating_date ? $checksheet->plating_date->format('Y-m-d') : '' }}">
+                            <select class="form-control form-control-sm mb-1" name="plating_shift">
+                                <option value="">- Shift -</option>
+                                <option value="1" {{ $checksheet->plating_shift == 1 ? 'selected' : '' }}>1</option>
+                                <option value="2" {{ $checksheet->plating_shift == 2 ? 'selected' : '' }}>2</option>
+                                <option value="3" {{ $checksheet->plating_shift == 3 ? 'selected' : '' }}>3</option>
+                            </select>
+                            <input type="text" class="form-control form-control-sm font-weight-bold" name="no_lot"
+                                value="{{ $checksheet->no_lot }}" placeholder="No Lot">
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-2">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group mb-2">
+                            <label class="small font-weight-bold">Quality (Tanggal)</label>
                             <input type="date" class="form-control form-control-sm" name="date"
                                 value="{{ $checksheet->date->format('Y-m-d') }}" required>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="form-group mb-2">
-                            <label class="small font-weight-bold">Shift</label>
+                            <label class="small font-weight-bold">Quality (Shift)</label>
                             <select class="form-control form-control-sm" name="shift" required>
                                 <option value="1" {{ $checksheet->shift == 1 ? 'selected' : '' }}>1</option>
                                 <option value="2" {{ $checksheet->shift == 2 ? 'selected' : '' }}>2</option>

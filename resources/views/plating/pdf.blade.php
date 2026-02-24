@@ -158,20 +158,20 @@
     <table class="table">
         <thead>
             <tr>
-                <th rowspan="2">No</th>
-                <th rowspan="2">Tanggal</th>
+                <th rowspan="2" style="width: 20px;">No</th>
+                <th rowspan="2">Injection<br>(Tgl/Shf)</th>
+                <th rowspan="2">Plating<br>(Tgl/Shf/Lot)</th>
+                <th rowspan="2">Quality<br>(Tgl/Shf)</th>
                 <th rowspan="2">Jam (Bef)</th>
                 <th rowspan="2">Jam (Aft)</th>
                 <th rowspan="2">Cycle (s)</th>
-                <th rowspan="2">Shift</th>
                 <th rowspan="2">Kode SAP</th>
-                <th rowspan="2">Item Part</th>
-                <th rowspan="2">Cust</th>
-                <th rowspan="2">Part No</th>
-                <th rowspan="2">Total</th>
-                <th rowspan="2">Check</th>
-                <th rowspan="2">OK</th>
-                <th rowspan="2">NG</th>
+                <th rowspan="2" style="width: 80px;">Item Part</th>
+                <th rowspan="2" style="width: 40px;">Cust</th>
+                <th rowspan="2" style="width: 70px;">Part No</th>
+                <th rowspan="2" style="width: 30px;">Total</th>
+                <th rowspan="2" style="width: 30px;">OK</th>
+                <th rowspan="2" style="width: 30px;">NG</th>
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2">Jdg</th>
                 <th rowspan="2">Inisial</th>
@@ -186,17 +186,21 @@
             @foreach($checksheets as $checksheet)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-y') }}</td>
+                    <td>{{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} /
+                        {{ $checksheet->injection_shift ?? '-' }}
+                    </td>
+                    <td>{{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }} /
+                        {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
+                    </td>
+                    <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }}</td>
                     <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td>{{ $checksheet->created_at->format('H:i') }}</td>
                     <td>{{ $checksheet->cycle_time ?? '-' }}</td>
-                    <td>{{ $checksheet->shift }}</td>
                     <td>{{ $checksheet->item->sap_code ?? '-' }}</td>
                     <td>{{ $checksheet->item->name ?? '-' }}</td>
                     <td>{{ $checksheet->item->customer ?? '-' }}</td>
                     <td>{{ $checksheet->item->part_number ?? '-' }}</td>
                     <td>{{ $checksheet->total_qty }}</td>
-                    <td>{{ $checksheet->sampling_qty }}</td>
                     <td class="text-success">{{ $checksheet->total_ok }}</td>
                     <td class="text-danger">{{ $checksheet->total_ng }}</td>
 

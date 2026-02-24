@@ -2,12 +2,54 @@
 
 @section('content')
     <div class="container-fluid">
-        <x-plant-header title="Schedule Kalibrasi" :plant="$plantCode">
-            <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
-                class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i class="fas fa-list fa-sm text-white-50"></i> Daftar Alat
-            </a>
-        </x-plant-header>
+    <div class="card shadow mb-4 border-left-primary">
+        <div class="card-body py-3">
+            <div class="row align-items-start">
+                <div class="col-md-8 border-right">
+                    <div class="d-flex align-items-center mb-3">
+                        <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase mr-3">
+                            SCHEDULE KALIBRASI ALAT UKUR
+                        </h1>
+                        <span
+                            class="badge badge-{{ strtolower($plantCode) === 'jakarta' ? 'info' : 'primary' }}"
+                            style="font-size: 0.8rem;">
+                            <i class="fas fa-building mr-1"></i>
+                            Plant {{ ucfirst($plantCode) }}
+                        </span>
+                    </div>
+                    <div class="mt-2">
+                        {{-- Button removed as per user request --}}
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-end">
+                    <div class="col p-0" style="max-width: 280px;">
+                        <div class="row mb-1">
+                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
+                            <div class="col-7 text-xs font-weight-bold text-gray-800">:
+                                {{ strtolower($plantCode) === 'jakarta' ? 'QC-JKT-F-052' : 'QC-KRW-F-052' }}
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tanggal Terbit</div>
+                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 25/03/2015</div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi Ke-</div>
+                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 1</div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tanggal Revisi</div>
+                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 21/03/2018</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
+                            <div class="col-7 text-xs font-weight-bold text-gray-800">: -</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">

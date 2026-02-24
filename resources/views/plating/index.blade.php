@@ -132,17 +132,17 @@
                         @endphp
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Tanggal</th>
+                            <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift)</th>
+                            <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
+                            <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
-                            <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle">Total Qty</th>
-                            <th rowspan="2" class="align-middle">Check Qty</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
@@ -170,20 +170,27 @@
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
+                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }}<br>
+                                    <small>{{ $checksheet->injection_shift ?? '-' }}</small>
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }}<br>
+                                    <small>{{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}</small>
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}<br>
+                                    <small>{{ $checksheet->shift }}</small>
                                 </td>
                                 <td class="align-middle">
                                     {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
-                                <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 

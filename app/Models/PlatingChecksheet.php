@@ -38,11 +38,18 @@ class PlatingChecksheet extends Model
         'manager_approved_at',
         'cycle_time',
         'rejection_remarks',
+        'injection_date',
+        'injection_shift',
+        'plating_date',
+        'plating_shift',
+        'no_lot',
     ];
 
     protected $casts = [
         'defects' => 'array',
         'date' => 'date',
+        'injection_date' => 'date',
+        'plating_date' => 'date',
         'kashift_approved_at' => 'datetime',
         'supervisor_approved_at' => 'datetime',
         'asst_manager_approved_at' => 'datetime',
