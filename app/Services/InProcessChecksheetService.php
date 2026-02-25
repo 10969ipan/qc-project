@@ -103,8 +103,7 @@ class InProcessChecksheetService extends BaseService
      */
     public function getFilteredChecksheets(array $filters)
     {
-        $perPage = (!empty($filters['start_date']) && !empty($filters['end_date'])) ? 9999 : 10;
-        return $this->buildFilteredQuery($filters)->paginate($perPage)->withQueryString();
+        return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
     }
 
     /**
@@ -124,8 +123,12 @@ class InProcessChecksheetService extends BaseService
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
-        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
-            $query->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('in_process_checksheets.date', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('in_process_checksheets.date', '<=', $filters['end_date']);
         }
 
         if (!empty($filters['approval_status'])) {

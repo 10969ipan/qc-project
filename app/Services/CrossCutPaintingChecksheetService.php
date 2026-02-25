@@ -26,8 +26,7 @@ class CrossCutPaintingChecksheetService extends BaseService
      */
     public function getFilteredChecksheets(array $filters)
     {
-        $perPage = (!empty($filters['start_date']) && !empty($filters['end_date'])) ? 9999 : 10;
-        return $this->buildFilteredQuery($filters)->paginate($perPage)->withQueryString();
+        return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
     }
 
     /**
@@ -46,10 +45,11 @@ class CrossCutPaintingChecksheetService extends BaseService
         }
 
         if (!empty($filters['start_date'])) {
-            $query->whereDate('qc_datetime', '>=', $filters['start_date']);
+            $query->whereDate('cross_cut_painting_checksheets.qc_datetime', '>=', $filters['start_date']);
         }
+
         if (!empty($filters['end_date'])) {
-            $query->whereDate('qc_datetime', '<=', $filters['end_date']);
+            $query->whereDate('cross_cut_painting_checksheets.qc_datetime', '<=', $filters['end_date']);
         }
         if (!empty($filters['item_id'])) {
             $query->where('item_id', $filters['item_id']);
