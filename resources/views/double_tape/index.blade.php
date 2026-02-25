@@ -321,6 +321,9 @@
 
                                 @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
+                                        @endif
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
@@ -568,4 +571,6 @@
             });
         });
     </script>
+    @php $bulkApproveRoute = route('double_tape.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endpush

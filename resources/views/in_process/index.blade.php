@@ -570,6 +570,9 @@
 
                                 @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
+                                        @endif
                                         {{-- Action Buttons for Approvals --}}
                                         @php
                                             $user = auth()->user();
@@ -881,8 +884,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1256,6 +1259,8 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                    });
+                                                                                                                                                                        });
     </script>
+    @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endpush

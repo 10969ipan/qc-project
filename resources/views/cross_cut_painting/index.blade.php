@@ -241,6 +241,9 @@
 
                                 @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 150px;">
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
+                                        @endif
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
@@ -514,4 +517,6 @@
             $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
+    @php $bulkApproveRoute = route('cross_cut_painting.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endpush

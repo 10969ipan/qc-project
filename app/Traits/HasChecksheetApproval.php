@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 
@@ -240,6 +241,121 @@ trait HasChecksheetApproval
         }
 
         return redirect()->back()->with('success', 'Data Checksheet berhasil ditolak.');
+    }
+
+    /**
+     * Bulk approve all records matching the date filter for the user's approval level.
+     * Only accessible by supervisor, asst_manager, manager, and admin roles.
+     */
+    public function bulkApprove(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $user = auth()->user();
+        $modelClass = $this->getModelClass();
+
+        // Determine approval type based on user role
+        $type = null;
+        $allowedRoles = ['supervisor', 'asst_manager', 'manager', 'admin'];
+
+        if ($user->role === 'admin') {
+            // Admin must specify which type to approve
+            $type = $request->input('approval_type');
+            if (!$type) {
+                return response()->json(['success' => false, 'message' => 'Admin harus memilih level approval.'], 422);
+            }
+        } elseif (in_array($user->role, $allowedRoles)) {
+            $type = $user->role;
+        }
+
+        if (!$type) {
+            return response()->json(['success' => false, 'message' => 'Role Anda tidak diizinkan untuk bulk approve.'], 403);
+        }
+
+        $map = $this->getApprovalMapping($type);
+        if (!$map) {
+            return response()->json(['success' => false, 'message' => 'Level approval tidak valid untuk modul ini.'], 422);
+        }
+
+        // Block Jakarta users from approving Cross Cut
+        if (strpos($modelClass, 'CrossCutChecksheet') !== false && strtolower(optional($user->plant)->code) === 'jakarta') {
+            return response()->json(['success' => false, 'message' => 'User Jakarta tidak memiliki akses approval untuk Cross Cut.'], 403);
+        }
+
+        $field = $map['field'];
+        $timeField = $map['time'];
+
+        DB::beginTransaction();
+        try {
+            $query = $modelClass::query();
+
+            // Admin can bypass plant scope
+            if ($user->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+
+            // Apply plant filter if provided
+            if ($request->filled('plant')) {
+                $plantValue = $request->input('plant');
+                $query->where(function ($q) use ($plantValue) {
+                    $q->where('plant_id', $plantValue)
+                        ->orWhereHas('plant', function ($pq) use ($plantValue) {
+                            $pq->where('code', $plantValue);
+                        });
+                });
+            }
+
+            // Filter by date range
+            $query->whereDate('date', '>=', $request->start_date)
+                ->whereDate('date', '<=', $request->end_date);
+
+            // Only records that are pending approval (field is NULL or REJECTED)
+            $query->where(function ($q) use ($field) {
+                $q->whereNull($field)->orWhere($field, 'REJECTED');
+            });
+
+            $checksheets = $query->get();
+            $approvedCount = 0;
+
+            foreach ($checksheets as $checksheet) {
+                // Clear rejection if it was rejected
+                if ($checksheet->$field === 'REJECTED') {
+                    $checksheet->rejection_remarks = null;
+                }
+
+                $checksheet->$field = $user->name;
+                $checksheet->$timeField = now();
+
+                // Set global approval status if Supervisor approves
+                if ($type === 'supervisor' || $type === 'supervisor_plating') {
+                    if (Schema::hasColumn($checksheet->getTable(), 'approval_status')) {
+                        $checksheet->approval_status = 'Approved';
+                    }
+                }
+
+                $checksheet->save();
+                $approvedCount++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil approve {$approvedCount} data checksheet.",
+                'count' => $approvedCount,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Bulk Approve Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi error saat bulk approve: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

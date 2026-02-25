@@ -283,6 +283,9 @@
 
                                 @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 300px;">
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
+                                        @endif
                                         @php
                                             $isAdmin = auth()->user()->role === 'admin';
                                             $user = auth()->user();
@@ -498,4 +501,6 @@
             // PDF Export Functionality Removed (Replaced by Server-Side Export)
         });
     </script>
+    @php $bulkApproveRoute = route('sortir.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endpush

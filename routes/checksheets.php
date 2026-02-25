@@ -136,6 +136,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/sortir-checksheets/{id}/approve/{type}', [SortirChecksheetController::class, 'approve'])->name('sortir.approve');
         Route::post('/sortir-checksheets/{id}/reject/{type}', [SortirChecksheetController::class, 'reject'])->name('sortir.reject');
 
+        // Bulk Approval Routes
+        Route::post('/checksheets/bulk-approve', [SubAssyChecksheetController::class, 'bulkApprove'])->name('admin.checksheets.bulk_approve');
+        Route::post('/in-process-checksheets/bulk-approve', [InProcessChecksheetController::class, 'bulkApprove'])->name('in_process.bulk_approve');
+        Route::post('/cross-cut-checksheets/bulk-approve', [CrossCutChecksheetController::class, 'bulkApprove'])->name('cross_cut.bulk_approve');
+        Route::post('/cross-cut-painting-checksheets/bulk-approve', [CrossCutPaintingChecksheetController::class, 'bulkApprove'])->name('cross_cut_painting.bulk_approve');
+        Route::post('/sortir-checksheets/bulk-approve', [SortirChecksheetController::class, 'bulkApprove'])->name('sortir.bulk_approve');
+        Route::post('/plating-checksheets/bulk-approve', [PlatingChecksheetController::class, 'bulkApprove'])->name('plating.bulk_approve');
+        Route::post('/double-tape-checksheets/bulk-approve', [DoubleTapeChecksheetController::class, 'bulkApprove'])->name('double_tape.bulk_approve');
+
         // --- Incoming Routes (Approval) ---
         Route::post('/incoming-part/{id}/approve/{type}', [IncomingPartController::class, 'approve'])->name('incoming.parts.approve');
         Route::post('/incoming-part/{id}/reject/{type}', [IncomingPartController::class, 'reject'])->name('incoming.parts.reject');
