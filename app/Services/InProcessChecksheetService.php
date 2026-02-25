@@ -103,7 +103,8 @@ class InProcessChecksheetService extends BaseService
      */
     public function getFilteredChecksheets(array $filters)
     {
-        return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
+        $perPage = (!empty($filters['start_date']) && !empty($filters['end_date'])) ? 9999 : 10;
+        return $this->buildFilteredQuery($filters)->paginate($perPage)->withQueryString();
     }
 
     /**
