@@ -788,13 +788,13 @@
                                                     <tbody id="modal-verif-verification-body">
                                                         <tr>
                                                             <td><input type="text" name="nilai_alat[]"
-                                                                    class="form-control form-control-sm no-autoupper" required></td>
+                                                                    class="form-control form-control-sm no-autoupper"></td>
                                                             <td><input type="text" name="nilai_koreksi[]"
-                                                                    class="form-control form-control-sm no-autoupper" required></td>
+                                                                    class="form-control form-control-sm no-autoupper"></td>
                                                             <td><input type="text" name="nilai_ketidakpastian[]"
-                                                                    class="form-control form-control-sm no-autoupper" required></td>
+                                                                    class="form-control form-control-sm no-autoupper"></td>
                                                             <td><input type="text" name="hasil_verifikasi[]"
-                                                                    class="form-control form-control-sm no-autoupper" required></td>
+                                                                    class="form-control form-control-sm no-autoupper"></td>
                                                             <td class="text-center">
                                                                 <button type="button"
                                                                     class="btn btn-sm btn-outline-danger modal-verif-remove-row"
@@ -999,10 +999,10 @@
             $('#modal-verif-add-row').on('click', function () {
                 var newRow = `
                                                                     <tr>
-                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm no-autoupper" required></td>
-                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm no-autoupper" required></td>
-                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm no-autoupper" required></td>
-                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm no-autoupper" required></td>
+                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm no-autoupper"></td>
+                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm no-autoupper"></td>
+                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm no-autoupper"></td>
+                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm no-autoupper"></td>
                                                                         <td class="text-center">
                                                                             <button type="button" class="btn btn-sm btn-outline-danger modal-verif-remove-row">
                                                                                 <i class="fas fa-trash"></i>

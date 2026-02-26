@@ -433,13 +433,13 @@
     <!-- PDF Side-by-Side Display Section -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
         <div class="card-header py-3 bg-light">
-            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>Reference View</h6>
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>STANDARD</h6>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6 border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">PCCP DAN DIMENSI</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP</h6>
                         <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
                             <div class="mr-2 border-right pr-2 d-flex align-items-center file-nav" style="display:none;">
                                 <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardFile"
@@ -485,7 +485,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">DIMENSI</h6>
                         <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
                             <div class="d-flex align-items-center page-nav">
                                 <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"

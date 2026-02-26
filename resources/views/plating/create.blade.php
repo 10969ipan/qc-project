@@ -65,7 +65,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Input Data Plating Checksheet</h6>
+            <h6 class="m-0 font-weight-bold text-primary">INPUT DATA OUTGOING PLATING</h6>
         </div>
         <div class="card-body">
             <form action="{{ route('plating.store') }}" method="POST" id="checksheetForm">
@@ -126,7 +126,8 @@
                                                     data-name="{{ $item->name }}" data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
-                                                    {{ $item->name }}
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                    {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -288,13 +289,13 @@
     <!-- PDF Side-by-Side Display Section -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
         <div class="card-header py-3 bg-light">
-            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>Reference View</h6>
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>STANDARD</h6>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6 border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">STANDARD PCCP</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP</h6>
                         <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
                             <div class="mr-2 border-right pr-2 d-flex align-items-center file-nav" style="display:none;">
                                 <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardFile"
