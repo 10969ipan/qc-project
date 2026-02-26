@@ -598,6 +598,9 @@
 
                         // Lock OK (Pass) checkbox if NG
                         $('#checkOK').prop('checked', false).prop('disabled', true);
+
+                        // Auto-add "Dimensi" defect if NG and no defects listed
+                        autoAddDimensionDefect();
                     }
                 } else {
                     $('#aql_info').hide();
@@ -622,11 +625,17 @@
                     judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                         .css({ 'border-color': '#28a745', 'background-color': '#fff' });
                     $('#nextProsesContainer').slideUp();
+
+                    // Auto-remove "Dimensi" defect if judgment is OK
+                    autoRemoveDimensionDefect();
                 } else if (val === 'NG') {
                     $(this).removeClass('text-success').addClass('text-danger');
                     judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                         .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
                     $('#nextProsesContainer').slideDown();
+
+                    // Auto-add "Dimensi" defect when manually switching to NG
+                    autoAddDimensionDefect();
                 } else {
                     $(this).removeClass('text-success text-danger');
                     judgmentBadge.addClass('d-none').text('-');
@@ -717,8 +726,13 @@
 
                 if (Array.isArray(defects) && defects.length > 0) {
                     defects.forEach(d => defectSelect.append(`<option value="${d}">${d}</option>`));
+
+                    // Always ensure "Dimensi" is in the list
+                    if (!defects.includes('Dimensi') && !defects.includes('dimension')) {
+                        defectSelect.append('<option value="Dimensi">Dimensi</option>');
+                    }
                 } else {
-                    const defaultDefects = ['BARET', 'SILVER', 'FLOW', 'FLASH', 'KOTOR', 'DENYUT'];
+                    const defaultDefects = ['BARET', 'SILVER', 'FLOW', 'FLASH', 'KOTOR', 'DENYUT', 'Dimensi'];
                     defaultDefects.forEach(d => defectSelect.append(`<option value="${d}">${d}</option>`));
                 }
                 $('#addDefectBtn').show();
@@ -749,11 +763,94 @@
                     totalNG += parseInt($(this).val()) || 0;
                 });
                 $('#totalNG').val(totalNG).trigger('input');
+            }
 
-                // Auto-Add/Remove "Dimensi" defect if NG > 0 and it's a dimension-related check?
-                // For Double Tape, it's usually just manual NG count, but we can still have "Dimensi" in the list.
-                // However, without a specific "validateDimensions" like in In-Process, we don't know if it's "Dimensi".
-                // But if the user selects "Dimensi" as a defect, judgment should be NG.
+            function autoAddDimensionDefect() {
+                // Check if 'dimension' or 'Dimensi' is already selected in any row
+                var foundRow = null;
+                $('.defect-select').each(function () {
+                    var val = $(this).val();
+                    var text = $(this).find('option:selected').text();
+                    if (val === 'dimension' || text === 'Dimensi' || text.toLowerCase() === 'dimensi') {
+                        foundRow = $(this).closest('.defect-row');
+                        return false; // break
+                    }
+                });
+
+                if (foundRow) {
+                    // Ensure qty is at least 1
+                    var qtyInput = foundRow.find('.defect-qty');
+                    if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                        qtyInput.val(1).trigger('input');
+                    }
+                    return;
+                }
+
+                // If not found, try to find an empty slot
+                var targetSelect = null;
+                $('.defect-select').each(function () {
+                    if ($(this).val() === '') {
+                        targetSelect = $(this);
+                        return false; // break
+                    }
+                });
+
+                // If no empty slot, add a new row if below limit
+                if (!targetSelect) {
+                    var rowCount = $('.defect-row').length;
+                    if (rowCount < 4) {
+                        $('#addDefectBtn').trigger('click');
+                        targetSelect = $('.defect-select').last();
+                    } else {
+                        // Force it to the first row if limit reached and no empty slot
+                        targetSelect = $('.defect-select').first();
+                    }
+                }
+
+                if (targetSelect) {
+                    var options = targetSelect.find('option');
+                    var foundVal = '';
+                    options.each(function () {
+                        if ($(this).val() === 'dimension' || $(this).text() === 'Dimensi' || $(this).text().toLowerCase() === 'dimensi') {
+                            foundVal = $(this).val();
+                            return false;
+                        }
+                    });
+
+                    // If still not found (rare), append it
+                    if (!foundVal) {
+                        targetSelect.append('<option value="Dimensi">Dimensi</option>');
+                        foundVal = 'Dimensi';
+                    }
+
+                    targetSelect.val(foundVal).trigger('change');
+                    targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
+
+                    // Recalculate NG
+                    calculateTotalNG();
+                }
+            }
+
+            function autoRemoveDimensionDefect() {
+                $('.defect-select').each(function () {
+                    var val = $(this).val();
+                    var text = $(this).find('option:selected').text();
+
+                    if (val === 'dimension' || text === 'Dimensi' || text.toLowerCase() === 'dimensi') {
+                        var row = $(this).closest('.defect-row');
+
+                        // If it's the only row, just reset it
+                        if ($('.defect-row').length === 1) {
+                            $(this).val('').trigger('change');
+                            row.find('.defect-qty').val('');
+                        } else {
+                            // If multiple rows, remove this row
+                            row.remove();
+                        }
+                    }
+                });
+                // Recalculate Total NG
+                calculateTotalNG();
             }
 
             // Stop timer on form submit & Validate NG
@@ -838,377 +935,377 @@
             const pdfCache = {};
 
             let standardZoomLevel = 1.0;
-                let similarZoomLevel = 1.0;
+            let similarZoomLevel = 1.0;
 
-                let refStandardPdfDoc = null;
-                let refStandardPageNum = 1;
-                let refSimilarPdfDoc = null;
-                let refSimilarPageNum = 1;
+            let refStandardPdfDoc = null;
+            let refStandardPageNum = 1;
+            let refSimilarPdfDoc = null;
+            let refSimilarPageNum = 1;
 
-                window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
-                    const canvas = document.getElementById(canvasId);
-                    const ctx = canvas.getContext('2d');
-                    const $placeholder = $('#' + placeholderId);
-                    const $loading = $('#' + loadingId);
-                    const $canvas = $(canvas);
+            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const $placeholder = $('#' + placeholderId);
+                const $loading = $('#' + loadingId);
+                const $canvas = $(canvas);
 
-                    // Reset UI
-                    $placeholder.removeClass('d-flex').addClass('d-none');
-                    $canvas.addClass('d-none').hide();
-                    $loading.removeClass('d-none').addClass('d-flex');
+                // Reset UI
+                $placeholder.removeClass('d-flex').addClass('d-none');
+                $canvas.addClass('d-none').hide();
+                $loading.removeClass('d-none').addClass('d-flex');
 
-                    // Check Cache first
-                    if (url === null) {
-                        // Use currently loaded PDF for page navigation
-                        if (canvasId === 'standardPdfCanvas' && refStandardPdfDoc) {
-                            renderPageOnCanvas(refStandardPdfDoc, canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                        } else if (canvasId === 'similarPdfCanvas' && refSimilarPdfDoc) {
-                            renderPageOnCanvas(refSimilarPdfDoc, canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                        }
-                        return;
+                // Check Cache first
+                if (url === null) {
+                    // Use currently loaded PDF for page navigation
+                    if (canvasId === 'standardPdfCanvas' && refStandardPdfDoc) {
+                        renderPageOnCanvas(refStandardPdfDoc, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                    } else if (canvasId === 'similarPdfCanvas' && refSimilarPdfDoc) {
+                        renderPageOnCanvas(refSimilarPdfDoc, canvas, ctx, $loading, $canvas, pageNum, canvasId);
                     }
-
-                    if (pdfCache[url]) {
-                        renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                        return;
-                    }
-
-                    pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                        pdfCache[url] = pdf; // Store in cache
-                        renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                    }).catch(function (error) {
-                        console.error('Error rendering preview PDF:', error);
-                        $loading.removeClass('d-flex').addClass('d-none');
-                        $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF');
-                    });
-                };
-
-                function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
-                    pdf.getPage(pageNum).then(function (page) {
-                        const containerWidth = $(canvas).parent().width() || 500;
-                        // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
-                        const availableWidth = containerWidth - 40;
-                        const viewport = page.getViewport({ scale: 1.0 });
-
-                        // Determine which zoom level to use
-                        let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
-
-                        const scale = (availableWidth / viewport.width) * zoomLevel;
-                        const scaledViewport = page.getViewport({ scale: scale });
-
-                        canvas.height = scaledViewport.height;
-                        canvas.width = scaledViewport.width;
-
-                        // Apply fit styling
-                        if (zoomLevel > 1.0) {
-                            $canvas.css({'width': 'auto', 'max-width': 'none'});
-                        } else {
-                            $canvas.css({'width': '100%', 'max-width': '100%'});
-                        }
-                        $canvas.css('height', 'auto');
-
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: scaledViewport
-                        };
-
-                        page.render(renderContext).promise.then(function () {
-                            $loading.removeClass('d-flex').addClass('d-none');
-                            $canvas.removeClass('d-none').show();
-
-                            // Update info labels and nav controls
-                            if (canvasId === 'standardPdfCanvas') {
-                                refStandardPdfDoc = pdf;
-                                refStandardPageNum = pageNum;
-                                $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
-                                $('.standard-nav-controls').attr('style', 'display: flex !important;');
-                            } else if (canvasId === 'similarPdfCanvas') {
-                                refSimilarPdfDoc = pdf;
-                                refSimilarPageNum = pageNum;
-                                $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
-                                $('.similar-nav-controls').attr('style', 'display: flex !important;');
-                            }
-                        });
-                    });
+                    return;
                 }
 
-                // PDF Zoom Controls Events
-                $('#zoomInStandard').click(function() {
-                    standardZoomLevel += 0.25;
-                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                });
-                $('#zoomOutStandard').click(function() {
-                    if (standardZoomLevel > 0.5) {
-                        standardZoomLevel -= 0.25;
-                        if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                    }
-                });
-                $('#zoomResetStandard').click(function() {
-                    standardZoomLevel = 1.0;
-                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                });
-
-                $('#zoomInSimilar').click(function() {
-                    similarZoomLevel += 0.25;
-                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                });
-                $('#zoomOutSimilar').click(function() {
-                    if (similarZoomLevel > 0.5) {
-                        similarZoomLevel -= 0.25;
-                        if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                    }
-                });
-                $('#zoomResetSimilar').click(function() {
-                    similarZoomLevel = 1.0;
-                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                });
-
-                // Page Navigation Events
-                $('#prevStandardPage').click(function () {
-                    if (refStandardPageNum > 1) {
-                        window.renderPdfToCanvas(null, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', refStandardPageNum - 1);
-                    }
-                });
-                $('#nextStandardPage').click(function () {
-                    if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
-                        window.renderPdfToCanvas(null, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', refStandardPageNum + 1);
-                    }
-                });
-                $('#prevSimilarPage').click(function () {
-                    if (refSimilarPageNum > 1) {
-                        window.renderPdfToCanvas(null, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', refSimilarPageNum - 1);
-                    }
-                });
-                $('#nextSimilarPage').click(function () {
-                    if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
-                        window.renderPdfToCanvas(null, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', refSimilarPageNum + 1);
-                    }
-                });
-
-                // Force trigger if item selected
-                setTimeout(function () {
-                    if ($('#itemSelect').val()) {
-                        $('#itemSelect').trigger('change');
-                    }
-                }, 500);
-
-                function resetState() {
-                    clearInterval(timerInterval);
-                    timerRunning = false;
-                    totalSeconds = 0;
-                    updateTimerDisplay();
-                    $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
-
-                    // RE-LOCK INPUTS
-                    formInputs.prop('disabled', true);
-                    $('#checksheetForm').addClass('inputs-locked');
-                    $('#saveBtn').prop('disabled', true);
-
-                    // Reset specific elements
-                    $('#addDefectBtn').hide();
-                    $('#defectContainer').find('.defect-row').not(':first').remove();
-                    $('#itemSelect').val('').trigger('change');
-                    $('#aql_info').hide();
-                    $('#nextProsesContainer').hide();
-
-                    // Reset PDF views
-                    $('#standardPdfCanvas, #similarPdfCanvas').addClass('d-none').hide();
-                    $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                    $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Similar Part');
-                    $('#similarStatusText').text('');
-                    $('#fullStandardBtn, #fullSimilarBtn').hide();
-                    $('.standard-nav-controls, .similar-nav-controls').hide();
-
-                    // Reset Zoom
-                    standardZoomLevel = 1.0;
-                    similarZoomLevel = 1.0;
-
-                    // Reset Judgment
-                    $('#judgmentBadge').addClass('d-none').text('-');
-                    $('#judgmentSelect').removeClass('text-success text-danger');
-
-                    // Reset radio buttons to default (sampling)
-                    $('#checkTypeSampling').prop('checked', true).trigger('change');
-                    $('#labelSampling').addClass('active');
-                    $('#labelFullcheck').removeClass('active');
+                if (pdfCache[url]) {
+                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                    return;
                 }
-            });
 
-            // --- PDF.js Integration ---
-            var pdfDoc = null,
-                pageNum = 1,
-                pageRendering = false,
-                pageNumPending = null,
-                scale = 1.5,
-                canvas = document.getElementById('the-canvas'),
-                ctx = canvas.getContext('2d');
+                pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                    pdfCache[url] = pdf; // Store in cache
+                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                }).catch(function (error) {
+                    console.error('Error rendering preview PDF:', error);
+                    $loading.removeClass('d-flex').addClass('d-none');
+                    $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF');
+                });
+            };
 
-            function renderPage(num) {
-                pageRendering = true;
-                pdfDoc.getPage(num).then(function (page) {
-                    var viewport = page.getViewport({ scale: scale });
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
+            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+                pdf.getPage(pageNum).then(function (page) {
+                    const containerWidth = $(canvas).parent().width() || 500;
+                    // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
+                    const availableWidth = containerWidth - 40;
+                    const viewport = page.getViewport({ scale: 1.0 });
 
-                    var renderContext = {
+                    // Determine which zoom level to use
+                    let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
+
+                    const scale = (availableWidth / viewport.width) * zoomLevel;
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+
+                    // Apply fit styling
+                    if (zoomLevel > 1.0) {
+                        $canvas.css({ 'width': 'auto', 'max-width': 'none' });
+                    } else {
+                        $canvas.css({ 'width': '100%', 'max-width': '100%' });
+                    }
+                    $canvas.css('height', 'auto');
+
+                    const renderContext = {
                         canvasContext: ctx,
-                        viewport: viewport
+                        viewport: scaledViewport
                     };
-                    var renderTask = page.render(renderContext);
 
-                    renderTask.promise.then(function () {
-                        pageRendering = false;
-                        if (pageNumPending !== null) {
-                            renderPage(pageNumPending);
-                            pageNumPending = null;
+                    page.render(renderContext).promise.then(function () {
+                        $loading.removeClass('d-flex').addClass('d-none');
+                        $canvas.removeClass('d-none').show();
+
+                        // Update info labels and nav controls
+                        if (canvasId === 'standardPdfCanvas') {
+                            refStandardPdfDoc = pdf;
+                            refStandardPageNum = pageNum;
+                            $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                            $('.standard-nav-controls').attr('style', 'display: flex !important;');
+                        } else if (canvasId === 'similarPdfCanvas') {
+                            refSimilarPdfDoc = pdf;
+                            refSimilarPageNum = pageNum;
+                            $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                            $('.similar-nav-controls').attr('style', 'display: flex !important;');
                         }
                     });
                 });
-                document.getElementById('pageInfo').textContent = `Page ${num} of ${pdfDoc.numPages}`;
             }
 
-            function queueRenderPage(num) {
-                if (pageRendering) {
-                    pageNumPending = num;
-                } else {
-                    renderPage(num);
+            // PDF Zoom Controls Events
+            $('#zoomInStandard').click(function () {
+                standardZoomLevel += 0.25;
+                if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+            });
+            $('#zoomOutStandard').click(function () {
+                if (standardZoomLevel > 0.5) {
+                    standardZoomLevel -= 0.25;
+                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
                 }
+            });
+            $('#zoomResetStandard').click(function () {
+                standardZoomLevel = 1.0;
+                if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+            });
+
+            $('#zoomInSimilar').click(function () {
+                similarZoomLevel += 0.25;
+                if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+            });
+            $('#zoomOutSimilar').click(function () {
+                if (similarZoomLevel > 0.5) {
+                    similarZoomLevel -= 0.25;
+                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                }
+            });
+            $('#zoomResetSimilar').click(function () {
+                similarZoomLevel = 1.0;
+                if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+            });
+
+            // Page Navigation Events
+            $('#prevStandardPage').click(function () {
+                if (refStandardPageNum > 1) {
+                    window.renderPdfToCanvas(null, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', refStandardPageNum - 1);
+                }
+            });
+            $('#nextStandardPage').click(function () {
+                if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
+                    window.renderPdfToCanvas(null, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', refStandardPageNum + 1);
+                }
+            });
+            $('#prevSimilarPage').click(function () {
+                if (refSimilarPageNum > 1) {
+                    window.renderPdfToCanvas(null, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', refSimilarPageNum - 1);
+                }
+            });
+            $('#nextSimilarPage').click(function () {
+                if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
+                    window.renderPdfToCanvas(null, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', refSimilarPageNum + 1);
+                }
+            });
+
+            // Force trigger if item selected
+            setTimeout(function () {
+                if ($('#itemSelect').val()) {
+                    $('#itemSelect').trigger('change');
+                }
+            }, 500);
+
+            function resetState() {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                totalSeconds = 0;
+                updateTimerDisplay();
+                $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                // RE-LOCK INPUTS
+                formInputs.prop('disabled', true);
+                $('#checksheetForm').addClass('inputs-locked');
+                $('#saveBtn').prop('disabled', true);
+
+                // Reset specific elements
+                $('#addDefectBtn').hide();
+                $('#defectContainer').find('.defect-row').not(':first').remove();
+                $('#itemSelect').val('').trigger('change');
+                $('#aql_info').hide();
+                $('#nextProsesContainer').hide();
+
+                // Reset PDF views
+                $('#standardPdfCanvas, #similarPdfCanvas').addClass('d-none').hide();
+                $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Standard PDF');
+                $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Similar Part');
+                $('#similarStatusText').text('');
+                $('#fullStandardBtn, #fullSimilarBtn').hide();
+                $('.standard-nav-controls, .similar-nav-controls').hide();
+
+                // Reset Zoom
+                standardZoomLevel = 1.0;
+                similarZoomLevel = 1.0;
+
+                // Reset Judgment
+                $('#judgmentBadge').addClass('d-none').text('-');
+                $('#judgmentSelect').removeClass('text-success text-danger');
+
+                // Reset radio buttons to default (sampling)
+                $('#checkTypeSampling').prop('checked', true).trigger('change');
+                $('#labelSampling').addClass('active');
+                $('#labelFullcheck').removeClass('active');
             }
+        });
 
-            document.getElementById('prevPage').addEventListener('click', function () {
-                if (pageNum <= 1) return;
-                pageNum--;
+        // --- PDF.js Integration ---
+        var pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.getElementById('the-canvas'),
+            ctx = canvas.getContext('2d');
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function (page) {
+                var viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                var renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                var renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+            document.getElementById('pageInfo').textContent = `Page ${num} of ${pdfDoc.numPages}`;
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        document.getElementById('prevPage').addEventListener('click', function () {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function () {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('pdfZoomIn').addEventListener('click', function () {
+            scale += 0.25;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('pdfZoomOut').addEventListener('click', function () {
+            if (scale > 0.25) {
+                scale -= 0.25;
                 queueRenderPage(pageNum);
-            });
+            }
+        });
 
-            document.getElementById('nextPage').addEventListener('click', function () {
-                if (pageNum >= pdfDoc.numPages) return;
-                pageNum++;
-                queueRenderPage(pageNum);
-            });
+        document.getElementById('pdfZoomReset').addEventListener('click', function () {
+            scale = 1.0;
+            queueRenderPage(pageNum);
+        });
 
-            document.getElementById('pdfZoomIn').addEventListener('click', function () {
-                scale += 0.25;
-                queueRenderPage(pageNum);
-            });
+        let currentPdfIndex = 0;
+        let totalPdfFiles = 0;
+        let currentItemId = null;
 
-            document.getElementById('pdfZoomOut').addEventListener('click', function () {
-                if (scale > 0.25) {
-                    scale -= 0.25;
-                    queueRenderPage(pageNum);
-                }
-            });
+        function loadPdf(itemId, index) {
+            const routePattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+            const url = routePattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
 
-            document.getElementById('pdfZoomReset').addEventListener('click', function () {
-                scale = 1.0;
-                queueRenderPage(pageNum);
-            });
+            pdfDoc = null;
+            pageNum = 1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('pageInfo').textContent = 'Loading...';
 
-            let currentPdfIndex = 0;
-            let totalPdfFiles = 0;
-            let currentItemId = null;
-
-            function loadPdf(itemId, index) {
-                const routePattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
-                const url = routePattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
-
-                pdfDoc = null;
-                pageNum = 1;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                document.getElementById('pageInfo').textContent = 'Loading...';
-
-                if (index === 'similar') {
-                    document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
+            if (index === 'similar') {
+                document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
+                $('#prevPdf, #nextPdf').hide();
+            } else {
+                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
+                if (totalPdfFiles <= 1) {
                     $('#prevPdf, #nextPdf').hide();
                 } else {
-                    document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
-                    if (totalPdfFiles <= 1) {
-                        $('#prevPdf, #nextPdf').hide();
-                    } else {
-                        $('#prevPdf, #nextPdf').show();
-                    }
+                    $('#prevPdf, #nextPdf').show();
                 }
-
-                pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
-                    pdfDoc = pdfDoc_;
-                    document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
-                    renderPage(pageNum);
-                }, function (reason) {
-                    console.error(reason);
-                    let errorMsg = 'Error loading PDF. ';
-                    if (reason.name === 'MissingPDFException') {
-                        errorMsg += 'The PDF file could not be found on the server.';
-                    } else {
-                        errorMsg += reason.message || reason;
-                    }
-                    document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
-                    alert(errorMsg);
-                });
             }
 
-            document.getElementById('prevPdf').addEventListener('click', function () {
-                if (currentPdfIndex <= 0) return;
-                currentPdfIndex--;
-                loadPdf(currentItemId, currentPdfIndex);
-            });
-
-            document.getElementById('nextPdf').addEventListener('click', function () {
-                if (currentPdfIndex >= totalPdfFiles - 1) return;
-                currentPdfIndex++;
-                loadPdf(currentItemId, currentPdfIndex);
-            });
-
-            // Trigger PDF Modal from dynamic button (delegated event)
-            $(document).on('click', '.view-pdf-btn', function () {
-                currentItemId = $(this).data('id');
-                var isSimilar = $(this).data('similar');
-
-                if (isSimilar) {
-                    totalPdfFiles = 1;
-                    currentPdfIndex = 'similar';
+            pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+                pdfDoc = pdfDoc_;
+                document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
+                renderPage(pageNum);
+            }, function (reason) {
+                console.error(reason);
+                let errorMsg = 'Error loading PDF. ';
+                if (reason.name === 'MissingPDFException') {
+                    errorMsg += 'The PDF file could not be found on the server.';
                 } else {
-                    totalPdfFiles = $(this).data('count');
-                    currentPdfIndex = 0;
+                    errorMsg += reason.message || reason;
                 }
-
-                $('#pdfModal').modal('show');
-                loadPdf(currentItemId, currentPdfIndex);
+                document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                alert(errorMsg);
             });
+        }
 
-            // Image Zoom Logic
-            var currentZoom = 1;
-            $('#zoomIn').click(function () {
-                currentZoom += 0.2;
-                $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
-            });
-            $('#zoomOut').click(function () {
-                if (currentZoom > 0.4) {
-                    currentZoom -= 0.2;
-                    $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
-                }
-            });
-            $('#zoomReset').click(function () {
-                currentZoom = 1;
-                $('#modalImage').css('transform', 'scale(1)');
-            });
+        document.getElementById('prevPdf').addEventListener('click', function () {
+            if (currentPdfIndex <= 0) return;
+            currentPdfIndex--;
+            loadPdf(currentItemId, currentPdfIndex);
+        });
 
-            $('#imageModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var image = button.data('image') || button.attr('src');
-                var title = button.data('name') || "Detail Gambar";
-                var desc = button.data('description') || "";
+        document.getElementById('nextPdf').addEventListener('click', function () {
+            if (currentPdfIndex >= totalPdfFiles - 1) return;
+            currentPdfIndex++;
+            loadPdf(currentItemId, currentPdfIndex);
+        });
 
-                $('#modalImage').attr('src', image).css('transform', 'scale(1)');
-                $('#modalTitle').text(title);
-                $('#modalDescription').text(desc);
-                currentZoom = 1;
-            });
+        // Trigger PDF Modal from dynamic button (delegated event)
+        $(document).on('click', '.view-pdf-btn', function () {
+            currentItemId = $(this).data('id');
+            var isSimilar = $(this).data('similar');
 
-            // Script loading for pdf.js
-            if (typeof pdfjsLib === 'undefined') {
-                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js').done(function () {
-                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-                });
+            if (isSimilar) {
+                totalPdfFiles = 1;
+                currentPdfIndex = 'similar';
+            } else {
+                totalPdfFiles = $(this).data('count');
+                currentPdfIndex = 0;
             }
-        </script>
+
+            $('#pdfModal').modal('show');
+            loadPdf(currentItemId, currentPdfIndex);
+        });
+
+        // Image Zoom Logic
+        var currentZoom = 1;
+        $('#zoomIn').click(function () {
+            currentZoom += 0.2;
+            $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
+        });
+        $('#zoomOut').click(function () {
+            if (currentZoom > 0.4) {
+                currentZoom -= 0.2;
+                $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
+            }
+        });
+        $('#zoomReset').click(function () {
+            currentZoom = 1;
+            $('#modalImage').css('transform', 'scale(1)');
+        });
+
+        $('#imageModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var image = button.data('image') || button.attr('src');
+            var title = button.data('name') || "Detail Gambar";
+            var desc = button.data('description') || "";
+
+            $('#modalImage').attr('src', image).css('transform', 'scale(1)');
+            $('#modalTitle').text(title);
+            $('#modalDescription').text(desc);
+            currentZoom = 1;
+        });
+
+        // Script loading for pdf.js
+        if (typeof pdfjsLib === 'undefined') {
+            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js').done(function () {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            });
+        }
+    </script>
 @endpush
