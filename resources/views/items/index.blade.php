@@ -117,14 +117,17 @@
                                 <td class="text-nowrap">
                                     @if($item->file_path)
                                         <button type="button" class="btn btn-primary btn-xs view-pdf-btn mr-1" data-toggle="modal"
-                                            data-target="#pdfModal" data-src="{{ route('items.pdf', $item->id) }}" title="Lihat PCCP">
+                                            data-target="#pdfModal" data-src="{{ route('items.pdf', $item->id) }}"
+                                            title="Lihat PCCP">
                                             <i class="fas fa-file-pdf"></i> PCCP
                                         </button>
                                     @endif
                                     @if($item->similar_part_file_path)
                                         <button type="button" class="btn btn-info btn-xs view-pdf-btn" data-toggle="modal"
-                                            data-target="#pdfModal" data-src="{{ route('items.pdf', ['id' => $item->id, 'index' => 'similar']) }}" title="Lihat Similar Part">
-                                            <i class="fas fa-file-alt"></i> Similar
+                                            data-target="#pdfModal"
+                                            data-src="{{ route('items.pdf', ['id' => $item->id, 'index' => 'similar']) }}"
+                                            title="Lihat Similar/Dimensi Part">
+                                            <i class="fas fa-file-alt"></i> Similar/Dimensi
                                         </button>
                                     @endif
                                     @if(!$item->file_path && !$item->similar_part_file_path)
@@ -337,10 +340,10 @@
                                     <div id="edit_existing_files" class="mt-2"></div>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Similar Part PDF</label>
+                                    <label class="font-weight-bold">Similar/Dimensi Part PDF</label>
                                     <input type="file" name="similar_part_file" class="form-control-file form-control-sm"
                                         accept=".pdf">
-                                    <small class="text-muted text-xs d-block">Upload PDF referensi part serupa. Max
+                                    <small class="text-muted text-xs d-block">Upload PDF referensi part serupa/dimensi. Max
                                         10MB.</small>
                                     <div id="edit_existing_similar_file" class="mt-2"></div>
                                 </div>
@@ -484,234 +487,478 @@
                                 </div>
 
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Upload Similar Part PDF</label>
-                                    <input type="file" name="similar_part_file" class="form-control-file form-control-sm"
-                                        accept=".pdf">
-                                    <small class="text-muted text-xs d-block">Optional: PDF referensi part serupa. Max
-                                        10MB.</small>
-                                </div>
+                                    <label class="font-weight-bold">Upload Similar /Dimensi Part PDF</label>
+                                        <input type="file" name="similar_part_file" class="form-control-file form-control-sm"
+                                            accept=".pdf">
+                                        <small class="text-muted text-xs d-block">Optional: PDF referensi part serupa. Max
+                                            10MB.</small>
+                                    </div>
 
-                                <div class="form-group mb-0">
-                                    <label class="font-weight-bold small">Standar Dimensi In-Process</label>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-sm mb-0" id="modal-dimension-table">
-                                            <thead class="bg-light small">
-                                                <tr class="text-center">
-                                                    <th>Point/No</th>
-                                                    <th>Standar</th>
-                                                    <th>Min</th>
-                                                    <th>Max</th>
-                                                    <th>Toleransi (+/-)</th>
-                                                    <th style="width: 30px;">
-                                                        <button type="button"
-                                                            class="btn btn-xs btn-success add-dimension-row">
-                                                            <i class="fas fa-plus"></i>
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td><input type="text" name="dimension_points[]"
-                                                            class="form-control form-control-sm" placeholder="Contoh: 1, A">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_sizes[]"
-                                                            class="form-control form-control-sm" placeholder="10.5">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_mins[]"
-                                                            class="form-control form-control-sm" placeholder="9.9">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_maxs[]"
-                                                            class="form-control form-control-sm" placeholder="10.1">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_tolerances[]"
-                                                            class="form-control form-control-sm" placeholder="0.1">
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <button type="button"
-                                                            class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold small">Standar Dimensi In-Process</label>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm mb-0" id="modal-dimension-table">
+                                                <thead class="bg-light small">
+                                                    <tr class="text-center">
+                                                        <th>Point/No</th>
+                                                        <th>Standar</th>
+                                                        <th>Min</th>
+                                                        <th>Max</th>
+                                                        <th>Toleransi (+/-)</th>
+                                                        <th style="width: 30px;">
+                                                            <button type="button"
+                                                                class="btn btn-xs btn-success add-dimension-row">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><input type="text" name="dimension_points[]"
+                                                                class="form-control form-control-sm" placeholder="Contoh: 1, A">
+                                                        </td>
+                                                        <td><input type="text" name="dimension_sizes[]"
+                                                                class="form-control form-control-sm" placeholder="10.5">
+                                                        </td>
+                                                        <td><input type="text" name="dimension_mins[]"
+                                                                class="form-control form-control-sm" placeholder="9.9">
+                                                        </td>
+                                                        <td><input type="text" name="dimension_maxs[]"
+                                                                class="form-control form-control-sm" placeholder="10.1">
+                                                        </td>
+                                                        <td><input type="text" name="dimension_tolerances[]"
+                                                                class="form-control form-control-sm" placeholder="0.1">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <button type="button"
+                                                                class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
-                            <i class="fas fa-save mr-1"></i> Simpan
-                        </button>
-                    </div>
-                </form>
+                        <div class="modal-footer bg-light p-2">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
+                                <i class="fas fa-save mr-1"></i> Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    @push('scripts')
-        <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // Auto-open modal if there are validation errors
-                @if($errors->any())
-                    @if(old('item_id'))
-                        // Re-open Edit Modal if we have an item ID from previous request
-                        var itemId = "{{ old('item_id') }}";
-                        var url = "{{ route('admin.items.update', ':id') }}";
-                        url = url.replace(':id', itemId);
-                        $('#formEditItem').attr('action', url);
-                        $('#modalEditItem').modal('show');
+        @push('scripts')
+            <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Auto-open modal if there are validation errors
+                    @if($errors->any())
+                        @if(old('item_id'))
+                            // Re-open Edit Modal if we have an item ID from previous request
+                            var itemId = "{{ old('item_id') }}";
+                            var url = "{{ route('admin.items.update', ':id') }}";
+                            url = url.replace(':id', itemId);
+                            $('#formEditItem').attr('action', url);
+                            $('#modalEditItem').modal('show');
 
-                        // Note: We cannot easily repopulate the file inputs or complex JS-based fields (dimensions) 
-                        // purely from old() without more complex JS. 
-                        // But at least the user sees the error message now.
-                    @else
-                        $('#modalTambahItem').modal('show');
+                            // Note: We cannot easily repopulate the file inputs or complex JS-based fields (dimensions) 
+                            // purely from old() without more complex JS. 
+                            // But at least the user sees the error message now.
+                        @else
+                            $('#modalTambahItem').modal('show');
+                        @endif
                     @endif
-                @endif
 
-                // Initialize PDF.js
-                pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
+                    // Initialize PDF.js
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
 
-                let pdfDoc = null;
-                let pageNum = 1;
-                let pageRendering = false;
-                let pageNumPending = null;
-                let scale = 1.0;
-                const canvas = document.getElementById('the-canvas');
-                const ctx = canvas.getContext('2d');
+                    let pdfDoc = null;
+                    let pageNum = 1;
+                    let pageRendering = false;
+                    let pageNumPending = null;
+                    let scale = 1.0;
+                    const canvas = document.getElementById('the-canvas');
+                    const ctx = canvas.getContext('2d');
 
-                /**
-                 * Get page info from document, resize canvas accordingly, and render page.
-                 * @param num Page number.
-                 */
-                function renderPage(num) {
-                    pageRendering = true;
-                    // Fetch page
-                    pdfDoc.getPage(num).then(function (page) {
-                        const viewport = page.getViewport({ scale: scale });
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
+                    /**
+                     * Get page info from document, resize canvas accordingly, and render page.
+                     * @param num Page number.
+                     */
+                    function renderPage(num) {
+                        pageRendering = true;
+                        // Fetch page
+                        pdfDoc.getPage(num).then(function (page) {
+                            const viewport = page.getViewport({ scale: scale });
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
 
-                        // Render PDF page into canvas context
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: viewport
-                        };
-                        const renderTask = page.render(renderContext);
+                            // Render PDF page into canvas context
+                            const renderContext = {
+                                canvasContext: ctx,
+                                viewport: viewport
+                            };
+                            const renderTask = page.render(renderContext);
 
-                        // Wait for render to finish
-                        renderTask.promise.then(function () {
-                            pageRendering = false;
-                            if (pageNumPending !== null) {
-                                renderPage(pageNumPending);
-                                pageNumPending = null;
+                            // Wait for render to finish
+                            renderTask.promise.then(function () {
+                                pageRendering = false;
+                                if (pageNumPending !== null) {
+                                    renderPage(pageNumPending);
+                                    pageNumPending = null;
+                                }
+                            });
+                        });
+
+                        // Update page counters
+                        document.getElementById('pageInfo').textContent = 'Page ' + num + ' of ' + pdfDoc.numPages;
+                    }
+
+                    /**
+                     * If another page rendering in progress, waits until the rendering is
+                     * finised. Otherwise, executes rendering immediately.
+                     */
+                    function queueRenderPage(num) {
+                        if (pageRendering) {
+                            pageNumPending = num;
+                        } else {
+                            renderPage(num);
+                        }
+                    }
+
+                    /**
+                     * Displays previous page.
+                     */
+                    function onPrevPage() {
+                        if (pageNum <= 1) {
+                            return;
+                        }
+                        pageNum--;
+                        queueRenderPage(pageNum);
+                    }
+                    document.getElementById('prevPage').addEventListener('click', onPrevPage);
+
+                    /**
+                     * Displays next page.
+                     */
+                    function onNextPage() {
+                        if (pageNum >= pdfDoc.numPages) {
+                            return;
+                        }
+                        pageNum++;
+                        queueRenderPage(pageNum);
+                    }
+                    document.getElementById('nextPage').addEventListener('click', onNextPage);
+
+                    // Zoom controls
+                    document.getElementById('zoomIn').addEventListener('click', function () {
+                        scale += 0.25;
+                        queueRenderPage(pageNum);
+                    });
+
+                    document.getElementById('zoomOut').addEventListener('click', function () {
+                        if (scale > 0.25) {
+                            scale -= 0.25;
+                            queueRenderPage(pageNum);
+                        }
+                    });
+
+                    document.getElementById('zoomReset').addEventListener('click', function () {
+                        scale = 1.0;
+                        queueRenderPage(pageNum);
+                    });
+
+                    // Handle Modal Open
+                    $('.view-pdf-btn').on('click', function () {
+                        const url = $(this).data('src');
+
+                        // Reset state
+                        pdfDoc = null;
+                        pageNum = 1;
+                        scale = 1.0;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        document.getElementById('pageInfo').textContent = 'Loading...';
+
+                        // Load PDF
+                        pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+                            pdfDoc = pdfDoc_;
+                            document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
+                            renderPage(pageNum);
+                        }, function (reason) {
+                            // PDF loading error
+                            console.error(reason);
+                            let errorMsg = 'Error loading PDF. ';
+                            if (reason.name === 'MissingPDFException') {
+                                errorMsg += 'The PDF file could not be found on the server. Please contact admin or re-upload the file.';
+                            } else {
+                                errorMsg += reason.message || reason;
+                            }
+
+                            document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                            alert(errorMsg);
+                        });
+                    });
+                });
+
+                $(document).ready(function () {
+                    // Add Dimension Row
+                    $('.add-dimension-row').on('click', function () {
+                        var newRow = `
+                                                                                                                                                                                <tr>
+                                                                                                                                                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                                                                                                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
+                                                                                                                                                                            <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
+                                                                                                                                                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
+                                                                                                                                                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
+                                                                                                                                                                                    <td class="text-center">
+                                                                                                                                                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                                                                                        </button>
+                                                                                                                                                                                    </td>
+                                                                                                                                                                                </tr>`;
+                        $('#modal-dimension-table tbody').append(newRow);
+                    });
+
+                    // Remove Dimension Row
+                    $(document).on('click', '.remove-dimension-row', function () {
+                        var tableBody = $(this).closest('tbody');
+                        if (tableBody.find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                        }
+                    });
+
+                    // Filter categories based on plant selection in modal
+                    $('#modal_plant_select').on('change', function () {
+                        var selectedPlantUuid = $(this).find(':selected').data('uuid');
+                        var categorySelect = $('#modal_category_select');
+
+                        categorySelect.val('');
+                        categorySelect.find('option').each(function () {
+                            var optionPlant = $(this).data('plant');
+                            if (!optionPlant || optionPlant == selectedPlantUuid) {
+                                $(this).show();
+                            } else {
+                                $(this).hide();
                             }
                         });
                     });
-
-                    // Update page counters
-                    document.getElementById('pageInfo').textContent = 'Page ' + num + ' of ' + pdfDoc.numPages;
-                }
-
-                /**
-                 * If another page rendering in progress, waits until the rendering is
-                 * finised. Otherwise, executes rendering immediately.
-                 */
-                function queueRenderPage(num) {
-                    if (pageRendering) {
-                        pageNumPending = num;
-                    } else {
-                        renderPage(num);
-                    }
-                }
-
-                /**
-                 * Displays previous page.
-                 */
-                function onPrevPage() {
-                    if (pageNum <= 1) {
-                        return;
-                    }
-                    pageNum--;
-                    queueRenderPage(pageNum);
-                }
-                document.getElementById('prevPage').addEventListener('click', onPrevPage);
-
-                /**
-                 * Displays next page.
-                 */
-                function onNextPage() {
-                    if (pageNum >= pdfDoc.numPages) {
-                        return;
-                    }
-                    pageNum++;
-                    queueRenderPage(pageNum);
-                }
-                document.getElementById('nextPage').addEventListener('click', onNextPage);
-
-                // Zoom controls
-                document.getElementById('zoomIn').addEventListener('click', function () {
-                    scale += 0.25;
-                    queueRenderPage(pageNum);
                 });
 
-                document.getElementById('zoomOut').addEventListener('click', function () {
-                    if (scale > 0.25) {
-                        scale -= 0.25;
-                        queueRenderPage(pageNum);
-                    }
-                });
+                // Edit Item Logic
+                $('.btn-edit-item').on('click', function () {
+                    var id = $(this).data('id');
+                    var btn = $(this);
 
-                document.getElementById('zoomReset').addEventListener('click', function () {
-                    scale = 1.0;
-                    queueRenderPage(pageNum);
-                });
+                    // Show loading state if needed
+                    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
-                // Handle Modal Open
-                $('.view-pdf-btn').on('click', function () {
-                    const url = $(this).data('src');
+                    $.ajax({
+                        url: "{{ route('admin.items.edit', ':id') }}".replace(':id', id),
+                        type: 'GET',
+                        success: function (response) {
+                            var item = response.item;
+                            $('#edit_name').val(item.name);
+                            $('#edit_category_id').val(item.category_id);
+                            $('#edit_customer').val(item.customer);
+                            $('#edit_part_number').val(item.part_number);
+                            $('#edit_sap_code').val(item.sap_code);
+                            $('#edit_cavity').val(item.cavity || 1);
+                            $('#edit_defects').val(response.defects_text);
+                            $('#edit_defects').val(response.defects_text);
+                            $('#edit_plant').val(response.plant_code);
+                            $('#edit_item_id').val(item.id);
 
-                    // Reset state
-                    pdfDoc = null;
-                    pageNum = 1;
-                    scale = 1.0;
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    document.getElementById('pageInfo').textContent = 'Loading...';
 
-                    // Load PDF
-                    pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
-                        pdfDoc = pdfDoc_;
-                        document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
-                        renderPage(pageNum);
-                    }, function (reason) {
-                        // PDF loading error
-                        console.error(reason);
-                        let errorMsg = 'Error loading PDF. ';
-                        if (reason.name === 'MissingPDFException') {
-                            errorMsg += 'The PDF file could not be found on the server. Please contact admin or re-upload the file.';
-                        } else {
-                            errorMsg += reason.message || reason;
+                            // Existing files
+                            var filesHtml = '';
+                            const viewPdfUrlTemplate = "{{ route('items.pdf', ['id' => '__ID__']) }}";
+
+                            if (item.file_paths && item.file_paths.length > 0) {
+                                item.file_paths.forEach(function (path, index) {
+                                    let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/' + index;
+                                    filesHtml += `
+                                                                                                                                        <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                                                                                                            <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
+                                                                                                                                            <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                                                                                            <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
+                                                                                                                                        </div>`;
+                                });
+                            } else if (item.file_path) {
+                                let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id);
+                                filesHtml += `
+                                                                                                                                    <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                                                                                                        <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
+                                                                                                                                        <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                                                                                        <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
+                                                                                                                                    </div>`;
+                            }
+                            $('#edit_existing_files').html(item.file_paths || item.file_path ? '<label class="small font-weight-bold mb-1">Standard PDFs:</label>' + filesHtml : '');
+
+                            // Existing Similar Part PDF
+                            var similarFileHtml = '';
+                            if (item.similar_part_file_path) {
+                                let viewSimilarPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/similar';
+                                similarFileHtml = `
+                                                                                    <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small text-primary font-weight-bold">
+                                                                                        <span class="text-truncate mr-2" style="max-width: 150px;">${item.similar_part_file_path.split('/').pop()}</span>
+                                                                                        <a href="${viewSimilarPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                                        <button type="button" class="badge badge-danger border-0 btn-delete-similar-pdf" data-id="${item.id}" style="cursor: pointer;">Hapus</button>
+                                                                                    </div>`;
+                            }
+                            $('#edit_existing_similar_file').html(similarFileHtml ? '<label class="small font-weight-bold mb-1">Similar/Dimensi Part PDF Terdaftar:</label>' + similarFileHtml : '');
+
+                            // Dimensions
+                            var dimHtml = '';
+                            if (item.dimension_standards && item.dimension_standards.length > 0) {
+                                item.dimension_standards.forEach(function (dim) {
+                                    dimHtml += `
+                                                                                                                                                                                    <tr>
+                                                                                                                                                                                        <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
+                                                                                                                                                                                        <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
+                                                                                                                                                                                        <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" value="${dim.min || ''}"></td>
+                                                                                                                                                                                        <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" value="${dim.max || ''}"></td>
+                                                                                                                                                                                        <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
+                                                                                                                                                                                        <td class="text-center">
+                                                                                                                                                                                            <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                                                                            </button>
+                                                                                                                                                                                        </td>
+                                                                                                                                                                                    </tr>`;
+                                });
+                            } else {
+                                dimHtml = `
+                                                                                                                                                                                <tr>
+                                                                                                                                                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                                                                                                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
+                                                                                                                                                                            <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
+                                                                                                                                                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
+                                                                                                                                                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
+                                                                                                                                                                                    <td class="text-center">
+                                                                                                                                                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                                                                                        </button>
+                                                                                                                                                                                    </td>
+                                                                                                                                                                                </tr>`;
+                            }
+                            $('#edit-modal-dimension-table tbody').html(dimHtml);
+
+                            // Update form action
+                            var url = "{{ route('admin.items.update', ':id') }}";
+                            url = url.replace(':id', id);
+                            $('#formEditItem').attr('action', url);
+
+                            $('#modalEditItem').modal('show');
+                            btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                        },
+                        error: function (xhr) {
+                            var message = 'Gagal mengambil data item.';
+                            if (xhr.status === 404) {
+                                message = 'Item tidak ditemukan.';
+                            } else if (xhr.status === 403) {
+                                message = 'Anda tidak memiliki akses untuk mengedit item ini.';
+                            } else if (xhr.status === 500) {
+                                message = 'Terjadi kesalahan pada server saat mengambil data.';
+                            }
+                            alert(message);
+                            btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
                         }
-
-                        document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
-                        alert(errorMsg);
                     });
                 });
-            });
 
-            $(document).ready(function () {
-                // Add Dimension Row
-                $('.add-dimension-row').on('click', function () {
+                // Delete PDF File
+                $(document).on('click', '.btn-delete-pdf', function () {
+                    var btn = $(this);
+                    var id = btn.data('id');
+                    var index = btn.data('index');
+
+                    if (!confirm('Apakah Anda yakin ingin menghapus file ini?')) return;
+
+                    // Show loading state
+                    var originalText = btn.text();
+                    btn.text('...').prop('disabled', true);
+
+                    var deletePdfUrlTemplate = "{{ route('admin.items.delete-pdf', ['id' => '__ID__', 'index' => '__INDEX__']) }}";
+                    var url = deletePdfUrlTemplate.replace('__ID__', id).replace('__INDEX__', index);
+
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                btn.closest('div').remove();
+                            } else {
+                                alert('Gagal menghapus file: ' + response.message);
+                                btn.text(originalText).prop('disabled', false);
+                            }
+                        },
+                        error: function (xhr) {
+                            var msg = 'Terjadi kesalahan saat menghapus file.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                msg += ' ' + xhr.responseJSON.message;
+                            }
+                            alert(msg);
+                            btn.text(originalText).prop('disabled', false);
+                        }
+                    });
+                });
+
+                // Delete Similar PDF File
+                $(document).on('click', '.btn-delete-similar-pdf', function () {
+                    var btn = $(this);
+                    var id = btn.data('id');
+
+                    if (!confirm('Apakah Anda yakin ingin menghapus file Similar/Dimensi Part ini?')) return;
+
+                    var originalText = btn.text();
+                    btn.text('...').prop('disabled', true);
+
+                    var url = "{{ route('admin.items.delete-similar-pdf', ':id') }}".replace(':id', id);
+
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                btn.closest('div').remove();
+                                // Clear the file input if needed or just let the user upload a new one
+                                $('#edit_existing_similar_file').empty();
+                                alert(response.message);
+                            } else {
+                                alert('Gagal menghapus file: ' + response.message);
+                                btn.text(originalText).prop('disabled', false);
+                            }
+                        },
+                        error: function (xhr) {
+                            var msg = 'Terjadi kesalahan saat menghapus file.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                msg += ' ' + xhr.responseJSON.message;
+                            }
+                            alert(msg);
+                            btn.text(originalText).prop('disabled', false);
+                        }
+                    });
+                });
+
+                // Add Dimension Row for Edit Modal
+                $(document).on('click', '.add-edit-dimension-row', function () {
                     var newRow = `
                                                                                                                                                                     <tr>
                                                                                                                                                                         <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
                                                                                                                                                                         <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
-                                                                                                                                                                <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
+                                                                                                                                                                        <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
                                                                                                                                                                         <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
                                                                                                                                                                         <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
                                                                                                                                                                         <td class="text-center">
@@ -720,280 +967,36 @@
                                                                                                                                                                             </button>
                                                                                                                                                                         </td>
                                                                                                                                                                     </tr>`;
-                    $('#modal-dimension-table tbody').append(newRow);
+                    $('#edit-modal-dimension-table tbody').append(newRow);
                 });
+            </script>
 
-                // Remove Dimension Row
-                $(document).on('click', '.remove-dimension-row', function () {
-                    var tableBody = $(this).closest('tbody');
-                    if (tableBody.find('tr').length > 1) {
-                        $(this).closest('tr').remove();
-                    }
-                });
+            {{-- SweetAlert for Delete Confirmation --}}
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Handle delete button clicks
+                    document.querySelectorAll('.delete-btn').forEach(button => {
+                        button.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            const form = this.closest('form');
 
-                // Filter categories based on plant selection in modal
-                $('#modal_plant_select').on('change', function () {
-                    var selectedPlantUuid = $(this).find(':selected').data('uuid');
-                    var categorySelect = $('#modal_category_select');
-
-                    categorySelect.val('');
-                    categorySelect.find('option').each(function () {
-                        var optionPlant = $(this).data('plant');
-                        if (!optionPlant || optionPlant == selectedPlantUuid) {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
-                        }
-                    });
-                });
-            });
-
-            // Edit Item Logic
-            $('.btn-edit-item').on('click', function () {
-                var id = $(this).data('id');
-                var btn = $(this);
-
-                // Show loading state if needed
-                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-                $.ajax({
-                    url: "{{ route('admin.items.edit', ':id') }}".replace(':id', id),
-                    type: 'GET',
-                    success: function (response) {
-                        var item = response.item;
-                        $('#edit_name').val(item.name);
-                        $('#edit_category_id').val(item.category_id);
-                        $('#edit_customer').val(item.customer);
-                        $('#edit_part_number').val(item.part_number);
-                        $('#edit_sap_code').val(item.sap_code);
-                        $('#edit_cavity').val(item.cavity || 1);
-                        $('#edit_defects').val(response.defects_text);
-                        $('#edit_defects').val(response.defects_text);
-                        $('#edit_plant').val(response.plant_code);
-                        $('#edit_item_id').val(item.id);
-
-
-                        // Existing files
-                        var filesHtml = '';
-                        const viewPdfUrlTemplate = "{{ route('items.pdf', ['id' => '__ID__']) }}";
-
-                        if (item.file_paths && item.file_paths.length > 0) {
-                            item.file_paths.forEach(function (path, index) {
-                                let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/' + index;
-                                filesHtml += `
-                                                                                                                            <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                                                                                                <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
-                                                                                                                                <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                                                                <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
-                                                                                                                            </div>`;
+                            Swal.fire({
+                                title: 'Apakah Anda yakin?',
+                                text: "Data item ini akan dihapus permanen!",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#d33',
+                                cancelButtonColor: '#3085d6',
+                                confirmButtonText: 'Ya, Hapus!',
+                                cancelButtonText: 'Batal'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    form.submit();
+                                }
                             });
-                        } else if (item.file_path) {
-                            let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id);
-                            filesHtml += `
-                                                                                                                        <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                                                                                            <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
-                                                                                                                            <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                                                            <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
-                                                                                                                        </div>`;
-                        }
-                        $('#edit_existing_files').html(item.file_paths || item.file_path ? '<label class="small font-weight-bold mb-1">Standard PDFs:</label>' + filesHtml : '');
-
-                        // Existing Similar Part PDF
-                        var similarFileHtml = '';
-                        if (item.similar_part_file_path) {
-                            let viewSimilarPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/similar';
-                            similarFileHtml = `
-                                                                        <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small text-primary font-weight-bold">
-                                                                            <span class="text-truncate mr-2" style="max-width: 150px;">${item.similar_part_file_path.split('/').pop()}</span>
-                                                                            <a href="${viewSimilarPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                            <button type="button" class="badge badge-danger border-0 btn-delete-similar-pdf" data-id="${item.id}" style="cursor: pointer;">Hapus</button>
-                                                                        </div>`;
-                        }
-                        $('#edit_existing_similar_file').html(similarFileHtml ? '<label class="small font-weight-bold mb-1">Similar Part PDF Terdaftar:</label>' + similarFileHtml : '');
-
-                        // Dimensions
-                        var dimHtml = '';
-                        if (item.dimension_standards && item.dimension_standards.length > 0) {
-                            item.dimension_standards.forEach(function (dim) {
-                                dimHtml += `
-                                                                                                                                                                        <tr>
-                                                                                                                                                                            <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
-                                                                                                                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
-                                                                                                                                                                            <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" value="${dim.min || ''}"></td>
-                                                                                                                                                                            <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" value="${dim.max || ''}"></td>
-                                                                                                                                                                            <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
-                                                                                                                                                                            <td class="text-center">
-                                                                                                                                                                                <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                                                                </button>
-                                                                                                                                                                            </td>
-                                                                                                                                                                        </tr>`;
-                            });
-                        } else {
-                            dimHtml = `
-                                                                                                                                                                    <tr>
-                                                                                                                                                                        <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                                                                                                                                        <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
-                                                                                                                                                                <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
-                                                                                                                                                                        <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
-                                                                                                                                                                        <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
-                                                                                                                                                                        <td class="text-center">
-                                                                                                                                                                            <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                                                                                            </button>
-                                                                                                                                                                        </td>
-                                                                                                                                                                    </tr>`;
-                        }
-                        $('#edit-modal-dimension-table tbody').html(dimHtml);
-
-                        // Update form action
-                        var url = "{{ route('admin.items.update', ':id') }}";
-                        url = url.replace(':id', id);
-                        $('#formEditItem').attr('action', url);
-
-                        $('#modalEditItem').modal('show');
-                        btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal mengambil data item.';
-                        if (xhr.status === 404) {
-                            message = 'Item tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengedit item ini.';
-                        } else if (xhr.status === 500) {
-                            message = 'Terjadi kesalahan pada server saat mengambil data.';
-                        }
-                        alert(message);
-                        btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
-                    }
-                });
-            });
-
-            // Delete PDF File
-            $(document).on('click', '.btn-delete-pdf', function () {
-                var btn = $(this);
-                var id = btn.data('id');
-                var index = btn.data('index');
-
-                if (!confirm('Apakah Anda yakin ingin menghapus file ini?')) return;
-
-                // Show loading state
-                var originalText = btn.text();
-                btn.text('...').prop('disabled', true);
-
-                var deletePdfUrlTemplate = "{{ route('admin.items.delete-pdf', ['id' => '__ID__', 'index' => '__INDEX__']) }}";
-                var url = deletePdfUrlTemplate.replace('__ID__', id).replace('__INDEX__', index);
-
-                $.ajax({
-                    url: url,
-                    type: 'DELETE',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            btn.closest('div').remove();
-                        } else {
-                            alert('Gagal menghapus file: ' + response.message);
-                            btn.text(originalText).prop('disabled', false);
-                        }
-                    },
-                    error: function (xhr) {
-                        var msg = 'Terjadi kesalahan saat menghapus file.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            msg += ' ' + xhr.responseJSON.message;
-                        }
-                        alert(msg);
-                        btn.text(originalText).prop('disabled', false);
-                    }
-                });
-            });
-
-            // Delete Similar PDF File
-            $(document).on('click', '.btn-delete-similar-pdf', function () {
-                var btn = $(this);
-                var id = btn.data('id');
-
-                if (!confirm('Apakah Anda yakin ingin menghapus file Similar Part ini?')) return;
-
-                var originalText = btn.text();
-                btn.text('...').prop('disabled', true);
-
-                var url = "{{ route('admin.items.delete-similar-pdf', ':id') }}".replace(':id', id);
-
-                $.ajax({
-                    url: url,
-                    type: 'DELETE',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            btn.closest('div').remove();
-                            // Clear the file input if needed or just let the user upload a new one
-                            $('#edit_existing_similar_file').empty();
-                            alert(response.message);
-                        } else {
-                            alert('Gagal menghapus file: ' + response.message);
-                            btn.text(originalText).prop('disabled', false);
-                        }
-                    },
-                    error: function (xhr) {
-                        var msg = 'Terjadi kesalahan saat menghapus file.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            msg += ' ' + xhr.responseJSON.message;
-                        }
-                        alert(msg);
-                        btn.text(originalText).prop('disabled', false);
-                    }
-                });
-            });
-
-            // Add Dimension Row for Edit Modal
-            $(document).on('click', '.add-edit-dimension-row', function () {
-                var newRow = `
-                                                                                                                                                        <tr>
-                                                                                                                                                            <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                                                                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
-                                                                                                                                                            <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
-                                                                                                                                                            <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
-                                                                                                                                                            <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
-                                                                                                                                                            <td class="text-center">
-                                                                                                                                                                <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                                                </button>
-                                                                                                                                                            </td>
-                                                                                                                                                        </tr>`;
-                $('#edit-modal-dimension-table tbody').append(newRow);
-            });
-        </script>
-
-        {{-- SweetAlert for Delete Confirmation --}}
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // Handle delete button clicks
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const form = this.closest('form');
-
-                        Swal.fire({
-                            title: 'Apakah Anda yakin?',
-                            text: "Data item ini akan dihapus permanen!",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'Ya, Hapus!',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                            }
                         });
                     });
                 });
-            });
-        </script>
-    @endpush
+            </script>
+        @endpush
 @endsection
