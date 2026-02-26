@@ -591,6 +591,9 @@
 
                         // Unlock OK (Pass) checkbox if valid
                         $('#checkOK').prop('disabled', false);
+
+                        // Auto-remove "Dimensi" defect if judgment is OK
+                        autoRemoveDimensionDefect();
                     } else {
                         judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
                         judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
@@ -646,9 +649,10 @@
             $('#checkOK').change(function () {
                 if ($(this).is(':checked')) {
                     $('#totalNG').val(0).trigger('input');
-                    $('#defectContainer').find('.defect-row').not(':first').remove();
-                    $('.defect-select').val('');
                     $('.defect-qty').val('');
+                    $('.defect-select').val('').trigger('change');
+                    $('#defectContainer').find('.defect-row').not(':first').remove();
+                    $('#addDefectBtn').show();
                     $('#judgmentSelect').val('OK').trigger('change');
                 }
             });
