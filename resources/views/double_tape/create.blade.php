@@ -208,7 +208,11 @@
                                 </td>
 
                                 <!-- Judgment -->
-                                <td class="align-middle">
+                                <td class="align-middle text-center" style="min-width: 150px;">
+                                    <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
+                                        style="border: 2px solid transparent;">
+                                        -
+                                    </div>
                                     <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
                                         required>
                                         <option value="" disabled selected>-- Result --</option>
@@ -271,6 +275,34 @@
                 <div class="col-md-6 border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="font-weight-bold text-dark mb-0">PCCP</h6>
+                        <div class="d-flex align-items-center">
+                            <!-- Zoom Controls -->
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard"
+                                    title="Zoom Out">
+                                    <i class="fas fa-search-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard"
+                                    title="Reset Zoom">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard"
+                                    title="Zoom In">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
                         <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
                             style="display:none;">
                             <i class="fas fa-expand"></i> Full
@@ -292,6 +324,34 @@
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <div class="d-flex align-items-center">
+                            <!-- Zoom Controls Similar -->
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutSimilar"
+                                    title="Zoom Out">
+                                    <i class="fas fa-search-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetSimilar"
+                                    title="Reset Zoom">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInSimilar"
+                                    title="Zoom In">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-info mr-1" id="prevSimilarPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-info ml-1" id="nextSimilarPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
                         <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
                             style="display:none;">
                             <i class="fas fa-expand"></i> Full
@@ -510,6 +570,9 @@
                 let ok = total - ng;
                 $('input[name="total_ok"]').val(ok < 0 ? 0 : ok);
 
+                var judgmentSelect = $('#judgmentSelect');
+                var judgmentBadge = $('#judgmentBadge');
+
                 if (total > 0 || ng > 0) {
                     let limits = isFullcheck ? { acc: 0, rej: 1 } : getAqlLimits(total);
 
@@ -522,29 +585,51 @@
                     }
 
                     if (ng <= limits.acc) {
-                        $('#judgmentSelect').val('OK').trigger('change');
-                        $('#judgmentSelect').removeClass('bg-danger').addClass('bg-success text-white');
+                        judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+                        judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
+                            .css({ 'border-color': '#28a745', 'background-color': '#fff' });
+
+                        // Unlock OK (Pass) checkbox if valid
+                        $('#checkOK').prop('disabled', false);
                     } else {
-                        $('#judgmentSelect').val('NG').trigger('change');
-                        $('#judgmentSelect').removeClass('bg-success').addClass('bg-danger text-white');
+                        judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                        judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
+                            .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
+
+                        // Lock OK (Pass) checkbox if NG
+                        $('#checkOK').prop('checked', false).prop('disabled', true);
                     }
                 } else {
                     $('#aql_info').hide();
-                    $('#judgmentSelect').val('');
-                    $('#judgmentSelect').removeClass('bg-success bg-danger text-white');
+                    judgmentSelect.val('').removeClass('text-success text-danger');
+                    judgmentBadge.addClass('d-none').text('-');
+                    $('#checkOK').prop('disabled', false);
+                }
+
+                // Show/Hide Next Proses dropdown based on judgment
+                if (judgmentSelect.val() === 'NG') {
+                    $('#nextProsesContainer').slideDown();
+                } else {
+                    $('#nextProsesContainer').slideUp();
                 }
             });
 
             $('#judgmentSelect').change(function () {
                 var val = $(this).val();
+                var judgmentBadge = $('#judgmentBadge');
                 if (val === 'OK') {
-                    $(this).removeClass('bg-danger').addClass('bg-success text-white');
+                    $(this).removeClass('text-danger').addClass('text-success');
+                    judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
+                        .css({ 'border-color': '#28a745', 'background-color': '#fff' });
                     $('#nextProsesContainer').slideUp();
                 } else if (val === 'NG') {
-                    $(this).removeClass('bg-success').addClass('bg-danger text-white');
+                    $(this).removeClass('text-success').addClass('text-danger');
+                    judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
+                        .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
                     $('#nextProsesContainer').slideDown();
                 } else {
-                    $(this).removeClass('bg-success bg-danger text-white');
+                    $(this).removeClass('text-success text-danger');
+                    judgmentBadge.addClass('d-none').text('-');
                     $('#nextProsesContainer').slideUp();
                 }
             });
@@ -664,6 +749,11 @@
                     totalNG += parseInt($(this).val()) || 0;
                 });
                 $('#totalNG').val(totalNG).trigger('input');
+
+                // Auto-Add/Remove "Dimensi" defect if NG > 0 and it's a dimension-related check?
+                // For Double Tape, it's usually just manual NG count, but we can still have "Dimensi" in the list.
+                // However, without a specific "validateDimensions" like in In-Process, we don't know if it's "Dimensi".
+                // But if the user selects "Dimensi" as a defect, judgment should be NG.
             }
 
             // Stop timer on form submit & Validate NG
@@ -747,277 +837,378 @@
             // --- PDF Cache & Render Logic (Global/Robust) ---
             const pdfCache = {};
 
-            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId) {
-                const canvas = document.getElementById(canvasId);
-                const ctx = canvas.getContext('2d');
-                const $placeholder = $('#' + placeholderId);
-                const $loading = $('#' + loadingId);
-                const $canvas = $(canvas);
+            let standardZoomLevel = 1.0;
+                let similarZoomLevel = 1.0;
 
-                // Reset UI
-                $placeholder.removeClass('d-flex').addClass('d-none');
-                $canvas.addClass('d-none').hide();
-                $loading.removeClass('d-none').addClass('d-flex');
+                let refStandardPdfDoc = null;
+                let refStandardPageNum = 1;
+                let refSimilarPdfDoc = null;
+                let refSimilarPageNum = 1;
 
-                // Check Cache first
-                if (pdfCache[url]) {
-                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas);
-                    return;
-                }
+                window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
+                    const canvas = document.getElementById(canvasId);
+                    const ctx = canvas.getContext('2d');
+                    const $placeholder = $('#' + placeholderId);
+                    const $loading = $('#' + loadingId);
+                    const $canvas = $(canvas);
 
-                pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                    pdfCache[url] = pdf; // Store in cache
-                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas);
-                }).catch(function (error) {
-                    console.error('Error rendering preview PDF:', error);
-                    $loading.removeClass('d-flex').addClass('d-none');
-                    $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF');
-                });
-            };
+                    // Reset UI
+                    $placeholder.removeClass('d-flex').addClass('d-none');
+                    $canvas.addClass('d-none').hide();
+                    $loading.removeClass('d-none').addClass('d-flex');
 
-            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas) {
-                pdf.getPage(1).then(function (page) {
-                    const containerWidth = $(canvas).parent().width() || 500;
-                    // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
-                    const availableWidth = containerWidth - 40;
-                    const viewport = page.getViewport({ scale: 1.0 });
-                    const scale = availableWidth / viewport.width;
-                    const scaledViewport = page.getViewport({ scale: scale });
+                    // Check Cache first
+                    if (url === null) {
+                        // Use currently loaded PDF for page navigation
+                        if (canvasId === 'standardPdfCanvas' && refStandardPdfDoc) {
+                            renderPageOnCanvas(refStandardPdfDoc, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                        } else if (canvasId === 'similarPdfCanvas' && refSimilarPdfDoc) {
+                            renderPageOnCanvas(refSimilarPdfDoc, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                        }
+                        return;
+                    }
 
-                    canvas.height = scaledViewport.height;
-                    canvas.width = scaledViewport.width;
+                    if (pdfCache[url]) {
+                        renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                        return;
+                    }
 
-                    // Force CSS to fit container
-                    $canvas.css('width', '100%');
-                    $canvas.css('height', 'auto');
-
-                    const renderContext = {
-                        canvasContext: ctx,
-                        viewport: scaledViewport
-                    };
-
-                    page.render(renderContext).promise.then(function () {
+                    pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                        pdfCache[url] = pdf; // Store in cache
+                        renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                    }).catch(function (error) {
+                        console.error('Error rendering preview PDF:', error);
                         $loading.removeClass('d-flex').addClass('d-none');
-                        $canvas.removeClass('d-none').show();
+                        $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF');
                     });
-                });
-            }
-
-            // Force trigger if item selected
-            setTimeout(function () {
-                if ($('#itemSelect').val()) {
-                    $('#itemSelect').trigger('change');
-                }
-            }, 500);
-
-            function resetState() {
-                clearInterval(timerInterval);
-                timerRunning = false;
-                totalSeconds = 0;
-                updateTimerDisplay();
-                $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
-
-                // RE-LOCK INPUTS
-                formInputs.prop('disabled', true);
-                $('#checksheetForm').addClass('inputs-locked');
-                $('#saveBtn').prop('disabled', true);
-
-                // Reset specific elements
-                $('#addDefectBtn').hide();
-                $('#defectContainer').find('.defect-row').not(':first').remove();
-                $('#itemSelect').val('').trigger('change');
-                $('#aql_info').hide();
-                $('#nextProsesContainer').hide();
-
-                // Reset PDF views
-                $('#standardPdfCanvas, #similarPdfCanvas').addClass('d-none').hide();
-                $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Similar Part');
-                $('#similarStatusText').text('');
-                $('#fullStandardBtn, #fullSimilarBtn').hide();
-
-                // Reset radio buttons to default (sampling)
-                $('#checkTypeSampling').prop('checked', true).trigger('change');
-                $('#labelSampling').addClass('active');
-                $('#labelFullcheck').removeClass('active');
-            }
-        });
-
-        // --- PDF.js Integration ---
-        var pdfDoc = null,
-            pageNum = 1,
-            pageRendering = false,
-            pageNumPending = null,
-            scale = 1.5,
-            canvas = document.getElementById('the-canvas'),
-            ctx = canvas.getContext('2d');
-
-        function renderPage(num) {
-            pageRendering = true;
-            pdfDoc.getPage(num).then(function (page) {
-                var viewport = page.getViewport({ scale: scale });
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                var renderContext = {
-                    canvasContext: ctx,
-                    viewport: viewport
                 };
-                var renderTask = page.render(renderContext);
 
-                renderTask.promise.then(function () {
-                    pageRendering = false;
-                    if (pageNumPending !== null) {
-                        renderPage(pageNumPending);
-                        pageNumPending = null;
+                function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+                    pdf.getPage(pageNum).then(function (page) {
+                        const containerWidth = $(canvas).parent().width() || 500;
+                        // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
+                        const availableWidth = containerWidth - 40;
+                        const viewport = page.getViewport({ scale: 1.0 });
+
+                        // Determine which zoom level to use
+                        let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
+
+                        const scale = (availableWidth / viewport.width) * zoomLevel;
+                        const scaledViewport = page.getViewport({ scale: scale });
+
+                        canvas.height = scaledViewport.height;
+                        canvas.width = scaledViewport.width;
+
+                        // Apply fit styling
+                        if (zoomLevel > 1.0) {
+                            $canvas.css({'width': 'auto', 'max-width': 'none'});
+                        } else {
+                            $canvas.css({'width': '100%', 'max-width': '100%'});
+                        }
+                        $canvas.css('height', 'auto');
+
+                        const renderContext = {
+                            canvasContext: ctx,
+                            viewport: scaledViewport
+                        };
+
+                        page.render(renderContext).promise.then(function () {
+                            $loading.removeClass('d-flex').addClass('d-none');
+                            $canvas.removeClass('d-none').show();
+
+                            // Update info labels and nav controls
+                            if (canvasId === 'standardPdfCanvas') {
+                                refStandardPdfDoc = pdf;
+                                refStandardPageNum = pageNum;
+                                $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                                $('.standard-nav-controls').attr('style', 'display: flex !important;');
+                            } else if (canvasId === 'similarPdfCanvas') {
+                                refSimilarPdfDoc = pdf;
+                                refSimilarPageNum = pageNum;
+                                $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                                $('.similar-nav-controls').attr('style', 'display: flex !important;');
+                            }
+                        });
+                    });
+                }
+
+                // PDF Zoom Controls Events
+                $('#zoomInStandard').click(function() {
+                    standardZoomLevel += 0.25;
+                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                });
+                $('#zoomOutStandard').click(function() {
+                    if (standardZoomLevel > 0.5) {
+                        standardZoomLevel -= 0.25;
+                        if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
                     }
                 });
+                $('#zoomResetStandard').click(function() {
+                    standardZoomLevel = 1.0;
+                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                });
+
+                $('#zoomInSimilar').click(function() {
+                    similarZoomLevel += 0.25;
+                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                });
+                $('#zoomOutSimilar').click(function() {
+                    if (similarZoomLevel > 0.5) {
+                        similarZoomLevel -= 0.25;
+                        if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                    }
+                });
+                $('#zoomResetSimilar').click(function() {
+                    similarZoomLevel = 1.0;
+                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                });
+
+                // Page Navigation Events
+                $('#prevStandardPage').click(function () {
+                    if (refStandardPageNum > 1) {
+                        window.renderPdfToCanvas(null, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', refStandardPageNum - 1);
+                    }
+                });
+                $('#nextStandardPage').click(function () {
+                    if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
+                        window.renderPdfToCanvas(null, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', refStandardPageNum + 1);
+                    }
+                });
+                $('#prevSimilarPage').click(function () {
+                    if (refSimilarPageNum > 1) {
+                        window.renderPdfToCanvas(null, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', refSimilarPageNum - 1);
+                    }
+                });
+                $('#nextSimilarPage').click(function () {
+                    if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
+                        window.renderPdfToCanvas(null, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', refSimilarPageNum + 1);
+                    }
+                });
+
+                // Force trigger if item selected
+                setTimeout(function () {
+                    if ($('#itemSelect').val()) {
+                        $('#itemSelect').trigger('change');
+                    }
+                }, 500);
+
+                function resetState() {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    totalSeconds = 0;
+                    updateTimerDisplay();
+                    $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                    // RE-LOCK INPUTS
+                    formInputs.prop('disabled', true);
+                    $('#checksheetForm').addClass('inputs-locked');
+                    $('#saveBtn').prop('disabled', true);
+
+                    // Reset specific elements
+                    $('#addDefectBtn').hide();
+                    $('#defectContainer').find('.defect-row').not(':first').remove();
+                    $('#itemSelect').val('').trigger('change');
+                    $('#aql_info').hide();
+                    $('#nextProsesContainer').hide();
+
+                    // Reset PDF views
+                    $('#standardPdfCanvas, #similarPdfCanvas').addClass('d-none').hide();
+                    $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Standard PDF');
+                    $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Pilih Item untuk menampilkan Similar Part');
+                    $('#similarStatusText').text('');
+                    $('#fullStandardBtn, #fullSimilarBtn').hide();
+                    $('.standard-nav-controls, .similar-nav-controls').hide();
+
+                    // Reset Zoom
+                    standardZoomLevel = 1.0;
+                    similarZoomLevel = 1.0;
+
+                    // Reset Judgment
+                    $('#judgmentBadge').addClass('d-none').text('-');
+                    $('#judgmentSelect').removeClass('text-success text-danger');
+
+                    // Reset radio buttons to default (sampling)
+                    $('#checkTypeSampling').prop('checked', true).trigger('change');
+                    $('#labelSampling').addClass('active');
+                    $('#labelFullcheck').removeClass('active');
+                }
             });
-            document.getElementById('pageInfo').textContent = `Page ${num} of ${pdfDoc.numPages}`;
-        }
 
-        function queueRenderPage(num) {
-            if (pageRendering) {
-                pageNumPending = num;
-            } else {
-                renderPage(num);
+            // --- PDF.js Integration ---
+            var pdfDoc = null,
+                pageNum = 1,
+                pageRendering = false,
+                pageNumPending = null,
+                scale = 1.5,
+                canvas = document.getElementById('the-canvas'),
+                ctx = canvas.getContext('2d');
+
+            function renderPage(num) {
+                pageRendering = true;
+                pdfDoc.getPage(num).then(function (page) {
+                    var viewport = page.getViewport({ scale: scale });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    var renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+                    var renderTask = page.render(renderContext);
+
+                    renderTask.promise.then(function () {
+                        pageRendering = false;
+                        if (pageNumPending !== null) {
+                            renderPage(pageNumPending);
+                            pageNumPending = null;
+                        }
+                    });
+                });
+                document.getElementById('pageInfo').textContent = `Page ${num} of ${pdfDoc.numPages}`;
             }
-        }
 
-        document.getElementById('prevPage').addEventListener('click', function () {
-            if (pageNum <= 1) return;
-            pageNum--;
-            queueRenderPage(pageNum);
-        });
+            function queueRenderPage(num) {
+                if (pageRendering) {
+                    pageNumPending = num;
+                } else {
+                    renderPage(num);
+                }
+            }
 
-        document.getElementById('nextPage').addEventListener('click', function () {
-            if (pageNum >= pdfDoc.numPages) return;
-            pageNum++;
-            queueRenderPage(pageNum);
-        });
-
-        document.getElementById('pdfZoomIn').addEventListener('click', function () {
-            scale += 0.25;
-            queueRenderPage(pageNum);
-        });
-
-        document.getElementById('pdfZoomOut').addEventListener('click', function () {
-            if (scale > 0.25) {
-                scale -= 0.25;
+            document.getElementById('prevPage').addEventListener('click', function () {
+                if (pageNum <= 1) return;
+                pageNum--;
                 queueRenderPage(pageNum);
-            }
-        });
+            });
 
-        document.getElementById('pdfZoomReset').addEventListener('click', function () {
-            scale = 1.0;
-            queueRenderPage(pageNum);
-        });
+            document.getElementById('nextPage').addEventListener('click', function () {
+                if (pageNum >= pdfDoc.numPages) return;
+                pageNum++;
+                queueRenderPage(pageNum);
+            });
 
-        let currentPdfIndex = 0;
-        let totalPdfFiles = 0;
-        let currentItemId = null;
+            document.getElementById('pdfZoomIn').addEventListener('click', function () {
+                scale += 0.25;
+                queueRenderPage(pageNum);
+            });
 
-        function loadPdf(itemId, index) {
-            const routePattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
-            const url = routePattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
+            document.getElementById('pdfZoomOut').addEventListener('click', function () {
+                if (scale > 0.25) {
+                    scale -= 0.25;
+                    queueRenderPage(pageNum);
+                }
+            });
 
-            pdfDoc = null;
-            pageNum = 1;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            document.getElementById('pageInfo').textContent = 'Loading...';
+            document.getElementById('pdfZoomReset').addEventListener('click', function () {
+                scale = 1.0;
+                queueRenderPage(pageNum);
+            });
 
-            if (index === 'similar') {
-                document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
-                $('#prevPdf, #nextPdf').hide();
-            } else {
-                document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
-                if (totalPdfFiles <= 1) {
+            let currentPdfIndex = 0;
+            let totalPdfFiles = 0;
+            let currentItemId = null;
+
+            function loadPdf(itemId, index) {
+                const routePattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+                const url = routePattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
+
+                pdfDoc = null;
+                pageNum = 1;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('pageInfo').textContent = 'Loading...';
+
+                if (index === 'similar') {
+                    document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
                     $('#prevPdf, #nextPdf').hide();
                 } else {
-                    $('#prevPdf, #nextPdf').show();
+                    document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
+                    if (totalPdfFiles <= 1) {
+                        $('#prevPdf, #nextPdf').hide();
+                    } else {
+                        $('#prevPdf, #nextPdf').show();
+                    }
                 }
+
+                pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+                    pdfDoc = pdfDoc_;
+                    document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
+                    renderPage(pageNum);
+                }, function (reason) {
+                    console.error(reason);
+                    let errorMsg = 'Error loading PDF. ';
+                    if (reason.name === 'MissingPDFException') {
+                        errorMsg += 'The PDF file could not be found on the server.';
+                    } else {
+                        errorMsg += reason.message || reason;
+                    }
+                    document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
+                    alert(errorMsg);
+                });
             }
 
-            pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
-                pdfDoc = pdfDoc_;
-                document.getElementById('pageInfo').textContent = 'Page 1 of ' + pdfDoc.numPages;
-                renderPage(pageNum);
-            }, function (reason) {
-                console.error(reason);
-                let errorMsg = 'Error loading PDF. ';
-                if (reason.name === 'MissingPDFException') {
-                    errorMsg += 'The PDF file could not be found on the server.';
+            document.getElementById('prevPdf').addEventListener('click', function () {
+                if (currentPdfIndex <= 0) return;
+                currentPdfIndex--;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            document.getElementById('nextPdf').addEventListener('click', function () {
+                if (currentPdfIndex >= totalPdfFiles - 1) return;
+                currentPdfIndex++;
+                loadPdf(currentItemId, currentPdfIndex);
+            });
+
+            // Trigger PDF Modal from dynamic button (delegated event)
+            $(document).on('click', '.view-pdf-btn', function () {
+                currentItemId = $(this).data('id');
+                var isSimilar = $(this).data('similar');
+
+                if (isSimilar) {
+                    totalPdfFiles = 1;
+                    currentPdfIndex = 'similar';
                 } else {
-                    errorMsg += reason.message || reason;
+                    totalPdfFiles = $(this).data('count');
+                    currentPdfIndex = 0;
                 }
-                document.getElementById('pageInfo').textContent = 'Error: ' + reason.name;
-                alert(errorMsg);
+
+                $('#pdfModal').modal('show');
+                loadPdf(currentItemId, currentPdfIndex);
             });
-        }
 
-        document.getElementById('prevPdf').addEventListener('click', function () {
-            if (currentPdfIndex <= 0) return;
-            currentPdfIndex--;
-            loadPdf(currentItemId, currentPdfIndex);
-        });
-
-        document.getElementById('nextPdf').addEventListener('click', function () {
-            if (currentPdfIndex >= totalPdfFiles - 1) return;
-            currentPdfIndex++;
-            loadPdf(currentItemId, currentPdfIndex);
-        });
-
-        // Trigger PDF Modal from dynamic button (delegated event)
-        $(document).on('click', '.view-pdf-btn', function () {
-            currentItemId = $(this).data('id');
-            var isSimilar = $(this).data('similar');
-
-            if (isSimilar) {
-                totalPdfFiles = 1;
-                currentPdfIndex = 'similar';
-            } else {
-                totalPdfFiles = $(this).data('count');
-                currentPdfIndex = 0;
-            }
-
-            $('#pdfModal').modal('show');
-            loadPdf(currentItemId, currentPdfIndex);
-        });
-
-        // Image Zoom Logic
-        var currentZoom = 1;
-        $('#zoomIn').click(function () {
-            currentZoom += 0.2;
-            $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
-        });
-        $('#zoomOut').click(function () {
-            if (currentZoom > 0.4) {
-                currentZoom -= 0.2;
+            // Image Zoom Logic
+            var currentZoom = 1;
+            $('#zoomIn').click(function () {
+                currentZoom += 0.2;
                 $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
-            }
-        });
-        $('#zoomReset').click(function () {
-            currentZoom = 1;
-            $('#modalImage').css('transform', 'scale(1)');
-        });
-
-        $('#imageModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var image = button.data('image') || button.attr('src');
-            var title = button.data('name') || "Detail Gambar";
-            var desc = button.data('description') || "";
-
-            $('#modalImage').attr('src', image).css('transform', 'scale(1)');
-            $('#modalTitle').text(title);
-            $('#modalDescription').text(desc);
-            currentZoom = 1;
-        });
-
-        // Script loading for pdf.js
-        if (typeof pdfjsLib === 'undefined') {
-            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js').done(function () {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
             });
-        }
-    </script>
+            $('#zoomOut').click(function () {
+                if (currentZoom > 0.4) {
+                    currentZoom -= 0.2;
+                    $('#modalImage').css('transform', 'scale(' + currentZoom + ')');
+                }
+            });
+            $('#zoomReset').click(function () {
+                currentZoom = 1;
+                $('#modalImage').css('transform', 'scale(1)');
+            });
+
+            $('#imageModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var image = button.data('image') || button.attr('src');
+                var title = button.data('name') || "Detail Gambar";
+                var desc = button.data('description') || "";
+
+                $('#modalImage').attr('src', image).css('transform', 'scale(1)');
+                $('#modalTitle').text(title);
+                $('#modalDescription').text(desc);
+                currentZoom = 1;
+            });
+
+            // Script loading for pdf.js
+            if (typeof pdfjsLib === 'undefined') {
+                $.getScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js').done(function () {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                });
+            }
+        </script>
 @endpush
