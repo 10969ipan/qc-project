@@ -359,7 +359,7 @@
         function updateJudgment() {
             const sampling = parseInt($('#sampling_qty').val()) || 0;
             const ng = parseInt($('#total_ng').val()) || 0;
-            const isDimensiInvalid = $('.is-invalid').length > 0;
+            const isDimensiInvalid = $('.edit-dimension-input.is-invalid').length > 0;
 
             if (sampling >= ng) {
                 $('#total_ok').val(sampling - ng);

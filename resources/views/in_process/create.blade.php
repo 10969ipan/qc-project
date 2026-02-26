@@ -830,24 +830,24 @@
             function updateJudgment() {
                 var sampling = parseInt($('input[name="sampling_qty"]').val()) || 0;
                 var ng = parseInt($('input[name="total_ng"]').val()) || 0;
-                var isDimensiInvalid = $('.is-invalid').length > 0;
+                var isDimensiInvalid = $('.dimension-input.is-invalid').length > 0;
 
-                // Proactively remove 'Dimensi' defect if measurements are actually OK
-                // This ensures 'ng' count drops so judgment can correctly return to OK
-                if (!isDimensiInvalid) {
-                    var hasDimensiDefect = false;
-                    $('.defect-select').each(function () {
-                        var text = $(this).find('option:selected').text();
-                        if (text.toLowerCase() === 'dimensi') {
-                            hasDimensiDefect = true;
-                            return false;
-                        }
-                    });
-
-                    if (hasDimensiDefect) {
-                        autoRemoveDimensionDefect();
-                        return; // autoRemove will trigger calculateTotalNG -> updateJudgment again
+                // 0. Handle Dimension Defect independently of Lot Judgment
+                var hasDimensiDefect = false;
+                $('.defect-select').each(function () {
+                    var text = $(this).find('option:selected').text();
+                    if (text.toLowerCase() === 'dimensi') {
+                        hasDimensiDefect = true;
+                        return false;
                     }
+                });
+
+                if (isDimensiInvalid && !hasDimensiDefect) {
+                    autoAddDimensionDefect();
+                    return; // Re-triggers via calculateTotalNG
+                } else if (!isDimensiInvalid && hasDimensiDefect) {
+                    autoRemoveDimensionDefect();
+                    return; // Re-triggers via calculateTotalNG
                 }
 
                 // 1. Calculate Total OK
@@ -874,16 +874,14 @@
                         judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                             .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
 
-                        // Auto-select Defect 'Dimensi'
-                        autoAddDimensionDefect();
+                        // NOTE: autoAddDimensionDefect is now handled independently at the top
                     } else if (ng <= limits.acc) {
                         judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
 
                         judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                             .css({ 'border-color': '#28a745', 'background-color': '#fff' });
 
-                        // Auto-remove Defect 'Dimensi' if exists
-                        autoRemoveDimensionDefect();
+                        // NOTE: autoRemoveDimensionDefect is now handled independently at the top
                     } else {
                         judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
                         judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
@@ -1224,11 +1222,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                                                            <input type="text"
-                                                                                                                                                class="form-control form-control-sm dimension-input"
-                                                                                                                                                style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                                                placeholder="P${j}">
-                                                                                                                                        </td>`;
+                                                                                                                                                <input type="text"
+                                                                                                                                                    class="form-control form-control-sm dimension-input"
+                                                                                                                                                    style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                                                    placeholder="P${j}">
+                                                                                                                                            </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1727,15 +1725,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                                                            style="min-width: 60px;"
-                                                                                                                                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                                                            placeholder="P${j}">
-                                                                                                                                                                                                                                    </td>`;
+                                                                                                                                                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                                                style="min-width: 60px;"
+                                                                                                                                                                                                                                                name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                                                placeholder="P${j}">
+                                                                                                                                                                                                                                        </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1762,11 +1760,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                                                            style="min-width: 60px;"
-                                                                                                                                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                                                            placeholder="P${currentPoints}">
-                                                                                                                                                                                                                                    </td>`);
+                                                                                                                                                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                                                style="min-width: 60px;"
+                                                                                                                                                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                                                placeholder="P${currentPoints}">
+                                                                                                                                                                                                                                        </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');
