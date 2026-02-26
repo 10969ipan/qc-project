@@ -234,7 +234,7 @@
 
                                 <!-- Judgment -->
                                 <td class="align-middle">
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
                                         style="min-width: 100px;" required>
                                         <option value="" disabled selected>Result</option>
                                         <option value="OK" class="text-success">OK</option>
@@ -594,7 +594,8 @@
             });
 
             $('#judgmentSelect').change(function () {
-                if ($(this).val() === 'NG') {
+                let ngCount = parseInt($('#totalNG').val()) || 0;
+                if ($(this).val() === 'NG' || ngCount > 0) {
                     $('#nextProsesContainer').slideDown();
                 } else {
                     $('#nextProsesContainer').slideUp();

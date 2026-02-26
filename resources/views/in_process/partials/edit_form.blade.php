@@ -165,7 +165,7 @@
                 <div class="col-6">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">Judgment Final <span class="text-danger">*</span></label>
-                        <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
+                        <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold d-none {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
                             <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
                             <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
                         </select>
@@ -384,8 +384,10 @@
 
         function toggleNextProses() {
             const judgment = $('#judgment').val();
+            const ngCount = parseInt($('#total_ng').val()) || 0;
             const container = $('#nextProsesContainer');
-            if (judgment === 'NG') {
+
+            if (judgment === 'NG' || ngCount > 0) {
                 container.slideDown();
             } else {
                 container.slideUp();

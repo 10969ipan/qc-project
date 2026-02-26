@@ -208,7 +208,7 @@
                                         style="border: 2px solid transparent;">
                                         -
                                     </div>
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
                                         required>
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
@@ -602,8 +602,9 @@
                     judgmentBadge.addClass('d-none').text('-');
                 }
 
-                // Show/Hide Next Proses dropdown based on judgment
-                if (judgmentSelect.val() === 'NG') {
+                // Show/Hide Next Proses dropdown based on judgment and NG count
+                var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+                if (judgmentSelect.val() === 'NG' || ngCount > 0) {
                     $('#nextProsesContainer').slideDown();
                 } else {
                     $('#nextProsesContainer').slideUp();
@@ -622,10 +623,14 @@
                     // Auto-remove "Dimensi" defect if judgment is OK
                     autoRemoveDimensionDefect();
                 } else if (val === 'NG') {
+                    var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
                     $(this).removeClass('text-success').addClass('text-danger');
                     judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                         .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
-                    $('#nextProsesContainer').slideDown();
+
+                    if (val === 'NG' || ngCount > 0) {
+                        $('#nextProsesContainer').slideDown();
+                    }
 
                     // Auto-add "Dimensi" defect when manually switching to NG
                     autoAddDimensionDefect();

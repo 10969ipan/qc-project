@@ -343,7 +343,7 @@
 
                                 <!-- Judgment -->
                                 <td class="align-middle">
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
                                         required>
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
@@ -728,7 +728,8 @@
 
             function toggleNextProsesDropdown() {
                 var judgment = $('#judgmentSelect').val();
-                if (judgment === 'NG') {
+                var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+                if (judgment === 'NG' || ngCount > 0) {
                     $('#nextProsesContainer').slideDown();
                 } else {
                     $('#nextProsesContainer').slideUp();

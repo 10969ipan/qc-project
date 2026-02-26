@@ -365,7 +365,7 @@
                                         style="border: 2px solid transparent;">
                                         -
                                     </div>
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
                                         required>
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
@@ -899,7 +899,9 @@
 
             function toggleNextProsesDropdown() {
                 var judgment = $('#judgmentSelect').val();
-                if (judgment === 'NG') {
+                var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+
+                if (judgment === 'NG' || ngCount > 0) {
                     $('#nextProsesContainer').slideDown();
                 } else {
                     $('#nextProsesContainer').slideUp();
@@ -1222,11 +1224,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                                                    <input type="text"
-                                                                                                                                        class="form-control form-control-sm dimension-input"
-                                                                                                                                        style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                                        placeholder="P${j}">
-                                                                                                                                </td>`;
+                                                                                                                                        <input type="text"
+                                                                                                                                            class="form-control form-control-sm dimension-input"
+                                                                                                                                            style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                                            placeholder="P${j}">
+                                                                                                                                    </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1568,436 +1570,436 @@
                 $('#standardPdfCanvas, #similarPdfCanvas').hide();
                 $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
                 $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Dimensi Part');
-                    $('#similarStatusText').text('');
-                    $('#fullStandardBtn, #fullSimilarBtn').hide();
-                    $('.standard-nav-controls, .similar-nav-controls').hide();
+                $('#similarStatusText').text('');
+                $('#fullStandardBtn, #fullSimilarBtn').hide();
+                $('.standard-nav-controls, .similar-nav-controls').hide();
 
-                    // Reset Zoom
-                    standardZoomLevel = 1.0;
-                    similarZoomLevel = 1.0;
+                // Reset Zoom
+                standardZoomLevel = 1.0;
+                similarZoomLevel = 1.0;
 
-                    // Reset Judgment
-                    $('#judgmentBadge').addClass('d-none').text('-');
-                    $('#judgmentSelect').removeClass('text-success text-danger');
+                // Reset Judgment
+                $('#judgmentBadge').addClass('d-none').text('-');
+                $('#judgmentSelect').removeClass('text-success text-danger');
 
-                    // Reset PDF Reference State
-                    refStandardPdfDoc = null;
-                    refStandardPageNum = 1;
-                    refStandardFileIndex = 0;
-                    refStandardFiles = [];
-                    refSimilarPdfDoc = null;
-                    refSimilarPageNum = 1;
+                // Reset PDF Reference State
+                refStandardPdfDoc = null;
+                refStandardPageNum = 1;
+                refStandardFileIndex = 0;
+                refStandardFiles = [];
+                refSimilarPdfDoc = null;
+                refSimilarPageNum = 1;
 
-                    // Reset select2 if used (standard select used here)
-                    $('#itemSelect').val('').trigger('change');
-                }
+                // Reset select2 if used (standard select used here)
+                $('#itemSelect').val('').trigger('change');
+            }
 
-                // Optional: Reset timer on form reset
-                $('button[type="reset"]').click(function () {
-                    resetState();
-                });
+            // Optional: Reset timer on form reset
+            $('button[type="reset"]').click(function () {
+                resetState();
+            });
 
-                // --- Centralized Dimension Validation Logic ---
-                // The dimension standards are now passed from the controller.
-                const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
+            // --- Centralized Dimension Validation Logic ---
+            // The dimension standards are now passed from the controller.
+            const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
 
 
-                function normalizePartNumber(pn) {
-                    if (!pn) return '';
-                    return pn.toString()
-                        .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
-                        .replace(/\s+/g, '') // Remove all whitespace
-                        .toUpperCase();
-                }
+            function normalizePartNumber(pn) {
+                if (!pn) return '';
+                return pn.toString()
+                    .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
+                    .replace(/\s+/g, '') // Remove all whitespace
+                    .toUpperCase();
+            }
 
-                function validateDimensions() {
-                    const selectedOption = $('#itemSelect').find('option:selected');
-                    const rawPartNumber = selectedOption.data('part-number');
-                    const itemPartNumber = normalizePartNumber(rawPartNumber);
+            function validateDimensions() {
+                const selectedOption = $('#itemSelect').find('option:selected');
+                const rawPartNumber = selectedOption.data('part-number');
+                const itemPartNumber = normalizePartNumber(rawPartNumber);
 
-                    // Get the dimension standards for the currently selected item.
-                    const dimensionStandards = partDimensionStandards[itemPartNumber];
+                // Get the dimension standards for the currently selected item.
+                const dimensionStandards = partDimensionStandards[itemPartNumber];
 
-                    $('input[name^="dimensions"]').each(function () {
-                        const name = $(this).attr('name');
-                        // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
-                        const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                        if (!match) return;
+                $('input[name^="dimensions"]').each(function () {
+                    const name = $(this).attr('name');
+                    // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (!match) return;
 
-                        const point = match[2]; // The point number (e.g., '1', '2', '3').
-                        // Look up the standard for the current point for the selected part.
-                        const standard = dimensionStandards ? dimensionStandards[point] : null;
-                        const valStr = $(this).val().trim();
-                        const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
+                    const point = match[2]; // The point number (e.g., '1', '2', '3').
+                    // Look up the standard for the current point for the selected part.
+                    const standard = dimensionStandards ? dimensionStandards[point] : null;
+                    const valStr = $(this).val().trim();
+                    const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
 
-                        // Check if a standard exists for this point and the input is a valid number.
-                        if (standard && valStr !== '' && !isNaN(value)) {
-                            let isInvalid = false;
-                            const epsilon = 0.00001; // Avoid floating point precision issues
+                    // Check if a standard exists for this point and the input is a valid number.
+                    if (standard && valStr !== '' && !isNaN(value)) {
+                        let isInvalid = false;
+                        const epsilon = 0.00001; // Avoid floating point precision issues
 
-                            if (standard.min !== null && value < (standard.min - epsilon)) {
-                                isInvalid = true;
-                            }
-                            if (standard.max !== null && value > (standard.max + epsilon)) {
-                                isInvalid = true;
-                            }
+                        if (standard.min !== null && value < (standard.min - epsilon)) {
+                            isInvalid = true;
+                        }
+                        if (standard.max !== null && value > (standard.max + epsilon)) {
+                            isInvalid = true;
+                        }
 
-                            // Fallback to Size +/- Tolerance if no Min/Max is set at all
-                            if (standard.min === null && standard.max === null) {
-                                if (standard.size !== null && standard.tolerance !== null) {
-                                    const lowerBound = standard.size - standard.tolerance;
-                                    const upperBound = standard.size + standard.tolerance;
-                                    if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
-                                        isInvalid = true;
-                                    }
+                        // Fallback to Size +/- Tolerance if no Min/Max is set at all
+                        if (standard.min === null && standard.max === null) {
+                            if (standard.size !== null && standard.tolerance !== null) {
+                                const lowerBound = standard.size - standard.tolerance;
+                                const upperBound = standard.size + standard.tolerance;
+                                if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
+                                    isInvalid = true;
                                 }
                             }
+                        }
 
-                            if (isInvalid) {
-                                $(this).addClass('is-invalid');
-                            } else {
-                                $(this).removeClass('is-invalid');
-                            }
+                        if (isInvalid) {
+                            $(this).addClass('is-invalid');
                         } else {
                             $(this).removeClass('is-invalid');
                         }
-                    });
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
 
-                    // Trigger judgment update to reflect dimension status
+                // Trigger judgment update to reflect dimension status
+                updateJudgment();
+            }
+
+            function checkMandatoryDimensions() {
+                const selectedOption = $('#itemSelect').find('option:selected');
+                const rawPartNumber = selectedOption.data('part-number');
+                const itemPartNumber = normalizePartNumber(rawPartNumber);
+                const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+                if (!dimensionStandards) return true; // No standards, no mandatory checks
+                if (currentPlant === 'jakarta') return true; // Jakarta allows manual/partial input
+
+                let allFilled = true;
+                let firstEmptyInput = null;
+
+                // Loop through all visible dimension inputs
+                $('.dimension-input').each(function () {
+                    const name = $(this).attr('name');
+                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                    if (!match) return;
+
+                    const point = match[2];
+                    // Only check if a standard exists for this point
+                    if (dimensionStandards[point]) {
+                        const val = $(this).val().trim();
+                        if (val === '') {
+                            allFilled = false;
+                            $(this).addClass('is-invalid');
+                            if (!firstEmptyInput) firstEmptyInput = $(this);
+                        }
+                    }
+                });
+
+                if (!allFilled) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Dimensi Belum Lengkap',
+                        text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    if (firstEmptyInput) {
+                        $('html, body').animate({
+                            scrollTop: firstEmptyInput.offset().top - 200
+                        }, 500);
+                        firstEmptyInput.focus();
+                    }
+                    return false;
+                }
+                return true;
+            }
+
+            // --- Dynamic Dimension Expansion Logistic ---
+            let currentCavities = 2;
+            let currentPoints = 5;
+            const maxCavities = 30;
+            const maxPoints = 30;
+
+            $('#addCavityBtn').click(function () {
+                if (currentCavities < maxCavities) {
+                    currentCavities++;
+                    let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
+                                                                                                                                                                                                                                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+
+                    for (let j = 1; j <= currentPoints; j++) {
+                        newRow += `<td class="point-cell">
+                                                                                                                                                                                                                                    <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                                        style="min-width: 60px;"
+                                                                                                                                                                                                                                        name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                                        placeholder="P${j}">
+                                                                                                                                                                                                                                </td>`;
+                    }
+                    newRow += `</tr>`;
+                    $('#dimensionBody').append(newRow);
+                } else {
+                    alert('Maximum 30 cavities reached');
+                }
+            });
+
+            $('#deleteCavityBtn').click(function () {
+                if (currentCavities > 1) {
+                    $('#dimensionBody tr:last-child').remove();
+                    currentCavities--;
                     updateJudgment();
                 }
-
-                function checkMandatoryDimensions() {
-                    const selectedOption = $('#itemSelect').find('option:selected');
-                    const rawPartNumber = selectedOption.data('part-number');
-                    const itemPartNumber = normalizePartNumber(rawPartNumber);
-                    const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-                    if (!dimensionStandards) return true; // No standards, no mandatory checks
-                    if (currentPlant === 'jakarta') return true; // Jakarta allows manual/partial input
-
-                    let allFilled = true;
-                    let firstEmptyInput = null;
-
-                    // Loop through all visible dimension inputs
-                    $('.dimension-input').each(function () {
-                        const name = $(this).attr('name');
-                        const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                        if (!match) return;
-
-                        const point = match[2];
-                        // Only check if a standard exists for this point
-                        if (dimensionStandards[point]) {
-                            const val = $(this).val().trim();
-                            if (val === '') {
-                                allFilled = false;
-                                $(this).addClass('is-invalid');
-                                if (!firstEmptyInput) firstEmptyInput = $(this);
-                            }
-                        }
-                    });
-
-                    if (!allFilled) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Data Dimensi Belum Lengkap',
-                            text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
-                            confirmButtonColor: '#3085d6'
-                        });
-                        if (firstEmptyInput) {
-                            $('html, body').animate({
-                                scrollTop: firstEmptyInput.offset().top - 200
-                            }, 500);
-                            firstEmptyInput.focus();
-                        }
-                        return false;
-                    }
-                    return true;
-                }
-
-                // --- Dynamic Dimension Expansion Logistic ---
-                let currentCavities = 2;
-                let currentPoints = 5;
-                const maxCavities = 30;
-                const maxPoints = 30;
-
-                $('#addCavityBtn').click(function () {
-                    if (currentCavities < maxCavities) {
-                        currentCavities++;
-                        let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
-
-                        for (let j = 1; j <= currentPoints; j++) {
-                            newRow += `<td class="point-cell">
-                                                                                                                                                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                                                    style="min-width: 60px;"
-                                                                                                                                                                                                                                    name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                                                    placeholder="P${j}">
-                                                                                                                                                                                                                            </td>`;
-                        }
-                        newRow += `</tr>`;
-                        $('#dimensionBody').append(newRow);
-                    } else {
-                        alert('Maximum 30 cavities reached');
-                    }
-                });
-
-                $('#deleteCavityBtn').click(function () {
-                    if (currentCavities > 1) {
-                        $('#dimensionBody tr:last-child').remove();
-                        currentCavities--;
-                        updateJudgment();
-                    }
-                });
-
-                $('#addPointBtn').click(function () {
-                    if (currentPoints < maxPoints) {
-                        currentPoints++;
-                        // Add header
-                        $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
-
-                        // Add cells to each row
-                        $('.cavity-row').each(function () {
-                            let cavityNum = $(this).data('cavity');
-                            $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                                                <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                                                    style="min-width: 60px;"
-                                                                                                                                                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                                                    placeholder="P${currentPoints}">
-                                                                                                                                                                                                                            </td>`);
-                        });
-                    } else {
-                        alert('Maximum 30 points reached');
-                    }
-                });
-
-                $('#deletePointBtn').click(function () {
-                    if (currentPoints > 1) {
-                        // Remove last header
-                        $('#dimensionHeadRow th.point-header:last-child').remove();
-                        // Remove last cell from each row
-                        $('.cavity-row').each(function () {
-                            $(this).find('td.point-cell:last-child').remove();
-                        });
-                        currentPoints--;
-                        updateJudgment();
-                    }
-                });
-
-                $(document).on('input', '.dimension-input', validateDimensions);
-
-                // --- PDF Cache & Render Logic (Global/Robust) ---
-                const pdfCache = {};
-
-                // State for Reference Views
-                let refStandardPdfDoc = null;
-                let refStandardPageNum = 1;
-                let refStandardFileIndex = 0;
-                let refStandardFiles = [];
-
-                let refSimilarPdfDoc = null;
-                let refSimilarPageNum = 1;
-
-                let standardZoomLevel = 1.0;
-                let similarZoomLevel = 1.0;
-
-                // Ensure function is available globally or within this closure safely
-                window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
-                    const canvas = document.getElementById(canvasId);
-                    const ctx = canvas.getContext('2d');
-                    const $placeholder = $('#' + placeholderId);
-                    const $loading = $('#' + loadingId);
-                    const $canvas = $(canvas);
-
-                    // Reset UI: Show Loading, Hide others
-                    $placeholder.removeClass('d-flex').addClass('d-none');
-                    $canvas.addClass('d-none').hide();
-                    $loading.removeClass('d-none').addClass('d-flex');
-
-                    console.log("Starting render for:", url, "Page:", pageNum);
-
-                    // Check Cache first
-                    if (pdfCache[url]) {
-                        renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                        return;
-                    }
-
-                    pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                        pdfCache[url] = pdf; // Store in cache
-                        renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                    }).catch(function (error) {
-                        console.error('Error rendering preview PDF:', error);
-                        $loading.removeClass('d-flex').addClass('d-none');
-                        $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF: ' + (error.message || 'Unknown error'));
-                    });
-                };
-
-                function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
-                    pdf.getPage(pageNum).then(function (page) {
-                        const containerWidth = $(canvas).parent().width() || 500;
-                        // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
-                        const availableWidth = containerWidth - 40;
-                        const viewport = page.getViewport({ scale: 1.0 });
-
-                        // Determine which zoom level to use
-                        let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
-
-                        const scale = (availableWidth / viewport.width) * zoomLevel;
-                        const scaledViewport = page.getViewport({ scale: scale });
-
-                        canvas.height = scaledViewport.height;
-                        canvas.width = scaledViewport.width;
-
-                        // Apply fit styling
-                        if (zoomLevel > 1.0) {
-                            $canvas.css({ 'width': 'auto', 'max-width': 'none' });
-                        } else {
-                            $canvas.css({ 'width': '100%', 'max-width': '100%' });
-                        }
-                        $canvas.css('height', 'auto');
-
-                        const renderContext = {
-                            canvasContext: ctx,
-                            viewport: scaledViewport
-                        };
-
-                        page.render(renderContext).promise.then(function () {
-                            $loading.removeClass('d-flex').addClass('d-none');
-                            $canvas.removeClass('d-none').show();
-
-                            // Update info labels if this is a reference canvas
-                            if (canvasId === 'standardPdfCanvas') {
-                                refStandardPdfDoc = pdf;
-                                $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
-                            } else if (canvasId === 'similarPdfCanvas') {
-                                refSimilarPdfDoc = pdf;
-                                $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
-                            }
-                        });
-                    }).catch(function (err) {
-                        console.error("Error rendering page:", pageNum, err);
-                        $loading.removeClass('d-flex').addClass('d-none');
-                    });
-                }
-
-                function updateRefNavControls() {
-                    // Standard
-                    if (refStandardFiles && refStandardFiles.length > 0) {
-                        $('.standard-nav-controls').attr('style', 'display: flex !important;');
-                        if (refStandardFiles.length > 1) {
-                            $('.standard-nav-controls .file-nav').attr('style', 'display: flex !important;');
-                            $('#standardFileInfo').text((refStandardFileIndex + 1) + '/' + refStandardFiles.length);
-                        } else {
-                            $('.standard-nav-controls .file-nav').hide();
-                        }
-                    } else {
-                        $('.standard-nav-controls').hide();
-                    }
-
-                    // Similar
-                    if (refSimilarPdfDoc) {
-                        $('.similar-nav-controls').attr('style', 'display: flex !important;');
-                    } else {
-                        $('.similar-nav-controls').hide();
-                    }
-                }
-
-                // Reference View Navigation Events
-                $('#prevStandardPage').click(function () {
-                    if (refStandardPageNum > 1) {
-                        refStandardPageNum--;
-                        renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                    }
-                });
-
-                $('#nextStandardPage').click(function () {
-                    if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
-                        refStandardPageNum++;
-                        renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                    }
-                });
-
-                $('#prevStandardFile').click(function () {
-                    if (refStandardFileIndex > 0) {
-                        refStandardFileIndex--;
-                        refStandardPageNum = 1;
-                        const itemId = $('#itemSelect').val();
-                        const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
-                            .replace('ID_PLACEHOLDER', itemId)
-                            .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
-                        window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
-                        updateRefNavControls();
-                    }
-                });
-
-                $('#nextStandardFile').click(function () {
-                    if (refStandardFileIndex < refStandardFiles.length - 1) {
-                        refStandardFileIndex++;
-                        refStandardPageNum = 1;
-                        const itemId = $('#itemSelect').val();
-                        const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
-                            .replace('ID_PLACEHOLDER', itemId)
-                            .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
-                        window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
-                        updateRefNavControls();
-                    }
-                });
-
-                $('#prevSimilarPage').click(function () {
-                    if (refSimilarPageNum > 1) {
-                        refSimilarPageNum--;
-                        renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                    }
-                });
-
-                $('#nextSimilarPage').click(function () {
-                    if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
-                        refSimilarPageNum++;
-                        renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                    }
-                });
-
-                // PDF Zoom Controls Events
-                $('#zoomInStandard').click(function () {
-                    standardZoomLevel += 0.25;
-                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                });
-                $('#zoomOutStandard').click(function () {
-                    if (standardZoomLevel > 0.5) {
-                        standardZoomLevel -= 0.25;
-                        if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                    }
-                });
-                $('#zoomResetStandard').click(function () {
-                    standardZoomLevel = 1.0;
-                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                });
-
-                $('#zoomInSimilar').click(function () {
-                    similarZoomLevel += 0.25;
-                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                });
-                $('#zoomOutSimilar').click(function () {
-                    if (similarZoomLevel > 0.5) {
-                        similarZoomLevel -= 0.25;
-                        if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                    }
-                });
-                $('#zoomResetSimilar').click(function () {
-                    similarZoomLevel = 1.0;
-                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                });
-                setTimeout(function () {
-                    if ($('#itemSelect').val()) {
-                        $('#itemSelect').trigger('change');
-                    }
-                }, 500);
-
-                // Add CSS for invalid inputs
-                $('<style>' +
-                    '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
-                    '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
-                    '</style>').appendTo('head');
             });
-        </script>
+
+            $('#addPointBtn').click(function () {
+                if (currentPoints < maxPoints) {
+                    currentPoints++;
+                    // Add header
+                    $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
+
+                    // Add cells to each row
+                    $('.cavity-row').each(function () {
+                        let cavityNum = $(this).data('cavity');
+                        $(this).append(`<td class="point-cell">
+                                                                                                                                                                                                                                    <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                                        style="min-width: 60px;"
+                                                                                                                                                                                                                                        name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                                        placeholder="P${currentPoints}">
+                                                                                                                                                                                                                                </td>`);
+                    });
+                } else {
+                    alert('Maximum 30 points reached');
+                }
+            });
+
+            $('#deletePointBtn').click(function () {
+                if (currentPoints > 1) {
+                    // Remove last header
+                    $('#dimensionHeadRow th.point-header:last-child').remove();
+                    // Remove last cell from each row
+                    $('.cavity-row').each(function () {
+                        $(this).find('td.point-cell:last-child').remove();
+                    });
+                    currentPoints--;
+                    updateJudgment();
+                }
+            });
+
+            $(document).on('input', '.dimension-input', validateDimensions);
+
+            // --- PDF Cache & Render Logic (Global/Robust) ---
+            const pdfCache = {};
+
+            // State for Reference Views
+            let refStandardPdfDoc = null;
+            let refStandardPageNum = 1;
+            let refStandardFileIndex = 0;
+            let refStandardFiles = [];
+
+            let refSimilarPdfDoc = null;
+            let refSimilarPageNum = 1;
+
+            let standardZoomLevel = 1.0;
+            let similarZoomLevel = 1.0;
+
+            // Ensure function is available globally or within this closure safely
+            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const $placeholder = $('#' + placeholderId);
+                const $loading = $('#' + loadingId);
+                const $canvas = $(canvas);
+
+                // Reset UI: Show Loading, Hide others
+                $placeholder.removeClass('d-flex').addClass('d-none');
+                $canvas.addClass('d-none').hide();
+                $loading.removeClass('d-none').addClass('d-flex');
+
+                console.log("Starting render for:", url, "Page:", pageNum);
+
+                // Check Cache first
+                if (pdfCache[url]) {
+                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                    return;
+                }
+
+                pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                    pdfCache[url] = pdf; // Store in cache
+                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                }).catch(function (error) {
+                    console.error('Error rendering preview PDF:', error);
+                    $loading.removeClass('d-flex').addClass('d-none');
+                    $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF: ' + (error.message || 'Unknown error'));
+                });
+            };
+
+            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+                pdf.getPage(pageNum).then(function (page) {
+                    const containerWidth = $(canvas).parent().width() || 500;
+                    // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
+                    const availableWidth = containerWidth - 40;
+                    const viewport = page.getViewport({ scale: 1.0 });
+
+                    // Determine which zoom level to use
+                    let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
+
+                    const scale = (availableWidth / viewport.width) * zoomLevel;
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+
+                    // Apply fit styling
+                    if (zoomLevel > 1.0) {
+                        $canvas.css({ 'width': 'auto', 'max-width': 'none' });
+                    } else {
+                        $canvas.css({ 'width': '100%', 'max-width': '100%' });
+                    }
+                    $canvas.css('height', 'auto');
+
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: scaledViewport
+                    };
+
+                    page.render(renderContext).promise.then(function () {
+                        $loading.removeClass('d-flex').addClass('d-none');
+                        $canvas.removeClass('d-none').show();
+
+                        // Update info labels if this is a reference canvas
+                        if (canvasId === 'standardPdfCanvas') {
+                            refStandardPdfDoc = pdf;
+                            $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                        } else if (canvasId === 'similarPdfCanvas') {
+                            refSimilarPdfDoc = pdf;
+                            $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                        }
+                    });
+                }).catch(function (err) {
+                    console.error("Error rendering page:", pageNum, err);
+                    $loading.removeClass('d-flex').addClass('d-none');
+                });
+            }
+
+            function updateRefNavControls() {
+                // Standard
+                if (refStandardFiles && refStandardFiles.length > 0) {
+                    $('.standard-nav-controls').attr('style', 'display: flex !important;');
+                    if (refStandardFiles.length > 1) {
+                        $('.standard-nav-controls .file-nav').attr('style', 'display: flex !important;');
+                        $('#standardFileInfo').text((refStandardFileIndex + 1) + '/' + refStandardFiles.length);
+                    } else {
+                        $('.standard-nav-controls .file-nav').hide();
+                    }
+                } else {
+                    $('.standard-nav-controls').hide();
+                }
+
+                // Similar
+                if (refSimilarPdfDoc) {
+                    $('.similar-nav-controls').attr('style', 'display: flex !important;');
+                } else {
+                    $('.similar-nav-controls').hide();
+                }
+            }
+
+            // Reference View Navigation Events
+            $('#prevStandardPage').click(function () {
+                if (refStandardPageNum > 1) {
+                    refStandardPageNum--;
+                    renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                }
+            });
+
+            $('#nextStandardPage').click(function () {
+                if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
+                    refStandardPageNum++;
+                    renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                }
+            });
+
+            $('#prevStandardFile').click(function () {
+                if (refStandardFileIndex > 0) {
+                    refStandardFileIndex--;
+                    refStandardPageNum = 1;
+                    const itemId = $('#itemSelect').val();
+                    const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                        .replace('ID_PLACEHOLDER', itemId)
+                        .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
+                    window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+                    updateRefNavControls();
+                }
+            });
+
+            $('#nextStandardFile').click(function () {
+                if (refStandardFileIndex < refStandardFiles.length - 1) {
+                    refStandardFileIndex++;
+                    refStandardPageNum = 1;
+                    const itemId = $('#itemSelect').val();
+                    const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                        .replace('ID_PLACEHOLDER', itemId)
+                        .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
+                    window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+                    updateRefNavControls();
+                }
+            });
+
+            $('#prevSimilarPage').click(function () {
+                if (refSimilarPageNum > 1) {
+                    refSimilarPageNum--;
+                    renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                }
+            });
+
+            $('#nextSimilarPage').click(function () {
+                if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
+                    refSimilarPageNum++;
+                    renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                }
+            });
+
+            // PDF Zoom Controls Events
+            $('#zoomInStandard').click(function () {
+                standardZoomLevel += 0.25;
+                if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+            });
+            $('#zoomOutStandard').click(function () {
+                if (standardZoomLevel > 0.5) {
+                    standardZoomLevel -= 0.25;
+                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                }
+            });
+            $('#zoomResetStandard').click(function () {
+                standardZoomLevel = 1.0;
+                if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+            });
+
+            $('#zoomInSimilar').click(function () {
+                similarZoomLevel += 0.25;
+                if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+            });
+            $('#zoomOutSimilar').click(function () {
+                if (similarZoomLevel > 0.5) {
+                    similarZoomLevel -= 0.25;
+                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                }
+            });
+            $('#zoomResetSimilar').click(function () {
+                similarZoomLevel = 1.0;
+                if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+            });
+            setTimeout(function () {
+                if ($('#itemSelect').val()) {
+                    $('#itemSelect').trigger('change');
+                }
+            }, 500);
+
+            // Add CSS for invalid inputs
+            $('<style>' +
+                '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
+                '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
+                '</style>').appendTo('head');
+        });
+    </script>
 @endpush
