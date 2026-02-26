@@ -160,11 +160,6 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK (Pass
-                                            All)</label>
-                                    </div>
                                     <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
@@ -589,8 +584,6 @@
                         judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                             .css({ 'border-color': '#28a745', 'background-color': '#fff' });
 
-                        // Unlock OK (Pass) checkbox if valid
-                        $('#checkOK').prop('disabled', false);
 
                         // Auto-remove "Dimensi" defect if judgment is OK
                         autoRemoveDimensionDefect();
@@ -599,8 +592,6 @@
                         judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                             .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
 
-                        // Lock OK (Pass) checkbox if NG
-                        $('#checkOK').prop('checked', false).prop('disabled', true);
 
                         // Auto-add "Dimensi" defect if NG and no defects listed
                         autoAddDimensionDefect();
@@ -609,7 +600,6 @@
                     $('#aql_info').hide();
                     judgmentSelect.val('').removeClass('text-success text-danger');
                     judgmentBadge.addClass('d-none').text('-');
-                    $('#checkOK').prop('disabled', false);
                 }
 
                 // Show/Hide Next Proses dropdown based on judgment
@@ -646,16 +636,6 @@
                 }
             });
 
-            $('#checkOK').change(function () {
-                if ($(this).is(':checked')) {
-                    $('#totalNG').val(0).trigger('input');
-                    $('.defect-qty').val('');
-                    $('.defect-select').val('').trigger('change');
-                    $('#defectContainer').find('.defect-row').not(':first').remove();
-                    $('#addDefectBtn').show();
-                    $('#judgmentSelect').val('OK').trigger('change');
-                }
-            });
 
             // SAP Code Auto-Selection
             $('#sapCodeInput').on('input', function () {

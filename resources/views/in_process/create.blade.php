@@ -317,12 +317,6 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                            id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
-                                            (Pass)</label>
-                                    </div>
                                     <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
@@ -879,9 +873,6 @@
                         judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                             .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
 
-                        // Lock OK (Pass) checkbox if Dimension is NG
-                        $('#checkOK').prop('checked', false).prop('disabled', true);
-
                         // Auto-select Defect 'Dimensi'
                         autoAddDimensionDefect();
                     } else if (ng <= limits.acc) {
@@ -890,21 +881,16 @@
                         judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                             .css({ 'border-color': '#28a745', 'background-color': '#fff' });
 
-                        // Unlock OK (Pass) checkbox if valid
-                        $('#checkOK').prop('disabled', false);
-
                         // Auto-remove Defect 'Dimensi' if exists
                         autoRemoveDimensionDefect();
                     } else {
                         judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
                         judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                             .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
-                        $('#checkOK').prop('checked', false).prop('disabled', true);
                     }
                 } else {
                     judgmentSelect.val('').removeClass('text-success text-danger');
                     judgmentBadge.addClass('d-none').text('-');
-                    $('#checkOK').prop('disabled', false);
                 }
 
                 // Show/Hide Next Proses dropdown based on judgment
@@ -1236,11 +1222,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                            <input type="text"
-                                                                                                                class="form-control form-control-sm dimension-input"
-                                                                                                                style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                placeholder="P${j}">
-                                                                                                        </td>`;
+                                                                                                                    <input type="text"
+                                                                                                                        class="form-control form-control-sm dimension-input"
+                                                                                                                        style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                        placeholder="P${j}">
+                                                                                                                </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1347,695 +1333,671 @@
                 updateZoom();
             });
 
-            $('#checkOK').change(function () {
-                if ($(this).is(':checked')) {
-                    // Set judgment to OK
-                    $('select[name="judgment"]').val('OK').trigger('change');
-
-                    // Clear all defect quantities and types
-                    $('.defect-qty').val('');
-                    $('.defect-select').val('').trigger('change');
-
-                    // Remove extra defect rows except the first one
-                    $('#defectContainer').find('.defect-row').not(':first').remove();
-                    $('#addDefectBtn').show();
-
-                    // Clear any dimension validation errors
-                    $('.dimension-input').removeClass('is-invalid');
-
-                    // Recalculate NG (should result in 0)
-                    calculateTotalNG();
-
-                    // Trigger judgment update to ensure everything is synced
-                    updateJudgment();
-                }
-            });
-
             // Add Defect Button Logic
-            $('#addDefectBtn').click(function () {
-                var rowCount = $('.defect-row').length;
-                if (rowCount < 4) {
-                    var firstSelect = $('#defectSelect'); // The original one
-                    var newRow = $('<div class="input-group mb-2 defect-row">' +
-                        '<select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]">' +
-                        firstSelect.html() +
-                        '</select>' +
-                        '<input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
-                        '<div class="input-group-append">' +
-                        '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
-                        '</div>' +
-                        '</div>');
-                    $('#defectContainer').append(newRow);
-                }
-                if ($('.defect-row').length >= 4) {
-                    $(this).hide();
-                }
-            });
-
-            // Calculate Total NG from Defect Quantities
-            function calculateTotalNG() {
-                var total = 0;
-                $('.defect-qty').each(function () {
-                    var qty = parseInt($(this).val()) || 0;
-                    total += qty;
-                });
-                $('input[name="total_ng"]').val(total).trigger('input');
-            }
-
-            // Listener for defect qty changes
-            $(document).on('input', '.defect-qty', function () {
-                calculateTotalNG();
-            });
-
-            // Remove Defect Button Logic
-            $(document).on('click', '.remove-defect-btn', function () {
-                $(this).closest('.defect-row').remove();
-                calculateTotalNG();
-                if ($('.defect-row').length < 4) {
-                    $('#addDefectBtn').show();
-                }
-            });
-
-            // Toggle "Add Defect" button based on NG count >= 1
-            $('input[name="total_ng"]').on('input', function () {
-                var ng = parseInt($(this).val()) || 0;
-                if (ng >= 1) {
-                    if ($('.defect-row').length < 4) {
-                        $('#addDefectBtn').show();
-                    }
-                } else {
-                    $('#addDefectBtn').hide();
-                }
-            });
-
-            // --- Timer Logic (Cycle Time) ---
-            var timerInterval = null;
-            var totalSeconds = 0;
-            var timerRunning = false;
-
-            function updateTimerDisplay() {
-                var hours = Math.floor(totalSeconds / 3600);
-                var minutes = Math.floor((totalSeconds % 3600) / 60);
-                var seconds = totalSeconds % 60;
-
-                var text =
-                    (hours < 10 ? "0" + hours : hours) + ":" +
-                    (minutes < 10 ? "0" + minutes : minutes) + ":" +
-                    (seconds < 10 ? "0" + seconds : seconds);
-
-                $('#timerDisplay').text(text);
-                $('#cycleTimeInput').val(totalSeconds);
-            }
-
-            $('#startTimerBtn').click(function () {
-                if (!timerRunning) {
-                    timerRunning = true;
-                    $(this).removeClass('btn-success').addClass('btn-secondary').attr('disabled', true).html('<i class="fas fa-clock"></i> Running...');
-
-                    // === UNLOCK ALL INPUTS ===
-                    formInputs.prop('disabled', false);
-                    $('#checksheetForm').removeClass('inputs-locked');
-                    $('#saveBtn').prop('disabled', false);
-
-                    timerInterval = setInterval(function () {
-                        totalSeconds++;
-                        updateTimerDisplay();
-                    }, 1000);
-                }
-            });
-
-            // Handle form submission via AJAX
-            $('#checksheetForm').on('submit', function (e) {
-                e.preventDefault();
-
-                // Validate: If NG, next_proses must be selected
-                var judgment = $('#judgmentSelect').val();
-                var nextProses = $('#nextProses').val();
-
-                if (judgment === 'NG' && !nextProses) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Next Proses Wajib Dipilih',
-                        text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
-                        confirmButtonColor: '#3085d6'
+                    $('#addDefectBtn').click(function () {
+                        var rowCount = $('.defect-row').length;
+                        if (rowCount < 4) {
+                            var firstSelect = $('#defectSelect'); // The original one
+                            var newRow = $('<div class="input-group mb-2 defect-row">' +
+                                '<select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]">' +
+                                firstSelect.html() +
+                                '</select>' +
+                                '<input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                                '<div class="input-group-append">' +
+                                '<button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
+                                '</div>' +
+                                '</div>');
+                            $('#defectContainer').append(newRow);
+                        }
+                        if ($('.defect-row').length >= 4) {
+                            $(this).hide();
+                        }
                     });
 
-                    // Specific highlight
-                    var $nextProses = $('#nextProses');
-                    $nextProses.addClass('is-invalid').focus();
-                    setTimeout(function () {
-                        $nextProses.removeClass('is-invalid');
-                    }, 3000);
-
-                    return false;
-                }
-
-                // Validate Mandatory Dimensions
-                if (!checkMandatoryDimensions()) {
-                    return false;
-                }
-
-                // Validate Defect Qty if Dimension defect is selected
-                var dimensionDefectSelected = false;
-                var dimensionQtyEmpty = false;
-                $('.defect-select').each(function () {
-                    var val = $(this).val();
-                    var text = $(this).find('option:selected').text();
-                    if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
-                        dimensionDefectSelected = true;
-                        var qtyInput = $(this).closest('.defect-row').find('.defect-qty');
-                        if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                            dimensionQtyEmpty = true;
-                            qtyInput.addClass('is-invalid');
-                        } else {
-                            qtyInput.removeClass('is-invalid');
-                        }
-                    }
-                });
-
-                if (dimensionDefectSelected && dimensionQtyEmpty) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Qty Defect Dimensi Wajib Diisi',
-                        text: 'Karena ditemukan NG Dimensi, anda wajib mengisi Qty pada Defect List!',
-                        confirmButtonColor: '#3085d6'
-                    });
-                    return false;
-                }
-
-                if (timerRunning) {
-                    clearInterval(timerInterval);
-                    timerRunning = false;
-                    // Update final value
-                    $('#cycleTimeInput').val(totalSeconds);
-                }
-
-                // Show loading state
-                var saveBtn = $('#saveBtn');
-                var originalHtml = saveBtn.html();
-                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
-
-                var formData = new FormData(this);
-
-                $.ajax({
-                    url: $(this).attr('action'),
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        $('#global-loader').hide();
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: 'Data Berhasil Disimpan',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#6c757d',
-                                confirmButtonText: 'Lihat Data',
-                                cancelButtonText: 'Tutup',
-                                reverseButtons: false
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    window.location.href = response.index_url;
-                                } else {
-                                    // Reset Form & Re-lock
-                                    $('#checksheetForm')[0].reset();
-                                    resetState();
-                                }
-                            });
-                        }
-                    },
-                    error: function (xhr) {
-                        $('#global-loader').hide();
-                        var errorMsg = 'Gagal menyimpan data.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMsg = xhr.responseJSON.message;
-                        }
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: errorMsg
+                    // Calculate Total NG from Defect Quantities
+                    function calculateTotalNG() {
+                        var total = 0;
+                        $('.defect-qty').each(function () {
+                            var qty = parseInt($(this).val()) || 0;
+                            total += qty;
                         });
-                        saveBtn.prop('disabled', false).html(originalHtml);
+                        $('input[name="total_ng"]').val(total).trigger('input');
                     }
-                });
-            });
 
+                    // Listener for defect qty changes
+                    $(document).on('input', '.defect-qty', function () {
+                        calculateTotalNG();
+                    });
 
-
-            function resetState() {
-                clearInterval(timerInterval);
-                timerRunning = false;
-                totalSeconds = 0;
-                updateTimerDisplay();
-                $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
-
-                // RE-LOCK INPUTS
-                formInputs.prop('disabled', true);
-                $('#checksheetForm').addClass('inputs-locked');
-                $('#saveBtn').prop('disabled', true);
-                $('#addDefectBtn').hide();
-                $('.defect-row').not(':first').remove();
-
-                // Clear images/standard info
-                $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
-
-                // Reset PDF views
-                $('#standardPdfCanvas, #similarPdfCanvas').hide();
-                $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
-                $('#similarStatusText').text('');
-                $('#fullStandardBtn, #fullSimilarBtn').hide();
-                $('.standard-nav-controls, .similar-nav-controls').hide();
-
-                // Reset Zoom
-                standardZoomLevel = 1.0;
-                similarZoomLevel = 1.0;
-
-                // Reset Judgment
-                $('#judgmentBadge').addClass('d-none').text('-');
-                $('#judgmentSelect').removeClass('text-success text-danger');
-
-                // Reset PDF Reference State
-                refStandardPdfDoc = null;
-                refStandardPageNum = 1;
-                refStandardFileIndex = 0;
-                refStandardFiles = [];
-                refSimilarPdfDoc = null;
-                refSimilarPageNum = 1;
-
-                // Reset select2 if used (standard select used here)
-                $('#itemSelect').val('').trigger('change');
-            }
-
-            // Optional: Reset timer on form reset
-            $('button[type="reset"]').click(function () {
-                resetState();
-            });
-
-            // --- Centralized Dimension Validation Logic ---
-            // The dimension standards are now passed from the controller.
-            const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
-
-
-            function normalizePartNumber(pn) {
-                if (!pn) return '';
-                return pn.toString()
-                    .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
-                    .replace(/\s+/g, '') // Remove all whitespace
-                    .toUpperCase();
-            }
-
-            function validateDimensions() {
-                const selectedOption = $('#itemSelect').find('option:selected');
-                const rawPartNumber = selectedOption.data('part-number');
-                const itemPartNumber = normalizePartNumber(rawPartNumber);
-
-                // Get the dimension standards for the currently selected item.
-                const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-                $('input[name^="dimensions"]').each(function () {
-                    const name = $(this).attr('name');
-                    // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
-                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                    if (!match) return;
-
-                    const point = match[2]; // The point number (e.g., '1', '2', '3').
-                    // Look up the standard for the current point for the selected part.
-                    const standard = dimensionStandards ? dimensionStandards[point] : null;
-                    const valStr = $(this).val().trim();
-                    const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
-
-                    // Check if a standard exists for this point and the input is a valid number.
-                    if (standard && valStr !== '' && !isNaN(value)) {
-                        let isInvalid = false;
-                        const epsilon = 0.00001; // Avoid floating point precision issues
-
-                        if (standard.min !== null && value < (standard.min - epsilon)) {
-                            isInvalid = true;
+                    // Remove Defect Button Logic
+                    $(document).on('click', '.remove-defect-btn', function () {
+                        $(this).closest('.defect-row').remove();
+                        calculateTotalNG();
+                        if ($('.defect-row').length < 4) {
+                            $('#addDefectBtn').show();
                         }
-                        if (standard.max !== null && value > (standard.max + epsilon)) {
-                            isInvalid = true;
+                    });
+
+                    // Toggle "Add Defect" button based on NG count >= 1
+                    $('input[name="total_ng"]').on('input', function () {
+                        var ng = parseInt($(this).val()) || 0;
+                        if (ng >= 1) {
+                            if ($('.defect-row').length < 4) {
+                                $('#addDefectBtn').show();
+                            }
+                        } else {
+                            $('#addDefectBtn').hide();
+                        }
+                    });
+
+                    // --- Timer Logic (Cycle Time) ---
+                    var timerInterval = null;
+                    var totalSeconds = 0;
+                    var timerRunning = false;
+
+                    function updateTimerDisplay() {
+                        var hours = Math.floor(totalSeconds / 3600);
+                        var minutes = Math.floor((totalSeconds % 3600) / 60);
+                        var seconds = totalSeconds % 60;
+
+                        var text =
+                            (hours < 10 ? "0" + hours : hours) + ":" +
+                            (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                            (seconds < 10 ? "0" + seconds : seconds);
+
+                        $('#timerDisplay').text(text);
+                        $('#cycleTimeInput').val(totalSeconds);
+                    }
+
+                    $('#startTimerBtn').click(function () {
+                        if (!timerRunning) {
+                            timerRunning = true;
+                            $(this).removeClass('btn-success').addClass('btn-secondary').attr('disabled', true).html('<i class="fas fa-clock"></i> Running...');
+
+                            // === UNLOCK ALL INPUTS ===
+                            formInputs.prop('disabled', false);
+                            $('#checksheetForm').removeClass('inputs-locked');
+                            $('#saveBtn').prop('disabled', false);
+
+                            timerInterval = setInterval(function () {
+                                totalSeconds++;
+                                updateTimerDisplay();
+                            }, 1000);
+                        }
+                    });
+
+                    // Handle form submission via AJAX
+                    $('#checksheetForm').on('submit', function (e) {
+                        e.preventDefault();
+
+                        // Validate: If NG, next_proses must be selected
+                        var judgment = $('#judgmentSelect').val();
+                        var nextProses = $('#nextProses').val();
+
+                        if (judgment === 'NG' && !nextProses) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Next Proses Wajib Dipilih',
+                                text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                                confirmButtonColor: '#3085d6'
+                            });
+
+                            // Specific highlight
+                            var $nextProses = $('#nextProses');
+                            $nextProses.addClass('is-invalid').focus();
+                            setTimeout(function () {
+                                $nextProses.removeClass('is-invalid');
+                            }, 3000);
+
+                            return false;
                         }
 
-                        // Fallback to Size +/- Tolerance if no Min/Max is set at all
-                        if (standard.min === null && standard.max === null) {
-                            if (standard.size !== null && standard.tolerance !== null) {
-                                const lowerBound = standard.size - standard.tolerance;
-                                const upperBound = standard.size + standard.tolerance;
-                                if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
-                                    isInvalid = true;
+                        // Validate Mandatory Dimensions
+                        if (!checkMandatoryDimensions()) {
+                            return false;
+                        }
+
+                        // Validate Defect Qty if Dimension defect is selected
+                        var dimensionDefectSelected = false;
+                        var dimensionQtyEmpty = false;
+                        $('.defect-select').each(function () {
+                            var val = $(this).val();
+                            var text = $(this).find('option:selected').text();
+                            if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
+                                dimensionDefectSelected = true;
+                                var qtyInput = $(this).closest('.defect-row').find('.defect-qty');
+                                if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                                    dimensionQtyEmpty = true;
+                                    qtyInput.addClass('is-invalid');
+                                } else {
+                                    qtyInput.removeClass('is-invalid');
                                 }
                             }
+                        });
+
+                        if (dimensionDefectSelected && dimensionQtyEmpty) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Qty Defect Dimensi Wajib Diisi',
+                                text: 'Karena ditemukan NG Dimensi, anda wajib mengisi Qty pada Defect List!',
+                                confirmButtonColor: '#3085d6'
+                            });
+                            return false;
                         }
 
-                        if (isInvalid) {
-                            $(this).addClass('is-invalid');
+                        if (timerRunning) {
+                            clearInterval(timerInterval);
+                            timerRunning = false;
+                            // Update final value
+                            $('#cycleTimeInput').val(totalSeconds);
+                        }
+
+                        // Show loading state
+                        var saveBtn = $('#saveBtn');
+                        var originalHtml = saveBtn.html();
+                        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                        var formData = new FormData(this);
+
+                        $.ajax({
+                            url: $(this).attr('action'),
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (response) {
+                                $('#global-loader').hide();
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: 'Data Berhasil Disimpan',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#3085d6',
+                                        cancelButtonColor: '#6c757d',
+                                        confirmButtonText: 'Lihat Data',
+                                        cancelButtonText: 'Tutup',
+                                        reverseButtons: false
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = response.index_url;
+                                        } else {
+                                            // Reset Form & Re-lock
+                                            $('#checksheetForm')[0].reset();
+                                            resetState();
+                                        }
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                $('#global-loader').hide();
+                                var errorMsg = 'Gagal menyimpan data.';
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMsg = xhr.responseJSON.message;
+                                }
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: errorMsg
+                                });
+                                saveBtn.prop('disabled', false).html(originalHtml);
+                            }
+                        });
+                    });
+
+
+
+                    function resetState() {
+                        clearInterval(timerInterval);
+                        timerRunning = false;
+                        totalSeconds = 0;
+                        updateTimerDisplay();
+                        $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+
+                        // RE-LOCK INPUTS
+                        formInputs.prop('disabled', true);
+                        $('#checksheetForm').addClass('inputs-locked');
+                        $('#saveBtn').prop('disabled', true);
+                        $('#addDefectBtn').hide();
+                        $('.defect-row').not(':first').remove();
+
+                        // Clear images/standard info
+                        $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+
+                        // Reset PDF views
+                        $('#standardPdfCanvas, #similarPdfCanvas').hide();
+                        $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
+                        $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
+                        $('#similarStatusText').text('');
+                        $('#fullStandardBtn, #fullSimilarBtn').hide();
+                        $('.standard-nav-controls, .similar-nav-controls').hide();
+
+                        // Reset Zoom
+                        standardZoomLevel = 1.0;
+                        similarZoomLevel = 1.0;
+
+                        // Reset Judgment
+                        $('#judgmentBadge').addClass('d-none').text('-');
+                        $('#judgmentSelect').removeClass('text-success text-danger');
+
+                        // Reset PDF Reference State
+                        refStandardPdfDoc = null;
+                        refStandardPageNum = 1;
+                        refStandardFileIndex = 0;
+                        refStandardFiles = [];
+                        refSimilarPdfDoc = null;
+                        refSimilarPageNum = 1;
+
+                        // Reset select2 if used (standard select used here)
+                        $('#itemSelect').val('').trigger('change');
+                    }
+
+                    // Optional: Reset timer on form reset
+                    $('button[type="reset"]').click(function () {
+                        resetState();
+                    });
+
+                    // --- Centralized Dimension Validation Logic ---
+                    // The dimension standards are now passed from the controller.
+                    const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
+
+
+                    function normalizePartNumber(pn) {
+                        if (!pn) return '';
+                        return pn.toString()
+                            .replace(/[\u2012\u2013\u2014\u2212]/g, '-') // EN, EM, FIGURE DASH, MINUS
+                            .replace(/\s+/g, '') // Remove all whitespace
+                            .toUpperCase();
+                    }
+
+                    function validateDimensions() {
+                        const selectedOption = $('#itemSelect').find('option:selected');
+                        const rawPartNumber = selectedOption.data('part-number');
+                        const itemPartNumber = normalizePartNumber(rawPartNumber);
+
+                        // Get the dimension standards for the currently selected item.
+                        const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+                        $('input[name^="dimensions"]').each(function () {
+                            const name = $(this).attr('name');
+                            // Extracts the point number from the input name (e.g., dimensions[1][2] -> '2').
+                            const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                            if (!match) return;
+
+                            const point = match[2]; // The point number (e.g., '1', '2', '3').
+                            // Look up the standard for the current point for the selected part.
+                            const standard = dimensionStandards ? dimensionStandards[point] : null;
+                            const valStr = $(this).val().trim();
+                            const value = parseFloat(valStr.replace(',', '.')); // Handle comma decimals
+
+                            // Check if a standard exists for this point and the input is a valid number.
+                            if (standard && valStr !== '' && !isNaN(value)) {
+                                let isInvalid = false;
+                                const epsilon = 0.00001; // Avoid floating point precision issues
+
+                                if (standard.min !== null && value < (standard.min - epsilon)) {
+                                    isInvalid = true;
+                                }
+                                if (standard.max !== null && value > (standard.max + epsilon)) {
+                                    isInvalid = true;
+                                }
+
+                                // Fallback to Size +/- Tolerance if no Min/Max is set at all
+                                if (standard.min === null && standard.max === null) {
+                                    if (standard.size !== null && standard.tolerance !== null) {
+                                        const lowerBound = standard.size - standard.tolerance;
+                                        const upperBound = standard.size + standard.tolerance;
+                                        if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
+                                            isInvalid = true;
+                                        }
+                                    }
+                                }
+
+                                if (isInvalid) {
+                                    $(this).addClass('is-invalid');
+                                } else {
+                                    $(this).removeClass('is-invalid');
+                                }
+                            } else {
+                                $(this).removeClass('is-invalid');
+                            }
+                        });
+
+                        // Trigger judgment update to reflect dimension status
+                        updateJudgment();
+                    }
+
+                    function checkMandatoryDimensions() {
+                        const selectedOption = $('#itemSelect').find('option:selected');
+                        const rawPartNumber = selectedOption.data('part-number');
+                        const itemPartNumber = normalizePartNumber(rawPartNumber);
+                        const dimensionStandards = partDimensionStandards[itemPartNumber];
+
+                        if (!dimensionStandards) return true; // No standards, no mandatory checks
+                        if (currentPlant === 'jakarta') return true; // Jakarta allows manual/partial input
+
+                        let allFilled = true;
+                        let firstEmptyInput = null;
+
+                        // Loop through all visible dimension inputs
+                        $('.dimension-input').each(function () {
+                            const name = $(this).attr('name');
+                            const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+                            if (!match) return;
+
+                            const point = match[2];
+                            // Only check if a standard exists for this point
+                            if (dimensionStandards[point]) {
+                                const val = $(this).val().trim();
+                                if (val === '') {
+                                    allFilled = false;
+                                    $(this).addClass('is-invalid');
+                                    if (!firstEmptyInput) firstEmptyInput = $(this);
+                                }
+                            }
+                        });
+
+                        if (!allFilled) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Data Dimensi Belum Lengkap',
+                                text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
+                                confirmButtonColor: '#3085d6'
+                            });
+                            if (firstEmptyInput) {
+                                $('html, body').animate({
+                                    scrollTop: firstEmptyInput.offset().top - 200
+                                }, 500);
+                                firstEmptyInput.focus();
+                            }
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    // --- Dynamic Dimension Expansion Logistic ---
+                    let currentCavities = 2;
+                    let currentPoints = 5;
+                    const maxCavities = 30;
+                    const maxPoints = 30;
+
+                    $('#addCavityBtn').click(function () {
+                        if (currentCavities < maxCavities) {
+                            currentCavities++;
+                            let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
+                                                                                                                                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+
+                            for (let j = 1; j <= currentPoints; j++) {
+                                newRow += `<td class="point-cell">
+                                                                                                                                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                    style="min-width: 60px;"
+                                                                                                                                                                                                                    name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                    placeholder="P${j}">
+                                                                                                                                                                                                            </td>`;
+                            }
+                            newRow += `</tr>`;
+                            $('#dimensionBody').append(newRow);
                         } else {
-                            $(this).removeClass('is-invalid');
+                            alert('Maximum 30 cavities reached');
                         }
-                    } else {
-                        $(this).removeClass('is-invalid');
-                    }
-                });
+                    });
 
-                // Trigger judgment update to reflect dimension status
-                updateJudgment();
-            }
-
-            function checkMandatoryDimensions() {
-                const selectedOption = $('#itemSelect').find('option:selected');
-                const rawPartNumber = selectedOption.data('part-number');
-                const itemPartNumber = normalizePartNumber(rawPartNumber);
-                const dimensionStandards = partDimensionStandards[itemPartNumber];
-
-                if (!dimensionStandards) return true; // No standards, no mandatory checks
-                if (currentPlant === 'jakarta') return true; // Jakarta allows manual/partial input
-
-                let allFilled = true;
-                let firstEmptyInput = null;
-
-                // Loop through all visible dimension inputs
-                $('.dimension-input').each(function () {
-                    const name = $(this).attr('name');
-                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                    if (!match) return;
-
-                    const point = match[2];
-                    // Only check if a standard exists for this point
-                    if (dimensionStandards[point]) {
-                        const val = $(this).val().trim();
-                        if (val === '') {
-                            allFilled = false;
-                            $(this).addClass('is-invalid');
-                            if (!firstEmptyInput) firstEmptyInput = $(this);
+                    $('#deleteCavityBtn').click(function () {
+                        if (currentCavities > 1) {
+                            $('#dimensionBody tr:last-child').remove();
+                            currentCavities--;
+                            updateJudgment();
                         }
-                    }
-                });
-
-                if (!allFilled) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Data Dimensi Belum Lengkap',
-                        text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
-                        confirmButtonColor: '#3085d6'
                     });
-                    if (firstEmptyInput) {
-                        $('html, body').animate({
-                            scrollTop: firstEmptyInput.offset().top - 200
-                        }, 500);
-                        firstEmptyInput.focus();
-                    }
-                    return false;
-                }
-                return true;
-            }
 
-            // --- Dynamic Dimension Expansion Logistic ---
-            let currentCavities = 2;
-            let currentPoints = 5;
-            const maxCavities = 30;
-            const maxPoints = 30;
+                    $('#addPointBtn').click(function () {
+                        if (currentPoints < maxPoints) {
+                            currentPoints++;
+                            // Add header
+                            $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
 
-            $('#addCavityBtn').click(function () {
-                if (currentCavities < maxCavities) {
-                    currentCavities++;
-                    let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
-
-                    for (let j = 1; j <= currentPoints; j++) {
-                        newRow += `<td class="point-cell">
-                                                                                                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                            style="min-width: 60px;"
-                                                                                                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                            placeholder="P${j}">
-                                                                                                                                                                                                    </td>`;
-                    }
-                    newRow += `</tr>`;
-                    $('#dimensionBody').append(newRow);
-                } else {
-                    alert('Maximum 30 cavities reached');
-                }
-            });
-
-            $('#deleteCavityBtn').click(function () {
-                if (currentCavities > 1) {
-                    $('#dimensionBody tr:last-child').remove();
-                    currentCavities--;
-                    updateJudgment();
-                }
-            });
-
-            $('#addPointBtn').click(function () {
-                if (currentPoints < maxPoints) {
-                    currentPoints++;
-                    // Add header
-                    $('#dimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
-
-                    // Add cells to each row
-                    $('.cavity-row').each(function () {
-                        let cavityNum = $(this).data('cavity');
-                        $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                            style="min-width: 60px;"
-                                                                                                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                            placeholder="P${currentPoints}">
-                                                                                                                                                                                                    </td>`);
+                            // Add cells to each row
+                            $('.cavity-row').each(function () {
+                                let cavityNum = $(this).data('cavity');
+                                $(this).append(`<td class="point-cell">
+                                                                                                                                                                                                                <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                    style="min-width: 60px;"
+                                                                                                                                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                    placeholder="P${currentPoints}">
+                                                                                                                                                                                                            </td>`);
+                            });
+                        } else {
+                            alert('Maximum 30 points reached');
+                        }
                     });
-                } else {
-                    alert('Maximum 30 points reached');
-                }
-            });
 
-            $('#deletePointBtn').click(function () {
-                if (currentPoints > 1) {
-                    // Remove last header
-                    $('#dimensionHeadRow th.point-header:last-child').remove();
-                    // Remove last cell from each row
-                    $('.cavity-row').each(function () {
-                        $(this).find('td.point-cell:last-child').remove();
+                    $('#deletePointBtn').click(function () {
+                        if (currentPoints > 1) {
+                            // Remove last header
+                            $('#dimensionHeadRow th.point-header:last-child').remove();
+                            // Remove last cell from each row
+                            $('.cavity-row').each(function () {
+                                $(this).find('td.point-cell:last-child').remove();
+                            });
+                            currentPoints--;
+                            updateJudgment();
+                        }
                     });
-                    currentPoints--;
-                    updateJudgment();
-                }
-            });
 
-            $(document).on('input', '.dimension-input', validateDimensions);
+                    $(document).on('input', '.dimension-input', validateDimensions);
 
-            // --- PDF Cache & Render Logic (Global/Robust) ---
-            const pdfCache = {};
+                    // --- PDF Cache & Render Logic (Global/Robust) ---
+                    const pdfCache = {};
 
-            // State for Reference Views
-            let refStandardPdfDoc = null;
-            let refStandardPageNum = 1;
-            let refStandardFileIndex = 0;
-            let refStandardFiles = [];
+                    // State for Reference Views
+                    let refStandardPdfDoc = null;
+                    let refStandardPageNum = 1;
+                    let refStandardFileIndex = 0;
+                    let refStandardFiles = [];
 
-            let refSimilarPdfDoc = null;
-            let refSimilarPageNum = 1;
+                    let refSimilarPdfDoc = null;
+                    let refSimilarPageNum = 1;
 
-            let standardZoomLevel = 1.0;
-            let similarZoomLevel = 1.0;
+                    let standardZoomLevel = 1.0;
+                    let similarZoomLevel = 1.0;
 
-            // Ensure function is available globally or within this closure safely
-            window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
-                const canvas = document.getElementById(canvasId);
-                const ctx = canvas.getContext('2d');
-                const $placeholder = $('#' + placeholderId);
-                const $loading = $('#' + loadingId);
-                const $canvas = $(canvas);
+                    // Ensure function is available globally or within this closure safely
+                    window.renderPdfToCanvas = function (url, canvasId, placeholderId, loadingId, pageNum = 1) {
+                        const canvas = document.getElementById(canvasId);
+                        const ctx = canvas.getContext('2d');
+                        const $placeholder = $('#' + placeholderId);
+                        const $loading = $('#' + loadingId);
+                        const $canvas = $(canvas);
 
-                // Reset UI: Show Loading, Hide others
-                $placeholder.removeClass('d-flex').addClass('d-none');
-                $canvas.addClass('d-none').hide();
-                $loading.removeClass('d-none').addClass('d-flex');
+                        // Reset UI: Show Loading, Hide others
+                        $placeholder.removeClass('d-flex').addClass('d-none');
+                        $canvas.addClass('d-none').hide();
+                        $loading.removeClass('d-none').addClass('d-flex');
 
-                console.log("Starting render for:", url, "Page:", pageNum);
+                        console.log("Starting render for:", url, "Page:", pageNum);
 
-                // Check Cache first
-                if (pdfCache[url]) {
-                    renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                    return;
-                }
+                        // Check Cache first
+                        if (pdfCache[url]) {
+                            renderPageOnCanvas(pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                            return;
+                        }
 
-                pdfjsLib.getDocument(url).promise.then(function (pdf) {
-                    pdfCache[url] = pdf; // Store in cache
-                    renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
-                }).catch(function (error) {
-                    console.error('Error rendering preview PDF:', error);
-                    $loading.removeClass('d-flex').addClass('d-none');
-                    $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF: ' + (error.message || 'Unknown error'));
-                });
-            };
-
-            function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
-                pdf.getPage(pageNum).then(function (page) {
-                    const containerWidth = $(canvas).parent().width() || 500;
-                    // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
-                    const availableWidth = containerWidth - 40;
-                    const viewport = page.getViewport({ scale: 1.0 });
-
-                    // Determine which zoom level to use
-                    let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
-
-                    const scale = (availableWidth / viewport.width) * zoomLevel;
-                    const scaledViewport = page.getViewport({ scale: scale });
-
-                    canvas.height = scaledViewport.height;
-                    canvas.width = scaledViewport.width;
-
-                    // Apply fit styling
-                    if (zoomLevel > 1.0) {
-                        $canvas.css({ 'width': 'auto', 'max-width': 'none' });
-                    } else {
-                        $canvas.css({ 'width': '100%', 'max-width': '100%' });
-                    }
-                    $canvas.css('height', 'auto');
-
-                    const renderContext = {
-                        canvasContext: ctx,
-                        viewport: scaledViewport
+                        pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                            pdfCache[url] = pdf; // Store in cache
+                            renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+                        }).catch(function (error) {
+                            console.error('Error rendering preview PDF:', error);
+                            $loading.removeClass('d-flex').addClass('d-none');
+                            $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF: ' + (error.message || 'Unknown error'));
+                        });
                     };
 
-                    page.render(renderContext).promise.then(function () {
-                        $loading.removeClass('d-flex').addClass('d-none');
-                        $canvas.removeClass('d-none').show();
+                    function renderPageOnCanvas(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+                        pdf.getPage(pageNum).then(function (page) {
+                            const containerWidth = $(canvas).parent().width() || 500;
+                            // Subtract more padding (40px) to ensure no scrollbar and fit comfortably
+                            const availableWidth = containerWidth - 40;
+                            const viewport = page.getViewport({ scale: 1.0 });
 
-                        // Update info labels if this is a reference canvas
-                        if (canvasId === 'standardPdfCanvas') {
-                            refStandardPdfDoc = pdf;
-                            $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
-                        } else if (canvasId === 'similarPdfCanvas') {
-                            refSimilarPdfDoc = pdf;
-                            $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                            // Determine which zoom level to use
+                            let zoomLevel = (canvasId === 'standardPdfCanvas') ? standardZoomLevel : similarZoomLevel;
+
+                            const scale = (availableWidth / viewport.width) * zoomLevel;
+                            const scaledViewport = page.getViewport({ scale: scale });
+
+                            canvas.height = scaledViewport.height;
+                            canvas.width = scaledViewport.width;
+
+                            // Apply fit styling
+                            if (zoomLevel > 1.0) {
+                                $canvas.css({ 'width': 'auto', 'max-width': 'none' });
+                            } else {
+                                $canvas.css({ 'width': '100%', 'max-width': '100%' });
+                            }
+                            $canvas.css('height', 'auto');
+
+                            const renderContext = {
+                                canvasContext: ctx,
+                                viewport: scaledViewport
+                            };
+
+                            page.render(renderContext).promise.then(function () {
+                                $loading.removeClass('d-flex').addClass('d-none');
+                                $canvas.removeClass('d-none').show();
+
+                                // Update info labels if this is a reference canvas
+                                if (canvasId === 'standardPdfCanvas') {
+                                    refStandardPdfDoc = pdf;
+                                    $('#standardPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                                } else if (canvasId === 'similarPdfCanvas') {
+                                    refSimilarPdfDoc = pdf;
+                                    $('#similarPageInfo').text('P ' + pageNum + '/' + pdf.numPages);
+                                }
+                            });
+                        }).catch(function (err) {
+                            console.error("Error rendering page:", pageNum, err);
+                            $loading.removeClass('d-flex').addClass('d-none');
+                        });
+                    }
+
+                    function updateRefNavControls() {
+                        // Standard
+                        if (refStandardFiles && refStandardFiles.length > 0) {
+                            $('.standard-nav-controls').attr('style', 'display: flex !important;');
+                            if (refStandardFiles.length > 1) {
+                                $('.standard-nav-controls .file-nav').attr('style', 'display: flex !important;');
+                                $('#standardFileInfo').text((refStandardFileIndex + 1) + '/' + refStandardFiles.length);
+                            } else {
+                                $('.standard-nav-controls .file-nav').hide();
+                            }
+                        } else {
+                            $('.standard-nav-controls').hide();
+                        }
+
+                        // Similar
+                        if (refSimilarPdfDoc) {
+                            $('.similar-nav-controls').attr('style', 'display: flex !important;');
+                        } else {
+                            $('.similar-nav-controls').hide();
+                        }
+                    }
+
+                    // Reference View Navigation Events
+                    $('#prevStandardPage').click(function () {
+                        if (refStandardPageNum > 1) {
+                            refStandardPageNum--;
+                            renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
                         }
                     });
-                }).catch(function (err) {
-                    console.error("Error rendering page:", pageNum, err);
-                    $loading.removeClass('d-flex').addClass('d-none');
+
+                    $('#nextStandardPage').click(function () {
+                        if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
+                            refStandardPageNum++;
+                            renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                        }
+                    });
+
+                    $('#prevStandardFile').click(function () {
+                        if (refStandardFileIndex > 0) {
+                            refStandardFileIndex--;
+                            refStandardPageNum = 1;
+                            const itemId = $('#itemSelect').val();
+                            const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                                .replace('ID_PLACEHOLDER', itemId)
+                                .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
+                            window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+                            updateRefNavControls();
+                        }
+                    });
+
+                    $('#nextStandardFile').click(function () {
+                        if (refStandardFileIndex < refStandardFiles.length - 1) {
+                            refStandardFileIndex++;
+                            refStandardPageNum = 1;
+                            const itemId = $('#itemSelect').val();
+                            const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                                .replace('ID_PLACEHOLDER', itemId)
+                                .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
+                            window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+                            updateRefNavControls();
+                        }
+                    });
+
+                    $('#prevSimilarPage').click(function () {
+                        if (refSimilarPageNum > 1) {
+                            refSimilarPageNum--;
+                            renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                        }
+                    });
+
+                    $('#nextSimilarPage').click(function () {
+                        if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
+                            refSimilarPageNum++;
+                            renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                        }
+                    });
+
+                    // PDF Zoom Controls Events
+                    $('#zoomInStandard').click(function () {
+                        standardZoomLevel += 0.25;
+                        if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                    });
+                    $('#zoomOutStandard').click(function () {
+                        if (standardZoomLevel > 0.5) {
+                            standardZoomLevel -= 0.25;
+                            if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                        }
+                    });
+                    $('#zoomResetStandard').click(function () {
+                        standardZoomLevel = 1.0;
+                        if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
+                    });
+
+                    $('#zoomInSimilar').click(function () {
+                        similarZoomLevel += 0.25;
+                        if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                    });
+                    $('#zoomOutSimilar').click(function () {
+                        if (similarZoomLevel > 0.5) {
+                            similarZoomLevel -= 0.25;
+                            if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                        }
+                    });
+                    $('#zoomResetSimilar').click(function () {
+                        similarZoomLevel = 1.0;
+                        if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
+                    });
+                    setTimeout(function () {
+                        if ($('#itemSelect').val()) {
+                            $('#itemSelect').trigger('change');
+                        }
+                    }, 500);
+
+                    // Add CSS for invalid inputs
+                    $('<style>' +
+                        '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
+                        '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
+                        '</style>').appendTo('head');
                 });
-            }
-
-            function updateRefNavControls() {
-                // Standard
-                if (refStandardFiles && refStandardFiles.length > 0) {
-                    $('.standard-nav-controls').attr('style', 'display: flex !important;');
-                    if (refStandardFiles.length > 1) {
-                        $('.standard-nav-controls .file-nav').attr('style', 'display: flex !important;');
-                        $('#standardFileInfo').text((refStandardFileIndex + 1) + '/' + refStandardFiles.length);
-                    } else {
-                        $('.standard-nav-controls .file-nav').hide();
-                    }
-                } else {
-                    $('.standard-nav-controls').hide();
-                }
-
-                // Similar
-                if (refSimilarPdfDoc) {
-                    $('.similar-nav-controls').attr('style', 'display: flex !important;');
-                } else {
-                    $('.similar-nav-controls').hide();
-                }
-            }
-
-            // Reference View Navigation Events
-            $('#prevStandardPage').click(function () {
-                if (refStandardPageNum > 1) {
-                    refStandardPageNum--;
-                    renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                }
-            });
-
-            $('#nextStandardPage').click(function () {
-                if (refStandardPdfDoc && refStandardPageNum < refStandardPdfDoc.numPages) {
-                    refStandardPageNum++;
-                    renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                }
-            });
-
-            $('#prevStandardFile').click(function () {
-                if (refStandardFileIndex > 0) {
-                    refStandardFileIndex--;
-                    refStandardPageNum = 1;
-                    const itemId = $('#itemSelect').val();
-                    const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
-                        .replace('ID_PLACEHOLDER', itemId)
-                        .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
-                    window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
-                    updateRefNavControls();
-                }
-            });
-
-            $('#nextStandardFile').click(function () {
-                if (refStandardFileIndex < refStandardFiles.length - 1) {
-                    refStandardFileIndex++;
-                    refStandardPageNum = 1;
-                    const itemId = $('#itemSelect').val();
-                    const url = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
-                        .replace('ID_PLACEHOLDER', itemId)
-                        .replace('INDEX_PLACEHOLDER', refStandardFileIndex);
-                    window.renderPdfToCanvas(url, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
-                    updateRefNavControls();
-                }
-            });
-
-            $('#prevSimilarPage').click(function () {
-                if (refSimilarPageNum > 1) {
-                    refSimilarPageNum--;
-                    renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                }
-            });
-
-            $('#nextSimilarPage').click(function () {
-                if (refSimilarPdfDoc && refSimilarPageNum < refSimilarPdfDoc.numPages) {
-                    refSimilarPageNum++;
-                    renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                }
-            });
-
-            // PDF Zoom Controls Events
-            $('#zoomInStandard').click(function () {
-                standardZoomLevel += 0.25;
-                if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-            });
-            $('#zoomOutStandard').click(function () {
-                if (standardZoomLevel > 0.5) {
-                    standardZoomLevel -= 0.25;
-                    if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-                }
-            });
-            $('#zoomResetStandard').click(function () {
-                standardZoomLevel = 1.0;
-                if (refStandardPdfDoc) renderPageOnCanvas(refStandardPdfDoc, document.getElementById('standardPdfCanvas'), document.getElementById('standardPdfCanvas').getContext('2d'), $('#standardPdfLoading'), $('#standardPdfCanvas'), refStandardPageNum, 'standardPdfCanvas');
-            });
-
-            $('#zoomInSimilar').click(function () {
-                similarZoomLevel += 0.25;
-                if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-            });
-            $('#zoomOutSimilar').click(function () {
-                if (similarZoomLevel > 0.5) {
-                    similarZoomLevel -= 0.25;
-                    if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-                }
-            });
-            $('#zoomResetSimilar').click(function () {
-                similarZoomLevel = 1.0;
-                if (refSimilarPdfDoc) renderPageOnCanvas(refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), document.getElementById('similarPdfCanvas').getContext('2d'), $('#similarPdfLoading'), $('#similarPdfCanvas'), refSimilarPageNum, 'similarPdfCanvas');
-            });
-            setTimeout(function () {
-                if ($('#itemSelect').val()) {
-                    $('#itemSelect').trigger('change');
-                }
-            }, 500);
-
-            // Add CSS for invalid inputs
-            $('<style>' +
-                '.is-invalid { border-color: #dc3545 !important; background-color: #f8d7da !important; }' +
-                '.btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }' +
-                '</style>').appendTo('head');
-        });
-    </script>
+            </script>
 @endpush
