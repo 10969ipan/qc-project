@@ -596,9 +596,9 @@
             $('#judgmentSelect').change(function () {
                 let ngCount = parseInt($('#totalNG').val()) || 0;
                 if ($(this).val() === 'NG' || ngCount > 0) {
-                    $('#nextProsesContainer').slideDown();
+                    $('#nextProsesContainer').show();
                 } else {
-                    $('#nextProsesContainer').slideUp();
+                    $('#nextProsesContainer').hide();
                 }
             });
 

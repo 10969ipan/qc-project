@@ -388,10 +388,9 @@
             const container = $('#nextProsesContainer');
 
             if (judgment === 'NG' || ngCount > 0) {
-                container.slideDown();
+                container.show();
             } else {
-                container.slideUp();
-                // Removed reset to prevent accidental clearing during auto-calculations
+                container.hide();
             }
         }
 

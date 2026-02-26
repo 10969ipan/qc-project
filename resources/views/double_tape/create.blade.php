@@ -614,30 +614,32 @@
             $('#judgmentSelect').change(function () {
                 var val = $(this).val();
                 var judgmentBadge = $('#judgmentBadge');
+                var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+
                 if (val === 'OK') {
                     $(this).removeClass('text-danger').addClass('text-success');
                     judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                         .css({ 'border-color': '#28a745', 'background-color': '#fff' });
-                    $('#nextProsesContainer').slideUp();
 
                     // Auto-remove "Dimensi" defect if judgment is OK
                     autoRemoveDimensionDefect();
                 } else if (val === 'NG') {
-                    var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
                     $(this).removeClass('text-success').addClass('text-danger');
                     judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                         .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
-
-                    if (val === 'NG' || ngCount > 0) {
-                        $('#nextProsesContainer').slideDown();
-                    }
 
                     // Auto-add "Dimensi" defect when manually switching to NG
                     autoAddDimensionDefect();
                 } else {
                     $(this).removeClass('text-success text-danger');
                     judgmentBadge.addClass('d-none').text('-');
-                    $('#nextProsesContainer').slideUp();
+                }
+
+                // Unified visibility logic
+                if (val === 'NG' || ngCount > 0) {
+                    $('#nextProsesContainer').show();
+                } else {
+                    $('#nextProsesContainer').hide();
                 }
             });
 

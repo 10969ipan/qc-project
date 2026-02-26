@@ -730,10 +730,9 @@
                 var judgment = $('#judgmentSelect').val();
                 var ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
                 if (judgment === 'NG' || ngCount > 0) {
-                    $('#nextProsesContainer').slideDown();
+                    $('#nextProsesContainer').show();
                 } else {
-                    $('#nextProsesContainer').slideUp();
-                    $('#nextProses').val(''); // Reset selection
+                    $('#nextProsesContainer').hide();
                 }
             }
 
