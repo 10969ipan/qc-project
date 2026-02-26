@@ -485,7 +485,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">DIMENSI PART</h6>
                         <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
                             <div class="d-flex align-items-center page-nav">
                                 <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"
@@ -509,7 +509,7 @@
                         <div id="similarPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
                             <i class="fas fa-file-alt fa-3x mb-3"></i>
-                            <p class="mb-0">Pilih Item untuk menampilkan Similar Part</p>
+                            <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
                             <p class="small mt-2" id="similarStatusText"></p>
                         </div>
                         <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
@@ -711,7 +711,7 @@
                 document.getElementById('pageInfo').textContent = 'Loading...';
 
                 if (index === 'similar') {
-                    document.getElementById('pdfInfo').textContent = 'Similar Part PDF';
+                    document.getElementById('pdfInfo').textContent = 'Dimensi Part PDF';
                     $('#prevPdf, #nextPdf').hide();
                 } else {
                     document.getElementById('pdfInfo').textContent = `File ${index + 1} of ${totalPdfFiles}`;
@@ -1019,7 +1019,7 @@
                 } else {
                     $('#similarPdfCanvas').addClass('d-none').hide();
                     $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex');
-                    $('#similarStatusText').text('Referral Similar Part tidak tersedia untuk item ini');
+                    $('#similarStatusText').text('Referral Dimensi Part tidak tersedia untuk item ini');
                     $('.similar-nav-controls').hide();
                 }
 
@@ -1155,11 +1155,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                    <input type="text"
-                                                                                                        class="form-control form-control-sm dimension-input"
-                                                                                                        style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                        placeholder="P${j}">
-                                                                                                </td>`;
+                                                                                                        <input type="text"
+                                                                                                            class="form-control form-control-sm dimension-input"
+                                                                                                            style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                            placeholder="P${j}">
+                                                                                                    </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1511,7 +1511,7 @@
                 // Reset PDF views
                 $('#standardPdfCanvas, #similarPdfCanvas').hide();
                 $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
-                $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Similar Part');
+                $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Dimensi Part');
                 $('#similarStatusText').text('');
                 $('#fullStandardBtn, #fullSimilarBtn').hide();
                 $('.standard-nav-controls, .similar-nav-controls').hide();
@@ -1660,15 +1660,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                                                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                    style="min-width: 60px;"
-                                                                                                                                                                                                    name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                    placeholder="P${j}">
-                                                                                                                                                                                            </td>`;
+                                                                                                                                                                                                    <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                        style="min-width: 60px;"
+                                                                                                                                                                                                        name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                        placeholder="P${j}">
+                                                                                                                                                                                                </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1695,11 +1695,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                    style="min-width: 60px;"
-                                                                                                                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                    placeholder="P${currentPoints}">
-                                                                                                                                                                                            </td>`);
+                                                                                                                                                                                                    <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                        style="min-width: 60px;"
+                                                                                                                                                                                                        name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                        placeholder="P${currentPoints}">
+                                                                                                                                                                                                </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');
