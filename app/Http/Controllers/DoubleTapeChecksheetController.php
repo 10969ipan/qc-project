@@ -161,7 +161,10 @@ class DoubleTapeChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $checksheet = DoubleTapeChecksheet::findOrFail($id);
-        $items = Item::where('plant_id', $checksheet->plant_id)->orderBy('name')->get();
+        $items = Item::byCategory('Double Tape')
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
 
         if (request()->ajax()) {
             return view('double_tape.partials.edit_form', compact('checksheet', 'items'));

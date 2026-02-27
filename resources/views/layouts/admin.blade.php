@@ -1368,6 +1368,11 @@
                     return;
                 }
 
+                // Ignore forms that are handled via AJAX or have already been prevented
+                if ($(this).hasClass('ajax-form') || e.isDefaultPrevented()) {
+                    return;
+                }
+
                 // For checksheet form, specific checks if needed
                 if ($(this).attr('id') === 'checksheetForm') {
                     // Form is already validated by judgment logic usually

@@ -245,6 +245,7 @@
                                             <option value="SORTIR">SORTIR</option>
                                             <option value="FINISHING">FINISHING</option>
                                             <option value="REPAIR">REPAIR</option>
+                                            <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="remarks" rows="4"
@@ -631,14 +632,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                                                                                                            <div class="input-group mb-2 defect-row">
-                                                                                                                                                                         <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                                                                                                         <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                                                                                                         <div class="input-group-append">
-                                                                                                                                                                             <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                                                                <div class="input-group mb-2 defect-row">
+                                                                                                                                                                             <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                                                                             <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                                                                             <div class="input-group-append">
+                                                                                                                                                                                 <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                                                             </div>
                                                                                                                                                                          </div>
-                                                                                                                                                                     </div>
-                                                                                                                                                                    `;
+                                                                                                                                                                        `;
                 $('#defectContainer').append(newRow);
             });
 

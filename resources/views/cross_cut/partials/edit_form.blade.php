@@ -131,7 +131,9 @@
                                     <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
                                     <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>
                                         REPAIR</option>
-                                    @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR']))
+                                    <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
+                                        MARKING+FINISHING+PACKING</option>
+                                    @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'MARKING+FINISHING+PACKING']))
                                         <option value="{{ $checksheet->next_proses }}" selected>
                                             {{ $checksheet->next_proses }}
                                         </option>

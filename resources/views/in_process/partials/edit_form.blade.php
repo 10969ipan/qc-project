@@ -184,6 +184,7 @@
                             <option value="FINISHING + PASANG SUB PART" {{ $checksheet->next_proses == 'FINISHING + PASANG SUB PART' ? 'selected' : '' }}>FINISHING + PASANG SUB PART</option>
                             <option value="FINISHING + PACKING" {{ $checksheet->next_proses == 'FINISHING + PACKING' ? 'selected' : '' }}>FINISHING + PACKING</option>
                             <option value="REBUS + FINISHING + PACKING" {{ $checksheet->next_proses == 'REBUS + FINISHING + PACKING' ? 'selected' : '' }}>REBUS + FINISHING + PACKING</option>
+                            <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>MARKING+FINISHING+PACKING</option>
                             <option value="SORTIR + CRUSHING" {{ $checksheet->next_proses == 'SORTIR + CRUSHING' ? 'selected' : '' }}>SORTIR + CRUSHING</option>
                             @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'SORTIR + FINISHING', 'FINISHING + PASANG SUB PART', 'FINISHING + PACKING', 'REBUS + FINISHING + PACKING', 'SORTIR + CRUSHING']))
                                 <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>

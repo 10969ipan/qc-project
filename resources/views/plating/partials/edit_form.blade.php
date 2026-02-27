@@ -148,6 +148,8 @@
                         </option>
                         <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
                         </option>
+                        <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
+                            MARKING+FINISHING+PACKING</option>
                     </select>
                 </div>
             </div>

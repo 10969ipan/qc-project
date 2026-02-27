@@ -200,7 +200,10 @@ class CrossCutChecksheetController extends Controller
         }
         $checksheet = $query->findOrFail($id);
 
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory(['Cross Cut Plating', 'Cross Cut Painting'])
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
 
         if (request()->ajax()) {
             return view('cross_cut.partials.edit_form', compact('checksheet', 'items'));

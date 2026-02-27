@@ -13,7 +13,8 @@
                     <select class="form-control form-control-sm" name="item_id" required>
                         @foreach($items as $item)
                             <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
-                                {{ $item->name }}</option>
+                                {{ $item->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -71,6 +72,21 @@
                 </div>
                 <textarea class="form-control form-control-sm mt-2" name="remarks"
                     rows="2">{{ $checksheet->remarks }}</textarea>
+                <div class="form-group mb-0 mt-2" id="editNextProsesContainer"
+                    style="{{ $checksheet->judgment == 'NG' ? '' : 'display:none;' }}">
+                    <label class="small font-weight-bold text-danger">Next Proses (If NG)</label>
+                    <select class="form-control form-control-sm" name="next_proses" id="editNextProses">
+                        <option value="">-- Pilih --</option>
+                        <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING
+                        </option>
+                        <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR
+                        </option>
+                        <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
+                        </option>
+                        <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
+                            MARKING+FINISHING+PACKING</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -82,14 +98,34 @@
 
 <script>
     $(document).ready(function () {
+        function toggleNextProses() {
+            if ($('#editJudgment').val() === 'NG') {
+                $('#editNextProsesContainer').slideDown();
+            } else {
+                $('#editNextProsesContainer').slideUp();
+                $('#editNextProses').val('');
+            }
+        }
+
         function updateEditJudgment() {
             let total = parseInt($('#editSamplingQty').val()) || 0;
             let ng = parseInt($('#editTotalNG').val()) || 0;
             let ok = total - ng;
             $('input[name="total_ok"]').val(ok < 0 ? 0 : ok);
-            // Simple judgment for edit (can be adjusted to use AQL if needed)
-            $('#editJudgment').val(ng > 0 ? 'NG' : 'OK');
+
+            let judgment = ng > 0 ? 'NG' : 'OK';
+            $('#editJudgment').val(judgment);
+
+            if (judgment === 'OK') {
+                $('#editJudgment').removeClass('text-danger').addClass('text-success');
+            } else {
+                $('#editJudgment').removeClass('text-success').addClass('text-danger');
+            }
+
+            toggleNextProses();
         }
+
         $('#editTotalNG, #editSamplingQty').on('input', updateEditJudgment);
+        $('#editJudgment').on('change', toggleNextProses);
     });
 </script>

@@ -189,7 +189,10 @@ class CrossCutPaintingChecksheetController extends Controller
             $query->withoutGlobalScope('plant');
         }
         $checksheet = $query->findOrFail($id);
-        $items = Item::byCategory('Cross Cut Painting')->orderBy('name')->get();
+        $items = Item::byCategory('Cross Cut Painting')
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
 
         if (request()->ajax()) {
             return view('cross_cut_painting.partials.edit_form', compact('checksheet', 'items'));

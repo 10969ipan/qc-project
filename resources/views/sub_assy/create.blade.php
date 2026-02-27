@@ -374,6 +374,7 @@
                                             <option value="SORTIR">SORTIR</option>
                                             <option value="FINISHING">FINISHING</option>
                                             <option value="REPAIR">REPAIR</option>
+                                            <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="remarks" rows="4"

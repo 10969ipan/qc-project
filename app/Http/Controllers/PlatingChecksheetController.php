@@ -169,7 +169,10 @@ class PlatingChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $checksheet = PlatingChecksheet::findOrFail($id);
-        $items = Item::where('plant_id', $checksheet->plant_id)->orderBy('name')->get();
+        $items = Item::byCategory('Plating')
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
 
         if (request()->ajax()) {
             return view('plating.partials.edit_form', compact('checksheet', 'items'));

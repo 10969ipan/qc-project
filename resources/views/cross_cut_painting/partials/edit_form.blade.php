@@ -95,6 +95,8 @@
                                     FINISHING</option>
                                 <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
                                 </option>
+                                <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
+                                    MARKING+FINISHING+PACKING</option>
                             </select>
                         </div>
                         <textarea class="form-control" name="keterangan" rows="2"

@@ -194,7 +194,10 @@ class SubAssyChecksheetController extends Controller
         }
         $checksheet = $query->findOrFail($id);
 
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory('Sub Assy')
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
 
         if (request()->ajax()) {
             return view('sub_assy.partials.edit_form', compact('checksheet', 'items'));

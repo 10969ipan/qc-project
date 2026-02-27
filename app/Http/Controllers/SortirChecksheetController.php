@@ -150,7 +150,10 @@ class SortirChecksheetController extends Controller
         }
         $checksheet = $query->findOrFail($id);
 
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory(['Sub Assy', 'INPROSES', 'Cross Cut Plating', 'Cross Cut Painting'])
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
 
         if (request()->ajax()) {
             return view('sortir.partials.edit_form', compact('checksheet', 'items'));

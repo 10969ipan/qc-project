@@ -208,7 +208,10 @@ class InProcessChecksheetController extends Controller
         }
         $checksheet = $query->findOrFail($id);
 
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory('INPROSES')
+            ->where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
         $partDimensionStandards = json_encode($this->getConsolidatedStandards());
 
         if (request()->ajax()) {
