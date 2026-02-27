@@ -47,8 +47,7 @@
                     <div class="col-md-10 col-sm-12 mb-3">
                         <label for="search" class="font-weight-bold">Pencarian</label>
                         <input type="text" name="search" class="form-control form-control-sm shadow-sm"
-                            value="{{ request('search') }}"
-                            placeholder="Cari...">
+                            value="{{ request('search') }}" placeholder="Cari...">
                     </div>
                     {{-- Preserve plant parameter --}}
                     @if(request('plant'))
@@ -91,7 +90,7 @@
                                 <td class="text-nowrap">
                                     @if($item->file_path)
                                         <button type="button" class="btn btn-primary btn-xs view-pdf-btn mr-1" data-toggle="modal"
-                                            data-target="#pdfModal" data-src="{{ route('items.pdf', $item->id) }}"
+                                            data-target="#pdfModal" data-src="{{ route('items.pdf', $item->id) }}?t={{ time() }}"
                                             title="Lihat PCCP">
                                             <i class="fas fa-file-pdf"></i> PCCP
                                         </button>
@@ -104,7 +103,7 @@
                                         @endphp
                                         <button type="button" class="btn btn-info btn-xs view-pdf-btn" data-toggle="modal"
                                             data-target="#pdfModal"
-                                            data-src="{{ route('items.pdf', ['id' => $item->id, 'index' => 'similar']) }}"
+                                            data-src="{{ route('items.pdf', ['id' => $item->id, 'index' => 'similar']) }}?t={{ time() }}"
                                             title="Lihat {{ $standardLabel }} Part">
                                             <i class="fas fa-file-alt"></i> {{ $standardLabel }}
                                         </button>
@@ -656,7 +655,10 @@
 
                 // Handle Modal Open
                 $('.view-pdf-btn').on('click', function () {
-                    const url = $(this).data('src');
+                    // Add cache-busting timestamp to prevent serving stale cached PDFs
+                    let url = $(this).data('src');
+                    const separator = url.indexOf('?') !== -1 ? '&' : '?';
+                    url = url + separator + '_nocache=' + Date.now();
 
                     // Reset state
                     pdfDoc = null;
@@ -690,18 +692,18 @@
                 // Add Dimension Row
                 $('.add-dimension-row').on('click', function () {
                     var newRow = `
-                                                                                                                                                                                                        <tr>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
-                                                                                                                                                                                                    <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
-                                                                                                                                                                                                            <td class="text-center">
-                                                                                                                                                                                                                <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                                                                                                </button>
-                                                                                                                                                                                                            </td>
-                                                                                                                                                                                                        </tr>`;
+                                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
+                                                                                                                                                                                                            <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
+                                                                                                                                                                                                                    <td class="text-center">
+                                                                                                                                                                                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                                </tr>`;
                     $('#modal-dimension-table tbody').append(newRow);
                 });
 
@@ -761,35 +763,35 @@
 
                         if (item.file_paths && item.file_paths.length > 0) {
                             item.file_paths.forEach(function (path, index) {
-                                let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/' + index;
+                                let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/' + index + '?t=' + Date.now();
                                 filesHtml += `
-                                                                                                                                                                <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                                                                                                                                    <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
-                                                                                                                                                                    <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                                                                                                    <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
-                                                                                                                                                                </div>`;
+                                                                                                                                                                        <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                                                                                                                                            <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
+                                                                                                                                                                            <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                                                                                                                            <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
+                                                                                                                                                                        </div>`;
                             });
                         } else if (item.file_path) {
-                            let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id);
+                            let viewPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '?t=' + Date.now();
                             filesHtml += `
-                                                                                                                                                            <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
-                                                                                                                                                                <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
-                                                                                                                                                                <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                                                                                                <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
-                                                                                                                                                            </div>`;
+                                                                                                                                                                    <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
+                                                                                                                                                                        <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
+                                                                                                                                                                        <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                                                                                                                        <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
+                                                                                                                                                                    </div>`;
                         }
                         $('#edit_existing_files').html(item.file_paths || item.file_path ? '<label class="small font-weight-bold mb-1">Standard PDFs:</label>' + filesHtml : '');
 
                         // Existing Similar Part PDF
                         var similarFileHtml = '';
                         if (item.similar_part_file_path) {
-                            let viewSimilarPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/similar';
+                            let viewSimilarPdfUrl = viewPdfUrlTemplate.replace('__ID__', item.id) + '/similar?t=' + Date.now();
                             similarFileHtml = `
-                                                                                                            <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small text-primary font-weight-bold">
-                                                                                                                <span class="text-truncate mr-2" style="max-width: 150px;">${item.similar_part_file_path.split('/').pop()}</span>
-                                                                                                                <a href="${viewSimilarPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
-                                                                                                                <button type="button" class="badge badge-danger border-0 btn-delete-similar-pdf" data-id="${item.id}" style="cursor: pointer;">Hapus</button>
-                                                                                                            </div>`;
+                                                                                                                    <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small text-primary font-weight-bold">
+                                                                                                                        <span class="text-truncate mr-2" style="max-width: 150px;">${item.similar_part_file_path.split('/').pop()}</span>
+                                                                                                                        <a href="${viewSimilarPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                                                                                                        <button type="button" class="badge badge-danger border-0 btn-delete-similar-pdf" data-id="${item.id}" style="cursor: pointer;">Hapus</button>
+                                                                                                                    </div>`;
                         }
                         $('#edit_existing_similar_file').html(similarFileHtml ? '<label class="small font-weight-bold mb-1">Dimensi Part PDF Terdaftar:</label>' + similarFileHtml : '');
 
@@ -798,33 +800,33 @@
                         if (item.dimension_standards && item.dimension_standards.length > 0) {
                             item.dimension_standards.forEach(function (dim) {
                                 dimHtml += `
-                                                                                                                                                                                                            <tr>
-                                                                                                                                                                                                                <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
-                                                                                                                                                                                                                <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
-                                                                                                                                                                                                                <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" value="${dim.min || ''}"></td>
-                                                                                                                                                                                                                <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" value="${dim.max || ''}"></td>
-                                                                                                                                                                                                                <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
-                                                                                                                                                                                                                <td class="text-center">
-                                                                                                                                                                                                                    <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                                                                                                                                    </button>
-                                                                                                                                                                                                                </td>
-                                                                                                                                                                                                            </tr>`;
+                                                                                                                                                                                                                    <tr>
+                                                                                                                                                                                                                        <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="${dim.point || ''}"></td>
+                                                                                                                                                                                                                        <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" value="${dim.size || ''}"></td>
+                                                                                                                                                                                                                        <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" value="${dim.min || ''}"></td>
+                                                                                                                                                                                                                        <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" value="${dim.max || ''}"></td>
+                                                                                                                                                                                                                        <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
+                                                                                                                                                                                                                        <td class="text-center">
+                                                                                                                                                                                                                            <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                        </td>
+                                                                                                                                                                                                                    </tr>`;
                             });
                         } else {
                             dimHtml = `
-                                                                                                                                                                                                        <tr>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
-                                                                                                                                                                                                    <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
-                                                                                                                                                                                                            <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
-                                                                                                                                                                                                            <td class="text-center">
-                                                                                                                                                                                                                <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                                                                                                </button>
-                                                                                                                                                                                                            </td>
-                                                                                                                                                                                                        </tr>`;
+                                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
+                                                                                                                                                                                                            <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
+                                                                                                                                                                                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
+                                                                                                                                                                                                                    <td class="text-center">
+                                                                                                                                                                                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                                                                                                                        </button>
+                                                                                                                                                                                                                    </td>
+                                                                                                                                                                                                                </tr>`;
                         }
                         $('#edit-modal-dimension-table tbody').html(dimHtml);
 
@@ -934,18 +936,18 @@
             // Add Dimension Row for Edit Modal
             $(document).on('click', '.add-edit-dimension-row', function () {
                 var newRow = `
-                                                                                                                                                                                            <tr>
-                                                                                                                                                                                                <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
-                                                                                                                                                                                                <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
-                                                                                                                                                                                                <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
-                                                                                                                                                                                                <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
-                                                                                                                                                                                                <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
-                                                                                                                                                                                                <td class="text-center">
-                                                                                                                                                                                                    <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
-                                                                                                                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                                                                                                                    </button>
-                                                                                                                                                                                                </td>
-                                                                                                                                                                                            </tr>`;
+                                                                                                                                                                                                    <tr>
+                                                                                                                                                                                                        <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" placeholder="Contoh: 1, A"></td>
+                                                                                                                                                                                                        <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm" placeholder="10.5"></td>
+                                                                                                                                                                                                        <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" placeholder="9.9"></td>
+                                                                                                                                                                                                        <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" placeholder="10.1"></td>
+                                                                                                                                                                                                        <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" placeholder="0.1"></td>
+                                                                                                                                                                                                        <td class="text-center">
+                                                                                                                                                                                                            <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                                                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                        </td>
+                                                                                                                                                                                                    </tr>`;
                 $('#edit-modal-dimension-table tbody').append(newRow);
             });
         </script>
