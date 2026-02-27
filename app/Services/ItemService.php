@@ -23,7 +23,21 @@ class ItemService extends BaseService
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
-        // Apply search filters
+        // Apply global search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('customer', 'like', '%' . $search . '%')
+                    ->orWhere('part_number', 'like', '%' . $search . '%')
+                    ->orWhere('sap_code', 'like', '%' . $search . '%')
+                    ->orWhereHas('category', function ($cq) use ($search) {
+                        $cq->where('name', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        // Apply specific search filters (fallback if needed)
         if (!empty($filters['name'])) {
             $query->where('name', 'like', '%' . $filters['name'] . '%');
         }

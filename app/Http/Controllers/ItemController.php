@@ -27,6 +27,7 @@ class ItemController extends Controller
 
         $filters = [
             'plant' => $request->plant,
+            'search' => $request->search,
             'name' => $request->name,
             'customer' => $request->customer,
             'part_number' => $request->part_number,
