@@ -326,6 +326,13 @@
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Session Heartbeat to prevent logout/CSRF mismatch during long data entry
+            setInterval(function () {
+                $.get("{{ route('session.ping') }}").catch(function (err) {
+                    console.warn("Heartbeat failed, session may be expired");
+                });
+            }, 10 * 60 * 1000); // 10 minutes
+
             pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
 
             let pdfDoc = null;
@@ -573,7 +580,7 @@
                 var remainingQty = parseInt(selectedOption.data('remaining-qty')) || 0;
                 var totalQtyInput = $('input[name="total_qty"]');
                 totalQtyInput.val(remainingQty);
-                totalQtyInput.attr('max', remainingQty);
+                // totalQtyInput.attr('max', remainingQty); // Removed to allow exceeding quantity
 
                 // Also update sampling_qty, total_ok, total_ng
                 $('input[name="sampling_qty"]').val(remainingQty);
@@ -586,13 +593,16 @@
             // Validate total_qty doesn't exceed remaining qty - show confirmation
             $('input[name="total_qty"]').on('change', function () {
                 var input = $(this);
-                var max = parseInt(input.attr('max')) || 0;
+                // Get remaining qty from the selected item instead of the 'max' attribute
+                var selectedOption = $('#ngItemSelect').find('option:selected');
+                var remainingQty = parseInt(selectedOption.data('remaining-qty')) || 0;
                 var val = parseInt(input.val()) || 0;
-                if (max > 0 && val > max) {
+
+                if (remainingQty > 0 && val > remainingQty) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Qty Melebihi Sisa',
-                        html: 'Qty yang diinput (<b>' + val + ' pcs</b>) melebihi sisa qty tercatat (<b>' + max + ' pcs</b>).<br><br>Apakah Anda yakin ingin melanjutkan?',
+                        html: 'Qty yang diinput (<b>' + val + ' pcs</b>) melebihi sisa qty tercatat (<b>' + remainingQty + ' pcs</b>).<br><br>Apakah Anda yakin ingin melanjutkan?',
                         showCancelButton: true,
                         confirmButtonColor: '#3085d6',
                         cancelButtonColor: '#d33',
@@ -601,10 +611,10 @@
                     }).then((result) => {
                         if (!result.isConfirmed) {
                             // User chose to reset
-                            input.val(max);
+                            input.val(remainingQty);
                             // Update dependent fields
-                            $('input[name="sampling_qty"]').val(max);
-                            $('input[name="total_ok"]').val(max);
+                            $('input[name="sampling_qty"]').val(remainingQty);
+                            $('input[name="total_ok"]').val(remainingQty);
                             $('input[name="total_ng"]').val(0);
                             updateJudgment();
                         } else {
@@ -621,14 +631,14 @@
             // Add defect row
             $('#addDefectBtn').on('click', function () {
                 var newRow = `
-                                                                                                                                                                    <div class="input-group mb-2 defect-row">
-                                                                                                                                                                 <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
-                                                                                                                                                                 <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                                                                                                                                                                 <div class="input-group-append">
-                                                                                                                                                                     <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
-                                                                                                                                                                 </div>
-                                                                                                                                                             </div>
-                                                                                                                                                            `;
+                                                                                                                                                                            <div class="input-group mb-2 defect-row">
+                                                                                                                                                                         <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
+                                                                                                                                                                         <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                                                                                                                                                                         <div class="input-group-append">
+                                                                                                                                                                             <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                                                                                                                                                                         </div>
+                                                                                                                                                                     </div>
+                                                                                                                                                                    `;
                 $('#defectContainer').append(newRow);
             });
 

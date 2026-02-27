@@ -1409,6 +1409,36 @@
                 $('#global-loader').css('display', 'flex');
             });
 
+            // Session Heartbeat to prevent logout/CSRF mismatch
+            setInterval(function () {
+                $.get("{{ route('session.ping') }}").catch(function (err) {
+                    console.warn("Session heartbeat failed");
+                });
+            }, 10 * 60 * 1000); // 10 minutes
+
+            // Global AJAX Setup for CSRF and Errors
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $(document).ajaxError(function (event, xhr, settings) {
+                if (xhr.status === 419) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Sesi Berakhir',
+                        text: 'Sesi anda telah berakhir atau token keamanan kadaluarsa. Silakan refresh halaman untuk melanjutkan.',
+                        confirmButtonText: 'Refresh Halaman',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            });
+
             // Specific handler for downloads (PDF exports)
             // Since downloads don't trigger page navigation, we need to hide the loader after a timeout
             $(document).on('click', '.btn-download', function () {

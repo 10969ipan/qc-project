@@ -35,6 +35,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::delete('/notifications/clear-all', [\App\Http\Controllers\NotificationController::class, 'clearAll'])->name('notifications.clear-all');
+
+    // Session Heartbeat
+    Route::get('/session/ping', function () {
+        return response()->json(['status' => 'ok']);
+    })->name('session.ping');
 });
 
 
