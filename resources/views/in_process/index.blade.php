@@ -269,7 +269,7 @@
                                                     @php
                                                         $hasMinData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && $standards[$j]['min'] !== null && $standards[$j]['min'] !== '' && $standards[$j]['min'] !== '-') {
+                                                            if (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null && ($standards[$j]['min'] ?? null) !== '' && ($standards[$j]['min'] ?? null) !== '-') {
                                                                 $hasMinData = true;
                                                                 break;
                                                             }
@@ -280,7 +280,7 @@
                                                             <th class="p-1">Min</th>
                                                             @foreach ($activePoints as $j)
                                                                 <th class="p-1 text-muted">
-                                                                    {{ (isset($standards[$j]) && $standards[$j]['min'] !== null) ? $standards[$j]['min'] : '-' }}
+                                                                    {{ (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null) ? $standards[$j]['min'] : '-' }}
                                                                 </th>
                                                             @endforeach
                                                         </tr>
@@ -290,7 +290,7 @@
                                                     @php
                                                         $hasMaxData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && $standards[$j]['max'] !== null && $standards[$j]['max'] !== '' && $standards[$j]['max'] !== '-') {
+                                                            if (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null && ($standards[$j]['max'] ?? null) !== '' && ($standards[$j]['max'] ?? null) !== '-') {
                                                                 $hasMaxData = true;
                                                                 break;
                                                             }
@@ -301,7 +301,7 @@
                                                             <th class="p-1">Max</th>
                                                             @foreach ($activePoints as $j)
                                                                 <th class="p-1 text-muted">
-                                                                    {{ (isset($standards[$j]) && $standards[$j]['max'] !== null) ? $standards[$j]['max'] : '-' }}
+                                                                    {{ (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null) ? $standards[$j]['max'] : '-' }}
                                                                 </th>
                                                             @endforeach
                                                         </tr>
@@ -311,7 +311,7 @@
                                                     @php
                                                         $hasTolData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && $standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '' && $standards[$j]['tolerance'] !== '-') {
+                                                            if (isset($standards[$j]) && ($standards[$j]['tolerance'] ?? null) !== null && ($standards[$j]['tolerance'] ?? null) !== '' && ($standards[$j]['tolerance'] ?? null) !== '-') {
                                                                 $hasTolData = true;
                                                                 break;
                                                             }
@@ -322,7 +322,7 @@
                                                             <th class="p-1">Tol</th>
                                                             @foreach ($activePoints as $j)
                                                                 <th class="p-1 text-muted">
-                                                                    {{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}
+                                                                    {{ isset($standards[$j]) ? '±' . ($standards[$j]['tolerance'] ?? '-') : '-' }}
                                                                 </th>
                                                             @endforeach
                                                         </tr>
@@ -359,15 +359,15 @@
                                                                         if (isset($standards[$j]) && is_numeric($val)) {
                                                                             $std = $standards[$j];
 
-                                                                            if ($std['min'] !== null && $val < $std['min']) {
+                                                                            if (($std['min'] ?? null) !== null && $val < $std['min']) {
                                                                                 $isNG = true;
                                                                             }
-                                                                            if ($std['max'] !== null && $val > $std['max']) {
+                                                                            if (($std['max'] ?? null) !== null && $val > $std['max']) {
                                                                                 $isNG = true;
                                                                             }
 
-                                                                            if (!$isNG && $std['min'] === null && $std['max'] === null) {
-                                                                                if ($std['size'] !== null && $std['tolerance'] !== null) {
+                                                                            if (!$isNG && ($std['min'] ?? null) === null && ($std['max'] ?? null) === null) {
+                                                                                if (($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null) {
                                                                                     $min = $std['size'] - $std['tolerance'];
                                                                                     $max = $std['size'] + $std['tolerance'];
                                                                                     if ($val < $min || $val > $max) {
@@ -884,8 +884,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1259,7 +1259,7 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                        });
+                                                                                                                                                                            });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
