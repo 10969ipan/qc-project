@@ -336,7 +336,7 @@
 
                                         @if(auth()->user()->role == 'admin' || auth()->user()->name == 'Marsiah')
                                             <a href="{{ route('sortir.edit', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal">
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form
