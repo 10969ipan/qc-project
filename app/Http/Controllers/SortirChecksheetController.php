@@ -141,7 +141,7 @@ class SortirChecksheetController extends Controller
 
     public function edit($id)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager']) && auth()->user()->name !== 'Marsiah') {
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         $query = SortirChecksheet::query();
@@ -164,7 +164,7 @@ class SortirChecksheetController extends Controller
 
     public function update(UpdateSortirChecksheetRequest $request, $id)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager']) && auth()->user()->name !== 'Marsiah') {
             abort(403, 'Unauthorized action.');
         }
         try {
@@ -177,7 +177,7 @@ class SortirChecksheetController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager']) && auth()->user()->name !== 'Marsiah') {
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         try {
