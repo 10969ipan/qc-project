@@ -215,6 +215,8 @@
                 <th>Nilai Koreksi Alat</th>
                 <th>Nilai Ketidakpastian</th>
                 <th>Hasil Verifikasi</th>
+                <th>Std Toleransi</th>
+                <th>Acuan Toleransi</th>
             </tr>
         </thead>
         <tbody>
@@ -226,6 +228,10 @@
                         <td>{{ $verification->nilai_koreksi[$index] ?? '-' }}</td>
                         <td>{{ $verification->nilai_ketidakpastian[$index] ?? '-' }}</td>
                         <td>{{ $verification->hasil_verifikasi[$index] ?? '-' }}</td>
+                        @if($index === 0)
+                            <td rowspan="{{ count($verification->nilai_alat) }}">{{ $verification->std_toleransi ?? '-' }}</td>
+                            <td rowspan="{{ count($verification->nilai_alat) }}">{{ $verification->acuan_toleransi ?? '-' }}</td>
+                        @endif
                     </tr>
                 @endforeach
             @else
@@ -235,6 +241,8 @@
                     <td>{{ $verification->nilai_koreksi }}</td>
                     <td>{{ $verification->nilai_ketidakpastian }}</td>
                     <td>{{ $verification->hasil_verifikasi }}</td>
+                    <td>{{ $verification->std_toleransi ?? '-' }}</td>
+                    <td>{{ $verification->acuan_toleransi ?? '-' }}</td>
                 </tr>
             @endif
         </tbody>

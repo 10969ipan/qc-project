@@ -781,7 +781,7 @@
                                                             <th>Nilai Alat</th>
                                                             <th>Nilai Koreksi</th>
                                                             <th>Ketidakpastian</th>
-                                                            <th>Hasil Verifikasi</th>
+                                                            <th>Hasil Verifikasi<br><small class="text-muted">(Koreksi + Ketidakpastian)</small></th>
                                                             <th style="width: 40px;"></th>
                                                         </tr>
                                                     </thead>
@@ -794,7 +794,7 @@
                                                             <td><input type="text" name="nilai_ketidakpastian[]"
                                                                     class="form-control form-control-sm no-autoupper"></td>
                                                             <td><input type="text" name="hasil_verifikasi[]"
-                                                                    class="form-control form-control-sm no-autoupper"></td>
+                                                                    class="form-control form-control-sm no-autoupper bg-light" readonly></td>
                                                             <td class="text-center">
                                                                 <button type="button"
                                                                     class="btn btn-sm btn-outline-danger modal-verif-remove-row"
@@ -923,6 +923,37 @@
                             </div>
                         </div>
                     </div>
+    {{-- Inline Auto-Calc Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('input', function(e) {
+                var input = e.target;
+                if (!input || input.tagName !== 'INPUT') return;
+                var td = input.closest('td');
+                if (!td) return;
+                var tr = td.closest('tr');
+                if (!tr) return;
+                var tbody = tr.closest('tbody');
+                if (!tbody) return;
+                var tbodyId = tbody.getAttribute('id');
+                if (tbodyId !== 'modal-verif-verification-body') return;
+                var cells = Array.from(tr.querySelectorAll('td'));
+                var cellIndex = cells.indexOf(td);
+                if (cellIndex !== 1 && cellIndex !== 2) return;
+                var koreksiInput = cells[1] ? cells[1].querySelector('input') : null;
+                var ketidakpastianInput = cells[2] ? cells[2].querySelector('input') : null;
+                var hasilInput = cells[3] ? cells[3].querySelector('input') : null;
+                if (!koreksiInput || !ketidakpastianInput || !hasilInput) return;
+                var kv = (koreksiInput.value || '').trim();
+                var kpv = (ketidakpastianInput.value || '').trim();
+                if (kv === '' && kpv === '') {
+                    hasilInput.value = '';
+                } else {
+                    hasilInput.value = parseFloat(((parseFloat(kv) || 0) + (parseFloat(kpv) || 0)).toFixed(6));
+                }
+            });
+        });
+    </script>
 @endsection
 
 @push('scripts')
@@ -1002,7 +1033,7 @@
                                                                         <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm no-autoupper"></td>
                                                                         <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm no-autoupper"></td>
                                                                         <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm no-autoupper"></td>
-                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm no-autoupper"></td>
+                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm no-autoupper bg-light" readonly></td>
                                                                         <td class="text-center">
                                                                             <button type="button" class="btn btn-sm btn-outline-danger modal-verif-remove-row">
                                                                                 <i class="fas fa-trash"></i>

@@ -155,6 +155,8 @@
                 <th rowspan="2">Frekuensi</th>
                 <th rowspan="2">Tanggal Kalibrasi</th>
                 <th colspan="4">Detail Verifikasi Alat</th>
+                <th rowspan="2">Std Toleransi</th>
+                <th rowspan="2">Acuan Toleransi</th>
                 <th rowspan="2">Judgment</th>
                 <th rowspan="2">Next Kalibrasi</th>
             </tr>
@@ -213,6 +215,8 @@
                             {{ $v->hasil_verifikasi }}
                         @endif
                     </td>
+                    <td>{{ $v->std_toleransi ?? '-' }}</td>
+                    <td>{{ $v->acuan_toleransi ?? '-' }}</td>
                     <td>
                         <span class="badge {{ $v->judgment == 'OK' ? 'bg-success' : 'bg-danger' }}">
                             {{ $v->judgment }}
