@@ -179,41 +179,36 @@
                     <td>{{ $v->resolusi }}</td>
                     <td>{{ $v->frekuensi_kalibrasi }}</td>
                     <td>{{ $v->tanggal_kalibrasi ? $v->tanggal_kalibrasi->format('d/m/Y') : '-' }}</td>
+                    @php
+                        $arrAlat = is_array($v->nilai_alat) ? $v->nilai_alat : [$v->nilai_alat];
+                        $arrKoreksi = is_array($v->nilai_koreksi) ? $v->nilai_koreksi : [$v->nilai_koreksi];
+                        $arrKetidakpastian = is_array($v->nilai_ketidakpastian) ? $v->nilai_ketidakpastian : [$v->nilai_ketidakpastian];
+                        $arrHasil = is_array($v->hasil_verifikasi) ? $v->hasil_verifikasi : [$v->hasil_verifikasi];
+                        $maxRows = max(count($arrAlat), count($arrKoreksi), count($arrKetidakpastian), count($arrHasil));
+                    @endphp
                     <td style="padding: 0;">
-                        @if(is_array($v->nilai_alat))
-                            @foreach($v->nilai_alat as $val)
-                                <div class="border-bottom" style="padding: 2px;">{{ $val }}</div>
-                            @endforeach
-                        @else
-                            {{ $v->nilai_alat }}
-                        @endif
+                        @for($i = 0; $i < $maxRows; $i++)
+                            <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
+                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrAlat[$i] ?? '' }}</div>
+                        @endfor
                     </td>
                     <td style="padding: 0;">
-                        @if(is_array($v->nilai_koreksi))
-                            @foreach($v->nilai_koreksi as $val)
-                                <div class="border-bottom" style="padding: 2px;">{{ $val }}</div>
-                            @endforeach
-                        @else
-                            {{ $v->nilai_koreksi }}
-                        @endif
+                        @for($i = 0; $i < $maxRows; $i++)
+                            <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
+                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrKoreksi[$i] ?? '' }}</div>
+                        @endfor
                     </td>
                     <td style="padding: 0;">
-                        @if(is_array($v->nilai_ketidakpastian))
-                            @foreach($v->nilai_ketidakpastian as $val)
-                                <div class="border-bottom" style="padding: 2px;">{{ $val }}</div>
-                            @endforeach
-                        @else
-                            {{ $v->nilai_ketidakpastian }}
-                        @endif
+                        @for($i = 0; $i < $maxRows; $i++)
+                            <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
+                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrKetidakpastian[$i] ?? '' }}</div>
+                        @endfor
                     </td>
                     <td style="padding: 0;">
-                        @if(is_array($v->hasil_verifikasi))
-                            @foreach($v->hasil_verifikasi as $val)
-                                <div class="border-bottom" style="padding: 2px;">{{ $val }}</div>
-                            @endforeach
-                        @else
-                            {{ $v->hasil_verifikasi }}
-                        @endif
+                        @for($i = 0; $i < $maxRows; $i++)
+                            <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
+                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrHasil[$i] ?? '' }}</div>
+                        @endfor
                     </td>
                     <td>{{ $v->std_toleransi ?? '-' }}</td>
                     <td>{{ $v->acuan_toleransi ?? '-' }}</td>

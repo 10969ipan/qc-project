@@ -185,49 +185,40 @@
                                 <td class="align-middle">
                                     {{ $v->next_kalibrasi ? $v->next_kalibrasi->format('d/m/Y') : '-' }}
                                 </td>
-                                <td class="align-middle">
-                                    @if(is_array($v->nilai_alat))
-                                        <ul class="list-unstyled mb-0 text-dark">
-                                            @foreach($v->nilai_alat as $val)
-                                                <li class="border-bottom pb-1 mb-1">{{ $val }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        {{ $v->nilai_alat }}
-                                    @endif
+                                @php
+                                    $arrAlat = is_array($v->nilai_alat) ? $v->nilai_alat : [$v->nilai_alat];
+                                    $arrKoreksi = is_array($v->nilai_koreksi) ? $v->nilai_koreksi : [$v->nilai_koreksi];
+                                    $arrKetidakpastian = is_array($v->nilai_ketidakpastian) ? $v->nilai_ketidakpastian : [$v->nilai_ketidakpastian];
+                                    $arrHasil = is_array($v->hasil_verifikasi) ? $v->hasil_verifikasi : [$v->hasil_verifikasi];
+                                    $maxRows = max(count($arrAlat), count($arrKoreksi), count($arrKetidakpastian), count($arrHasil));
+                                @endphp
+                                <td class="align-middle p-0">
+                                    @for($i = 0; $i < $maxRows; $i++)
+                                        <div
+                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrAlat[$i] ?? '' }}</div>
+                                    @endfor
                                 </td>
-                                <td class="align-middle">
-                                    @if(is_array($v->nilai_koreksi))
-                                        <ul class="list-unstyled mb-0 text-dark">
-                                            @foreach($v->nilai_koreksi as $val)
-                                                <li class="border-bottom pb-1 mb-1">{{ $val }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        {{ $v->nilai_koreksi }}
-                                    @endif
+                                <td class="align-middle p-0">
+                                    @for($i = 0; $i < $maxRows; $i++)
+                                        <div
+                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrKoreksi[$i] ?? '' }}</div>
+                                    @endfor
                                 </td>
-                                <td class="align-middle">
-                                    @if(is_array($v->nilai_ketidakpastian))
-                                        <ul class="list-unstyled mb-0 text-dark">
-                                            @foreach($v->nilai_ketidakpastian as $val)
-                                                <li class="border-bottom pb-1 mb-1">{{ $val }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        {{ $v->nilai_ketidakpastian }}
-                                    @endif
+                                <td class="align-middle p-0">
+                                    @for($i = 0; $i < $maxRows; $i++)
+                                        <div
+                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrKetidakpastian[$i] ?? '' }}</div>
+                                    @endfor
                                 </td>
-                                <td class="align-middle">
-                                    @if(is_array($v->hasil_verifikasi))
-                                        <ul class="list-unstyled mb-0 text-dark">
-                                            @foreach($v->hasil_verifikasi as $val)
-                                                <li class="border-bottom pb-1 mb-1">{{ $val }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        {{ $v->hasil_verifikasi }}
-                                    @endif
+                                <td class="align-middle p-0">
+                                    @for($i = 0; $i < $maxRows; $i++)
+                                        <div
+                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrHasil[$i] ?? '' }}</div>
+                                    @endfor
                                 </td>
                                 <td class="align-middle">
                                     <span class="badge badge-{{ $v->judgment === 'OK' ? 'success' : 'danger' }}">
@@ -669,10 +660,10 @@
 
     {{-- Inline Auto-Calc Script (guaranteed to load inside content section) --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Auto-Calculate: Hasil Verifikasi = Nilai Koreksi + Ketidakpastian
             // td[0]=Nilai Alat, td[1]=Koreksi, td[2]=Ketidakpastian, td[3]=Hasil
-            document.addEventListener('input', function(e) {
+            document.addEventListener('input', function (e) {
                 var input = e.target;
                 if (!input || input.tagName !== 'INPUT') return;
 
@@ -808,17 +799,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                                                                                                <tr>
-                                                                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                    <td class="text-center">
-                                                                                                                        <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                                                                                            <i class="fas fa-trash"></i>
-                                                                                                                        </button>
-                                                                                                                    </td>
-                                                                                                                </tr>`;
+                                                                                                                    <tr>
+                                                                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
+                                                                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                                                                                                                        <td class="text-center">
+                                                                                                                            <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                            </button>
+                                                                                                                        </td>
+                                                                                                                    </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -882,17 +873,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                                                                                                    <tr>
-                                                                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
-                                                                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
-                                                                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
-                                                                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
-                                                                                                                        <td class="text-center">
-                                                                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                                            </button>
-                                                                                                                        </td>
-                                                                                                                    </tr>`;
+                                                                                                                        <tr>
+                                                                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
+                                                                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
+                                                                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
+                                                                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
+                                                                                                                            <td class="text-center">
+                                                                                                                                <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                                                                    <i class="fas fa-trash"></i>
+                                                                                                                                </button>
+                                                                                                                            </td>
+                                                                                                                        </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -919,17 +910,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                                                                                            <tr>
-                                                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                <td class="text-center">
-                                                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                                    </button>
-                                                                                                                </td>
-                                                                                                            </tr>`;
+                                                                                                                <tr>
+                                                                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
+                                                                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                                                                                                                    <td class="text-center">
+                                                                                                                        <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                        </button>
+                                                                                                                    </td>
+                                                                                                                </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });
