@@ -194,30 +194,30 @@
                                 @endphp
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
-                                            {{ $arrAlat[$i] ?? '' }}</div>
+                                        <div style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrAlat[$i] ?? '' }}
+                                        </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
-                                            {{ $arrKoreksi[$i] ?? '' }}</div>
+                                        <div style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrKoreksi[$i] ?? '' }}
+                                        </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
-                                            {{ $arrKetidakpastian[$i] ?? '' }}</div>
+                                        <div style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrKetidakpastian[$i] ?? '' }}
+                                        </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="min-height: 28px; line-height: 28px; padding: 0 6px;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
-                                            {{ $arrHasil[$i] ?? '' }}</div>
+                                        <div style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                            {{ $arrHasil[$i] ?? '' }}
+                                        </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle">

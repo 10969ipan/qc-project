@@ -189,25 +189,25 @@
                     <td style="padding: 0;">
                         @for($i = 0; $i < $maxRows; $i++)
                             <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
-                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrAlat[$i] ?? '' }}</div>
+                                style="padding: 2px; height: 28px; text-align: center;">{{ $arrAlat[$i] ?? '' }}</div>
                         @endfor
                     </td>
                     <td style="padding: 0;">
                         @for($i = 0; $i < $maxRows; $i++)
                             <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
-                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrKoreksi[$i] ?? '' }}</div>
+                                style="padding: 2px; height: 28px; text-align: center;">{{ $arrKoreksi[$i] ?? '' }}</div>
                         @endfor
                     </td>
                     <td style="padding: 0;">
                         @for($i = 0; $i < $maxRows; $i++)
                             <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
-                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrKetidakpastian[$i] ?? '' }}</div>
+                                style="padding: 2px; height: 28px; text-align: center;">{{ $arrKetidakpastian[$i] ?? '' }}</div>
                         @endfor
                     </td>
                     <td style="padding: 0;">
                         @for($i = 0; $i < $maxRows; $i++)
                             <div class="{{ $i < $maxRows - 1 ? 'border-bottom' : '' }}"
-                                style="padding: 2px; height: 12px; line-height: 12px;">{{ $arrHasil[$i] ?? '' }}</div>
+                                style="padding: 2px; height: 28px; text-align: center;">{{ $arrHasil[$i] ?? '' }}</div>
                         @endfor
                     </td>
                     <td>{{ $v->std_toleransi ?? '-' }}</td>
