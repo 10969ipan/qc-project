@@ -3,7 +3,7 @@
 @section('content')
     <div class="container-fluid">
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Edit Data KAKOTORA ({{ strtoupper($plant) }})</h1>
+            <h1 class="h3 mb-0 text-gray-800">Edit Data KAKOTORA ({{ ucfirst(strtolower($plant)) }})</h1>
             <a href="{{ route('kakotora.index', ['plant' => $plant]) }}" class="btn btn-sm btn-secondary shadow-sm">
                 <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
             </a>
@@ -22,24 +22,24 @@
                         <!-- Column 1 -->
                         <div class="col-md-6 border-right">
                             <div class="form-group">
-                                <label>TANGGAL ENTRY</label>
+                                <label>Tanggal Entry</label>
                                 <input type="date" name="date" class="form-control" value="{{ $kakotora->date }}">
                             </div>
                             <div class="form-group">
-                                <label>NO REGISTRASI</label>
+                                <label>No Registrasi</label>
                                 <input type="text" name="no_reg" class="form-control" value="{{ $kakotora->no_reg }}">
                             </div>
                             <div class="form-group">
-                                <label>ISSUE DATE</label>
+                                <label>Issue Date</label>
                                 <input type="date" name="issue_date" class="form-control"
                                     value="{{ $kakotora->issue_date }}">
                             </div>
                             <div class="form-group">
-                                <label>NO. REVMODEL</label>
+                                <label>No. Revmodel</label>
                                 <input type="text" name="rev_model" class="form-control" value="{{ $kakotora->rev_model }}">
                             </div>
                             <div class="form-group">
-                                <label>FAMILY (M, C, S)</label>
+                                <label>Family (M, C, S)</label>
                                 <select name="family" class="form-control">
                                     <option value="">- Pilih Family -</option>
                                     <option value="M" {{ $kakotora->family == 'M' ? 'selected' : '' }}>M</option>
@@ -48,7 +48,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>CATEGORY (NM , MP)</label>
+                                <label>Category (NM, MP)</label>
                                 <select name="category_nm_mp" class="form-control">
                                     <option value="">- Pilih Kategori -</option>
                                     <option value="NM" {{ $kakotora->category_nm_mp == 'NM' ? 'selected' : '' }}>NM</option>
@@ -56,7 +56,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>CATEGORY Claim (External, Internal)</label>
+                                <label>Category Claim (External, Internal)</label>
                                 <select name="category_claim" class="form-control">
                                     <option value="">- Pilih Kategori Claim -</option>
                                     <option value="External" {{ $kakotora->category_claim == 'External' ? 'selected' : '' }}>
@@ -70,20 +70,20 @@
                                 <input type="text" name="model" class="form-control" value="{{ $kakotora->model }}">
                             </div>
                             <div class="form-group">
-                                <label>PART NO.</label>
+                                <label>Part No.</label>
                                 <input type="text" name="part_number" class="form-control"
                                     value="{{ $kakotora->part_number }}">
                             </div>
                             <div class="form-group">
-                                <label>PART NAME</label>
+                                <label>Part Name</label>
                                 <input type="text" name="part_name" class="form-control" value="{{ $kakotora->part_name }}">
                             </div>
                             <div class="form-group">
-                                <label>MOULD</label>
+                                <label>Mould</label>
                                 <input type="text" name="mould" class="form-control" value="{{ $kakotora->mould }}">
                             </div>
                             <div class="form-group">
-                                <label>OWNER OF MOULD</label>
+                                <label>Owner of Mould</label>
                                 <input type="text" name="owner_mould" class="form-control"
                                     value="{{ $kakotora->owner_mould }}">
                             </div>
@@ -92,28 +92,28 @@
                         <!-- Column 2 -->
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>SIMILAR PART</label>
+                                <label>Similar Part</label>
                                 <textarea name="similar_part" class="form-control"
                                     rows="3">{{ $kakotora->similar_part }}</textarea>
                             </div>
                             <div class="form-group">
-                                <label>SECTION</label>
+                                <label>Section</label>
                                 <input type="text" name="section" class="form-control" value="{{ $kakotora->section }}">
                             </div>
                             <div class="form-group">
-                                <label>PROSES</label>
+                                <label>Proses</label>
                                 <input type="text" name="process" class="form-control" value="{{ $kakotora->process }}">
                             </div>
                             <div class="form-group">
-                                <label>PROBLEM</label>
+                                <label>Problem</label>
                                 <textarea name="problem" class="form-control" rows="3">{{ $kakotora->problem }}</textarea>
                             </div>
                             <div class="form-group">
-                                <label>CAUSE</label>
+                                <label>Cause</label>
                                 <textarea name="cause" class="form-control" rows="3">{{ $kakotora->cause }}</textarea>
                             </div>
                             <div class="form-group">
-                                <label>COUNTERMEASURE</label>
+                                <label>Countermeasure</label>
                                 <textarea name="countermeasure" class="form-control"
                                     rows="5">{{ $kakotora->countermeasure }}</textarea>
                             </div>
@@ -126,12 +126,12 @@
                                 <input type="text" name="supplier" class="form-control" value="{{ $kakotora->supplier }}">
                             </div>
                             <div class="form-group">
-                                <label>KATEGORI DEFECT</label>
+                                <label>Kategori Defect</label>
                                 <input type="text" name="defect_category" class="form-control"
                                     value="{{ $kakotora->defect_category }}">
                             </div>
                             <div class="form-group">
-                                <label>STATUS</label>
+                                <label>Status</label>
                                 <select name="status" class="form-control">
                                     <option value="Open" {{ $kakotora->status == 'Open' ? 'selected' : '' }}>Open</option>
                                     <option value="Closed" {{ $kakotora->status == 'Closed' ? 'selected' : '' }}>Closed
@@ -155,7 +155,7 @@
                                     docx, pdf (Max 10MB)</small>
                             </div>
                             <div class="form-group">
-                                <label>REMARKS</label>
+                                <label>Remarks</label>
                                 <textarea name="remarks" class="form-control" rows="2">{{ $kakotora->remarks }}</textarea>
                             </div>
                         </div>

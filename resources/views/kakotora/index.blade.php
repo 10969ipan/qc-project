@@ -7,8 +7,8 @@
                 <div class="row align-items-start">
                     <div class="col-md-8 border-right">
                         <div class="d-flex align-items-center mb-3">
-                            <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase mr-3">
-                                DATABASE KAKOTORA
+                            <h1 class="h4 mb-0 text-gray-800 font-weight-bold mr-3">
+                                Database KAKOTORA
                             </h1>
                             <span class="badge badge-{{ strtolower($plant) === 'jakarta' ? 'info' : 'primary' }}"
                                 style="font-size: 0.8rem;">
@@ -20,25 +20,25 @@
                     <div class="col-md-4 d-flex justify-content-end">
                         <div class="col p-0" style="max-width: 280px;">
                             <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
+                                <div class="col-5 text-xs font-weight-bold text-gray-800">No. Dokumen</div>
                                 <div class="col-7 text-xs font-weight-bold text-gray-800">:
                                     {{ strtoupper($plant) === 'JAKARTA' ? 'ENG-JKT-F-037' : 'ENG-KRW-F-037' }}
                                 </div>
                             </div>
                             <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
+                                <div class="col-5 text-xs font-weight-bold text-gray-800">Tgl. Terbit</div>
                                 <div class="col-7 text-xs font-weight-bold text-gray-800">: 17-06-2020</div>
                             </div>
                             <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi Ke</div>
+                                <div class="col-5 text-xs font-weight-bold text-gray-800">Revisi Ke</div>
                                 <div class="col-7 text-xs font-weight-bold text-gray-800">: 1</div>
                             </div>
                             <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Revisi</div>
+                                <div class="col-5 text-xs font-weight-bold text-gray-800">Tgl. Revisi</div>
                                 <div class="col-7 text-xs font-weight-bold text-gray-800">: 06-04-2023</div>
                             </div>
                             <div class="row">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Hlm</div>
+                                <div class="col-5 text-xs font-weight-bold text-gray-800">Hlm</div>
                                 <div class="col-7 text-xs font-weight-bold text-gray-800">: ... / ...</div>
                             </div>
                         </div>
@@ -69,30 +69,30 @@
                     <table class="table table-bordered" id="dataTableKakotora" width="100%" cellspacing="0">
                         <thead>
                             <tr>
-                                <th>NO</th>
-                                <th>TANGGAL ENTRY</th>
-                                <th>NO REGISTRASI</th>
-                                <th>ISSUE DATE</th>
-                                <th>NO. REVMODEL</th>
-                                <th>FAMILY</th>
-                                <th>CATEGORY (NM / MP)</th>
-                                <th>CLAIM CATEGORY</th>
-                                <th>MODEL</th>
-                                <th>PART NAME</th>
-                                <th>PART NO.</th>
-                                <th>MOULD</th>
-                                <th>OWNER MOULD</th>
-                                <th>SIMILAR PART</th>
-                                <th>SECTION</th>
-                                <th>PROBLEM</th>
-                                <th>PROSES</th>
-                                <th>CAUSE</th>
-                                <th>COUNTERMEASURE</th>
+                                <th>No</th>
+                                <th>Tanggal Entry</th>
+                                <th>No Registrasi</th>
+                                <th>Issue Date</th>
+                                <th>No. Revmodel</th>
+                                <th>Family</th>
+                                <th>Category (NM / MP)</th>
+                                <th>Claim Category</th>
+                                <th>Model</th>
+                                <th>Part Name</th>
+                                <th>Part No.</th>
+                                <th>Mould</th>
+                                <th>Owner Mould</th>
+                                <th class="col-similar-part">Similar Part</th>
+                                <th>Section</th>
+                                <th>Problem</th>
+                                <th>Proses</th>
+                                <th>Cause</th>
+                                <th>Countermeasure</th>
                                 <th>PIC</th>
-                                <th>SUPPLIER</th>
-                                <th>DEFECT CATEGORY</th>
-                                <th>STATUS</th>
-                                <th>AKSI</th>
+                                <th>Supplier</th>
+                                <th>Defect Category</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -112,7 +112,7 @@
                                     <td>{{ $item->part_number ?? '-' }}</td>
                                     <td>{{ $item->mould ?? '-' }}</td>
                                     <td>{{ $item->owner_mould ?? '-' }}</td>
-                                    <td>{{ $item->similar_part ?? '-' }}</td>
+                                    <td class="col-similar-part">{{ $item->similar_part ?? '-' }}</td>
                                     <td>{{ $item->section ?? '-' }}</td>
                                     <td class="col-expandable">{{ $item->problem }}</td>
                                     <td>{{ $item->process ?? '-' }}</td>
@@ -180,7 +180,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalTambahKakotoraLabel">Tambah Data KAKOTORA</h5>
+                    <h5 class="modal-title" id="modalTambahKakotoraLabel">Tambah Data Kakotora</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -192,21 +192,21 @@
                         <div class="row">
                             <div class="col-md-6 border-right">
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">TANGGAL ENTRY</label>
+                                    <label class="small font-weight-bold">Tanggal Entry</label>
                                     <input type="date" name="date" class="form-control form-control-sm"
                                         value="{{ date('Y-m-d') }}">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">NO REGISTRASI</label>
+                                    <label class="small font-weight-bold">No Registrasi</label>
                                     <input type="text" name="no_reg" class="form-control form-control-sm"
                                         placeholder="Input No Registrasi">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">ISSUE DATE</label>
+                                    <label class="small font-weight-bold">Issue Date</label>
                                     <input type="date" name="issue_date" class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">NO. REVMODEL</label>
+                                    <label class="small font-weight-bold">No. Revmodel</label>
                                     <input type="text" name="rev_model" class="form-control form-control-sm"
                                         placeholder="Input No Revmodel">
                                 </div>
@@ -241,39 +241,39 @@
                                         placeholder="Input Model">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">PART NO.</label>
+                                    <label class="small font-weight-bold">Part No.</label>
                                     <input type="text" name="part_number" class="form-control form-control-sm"
                                         placeholder="Input Part Number">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">PART NAME</label>
+                                    <label class="small font-weight-bold">Part Name</label>
                                     <input type="text" name="part_name" class="form-control form-control-sm"
                                         placeholder="Input Part Name">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">MOULD</label>
+                                    <label class="small font-weight-bold">Mould</label>
                                     <input type="text" name="mould" class="form-control form-control-sm"
                                         placeholder="Input Mould">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">OWNER OF MOULD</label>
+                                    <label class="small font-weight-bold">Owner of Mould</label>
                                     <input type="text" name="owner_mould" class="form-control form-control-sm"
                                         placeholder="Input Owner Mould">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">SIMILAR PART</label>
+                                    <label class="small font-weight-bold">Similar Part</label>
                                     <textarea name="similar_part" class="form-control form-control-sm" rows="3"
                                         placeholder="Input Similar Part"></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">SECTION</label>
+                                    <label class="small font-weight-bold">Section</label>
                                     <input type="text" name="section" class="form-control form-control-sm"
                                         placeholder="Input Section">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">PROSES</label>
+                                    <label class="small font-weight-bold">Proses</label>
                                     <input type="text" name="process" class="form-control form-control-sm"
                                         placeholder="Input Proses">
                                 </div>
@@ -303,12 +303,12 @@
                                         placeholder="Input Supplier">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">KATEGORI DEFECT</label>
+                                    <label class="small font-weight-bold">Kategori Defect</label>
                                     <input type="text" name="defect_category" class="form-control form-control-sm"
                                         placeholder="Input Kategori Defect">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">STATUS</label>
+                                    <label class="small font-weight-bold">Status</label>
                                     <select name="status" class="form-control form-control-sm">
                                         <option value="Open">Open</option>
                                         <option value="Closed">Closed</option>
@@ -316,12 +316,12 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">FORM ANALYSIS (PICA / AR / SA / dll)</label>
+                                    <label class="small font-weight-bold">Form Analysis (PICA / AR / SA / dll)</label>
                                     <input type="file" name="form_analysis" class="form-control-file">
                                     <small class="text-muted">Allowed: pptx, xlsx, doc, docx, pdf (Max 10MB)</small>
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">REMARKS</label>
+                                    <label class="small font-weight-bold">Remarks</label>
                                     <textarea name="remarks" class="form-control form-control-sm" rows="2"
                                         placeholder="Input Remarks"></textarea>
                                 </div>
@@ -343,7 +343,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="modalEditKakotoraLabel">Edit Data KAKOTORA</h5>
+                    <h5 class="modal-title" id="modalEditKakotoraLabel">Edit Data Kakotora</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -356,20 +356,20 @@
                         <div class="row">
                             <div class="col-md-6 border-right">
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">TANGGAL ENTRY</label>
+                                    <label class="small font-weight-bold">Tanggal Entry</label>
                                     <input type="date" name="date" id="edit_date" class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">NO REGISTRASI</label>
+                                    <label class="small font-weight-bold">No Registrasi</label>
                                     <input type="text" name="no_reg" id="edit_no_reg" class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">ISSUE DATE</label>
+                                    <label class="small font-weight-bold">Issue Date</label>
                                     <input type="date" name="issue_date" id="edit_issue_date"
                                         class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">NO. REVMODEL</label>
+                                    <label class="small font-weight-bold">No. Revmodel</label>
                                     <input type="text" name="rev_model" id="edit_rev_model"
                                         class="form-control form-control-sm">
                                 </div>
@@ -405,38 +405,38 @@
                                     <input type="text" name="model" id="edit_model" class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">PART NO.</label>
+                                    <label class="small font-weight-bold">Part No.</label>
                                     <input type="text" name="part_number" id="edit_part_number"
                                         class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">PART NAME</label>
+                                    <label class="small font-weight-bold">Part Name</label>
                                     <input type="text" name="part_name" id="edit_part_name"
                                         class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">MOULD</label>
+                                    <label class="small font-weight-bold">Mould</label>
                                     <input type="text" name="mould" id="edit_mould" class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">OWNER OF MOULD</label>
+                                    <label class="small font-weight-bold">Owner of Mould</label>
                                     <input type="text" name="owner_mould" id="edit_owner_mould"
                                         class="form-control form-control-sm">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">SIMILAR PART</label>
+                                    <label class="small font-weight-bold">Similar Part</label>
                                     <textarea name="similar_part" id="edit_similar_part"
                                         class="form-control form-control-sm" rows="3"></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">SECTION</label>
+                                    <label class="small font-weight-bold">Section</label>
                                     <input type="text" name="section" id="edit_section"
                                         class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">PROSES</label>
+                                    <label class="small font-weight-bold">Proses</label>
                                     <input type="text" name="process" id="edit_process"
                                         class="form-control form-control-sm">
                                 </div>
@@ -465,12 +465,12 @@
                                         class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">KATEGORI DEFECT</label>
+                                    <label class="small font-weight-bold">Kategori Defect</label>
                                     <input type="text" name="defect_category" id="edit_defect_category"
                                         class="form-control form-control-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">STATUS</label>
+                                    <label class="small font-weight-bold">Status</label>
                                     <select name="status" id="edit_status" class="form-control form-control-sm">
                                         <option value="Open">Open</option>
                                         <option value="Closed">Closed</option>
@@ -478,14 +478,14 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">FORM ANALYSIS (PICA / AR / SA / dll)</label>
+                                    <label class="small font-weight-bold">Form Analysis (PICA / AR / SA / dll)</label>
                                     <div id="edit_file_preview" class="mb-2"></div>
                                     <input type="file" name="form_analysis" class="form-control-file">
                                     <small class="text-muted">Upload baru untuk ganti file. Allowed: pptx, xlsx, doc, docx,
                                         pdf (Max 10MB)</small>
                                 </div>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">REMARKS</label>
+                                    <label class="small font-weight-bold">Remarks</label>
                                     <textarea name="remarks" id="edit_remarks" class="form-control form-control-sm"
                                         rows="2"></textarea>
                                 </div>
@@ -507,7 +507,6 @@
     <style>
         #dataTableKakotora th {
             font-size: 0.75rem;
-            text-transform: uppercase;
             vertical-align: middle;
             text-align: center;
             white-space: nowrap;
@@ -520,8 +519,18 @@
 
         .col-expandable {
             min-width: 250px !important;
-            white-space: normal !important;
+            white-space: pre-line !important;
             word-wrap: break-word;
+            line-height: 1.5;
+            padding: 10px !important;
+        }
+
+        .col-similar-part {
+            min-width: 450px !important;
+            white-space: pre-line !important;
+            word-wrap: break-word;
+            line-height: 1.5;
+            padding: 10px !important;
         }
 
         .modal-body label {
