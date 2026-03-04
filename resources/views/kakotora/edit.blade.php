@@ -93,8 +93,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>SIMILAR PART</label>
-                                <input type="text" name="similar_part" class="form-control"
-                                    value="{{ $kakotora->similar_part }}">
+                                <textarea name="similar_part" class="form-control"
+                                    rows="3">{{ $kakotora->similar_part }}</textarea>
                             </div>
                             <div class="form-group">
                                 <label>SECTION</label>
@@ -115,7 +115,7 @@
                             <div class="form-group">
                                 <label>COUNTERMEASURE</label>
                                 <textarea name="countermeasure" class="form-control"
-                                    rows="3">{{ $kakotora->countermeasure }}</textarea>
+                                    rows="5">{{ $kakotora->countermeasure }}</textarea>
                             </div>
                             <div class="form-group">
                                 <label>PIC</label>

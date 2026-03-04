@@ -88,8 +88,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>SIMILAR PART</label>
-                                <input type="text" name="similar_part" class="form-control"
-                                    placeholder="Input Similar Part">
+                                <textarea name="similar_part" class="form-control" rows="3"
+                                    placeholder="Input Similar Part"></textarea>
                             </div>
                             <div class="form-group">
                                 <label>SECTION</label>
@@ -110,7 +110,7 @@
                             </div>
                             <div class="form-group">
                                 <label>COUNTERMEASURE</label>
-                                <textarea name="countermeasure" class="form-control" rows="3"
+                                <textarea name="countermeasure" class="form-control" rows="5"
                                     placeholder="Input Countermeasure"></textarea>
                             </div>
                             <div class="form-group">
