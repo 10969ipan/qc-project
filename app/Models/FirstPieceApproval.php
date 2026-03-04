@@ -45,6 +45,7 @@ class FirstPieceApproval extends Model
     protected $casts = [
         'defects' => 'array',
         'dimension_check' => 'array',
+        'part_weight' => 'array',
         'date' => 'date',
     ];
 
