@@ -407,7 +407,7 @@
                                         @foreach($weights as $ci => $wv)
                                             @if($wv !== null && $wv !== '')
                                                 <div class="text-nowrap" style="font-size:0.75rem;">
-                                                    <span class="text-muted">C{{ $ci + 1 }}:</span>
+                                                    <span class="text-muted">CAV{{ $ci + 1 }}:</span>
                                                     <strong>{{ $wv }}</strong><small class="text-muted"> gr</small>
                                                 </div>
                                             @endif
@@ -904,8 +904,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1279,6 +1279,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                        });
+                                                                                                                                                                            });
     </script>
 @endpush

@@ -406,7 +406,7 @@
                                     : ($checksheet->part_weight ? [$checksheet->part_weight] : []));
                         @endphp
                         @forelse(array_filter($weights ?? [], fn($w) => $w !== null && $w !== '') as $ci => $wv)
-                            C{{ $ci+1 }}: {{ $wv }}gr<br>
+                            CAV{{ $ci+1 }}: {{ $wv }}gr<br>
                         @empty
                             -
                         @endforelse

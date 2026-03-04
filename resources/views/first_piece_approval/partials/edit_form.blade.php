@@ -116,7 +116,7 @@
                             @foreach($existingWeights as $cavIdx => $wVal)
                                 <div class="input-group input-group-sm mb-1 edit-weight-cav-row">
                                     <div class="input-group-prepend">
-                                        <span class="input-group-text" style="min-width:52px; justify-content:center; font-weight:600;">Cav {{ $cavIdx + 1 }}</span>
+                                        <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
                                     </div>
                                     <input type="number" step="0.01" min="0" class="form-control text-center"
                                         name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
@@ -740,7 +740,7 @@
             value = value || '';
             return `<div class="input-group input-group-sm mb-1 edit-weight-cav-row">
                 <div class="input-group-prepend">
-                    <span class="input-group-text" style="min-width:52px; justify-content:center; font-weight:600;">Cav ${cavNum}</span>
+                    <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${cavNum}</span>
                 </div>
                 <input type="number" step="0.01" min="0" class="form-control text-center"
                     name="part_weight[]" placeholder="0.00" value="${value}">
