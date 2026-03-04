@@ -68,8 +68,17 @@ class ItemController extends Controller
 
         $this->itemService->createItem($data);
 
-        // Redirect back to the same plant view
-        $queryParams = ['plant' => $data['plant']];
+        // Redirect back to the same plant view with filters and pagination
+        $queryParams = [
+            'plant' => $data['plant'],
+            'page' => $request->input('page'),
+            'search' => $request->input('filter_search'),
+            'name' => $request->input('filter_name'),
+            'category' => $request->input('filter_category'),
+            'customer' => $request->input('filter_customer'),
+            'part_number' => $request->input('filter_part_number'),
+            'sap_code' => $request->input('filter_sap_code'),
+        ];
 
         return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil ditambahkan.');
     }
@@ -124,6 +133,7 @@ class ItemController extends Controller
             'customer' => $request->input('filter_customer'),
             'part_number' => $request->input('filter_part_number'),
             'sap_code' => $request->input('filter_sap_code'),
+            'search' => $request->input('filter_search'),
             'plant' => $request->input('filter_plant'), // Use filter_plant for redirection context
         ];
 
@@ -150,6 +160,8 @@ class ItemController extends Controller
                 'category' => $request->input('category'),
                 'customer' => $request->input('customer'),
                 'part_number' => $request->input('part_number'),
+                'sap_code' => $request->input('sap_code'),
+                'search' => $request->input('search'),
                 'plant' => $request->input('plant'),
             ];
 

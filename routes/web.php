@@ -30,6 +30,9 @@ Route::middleware(['auth'])->group(function () {
     require __DIR__ . '/analysis.php';
     require __DIR__ . '/calibration.php';
 
+    // KAKOTORA
+    Route::resource('kakotora', \App\Http\Controllers\KakotoraController::class);
+
     // Notifications
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');

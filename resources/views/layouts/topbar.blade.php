@@ -272,38 +272,47 @@
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-chart-bar mr-1"></i> Quality System <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu shadow">
+                            <!-- PLANT JAKARTA -->
                             @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                                 <li class="has-submenu">
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
                                             class="fas fa-chevron-right small"></i></a>
                                     <ul class="dropdown-menu sub-menu">
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('calibration.schedule.index', ['plant' => 'jakarta']) }}">Jadwal
-                                                Kalibrasi</a></li>
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('calibration.verifications.index', ['plant' => 'jakarta']) }}">Hasil
-                                                Verif</a></li>
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar
-                                                Alat</a></li>
+                                        <!-- KALIBRASI -->
+                                        <li class="has-submenu">
+                                            <a href="#" class="dropdown-item d-flex justify-content-between border-bottom-0">KALIBRASI <i
+                                                    class="fas fa-chevron-right small"></i></a>
+                                            <ul class="dropdown-menu sub-menu">
+                                                <li><a class="dropdown-item" href="{{ route('calibration.schedule.index', ['plant' => 'jakarta']) }}">Jadwal Kalibrasi</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('calibration.verifications.index', ['plant' => 'jakarta']) }}">Hasil Verif</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar Alat</a></li>
+                                            </ul>
+                                        </li>
+                                        <!-- KAKOTORA -->
+                                        <li><a class="dropdown-item" href="{{ route('kakotora.index', ['plant' => 'jakarta']) }}">KAKOTORA</a></li>
                                     </ul>
                                 </li>
                             @endif
+
+                            <!-- PLANT KARAWANG -->
                             @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                                 <li class="has-submenu">
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
                                             class="fas fa-chevron-right small"></i></a>
                                     <ul class="dropdown-menu sub-menu">
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('calibration.schedule.index', ['plant' => 'karawang']) }}">Jadwal
-                                                Kalibrasi</a></li>
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('calibration.verifications.index', ['plant' => 'karawang']) }}">Hasil
-                                                Verif</a></li>
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar
-                                                Alat</a></li>
+                                        <!-- KALIBRASI -->
+                                        <li class="has-submenu">
+                                            <a href="#" class="dropdown-item d-flex justify-content-between border-bottom-0">KALIBRASI <i
+                                                    class="fas fa-chevron-right small"></i></a>
+                                            <ul class="dropdown-menu sub-menu">
+                                                <li><a class="dropdown-item" href="{{ route('calibration.schedule.index', ['plant' => 'karawang']) }}">Jadwal Kalibrasi</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('calibration.verifications.index', ['plant' => 'karawang']) }}">Hasil Verif</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar Alat</a></li>
+                                            </ul>
+                                        </li>
+                                        <!-- KAKOTORA -->
+                                        <li><a class="dropdown-item" href="{{ route('kakotora.index', ['plant' => 'karawang']) }}">KAKOTORA</a></li>
                                     </ul>
                                 </li>
                             @endif

@@ -208,6 +208,7 @@
                                 </thead>
                                 <tbody>
                                     @forelse($tools as $index => $tool)
+                                        @php /** @var \App\Models\CalibrationTool $tool */ @endphp
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>
@@ -224,7 +225,7 @@
                                             <td>{{ $tool->tanggal_beli ? $tool->tanggal_beli->format('d/m/Y') : '-' }}</td>
                                             <td>{{ $tool->frekuensi_kalibrasi }}</td>
                                             <td>{{ $tool->riwayat_kalibrasi ?? '-' }}</td>
-                                            <td>{{ $tool->jenis_kalibrasi }}</td>
+                                            <td>{{ Str::title($tool->jenis_kalibrasi) }}</td>
                                             <td>
                                                 @php
                                                     $scheduledStatuses = $tool->getScheduledStatuses(date('Y'));
@@ -279,15 +280,24 @@
                                             </td>
                                             <td>
                                                 @php
-                                                    // Determine status icon using schedules directly (not getScheduledStatuses)
+                                                    // Determine status icon using updated scheduled statuses
                                                     $statIcon = '-';
                                                     $statPrDate = '-';
                                                     $statIsClickable = false;
                                                     $statLinkParams = [];
 
-                                                    // Check for schedule with PR in current year
-                                                    $currentSchedule = $tool->schedules->first();
-                                                    $hasVerification = !empty($scheduledStatuses) && $scheduledStatuses[0]->is_ok;
+                                                    // Find the most relevant schedule for display
+                                                    $relevantSchedule = null;
+                                                    if (!empty($scheduledStatuses)) {
+                                                        // Priority 1: First schedule that is NOT OK
+                                                        $relevantSchedule = collect($scheduledStatuses)->first(fn($s) => !$s->is_ok);
+                                                        // Priority 2: If all are OK, take the first one of the year
+                                                        if (!$relevantSchedule) {
+                                                            $relevantSchedule = $scheduledStatuses[0];
+                                                        }
+                                                    }
+
+                                                    $hasVerification = $relevantSchedule ? $relevantSchedule->is_ok : ($tool->status === 'calibrated');
 
                                                     $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
                                                         '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
@@ -297,18 +307,18 @@
                                                     if ($hasVerification) {
                                                         $statIcon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
                                                         $statIsClickable = true;
-                                                        if ($currentSchedule) {
-                                                            $statPrDate = $currentSchedule->pr_date ? \Carbon\Carbon::parse($currentSchedule->pr_date)->format('d/m/Y') : '-';
+                                                        if ($relevantSchedule) {
+                                                            $statPrDate = property_exists($relevantSchedule, 'pr_date') && $relevantSchedule->pr_date ? \Carbon\Carbon::parse($relevantSchedule->pr_date)->format('d/m/Y') : '-';
                                                             $statLinkParams = [
                                                                 'plant' => $plantCode,
                                                                 'tool_id' => $tool->id,
-                                                                'start_date' => \Carbon\Carbon::parse($currentSchedule->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
-                                                                'end_date' => \Carbon\Carbon::parse($currentSchedule->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
+                                                                'start_date' => \Carbon\Carbon::parse($relevantSchedule->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
+                                                                'end_date' => \Carbon\Carbon::parse($relevantSchedule->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
                                                             ];
                                                         }
-                                                    } elseif ($currentSchedule && $currentSchedule->pr_number) {
+                                                    } elseif ($relevantSchedule && !empty($relevantSchedule->pr_number)) {
                                                         $statIcon = '<i class="fas fa-hourglass-half text-primary fa-lg" title="PR Out - Menunggu Verifikasi"></i>';
-                                                        $statPrDate = $currentSchedule->pr_date ? \Carbon\Carbon::parse($currentSchedule->pr_date)->format('d/m/Y') : '-';
+                                                        $statPrDate = $relevantSchedule->pr_date ? \Carbon\Carbon::parse($relevantSchedule->pr_date)->format('d/m/Y') : '-';
                                                     } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
                                                         $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
                                                     } else {
@@ -316,8 +326,8 @@
                                                     }
 
                                                     // Override: warning for approaching/past schedule (only if NOT verified and NO PR)
-                                                    if (!$hasVerification && !($currentSchedule && $currentSchedule->pr_number)) {
-                                                        $schedulePlanDate = $tool->schedule_planning ? \Carbon\Carbon::parse((string) $tool->schedule_planning) : null;
+                                                    if (!$hasVerification && !($relevantSchedule && !empty($relevantSchedule->pr_number))) {
+                                                        $schedulePlanDate = $relevantSchedule ? \Carbon\Carbon::parse((string) $relevantSchedule->schedule_date) : ($tool->schedule_planning ? \Carbon\Carbon::parse((string) $tool->schedule_planning) : null);
                                                         $today = now()->startOfDay();
 
                                                         if ($schedulePlanDate && $today->gt($schedulePlanDate)) {
@@ -490,8 +500,8 @@
                                             <div class="form-group mb-2">
                                                 <label class="small font-weight-bold">Jenis Kalibrasi</label>
                                                 <select name="jenis_kalibrasi" class="form-control form-control-sm" required>
-                                                    <option value="INTERNAL">Internal</option>
-                                                    <option value="EKSTERNAL">Eksternal</option>
+                                                    <option value="Internal">Internal</option>
+                                                    <option value="Eksternal">Eksternal</option>
                                                 </select>
                                             </div>
                                             <div class="form-group mb-2" id="modal-schedule-container">
@@ -609,8 +619,8 @@
                                                         class="text-danger">*</span></label>
                                                 <select name="jenis_kalibrasi" id="edit_jenis_kalibrasi"
                                                     class="form-control form-control-sm" required>
-                                                    <option value="INTERNAL">Internal</option>
-                                                    <option value="EKSTERNAL">Eksternal</option>
+                                                    <option value="Internal">Internal</option>
+                                                    <option value="Eksternal">Eksternal</option>
                                                 </select>
                                             </div>
                                         </div>

@@ -64,6 +64,16 @@ class CalibrationTool extends Model
     {
         $today = now()->startOfDay();
 
+        // 1. Check if the latest verification is still valid (covers TODAY)
+        $latest = $this->latestVerification;
+        if ($latest && $latest->next_kalibrasi && $latest->tanggal_verifikasi) {
+            $vDate = \Carbon\Carbon::parse((string) $latest->tanggal_verifikasi)->startOfDay();
+            $nVDate = \Carbon\Carbon::parse((string) $latest->next_kalibrasi)->startOfDay();
+            if ($vDate->lte($today) && $nVDate->gt($today)) {
+                return 'calibrated';
+            }
+        }
+
         // Get the next upcoming schedule date from the new schedules table
         $nextSchedule = $this->schedules()
             ->where('schedule_date', '>=', $today)
@@ -86,11 +96,21 @@ class CalibrationTool extends Model
 
         $next = \Carbon\Carbon::parse((string) $nextDate)->startOfDay();
 
-        // Check if there is a verification in the same month and year as the next schedule
-        $latestVerification = $this->latestVerification;
-        if ($latestVerification) {
-            $verificationDate = \Carbon\Carbon::parse((string) $latestVerification->tanggal_verifikasi)->startOfDay();
-            if ($verificationDate->format('Y-m') === $next->format('Y-m')) {
+        // Check if there is a verification that covers the next schedule
+        $verifications = $this->verifications()->orderBy('tanggal_verifikasi', 'desc')->get();
+        foreach ($verifications as $v) {
+            if (!$v->tanggal_verifikasi || !$v->next_kalibrasi)
+                continue;
+            $vDate = \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->startOfDay();
+            $nextV = \Carbon\Carbon::parse((string) $v->next_kalibrasi)->startOfDay();
+
+            // If verification covers the next schedule date
+            if ($vDate->lte($next) && \Carbon\Carbon::parse((string) $v->next_kalibrasi)->startOfDay()->gt($next)) {
+                return 'calibrated';
+            }
+
+            // Also accept same month as fallback/legacy
+            if (\Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $next->format('Y-m')) {
                 return 'calibrated';
             }
         }
@@ -121,18 +141,43 @@ class CalibrationTool extends Model
             ->get();
 
         $verifications = $this->verifications()
-            ->whereYear('tanggal_verifikasi', $year)
+            ->orderBy('tanggal_verifikasi', 'desc')
             ->get();
 
         $results = [];
 
+        // Helper to find valid verification for a schedule
+        $findVerification = function ($scheduleDate) use ($verifications) {
+            $sDate = \Carbon\Carbon::parse((string) $scheduleDate)->startOfDay();
+            $month = $sDate->format('Y-m');
+
+            // 1. Check for verification in the same month
+            $v = $verifications->first(function ($v) use ($month) {
+                return $v->tanggal_verifikasi && \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $month;
+            });
+
+            if ($v)
+                return $v;
+
+            // 2. Check for "Early Verification": 
+            // Any verification done BEFORE the schedule date whose NEXT calibration is AFTER the schedule date.
+            $vEarly = $verifications->first(function ($v) use ($sDate) {
+                if (!$v->tanggal_verifikasi || !$v->next_kalibrasi)
+                    return false;
+                $vDate = \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->startOfDay();
+                $nextDate = \Carbon\Carbon::parse((string) $v->next_kalibrasi)->startOfDay();
+
+                // If verification was done before or on schedule, and it covers the schedule
+                return $vDate->lte($sDate) && $nextDate->gt($sDate);
+            });
+
+            return $vEarly;
+        };
+
         // If no schedules in the new table, try fallback to legacy schedule_planning
         if ($schedules->isEmpty()) {
             if ($this->schedule_planning && \Carbon\Carbon::parse((string) $this->schedule_planning)->format('Y') == $year) {
-                $month = \Carbon\Carbon::parse((string) $this->schedule_planning)->format('Y-m');
-                $v = $verifications->first(function ($v) use ($month) {
-                    return $v->tanggal_verifikasi && \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $month;
-                });
+                $v = $findVerification($this->schedule_planning);
 
                 $results[] = (object) [
                     'schedule_date' => $this->schedule_planning,
@@ -143,10 +188,7 @@ class CalibrationTool extends Model
             }
         } else {
             foreach ($schedules as $s) {
-                $month = \Carbon\Carbon::parse((string) $s->schedule_date)->format('Y-m');
-                $v = $verifications->first(function ($v) use ($month) {
-                    return $v->tanggal_verifikasi && \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $month;
-                });
+                $v = $findVerification($s->schedule_date);
 
                 $results[] = (object) [
                     'id' => $s->id,

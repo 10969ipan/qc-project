@@ -197,8 +197,8 @@
                             <label class="small font-weight-bold">Jenis Kalibrasi</label>
                             <select name="jenis_kalibrasi" class="form-control form-control-sm shadow-sm">
                                 <option value="">Semua</option>
-                                <option value="INTERNAL" {{ request('jenis_kalibrasi') === 'INTERNAL' ? 'selected' : '' }}>INTERNAL</option>
-                                <option value="EKSTERNAL" {{ request('jenis_kalibrasi') === 'EKSTERNAL' ? 'selected' : '' }}>EKSTERNAL</option>
+                                <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
+                                <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
                             </select>
                         </div>
                     </div>
@@ -322,7 +322,7 @@
                                     </td>
                                     <td rowspan="2" class="jenis-col align-middle"
                                         style="border-bottom: 2px solid #dee2e6;">
-                                        <div class="small">{{ $tool->jenis_kalibrasi }}</div>
+                                        <div class="small">{{ Str::title($tool->jenis_kalibrasi) }}</div>
                                     </td>
                                     {{-- Status column removed as per request --}}
                                     <td class="status-col text-center">P</td>
