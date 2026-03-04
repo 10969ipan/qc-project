@@ -19,6 +19,8 @@
                     @foreach($items as $item)
                         <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
                             data-part-number="{{ $item->part_number }}"
+                            data-customer="{{ $item->customer }}"
+                            data-weight-standard="{{ $item->weight_standard }}"
                             data-defects="{{ json_encode($item->defects) }}">
                             {{ $item->name }} ({{ $item->customer }})
                         </option>
@@ -85,6 +87,20 @@
                         <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm"
                             value="{{ $checksheet->sampling_qty }}" min="0" required>
                     </div>
+                </div>
+            </div>
+            
+            <div id="editBeratPartRow" style="display: none;">
+                <div class="form-group mb-2">
+                    <label class="small font-weight-bold">Berat Part</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="part_weight" id="edit_part_weight" class="form-control"
+                            value="{{ $checksheet->part_weight }}" placeholder="0">
+                        <div class="input-group-append">
+                            <span class="input-group-text">gr.</span>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1" id="editWeightStandardLabel"></small>
                 </div>
             </div>
         </div>
@@ -597,8 +613,30 @@
             });
         }
 
+        var isInitialLoad = true;
         // Run updates on item change
         $('#item_id').change(function() {
+            var selectedOption = $(this).find('option:selected');
+            var customer = selectedOption.data('customer');
+            var weightStandard = selectedOption.data('weight-standard');
+
+            if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
+                $('#editBeratPartRow').show();
+                if (weightStandard) {
+                    $('#editWeightStandardLabel').html('Standar: <strong>' + weightStandard + ' gr.</strong>');
+                    // Auto-fill if not initial load or if currently empty
+                    if (!isInitialLoad || !$('#edit_part_weight').val()) {
+                        $('#edit_part_weight').val(weightStandard);
+                    }
+                } else {
+                    $('#editWeightStandardLabel').html('Standar: <strong>-</strong>');
+                }
+            } else {
+                $('#editBeratPartRow').hide();
+                $('#edit_part_weight').val('');
+                $('#editWeightStandardLabel').text('');
+            }
+
             updateDefectOptions();
             validateDimensions(); // existing call
         });
@@ -606,6 +644,8 @@
         // Trigger on load to ensure dropdowns have options (if not already populated nicely)
         // Since we manually put the 'selected' option in HTML, we just need to fill the rest.
         updateDefectOptions();
+        $('#item_id').trigger('change');
+        isInitialLoad = false;
 
         $('#editAddDefectBtn').click(function () {
             var rowCount = $('.defect-row').length;

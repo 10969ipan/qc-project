@@ -166,16 +166,17 @@
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
-                            <th rowspan="2" style="align-middle">Item Part</th>
-                            <th rowspan="2" style="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" style="align-middle">Total Qty</th>
-                            <th rowspan="2" style="align-middle">Sampling Qty</th>
-                            <th rowspan="2" style="align-middle">Check Dimensi</th>
-                            <th rowspan="2" style="align-middle; min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
-                            <th rowspan="2" style="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" style="align-middle">Judgment</th>
-                            <th rowspan="2" style="align-middle">Inisial QC</th>
-                            <th rowspan="2" style="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Tanggal / Shift</th>
+                            <th rowspan="2" class="align-middle">Total Qty</th>
+                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle">Check Dimensi</th>
+                            <th rowspan="2" class="align-middle col-berat-part" style="display: none;">Berat Part</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" class="align-middle">Total (OK/NG)</th>
+                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle">Inisial QC</th>
+                            <th rowspan="2" class="align-middle">Keterangan</th>
                         </tr>
                         <tbody>
                             <tr>
@@ -205,8 +206,9 @@
                                                     data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
                                                     data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
-                                                    data-sap-code="{{ $item->sap_code ?? '' }}"
-                                                    data-cavity="{{ $item->cavity }}"
+                                                    data-sap_code="{{ $item->sap_code ?? '' }}"
+                                                    data-cavity="{{ $item->cavity }}" data-customer="{{ $item->customer }}"
+                                                    data-weight-standard="{{ $item->weight_standard }}"
                                                     data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
@@ -313,6 +315,20 @@
                                                 @endfor
                                             </tbody>
                                         </table>
+                                    </div>
+                                </td>
+
+                                <!-- Berat Part (Only for AHM) -->
+                                <td class="align-middle col-berat-part" style="display: none; min-width: 150px;">
+                                    <div class="form-group mb-0">
+                                        <div class="input-group">
+                                            <input type="text" name="part_weight" id="part_weight"
+                                                class="form-control text-center" placeholder="0">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text">gr.</span>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted d-block text-center mt-1" id="weightStandardLabel"></small>
                                     </div>
                                 </td>
 
@@ -1038,6 +1054,25 @@
                 var name = selectedOption.data('name');
                 var description = selectedOption.data('description');
                 var defectsData = selectedOption.data('defects');
+                var customer = selectedOption.data('customer');
+                var weightStandard = selectedOption.data('weight-standard');
+
+                // Toggle Berat Part visibility (Only for AHM)
+                if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
+                    $('.col-berat-part').show();
+                    if (weightStandard) {
+                        $('#weightStandardLabel').html('Standar: <strong>' + weightStandard + ' gr.</strong>');
+                        // Auto-fill input if empty or just changed item
+                        $('#part_weight').val(weightStandard);
+                    } else {
+                        $('#weightStandardLabel').html('Standar: <strong>-</strong>');
+                        $('#part_weight').val('');
+                    }
+                } else {
+                    $('.col-berat-part').hide();
+                    $('#part_weight').val('');
+                    $('#weightStandardLabel').text('');
+                }
 
                 // PDFs for Side-by-Side
                 var standardPdf = selectedOption.data('standard');
@@ -1223,11 +1258,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                                                                            <input type="text"
-                                                                                                                                                                class="form-control form-control-sm dimension-input"
-                                                                                                                                                                style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                                                                placeholder="P${j}">
-                                                                                                                                                        </td>`;
+                                                                                                                                                                                <input type="text"
+                                                                                                                                                                                    class="form-control form-control-sm dimension-input"
+                                                                                                                                                                                    style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                                                                                    placeholder="P${j}">
+                                                                                                                                                                            </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1726,15 +1761,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                                                                    <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                                                                                                                        <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                                                                            style="min-width: 60px;"
-                                                                                                                                                                                                                                                            name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                                                                            placeholder="P${j}">
-                                                                                                                                                                                                                                                    </td>`;
+                                                                                                                                                                                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                                                                                style="min-width: 60px;"
+                                                                                                                                                                                                                                                                                name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                                                                                placeholder="P${j}">
+                                                                                                                                                                                                                                                                        </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1761,11 +1796,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                                                                        <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                                                                            style="min-width: 60px;"
-                                                                                                                                                                                                                                                            name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                                                                            placeholder="P${currentPoints}">
-                                                                                                                                                                                                                                                    </td>`);
+                                                                                                                                                                                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                                                                                style="min-width: 60px;"
+                                                                                                                                                                                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                                                                                placeholder="P${currentPoints}">
+                                                                                                                                                                                                                                                                        </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

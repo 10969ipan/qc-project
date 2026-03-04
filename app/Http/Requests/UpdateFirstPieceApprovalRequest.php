@@ -44,6 +44,7 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
             'total_ng' => 'required|integer|min:0',
             'judgment' => 'required|in:OK,NG',
             'operator_initials' => 'nullable|string',
+            'part_weight' => 'nullable|string',
             'remarks' => 'nullable|string',
             'dimensions' => 'nullable|array',
             'cycle_time' => 'nullable|integer',

@@ -318,6 +318,7 @@ class InProcessChecksheetService extends BaseService
                 'dimension_check' => $dimensionCheck,
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => json_encode($defects),
+                'part_weight' => $data['part_weight'] ?? null,
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ]);
 
@@ -417,6 +418,7 @@ class InProcessChecksheetService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
                 'defects' => json_encode($defects),
+                'part_weight' => $data['part_weight'] ?? null,
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ];
 

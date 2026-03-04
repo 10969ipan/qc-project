@@ -257,7 +257,7 @@
 
     <div class="footer">
         Dicetak pada: {{ date('d/m/Y H:i:s') }}<br>
-        Quality Control Department - PT IPP Jakarta & Karawang
+        Quality Control Department - PT Indoplat Perkasa Purnama Jakarta & Karawang
     </div>
 </body>
 

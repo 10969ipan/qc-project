@@ -146,6 +146,7 @@
                             <th rowspan="2" class="align-middle">Total Qty</th>
                             <th rowspan="2" class="align-middle">Sampling Qty</th>
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
+                            <th rowspan="2" class="align-middle">Berat Part</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
@@ -392,6 +393,10 @@
                                         <span class="text-dark font-weight-bold" style="font-size: 0.8rem;">TIDAK ADA PENGUKURAN
                                             DIMENSI</span>
                                     @endif
+                                </td>
+
+                                <td class="align-middle text-nowrap">
+                                    {{ $checksheet->part_weight ? $checksheet->part_weight . ' gr.' : '-' }}
                                 </td>
 
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
@@ -884,8 +889,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1259,7 +1264,7 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                                });
+                                                                                                                                                                                    });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')

@@ -24,6 +24,7 @@ class FirstPieceApproval extends Model
         'total_ng',
         'judgment',
         'operator_initials',
+        'part_weight',
         'remarks',
         'next_proses',
         'dimension_check',

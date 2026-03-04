@@ -36,6 +36,7 @@ class Item extends Model
         'part_number',
         'sap_code',
         'dimension_standards',
+        'weight_standard',
         'defects',
         'cavity',
     ];

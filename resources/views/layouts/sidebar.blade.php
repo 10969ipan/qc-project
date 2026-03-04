@@ -243,68 +243,6 @@
         </li>
     @endif
 
-    <!-- Quality Service -->
-    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQS" aria-expanded="true"
-                aria-controls="collapseQS">
-                <i class="fas fa-fw fa-chart-bar"></i>
-                <span>Quality System</span>
-            </a>
-            <div id="collapseQS" class="collapse" aria-labelledby="headingQS" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-
-                    <!-- Plant Jakarta -->
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
-                            data-target="#qsPlantJKT">Plant Jakarta</a>
-                        <div id="qsPlantJKT" class="collapse pl-2">
-                            <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
-                                data-target="#qsKalibJKT">Kalibrasi</a>
-                            <div id="qsKalibJKT" class="collapse pl-2">
-                                <a class="collapse-item"
-                                    href="{{ route('calibration.schedule.index', ['plant' => 'jakarta']) }}">Jadwal
-                                    Kalibrasi</a>
-                                <a class="collapse-item"
-                                    href="{{ route('calibration.verifications.index', ['plant' => 'jakarta']) }}">Hasil
-                                    verifikasi</a>
-                                <a class="collapse-item"
-                                    href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar Alat</a>
-                            </div>
-                        </div>
-                    @endif
-
-                    <div class="dropdown-divider"></div>
-
-                    <!-- Plant Karawang -->
-                    @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                        <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
-                            data-target="#qsPlantKRW">Plant Karawang</a>
-                        <div id="qsPlantKRW" class="collapse pl-2">
-                            <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
-                                data-target="#qsKalibKRW">Kalibrasi</a>
-                            <div id="qsKalibKRW" class="collapse pl-2">
-                                <a class="collapse-item"
-                                    href="{{ route('calibration.schedule.index', ['plant' => 'karawang']) }}">Jadwal
-                                    Kalibrasi</a>
-                                <a class="collapse-item"
-                                    href="{{ route('calibration.verifications.index', ['plant' => 'karawang']) }}">Hasil
-                                    verifikasi</a>
-                                <a class="collapse-item"
-                                    href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar Alat</a>
-                            </div>
-                        </div>
-                    @endif
-
-                </div>
-            </div>
-        </li>
-    @endif
-
-
-
-
-
     @if(auth()->check() && (auth()->user()->plant && auth()->user()->plant->code !== 'jakarta') && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
         <!-- Nav Item - Cross Cut Only (For Plating Roles) -->
         <li class="nav-item">

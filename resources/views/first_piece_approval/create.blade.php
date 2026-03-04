@@ -171,6 +171,7 @@
                             <th rowspan="2" style="align-middle">Total Qty</th>
                             <th rowspan="2" style="align-middle">Sampling Qty</th>
                             <th rowspan="2" style="align-middle">Check Dimensi</th>
+                            <th rowspan="2" class="align-middle col-berat-part" style="display: none;">Berat Part</th>
                             <th rowspan="2" style="align-middle; min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
                             <th rowspan="2" style="align-middle">Total (OK/NG)</th>
                             <th rowspan="2" style="align-middle">Judgment</th>
@@ -206,7 +207,8 @@
                                                     data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}"
-                                                    data-cavity="{{ $item->cavity }}"
+                                                    data-cavity="{{ $item->cavity }}" data-customer="{{ $item->customer }}"
+                                                    data-weight-standard="{{ $item->weight_standard }}"
                                                     data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
@@ -313,6 +315,19 @@
                                                 @endfor
                                             </tbody>
                                         </table>
+                                    </div>
+                                </td>
+
+                                <!-- Berat Part (Conditional) -->
+                                <td class="align-middle col-berat-part" style="display: none;">
+                                    <div class="form-group mb-0">
+                                        <input type="number" step="0.01" class="form-control text-center" name="part_weight"
+                                            id="partWeightInput" placeholder="0.00" style="min-width: 100px;">
+                                        <div class="text-center mt-1">
+                                            <span class="badge badge-secondary" id="weightStandardBadge"
+                                                style="display: none;">Standar: <span id="weightStandardDisplay">-</span>
+                                                gr.</span>
+                                        </div>
                                     </div>
                                 </td>
 
@@ -999,6 +1014,26 @@
                 var description = selectedOption.data('description');
                 var defectsData = selectedOption.data('defects');
 
+                var customer = selectedOption.data('customer');
+                var weightStandard = selectedOption.data('weight-standard');
+
+                // --- Berat Part Logic ---
+                if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
+                    $('.col-berat-part').attr('style', 'display: table-cell !important;');
+                    if (weightStandard) {
+                        $('#partWeightInput').val(weightStandard);
+                        $('#weightStandardDisplay').text(weightStandard);
+                        $('#weightStandardBadge').show();
+                    } else {
+                        $('#partWeightInput').val('');
+                        $('#weightStandardBadge').hide();
+                    }
+                } else {
+                    $('.col-berat-part').attr('style', 'display: none !important;');
+                    $('#partWeightInput').val('');
+                    $('#weightStandardBadge').hide();
+                }
+
                 // PDFs for Side-by-Side
                 var standardPdf = selectedOption.data('standard');
                 var similarPdf = selectedOption.data('similar');
@@ -1171,11 +1206,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                                        <input type="text"
-                                                                                                                            class="form-control form-control-sm dimension-input"
-                                                                                                                            style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                            placeholder="P${j}">
-                                                                                                                    </td>`;
+                                                                                                                                    <input type="text"
+                                                                                                                                        class="form-control form-control-sm dimension-input"
+                                                                                                                                        style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                                        placeholder="P${j}">
+                                                                                                                                </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1542,6 +1577,9 @@
 
                 // Reset select2 if used (standard select used here)
                 $('#itemSelect').val('').trigger('change');
+                $('#partWeightInput').val('');
+                $('.col-berat-part').hide();
+                $('#weightStandardBadge').hide();
             }
 
             // Optional: Reset timer on form reset
@@ -1676,15 +1714,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                                                                                    <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                                        style="min-width: 60px;"
-                                                                                                                                                                                                                        name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                                        placeholder="P${j}">
-                                                                                                                                                                                                                </td>`;
+                                                                                                                                                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                                    style="min-width: 60px;"
+                                                                                                                                                                                                                                    name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                                    placeholder="P${j}">
+                                                                                                                                                                                                                            </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1711,11 +1749,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                                    <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                                        style="min-width: 60px;"
-                                                                                                                                                                                                                        name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                                        placeholder="P${currentPoints}">
-                                                                                                                                                                                                                </td>`);
+                                                                                                                                                                                                                                <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                                    style="min-width: 60px;"
+                                                                                                                                                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                                    placeholder="P${currentPoints}">
+                                                                                                                                                                                                                            </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

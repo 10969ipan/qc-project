@@ -47,6 +47,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'dimensions' => 'nullable|array',
+            'part_weight' => 'nullable|numeric|min:0',
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',

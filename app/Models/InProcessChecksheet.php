@@ -27,6 +27,7 @@ class InProcessChecksheet extends Model
         'remarks',
         'next_proses',
         'dimension_check', // New field
+        'part_weight', // Added for AHM
         'defects', // JSON or serialized
         'approval_status',
         'kashift_qc',

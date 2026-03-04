@@ -38,6 +38,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'dimensions' => 'nullable|array',
+            'part_weight' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',

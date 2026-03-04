@@ -19,6 +19,8 @@
                     @foreach($items as $item)
                         <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
                             data-part-number="{{ $item->part_number }}"
+                            data-customer="{{ $item->customer }}"
+                            data-weight-standard="{{ $item->weight_standard }}"
                             data-defects="{{ json_encode($item->defects) }}">
                             {{ $item->name }} ({{ $item->customer }})
                         </option>
@@ -84,6 +86,23 @@
                         <label class="small font-weight-bold">Sampling Qty <span class="text-danger">*</span></label>
                         <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm"
                             value="{{ $checksheet->sampling_qty }}" min="0" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="editBeratPartContainer" style="display: none;">
+                <div class="col-12">
+                    <div class="form-group mb-2">
+                        <label class="small font-weight-bold">Berat Part (gr.)</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" step="0.01" name="part_weight" id="editPartWeightInput"
+                                class="form-control" value="{{ $checksheet->part_weight }}" placeholder="0.00">
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-light small" id="editWeightStandardBadge"
+                                    style="display: none;">Std: <span
+                                        id="editWeightStandardDisplay">-</span></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -597,9 +616,37 @@
 
         // Run updates on item change
         $('#item_id').change(function() {
+            var selectedOption = $(this).find('option:selected');
+            var customer = selectedOption.data('customer');
+            var weightStandard = selectedOption.data('weight-standard');
+
+            // --- Berat Part Logic ---
+            if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
+                $('#editBeratPartContainer').attr('style', 'display: table-cell !important;');
+                if (weightStandard) {
+                    $('#editWeightStandardDisplay').text(weightStandard);
+                    $('#editWeightStandardBadge').show();
+                    // If opening for edit and weight is empty, maybe auto-fill? 
+                    // But usually for edit we keep what's stored.
+                    // If user CHANGES the item, we might want to auto-fill the standard weight.
+                    if (!$('#editPartWeightInput').val()) {
+                         $('#editPartWeightInput').val(weightStandard);
+                    }
+                } else {
+                    $('#editWeightStandardBadge').hide();
+                }
+            } else {
+                $('#editBeratPartContainer').attr('style', 'display: none !important;');
+                $('#editPartWeightInput').val('');
+                $('#editWeightStandardBadge').hide();
+            }
+
             updateDefectOptions();
             validateDimensions(); // existing call
         });
+
+        // Initial Trigger for Berat Part visibility
+        $('#item_id').trigger('change');
 
         // Trigger on load to ensure dropdowns have options (if not already populated nicely)
         // Since we manually put the 'selected' option in HTML, we just need to fill the rest.

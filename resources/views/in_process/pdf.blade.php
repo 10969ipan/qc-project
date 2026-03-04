@@ -55,7 +55,8 @@
         .w-barang { width: 13%; }
         .w-part-no { width: 12%; }
         .w-cust { width: 12%; }
-        .w-dimensi { width: 45%; }
+        .w-dimensi { width: 41%; }
+        .w-weight { width: 4%; }
         .w-ket { width: 8%; }
 
         /* Compact columns: prevent expansion beyond header text */
@@ -215,6 +216,7 @@
                 <th rowspan="2" class="col-compact">Total</th>
                 <th rowspan="2" class="col-compact">Smpl</th>
                 <th rowspan="2" class="w-dimensi">Check Dimensi</th>
+                <th rowspan="2" class="w-weight">Berat Part</th>
                 <th rowspan="2" class="col-compact">OK</th>
                 <th rowspan="2" class="col-compact">NG</th>
                 <th colspan="2" class="col-compact">Detail NG</th>
@@ -394,6 +396,10 @@
                         @else
                             <div style="padding: 5px;">-</div>
                         @endif
+                    </td>
+
+                    <td class="col-compact" style="white-space: nowrap;">
+                        {{ $checksheet->part_weight ? $checksheet->part_weight . ' gr.' : '-' }}
                     </td>
 
                     <td class="col-compact text-success">{{ $checksheet->total_ok }}</td>

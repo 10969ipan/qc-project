@@ -65,6 +65,7 @@ class UpdateItemRequest extends FormRequest
             'customer' => 'nullable|string',
             'part_number' => 'nullable|string',
             'cavity' => 'nullable|integer|min:1',
+            'weight_standard' => 'nullable|string|max:100',
             'sap_code' => [
                 'nullable',
                 'string',
