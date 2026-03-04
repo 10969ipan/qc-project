@@ -392,42 +392,42 @@
                                                 class="form-control form-control-sm" required>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group mb-2">
-                                                <label class="small font-weight-bold">Judgment <span
-                                                        class="text-danger">*</span></label>
-                                                <select name="judgment" id="edit_judgment"
-                                                    class="form-control form-control-sm" required>
-                                                    <option value="OK">OK</option>
-                                                    <option value="NG">NG</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group mb-2">
-                                                <label class="small font-weight-bold">Std. Toleransi</label>
-                                                <input type="text" name="std_toleransi" id="edit_std_toleransi"
-                                                    class="form-control form-control-sm">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group mb-2">
-                                                <label class="small font-weight-bold">Acuan Toleransi</label>
-                                                <input type="text" name="acuan_toleransi" id="edit_acuan_toleransi"
-                                                    class="form-control form-control-sm">
-                                            </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group mb-2">
+                                            <label class="small font-weight-bold">Judgment <span
+                                                    class="text-danger">*</span></label>
+                                            <select name="judgment" id="edit_judgment" class="form-control form-control-sm"
+                                                required>
+                                                <option value="OK">OK</option>
+                                                <option value="NG">NG</option>
+                                            </select>
                                         </div>
                                     </div>
-                                    <div class="form-group mb-0">
-                                        <label class="small font-weight-bold">Upload PDF Baru (Sertifikat)</label>
-                                        <input type="file" name="certification" class="form-control-file" accept=".pdf">
-                                        <div id="edit_existing_pdf" class="mt-1"></div>
+                                    <div class="col-md-4">
+                                        <div class="form-group mb-2">
+                                            <label class="small font-weight-bold">Std. Toleransi</label>
+                                            <input type="text" name="std_toleransi" id="edit_std_toleransi"
+                                                class="form-control form-control-sm">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group mb-2">
+                                            <label class="small font-weight-bold">Acuan Toleransi</label>
+                                            <input type="text" name="acuan_toleransi" id="edit_acuan_toleransi"
+                                                class="form-control form-control-sm">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                <div class="form-group mb-0">
+                                    <label class="small font-weight-bold">Upload PDF Baru (Sertifikat)</label>
+                                    <input type="file" name="certification" class="form-control-file" accept=".pdf">
+                                    <div id="edit_existing_pdf" class="mt-1"></div>
+                                </div>
+                        </div>
 
-                            <hr class="my-3">
+                        <hr class="my-3">
 
                             <div class="form-group mb-0">
                                 <label class="font-weight-bold small d-flex justify-content-between align-items-center">
@@ -576,46 +576,51 @@
                         </div>
 
                         {{-- Table Detail Verifikasi --}}
-                        <div class="card bg-light mb-3">
-                            <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 font-weight-bold small">Detail Verifikasi</h6>
-                                <button type="button" class="btn btn-xs btn-info" id="modal-add-row">
-                                    <i class="fas fa-plus"></i> Tambah Baris
-                                </button>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-sm mb-0">
-                                        <thead class="bg-white small">
-                                            <tr class="text-center">
-                                                <th style="min-width: 120px;">Nilai Alat</th>
-                                                <th style="min-width: 120px;">Nilai Koreksi</th>
-                                                <th style="min-width: 120px;">Ketidakpastian</th>
-                                                <th style="min-width: 150px;">Hasil Verifikasi<br><small
-                                                        class="text-muted">(Koreksi +
-                                                        Ketidakpastian)</small></th>
-                                                <th style="width: 40px;"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="modal-verification-body">
-                                            <tr>
-                                                <td><input type="text" name="nilai_alat[]"
-                                                        class="form-control form-control-sm"></td>
-                                                <td><input type="text" name="nilai_koreksi[]"
-                                                        class="form-control form-control-sm calc-input"></td>
-                                                <td><input type="text" name="nilai_ketidakpastian[]"
-                                                        class="form-control form-control-sm calc-input"></td>
-                                                <td><input type="text" name="hasil_verifikasi[]"
-                                                        class="form-control form-control-sm bg-light" readonly></td>
-                                                <td class="text-center">
-                                                    <button type="button"
-                                                        class="btn btn-sm btn-outline-danger modal-remove-row" disabled>
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 font-weight-bold small">Detail Verifikasi</h6>
+                                        <button type="button" class="btn btn-xs btn-info" id="modal-add-row">
+                                            <i class="fas fa-plus"></i> Tambah Baris
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm mb-0">
+                                                <thead class="bg-white small">
+                                                    <tr class="text-center">
+                                                        <th style="min-width: 120px;">Nilai Alat</th>
+                                                        <th style="min-width: 120px;">Nilai Koreksi</th>
+                                                        <th style="min-width: 120px;">Ketidakpastian</th>
+                                                        <th style="min-width: 150px;">Hasil Verifikasi<br><small
+                                                                class="text-muted">(Koreksi +
+                                                                Ketidakpastian)</small></th>
+                                                        <th style="width: 40px;"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="modal-verification-body">
+                                                    <tr>
+                                                        <td><input type="text" name="nilai_alat[]"
+                                                                class="form-control form-control-sm"></td>
+                                                        <td><input type="text" name="nilai_koreksi[]"
+                                                                class="form-control form-control-sm calc-input"></td>
+                                                        <td><input type="text" name="nilai_ketidakpastian[]"
+                                                                class="form-control form-control-sm calc-input"></td>
+                                                        <td><input type="text" name="hasil_verifikasi[]"
+                                                                class="form-control form-control-sm bg-light" readonly></td>
+                                                        <td class="text-center">
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-outline-danger modal-remove-row"
+                                                                disabled>
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -649,9 +654,13 @@
                             </div>
                         </div>
 
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Sertifikasi (PDF)</label>
-                            <input type="file" name="certification" class="form-control-file small" accept=".pdf">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group mb-0">
+                                    <label class="small font-weight-bold">Sertifikasi (PDF)</label>
+                                    <input type="file" name="certification" class="form-control-file small" accept=".pdf">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer bg-light p-2">
