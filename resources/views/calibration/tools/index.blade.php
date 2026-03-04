@@ -297,7 +297,7 @@
                                                             }
                                                         }
 
-                                                        $hasVerification = $tool->verifications->count() > 0;
+                                                        $hasVerification = $tool->all_verifications_count > 0;
 
                                                         $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
                                                             '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .

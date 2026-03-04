@@ -114,6 +114,7 @@ class CalibrationController extends Controller
         $plant = Plant::where('code', $plantCode)->first();
 
         $query = CalibrationTool::where('plant_id', $plant->id)
+            ->withCount('verifications as all_verifications_count')
             ->with([
                 'verifications' => function ($q) {
                     $q->whereYear('tanggal_verifikasi', date('Y'));
