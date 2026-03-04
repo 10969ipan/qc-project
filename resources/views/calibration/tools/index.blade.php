@@ -297,7 +297,7 @@
                                                             }
                                                         }
 
-                                                        $hasVerification = $relevantSchedule ? $relevantSchedule->is_ok : ($tool->status === 'calibrated');
+                                                        $hasVerification = $tool->verifications->count() > 0;
 
                                                         $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
                                                             '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
@@ -314,6 +314,12 @@
                                                                     'tool_id' => $tool->id,
                                                                     'start_date' => \Carbon\Carbon::parse($relevantSchedule->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
                                                                     'end_date' => \Carbon\Carbon::parse($relevantSchedule->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
+                                                                ];
+                                                            } else {
+                                                                // No schedule data, just link to verifications filtered by tool
+                                                                $statLinkParams = [
+                                                                    'plant' => $plantCode,
+                                                                    'tool_id' => $tool->id,
                                                                 ];
                                                             }
                                                         } elseif ($relevantSchedule && !empty($relevantSchedule->pr_number)) {
