@@ -764,14 +764,14 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
 
-                                    {{-- Table Detail Verifikasi --}}
-                                        <div class="card bg-light mb-3">
-                                            <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                                                <h6 class="m-0 font-weight-bold small">Detail Verifikasi</h6>
-                                                <button type="button" class="btn btn-xs btn-info" id="modal-verif-add-row">
+                                        {{-- Table Detail Verifikasi --}}
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="card bg-light mb-3">
+                                                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                                        <h6 class="m-0 font-weight-bold small">Detail Verifikasi</h6>
+                                                        <button type="button" class="btn btn-xs btn-info" id="modal-verif-add-row">
                                                     <i class="fas fa-plus"></i> Tambah Baris
                                                 </button>
                                             </div>
@@ -810,13 +810,15 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group mb-2">
-                                                    <label class="small font-weight-bold">Judgment <span
-                                                            class="text-danger">*</span></label>
-                                                    <select name="judgment" class="form-control form-control-sm" required>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group mb-2">
+                                            <label class="small font-weight-bold">Judgment <span
+                                                    class="text-danger">*</span></label>
+                                            <select name="judgment" class="form-control form-control-sm" required>
                                                         <option value="OK">OK</option>
                                                         <option value="NG">NG</option>
                                                     </select>
@@ -1240,6 +1242,7 @@
                     if (tool.schedules && tool.schedules.length > 0) {
                         tool.schedules.forEach(function (sch) {
                             schHtml += `
+                                                                        <tr>
                                                                             <td>
                                                                                 <input type="hidden" name="schedule_ids[]" value="${sch.id}">
                                                                                 <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date_formatted}" required>
