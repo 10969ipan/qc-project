@@ -17,7 +17,6 @@ class CalibrationVerification extends Model
         'rentang_ukur',
         'resolusi',
         'frekuensi_kalibrasi',
-        'lokasi_penyimpanan',
         'tanggal_kalibrasi',
         'tanggal_verifikasi',
         'next_kalibrasi',

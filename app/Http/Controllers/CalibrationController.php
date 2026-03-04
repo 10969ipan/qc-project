@@ -166,7 +166,6 @@ class CalibrationController extends Controller
                     ->orWhere('serial_number', 'LIKE', "%{$search}%")
                     ->orWhere('range', 'LIKE', "%{$search}%")
                     ->orWhere('resolusi', 'LIKE', "%{$search}%")
-                    ->orWhere('lokasi_pakai', 'LIKE', "%{$search}%")
                     ->orWhere('frekuensi_kalibrasi', 'LIKE', "%{$search}%")
                     ->orWhere('riwayat_kalibrasi', 'LIKE', "%{$search}%")
                     ->orWhere('jenis_kalibrasi', 'LIKE', "%{$search}%")
@@ -238,7 +237,6 @@ class CalibrationController extends Controller
             ],
             'range' => 'required|string',
             'resolusi' => 'required|string',
-            'lokasi_pakai' => 'required|string',
             'tanggal_beli' => 'required|date',
             'frekuensi_kalibrasi' => 'required|string',
             'jenis_kalibrasi' => 'required|string',
@@ -336,7 +334,6 @@ class CalibrationController extends Controller
             ],
             'range' => 'nullable|string',
             'resolusi' => 'nullable|string',
-            'lokasi_pakai' => 'nullable|string',
             'tanggal_beli' => 'nullable|date',
             'frekuensi_kalibrasi' => 'required|string',
             'jenis_kalibrasi' => 'required|string',
@@ -695,7 +692,6 @@ class CalibrationController extends Controller
         $data .= "Serial Number: " . $verification->serial_number . "\n";
         $data .= "Rentang Ukur: " . $verification->rentang_ukur . "\n";
         $data .= "Resolusi: " . $verification->resolusi . "\n";
-        $data .= "Lokasi: " . $verification->lokasi_penyimpanan . "\n";
         $data .= "Tgl Kalibrasi: " . ($verification->tanggal_kalibrasi ? \Carbon\Carbon::parse($verification->tanggal_kalibrasi)->format('d/m/Y') : '-') . "\n";
         $data .= "Tgl Verifikasi: " . ($verification->tanggal_verifikasi ? \Carbon\Carbon::parse($verification->tanggal_verifikasi)->format('d/m/Y') : '-') . "\n";
         $data .= "Next Kalibrasi: " . ($verification->next_kalibrasi ? \Carbon\Carbon::parse($verification->next_kalibrasi)->format('d/m/Y') : '-') . "\n";
@@ -901,7 +897,6 @@ class CalibrationController extends Controller
                     'rentang_ukur' => 'required|string',
                     'resolusi' => 'required|string',
                     'frekuensi_kalibrasi' => 'required|string',
-                    'lokasi_penyimpanan' => 'required|string',
                     'tanggal_kalibrasi' => 'required|date',
                     'tanggal_verifikasi' => 'required|date',
                     'next_kalibrasi' => 'required|date',
@@ -938,10 +933,18 @@ class CalibrationController extends Controller
 
             CalibrationVerification::create($data);
 
-            // Update tool's schedule planning
+            // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
             if ($tool) {
-                $tool->update(['schedule_planning' => $request->next_kalibrasi]);
+                $tool->update([
+                    'name_alat' => $request->name_alat,
+                    'merk' => $request->merk,
+                    'serial_number' => $request->serial_number,
+                    'range' => $request->rentang_ukur,
+                    'resolusi' => $request->resolusi,
+                    'frekuensi_kalibrasi' => $request->frekuensi_kalibrasi,
+                    'schedule_planning' => $request->next_kalibrasi
+                ]);
 
                 // Sync next_kalibrasi to schedules table if it doesn't exist
                 $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();
@@ -1005,7 +1008,6 @@ class CalibrationController extends Controller
                     'rentang_ukur' => 'required|string',
                     'resolusi' => 'required|string',
                     'frekuensi_kalibrasi' => 'required|string',
-                    'lokasi_penyimpanan' => 'required|string',
                     'tanggal_kalibrasi' => 'required|date',
                     'tanggal_verifikasi' => 'required|date',
                     'next_kalibrasi' => 'required|date',
@@ -1046,10 +1048,18 @@ class CalibrationController extends Controller
 
             $verification->update($data);
 
-            // Update tool's schedule planning if next_kalibrasi is later
+            // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
             if ($tool) {
-                $tool->update(['schedule_planning' => $request->next_kalibrasi]);
+                $tool->update([
+                    'name_alat' => $request->name_alat,
+                    'merk' => $request->merk,
+                    'serial_number' => $request->serial_number,
+                    'range' => $request->rentang_ukur,
+                    'resolusi' => $request->resolusi,
+                    'frekuensi_kalibrasi' => $request->frekuensi_kalibrasi,
+                    'schedule_planning' => $request->next_kalibrasi
+                ]);
 
                 // Sync next_kalibrasi to schedules table if it doesn't exist
                 $exists = $tool->schedules()->where('schedule_date', $request->next_kalibrasi)->exists();

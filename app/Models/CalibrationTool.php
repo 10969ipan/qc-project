@@ -16,7 +16,6 @@ class CalibrationTool extends Model
         'serial_number',
         'range',
         'resolusi',
-        'lokasi_pakai',
         'tanggal_beli',
         'frekuensi_kalibrasi',
         'riwayat_kalibrasi',

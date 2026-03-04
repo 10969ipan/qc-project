@@ -193,17 +193,15 @@
             <td class="label">Rentang Ukur</td>
             <td>:</td>
             <td class="value">{{ $verification->rentang_ukur }}</td>
-            <td class="label">Lokasi Penyimpanan</td>
-            <td>:</td>
-            <td class="value">{{ $verification->lokasi_penyimpanan }}</td>
-        </tr>
-        <tr>
             <td class="label">Resolusi</td>
             <td>:</td>
             <td class="value">{{ $verification->resolusi }}</td>
+        </tr>
+        <tr>
             <td class="label">Plant</td>
             <td>:</td>
             <td class="value">{{ strtoupper($plantCode) }}</td>
+            <td colspan="3"></td>
         </tr>
     </table>
 

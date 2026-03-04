@@ -1,4 +1,4 @@
-<footer class="sticky-footer bg-white"
+<footer class="sticky-footer bg-white "
     style="padding: 12px 0 !important; height: auto !important; z-index: 10 !important; border-top: 1px solid #e3e6f0;">
     <div class="container-fluid px-3 px-md-4 my-auto">
         <div class="copyright text-center my-auto">
