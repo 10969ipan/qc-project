@@ -392,76 +392,76 @@
                                                 class="form-control form-control-sm" required>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="form-group mb-2">
-                                            <label class="small font-weight-bold">Judgment <span
-                                                    class="text-danger">*</span></label>
-                                            <select name="judgment" id="edit_judgment" class="form-control form-control-sm"
-                                                required>
-                                                <option value="OK">OK</option>
-                                                <option value="NG">NG</option>
-                                            </select>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-2">
+                                                <label class="small font-weight-bold">Judgment <span
+                                                        class="text-danger">*</span></label>
+                                                <select name="judgment" id="edit_judgment"
+                                                    class="form-control form-control-sm" required>
+                                                    <option value="OK">OK</option>
+                                                    <option value="NG">NG</option>
+                                                </select>
+                                            </div>
                                         </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-2">
+                                                <label class="small font-weight-bold">Std. Toleransi</label>
+                                                <input type="text" name="std_toleransi" id="edit_std_toleransi"
+                                                    class="form-control form-control-sm">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-2">
+                                                <label class="small font-weight-bold">Acuan Toleransi</label>
+                                                <input type="text" name="acuan_toleransi" id="edit_acuan_toleransi"
+                                                    class="form-control form-control-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">Upload PDF Baru (Sertifikat)</label>
+                                        <input type="file" name="certification" class="form-control-file" accept=".pdf">
+                                        <div id="edit_existing_pdf" class="mt-1"></div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group mb-2">
-                                            <label class="small font-weight-bold">Std. Toleransi</label>
-                                            <input type="text" name="std_toleransi" id="edit_std_toleransi"
-                                                class="form-control form-control-sm">
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-group mb-2">
-                                            <label class="small font-weight-bold">Acuan Toleransi</label>
-                                            <input type="text" name="acuan_toleransi" id="edit_acuan_toleransi"
-                                                class="form-control form-control-sm">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group mb-0">
-                                    <label class="small font-weight-bold">Upload PDF Baru (Sertifikat)</label>
-                                    <input type="file" name="certification" class="form-control-file" accept=".pdf">
-                                    <div id="edit_existing_pdf" class="mt-1"></div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="form-group mb-0">
+                                <label class="font-weight-bold small d-flex justify-content-between align-items-center">
+                                    Data Pengukuran & Koreksi
+                                    <button type="button" class="btn btn-xs btn-success" id="edit-modal-add-row">
+                                        <i class="fas fa-plus"></i> Tambah Baris
+                                    </button>
+                                </label>
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-bordered table-sm mb-0">
+                                        <thead class="bg-light small">
+                                            <tr class="text-center">
+                                                <th style="min-width: 120px;">Nilai Ditunjukkan Alat</th>
+                                                <th style="min-width: 120px;">Nilai Koreksi Alat</th>
+                                                <th style="min-width: 120px;">Nilai Ketidakpastian</th>
+                                                <th style="min-width: 150px;">Hasil Verifikasi<br><small
+                                                        class="text-muted">(Koreksi +
+                                                        Ketidakpastian)</small></th>
+                                                <th width="40"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="edit-modal-verification-body">
+                                            {{-- Will be filled by JS --}}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-
-                        <hr class="my-3">
-
-                        <div class="form-group mb-0">
-                            <label class="font-weight-bold small d-flex justify-content-between align-items-center">
-                                Data Pengukuran & Koreksi
-                                <button type="button" class="btn btn-xs btn-success" id="edit-modal-add-row">
-                                    <i class="fas fa-plus"></i> Tambah Baris
-                                </button>
-                            </label>
-                            <div class="table-responsive mt-2">
-                                <table class="table table-bordered table-sm mb-0">
-                                    <thead class="bg-light small">
-                                        <tr class="text-center">
-                                            <th>Nilai yang Ditunjukkan Alat</th>
-                                            <th>Nilai Koreksi Alat</th>
-                                            <th>Nilai Ketidakpastian</th>
-                                            <th>Hasil Verifikasi<br><small class="text-muted">(Koreksi +
-                                                    Ketidakpastian)</small></th>
-                                            <th width="40"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="edit-modal-verification-body">
-                                        {{-- Will be filled by JS --}}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="modal-footer bg-light p-2">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-warning btn-sm px-4 shadow-sm">
+                                <i class="fas fa-save mr-1"></i> Update
+                            </button>
                         </div>
-                    </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-warning btn-sm px-4 shadow-sm">
-                            <i class="fas fa-save mr-1"></i> Update
-                        </button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -588,10 +588,11 @@
                                     <table class="table table-bordered table-sm mb-0">
                                         <thead class="bg-white small">
                                             <tr class="text-center">
-                                                <th>Nilai Alat</th>
-                                                <th>Nilai Koreksi</th>
-                                                <th>Ketidakpastian</th>
-                                                <th>Hasil Verifikasi<br><small class="text-muted">(Koreksi +
+                                                <th style="min-width: 120px;">Nilai Alat</th>
+                                                <th style="min-width: 120px;">Nilai Koreksi</th>
+                                                <th style="min-width: 120px;">Ketidakpastian</th>
+                                                <th style="min-width: 150px;">Hasil Verifikasi<br><small
+                                                        class="text-muted">(Koreksi +
                                                         Ketidakpastian)</small></th>
                                                 <th style="width: 40px;"></th>
                                             </tr>
@@ -620,7 +621,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">Judgment <span
                                             class="text-danger">*</span></label>
@@ -630,18 +631,20 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">Std. Toleransi <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" name="std_toleransi" class="form-control form-control-sm" required>
+                                    <input type="text" name="std_toleransi" class="form-control form-control-sm" required
+                                        placeholder="Input Std. Toleransi">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold">Acuan Toleransi <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" name="acuan_toleransi" class="form-control form-control-sm" required>
+                                    <input type="text" name="acuan_toleransi" class="form-control form-control-sm" required
+                                        placeholder="Input Acuan Toleransi">
                                 </div>
                             </div>
                         </div>
@@ -662,6 +665,15 @@
         </div>
     </div>
 
+    <style>
+        .modal-body label {
+            margin-bottom: 4px;
+        }
+
+        .table-responsive {
+            border-radius: 4px;
+        }
+    </style>
     {{-- Inline Auto-Calc Script (guaranteed to load inside content section) --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -802,17 +814,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                                                                                                        <tr>
-                                                                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                            <td class="text-center">
-                                                                                                                                <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                </button>
-                                                                                                                            </td>
-                                                                                                                        </tr>`;
+                                                                                                                                <tr>
+                                                                                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
+                                                                                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                                                                                                                                    <td class="text-center">
+                                                                                                                                        <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                                        </button>
+                                                                                                                                    </td>
+                                                                                                                                </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -875,17 +887,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                                                                                                            <tr>
-                                                                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
-                                                                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
-                                                                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
-                                                                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
-                                                                                                                                <td class="text-center">
-                                                                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                                                    </button>
-                                                                                                                                </td>
-                                                                                                                            </tr>`;
+                                                                                                                                    <tr>
+                                                                                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
+                                                                                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
+                                                                                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
+                                                                                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
+                                                                                                                                        <td class="text-center">
+                                                                                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                            </button>
+                                                                                                                                        </td>
+                                                                                                                                    </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -912,17 +924,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                                                                                                    <tr>
-                                                                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                        <td class="text-center">
-                                                                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                                            </button>
-                                                                                                                        </td>
-                                                                                                                    </tr>`;
+                                                                                                                            <tr>
+                                                                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
+                                                                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                                                                                                                                <td class="text-center">
+                                                                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                                                                        <i class="fas fa-trash"></i>
+                                                                                                                                    </button>
+                                                                                                                                </td>
+                                                                                                                            </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });

@@ -87,7 +87,7 @@
                                 <th>Problem</th>
                                 <th>Proses</th>
                                 <th>Cause</th>
-                                <th>Countermeasure</th>
+                                <th class="col-countermeasure">Countermeasure</th>
                                 <th>PIC</th>
                                 <th>Supplier</th>
                                 <th>Defect Category</th>
@@ -117,7 +117,7 @@
                                     <td class="col-expandable">{{ $item->problem }}</td>
                                     <td>{{ $item->process ?? '-' }}</td>
                                     <td class="col-expandable">{{ $item->cause }}</td>
-                                    <td class="col-expandable">{{ $item->countermeasure }}</td>
+                                    <td class="col-countermeasure">{{ $item->countermeasure }}</td>
                                     <td>{{ $item->pic ?? '-' }}</td>
                                     <td>{{ $item->supplier ?? '-' }}</td>
                                     <td>{{ $item->defect_category ?? '-' }}</td>
@@ -526,6 +526,14 @@
         }
 
         .col-similar-part {
+            min-width: 500px !important;
+            white-space: pre-line !important;
+            word-wrap: break-word;
+            line-height: 1.5;
+            padding: 10px !important;
+        }
+
+        .col-countermeasure {
             min-width: 450px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
