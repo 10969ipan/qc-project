@@ -322,329 +322,318 @@
                                 {{-- Berat Part (Conditional) --}}
                                 <td class="align-middle col-berat-part" style="display: none; min-width: 220px;">
                                     <div class="px-2">
-                                        {{-- ADD / REMOVE buttons --}}
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span id="weightCavCount" class="badge badge-info px-2"
-                                                style="font-size:0.8rem;">1 Cav</span>
-                                            <div style="white-space:nowrap;">
-                                                <button type="button" id="addWeightCavBtn"
-                                                    class="btn btn-primary btn-sm mr-1"
-                                                    style="font-size:0.78rem; padding:2px 8px;" title="Tambah Cavity">
-                                                    <i class="fas fa-plus"></i> Cav
-                                                </button>
-                                                <button type="button" id="removeWeightCavBtn"
-                                                    class="btn btn-outline-danger btn-sm"
-                                                    style="font-size:0.78rem; padding:2px 8px;"
-                                                    title="Hapus Cavity Terakhir">
-                                                    <i class="fas fa-minus"></i>
-                                                </button>
+                                        {{-- Controls row --}}
+                                            <div class="d-flex align-items-center mb-2" style="gap:6px;">
+                                                <button type="button" id="addWeightCavBtn" title="Tambah Cavity"
+                                                    style="width:24px;height:24px;border-radius:50%;border:none;background:#4e73df;color:#fff;font-size:14px;line-height:1;padding:0;cursor:pointer;">+</button>
+                                                <button type="button" id="removeWeightCavBtn" title="Hapus Cavity"
+                                                    style="width:24px;height:24px;border-radius:50%;border:1px solid #ccc;background:#fff;color:#999;font-size:14px;line-height:1;padding:0;cursor:pointer;">−</button>
+                                                <span id="weightCavCount" class="text-muted" style="font-size:0.75rem;">1 Cav</span>
+                                            </div>
+                                            {{-- Per-cavity rows (injected by JS) --}}
+                                            <div id="weightCavContainer"></div>
+                                            {{-- Standard badge --}}
+                                            <div class="mt-1">
+                                                <span id="weightStandardBadge" class="text-muted"
+                                                    style="display:none; font-size:0.7rem;">Std: <span id="weightStandardDisplay">-</span> gr.</span>
                                             </div>
                                         </div>
-                                        {{-- Per-cavity rows (injected by JS) --}}
-                                        <div id="weightCavContainer"></div>
-                                        {{-- Standard badge --}}
-                                        <div class="mt-1 text-center">
-                                            <span class="badge badge-secondary" id="weightStandardBadge"
-                                                style="display: none; font-size:0.7rem;">Std: <span
-                                                    id="weightStandardDisplay">-</span> gr.</span>
+                                    </td>
+
+                                    <td class="align-middle" style="min-width: 280px;">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="check_ok" value="1"
+                                                id="checkOK">
+                                            <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
+                                                (Pass)</label>
                                         </div>
-                                    </div>
-                                </td>
-
-                                <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                            id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
-                                            (Pass)</label>
-                                    </div>
-                                    <hr class="my-2">
-                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
-                                    <div id="defectContainer">
-                                        <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 180px;"
-                                                name="defect_types[]" id="defectSelect">
-                                                <option value="">-- Pilih Defect --</option>
-                                            </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
-                                                name="defect_quantities[]" placeholder="Qty" min="1">
+                                        <hr class="my-2">
+                                        <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
+                                        <div id="defectContainer">
+                                            <div class="input-group mb-2 defect-row">
+                                                <select class="form-control defect-select" style="min-width: 180px;"
+                                                    name="defect_types[]" id="defectSelect">
+                                                    <option value="">-- Pilih Defect --</option>
+                                                </select>
+                                                <input type="number" class="form-control defect-qty" style="min-width: 100px;"
+                                                    name="defect_quantities[]" placeholder="Qty" min="1">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
-                                        style="display: none;">
-                                        <i class="fas fa-plus"></i> Tambah Jenis
-                                    </button>
-                                </td>
+                                        <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
+                                            style="display: none;">
+                                            <i class="fas fa-plus"></i> Tambah Jenis
+                                        </button>
+                                    </td>
 
-                                <!-- Total OK / NG -->
-                                <td class="align-middle" style="min-width: 120px;">
-                                    <div class="row no-gutters mb-1">
-                                        <div
-                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
-                                            OK</div>
-                                        <div class="col-8">
-                                            <input type="number"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
+                                    <!-- Total OK / NG -->
+                                    <td class="align-middle" style="min-width: 120px;">
+                                        <div class="row no-gutters mb-1">
+                                            <div
+                                                class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
+                                                OK</div>
+                                            <div class="col-8">
+                                                <input type="number"
+                                                    class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                    style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="row no-gutters">
-                                        <div
-                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
-                                            NG</div>
-                                        <div class="col-8">
-                                            <input type="number"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required>
+                                        <div class="row no-gutters">
+                                            <div
+                                                class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
+                                                NG</div>
+                                            <div class="col-8">
+                                                <input type="number"
+                                                    class="form-control form-control-sm rounded-0 rounded-right text-center"
+                                                    style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
+                                    </td>
 
-                                <!-- Judgment -->
-                                <td class="align-middle">
-                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
-                                        required>
-                                        <option value="" disabled selected>-- Result --</option>
-                                        <option value="OK" class="text-success">OK</option>
-                                        <option value="NG" class="text-danger">NG</option>
-                                    </select>
-                                    <div id="aql_info" class="small mt-1 font-weight-bold text-center"
-                                        style="display:none;">
-                                        <span class="text-success">Acc: <span id="acc_val">-</span></span> |
-                                        <span class="text-danger">Rej: <span id="rej_val">-</span></span>
-                                    </div>
-                                </td>
-
-                                <!-- Inisial Operator -->
-                                <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
-                                        name="operator_initials" placeholder="Inisial"
-                                        value="{{ auth()->user()->initials ?? '' }}" required>
-                                </td>
-
-                                <!-- Keterangan -->
-                                <td class="align-middle">
-                                    <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                        <label for="nextProses" class="font-weight-bold text-danger">Next
-                                            Proses: <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="nextProses" name="next_proses">
-                                            <option value="">-- Pilih Next Proses --</option>
-                                            <option value="CRUSHING">CRUSHING</option>
-                                            <option value="SORTIR">SORTIR</option>
-                                            <option value="FINISHING">FINISHING</option>
-                                            <option value="REPAIR">REPAIR</option>
-                                            <option value="SORTIR + FINISHING">SORTIR + FINISHING</option>
-                                            <option value="FINISHING + PASANG SUB PART">FINISHING + PASANG SUB PART</option>
-                                            <option value="FINISHING + PACKING">FINISHING + PACKING</option>
-                                            <option value="REBUS + FINISHING + PACKING">REBUS + FINISHING + PACKING</option>
-                                            <option value="SORTIR + CRUSHING">SORTIR + CRUSHING</option>
+                                    <!-- Judgment -->
+                                    <td class="align-middle">
+                                        <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
+                                            required>
+                                            <option value="" disabled selected>-- Result --</option>
+                                            <option value="OK" class="text-success">OK</option>
+                                            <option value="NG" class="text-danger">NG</option>
                                         </select>
-                                    </div>
-                                    <textarea class="form-control" name="remarks" rows="4"
-                                        placeholder="Catatan tambahan..."></textarea>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                                        <div id="aql_info" class="small mt-1 font-weight-bold text-center"
+                                            style="display:none;">
+                                            <span class="text-success">Acc: <span id="acc_val">-</span></span> |
+                                            <span class="text-danger">Rej: <span id="rej_val">-</span></span>
+                                        </div>
+                                    </td>
 
-                <div class="row mt-4">
-                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+                                    <!-- Inisial Operator -->
+                                    <td class="align-middle">
+                                        <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                            name="operator_initials" placeholder="Inisial"
+                                            value="{{ auth()->user()->initials ?? '' }}" required>
+                                    </td>
 
-                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
-                            <i class="fas fa-play"></i> Start
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
-                            <i class="fas fa-save fa-sm"></i> Simpan Data
-                        </button>
+                                    <!-- Keterangan -->
+                                    <td class="align-middle">
+                                        <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
+                                            <label for="nextProses" class="font-weight-bold text-danger">Next
+                                                Proses: <span class="text-danger">*</span></label>
+                                            <select class="form-control" id="nextProses" name="next_proses">
+                                                <option value="">-- Pilih Next Proses --</option>
+                                                <option value="CRUSHING">CRUSHING</option>
+                                                <option value="SORTIR">SORTIR</option>
+                                                <option value="FINISHING">FINISHING</option>
+                                                <option value="REPAIR">REPAIR</option>
+                                                <option value="SORTIR + FINISHING">SORTIR + FINISHING</option>
+                                                <option value="FINISHING + PASANG SUB PART">FINISHING + PASANG SUB PART</option>
+                                                <option value="FINISHING + PACKING">FINISHING + PACKING</option>
+                                                <option value="REBUS + FINISHING + PACKING">REBUS + FINISHING + PACKING</option>
+                                                <option value="SORTIR + CRUSHING">SORTIR + CRUSHING</option>
+                                            </select>
+                                        </div>
+                                        <textarea class="form-control" name="remarks" rows="4"
+                                            placeholder="Catatan tambahan..."></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                            <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                            <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                            <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                                <i class="fas fa-save fa-sm"></i> Simpan Data
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- PDF Side-by-Side Display Section -->
+        <div class="card shadow mb-4" id="pdfDisplaySection">
+            <div class="card-header py-3 bg-light">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>Reference View</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 border-right">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="font-weight-bold text-dark mb-0">PCCP DAN DIMENSI</h6>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <div class="mr-2 border-right pr-2 d-flex align-items-center file-nav" style="display:none;">
+                                    <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardFile"
+                                        title="Previous File">
+                                        <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left fa-xs"></i>
+                                    </button>
+                                    <span id="standardFileInfo" class="small font-weight-bold mx-1">1/1</span>
+                                    <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardFile"
+                                        title="Next File">
+                                        <i class="fas fa-arrow-right fa-xs"></i> <i class="fas fa-file-pdf"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex align-items-center page-nav">
+                                    <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevStandardPage"
+                                        title="Previous Page">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                    <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextStandardPage"
+                                        title="Next Page">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                        </div>
+                        <div id="standardPdfContainer" class="rounded border"
+                            style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                            <!-- Updated default state: message shown when no item selected -->
+                            <div id="standardPdfPlaceholder"
+                                class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                                <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                                <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                            </div>
+                            <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                            <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                                <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="font-weight-bold text-dark mb-0">DIMENSI PART</h6>
+                            <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
+                                <div class="d-flex align-items-center page-nav">
+                                    <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"
+                                        title="Previous Page">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                    <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage"
+                                        title="Next Page">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                        </div>
+                        <div id="similarPdfContainer" class="rounded border"
+                            style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                            <div id="similarPdfPlaceholder"
+                                class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
+                                <p class="small mt-2" id="similarStatusText"></p>
+                            </div>
+                            <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                            <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                                <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <!-- PDF Side-by-Side Display Section -->
-    <div class="card shadow mb-4" id="pdfDisplaySection">
-        <div class="card-header py-3 bg-light">
-            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>Reference View</h6>
+        <!-- Image Modal -->
+        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">STANDARD (Image)</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-center mb-2">
+                            <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomIn">
+                                <i class="fas fa-search-plus"></i> Zoom In
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm mr-2" id="zoomReset">
+                                <i class="fas fa-sync-alt"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="zoomOut">
+                                <i class="fas fa-search-minus"></i> Zoom Out
+                            </button>
+                        </div>
+                        <div class="text-center" style="overflow: auto; max-height: 70vh;">
+                            <img id="modalImage" src="" class="img-fluid mb-3" alt="Detail Gambar"
+                                style="transition: transform 0.2s ease;">
+                        </div>
+                        <div class="text-center">
+                            <h5 id="modalTitle" class="font-weight-bold"></h5>
+                            <p id="modalDescription"></p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 border-right">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">PCCP DAN DIMENSI</h6>
-                        <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
-                            <div class="mr-2 border-right pr-2 d-flex align-items-center file-nav" style="display:none;">
-                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardFile"
-                                    title="Previous File">
-                                    <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left fa-xs"></i>
+
+        <!-- PDF Modal (Added) -->
+        <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pdfModalLabel">Preview</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
+                            <div class="mr-3 mb-2">
+                                <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
+                                    <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
                                 </button>
-                                <span id="standardFileInfo" class="small font-weight-bold mx-1">1/1</span>
-                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardFile"
-                                    title="Next File">
-                                    <i class="fas fa-arrow-right fa-xs"></i> <i class="fas fa-file-pdf"></i>
+                                <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
+                                <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
+                                    <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
                                 </button>
                             </div>
-                            <div class="d-flex align-items-center page-nav">
-                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevStandardPage"
-                                    title="Previous Page">
+                            <div class="mr-3 mb-2 border-left pl-3">
+                                <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
                                     <i class="fas fa-chevron-left"></i>
                                 </button>
-                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
-                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextStandardPage"
-                                    title="Next Page">
+                                <span id="pageInfo" class="mx-2">Page 1 of ?</span>
+                                <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             </div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
-                            style="display:none;">
-                            <i class="fas fa-expand"></i> Full
-                        </button>
-                    </div>
-                    <div id="standardPdfContainer" class="rounded border"
-                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
-                        <!-- Updated default state: message shown when no item selected -->
-                        <div id="standardPdfPlaceholder"
-                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
-                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
-                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
-                        </div>
-                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
-                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
-                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">DIMENSI PART</h6>
-                        <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
-                            <div class="d-flex align-items-center page-nav">
-                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"
-                                    title="Previous Page">
-                                    <i class="fas fa-chevron-left"></i>
+                            <div class="border-left pl-3 mb-2">
+                                <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
+                                    <i class="fas fa-search-plus"></i>
                                 </button>
-                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
-                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage"
-                                    title="Next Page">
-                                    <i class="fas fa-chevron-right"></i>
+                                <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
+                                    <i class="fas fa-search-minus"></i>
                                 </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
-                            style="display:none;">
-                            <i class="fas fa-expand"></i> Full
-                        </button>
-                    </div>
-                    <div id="similarPdfContainer" class="rounded border"
-                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
-                        <div id="similarPdfPlaceholder"
-                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
-                            <i class="fas fa-file-alt fa-3x mb-3"></i>
-                            <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
-                            <p class="small mt-2" id="similarStatusText"></p>
-                        </div>
-                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
-                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
-                            <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+                        <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">
+                            <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Image Modal -->
-    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">STANDARD (Image)</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="d-flex justify-content-center mb-2">
-                        <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomIn">
-                            <i class="fas fa-search-plus"></i> Zoom In
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="zoomReset">
-                            <i class="fas fa-sync-alt"></i> Reset
-                        </button>
-                        <button type="button" class="btn btn-primary btn-sm" id="zoomOut">
-                            <i class="fas fa-search-minus"></i> Zoom Out
-                        </button>
-                    </div>
-                    <div class="text-center" style="overflow: auto; max-height: 70vh;">
-                        <img id="modalImage" src="" class="img-fluid mb-3" alt="Detail Gambar"
-                            style="transition: transform 0.2s ease;">
-                    </div>
-                    <div class="text-center">
-                        <h5 id="modalTitle" class="font-weight-bold"></h5>
-                        <p id="modalDescription"></p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PDF Modal (Added) -->
-    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pdfModalLabel">Preview</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
-                        <div class="mr-3 mb-2">
-                            <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
-                                <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
-                            </button>
-                            <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
-                            <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
-                                <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
-                            </button>
-                        </div>
-                        <div class="mr-3 mb-2 border-left pl-3">
-                            <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <span id="pageInfo" class="mx-2">Page 1 of ?</span>
-                            <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        <div class="border-left pl-3 mb-2">
-                            <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
-                                <i class="fas fa-search-plus"></i>
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                            <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
-                                <i class="fas fa-search-minus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">
-                        <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
 @endsection
 
