@@ -231,10 +231,8 @@
                         <td>{{ $verification->nilai_koreksi[$index] ?? '-' }}</td>
                         <td>{{ $verification->nilai_ketidakpastian[$index] ?? '-' }}</td>
                         <td>{{ $verification->hasil_verifikasi[$index] ?? '-' }}</td>
-                        @if($index === 0)
-                            <td rowspan="{{ count($verification->nilai_alat) }}">{{ $verification->std_toleransi ?? '-' }}</td>
-                            <td rowspan="{{ count($verification->nilai_alat) }}">{{ $verification->acuan_toleransi ?? '-' }}</td>
-                        @endif
+                        <td>{{ $index === 0 ? ($verification->std_toleransi ?? '-') : '' }}</td>
+                        <td>{{ $index === 0 ? ($verification->acuan_toleransi ?? '-') : '' }}</td>
                     </tr>
                 @endforeach
             @else
