@@ -86,9 +86,9 @@
                                 <th>Owner Mould</th>
                                 <th class="col-similar-part">Similar Part</th>
                                 <th>Section</th>
-                                <th>Problem</th>
+                                <th class="col-expandable">Problem</th>
                                 <th>Proses</th>
-                                <th>Cause</th>
+                                <th class="col-expandable">Cause</th>
                                 <th class="col-countermeasure">Countermeasure</th>
                                 <th>PIC</th>
                                 <th>Supplier</th>
@@ -531,11 +531,20 @@
 
         .col-expandable {
             width: 400px !important;
+            min-width: 400px !important;
+            max-width: 400px !important;
         }
 
-        .col-similar-part,
+        .col-similar-part {
+            width: 800px !important;
+            min-width: 800px !important;
+            max-width: 800px !important;
+        }
+
         .col-countermeasure {
-            width: 1000px !important;
+            width: 800px !important;
+            min-width: 800px !important;
+            max-width: 800px !important;
         }
 
         .text-wrap-logic {
