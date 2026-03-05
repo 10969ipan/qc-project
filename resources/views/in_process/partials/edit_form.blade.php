@@ -90,17 +90,48 @@
                 </div>
             </div>
             
-            <div id="editBeratPartRow" style="display: none;">
-                <div class="form-group mb-2">
-                    <label class="small font-weight-bold">Berat Part</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" name="part_weight" id="edit_part_weight" class="form-control"
-                            value="{{ $checksheet->part_weight }}" placeholder="0">
-                        <div class="input-group-append">
-                            <span class="input-group-text">gr.</span>
+            <div class="row" id="editBeratPartRow" style="display: none;">
+                <div class="col-12">
+                    <div class="form-group mb-2">
+                        <label class="small font-weight-bold">Berat Part (gr.)</label>
+                        {{-- Cavity controls --}}
+                        <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                            <button type="button" id="editAddWeightCavBtn"
+                                class="btn btn-primary btn-xs" title="Tambah Cavity">
+                                <i class="fas fa-plus"></i> Cav
+                            </button>
+                            <button type="button" id="editRemoveWeightCavBtn"
+                                class="btn btn-outline-danger btn-xs" title="Hapus Cavity Terakhir">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span id="editWeightCavCount" class="badge badge-secondary ml-1">1 Cav</span>
+                        </div>
+                        {{-- Per-cavity rows --}}
+                        <div id="editWeightCavContainer">
+                            @php
+                                $existingWeights = is_array($checksheet->part_weight)
+                                    ? $checksheet->part_weight
+                                    : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[') ? json_decode($checksheet->part_weight, true) : ($checksheet->part_weight ? [$checksheet->part_weight] : [null]));
+                            @endphp
+                            @foreach($existingWeights as $cavIdx => $wVal)
+                                <div class="input-group input-group-sm mb-1 edit-weight-cav-row">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
+                                    </div>
+                                    <input type="number" step="0.01" min="0" class="form-control text-center"
+                                        name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text text-muted small">gr</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge badge-secondary" id="editWeightStandardBadge"
+                                style="display: none;">Std: <span
+                                    id="editWeightStandardDisplay">-</span> gr.</span>
                         </div>
                     </div>
-                    <small class="text-muted d-block mt-1" id="editWeightStandardLabel"></small>
                 </div>
             </div>
         </div>
@@ -620,21 +651,19 @@
             var customer = selectedOption.data('customer');
             var weightStandard = selectedOption.data('weight-standard');
 
+            // --- Berat Part Logic ---
             if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
                 $('#editBeratPartRow').show();
                 if (weightStandard) {
-                    $('#editWeightStandardLabel').html('Standar: <strong>' + weightStandard + ' gr.</strong>');
-                    // Auto-fill if not initial load or if currently empty
-                    if (!isInitialLoad || !$('#edit_part_weight').val()) {
-                        $('#edit_part_weight').val(weightStandard);
-                    }
+                    $('#editWeightStandardDisplay').text(weightStandard);
+                    $('#editWeightStandardBadge').show();
                 } else {
-                    $('#editWeightStandardLabel').html('Standar: <strong>-</strong>');
+                    $('#editWeightStandardBadge').hide();
                 }
             } else {
                 $('#editBeratPartRow').hide();
-                $('#edit_part_weight').val('');
-                $('#editWeightStandardLabel').text('');
+                $('#editWeightCavContainer input').val('');
+                $('#editWeightStandardBadge').hide();
             }
 
             updateDefectOptions();
@@ -703,6 +732,47 @@
                 // Perhaps auto-add one?
                 $('#editAddDefectBtn').trigger('click');
             }
+        });
+
+        // ============================================================
+        // EDIT WEIGHT CAVITY HELPERS
+        // ============================================================
+        const EDIT_MAX_WEIGHT_CAV = 8;
+
+        function buildEditWeightCavRow(cavNum, value) {
+            value = value || '';
+            return `<div class="input-group input-group-sm mb-1 edit-weight-cav-row">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${cavNum}</span>
+                </div>
+                <input type="number" step="0.01" min="0" class="form-control text-center"
+                    name="part_weight[]" placeholder="0.00" value="${value}">
+                <div class="input-group-append">
+                    <span class="input-group-text text-muted small">gr</span>
+                </div>
+            </div>`;
+        }
+
+        function updateEditWeightCavBadge() {
+            var cnt = $('#editWeightCavContainer .edit-weight-cav-row').length;
+            $('#editWeightCavCount').text(cnt + ' Cav');
+            $('#editAddWeightCavBtn').prop('disabled', cnt >= EDIT_MAX_WEIGHT_CAV);
+            $('#editRemoveWeightCavBtn').prop('disabled', cnt <= 1);
+        }
+        updateEditWeightCavBadge();
+
+        $('#editAddWeightCavBtn').click(function () {
+            var cnt = $('#editWeightCavContainer .edit-weight-cav-row').length;
+            if (cnt >= EDIT_MAX_WEIGHT_CAV) return;
+            $('#editWeightCavContainer').append(buildEditWeightCavRow(cnt + 1));
+            updateEditWeightCavBadge();
+        });
+
+        $('#editRemoveWeightCavBtn').click(function () {
+            var rows = $('#editWeightCavContainer .edit-weight-cav-row');
+            if (rows.length <= 1) return;
+            rows.last().remove();
+            updateEditWeightCavBadge();
         });
         })(jQuery); // Pass jQuery to the function
     })(); // Self-executing function

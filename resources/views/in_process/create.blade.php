@@ -319,16 +319,23 @@
                                 </td>
 
                                 <!-- Berat Part (Only for AHM) -->
-                                <td class="align-middle col-berat-part" style="display: none; min-width: 150px;">
-                                    <div class="form-group mb-0">
-                                        <div class="input-group">
-                                            <input type="text" name="part_weight" id="part_weight"
-                                                class="form-control text-center" placeholder="0">
-                                            <div class="input-group-append">
-                                                <span class="input-group-text">gr.</span>
-                                            </div>
+                                <td class="align-middle col-berat-part" style="display: none; min-width: 280px;">
+                                    <div class="px-2">
+                                        {{-- Controls row --}}
+                                        <div class="d-flex align-items-center mb-2" style="gap:4px;">
+                                            <button type="button" id="addWeightCavBtn" title="Tambah Cavity"
+                                                style="width:22px;height:22px;border-radius:50%;border:none;background:#4e73df;color:#fff;font-size:15px;line-height:22px;padding:0;cursor:pointer;text-align:center;">+</button>
+                                            <button type="button" id="removeWeightCavBtn" title="Hapus Cavity"
+                                                style="width:22px;height:22px;border-radius:50%;border:1px solid #ccc;background:#fff;color:#aaa;font-size:15px;line-height:20px;padding:0;cursor:pointer;text-align:center;">−</button>
                                         </div>
-                                        <small class="text-muted d-block text-center mt-1" id="weightStandardLabel"></small>
+                                        {{-- Per-cavity rows (injected by JS) --}}
+                                        <div id="weightCavContainer"></div>
+                                        {{-- Standard badge --}}
+                                        <div class="mt-1">
+                                            <span id="weightStandardBadge" class="text-muted"
+                                                style="display:none; font-size:0.7rem;">Std: <span
+                                                    id="weightStandardDisplay">-</span> gr.</span>
+                                        </div>
                                     </div>
                                 </td>
 
@@ -1046,6 +1053,55 @@
                 { value: 'dimension', text: 'Dimensi' }
             ];
 
+            // ============================================================
+            // WEIGHT CAVITY HELPERS - defined here so always available
+            // ============================================================
+            var MAX_WEIGHT_CAV = 8;
+
+            function buildWeightCavRow(cavNum) {
+                return '<div class="weight-cav-row" style="display:flex; align-items:center; margin-bottom:6px; gap:8px;">' +
+                    '<span style="font-size:0.85rem; font-weight:600; color:#444; white-space:nowrap; min-width:45px;">CAV ' + cavNum + '</span>' +
+                    '<input type="number" step="0.01" min="0" class="form-control form-control-sm text-center" name="part_weight[]" placeholder="0.00" style="width:100px; flex:none;">' +
+                    '<span style="font-size:0.85rem; color:#666;">gr</span>' +
+                    '</div>';
+            }
+
+            function updateWeightCavBadge() {
+                var cnt = $('#weightCavContainer .weight-cav-row').length;
+                $('#addWeightCavBtn').prop('disabled', cnt >= MAX_WEIGHT_CAV);
+                $('#removeWeightCavBtn').prop('disabled', cnt <= 1);
+            }
+
+            function initWeightCavities(count) {
+                count = Math.min(Math.max(1, parseInt(count) || 1), MAX_WEIGHT_CAV);
+                var container = $('#weightCavContainer');
+                container.empty();
+                for (var i = 1; i <= count; i++) {
+                    container.append(buildWeightCavRow(i));
+                }
+                updateWeightCavBadge();
+            }
+
+            // + Cav button
+            $(document).on('click', '#addWeightCavBtn', function () {
+                var cnt = $('#weightCavContainer .weight-cav-row').length;
+                if (cnt >= MAX_WEIGHT_CAV) return;
+                $('#weightCavContainer').append(buildWeightCavRow(cnt + 1));
+                updateWeightCavBadge();
+            });
+
+            // - Cav button
+            $(document).on('click', '#removeWeightCavBtn', function () {
+                var rows = $('#weightCavContainer .weight-cav-row');
+                if (rows.length <= 1) return;
+                rows.last().remove();
+                updateWeightCavBadge();
+            });
+
+            // Initialize with 1 cavity on page load
+            initWeightCavities(1);
+            // ============================================================
+
             $('#itemSelect').change(function () {
                 var selectedOption = $(this).find('option:selected');
                 var imageUrl = selectedOption.data('image');
@@ -1059,19 +1115,20 @@
 
                 // Toggle Berat Part visibility (Only for AHM)
                 if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
-                    $('.col-berat-part').show();
+                    $('.col-berat-part').attr('style', 'display: table-cell !important;');
+                    // Init cavities based on item's cavity count (default to 1)
+                    var itemCavity = parseInt(selectedOption.data('cavity')) || 1;
+                    initWeightCavities(Math.min(itemCavity, 8));
                     if (weightStandard) {
-                        $('#weightStandardLabel').html('Standar: <strong>' + weightStandard + ' gr.</strong>');
-                        // Auto-fill input if empty or just changed item
-                        $('#part_weight').val(weightStandard);
+                        $('#weightStandardDisplay').text(weightStandard);
+                        $('#weightStandardBadge').show();
                     } else {
-                        $('#weightStandardLabel').html('Standar: <strong>-</strong>');
-                        $('#part_weight').val('');
+                        $('#weightStandardBadge').hide();
                     }
                 } else {
-                    $('.col-berat-part').hide();
-                    $('#part_weight').val('');
-                    $('#weightStandardLabel').text('');
+                    $('.col-berat-part').attr('style', 'display: none !important;');
+                    initWeightCavities(1);
+                    $('#weightStandardBadge').hide();
                 }
 
                 // PDFs for Side-by-Side
@@ -1258,11 +1315,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                                                                                                <input type="text"
-                                                                                                                                                                                    class="form-control form-control-sm dimension-input"
-                                                                                                                                                                                    style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                                                                                    placeholder="P${j}">
-                                                                                                                                                                            </td>`;
+                                                                                                                                                                                    <input type="text"
+                                                                                                                                                                                        class="form-control form-control-sm dimension-input"
+                                                                                                                                                                                        style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                                                                                        placeholder="P${j}">
+                                                                                                                                                                                </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1761,15 +1818,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                                                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                                                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                                                                                                style="min-width: 60px;"
-                                                                                                                                                                                                                                                                                name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                                                                                                placeholder="P${j}">
-                                                                                                                                                                                                                                                                        </td>`;
+                                                                                                                                                                                                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                                                                                    style="min-width: 60px;"
+                                                                                                                                                                                                                                                                                    name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                                                                                    placeholder="P${j}">
+                                                                                                                                                                                                                                                                            </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1796,11 +1853,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                                                                                                style="min-width: 60px;"
-                                                                                                                                                                                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                                                                                                placeholder="P${currentPoints}">
-                                                                                                                                                                                                                                                                        </td>`);
+                                                                                                                                                                                                                                                                                <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                                                                                    style="min-width: 60px;"
+                                                                                                                                                                                                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                                                                                    placeholder="P${currentPoints}">
+                                                                                                                                                                                                                                                                            </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

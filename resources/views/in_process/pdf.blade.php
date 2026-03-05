@@ -398,8 +398,19 @@
                         @endif
                     </td>
 
-                    <td class="col-compact" style="white-space: nowrap;">
-                        {{ $checksheet->part_weight ? $checksheet->part_weight . ' gr.' : '-' }}
+                    <td class="col-compact" style="white-space: nowrap; text-align: left;">
+                        @php
+                            $weights = is_array($checksheet->part_weight)
+                                ? $checksheet->part_weight
+                                : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[')
+                                    ? json_decode($checksheet->part_weight, true)
+                                    : ($checksheet->part_weight ? [$checksheet->part_weight] : []));
+                        @endphp
+                        @forelse(array_filter($weights ?? [], fn($w) => $w !== null && $w !== '') as $ci => $wv)
+                            CAV{{ $ci+1 }}: {{ $wv }}gr<br>
+                        @empty
+                            -
+                        @endforelse
                     </td>
 
                     <td class="col-compact text-success">{{ $checksheet->total_ok }}</td>
