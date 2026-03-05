@@ -117,6 +117,11 @@
             border-color: #dc3545;
         }
 
+        .judgment-neutral {
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+
         .footer {
             margin-top: 50px;
             font-size: 8px;
@@ -248,8 +253,11 @@
 
     <div class="judgment-section">
         <p style="font-weight: bold; margin-bottom: 10px;">KESIMPULAN / JUDGMENT:</p>
-        <div class="judgment-box {{ $verification->judgment == 'OK' ? 'judgment-ok' : 'judgment-ng' }}">
-            {{ strtoupper($verification->judgment) }}
+        @php
+            $judgmentClass = $verification->judgment == 'OK' ? 'judgment-ok' : ($verification->judgment == 'NG' ? 'judgment-ng' : 'judgment-neutral');
+        @endphp
+        <div class="judgment-box {{ $judgmentClass }}">
+            {{ strtoupper($verification->judgment ?: '-') }}
         </div>
     </div>
 

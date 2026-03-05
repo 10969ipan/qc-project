@@ -97,6 +97,10 @@
         .bg-danger {
             background-color: #dc3545;
         }
+
+        .bg-secondary {
+            background-color: #6c757d;
+        }
     </style>
 </head>
 
@@ -213,8 +217,11 @@
                     <td>{{ $v->std_toleransi ?? '-' }}</td>
                     <td>{{ $v->acuan_toleransi ?? '-' }}</td>
                     <td>
-                        <span class="badge {{ $v->judgment == 'OK' ? 'bg-success' : 'bg-danger' }}">
-                            {{ $v->judgment }}
+                        @php
+                            $badgeClass = $v->judgment == 'OK' ? 'bg-success' : ($v->judgment == 'NG' ? 'bg-danger' : 'bg-secondary');
+                        @endphp
+                        <span class="badge {{ $badgeClass }}">
+                            {{ $v->judgment ?: '-' }}
                         </span>
                     </td>
                     <td>{{ $v->next_kalibrasi ? $v->next_kalibrasi->format('d/m/Y') : '-' }}</td>
