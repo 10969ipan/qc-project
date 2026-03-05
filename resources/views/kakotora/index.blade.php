@@ -524,26 +524,29 @@
             min-width: 500px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
-            line-height: 1.8;
+            line-height: 2 !important;
             padding: 15px !important;
+            text-align: left !important;
         }
 
         .col-similar-part {
-            width: 1200px !important;
-            min-width: 1200px !important;
-            white-space: pre-wrap !important;
+            width: 1000px !important;
+            min-width: 1000px !important;
+            white-space: pre-line !important;
             word-wrap: break-word;
-            line-height: 1.8;
+            line-height: 2 !important;
             padding: 15px !important;
+            text-align: left !important;
         }
 
         .col-countermeasure {
-            width: 800px !important;
-            min-width: 800px !important;
+            width: 1000px !important;
+            min-width: 1000px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
-            line-height: 1.8;
+            line-height: 2 !important;
             padding: 15px !important;
+            text-align: left !important;
         }
 
         .modal-body label {
