@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Hasil Data Sortir')
+@section('title', 'Checksheet Sortir')
 
 @section('content')
     <x-plant-header title="Hasil Data Sortir" :plant="request()->get('plant')" />

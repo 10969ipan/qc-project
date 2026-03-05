@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Data Checksheet')
+@section('title', 'Checksheet Sub-Assy')
 
 @section('content')
     <div class="card shadow mb-4 border-left-primary">
@@ -657,8 +657,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Kategori Item')
+@section('title', 'Master Category')
 
 @section('content')
     <x-plant-header title="Master Data Kategori" :plant="request()->get('plant')" />

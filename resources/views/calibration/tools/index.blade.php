@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', 'Daftar Alat Ukur')
+
 @section('content')
     <style>
         .last-child-no-border:last-child {

@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', 'Jadwal Kalibrasi')
+
 @section('content')
     <div class="container-fluid">
     <div class="card shadow mb-4 border-left-primary">

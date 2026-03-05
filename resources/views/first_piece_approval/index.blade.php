@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Data Checksheet First Piece Approval')
+@section('title', 'First Piece Approval')
 
 @section('content')
     <div class="card shadow mb-4 border-left-primary">
@@ -904,8 +904,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                            // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1279,6 +1279,6 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                                    });
+                                                                                                                                                                                        });
     </script>
 @endpush

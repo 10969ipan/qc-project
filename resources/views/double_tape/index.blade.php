@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Data Checksheet Double Tape')
+@section('title', 'Double Tape')
 
 @section('content')
     <div class="card shadow mb-4 border-left-primary">

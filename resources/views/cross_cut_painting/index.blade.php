@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Cross Cut Painting')
+@section('title', 'Cross Cut Painting')
 
 @section('content')
     <div class="card shadow mb-4 border-left-primary">

@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', 'Data Kakotora')
+
 @section('content')
     <div class="container-fluid ">
         <div class="card shadow mb-4 border-left-primary">

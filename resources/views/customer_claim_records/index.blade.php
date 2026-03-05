@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'List Claim Customer')
+@section('title', 'Record Claim')
 
 @section('content')
     <x-plant-header title="List Claim Customer" :plant="request()->get('plant')" />

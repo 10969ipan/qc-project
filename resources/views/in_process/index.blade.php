@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Data Checksheet Inprocess')
+@section('title', 'Checksheet In-Process')
 
 @section('content')
     <div class="card shadow mb-4 border-left-primary">
@@ -889,8 +889,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1264,7 +1264,7 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                                            });
+                                                                                                                                                                                                });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
