@@ -68,7 +68,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTableKakotora" width="100%" cellspacing="0">
+                    <table class="table table-bordered" id="dataTableKakotora" cellspacing="0">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -520,6 +520,7 @@
         }
 
         .col-expandable {
+            width: 350px !important;
             min-width: 350px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
@@ -528,14 +529,16 @@
         }
 
         .col-similar-part {
+            width: 800px !important;
             min-width: 800px !important;
-            white-space: pre-line !important;
+            white-space: pre-wrap !important;
             word-wrap: break-word;
             line-height: 1.5;
             padding: 10px !important;
         }
 
         .col-countermeasure {
+            width: 500px !important;
             min-width: 500px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
@@ -555,7 +558,8 @@
     <script>
         $(document).ready(function () {
             $('#dataTableKakotora').DataTable({
-                "order": [[1, "desc"]]
+                "order": [[1, "desc"]],
+                "autoWidth": false
             });
 
             $('.btn-edit-kakotora').on('click', function () {
