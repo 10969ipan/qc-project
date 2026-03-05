@@ -508,42 +508,42 @@
     <link href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
     <style>
         #dataTableKakotora th {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             vertical-align: middle;
             text-align: center;
             white-space: nowrap;
         }
 
         #dataTableKakotora td {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             vertical-align: middle;
         }
 
         .col-expandable {
-            width: 350px !important;
-            min-width: 350px !important;
-            white-space: pre-line !important;
-            word-wrap: break-word;
-            line-height: 1.5;
-            padding: 10px !important;
-        }
-
-        .col-similar-part {
-            width: 800px !important;
-            min-width: 800px !important;
-            white-space: pre-wrap !important;
-            word-wrap: break-word;
-            line-height: 1.5;
-            padding: 10px !important;
-        }
-
-        .col-countermeasure {
             width: 500px !important;
             min-width: 500px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
-            line-height: 1.5;
-            padding: 10px !important;
+            line-height: 1.8;
+            padding: 15px !important;
+        }
+
+        .col-similar-part {
+            width: 1200px !important;
+            min-width: 1200px !important;
+            white-space: pre-wrap !important;
+            word-wrap: break-word;
+            line-height: 1.8;
+            padding: 15px !important;
+        }
+
+        .col-countermeasure {
+            width: 800px !important;
+            min-width: 800px !important;
+            white-space: pre-line !important;
+            word-wrap: break-word;
+            line-height: 1.8;
+            padding: 15px !important;
         }
 
         .modal-body label {
