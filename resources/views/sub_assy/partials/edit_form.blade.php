@@ -12,7 +12,9 @@
                     <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part
                     </option>
                     @foreach($items as $item)
-                        <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
+                        <option value="{{ $item->id }}" 
+                            data-defects="{{ json_encode($item->defects) }}"
+                            {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
                             {{ $item->name }} ({{ $item->customer }})
                         </option>
                     @endforeach
@@ -22,8 +24,8 @@
         <div class="col-md-3">
             <div class="form-group">
                 <label for="date">Tanggal</label>
-                <input type="date" name="date" id="date_edit" class="form-control" value="{{ $checksheet->date }}"
-                    required>
+                <input type="date" name="date" id="date_edit" class="form-control" 
+                    value="{{ $checksheet->date ? $checksheet->date->format('Y-m-d') : '' }}" required>
             </div>
         </div>
         <div class="col-md-3">
@@ -105,6 +107,50 @@
         </div>
     </div>
 
+    <div class="row mb-3">
+        <div class="col-12">
+            <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
+            <div id="defectContainer_edit">
+                @php
+                    $existingDefects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects ?? '[]', true);
+                    $itemDefects = $checksheet->item->defects ?? [];
+                @endphp
+                
+                @if(count($existingDefects) > 0)
+                    @foreach($existingDefects as $index => $defect)
+                        <div class="input-group mb-2 defect-row-edit">
+                            <select class="form-control defect-select-edit" style="min-width: 180px;" name="defect_types[]">
+                                <option value="">-- Pilih Defect --</option>
+                                @foreach($itemDefects as $idft)
+                                    <option value="{{ $idft }}" {{ ($defect['type'] ?? '') == $idft ? 'selected' : '' }}>{{ $idft }}</option>
+                                @endforeach
+                            </select>
+                            <input type="number" class="form-control defect-qty-edit" style="max-width: 100px;" name="defect_quantities[]" value="{{ $defect['qty'] ?? 1 }}" placeholder="Qty" min="1">
+                            @if($index > 0)
+                                <div class="input-group-append">
+                                    <button class="btn btn-danger btn-sm remove-defect-btn-edit" type="button"><i class="fas fa-minus"></i></button>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                @else
+                    <div class="input-group mb-2 defect-row-edit">
+                        <select class="form-control defect-select-edit" style="min-width: 180px;" name="defect_types[]">
+                            <option value="">-- Pilih Defect --</option>
+                            @foreach($itemDefects as $idft)
+                                <option value="{{ $idft }}">{{ $idft }}</option>
+                            @endforeach
+                        </select>
+                        <input type="number" class="form-control defect-qty-edit" style="max-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
+                    </div>
+                @endif
+            </div>
+            <button type="button" id="addDefectBtn_edit" class="btn btn-info btn-sm mt-1" style="display: {{ $checksheet->total_ng > 0 ? 'inline-block' : 'none' }};">
+                <i class="fas fa-plus"></i> Tambah Jenis
+            </button>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
@@ -159,6 +205,11 @@
         const judgmentSelect = document.getElementById('judgment_edit');
         const nextProsesContainer = document.getElementById('nextProsesContainer_edit');
         const nextProsesSelect = document.getElementById('next_proses_edit');
+        const totalNgInput = document.getElementById('total_ng_edit');
+        const totalOkInput = document.getElementById('total_ok_edit');
+        const samplingQtyInput = document.getElementById('sampling_qty_edit');
+        const addDefectBtn = $('#addDefectBtn_edit');
+        const defectContainer = $('#defectContainer_edit');
 
         function toggleNextProses() {
             if (judgmentSelect.value === 'NG') {
@@ -169,6 +220,69 @@
             }
         }
 
+        function calculateTotalNG() {
+            let total = 0;
+            $('.defect-qty-edit').each(function () {
+                total += parseInt($(this).val()) || 0;
+            });
+            totalNgInput.value = total;
+            
+            // Sync Total OK
+            const sampling = parseInt(samplingQtyInput.value) || 0;
+            totalOkInput.value = Math.max(0, sampling - total);
+            
+            if (total > 0) {
+                judgmentSelect.value = 'NG';
+                addDefectBtn.show();
+            } else {
+                judgmentSelect.value = 'OK';
+                addDefectBtn.hide();
+            }
+            toggleNextProses();
+        }
+
         judgmentSelect.addEventListener('change', toggleNextProses);
+        samplingQtyInput.addEventListener('input', calculateTotalNG);
+
+        $(document).on('input', '.defect-qty-edit', calculateTotalNG);
+
+        addDefectBtn.click(function () {
+            const firstRow = $('.defect-row-edit').first();
+            const newRow = $('<div class="input-group mb-2 defect-row-edit">' +
+                '<select class="form-control defect-select-edit" style="min-width: 180px;" name="defect_types[]">' +
+                firstRow.find('select').html() +
+                '</select>' +
+                '<input type="number" class="form-control defect-qty-edit" style="max-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                '<div class="input-group-append">' +
+                '<button class="btn btn-danger btn-sm remove-defect-btn-edit" type="button"><i class="fas fa-minus"></i></button>' +
+                '</div>' +
+                '</div>');
+            defectContainer.append(newRow);
+            if ($('.defect-row-edit').length >= 5) addDefectBtn.hide();
+        });
+
+        $(document).on('click', '.remove-defect-btn-edit', function () {
+            $(this).closest('.defect-row-edit').remove();
+            calculateTotalNG();
+            if ($('.defect-row-edit').length < 5 && parseInt(totalNgInput.value) > 0) addDefectBtn.show();
+        });
+
+        // Handle item change to update defect options
+        $('#item_id_edit').on('change', function() {
+            const selectedOption = $(this).find('option:selected');
+            let defects = selectedOption.data('defects');
+            
+            if (typeof defects === 'string') defects = JSON.parse(defects);
+            
+            let optionsHtml = '<option value="">-- Pilih Defect --</option>';
+            if (Array.isArray(defects)) {
+                defects.forEach(d => {
+                    optionsHtml += `<option value="${d}">${d}</option>`;
+                });
+            }
+            
+            // Update all select dropdowns
+            $('.defect-select-edit').html(optionsHtml);
+        });
     })();
 </script>

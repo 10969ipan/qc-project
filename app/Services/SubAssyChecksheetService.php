@@ -126,7 +126,7 @@ class SubAssyChecksheetService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'next_proses' => $data['next_proses'] ?? null,
                 'cycle_time' => $data['cycle_time'] ?? null,
-                'defects' => json_encode($defects),
+                'defects' => $defects,
             ]);
 
             // Clear manual line status override
@@ -215,6 +215,15 @@ class SubAssyChecksheetService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'next_proses' => $data['next_proses'] ?? null,
             ];
+
+            // Update plant_id if provided (primarily for admin)
+            if (isset($data['plant'])) {
+                $updateData['plant_id'] = $this->resolvePlantId($data['plant']);
+            }
+
+            // Process defects update
+            $defects = $this->processDefects($data);
+            $updateData['defects'] = $defects;
 
             // Update created_at and cycle_time if user has authority (not inspector)
             if (auth()->user()->role !== 'inspector') {

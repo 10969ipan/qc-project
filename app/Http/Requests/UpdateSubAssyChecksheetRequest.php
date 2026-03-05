@@ -11,7 +11,29 @@ class UpdateSubAssyChecksheetRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
+        $user = auth()->user();
+        if (!$user)
+            return false;
+
+        // Admin can edit anything
+        if ($user->role === 'admin')
+            return true;
+
+        // Managers cannot edit, they only approve
+        if (in_array($user->role, ['manager', 'asst_manager']))
+            return false;
+
+        // Lock if already approved by Manager (integrity check)
+        $checksheet = $this->route('checksheet');
+        if (is_string($checksheet)) {
+            $checksheet = \App\Models\SubAssyChecksheet::find($checksheet);
+        }
+
+        if ($checksheet && $checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED') {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -37,6 +59,11 @@ class UpdateSubAssyChecksheetRequest extends FormRequest
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
             'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'defect_types' => 'nullable|array',
+            'defect_types.*' => 'nullable|string',
+            'defect_quantities' => 'nullable|array',
+            'defect_quantities.*' => 'nullable|integer|min:1',
+            'plant' => 'nullable|string', // Support for admin to move reports between plants
         ];
     }
 

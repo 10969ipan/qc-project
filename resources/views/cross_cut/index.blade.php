@@ -100,7 +100,7 @@
                                     <i class="fas fa-search"></i> Cari
                                 </button>
                                 <a href="{{ route('cross_cut.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('cross_cut.export_pdf', request()->query()) }}"
@@ -530,15 +530,15 @@
                                         @endif
 
                                         @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.cross_cut.edit_approval', $checksheet->id) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
+                                            <a href="{{ route('admin.cross_cut.edit_approval', ['id' => $checksheet->id]) }}"
+                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('cross_cut.edit', $checksheet->id) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
+                                            <a href="{{ route('cross_cut.edit', ['id' => $checksheet->id]) }}"
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
@@ -857,8 +857,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                            // Image Modal Handler
-                                                                                                                                        const imageModal = document.getElementById('imageModal');
+                                                                                                                                                                                                                    // Image Modal Handler
+                                                                                                                                                const imageModal = document.getElementById('imageModal');
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
 
             viewImageBtns.forEach(btn => {
@@ -886,93 +886,93 @@
                         if (data.image_path) {
                             const imagePath = `/storage/${data.image_path}`;
                             imageContainer.innerHTML = `
-                                                                                                                                                            <img src="${imagePath}" 
-                                                                                                                                                                 class="img-fluid rounded shadow" 
-                                                                                                                                                                 alt="Cross Cut Image"
-                                                                                                                                                                 style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                                                                                                                                 onclick="window.open('${imagePath}', '_blank')">
-                                                                                                                                                        `;
+                                                                                                                                                                    <img src="${imagePath}" 
+                                                                                                                                                                         class="img-fluid rounded shadow" 
+                                                                                                                                                                         alt="Cross Cut Image"
+                                                                                                                                                                         style="max-height: 600px; width: auto; cursor: zoom-in;"
+                                                                                                                                                                         onclick="window.open('${imagePath}', '_blank')">
+                                                                                                                                                                `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
                         } else {
                             imageContainer.innerHTML = `
-                                                                                                                                                            <div class="alert alert-warning">
-                                                                                                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                                                                                                                Tidak ada gambar untuk checksheet ini
-                                                                                                                                                            </div>
-                                                                                                                                                        `;
+                                                                                                                                                                    <div class="alert alert-warning">
+                                                                                                                                                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                                                                                                        Tidak ada gambar untuk checksheet ini
+                                                                                                                                                                    </div>
+                                                                                                                                                                `;
                             downloadBtn.style.display = 'none';
                         }
 
                         // Display details
                         const details = `
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Item Part:</th>
-                                                                                                                                                            <td>${data.item_name || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Customer:</th>
-                                                                                                                                                            <td>${data.customer || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Part No:</th>
-                                                                                                                                                            <td>${data.part_number || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Kode SAP:</th>
-                                                                                                                                                            <td>${data.sap_code || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Tanggal Produksi:</th>
-                                                                                                                                                            <td>${data.production_date || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Tanggal QC:</th>
-                                                                                                                                                            <td>${data.qc_date || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Shift Prod./QC:</th>
-                                                                                                                                                            <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Kimia Copper:</th>
-                                                                                                                                                            <td>${data.chemical_copper || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Kimia Nikel:</th>
-                                                                                                                                                            <td>${data.chemical_nikel || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Kimia Eching:</th>
-                                                                                                                                                            <td>${data.chemical_eching || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Kimia Abu:</th>
-                                                                                                                                                            <td>${data.chemical_abu || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Posisi Remark:</th>
-                                                                                                                                                            <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Result Remark:</th>
-                                                                                                                                                            <td>${data.result_remark || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                        <tr>
-                                                                                                                                                            <th class="text-nowrap">Operator:</th>
-                                                                                                                                                            <td>${data.operator_initials || '-'}</td>
-                                                                                                                                                        </tr>
-                                                                                                                                                    `;
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Item Part:</th>
+                                                                                                                                                                    <td>${data.item_name || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Customer:</th>
+                                                                                                                                                                    <td>${data.customer || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Part No:</th>
+                                                                                                                                                                    <td>${data.part_number || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Kode SAP:</th>
+                                                                                                                                                                    <td>${data.sap_code || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Tanggal Produksi:</th>
+                                                                                                                                                                    <td>${data.production_date || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Tanggal QC:</th>
+                                                                                                                                                                    <td>${data.qc_date || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Shift Prod./QC:</th>
+                                                                                                                                                                    <td>${data.production_shift || '-'} / ${data.qc_shift || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Kimia Copper:</th>
+                                                                                                                                                                    <td>${data.chemical_copper || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Kimia Nikel:</th>
+                                                                                                                                                                    <td>${data.chemical_nikel || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Kimia Eching:</th>
+                                                                                                                                                                    <td>${data.chemical_eching || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Kimia Abu:</th>
+                                                                                                                                                                    <td>${data.chemical_abu || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Posisi Remark:</th>
+                                                                                                                                                                    <td>${data.position_remark_judgment || '-'} - ${data.position_remark_no_lot || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Result Remark:</th>
+                                                                                                                                                                    <td>${data.result_remark || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <th class="text-nowrap">Operator:</th>
+                                                                                                                                                                    <td>${data.operator_initials || '-'}</td>
+                                                                                                                                                                </tr>
+                                                                                                                                                            `;
                         detailsContainer.innerHTML = details;
                     })
                     .catch(error => {
                         console.error('Error loading image:', error);
                         imageContainer.innerHTML = `
-                                                                                                                                                        <div class="alert alert-danger">
-                                                                                                                                                            <i class="fas fa-exclamation-circle mr-2"></i>
-                                                                                                                                                            Gagal memuat gambar. Silakan coba lagi.
-                                                                                                                                                        </div>
-                                                                                                                                                    `;
+                                                                                                                                                                <div class="alert alert-danger">
+                                                                                                                                                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                                                                                                                                                    Gagal memuat gambar. Silakan coba lagi.
+                                                                                                                                                                </div>
+                                                                                                                                                            `;
                         detailsContainer.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
@@ -1193,8 +1193,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                // Live Search Functionality
-                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                        // Live Search Functionality
+                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
             const checksheetTable = document.getElementById('checksheetTable');
             const tableRows = checksheetTable.querySelectorAll('tbody tr');
 
@@ -1382,7 +1382,7 @@
                     doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 });
             });
-                                                                                }
+                                                                                        }
 
         // Edit Modal Handler
         $('.btn-edit-modal').on('click', function (e) {
@@ -1425,7 +1425,7 @@
                 }
             });
         });
-                                                                            });
+                                                                                    });
     </script>
     @php $bulkApproveRoute = route('cross_cut.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')

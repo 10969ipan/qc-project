@@ -116,7 +116,7 @@
                                     <i class="fas fa-search"></i> Cari
                                 </button>
                                 <a href="{{ route('cross_cut_painting.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('cross_cut_painting.export_pdf', request()->all()) }}"
@@ -287,9 +287,9 @@
 
                                         {{-- Standard Actions --}}
                                         @if($isAdmin)
-                                            <a href="{{ route('admin.cross_cut_painting.edit_approval', $checksheet->id) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
-                                                style="min-width: 80px;">
+                                            <a href="{{ route('admin.cross_cut_painting.edit_approval', ['id' => $checksheet->id]) }}"
+                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
+                                                style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif

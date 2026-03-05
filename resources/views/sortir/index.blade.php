@@ -75,7 +75,7 @@
                                     <i class="fas fa-search"></i> Cari
                                 </button>
                                 <a href="{{ route('sortir.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('sortir.export_pdf', request()->query()) }}"

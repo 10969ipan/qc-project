@@ -1391,6 +1391,7 @@
             // Page Navigation Loader (when switching menus)
             $(document).on('click', 'a', function (e) {
                 const href = $(this).attr('href');
+                const dataToggle = $(this).attr('data-toggle');
 
                 // Conditions to NOT show the loader:
                 // 1. Link is empty or just '#'
@@ -1399,6 +1400,8 @@
                 // 4. Link is an anchor on the same page (starts with #)
                 // 5. Link is for Logout (handled by form submission separately)
                 // 6. Link has some specific classes to ignore
+                // 7. Link is a modal or dropdown toggle
+                // 8. Event has already been prevented (e.g. by a custom click handler)
                 if (!href ||
                     href === '#' ||
                     href.startsWith('javascript:') ||
@@ -1406,12 +1409,20 @@
                     href.startsWith('#') ||
                     $(this).hasClass('no-loader') ||
                     $(this).hasClass('btn-logout') ||
-                    $(this).hasClass('dropdown-toggle')) {
+                    $(this).hasClass('dropdown-toggle') ||
+                    dataToggle === 'modal' ||
+                    dataToggle === 'dropdown' ||
+                    e.isDefaultPrevented()) {
                     return;
                 }
 
                 // Show loader on page transition
                 $('#global-loader').css('display', 'flex');
+            });
+
+            // Hide loader if it was shown but navigation didn't complete (e.g. Back button/BFCache)
+            $(window).on('pageshow', function (event) {
+                $('#global-loader').fadeOut();
             });
 
             // Session Heartbeat to prevent logout/CSRF mismatch

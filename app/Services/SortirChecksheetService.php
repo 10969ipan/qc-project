@@ -201,7 +201,7 @@ class SortirChecksheetService extends BaseService
 
             $sortir = SortirChecksheet::create(array_merge($data, [
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
-                'defects' => json_encode($defects)
+                'defects' => $defects
             ]));
 
             // Check if all qty has been sorted, then close source
@@ -242,7 +242,21 @@ class SortirChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             $checksheet = SortirChecksheet::findOrFail($id);
+
+            // Process plant if provided (Admin bypass)
+            if (isset($data['plant'])) {
+                $data['plant_id'] = $this->resolvePlantId($data['plant']);
+            }
+
+            // Process defects update
+            $defects = $this->processDefects($data);
+            $data['defects'] = $defects;
+
+            // Update record
             $checksheet->update($data);
+
+            // Recalculate source closure status
+            $this->checkAndCloseSource($checksheet->source_type, $checksheet->source_id);
 
             DB::commit();
 

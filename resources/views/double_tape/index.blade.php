@@ -90,8 +90,8 @@
                                 <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
                                     <i class="fas fa-search"></i> Cari
                                 </button>
-                                <a href="{{ route('double_tape.index') }}" class="btn btn-secondary btn-sm mr-2"
-                                    title="Reset Filter">
+                                <a href="{{ route('double_tape.index', ['plant' => request('plant')]) }}"
+                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('double_tape.export_pdf', request()->query()) }}"
@@ -403,14 +403,14 @@
 
                                         @if($isAdmin)
                                             <a href="{{ route('double_tape.edit_approval', ['id' => $checksheet->id]) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
+                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             <a href="{{ route('double_tape.edit', $checksheet->id) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>

@@ -213,6 +213,15 @@ class SubAssyChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         $this->checksheetService->updateChecksheet($id, $request->validated());
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Checksheet berhasil diperbarui.',
+                'index_url' => route('admin.checksheets.index', $request->query())
+            ]);
+        }
+
         return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Checksheet berhasil diperbarui.');
     }
 

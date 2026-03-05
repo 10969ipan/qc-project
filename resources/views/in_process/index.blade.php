@@ -106,7 +106,7 @@
                                     <i class="fas fa-search"></i> Cari
                                 </button>
                                 <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('in_process.export_pdf', request()->query()) }}"
@@ -695,14 +695,14 @@
 
                                         @if(auth()->user()->role === 'admin')
                                             <a href="{{ route('admin.in_process.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
+                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             <a href="{{ route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
@@ -889,8 +889,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                                // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                                const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1264,7 +1264,7 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                                    });
+                                                                                                                                                                                            });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')

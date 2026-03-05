@@ -104,7 +104,7 @@
                                     <i class="fas fa-search"></i> Cari
                                 </button>
                                 <a href="{{ route('plating.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2" title="Reset Filter">
+                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('plating.export_pdf', request()->query()) }}"
@@ -434,14 +434,14 @@
 
                                         @if($isAdmin)
                                             <a href="{{ route('plating.edit_approval', ['id' => $checksheet->id]) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal" title="Edit Approval Status"
+                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             <a href="{{ route('plating.edit', $checksheet->id) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal" title="Edit"
+                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>

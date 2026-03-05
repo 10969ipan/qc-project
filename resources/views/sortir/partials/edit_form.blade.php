@@ -20,6 +20,18 @@
                 <input type="hidden" name="item_id" value="{{ $checksheet->item_id }}">
             </div>
 
+            @if(auth()->user()->role === 'admin')
+                <div class="form-group mb-2">
+                    <label class="small font-weight-bold">Plant <span class="text-danger">*</span></label>
+                    <select name="plant" class="form-control form-control-sm" required>
+                        @foreach(\App\Models\Plant::all() as $p)
+                            <option value="{{ $p->code }}" {{ $checksheet->plant_id == $p->id ? 'selected' : '' }}>{{ $p->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
             <div class="row">
                 <div class="col-6">
                     <div class="form-group mb-2">
@@ -165,16 +177,17 @@
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold text-danger">Next Proses <span
                                 class="text-danger">*</span></label>
-                        <select class="form-control form-control-sm" name="next_proses">
+                        <select class="form-control form-control-sm" id="nextProses" name="next_proses">
                             <option value="">-- Pilih --</option>
+                            <option value="HOLD" {{ $checksheet->next_proses == 'HOLD' ? 'selected' : '' }}>HOLD</option>
+                            <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
+                            </option>
                             <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>
                                 CRUSHING</option>
                             <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR
                             </option>
                             <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>
                                 FINISHING</option>
-                            <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
-                            </option>
                             <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
                                 MARKING+FINISHING+PACKING</option>
                         </select>
@@ -217,6 +230,7 @@
             } else {
                 $judgment.val('OK').removeClass('text-danger').addClass('text-success');
                 $('#nextProsesContainer').slideUp();
+                $('#nextProses').val('');
             }
         }
 
@@ -245,6 +259,7 @@
                 $('#nextProsesContainer').slideDown();
             } else {
                 $('#nextProsesContainer').slideUp();
+                $('#nextProses').val('');
             }
         });
     })();

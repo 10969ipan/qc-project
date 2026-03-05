@@ -169,8 +169,24 @@ class SortirChecksheetController extends Controller
         }
         try {
             $this->sortirService->updateChecksheet($id, $request->validated());
-            return redirect()->route('sortir.index', $this->getFilterParams($request))->with('success', 'Data Sortir berhasil diperbarui.');
+            $message = 'Data Sortir berhasil diperbarui.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('sortir.index', $this->getFilterParams($request))
+                ]);
+            }
+
+            return redirect()->route('sortir.index', $this->getFilterParams($request))->with('success', $message);
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui data Sortir: ' . $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()->with('error', 'Gagal memperbarui data Sortir: ' . $e->getMessage());
         }
     }
