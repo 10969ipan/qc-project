@@ -395,8 +395,26 @@
                                     @endif
                                 </td>
 
-                                <td class="align-middle text-nowrap">
-                                    {{ $checksheet->part_weight ? $checksheet->part_weight . ' gr.' : '-' }}
+                                <td class="align-middle" style="min-width:90px;">
+                                    @php
+                                        $weights = is_array($checksheet->part_weight)
+                                            ? $checksheet->part_weight
+                                            : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[')
+                                                ? json_decode($checksheet->part_weight, true)
+                                                : ($checksheet->part_weight ? [$checksheet->part_weight] : []));
+                                    @endphp
+                                    @if(!empty(array_filter($weights, fn($w) => $w !== null && $w !== '')))
+                                        @foreach($weights as $ci => $wv)
+                                            @if($wv !== null && $wv !== '')
+                                                <div class="text-nowrap" style="font-size:0.75rem;">
+                                                    <span class="text-muted">CAV{{ $ci + 1 }}:</span>
+                                                    <strong>{{ $wv }}</strong><small class="text-muted"> gr</small>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    @else
+                                        -
+                                    @endif
                                 </td>
 
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
@@ -889,8 +907,8 @@
                 @endforeach
             @endforeach
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
+                                                                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
+                                                                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
 
             if (liveSearchInput) {
                 let searchTimeout;
@@ -1264,7 +1282,7 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                                                });
+                                                                                                                                                                                                    });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
