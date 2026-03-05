@@ -520,7 +520,7 @@
         }
 
         .col-expandable {
-            min-width: 250px !important;
+            min-width: 350px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
             line-height: 1.5;
@@ -528,7 +528,7 @@
         }
 
         .col-similar-part {
-            min-width: 500px !important;
+            min-width: 800px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
             line-height: 1.5;
@@ -536,7 +536,7 @@
         }
 
         .col-countermeasure {
-            min-width: 450px !important;
+            min-width: 500px !important;
             white-space: pre-line !important;
             word-wrap: break-word;
             line-height: 1.5;
