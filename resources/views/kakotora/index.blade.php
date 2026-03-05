@@ -507,46 +507,41 @@
 @push('styles')
     <link href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
     <style>
+        #dataTableKakotora {
+            table-layout: fixed !important;
+            width: auto !important;
+            min-width: 100% !important;
+        }
+
         #dataTableKakotora th {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             vertical-align: middle;
             text-align: center;
-            white-space: nowrap;
+            background-color: #4e73df;
+            color: white;
+            padding: 12px 8px !important;
         }
 
         #dataTableKakotora td {
-            font-size: 0.8rem;
-            vertical-align: middle;
+            font-size: 0.85rem;
+            vertical-align: top;
+            padding: 15px !important;
+            line-height: 1.8;
         }
 
         .col-expandable {
-            width: 500px !important;
-            min-width: 500px !important;
-            white-space: pre-line !important;
-            word-wrap: break-word;
-            line-height: 2 !important;
-            padding: 15px !important;
-            text-align: left !important;
+            width: 400px !important;
         }
 
-        .col-similar-part {
-            width: 1000px !important;
-            min-width: 1000px !important;
-            white-space: pre-line !important;
-            word-wrap: break-word;
-            line-height: 2 !important;
-            padding: 15px !important;
-            text-align: left !important;
-        }
-
+        .col-similar-part,
         .col-countermeasure {
             width: 1000px !important;
-            min-width: 1000px !important;
-            white-space: pre-line !important;
+        }
+
+        .text-wrap-logic {
+            white-space: pre-wrap !important;
             word-wrap: break-word;
-            line-height: 2 !important;
-            padding: 15px !important;
-            text-align: left !important;
+            word-break: break-word;
         }
 
         .modal-body label {
@@ -562,7 +557,18 @@
         $(document).ready(function () {
             $('#dataTableKakotora').DataTable({
                 "order": [[1, "desc"]],
-                "autoWidth": false
+                "autoWidth": false,
+                "columnDefs": [
+                    { "width": "50px", "targets": 0 },  // No
+                    { "width": "100px", "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }, // Small columns
+                    { "width": "1000px", "targets": [13, 18] }, // Similar Part (13), Countermeasure (18)
+                    { "width": "400px", "targets": [15, 17] }, // Problem (15), Cause (17)
+                    { "width": "150px", "targets": [14, 16, 19, 20, 21, 22, 23] } // Others
+                ],
+                "drawCallback": function (settings) {
+                    // Force classes for wrapping logic
+                    $('#dataTableKakotora td').addClass('text-wrap-logic');
+                }
             });
 
             $('.btn-edit-kakotora').on('click', function () {
