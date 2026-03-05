@@ -71,6 +71,7 @@
                     <table class="table table-bordered" id="dataTableKakotora" cellspacing="0">
                         <thead>
                             <tr>
+                                <th><i class="fas fa-info-circle" title="View Details"></i></th>
                                 <th>No</th>
                                 <th>Tanggal Entry</th>
                                 <th>No Registrasi</th>
@@ -86,9 +87,9 @@
                                 <th>Owner Mould</th>
                                 <th class="col-similar-part">Similar Part</th>
                                 <th>Section</th>
-                                <th class="col-expandable">Problem</th>
+                                <th>Problem</th>
                                 <th>Proses</th>
-                                <th class="col-expandable">Cause</th>
+                                <th>Cause</th>
                                 <th class="col-countermeasure">Countermeasure</th>
                                 <th>PIC</th>
                                 <th>Supplier</th>
@@ -100,6 +101,7 @@
                         <tbody>
                             @foreach ($kakotoras as $item)
                                 <tr>
+                                    <td class="details-control"><i class="fas fa-plus-circle text-primary fa-lg"></i></td>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('d/m/Y') : '-' }}</td>
                                     <td>{{ $item->no_reg ?? '-' }}</td>
@@ -114,12 +116,12 @@
                                     <td>{{ $item->part_number ?? '-' }}</td>
                                     <td>{{ $item->mould ?? '-' }}</td>
                                     <td>{{ $item->owner_mould ?? '-' }}</td>
-                                    <td class="col-similar-part">{{ $item->similar_part ?? '-' }}</td>
+                                    <td>{{ $item->similar_part ?? '-' }}</td>
                                     <td>{{ $item->section ?? '-' }}</td>
-                                    <td class="col-expandable">{{ $item->problem }}</td>
+                                    <td>{{ $item->problem ?? '-' }}</td>
                                     <td>{{ $item->process ?? '-' }}</td>
-                                    <td class="col-expandable">{{ $item->cause }}</td>
-                                    <td class="col-countermeasure">{{ $item->countermeasure }}</td>
+                                    <td>{{ $item->cause ?? '-' }}</td>
+                                    <td>{{ $item->countermeasure ?? '-' }}</td>
                                     <td>{{ $item->pic ?? '-' }}</td>
                                     <td>{{ $item->supplier ?? '-' }}</td>
                                     <td>{{ $item->defect_category ?? '-' }}</td>
@@ -519,32 +521,28 @@
             text-align: center;
             background-color: #4e73df;
             color: white;
-            padding: 12px 8px !important;
+            white-space: nowrap;
+            padding: 12px !important;
         }
 
         #dataTableKakotora td {
             font-size: 0.85rem;
-            vertical-align: top;
-            padding: 15px !important;
-            line-height: 1.8;
+            vertical-align: middle;
+        }
+
+        td.details-control {
+            cursor: pointer;
+            text-align: center;
+            vertical-align: middle !important;
         }
 
         .col-expandable {
             width: 400px !important;
-            min-width: 400px !important;
-            max-width: 400px !important;
         }
 
-        .col-similar-part {
-            width: 800px !important;
-            min-width: 800px !important;
-            max-width: 800px !important;
-        }
-
+        .col-similar-part,
         .col-countermeasure {
-            width: 800px !important;
-            min-width: 800px !important;
-            max-width: 800px !important;
+            width: 1000px !important;
         }
 
         .text-wrap-logic {
@@ -564,24 +562,60 @@
     <script src="{{ asset('vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
     <script>
         $(document).ready(function () {
-            $('#dataTableKakotora').DataTable({
-                "order": [[1, "desc"]],
+            var formatChildRow = function (d) {
+                return '<div class="p-3" style="background-color: #f8f9fc; border-left: 4px solid #4e73df;">' +
+                    '<table class="table table-sm table-borderless mb-0">' +
+                    '<tr>' +
+                    '<td style="width: 15%; font-weight: bold; padding: 0.5rem;">Similar Part</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[14] || '-') + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td style="font-weight: bold; padding: 0.5rem;">Problem</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[16] || '-') + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td style="font-weight: bold; padding: 0.5rem;">Cause</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[18] || '-') + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td style="font-weight: bold; padding: 0.5rem;">Countermeasure</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[19] || '-') + '</td>' +
+                    '</tr>' +
+                    '</table>' +
+                    '</div>';
+            };
+
+            var table = $('#dataTableKakotora').DataTable({
+                "order": [[2, "desc"]],
                 "autoWidth": false,
                 "scrollX": true,
                 "columnDefs": [
-                    { "width": "50px", "targets": 0 },  // No
-                    { "width": "100px", "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }, // Small columns
-                    { "width": "1000px", "targets": [13, 18] }, // Similar Part (13), Countermeasure (18)
-                    { "width": "400px", "targets": [15, 17] }, // Problem (15), Cause (17)
-                    { "width": "150px", "targets": [14, 16, 19, 20, 21, 22, 23] } // Others
-                ],
-                "drawCallback": function (settings) {
-                    // Force classes for wrapping logic
-                    $('#dataTableKakotora td').addClass('text-wrap-logic');
+                    { "orderable": false, "targets": 0 },
+                    { "visible": false, "targets": [14, 16, 18, 19] }
+                ]
+            });
+
+            // Add event listener for opening and closing details
+            $('#dataTableKakotora tbody').on('click', 'td.details-control', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                var icon = $(this).find('i');
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                    icon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                }
+                else {
+                    // Open this row
+                    row.child(formatChildRow(row.data())).show();
+                    tr.addClass('shown');
+                    icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
                 }
             });
 
-            $('.btn-edit-kakotora').on('click', function () {
+            $('#dataTableKakotora tbody').on('click', '.btn-edit-kakotora', function () {
                 var id = $(this).data('id');
                 var date = $(this).data('date');
                 var no_reg = $(this).data('no_reg');
