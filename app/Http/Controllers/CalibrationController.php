@@ -677,7 +677,15 @@ class CalibrationController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.pdf', compact('verifications', 'plantCode', 'request'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->stream('Laporan_Hasil_Verifikasi_' . date('Ymd_His') . '.pdf');
+        $filename = 'Laporan_Hasil_Verifikasi_' . date('Ymd_His') . '.pdf';
+        if ($request->filled('tool_id') && $verifications->count() > 0) {
+            $first = $verifications->first();
+            $safeName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $first->name_alat);
+            $safeSerial = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $first->serial_number);
+            $filename = "Hasil Verifikasi ($safeName-$safeSerial).pdf";
+        }
+
+        return $pdf->stream($filename);
     }
 
     public function verificationsQrPdf($id)
@@ -728,8 +736,9 @@ class CalibrationController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.qr_pdf', compact('verification', 'plantCode', 'qrCode'))
             ->setPaper('a4', 'portrait');
 
-        $safeSerialNumber = str_replace(['/', '\\'], '_', $verification->serial_number);
-        return $pdf->stream('QR_Verification_' . $safeSerialNumber . '_' . date('Ymd_His') . '.pdf');
+        $safeName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->name_alat);
+        $safeSerial = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->serial_number);
+        return $pdf->stream("Hasil Verifikasi ($safeName-$safeSerial).pdf");
     }
 
     public function verificationsQrData($id)
@@ -831,10 +840,12 @@ class CalibrationController extends Controller
 
         // 2. Jika tidak ada sertifikat, kirim Hal 1 saja
         if (!$verification->certification_path) {
-            $safeSerialNumber = str_replace(['/', '\\'], '_', $verification->serial_number);
+            $safeName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->name_alat);
+            $safeSerial = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->serial_number);
+            $filename = "Hasil Verifikasi ($safeName-$safeSerial).pdf";
             return response($reportContent)
                 ->header('Content-Type', 'application/pdf')
-                ->header('Content-Disposition', 'attachment; filename="Verification_Report_' . $safeSerialNumber . '.pdf"');
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
         }
 
         // 3. Gabungkan Hal 1 dan Sertifikat (Halaman 2+) menggunakan FPDI
@@ -868,15 +879,18 @@ class CalibrationController extends Controller
             }
         }
 
-        $safeSerialNumber = str_replace(['/', '\\'], '_', $verification->serial_number);
-        $finalOutput = $pdfMerge->Output('S', 'Laporan_Lengkap_' . $safeSerialNumber . '.pdf');
+        $safeName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->name_alat);
+        $safeSerial = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->serial_number);
+        $finalFilename = "Hasil Verifikasi ($safeName-$safeSerial).pdf";
+
+        $finalOutput = $pdfMerge->Output('S', $finalFilename);
 
         // Clean up temp file
         @unlink($tempReportPath);
 
         return response($finalOutput)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="Laporan_Lengkap_' . $safeSerialNumber . '.pdf"');
+            ->header('Content-Disposition', 'attachment; filename="' . $finalFilename . '"');
     }
 
 
