@@ -383,6 +383,15 @@
             const notificationBadge = document.getElementById('notification-badge');
             const markAllReadBtn = document.getElementById('mark-all-read');
 
+            // Global function to close all navigation dropdowns
+            function closeAllDropdowns() {
+                const openMenus = document.querySelectorAll('.main-nav .dropdown-menu.show, .main-nav .sub-menu.show');
+                const expandedItems = document.querySelectorAll('.main-nav .expanded');
+                
+                openMenus.forEach(menu => menu.classList.remove('show'));
+                expandedItems.forEach(item => item.classList.remove('expanded'));
+            }
+
             function fetchNotifications() {
                 fetch('{{ route('notifications.index') }}')
                     .then(response => {
@@ -541,9 +550,25 @@
                 document.addEventListener('click', function (event) {
                     if (!navMenu.contains(event.target) && !menuToggle.contains(event.target)) {
                         navMenu.classList.remove('show');
+                        closeAllDropdowns();
                     }
                 });
             }
+
+            // Close dropdowns when a modal is shown (Bootstrap 4 event)
+            $(document).on('show.bs.modal', function () {
+                closeAllDropdowns();
+                if (navMenu) navMenu.classList.remove('show');
+            });
+
+            // Close dropdowns when a "leaf" menu item is clicked
+            const leafItems = document.querySelectorAll('.main-nav a:not([href="#"])');
+            leafItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    closeAllDropdowns();
+                    if (navMenu) navMenu.classList.remove('show');
+                });
+            });
 
             // Collapsible Menu Toggle (Manual)
             const mainNavItems = document.querySelectorAll('.main-nav > li.dropdown-item-hover > a');
