@@ -253,12 +253,18 @@
 
     <div class="judgment-section">
         <p style="font-weight: bold; margin-bottom: 10px;">KESIMPULAN / JUDGMENT:</p>
-        @php
-            $judgmentClass = $verification->judgment == 'OK' ? 'judgment-ok' : ($verification->judgment == 'NG' ? 'judgment-ng' : 'judgment-neutral');
-        @endphp
-        <div class="judgment-box {{ $judgmentClass }}">
-            {{ strtoupper($verification->judgment ?: '-') }}
-        </div>
+        @if($verification->judgment == 'OK' || $verification->judgment == 'NG')
+            @php
+                $judgmentClass = $verification->judgment == 'OK' ? 'judgment-ok' : 'judgment-ng';
+            @endphp
+            <div class="judgment-box {{ $judgmentClass }}">
+                {{ strtoupper($verification->judgment) }}
+            </div>
+        @else
+            <div style="font-size: 18px; font-weight: bold; color: #6c757d;">
+                {{ $verification->judgment ?: '-' }}
+            </div>
+        @endif
     </div>
 
     <div class="footer">

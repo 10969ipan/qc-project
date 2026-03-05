@@ -217,12 +217,13 @@
                     <td>{{ $v->std_toleransi ?? '-' }}</td>
                     <td>{{ $v->acuan_toleransi ?? '-' }}</td>
                     <td>
-                        @php
-                            $badgeClass = $v->judgment == 'OK' ? 'bg-success' : ($v->judgment == 'NG' ? 'bg-danger' : 'bg-secondary');
-                        @endphp
-                        <span class="badge {{ $badgeClass }}">
+                        @if($v->judgment == 'OK' || $v->judgment == 'NG')
+                            <span class="badge {{ $v->judgment == 'OK' ? 'bg-success' : 'bg-danger' }}">
+                                {{ $v->judgment }}
+                            </span>
+                        @else
                             {{ $v->judgment ?: '-' }}
-                        </span>
+                        @endif
                     </td>
                     <td>{{ $v->next_kalibrasi ? $v->next_kalibrasi->format('d/m/Y') : '-' }}</td>
                 </tr>

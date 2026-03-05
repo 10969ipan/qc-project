@@ -819,9 +819,10 @@
                                             <label class="small font-weight-bold">Judgment <span
                                                     class="text-danger">*</span></label>
                                             <select name="judgment" class="form-control form-control-sm" required>
-                                                        <option value="OK">OK</option>
-                                                        <option value="NG">NG</option>
-                                                    </select>
+                                                <option value="-">-</option>
+                                                <option value="OK">OK</option>
+                                                <option value="NG">NG</option>
+                                            </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
