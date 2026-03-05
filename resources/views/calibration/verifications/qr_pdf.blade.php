@@ -242,12 +242,6 @@
                 <th>Std Toleransi</th>
                 <th>Acuan Toleransi</th>
             </tr>
-            {{-- Repeating sub-header for page breaks --}}
-            <tr style="background-color: #f9f9f9; font-size: 9px;">
-                <th colspan="5" style="text-align: right; padding-right: 10px;">Nilai Toleransi:</th>
-                <th>{{ $verification->std_toleransi ?? '-' }}</th>
-                <th>{{ $verification->acuan_toleransi ?? '-' }}</th>
-            </tr>
         </thead>
         <tbody>
             @if(is_array($verification->nilai_alat))
