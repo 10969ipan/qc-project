@@ -558,6 +558,7 @@
             $('#dataTableKakotora').DataTable({
                 "order": [[1, "desc"]],
                 "autoWidth": false,
+                "scrollX": true,
                 "columnDefs": [
                     { "width": "50px", "targets": 0 },  // No
                     { "width": "100px", "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }, // Small columns
