@@ -86,11 +86,32 @@
             border: 1px solid #000;
             padding: 8px;
             text-align: center;
+            vertical-align: middle;
+            /* Added to center merged content */
         }
 
-        .measurement-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+        .measurement-table {
+            border-collapse: separate;
+            /* Changed for better rowspan border reliability */
+            border-spacing: 0;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        /* Fix for separate borders looking like single lines */
+        .measurement-table th,
+        .measurement-table td {
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+        }
+
+        .measurement-table th:first-child,
+        .measurement-table td:first-child {
+            border-left: 1px solid #000;
+        }
+
+        .measurement-table thead tr:first-child th {
+            border-top: 1px solid #000;
         }
 
         .judgment-section {
@@ -221,6 +242,12 @@
                 <th>Std Toleransi</th>
                 <th>Acuan Toleransi</th>
             </tr>
+            {{-- Repeating sub-header for page breaks --}}
+            <tr style="background-color: #f9f9f9; font-size: 9px;">
+                <th colspan="5" style="text-align: right; padding-right: 10px;">Nilai Toleransi:</th>
+                <th>{{ $verification->std_toleransi ?? '-' }}</th>
+                <th>{{ $verification->acuan_toleransi ?? '-' }}</th>
+            </tr>
         </thead>
         <tbody>
             @if(is_array($verification->nilai_alat))
@@ -231,8 +258,10 @@
                         <td>{{ $verification->nilai_koreksi[$index] ?? '-' }}</td>
                         <td>{{ $verification->nilai_ketidakpastian[$index] ?? '-' }}</td>
                         <td>{{ $verification->hasil_verifikasi[$index] ?? '-' }}</td>
-                        <td>{{ $index === 0 ? ($verification->std_toleransi ?? '-') : '' }}</td>
-                        <td>{{ $index === 0 ? ($verification->acuan_toleransi ?? '-') : '' }}</td>
+                        @if($index === 0)
+                            <td rowspan="{{ count($verification->nilai_alat) }}">{{ $verification->std_toleransi ?? '-' }}</td>
+                            <td rowspan="{{ count($verification->nilai_alat) }}">{{ $verification->acuan_toleransi ?? '-' }}</td>
+                        @endif
                     </tr>
                 @endforeach
             @else
