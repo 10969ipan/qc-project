@@ -51,6 +51,17 @@
             </div>
         </div>
 
+        <style>
+            #dataTable thead th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #f8f9fc !important;
+                /* bg-light color */
+                box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+            }
+        </style>
+
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show mx-3" role="alert">
                 {{ session('success') }}
@@ -102,14 +113,28 @@
             <div class="card-body">
                 <form action="{{ route('calibration.verifications.index') }}" method="GET" class="row align-items-end mb-4">
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold">Tahun</label>
+                            <select name="year" class="form-control form-control-sm shadow-sm">
+                                @php
+                                    $currentYear = date('Y');
+                                    $selectedYear = request('year', $currentYear);
+                                @endphp
+                                @for($y = $currentYear - 2; $y <= $currentYear + 2; $y++)
+                                    <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold">Dari Tanggal</label>
                             <input type="date" name="start_date" class="form-control form-control-sm shadow-sm"
                                 value="{{ request('start_date') }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold">Sampai Tanggal</label>
                             <input type="date" name="end_date" class="form-control form-control-sm shadow-sm"
@@ -179,13 +204,13 @@
                                 <td class="align-middle">{{ $v->resolusi }}</td>
                                 <td class="align-middle">{{ $v->frekuensi_kalibrasi }}</td>
                                 <td class="align-middle">
-                                    {{ $v->tanggal_kalibrasi ? $v->tanggal_kalibrasi->format('d/m/Y') : '-' }}
+                                    {{ $v->tanggal_kalibrasi ? \Carbon\Carbon::parse($v->tanggal_kalibrasi)->format('d/m/Y') : '-' }}
                                 </td>
                                 <td class="align-middle">
-                                    {{ $v->tanggal_verifikasi ? $v->tanggal_verifikasi->format('d/m/Y') : '-' }}
+                                    {{ $v->tanggal_verifikasi ? \Carbon\Carbon::parse($v->tanggal_verifikasi)->format('d/m/Y') : '-' }}
                                 </td>
                                 <td class="align-middle">
-                                    {{ $v->next_kalibrasi ? $v->next_kalibrasi->format('d/m/Y') : '-' }}
+                                    {{ $v->next_kalibrasi ? \Carbon\Carbon::parse($v->next_kalibrasi)->format('d/m/Y') : '-' }}
                                 </td>
                                 @php
                                     $arrAlat = is_array($v->nilai_alat) ? $v->nilai_alat : [$v->nilai_alat];
@@ -255,6 +280,7 @@
                                                 method="POST" class="d-inline delete-form">
                                                 @csrf
                                                 @method('DELETE')
+                                                <input type="hidden" name="year" value="{{ $year }}">
                                                 <button type="submit"
                                                     class="btn btn-sm btn-danger shadow-sm d-flex align-items-center"
                                                     onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
@@ -316,6 +342,7 @@
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    <input type="hidden" name="year" value="{{ $year }}">
                     <input type="hidden" name="tool_id" id="edit_tool_id">
                     <div class="modal-body">
                         @if($errors->any() && session('modal') == 'edit')
@@ -489,6 +516,7 @@
                 <form action="{{ route('calibration.verifications.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    <input type="hidden" name="year" value="{{ $year }}">
                     <div class="modal-body">
                         @if($errors->any() && session('modal') == 'create')
                             <div class="alert alert-danger px-2 py-1 small">
@@ -831,17 +859,17 @@
             // Modal Add Row
             $('#modal-add-row').on('click', function () {
                 var newRow = `
-                                                                                                                                            <tr>
-                                                                                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                                                <td class="text-center">
-                                                                                                                                                    <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                                                                    </button>
-                                                                                                                                                </td>
-                                                                                                                                            </tr>`;
+                                                                                                                                                        <tr>
+                                                                                                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
+                                                                                                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                                                                                                                                                            <td class="text-center">
+                                                                                                                                                                <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                                                                                                                                                                    <i class="fas fa-trash"></i>
+                                                                                                                                                                </button>
+                                                                                                                                                            </td>
+                                                                                                                                                        </tr>`;
                 $('#modal-verification-body').append(newRow);
                 modalUpdateRemoveButtons();
             });
@@ -904,17 +932,17 @@
 
                         nilaiAlat.forEach(function (val, i) {
                             rowsHtml += `
-                                                                                                                                                <tr>
-                                                                                                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
-                                                                                                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
-                                                                                                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
-                                                                                                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
-                                                                                                                                                    <td class="text-center">
-                                                                                                                                                        <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                                            <i class="fas fa-trash"></i>
-                                                                                                                                                        </button>
-                                                                                                                                                    </td>
-                                                                                                                                                </tr>`;
+                                                                                                                                                            <tr>
+                                                                                                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
+                                                                                                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
+                                                                                                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
+                                                                                                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
+                                                                                                                                                                <td class="text-center">
+                                                                                                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                                                                                                        <i class="fas fa-trash"></i>
+                                                                                                                                                                    </button>
+                                                                                                                                                                </td>
+                                                                                                                                                            </tr>`;
                         });
                         $('#edit-modal-verification-body').html(rowsHtml);
                         editModalUpdateRemoveButtons();
@@ -941,17 +969,17 @@
 
             $('#edit-modal-add-row').on('click', function () {
                 var newRow = `
-                                                                                                                                        <tr>
-                                                                                                                                            <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                                            <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                            <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                            <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                                            <td class="text-center">
-                                                                                                                                                <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                                </button>
-                                                                                                                                            </td>
-                                                                                                                                        </tr>`;
+                                                                                                                                                    <tr>
+                                                                                                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
+                                                                                                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
+                                                                                                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                                                                                                                                                        <td class="text-center">
+                                                                                                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                                            </button>
+                                                                                                                                                        </td>
+                                                                                                                                                    </tr>`;
                 $('#edit-modal-verification-body').append(newRow);
                 editModalUpdateRemoveButtons();
             });

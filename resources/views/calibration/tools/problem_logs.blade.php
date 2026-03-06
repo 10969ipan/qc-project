@@ -3,10 +3,30 @@
 @section('content')
     <div class="container-fluid">
         <x-plant-header title="Laporan Problem Alat" :plant="$plantCode">
-            <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
-                class="btn btn-sm btn-secondary shadow-sm">
-                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Master Data
-            </a>
+            <div class="d-flex align-items-center">
+                <form action="{{ route('calibration.tools.problem-logs') }}" method="GET" class="form-inline mr-2">
+                    <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0">
+                                <i class="fas fa-calendar-alt text-primary"></i>
+                            </span>
+                        </div>
+                        <select name="year" class="form-control border-left-0" onchange="this.form.submit()">
+                            @php $currentYear = date('Y'); @endphp
+                            @for($y = $currentYear + 1; $y >= 2024; $y--)
+                                <option value="{{ $y }}" {{ (isset($year) && $year == $y) ? 'selected' : '' }}>
+                                    Tahun {{ $y }}
+                                </option>
+                            @endfor
+                        </select>
+                    </div>
+                </form>
+                <a href="{{ route('calibration.tools.index', ['plant' => $plantCode, 'year' => $year ?? date('Y')]) }}"
+                    class="btn btn-sm btn-secondary shadow-sm">
+                    <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Master Data
+                </a>
+            </div>
         </x-plant-header>
 
         <div class="card shadow mb-4">
@@ -81,7 +101,7 @@
                                                             {{ $log->judgment_status }}
                                                         </span>
                                                         <small class="text-muted">
-                                                            {{ $log->judged_at->format('d M Y') }}
+                                                            {{ \Carbon\Carbon::parse($log->judged_at)->format('d M Y') }}
                                                         </small>
                                                     </div>
 
@@ -132,7 +152,8 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="font-weight-bold">{{ $log->user->name }}</div>
-                                        <div class="small text-muted">{{ $log->created_at->format('d/m/Y H:i') }}</div>
+                                        <div class="small text-muted">
+                                            {{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i') }}</div>
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group">
@@ -180,6 +201,7 @@
                 <form id="formJudgment" action="" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    <input type="hidden" name="year" value="{{ $year }}">
                     <div class="modal-body text-left">
                         <div class="alert alert-info border-left-primary small mb-3">
                             <i class="fas fa-info-circle mr-1"></i>
@@ -252,6 +274,7 @@
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    <input type="hidden" name="year" value="{{ $year }}">
                     <div class="modal-body">
                         <div class="alert alert-secondary small py-2 mb-3">
                             Alat: <strong id="edit_tool_name"></strong>
@@ -471,8 +494,20 @@
                         method.name = '_method';
                         method.value = 'DELETE';
 
+                        const plantInput = document.createElement('input');
+                        plantInput.type = 'hidden';
+                        plantInput.name = 'plant';
+                        plantInput.value = '{{ $plantCode }}';
+
+                        const yearInput = document.createElement('input');
+                        yearInput.type = 'hidden';
+                        yearInput.name = 'year';
+                        yearInput.value = '{{ $year }}';
+
                         form.appendChild(csrf);
                         form.appendChild(method);
+                        form.appendChild(plantInput);
+                        form.appendChild(yearInput);
                         document.body.appendChild(form);
                         form.submit();
                     }

@@ -41,6 +41,11 @@ class CalibrationTool extends Model
         return $this->hasMany(CalibrationToolLog::class, 'calibration_tool_id');
     }
 
+    public function pendingLogs()
+    {
+        return $this->hasMany(CalibrationToolLog::class, 'calibration_tool_id')->whereNull('judgment_status');
+    }
+
     public function verifications()
     {
         return $this->hasMany(CalibrationVerification::class, 'tool_id');

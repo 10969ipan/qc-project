@@ -90,6 +90,7 @@
                 left: 0;
                 position: sticky;
                 z-index: 30;
+                background-color: white !important;
             }
 
             .serial-col {
@@ -98,6 +99,7 @@
                 left: 180px;
                 position: sticky;
                 z-index: 30;
+                background-color: white !important;
             }
 
             .jenis-col {
@@ -106,6 +108,7 @@
                 left: 300px;
                 position: sticky;
                 z-index: 30;
+                background-color: white !important;
             }
 
             .status-col {
@@ -114,6 +117,7 @@
                 left: 400px;
                 position: sticky;
                 z-index: 30;
+                background-color: #f8f9fc !important;
                 border-right: 2px solid #5a5c69 !important;
             }
 
@@ -122,6 +126,29 @@
                 background-color: #4e73df !important;
                 color: white !important;
                 font-weight: bold;
+                position: sticky;
+                z-index: 40;
+                top: 0;
+            }
+
+            /* Month Row (Row 1) */
+            th.month-header {
+                top: 0;
+            }
+
+            /* Week Row (Row 2) */
+            th.week-header {
+                top: 35px; /* month-header height */
+                z-index: 40;
+            }
+
+            /* Rowspan headers (NAMA ALAT, etc.) are in row 1, so top: 0 is correct */
+            thead th.tool-name-col,
+            thead th.serial-col,
+            thead th.jenis-col,
+            thead th.status-col {
+                z-index: 50;
+                top: 0;
             }
 
             /* Overwrite sticky backgrounds for body */
@@ -167,7 +194,7 @@
             }
 
             .table-responsive {
-                overflow-x: auto;
+                overflow: auto;
                 max-height: 75vh;
                 border: 1px solid #dee2e6;
             }
@@ -175,7 +202,7 @@
 
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Jadwal Kalibrasi - {{ date('Y') }}</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Jadwal Kalibrasi - {{ $year }}</h6>
                 <div class="small">
                     <span class="badge" style="background-color: #1cc88a; color: white;">P</span> Plan
                     <span class="badge ml-2" style="background-color: #36b9cc; color: white;">A</span> Actual
@@ -186,58 +213,66 @@
                 </div>
             </div>
             <div class="card-body">
-                <form action="{{ route('calibration.schedule.index') }}" method="GET" class="row align-items-end mb-4">
-                    <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Pencarian Alat</label>
-                            <input type="text" name="search" class="form-control form-control-sm shadow-sm" placeholder="Nama / No. Seri" value="{{ request('search') }}">
+                <div class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 15px;">
+                    <form action="{{ route('calibration.schedule.index') }}" method="GET" class="d-flex flex-wrap align-items-center w-100" style="gap: 10px;">
+                        <input type="hidden" name="plant" value="{{ $plantCode }}">
+                        
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
+                            <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" style="width: 180px; border-radius: 0.35rem;" placeholder="Nama / No. Seri" value="{{ request('search') }}">
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Jenis Kalibrasi</label>
-                            <select name="jenis_kalibrasi" class="form-control form-control-sm shadow-sm">
+
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tahun:</label>
+                            <select name="year" class="form-control form-control-sm border-0 shadow-sm" style="width: 85px; border-radius: 0.35rem;">
+                                @php
+                                    $currentYear = date('Y');
+                                    $selectedYear = $year ?? $currentYear;
+                                @endphp
+                                @for($y = $currentYear - 2; $y <= $currentYear + 2; $y++)
+                                    <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Jenis:</label>
+                            <select name="jenis_kalibrasi" class="form-control form-control-sm border-0 shadow-sm" style="width: 110px; border-radius: 0.35rem;">
                                 <option value="">Semua</option>
                                 <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
                                 <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Planning Dari</label>
-                            <input type="date" name="start_date" class="form-control form-control-sm shadow-sm" value="{{ request('start_date') }}">
+
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Plan:</label>
+                            <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                                <input type="date" name="start_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                                <span class="px-2 text-gray-500 small">-</span>
+                                <input type="date" name="end_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Sampai</label>
-                            <input type="date" name="end_date" class="form-control form-control-sm shadow-sm" value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Frekuensi</label>
-                            <select name="frequency" class="form-control form-control-sm shadow-sm">
+
+                        <div class="d-flex align-items-center">
+                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Freq:</label>
+                            <select name="frequency" class="form-control form-control-sm border-0 shadow-sm" style="width: 90px; border-radius: 0.35rem;">
                                 <option value="">Semua</option>
                                 <option value="1_year" {{ request('frequency') === '1_year' ? 'selected' : '' }}>1 Thn</option>
-                                <option value="more_than_1_year" {{ request('frequency') === 'more_than_1_year' ? 'selected' : '' }}> > 1 Thn</option>
+                                <option value="more_than_1_year" {{ request('frequency') === 'more_than_1_year' ? 'selected' : '' }}>> 1 Thn</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="d-flex" style="gap: 5px;">
-                            <button type="submit" class="btn btn-primary btn-sm shadow-sm flex-fill">
-                                <i class="fas fa-search mr-1"></i> Cari
+
+                        <div class="ml-auto d-flex" style="gap: 5px;">
+                            <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3">
+                                <i class="fas fa-search fa-sm"></i>
                             </button>
-                            <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode]) }}"
-                                class="btn btn-secondary btn-sm shadow-sm flex-fill">
-                                <i class="fas fa-undo mr-1"></i> Reset
+                            <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode, 'year' => date('Y')]) }}"
+                                class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3">
+                                <i class="fas fa-undo fa-sm"></i>
                             </a>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
 
                 <hr class="my-4 border-light">
 
@@ -277,7 +312,7 @@
                                     }
 
                                     // Fallback for tools without new schedules records
-                                    if (empty($plans) && $tool->schedule_planning && $tool->schedule_planning->format('Y') == date('Y')) {
+                                    if (empty($plans) && $tool->schedule_planning && $tool->schedule_planning->format('Y') == $year) {
                                         $m = (int) $tool->schedule_planning->format('n');
                                         $d = (int) $tool->schedule_planning->format('j');
                                         $w = (int) ceil($d / 7.75);
@@ -333,7 +368,7 @@
                                             @php $isPlan = isset($plans[$m][$w]); @endphp
                                             <td class="{{ $isPlan ? 'marker-p' : '' }}">
                                                 @if($isPlan)
-                                                    <a href="{{ route('calibration.tools.index', ['plant' => $plantCode, 'tool_id' => $tool->id]) }}"
+                                                    <a href="{{ route('calibration.tools.index', ['plant' => $plantCode, 'tool_id' => $tool->id, 'year' => $year]) }}"
                                                         class="marker-link"
                                                         title="Klik untuk lihat daftar alat: {{ $tool->name_alat }}"></a>
                                                 @endif
@@ -353,7 +388,7 @@
                                             @endphp
                                             <td class="{{ $isActual ? 'marker-a' : '' }}">
                                                 @if($isActual)
-                                                    <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'tool_id' => $tool->id]) }}"
+                                                    <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'tool_id' => $tool->id, 'year' => $year]) }}"
                                                         class="marker-link"
                                                         title="Klik untuk lihat hasil verifikasi: {{ $tool->name_alat }}"></a>
                                                 @elseif($isPrPending)

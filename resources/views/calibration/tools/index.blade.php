@@ -112,6 +112,15 @@
                 margin-bottom: 2px !important;
                 padding-bottom: 2px !important;
             }
+
+            /* Sticky Header */
+            #dataTable thead th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #f8f9fc !important; /* bg-light color */
+                box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+            }
         </style>
         <div class="container-fluid">
             <div class="card shadow mb-4 border-left-primary">
@@ -187,6 +196,8 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    {{-- Filter Form Removed and Moved to DataTable Header via JS --}}
+
                     <table class="table table-bordered table-sm text-center align-middle" id="dataTable" width="100%"
                                     cellspacing="0">
                                     <thead class="bg-light">
@@ -224,13 +235,13 @@
                                                 <td>{{ $tool->serial_number }}</td>
                                                 <td>{{ $tool->range }}</td>
                                                 <td>{{ $tool->resolusi }}</td>
-                                                <td>{{ $tool->tanggal_beli ? $tool->tanggal_beli->format('d/m/Y') : '-' }}</td>
+                                                <td>{{ $tool->tanggal_beli ? \Carbon\Carbon::parse($tool->tanggal_beli)->format('d/m/Y') : '-' }}</td>
                                                 <td>{{ $tool->frekuensi_kalibrasi }}</td>
                                                 <td>{{ $tool->riwayat_kalibrasi ?? '-' }}</td>
                                                 <td>{{ Str::title($tool->jenis_kalibrasi) }}</td>
                                                 <td>
                                                     @php
-                                                        $scheduledStatuses = $tool->getScheduledStatuses(date('Y'));
+                                                        $scheduledStatuses = $tool->getScheduledStatuses($year);
                                                     @endphp
                                                     @if(!empty($scheduledStatuses))
                                                         @php $first = $scheduledStatuses[0];
@@ -350,14 +361,31 @@
 
                                                     <div class="mb-1 pb-1 schedule-item"
                                                         style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                                        @if($statIsClickable && !empty($statLinkParams))
-                                                            <a href="{{ route('calibration.verifications.index', $statLinkParams) }}"
-                                                                style="text-decoration: none;">
+                                                        <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
+                                                            {{-- Problem Icon --}}
+                                                            @if($tool->pendingLogs->count() > 0)
+                                                                <div class="d-flex flex-column align-items-center mr-1">
+                                                                    <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode, 'year' => $year]) }}" 
+                                                                       class="text-warning" 
+                                                                       title="Alat dilaporkan bermasalah & menunggu judgment">
+                                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                                    </a>
+                                                                    <span class="text-muted font-weight-bold" style="font-size: 0.6rem; line-height: 1;">
+                                                                        {{ $tool->pendingLogs->max('reported_date')->format('d/m/y') }}
+                                                                    </span>
+                                                                </div>
+                                                            @endif
+
+                                                            @if($statIsClickable && !empty($statLinkParams))
+                                                                @php $statLinkParams['year'] = $year; @endphp
+                                                                <a href="{{ route('calibration.verifications.index', $statLinkParams) }}"
+                                                                    style="text-decoration: none;">
+                                                                    {!! $statIcon !!}
+                                                                </a>
+                                                            @else
                                                                 {!! $statIcon !!}
-                                                            </a>
-                                                        @else
-                                                            {!! $statIcon !!}
-                                                        @endif
+                                                            @endif
+                                                        </div>
                                                         <small class="pr-date-display text-muted mt-1">
                                                             {{ $statPrDate }}
                                                         </small>
@@ -456,6 +484,7 @@
                                 <form action="{{ route('calibration.tools.store') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                                    <input type="hidden" name="year" value="{{ $year }}">
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col-md-6 text-left">
@@ -559,6 +588,7 @@
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                                    <input type="hidden" name="year" value="{{ $year }}">
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col-md-6 text-left">
@@ -683,6 +713,7 @@
                                 <form action="{{ route('calibration.verifications.store') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <input type="hidden" name="plant" value="{{ $plantCode }}">
+                                    <input type="hidden" name="year" value="{{ $year }}">
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col-md-6">
@@ -874,6 +905,7 @@
                                     <form action="{{ route('calibration.tools.store-problem') }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         <input type="hidden" name="plant" value="{{ $plantCode }}">
+                                        <input type="hidden" name="year" value="{{ $year }}">
                                         <input type="hidden" name="calibration_tool_id" id="problem_tool_id">
                                         <div class="modal-body text-left">
                                             <div class="form-group mb-3">
@@ -1066,8 +1098,8 @@
 
             // Initialize DataTable if it exists
             if ($.fn.DataTable) {
-                $('#dataTable').DataTable({
-                    dom: "<'row px-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                var table = $('#dataTable').DataTable({
+                    dom: "<'row px-2 mb-2 align-items-center'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end align-items-center'<'year-filter-container mr-3'>f>>" +
                         "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
                         "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                     language: {
@@ -1082,6 +1114,28 @@
                             next: "Next",
                             previous: "Previous"
                         }
+                    },
+                    initComplete: function() {
+                        // Create Year Filter
+                        var currentYear = new Date().getFullYear();
+                        var selectedYear = "{{ $year ?? date('Y') }}";
+                        var yearHtml = '<div class="d-flex align-items-center mr-3">' +
+                            '<label class="mb-0 mr-2" style="font-weight: normal; color: #858796;">Tahun:</label>' +
+                            '<select id="customYearFilter" class="form-control form-control-sm" style="width: 85px; border-radius: 0.35rem;">';
+                        
+                        for (var y = currentYear - 2; y <= currentYear + 2; y++) {
+                            var selected = (y == selectedYear) ? 'selected' : '';
+                            yearHtml += '<option value="' + y + '" ' + selected + '>' + y + '</option>';
+                        }
+                        
+                        yearHtml += '</select></div>';
+                        
+                        $('.year-filter-container').html(yearHtml);
+                        
+                        $('#customYearFilter').on('change', function() {
+                            var val = $(this).val();
+                            window.location.href = "{{ route('calibration.tools.index') }}?plant={{ $plantCode }}&year=" + val;
+                        });
                     }
                 });
             }
