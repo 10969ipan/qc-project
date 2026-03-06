@@ -119,6 +119,8 @@
                 top: 0;
                 z-index: 10;
                 background-color: #f8f9fc !important; /* bg-light color */
+                color: #4e73df !important; /* SB Admin Primary Color for better visibility */
+                font-weight: bold;
                 box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
             }
         </style>
