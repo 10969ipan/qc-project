@@ -118,9 +118,12 @@
                 position: sticky;
                 top: 0;
                 z-index: 10;
-                background-color: #f8f9fc !important; /* bg-light color */
-                color: #4e73df !important; /* SB Admin Primary Color for better visibility */
+                background-color: #4e73df !important; /* Royal Blue */
+                color: white !important;
                 font-weight: bold;
+                text-transform: uppercase;
+                font-size: 0.85rem;
+                border: 1px solid #ffffff44 !important;
                 box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
             }
         </style>
