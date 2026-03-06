@@ -299,10 +299,11 @@
                                                 <td>
                                                     @php
                                                         // Determine status icon using updated scheduled statuses
-                                                        $statIcon = '-';
+                                                        $statIcon = null;
                                                         $statPrDate = '-';
                                                         $statIsClickable = false;
                                                         $statLinkParams = [];
+                                                        $hasPendingLog = $tool->pendingLogs->count() > 0;
 
                                                         // Find the most relevant schedule for display
                                                         $relevantSchedule = null;
@@ -316,6 +317,7 @@
                                                         }
 
                                                         $hasVerification = $tool->all_verifications_count > 0;
+                                                        $latestVerifDate = $tool->latestVerification ? $tool->latestVerification->tanggal_verifikasi->format('d/m/y') : null;
 
                                                         $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
                                                             '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
@@ -364,36 +366,49 @@
                                                         }
                                                     @endphp
 
-                                                    <div class="mb-1 pb-1 schedule-item"
-                                                        style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                                                        <div class="d-flex align-items-center justify-content-center" style="gap: 5px;">
-                                                            {{-- Problem Icon --}}
-                                                            @if($tool->pendingLogs->count() > 0)
-                                                                <div class="d-flex flex-column align-items-center mr-1">
+                                                    <div class="mb-1 pb-1"
+                                                        style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 40px;">
+                                                        <div class="d-flex flex-column align-items-center justify-content-center" style="gap: 2px;">
+                                                            {{-- Problem Icon - Prioritized --}}
+                                                            @if($hasPendingLog)
+                                                                <div class="d-flex flex-column align-items-center">
                                                                     <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode, 'year' => $year]) }}" 
                                                                        class="text-warning" 
-                                                                       title="Alat dilaporkan bermasalah & menunggu judgment">
+                                                                       title="Alat dilaporkan bermasalah & menunggu judgment"
+                                                                       style="font-size: 1.2rem;">
                                                                         <i class="fas fa-exclamation-triangle"></i>
                                                                     </a>
-                                                                    <span class="text-muted font-weight-bold" style="font-size: 0.6rem; line-height: 1;">
+                                                                    <span class="text-muted font-weight-bold" style="font-size: 0.65rem; line-height: 1;">
                                                                         {{ $tool->pendingLogs->max('reported_date')->format('d/m/y') }}
                                                                     </span>
                                                                 </div>
-                                                            @endif
-
-                                                            @if($statIsClickable && !empty($statLinkParams))
-                                                                @php $statLinkParams['year'] = $year; @endphp
-                                                                <a href="{{ route('calibration.verifications.index', $statLinkParams) }}"
-                                                                    style="text-decoration: none;">
-                                                                    {!! $statIcon !!}
-                                                                </a>
                                                             @else
-                                                                {!! $statIcon !!}
+                                                                {{-- Normal Status Icon --}}
+                                                                @if($statIsClickable && !empty($statLinkParams))
+                                                                    @php $statLinkParams['year'] = $year; @endphp
+                                                                    <a href="{{ route('calibration.verifications.index', $statLinkParams) }}"
+                                                                        style="text-decoration: none;">
+                                                                        {!! $statIcon !!}
+                                                                    </a>
+                                                                @else
+                                                                    {!! $statIcon !!}
+                                                                @endif
+
+                                                                {{-- Verification Date below check icon --}}
+                                                                @if($hasVerification && $latestVerifDate)
+                                                                    <span class="text-muted font-weight-bold" style="font-size: 0.6rem; margin-top: -2px;">
+                                                                        {{ $latestVerifDate }}
+                                                                    </span>
+                                                                @endif
                                                             @endif
                                                         </div>
-                                                        <small class="pr-date-display text-muted mt-1">
-                                                            {{ $statPrDate }}
-                                                        </small>
+
+                                                        {{-- PR Date - Always show if available, hide dash if empty --}}
+                                                        @if($statPrDate !== '-')
+                                                            <small class="pr-date-display text-muted font-weight-bold mt-1" style="font-size: 0.65rem;">
+                                                                {{ $statPrDate }}
+                                                            </small>
+                                                        @endif
                                                     </div>
                                                 </td>
                                                 <td>
