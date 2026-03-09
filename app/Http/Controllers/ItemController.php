@@ -374,8 +374,15 @@ class ItemController extends Controller
         $normalizedInput = $normalize($partNumberInput);
         $item = null;
 
-        // 1. Cari Berdasarkan Part Number (Normalized)
-        if ($normalizedInput) {
+        // 1. Prioritas Utama: Cari Berdasarkan Nama Item (menggunakan part number input sebagai keyword)
+        if ($partNumberInput) {
+            $item = Item::where('name', 'LIKE', '%' . $partNumberInput . '%')
+                ->orWhere('name', 'LIKE', '%' . $normalizedInput . '%')
+                ->first();
+        }
+
+        // 2. Prioritas Kedua: Cari Berdasarkan Part Number (Normalized)
+        if (!$item && $normalizedInput) {
             // Kita ambil dulu candidate yang mirip untuk efisiensi
             $candidates = Item::where('part_number', 'LIKE', '%' . substr($normalizedInput, 0, 3) . '%')->get();
             foreach ($candidates as $candidate) {
@@ -386,16 +393,9 @@ class ItemController extends Controller
             }
         }
 
-        // 2. Fallback: Cari Berdasarkan SAP Code
+        // 3. Prioritas Terakhir: Cari Berdasarkan SAP Code
         if (!$item && $sapCodeInput) {
             $item = Item::where('sap_code', $sapCodeInput)->first();
-        }
-
-        // 3. Fallback: Cari Berdasarkan Nama Item (menggunakan part number input sebagai keyword)
-        if (!$item && $partNumberInput) {
-            $item = Item::where('name', 'LIKE', '%' . $partNumberInput . '%')
-                ->orWhere('name', 'LIKE', '%' . $normalizedInput . '%')
-                ->first();
         }
 
         if (!$item) {
