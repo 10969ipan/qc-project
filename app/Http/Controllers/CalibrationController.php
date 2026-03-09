@@ -123,7 +123,7 @@ class CalibrationController extends Controller
         $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->get('year', date('Y'));
+        $year = $request->get('year', 'all');
 
         // Fetch dynamic years for filter from verification results for this plant
         $availableYears = \App\Models\CalibrationVerification::whereHas('tool', function ($q) use ($plant) {
