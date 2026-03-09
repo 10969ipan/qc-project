@@ -142,12 +142,7 @@ class CalibrationTool extends Model
         $schedulesQuery = $this->schedules()->orderBy('schedule_date', 'asc');
         
         if ($year !== 'all') {
-            $schedulesQuery->where(function ($q) use ($year) {
-                $q->whereYear('schedule_date', $year)
-                  ->orWhereHas('verifications', function ($vq) use ($year) {
-                      $vq->whereYear('tanggal_verifikasi', $year);
-                  });
-            });
+            $schedulesQuery->whereYear('schedule_date', $year);
         }
 
         $schedules = $schedulesQuery->get();
