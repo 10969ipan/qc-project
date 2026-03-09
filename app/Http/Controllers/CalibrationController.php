@@ -125,28 +125,51 @@ class CalibrationController extends Controller
 
         $year = $request->get('year', date('Y'));
 
+        // Fetch dynamic years for filter from verification results for this plant
+        $availableYears = \App\Models\CalibrationVerification::whereHas('tool', function ($q) use ($plant) {
+            $q->where('plant_id', $plant->id);
+        })
+            ->whereNotNull('tanggal_verifikasi')
+            ->selectRaw('YEAR(tanggal_verifikasi) as year')
+            ->distinct()
+            ->pluck('year')
+            ->toArray();
+
+        // Always include current year and requested year in dropdown
+        $currentYear = date('Y');
+        $availableYears = array_unique(array_merge($availableYears, [$currentYear]));
+        if ($year !== 'all') {
+            $availableYears[] = (int) $year;
+        }
+        $availableYears = array_unique($availableYears);
+        sort($availableYears);
+
         $query = CalibrationTool::where('plant_id', $plant->id)
             ->withCount('verifications as all_verifications_count')
             ->with([
                 'verifications' => function ($q) use ($year) {
-                    $q->whereYear('tanggal_verifikasi', $year);
+                    if ($year !== 'all') {
+                        $q->whereYear('tanggal_verifikasi', $year);
+                    }
                 },
                 'schedules' => function ($q) use ($year) {
-                    $q->whereYear('schedule_date', $year);
+                    if ($year !== 'all') {
+                        $q->whereYear('schedule_date', $year);
+                    }
                 },
                 'pendingLogs' => function ($q) use ($year) {
-                    $q->whereYear('reported_date', $year);
+                    if ($year !== 'all') {
+                        $q->whereYear('reported_date', $year);
+                    }
                 }
-            ])
-            ->where(function ($q) use ($year) {
-                $q->whereHas('schedules', function ($sq) use ($year) {
-                    $sq->whereYear('schedule_date', $year);
-                })
-                    ->orWhereHas('verifications', function ($vq) use ($year) {
-                        $vq->whereYear('tanggal_verifikasi', $year);
-                    })
-                    ->orWhereYear('schedule_planning', $year);
+            ]);
+
+        // Apply year filter if not 'all'
+        if ($year !== 'all') {
+            $query->whereHas('verifications', function ($q) use ($year) {
+                $q->whereYear('tanggal_verifikasi', $year);
             });
+        }
 
         // Filter Tool ID (Click-to-filter dari Chart)
         if ($request->filled('tool_id')) {
@@ -206,7 +229,7 @@ class CalibrationController extends Controller
 
         $tools = $query->get();
 
-        return view('calibration.tools.index', compact('tools', 'plantCode', 'year'));
+        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears'));
     }
 
 

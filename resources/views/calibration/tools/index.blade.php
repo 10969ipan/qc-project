@@ -1137,16 +1137,21 @@
                     },
                     initComplete: function() {
                         // Create Year Filter
-                        var currentYear = new Date().getFullYear();
                         var selectedYear = "{{ $year ?? date('Y') }}";
+                        var availableYears = @json($availableYears);
+
                         var yearHtml = '<div class="d-flex align-items-center mr-3">' +
                             '<label class="mb-0 mr-2" style="font-weight: normal; color: #858796;">Tahun:</label>' +
                             '<select id="customYearFilter" class="form-control form-control-sm" style="width: 85px; border-radius: 0.35rem;">';
                         
-                        for (var y = currentYear - 2; y <= currentYear + 2; y++) {
-                            var selected = (y == selectedYear) ? 'selected' : '';
+                        // All option
+                        var allSelected = (selectedYear == 'all') ? 'selected' : '';
+                        yearHtml += '<option value="all" ' + allSelected + '>All</option>';
+
+                        availableYears.forEach(function(y) {
+                            var selected = (y == selectedYear && selectedYear != 'all') ? 'selected' : '';
                             yearHtml += '<option value="' + y + '" ' + selected + '>' + y + '</option>';
-                        }
+                        });
                         
                         yearHtml += '</select></div>';
                         

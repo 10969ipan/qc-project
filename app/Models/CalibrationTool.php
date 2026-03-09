@@ -139,10 +139,18 @@ class CalibrationTool extends Model
             $year = date('Y');
         }
 
-        $schedules = $this->schedules()
-            ->whereYear('schedule_date', $year)
-            ->orderBy('schedule_date', 'asc')
-            ->get();
+        $schedulesQuery = $this->schedules()->orderBy('schedule_date', 'asc');
+        
+        if ($year !== 'all') {
+            $schedulesQuery->where(function ($q) use ($year) {
+                $q->whereYear('schedule_date', $year)
+                  ->orWhereHas('verifications', function ($vq) use ($year) {
+                      $vq->whereYear('tanggal_verifikasi', $year);
+                  });
+            });
+        }
+
+        $schedules = $schedulesQuery->get();
 
         $verifications = $this->verifications()
             ->orderBy('tanggal_verifikasi', 'desc')
@@ -164,14 +172,12 @@ class CalibrationTool extends Model
                 return $v;
 
             // 2. Check for "Early Verification": 
-            // Any verification done BEFORE the schedule date whose NEXT calibration is AFTER the schedule date.
             $vEarly = $verifications->first(function ($v) use ($sDate) {
                 if (!$v->tanggal_verifikasi || !$v->next_kalibrasi)
                     return false;
                 $vDate = \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->startOfDay();
                 $nextDate = \Carbon\Carbon::parse((string) $v->next_kalibrasi)->startOfDay();
 
-                // If verification was done before or on schedule, and it covers the schedule
                 return $vDate->lte($sDate) && $nextDate->gt($sDate);
             });
 
@@ -180,7 +186,7 @@ class CalibrationTool extends Model
 
         // If no schedules in the new table, try fallback to legacy schedule_planning
         if ($schedules->isEmpty()) {
-            if ($this->schedule_planning && \Carbon\Carbon::parse((string) $this->schedule_planning)->format('Y') == $year) {
+            if ($this->schedule_planning && ($year === 'all' || \Carbon\Carbon::parse((string) $this->schedule_planning)->format('Y') == $year)) {
                 $v = $findVerification($this->schedule_planning);
 
                 $results[] = (object) [
