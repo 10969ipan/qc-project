@@ -359,20 +359,50 @@ class ItemController extends Controller
      */
     public function searchByPartNumber(Request $request)
     {
-        $partNumber = $request->query('part_number');
+        $partNumberInput = $request->query('part_number');
+        $sapCodeInput = $request->query('sap_code');
 
-        if (!$partNumber) {
-            return response()->json(['success' => false, 'message' => 'Nomor part wajib diisi'], 400);
+        if (!$partNumberInput && !$sapCodeInput) {
+            return response()->json(['success' => false, 'message' => 'Pencarian gagal: Data QR tidak terbaca dengan benar.'], 400);
         }
 
-        // Search for the item matching the part_number
-        // We prioritize exact matches but allow partial if necessary
-        $item = Item::where('part_number', 'LIKE', '%' . $partNumber . '%')
-            ->orderByRaw("CASE WHEN part_number = ? THEN 0 ELSE 1 END", [$partNumber])
-            ->first();
+        // Fungsi pembantu untuk normalisasi (hapus semua karakter non-alfanumerik)
+        $normalize = function ($str) {
+            return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $str ?? ''));
+        };
+
+        $normalizedInput = $normalize($partNumberInput);
+        $item = null;
+
+        // 1. Cari Berdasarkan Part Number (Normalized)
+        if ($normalizedInput) {
+            // Kita ambil dulu candidate yang mirip untuk efisiensi
+            $candidates = Item::where('part_number', 'LIKE', '%' . substr($normalizedInput, 0, 3) . '%')->get();
+            foreach ($candidates as $candidate) {
+                if ($normalize($candidate->part_number) === $normalizedInput) {
+                    $item = $candidate;
+                    break;
+                }
+            }
+        }
+
+        // 2. Fallback: Cari Berdasarkan SAP Code
+        if (!$item && $sapCodeInput) {
+            $item = Item::where('sap_code', $sapCodeInput)->first();
+        }
+
+        // 3. Fallback: Cari Berdasarkan Nama Item (menggunakan part number input sebagai keyword)
+        if (!$item && $partNumberInput) {
+            $item = Item::where('name', 'LIKE', '%' . $partNumberInput . '%')
+                ->orWhere('name', 'LIKE', '%' . $normalizedInput . '%')
+                ->first();
+        }
 
         if (!$item) {
-            return response()->json(['success' => false, 'message' => 'Item tidak ditemukan'], 404);
+            $msg = "Item tidak ditemukan.\n";
+            $msg .= "Part: " . ($partNumberInput ?: '-') . "\n";
+            $msg .= "SAP: " . ($sapCodeInput ?: '-');
+            return response()->json(['success' => false, 'message' => $msg], 404);
         }
 
         return response()->json([

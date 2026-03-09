@@ -836,7 +836,10 @@
                     $.ajax({
                         url: "{{ route('items.search-by-part') }}",
                         method: 'GET',
-                        data: { part_number: part_code },
+                        data: { 
+                            part_number: part_code,
+                            sap_code: sap_code 
+                        },
                         success: function (response) {
                             if (response.success && response.item) {
                                 $('#qr-reader-results').find('p').text('Item ditemukan! Menyinkronkan form...');
