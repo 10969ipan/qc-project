@@ -126,8 +126,22 @@
                 background-color: #4e73df !important;
                 color: white !important;
                 font-weight: bold;
+                text-transform: uppercase;
+                font-size: 0.8rem;
                 position: sticky;
                 z-index: 40;
+                top: 0;
+                border: 1px solid #ffffff44 !important;
+            }
+
+            /* Fix sticky header backgrounds */
+            thead th.tool-name-col,
+            thead th.serial-col,
+            thead th.jenis-col,
+            thead th.status-col {
+                background-color: #4e73df !important;
+                color: white !important;
+                z-index: 50;
                 top: 0;
             }
 
@@ -152,7 +166,7 @@
             }
 
             /* Overwrite sticky backgrounds for body */
-            tbody td.tool-name-col, 
+            tbody td.tool-name-col,
             tbody td.serial-col,
             tbody td.jenis-col {
                 background-color: white !important;

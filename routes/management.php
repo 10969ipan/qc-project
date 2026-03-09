@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Public/Shared Access to Master Files
+    Route::get('items/search-by-part', [ItemController::class, 'searchByPartNumber'])->name('items.search-by-part');
     Route::get('items/{id}/pdf/{index?}', [ItemController::class, 'servePdf'])->name('items.pdf');
 
     Route::get('monthly-reports/{id}/pdf', [MonthlyReportController::class, 'servePdf'])->name('monthly_reports.pdf');

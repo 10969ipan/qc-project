@@ -319,6 +319,12 @@ class InProcessChecksheetService extends BaseService
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => json_encode($defects),
                 'part_weight' => $data['part_weight'] ?? null,
+                'qrcode' => $data['qrcode'] ?? null,
+                'part_code' => $data['part_code'] ?? null,
+                'supplier_id' => $data['supplier_id'] ?? null,
+                'quantity' => $data['quantity'] ?? null,
+                'unique_code_id' => $data['unique_code_id'] ?? null,
+                'sap_code' => $data['sap_code'] ?? null,
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ]);
 
@@ -419,6 +425,12 @@ class InProcessChecksheetService extends BaseService
                 'dimension_check' => $dimensionCheck,
                 'defects' => json_encode($defects),
                 'part_weight' => $data['part_weight'] ?? null,
+                'qrcode' => $data['qrcode'] ?? null,
+                'part_code' => $data['part_code'] ?? null,
+                'supplier_id' => $data['supplier_id'] ?? null,
+                'quantity' => $data['quantity'] ?? null,
+                'unique_code_id' => $data['unique_code_id'] ?? null,
+                'sap_code' => $data['sap_code'] ?? null,
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ];
 

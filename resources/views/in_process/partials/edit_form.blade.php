@@ -12,6 +12,46 @@
 
     <div class="row">
         <div class="col-md-6 border-right">
+            <div class="card bg-light mb-3">
+                <div class="card-header py-2">
+                    <h6 class="m-0 font-weight-bold text-primary small">Traceability QR Code</h6>
+                </div>
+                <div class="card-body p-2" style="font-size: 0.75rem;">
+                    <div class="row no-gutters mb-1">
+                        <div class="col-4 font-weight-bold">QR Raw:</div>
+                        <div class="col-8 text-break">{{ $checksheet->qrcode }}</div>
+                    </div>
+                    <div class="row no-gutters mb-1">
+                        <div class="col-4 font-weight-bold">Part Code:</div>
+                        <div class="col-8">{{ $checksheet->part_code }}</div>
+                    </div>
+                    <div class="row no-gutters mb-1">
+                        <div class="col-4 font-weight-bold">Supplier ID:</div>
+                        <div class="col-8">{{ $checksheet->supplier_id }}</div>
+                    </div>
+                    <div class="row no-gutters mb-1">
+                        <div class="col-4 font-weight-bold">Qty:</div>
+                        <div class="col-8">{{ $checksheet->quantity }}</div>
+                    </div>
+                    <div class="row no-gutters mb-1">
+                        <div class="col-4 font-weight-bold text-danger">Unique ID:</div>
+                        <div class="col-8 font-weight-bold text-danger">{{ $checksheet->unique_code_id }}</div>
+                    </div>
+                    <div class="row no-gutters">
+                        <div class="col-4 font-weight-bold">SAP Code:</div>
+                        <div class="col-8">{{ $checksheet->sap_code }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            {{-- Hidden inputs to preserve QR data during update if not changed --}}
+            <input type="hidden" name="qrcode" value="{{ $checksheet->qrcode }}">
+            <input type="hidden" name="part_code" value="{{ $checksheet->part_code }}">
+            <input type="hidden" name="supplier_id" value="{{ $checksheet->supplier_id }}">
+            <input type="hidden" name="quantity" value="{{ $checksheet->quantity }}">
+            <input type="hidden" name="unique_code_id" value="{{ $checksheet->unique_code_id }}">
+            <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
+
             <div class="form-group mb-2">
                 <label class="small font-weight-bold">Item Part <span class="text-danger">*</span></label>
                 <select name="item_id" id="item_id" class="form-control form-control-sm" required>

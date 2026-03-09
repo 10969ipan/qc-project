@@ -163,6 +163,12 @@
             <form action="{{ route('in_process.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="qrcode" id="qrcodeInput">
+                <input type="hidden" name="part_code" id="partCodeInput">
+                <input type="hidden" name="supplier_id" id="supplierIdInput">
+                <input type="hidden" name="quantity" id="quantityInput">
+                <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
@@ -184,7 +190,12 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold">Kode SAP</label>
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="font-weight-bold mb-0">Kode SAP</label>
+                                            <button type="button" class="btn btn-primary btn-xs" id="btnScanQR">
+                                                <i class="fas fa-qrcode"></i> Scan QR
+                                            </button>
+                                        </div>
                                         <input type="text" class="form-control" id="sapCodeInput"
                                             placeholder="Ketik Kode SAP..." style="min-width: 200px;">
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
@@ -655,12 +666,217 @@
 
 @endsection
 
+<!-- QR Scanner Modal -->
+<div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="qr-reader" style="width: 100%"></div>
+                <div id="qr-reader-results" class="p-3 text-center d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Memuat...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Memproses data QR...</p>
+                </div>
+                <div class="p-3 border-top bg-light">
+                    <label class="font-weight-bold">Atau Unggah Gambar QR:</label>
+                    <input type="file" id="qr-input-file" accept="image/*" class="form-control-file">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
+    <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // === QR SCANNER LOGIC ===
+            let html5QrCode = null;
+
+            function stopScanner() {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    return html5QrCode.stop().then(() => {
+                        console.log("Scanner stopped");
+                    }).catch(err => {
+                        console.error("Failed to stop scanner", err);
+                    });
+                }
+                return Promise.resolve();
+            }
+
+            $('#btnScanQR').click(function () {
+                $('#qrScannerModal').modal('show');
+            });
+
+            $('#qrScannerModal').on('shown.bs.modal', function () {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                    handleQRScanned(decodedText);
+                }).catch(err => {
+                    console.error("Scanner error", err);
+                    $('#qr-reader').html(`<div class="alert alert-warning m-3">
+                                                                        <b>Kamera tidak dapat diakses:</b> ${err}<br>
+                                                                        <small>Pastikan Anda menggunakan HTTPS atau localhost untuk akses kamera.</small>
+                                                                    </div>`);
+                });
+            });
+
+            // Penanganan Unggah File
+            $('#qr-input-file').on('change', async function (e) {
+                if (e.target.files.length == 0) return;
+                const imageFile = e.target.files[0];
+                console.log("File selected for scanning:", imageFile.name);
+
+                // Menyiapkan UI pemrosesan
+                $('#qr-reader').addClass('d-none');
+                $('#qr-reader-results').removeClass('d-none').find('p').text('Memproses QR dari file...');
+
+                try {
+                    // Pastikan scanner kamera berhenti sebelum scan file
+                    await stopScanner();
+
+                    if (!html5QrCode) html5QrCode = new Html5Qrcode("qr-reader");
+
+                    const decodedText = await html5QrCode.scanFile(imageFile, true);
+                    console.log("QR decoded from file:", decodedText);
+                    handleQRScanned(decodedText);
+                } catch (err) {
+                    console.error("Error scanning file:", err);
+                    $('#qr-reader-results').addClass('d-none');
+                    $('#qr-reader').removeClass('d-none');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Membaca QR',
+                        text: 'Sistem tidak menemukan QR Code pada gambar ini. Pastikan gambar jelas dan tidak terpotong.',
+                    });
+                } finally {
+                    $(this).val('');
+                }
+            });
+
+            $('#qrScannerModal').on('hidden.bs.modal', function () {
+                stopScanner();
+                $('#qr-reader-results').addClass('d-none');
+                $('#qr-reader').removeClass('d-none');
+            });
+
+            function handleQRScanned(decodedText) {
+                stopScanner();
+                $('#qr-reader').addClass('d-none');
+                $('#qr-reader-results').removeClass('d-none').find('p').text('QR Ditemukan! Mengolah data...');
+
+                // Safety Timeout: Reset UI if no response in 15 seconds
+                const safetyTimeout = setTimeout(() => {
+                    if ($('#qrScannerModal').hasClass('show') && !$('#qr-reader-results').hasClass('d-none')) {
+                        console.error("QR processing timeout");
+                        $('#qr-reader-results').addClass('d-none');
+                        $('#qr-reader').removeClass('d-none');
+                        Swal.fire('Timeout', 'Proses terlalu lama. Silakan coba lagi atau pastikan koneksi stabil.', 'warning');
+                    }
+                }, 15000);
+
+                parseAndFillQR(decodedText, function (success) {
+                    clearTimeout(safetyTimeout);
+                    if (success) {
+                        $('#qrScannerModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'QR Berhasil Discan',
+                            text: 'Data item terisi.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        $('#qr-reader-results').addClass('d-none');
+                        $('#qr-reader').removeClass('d-none');
+                    }
+                });
+            }
+
+            function parseAndFillQR(qrString, callback) {
+                try {
+                    // Format QR: customer_part|supplier_id|qty|lot_id-unique_code-cav|kode_sap
+                    // Contoh: 1PA-F836B00|1200044|880|PN121225SHDM1A-001-202|6-03-0020-03
+                    const parts = qrString.split('|');
+                    if (parts.length < 5) throw new Error("Format QR tidak valid (harus ada 5 bagian)");
+
+                    const part_code = parts[0].trim();
+                    const supplier_id = parts[1].trim();
+                    const quantity = parts[2].trim();
+                    const unique_code_id = parts[3].trim();
+                    const sap_code = parts[4].trim();
+
+                    // Simpan semua detail QR untuk traceability
+                    $('#qrcodeInput').val(qrString);
+                    $('#partCodeInput').val(part_code);
+                    $('#supplierIdInput').val(supplier_id);
+                    $('#quantityInput').val(quantity);
+                    $('#uniqueCodeInput').val(unique_code_id);
+                    $('#sapCodeInputHidden').val(sap_code);
+
+                    if (!part_code) throw new Error("Part Number tidak ditemukan dalam QR");
+
+                    $('#qr-reader-results').find('p').text('Mencari data item: ' + part_code);
+
+                    // Search via AJAX
+                    $.ajax({
+                        url: "{{ route('items.search-by-part') }}",
+                        method: 'GET',
+                        data: { part_number: part_code },
+                        success: function (response) {
+                            if (response.success && response.item) {
+                                $('#qr-reader-results').find('p').text('Item ditemukan! Menyinkronkan form...');
+                                // Update Dropdown Item (Select2)
+                                $('#itemSelect').val(response.item.id).trigger('change');
+
+                                // Auto-fill QTY
+                                if (quantity) {
+                                    $('input[name="total_qty"]').val(quantity).trigger('input');
+                                }
+
+                                if (callback) callback(true);
+                            } else {
+                                Swal.fire('Error', 'Item dengan Part Number ' + partNumber + ' tidak ditemukan.', 'error');
+                                if (callback) callback(false);
+                            }
+                        },
+                        error: function (xhr) {
+                            const msg = xhr.responseJSON ? xhr.responseJSON.message : "Gagal mencari item";
+                            Swal.fire('Error', msg, 'error');
+                            if (callback) callback(false);
+                        }
+                    });
+                } catch (e) {
+                    Swal.fire('Error', e.message, 'error');
+                    if (callback) callback(false);
+                }
+            }
+
+            // Support for URL Parameter ?qrcode=...
+            const urlParams = new URLSearchParams(window.location.search);
+            const qrFromUrl = urlParams.get('qrcode');
+            if (qrFromUrl) {
+                // Delay slightly to ensure Select2 and other elements are ready
+                setTimeout(() => { parseAndFillQR(qrFromUrl); }, 1000);
+            }
+
             // === INPUT LOCK UNTIL START ===
             // Disable all form inputs in checksheetForm until Start button is clicked
+            // Exclude btnScanQR so user can scan first
             var formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
             formInputs.prop('disabled', true);
             $('#checksheetForm').addClass('inputs-locked');
@@ -1315,11 +1531,11 @@
                     rowHtml += `<td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
                     for (let j = 1; j <= pointCount; j++) {
                         rowHtml += `<td class="point-cell">
-                                                                                                                                                                                    <input type="text"
-                                                                                                                                                                                        class="form-control form-control-sm dimension-input"
-                                                                                                                                                                                        style="min-width: 60px;" name="dimensions[${i}][${j}]"
-                                                                                                                                                                                        placeholder="P${j}">
-                                                                                                                                                                                </td>`;
+                                                                                                                                                                                                                                                <input type="text"
+                                                                                                                                                                                                                                                    class="form-control form-control-sm dimension-input"
+                                                                                                                                                                                                                                                    style="min-width: 60px;" name="dimensions[${i}][${j}]"
+                                                                                                                                                                                                                                                    placeholder="P${j}">
+                                                                                                                                                                                                                                            </td>`;
                     }
                     rowHtml += `</tr>`;
                     tbody.append(rowHtml);
@@ -1818,15 +2034,15 @@
                 if (currentCavities < maxCavities) {
                     currentCavities++;
                     let newRow = `<tr class="cavity-row" data-cavity="${currentCavities}">
-                                                                                                                                                                                                                                                                            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                                                                                                                                                                                                                                                                                                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
 
                     for (let j = 1; j <= currentPoints; j++) {
                         newRow += `<td class="point-cell">
-                                                                                                                                                                                                                                                                                <input type="text" class="form-control form-control-sm dimension-input" 
-                                                                                                                                                                                                                                                                                    style="min-width: 60px;"
-                                                                                                                                                                                                                                                                                    name="dimensions[${currentCavities}][${j}]" 
-                                                                                                                                                                                                                                                                                    placeholder="P${j}">
-                                                                                                                                                                                                                                                                            </td>`;
+                                                                                                                                                                                                                                                                                                                                            <input type="text" class="form-control form-control-sm dimension-input" 
+                                                                                                                                                                                                                                                                                                                                                style="min-width: 60px;"
+                                                                                                                                                                                                                                                                                                                                                name="dimensions[${currentCavities}][${j}]" 
+                                                                                                                                                                                                                                                                                                                                                placeholder="P${j}">
+                                                                                                                                                                                                                                                                                                                                        </td>`;
                     }
                     newRow += `</tr>`;
                     $('#dimensionBody').append(newRow);
@@ -1853,11 +2069,11 @@
                     $('.cavity-row').each(function () {
                         let cavityNum = $(this).data('cavity');
                         $(this).append(`<td class="point-cell">
-                                                                                                                                                                                                                                                                                <input type="text" class="form-control font-control-sm dimension-input" 
-                                                                                                                                                                                                                                                                                    style="min-width: 60px;"
-                                                                                                                                                                                                                                                                                    name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                                                                                                                                                                                                                                                    placeholder="P${currentPoints}">
-                                                                                                                                                                                                                                                                            </td>`);
+                                                                                                                                                                                                                                                                                                                                            <input type="text" class="form-control font-control-sm dimension-input" 
+                                                                                                                                                                                                                                                                                                                                                style="min-width: 60px;"
+                                                                                                                                                                                                                                                                                                                                                name="dimensions[${cavityNum}][${currentPoints}]" 
+                                                                                                                                                                                                                                                                                                                                                placeholder="P${currentPoints}">
+                                                                                                                                                                                                                                                                                                                                        </td>`);
                     });
                 } else {
                     alert('Maximum 30 points reached');

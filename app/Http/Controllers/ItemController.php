@@ -353,4 +353,31 @@ class ItemController extends Controller
         }
     }
 
+    /**
+     * Search for an item by its part number.
+     * Used for QR code auto-fill functionality.
+     */
+    public function searchByPartNumber(Request $request)
+    {
+        $partNumber = $request->query('part_number');
+
+        if (!$partNumber) {
+            return response()->json(['success' => false, 'message' => 'Nomor part wajib diisi'], 400);
+        }
+
+        // Search for the item matching the part_number
+        // We prioritize exact matches but allow partial if necessary
+        $item = Item::where('part_number', 'LIKE', '%' . $partNumber . '%')
+            ->orderByRaw("CASE WHEN part_number = ? THEN 0 ELSE 1 END", [$partNumber])
+            ->first();
+
+        if (!$item) {
+            return response()->json(['success' => false, 'message' => 'Item tidak ditemukan'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'item' => $item
+        ]);
+    }
 }

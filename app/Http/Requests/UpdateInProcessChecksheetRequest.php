@@ -36,6 +36,12 @@ class UpdateInProcessChecksheetRequest extends FormRequest
     {
         return [
             'item_id' => 'required|exists:items,id',
+            'qrcode' => 'nullable|string',
+            'part_code' => 'nullable|string',
+            'supplier_id' => 'nullable|string',
+            'quantity' => 'nullable|integer',
+            'unique_code_id' => 'nullable|string|unique:in_process_checksheets,unique_code_id,' . $this->route('id'),
+            'sap_code' => 'nullable|string',
             'date' => 'required|date',
             'shift' => 'required|string',
             'code_machine' => 'required|string',
@@ -68,6 +74,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'shift.required' => 'Shift wajib dipilih.',
             'code_machine.required' => 'Kode mesin wajib diisi.',
             'judgment.in' => 'Judgment harus OK atau NG.',
+            'unique_code_id.unique' => 'QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.',
             'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
