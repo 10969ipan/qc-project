@@ -233,6 +233,7 @@ trait HasChecksheetApproval
         }
 
         if ($request->ajax() || $request->wantsJson()) {
+            session()->flash('success', 'Data Checksheet berhasil ditolak.');
             return response()->json([
                 'success' => true,
                 'message' => 'Data Checksheet berhasil ditolak.',

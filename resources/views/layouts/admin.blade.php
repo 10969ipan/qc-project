@@ -1321,6 +1321,32 @@
 
         // Catatan: Auto logout saat browser ditutup ditangani oleh config session.php
         // dengan expire_on_close => true. Session cookie akan otomatis expire saat browser ditutup.
+
+        // Rejection Alerts for Inspectors
+        @if(isset($unreadRejections) && count($unreadRejections) > 0)
+            document.addEventListener('DOMContentLoaded', function() {
+                @foreach($unreadRejections as $rejection)
+                    Swal.fire({
+                        title: '<span class="text-danger font-weight-bold">LAPORAN DITOLAK!</span>',
+                        html: '<div class="text-left mt-2"><b>{{ $rejection['title'] }}</b><br><p class="mt-2">{{ $rejection['message'] }}</p></div>',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#aaa',
+                        confirmButtonText: '<i class="fas fa-eye"></i> Lihat Data',
+                        cancelButtonText: 'Tutup',
+                        backdrop: `rgba(220, 53, 69, 0.2)`
+                    }).then((result) => {
+                        // Mark as read regardless of choice (to ensure it only appears once)
+                        $.post("{{ route('notifications.mark-as-read', $rejection['id']) }}");
+                        
+                        if (result.isConfirmed) {
+                            window.location.href = "{{ $rejection['url'] }}";
+                        }
+                    });
+                @endforeach
+            });
+        @endif
     </script>
 
     <script>

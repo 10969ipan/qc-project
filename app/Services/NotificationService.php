@@ -69,24 +69,33 @@ class NotificationService
 
             $url = $this->getChecksheetUrl($checksheet, $type);
 
-            // Notify all inspectors in the same plant
-            $users = User::where('plant_id', $checksheet->plant_id)
-                ->where('role', 'inspector')
-                ->get();
+            // Notify the specific inspector who created the checksheet
+            // Identify by initials within the same plant
+            if ($checksheet->operator_initials) {
+                $user = User::where('plant_id', $checksheet->plant_id)
+                    ->where('role', 'inspector')
+                    ->whereRaw('UPPER(initials) = ?', [strtoupper(trim($checksheet->operator_initials))])
+                    ->first();
 
-            foreach ($users as $user) {
-                Notification::create([
-                    'user_id' => $user->id,
-                    'type' => 'abnormal', // Using abnormal type for rejections (yellow icons)
-                    'title' => $title,
-                    'message' => $message,
-                    'data' => [
-                        'url' => $url,
-                        'checksheet_id' => $checksheet->id,
-                        'checksheet_type' => $type,
-                        'plant_id' => $checksheet->plant_id  // Filter per plant
-                    ],
-                ]);
+                if ($user) {
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'type' => 'rejection_alert',
+                        'title' => $title,
+                        'message' => $message,
+                        'is_read' => false,
+                        'data' => [
+                            'url' => $url,
+                            'checksheet_id' => $checksheet->id,
+                            'checksheet_type' => $type,
+                            'plant_id' => $checksheet->plant_id,
+                            'rejected_by' => $rejector,
+                            'show_popup' => true,
+                        ],
+                    ]);
+                } else {
+                    Log::warning("Rejection alert failed: No inspector found with initials '{$checksheet->operator_initials}' in plant '{$checksheet->plant_id}'");
+                }
             }
         } catch (\Exception $e) {
             Log::error('Notification Error (Rejection): ' . $e->getMessage());
