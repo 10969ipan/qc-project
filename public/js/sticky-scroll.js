@@ -15,15 +15,12 @@
     }
 
     function init() {
-        console.log('[Sticky Scroll] Initializing...');
-
         // Create single sticky scroll bar for all tables
         let stickyScrollBar = null;
         let currentTable = null;
 
         function createStickyScrollBar() {
             if (!stickyScrollBar) {
-                console.log('[Sticky Scroll] Creating sticky scroll bar element');
                 stickyScrollBar = document.createElement('div');
                 stickyScrollBar.className = 'sticky-scroll-bar';
 
@@ -39,7 +36,6 @@
         function updateStickyScroll() {
             try {
                 const tableContainers = document.querySelectorAll('.table-responsive');
-                console.log('[Sticky Scroll] Found', tableContainers.length, 'table containers');
 
                 let activeContainer = null;
 
@@ -47,7 +43,6 @@
                 for (const container of tableContainers) {
                     if (container.scrollWidth > container.clientWidth) {
                         activeContainer = container;
-                        console.log('[Sticky Scroll] Active container found - scrollWidth:', container.scrollWidth, 'clientWidth:', container.clientWidth);
                         break;
                     }
                 }
@@ -76,7 +71,6 @@
                         // If footer is visible in viewport, hide the sticky scroll bar
                         if (footerRect.top < viewportHeight) {
                             shouldHide = true;
-                            console.log('[Sticky Scroll] Footer visible, hiding scroll bar');
                         }
                     }
 
@@ -85,7 +79,6 @@
                         scrollBar.style.display = 'none';
                     } else {
                         scrollBar.style.display = 'block';
-                        console.log('[Sticky Scroll] Showing scroll bar');
 
                         // Sync scroll events
                         scrollBar.onscroll = function () {
@@ -98,7 +91,6 @@
                     }
                 } else if (stickyScrollBar) {
                     // Hide if no table needs scrolling
-                    console.log('[Sticky Scroll] No active container, hiding scroll bar');
                     stickyScrollBar.style.display = 'none';
                     currentTable = null;
                 }
@@ -116,7 +108,6 @@
         setTimeout(updateStickyScroll, 500);
         setTimeout(updateStickyScroll, 1000);
         setTimeout(updateStickyScroll, 2000);
-
-        console.log('[Sticky Scroll] Initialization complete');
     }
 })();
+

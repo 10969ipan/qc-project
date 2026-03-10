@@ -134,6 +134,7 @@
                         @endphp
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">No</th>
+                            <th rowspan="2" class="align-middle">QR-Code</th>
                             <th rowspan="2" class="align-middle">Tanggal</th>
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
@@ -173,6 +174,17 @@
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                <td class="align-middle">
+                                    <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
+                                        data-qr="{{ $checksheet->qrcode }}"
+                                        data-part="{{ $checksheet->part_code }}"
+                                        data-supplier="{{ $checksheet->supplier_id }}"
+                                        data-qty="{{ $checksheet->quantity }}"
+                                        data-unique="{{ $checksheet->unique_code_id }}"
+                                        data-sap="{{ $checksheet->sap_code ?? '-' }}">
+                                        <i class="fas fa-qrcode"></i> View
+                                    </button>
+                                </td>
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
                                 </td>
@@ -748,6 +760,53 @@
         </div>
     </div>
 
+    <!-- QR Code Traceability Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="qrModalLabel">
+                        <i class="fas fa-qrcode mr-2"></i> Traceability QR Code
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped">
+                        <tr>
+                            <th style="width: 25%">QR Raw</th>
+                            <td id="modal-qr-raw" style="word-break: break-all; font-family: monospace;"></td>
+                        </tr>
+                        <tr>
+                            <th>Part Code</th>
+                            <td id="modal-qr-part"></td>
+                        </tr>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <td id="modal-qr-supplier"></td>
+                        </tr>
+                        <tr>
+                            <th>Qty</th>
+                            <td id="modal-qr-qty"></td>
+                        </tr>
+                        <tr>
+                            <th>Unique ID</th>
+                            <td id="modal-qr-unique"></td>
+                        </tr>
+                        <tr>
+                            <th>SAP Code</th>
+                            <td id="modal-qr-sap"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -887,11 +946,10 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+
     <script>
         // Pass standards to JS
-        const partDimensionStandards = @json($partDimensionStandards);
+
 
         document.addEventListener('DOMContentLoaded', function () {
             // Character counter for rejection remarks
@@ -939,191 +997,7 @@
                 });
             }
 
-            // PDF Export Functionality Removed (Replaced by Server-Side Export)
-            noExportElements.forEach(el => el.remove());
 
-            tableClone.style.position = 'absolute';
-            tableClone.style.top = '-9999px';
-            tableClone.style.left = '-9999px';
-            document.body.appendChild(tableClone);
-
-            // Generate Main Data Table
-            doc.autoTable({
-                html: tableClone,
-                startY: finalY + 7,
-                theme: 'grid',
-                styles: {
-                    fontSize: 5,
-                    cellPadding: 1,
-                    valign: 'middle',
-                    halign: 'center',
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.1
-                },
-                headStyles: {
-                    fillColor: [78, 115, 223],
-                    textColor: [255, 255, 255],
-                    valign: 'middle',
-                    halign: 'center',
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.1
-                },
-                columnStyles: {
-                    11: { halign: 'left' } // Check Dimensi
-                },
-                didParseCell: function (data) {
-                    // Check Dimensi (Column 11) - Parse JSON to reserve space
-                    if (data.section === 'body' && data.column.index === 11) {
-                        try {
-                            const raw = data.cell.raw.getAttribute('data-dimensions');
-                            if (raw) {
-                                const dimensions = JSON.parse(raw);
-                                // Set text to newlines to reserve height for custom drawing
-                                // We need 1 row for header + 1 row per cavity
-                                if (dimensions && typeof dimensions === 'object') {
-                                    let lineCount = 1; // Header
-                                    lineCount += Object.keys(dimensions).length;
-                                    data.cell.text = Array(lineCount).fill(' ').join('\n');
-
-                                    // Store data for didDrawCell
-                                    data.cell.customDimensions = dimensions;
-                                    // Get part number from column 7 (index 7)
-                                    // Note: data.row.cells is an array-like object of Cell objects
-                                    // We can try to access the text of column 7. 
-                                    // Since didParseCell runs for each cell, the row might not be fully populated yet if we are at index 11.
-                                    // However, column 7 is before 11, so it should be parsed.
-                                    if (data.row.cells[7]) {
-                                        let partNo = data.row.cells[7].text;
-                                        if (Array.isArray(partNo)) partNo = partNo.join('');
-                                        data.cell.customPartNumber = partNo.trim();
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.error('Error parsing dimensions', e);
-                        }
-                    }
-
-                    // Detail NG (Col 14, 15) - Hide default text for manual drawing if multiple lines
-                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
-                        const td = data.cell.raw;
-                        if (td && td.children.length > 1) {
-                            data.cell.styles.textColor = [255, 255, 255];
-                        }
-                    }
-                },
-                didDrawCell: function (data) {
-                    // Check Dimensi (Column 11) - Manual Grid Draw
-                    if (data.section === 'body' && data.column.index === 11 && data.cell.customDimensions) {
-                        const dimensions = data.cell.customDimensions;
-                        const partNo = data.cell.customPartNumber;
-                        const standards = partDimensionStandards[partNo] || [];
-
-                        const x = data.cell.x;
-                        const y = data.cell.y;
-                        const w = data.cell.width;
-                        const h = data.cell.height;
-
-                        // Calculate grid
-                        const cavities = Object.keys(dimensions);
-                        const rowCount = cavities.length + 1; // +1 for Header
-                        const colCount = 9; // Cav, 1..8
-
-                        const rowH = h / rowCount;
-                        const colW = w / colCount;
-
-                        doc.setFontSize(4); // Small font for grid
-                        doc.setLineWidth(0.05);
-                        doc.setDrawColor(0, 0, 0);
-
-                        // Draw Header Row
-                        const headers = ['Cv', '1', '2', '3', '4', '5', '6', '7', '8'];
-                        headers.forEach((hdr, i) => {
-                            // Draw cell border
-                            doc.rect(x + (i * colW), y, colW, rowH);
-                            // Draw text
-                            doc.setTextColor(0, 0, 0);
-                            doc.text(hdr, x + (i * colW) + (colW / 2), y + (rowH / 2), { align: 'center', baseline: 'middle' });
-                        });
-
-                        // Draw Data Rows
-                        cavities.forEach((cavity, rIndex) => {
-                            const cy = y + ((rIndex + 1) * rowH);
-                            const points = dimensions[cavity];
-
-                            // Col 0: Cavity Name
-                            doc.rect(x, cy, colW, rowH);
-                            doc.setTextColor(0, 0, 0);
-                            doc.text(String(cavity), x + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
-
-                            // Cols 1..8: Points
-                            for (let j = 1; j <= 8; j++) {
-                                const val = points[j];
-                                const cx = x + (j * colW);
-
-                                doc.rect(cx, cy, colW, rowH);
-
-                                if (val !== undefined && val !== null) {
-                                    // Check NG
-                                    let isNG = false;
-                                    if (standards[j] && !isNaN(val)) {
-                                        const std = standards[j];
-                                        const min = std.size - std.tolerance;
-                                        const max = std.size + std.tolerance;
-                                        if (val < min || val > max) {
-                                            isNG = true;
-                                        }
-                                    }
-
-                                    if (isNG) {
-                                        doc.setTextColor(255, 0, 0);
-                                    } else {
-                                        doc.setTextColor(0, 0, 0);
-                                    }
-                                    doc.text(String(val), cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
-                                } else {
-                                    doc.setTextColor(0, 0, 0);
-                                    doc.text('-', cx + (colW / 2), cy + (rowH / 2), { align: 'center', baseline: 'middle' });
-                                }
-                            }
-                        });
-
-                        // Prevent default text drawing (if any remains)
-                        return false;
-                    }
-
-                    // Detail NG (Col 14, 15) - Manual Draw
-                    if (data.section === 'body' && (data.column.index === 14 || data.column.index === 15)) {
-                        const td = data.cell.raw;
-                        if (td && td.children.length > 1) {
-                            const count = td.children.length;
-                            const height = data.cell.height;
-                            const step = height / count;
-                            const textArray = data.cell.text;
-
-                            for (let i = 1; i < count; i++) {
-                                const y = data.cell.y + (step * i);
-                                doc.setDrawColor(0, 0, 0);
-                                doc.setLineWidth(0.1);
-                                doc.line(data.cell.x, y, data.cell.x + data.cell.width, y);
-                            }
-
-                            doc.setTextColor(0, 0, 0);
-                            doc.setFontSize(5);
-                            for (let i = 0; i < count; i++) {
-                                const yCenter = data.cell.y + (step * i) + (step / 2);
-                                const textStr = Array.isArray(textArray) ? (textArray[i] || '') : (i === 0 ? textArray : '');
-                                doc.text(String(textStr), data.cell.x + data.cell.width / 2, yCenter, { align: 'center', baseline: 'middle' });
-                            }
-                        }
-                    }
-                },
-                exportHiddenCells: false
-            });
-
-            document.body.removeChild(tableClone);
-            doc.save('Laporan_Checksheet_Inprocess_' + new Date().toISOString().slice(0, 10) + '.pdf');
-        });
 
         // Edit Modal Handler
         $('.btn-edit-modal').on('click', function (e) {
@@ -1282,7 +1156,31 @@
         function showModalError($container, html) {
             $container.html(html).fadeIn();
         }
-                                                                                                                                                                                                    });
+
+        // QR Code Detail Handler
+        $(document).on('click', '.btn-qr-detail', function() {
+            const data = $(this).data();
+            console.log('QR detail clicked:', data);
+            
+            let sapCode = data.sap || '-';
+            
+            // Fallback: If SAP Code is '-' or empty, try to parse from QR Raw
+            if ((sapCode === '-' || !sapCode) && data.qr) {
+                const parts = data.qr.split('|');
+                if (parts.length >= 5) {
+                    sapCode = parts[4].trim();
+                }
+            }
+
+            $('#modal-qr-raw').text(data.qr || '-');
+            $('#modal-qr-part').text(data.part || '-');
+            $('#modal-qr-supplier').text(data.supplier || '-');
+            $('#modal-qr-qty').text(data.qty || '-');
+            $('#modal-qr-unique').text(data.unique || '-');
+            $('#modal-qr-sap').text(sapCode);
+            $('#qrModal').modal('show');
+        });
+        });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')

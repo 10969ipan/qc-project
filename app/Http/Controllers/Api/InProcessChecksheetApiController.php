@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class InProcessChecksheetApiController extends Controller
 {
     /**
-     * Check if a unique_code_id exists in QC records and return its status.
+     * 
      * 
      * @param string $unique_code_id
      * @return \Illuminate\Http\JsonResponse

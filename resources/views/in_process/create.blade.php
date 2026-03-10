@@ -664,38 +664,40 @@
         </div>
     </div>
 
-@endsection
-
-<!-- QR Scanner Modal -->
-<div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="qr-reader" style="width: 100%"></div>
-                <div id="qr-reader-results" class="p-3 text-center d-none">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">Memuat...</span>
+    <!-- QR Scanner Modal -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="qr-reader" style="width: 100%"></div>
+                    <div id="qr-reader-results" class="p-3 text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Memuat...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Memproses data QR...</p>
                     </div>
-                    <p class="mt-2 text-muted">Memproses data QR...</p>
+                    <div class="p-3 border-top bg-light">
+                        <label class="font-weight-bold">Atau Unggah Gambar QR:</label>
+                        <input type="file" id="qr-input-file" accept="image/*" class="form-control-file">
+                    </div>
                 </div>
-                <div class="p-3 border-top bg-light">
-                    <label class="font-weight-bold">Atau Unggah Gambar QR:</label>
-                    <input type="file" id="qr-input-file" accept="image/*" class="form-control-file">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
-</div>
+
+@endsection
+
+
 
 @push('scripts')
     <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}" type="text/javascript"></script>
