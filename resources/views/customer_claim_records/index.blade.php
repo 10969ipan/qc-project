@@ -86,7 +86,7 @@
                 </div>
             @endif
 
-            <div class="table-responsive" id="claimTableWrapper">
+            <div class="table-responsive" id="claimTableWrapper" style="overflow-x: auto;">
                 <table class="table table-bordered table-hover table-sm text-xs" id="dataTable" width="100%" cellspacing="0"
                     style="font-size: 0.75rem;">
                     <thead class="bg-primary text-white text-center">
@@ -266,21 +266,14 @@
 
         /* Sticky Header - Daftar Claim Customer */
         #claimTableWrapper {
-            max-height: 75vh;
-            overflow: auto;
             border: 1px solid #dee2e6;
         }
 
         #dataTable {
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
+            border-collapse: collapse !important;
         }
 
         #dataTable thead th {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 0;
-            z-index: 100;
             background-color: #4e73df !important;
             color: white !important;
             font-weight: bold;
@@ -289,7 +282,35 @@
             padding: 10px 5px !important;
             vertical-align: middle;
             border: 1px solid #ffffff44 !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Fixed sticky header clone */
+        #stickyHeaderClone {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1050;
+            background-color: #4e73df;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        #stickyHeaderClone table {
+            margin: 0;
+            border-collapse: collapse;
+        }
+
+        #stickyHeaderClone th {
+            background-color: #4e73df !important;
+            color: white !important;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 10px 5px !important;
+            vertical-align: middle;
+            border: 1px solid #ffffff44 !important;
+            white-space: nowrap;
         }
     </style>
 @endpush
@@ -297,6 +318,78 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
+
+            // =============================================
+            // Sticky Header for Daftar Claim Customer Table
+            // =============================================
+            (function () {
+                const $table = $('#dataTable');
+                const $thead = $table.find('thead');
+                const $wrapper = $('#claimTableWrapper');
+
+                // Create sticky clone container
+                const $clone = $('<div id="stickyHeaderClone"></div>');
+                $('body').append($clone);
+
+                function updateStickyHeader() {
+                    const tableRect = $table[0].getBoundingClientRect();
+                    const theadRect = $thead[0].getBoundingClientRect();
+                    const theadBottom = theadRect.bottom;
+
+                    // Show sticky header when original thead scrolls above viewport
+                    if (tableRect.top < 0 && tableRect.bottom > 0) {
+                        // Sync column widths
+                        const $ths = $thead.find('th');
+                        let $cloneTable = $clone.find('table');
+
+                        if ($cloneTable.length === 0) {
+                            // Build clone table
+                            const $newTable = $('<table class="table table-bordered table-sm text-xs mb-0"></table>');
+                            const $newThead = $thead.clone();
+                            $newTable.append($newThead);
+                            $clone.html('').append($newTable);
+                            $cloneTable = $newTable;
+                        }
+
+                        // Match column widths from original
+                        const $cloneThs = $clone.find('th');
+                        $ths.each(function (i) {
+                            $cloneThs.eq(i).width($(this).outerWidth());
+                        });
+
+                        // Position and size
+                        const wrapperRect = $wrapper[0].getBoundingClientRect();
+                        $clone.css({
+                            display: 'block',
+                            left: wrapperRect.left + 'px',
+                            width: wrapperRect.width + 'px',
+                        });
+
+                        // Sync horizontal scroll
+                        $clone.find('table').css('margin-left', -$wrapper[0].scrollLeft + 'px');
+
+                    } else {
+                        $clone.hide();
+                    }
+                }
+
+                // Update on scroll (page scroll)
+                $(window).on('scroll', updateStickyHeader);
+
+                // Update on horizontal scroll inside wrapper
+                $wrapper.on('scroll', function () {
+                    if ($clone.is(':visible')) {
+                        $clone.find('table').css('margin-left', -this.scrollLeft + 'px');
+                    }
+                });
+
+                // Update on resize
+                $(window).on('resize', function () {
+                    $clone.find('table').remove(); // force rebuild on resize
+                    updateStickyHeader();
+                });
+            })();
+
             // File Preview Logic
             $(document).on('click', '.btn-preview-file', function () {
                 const url = $(this).data('url');
