@@ -317,7 +317,7 @@
                                                         }
 
                                                         $hasVerification = $tool->all_verifications_count > 0;
-                                                        $latestVerifDate = $tool->latestVerification ? $tool->latestVerification->tanggal_verifikasi->format('d/m/y') : null;
+                                                        $latestVerifDate = $tool->latestVerification && $tool->latestVerification->tanggal_verifikasi ? \Carbon\Carbon::parse($tool->latestVerification->tanggal_verifikasi)->format('d/m/y') : null;
 
                                                         $icon_base = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
                                                             '<i class="fas fa-calendar text-secondary" style="font-size: 1.2rem;"></i>' .
@@ -376,7 +376,7 @@
                                                                        class="text-warning" 
                                                                        title="Alat dilaporkan bermasalah & menunggu judgment"
                                                                        style="font-size: 1.2rem;">
-                                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                                        <i class="fas fa-wrench"></i>
                                                                     </a>
                                                                     <span class="text-muted font-weight-bold" style="font-size: 0.65rem; line-height: 1;">
                                                                         {{ $tool->pendingLogs->max('reported_date')->format('d/m/y') }}

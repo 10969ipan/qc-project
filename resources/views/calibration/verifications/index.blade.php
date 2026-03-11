@@ -53,9 +53,9 @@
 
         <style>
             #dataTable thead th {
-                position: sticky;
+                position: sticky !important;
                 top: 0;
-                z-index: 10;
+                z-index: 100 !important;
                 background-color: #4e73df !important;
                 /* Royal Blue */
                 color: white !important;
@@ -64,6 +64,16 @@
                 font-size: 0.85rem;
                 border: 1px solid #ffffff44 !important;
                 box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Prevent parents from clipping the sticky header */
+            .card-body, .card {
+                overflow: visible !important;
+            }
+
+            .table-responsive {
+                overflow-x: auto !important;
+                overflow-y: visible !important;
             }
         </style>
 
