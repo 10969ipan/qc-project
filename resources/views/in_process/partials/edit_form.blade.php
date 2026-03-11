@@ -855,7 +855,7 @@
             var weightStandard = selectedOption.data('weight-standard');
 
             // --- Berat Part Logic ---
-            if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
+            if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM') || customer.toUpperCase().includes('PT. TAKAGI SARI MULTI UTAMA'))) {
                 $('#editBeratPartRow').show();
                 if (weightStandard) {
                     $('#editWeightStandardDisplay').text(weightStandard);

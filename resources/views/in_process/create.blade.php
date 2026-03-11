@@ -1334,8 +1334,8 @@
                 var customer = selectedOption.data('customer');
                 var weightStandard = selectedOption.data('weight-standard');
 
-                // Toggle Berat Part visibility (Only for AHM)
-                if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
+                // Toggle Berat Part visibility (Only for AHM and PT. TAKAGI SARI MULTI UTAMA)
+                if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM') || customer.toUpperCase().includes('PT. TAKAGI SARI MULTI UTAMA'))) {
                     $('.col-berat-part').attr('style', 'display: table-cell !important;');
                     // Init cavities based on item's cavity count (default to 1)
                     var itemCavity = parseInt(selectedOption.data('cavity')) || 1;
