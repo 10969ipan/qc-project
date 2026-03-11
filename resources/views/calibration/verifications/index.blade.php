@@ -52,11 +52,11 @@
         </div>
 
         <style>
-            /* Improved Sticky Header for wide tables */
+            /* Sesuai dengan implementasi SCHEDULE KALIBRASI ALAT UKUR */
             .table-responsive {
-                overflow-x: auto !important;
-                overflow-y: visible !important;
-                height: auto !important;
+                max-height: 75vh !important;
+                overflow: auto !important;
+                border: 1px solid #dee2e6 !important;
             }
 
             #dataTable {
@@ -67,20 +67,16 @@
             #dataTable thead th {
                 position: -webkit-sticky !important;
                 position: sticky !important;
-                top: -1px !important; /* Slight offset to hide border gaps */
+                top: 0 !important;
                 z-index: 100 !important;
                 background-color: #4e73df !important;
                 color: white !important;
                 font-weight: bold;
                 text-transform: uppercase;
                 font-size: 0.8rem;
+                padding: 10px 5px !important;
                 border: 1px solid #ffffff44 !important;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-
-            /* Ensure parents allow sticky positioning */
-            #content-wrapper, #content, .container-fluid, .card, .card-body {
-                overflow: visible !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
             }
         </style>
 
