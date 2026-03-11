@@ -69,19 +69,24 @@ class InProcessChecksheetService extends BaseService
                     if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
                         $pointKey = (string) ($index + 1);
 
-                        // Robust float conversion helper
-                        $toFloat = function ($val) {
-                            if ($val === null || $val === '')
-                                return null;
-                            $val = str_replace(',', '.', (string) $val);
-                            return is_numeric($val) ? (float) $val : null;
+                        // Flexible conversion that preserves +/- operators and asymmetric tolerances
+                        $processValue = function ($val) {
+                            $val = $this->normalizeStandardValue($val);
+                            if ($val === null || $val === '') return null;
+                            
+                            // Check if it's an operator-prefixed value (e.g., +1, -0.5) OR asymmetric tolerance (e.g., -0.2/+0.1)
+                            if (preg_match('/^[+-]\d+(\.\d+)?(\/[+-]\d+(\.\d+)?)?$/u', $val)) {
+                                return $val; // Store as string to preserve operators/slashes
+                            }
+                            
+                            return is_numeric($val) ? (float) $val : $val; // Keep as string if not strictly numeric but might be valid special format
                         };
 
                         $itemStandards[$pointKey] = [
-                            'size' => $toFloat($std['size'] ?? null),
-                            'tolerance' => $toFloat($std['tolerance'] ?? null),
-                            'min' => $toFloat($std['min'] ?? null),
-                            'max' => $toFloat($std['max'] ?? null),
+                            'size' => $processValue($std['size'] ?? null),
+                            'tolerance' => $processValue($std['tolerance'] ?? null),
+                            'min' => $processValue($std['min'] ?? null),
+                            'max' => $processValue($std['max'] ?? null),
                         ];
                     }
                 }
@@ -177,6 +182,24 @@ class InProcessChecksheetService extends BaseService
     }
 
     /**
+     * Normalize standard value string (e.g., replace comma with dot, normalize dashes)
+     * 
+     * @param mixed $val
+     * @return string|null
+     */
+    private function normalizeStandardValue($val)
+    {
+        if ($val === null || $val === '') return null;
+        $val = (string)$val;
+        // Replace commas with dots
+        $val = str_replace(',', '.', $val);
+        // Replace non-standard dashes with standard hyphen-minus
+        $val = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $val);
+        // Trim whitespace
+        return trim($val);
+    }
+
+    /**
      * Validate dimensions and auto-set judgment
      * 
      * @param array $data
@@ -201,32 +224,89 @@ class InProcessChecksheetService extends BaseService
                 foreach ($points as $point => $value) {
                     if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
                         $hasValidDimensions = true;
-                        $standard = $dimensionStandards[$point];
+                        $std = $dimensionStandards[$point];
                         $floatValue = (float) $value;
+                        $isPointNG = false;
+                        $epsilon = 0.00001;
 
-                        // Use min/max if both are set, otherwise fallback to size +/- tolerance
-                        $isPointInvalid = false;
+                        // Helper for prefix-aware comparison
+                        $checkInvalid = function($val, $stdVal, $mode) use ($epsilon) {
+                            if ($stdVal === null) return false;
+                            $stdStr = $this->normalizeStandardValue($stdVal);
+                            
+                            if (strlen($stdStr) > 1 && (str_starts_with($stdStr, '+') || str_starts_with($stdStr, '-'))) {
+                                $operator = substr($stdStr, 0, 1);
+                                $limit = (float) substr($stdStr, 1);
+                                if ($operator === '+') { // Must be greater than
+                                    return $val <= ($limit + $epsilon);
+                                } elseif ($operator === '-') { // Must be less than
+                                    return $val >= ($limit - $epsilon);
+                                }
+                            }
+                            
+                            $stdFloat = (float) $stdStr;
+                            if ($mode === 'min') return $val < ($stdFloat - $epsilon);
+                            if ($mode === 'max') return $val > ($stdFloat + $epsilon);
+                            return false;
+                        };
 
-                        if ($standard['min'] !== null && $floatValue < $standard['min']) {
-                            $isPointInvalid = true;
+                        if ($std['min'] !== null && $checkInvalid($floatValue, $std['min'], 'min')) {
+                            $isPointNG = true;
                         }
-                        if ($standard['max'] !== null && $floatValue > $standard['max']) {
-                            $isPointInvalid = true;
+                        if (!$isPointNG && $std['max'] !== null && $checkInvalid($floatValue, $std['max'], 'max')) {
+                            $isPointNG = true;
                         }
 
-                        // Fallback to size +/- tolerance if no Min/Max is set
-                        if ($standard['min'] === null && $standard['max'] === null) {
-                            if ($standard['size'] !== null && $standard['tolerance'] !== null) {
-                                $lowerBound = $standard['size'] - $standard['tolerance'];
-                                $upperBound = $standard['size'] + $standard['tolerance'];
-                                if ($floatValue < $lowerBound || $floatValue > $upperBound) {
-                                    $isPointInvalid = true;
+                        // Special case: if Size is a prefix operator (+ or -)
+                        if (!$isPointNG && ($std['size'] ?? null) !== null) {
+                            $sizeStr = $this->normalizeStandardValue($std['size']);
+                            if (strlen($sizeStr) > 1 && (str_starts_with($sizeStr, '+') || str_starts_with($sizeStr, '-'))) {
+                                if ($checkInvalid($floatValue, $sizeStr, 'size')) {
+                                    $isPointNG = true;
                                 }
                             }
                         }
 
-                        if ($isPointInvalid) {
+                        // Fallback to Size +/- Tolerance
+                        if (!$isPointNG && ($std['min'] ?? null) === null && ($std['max'] ?? null) === null && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null) {
+                            $sizeStr = $this->normalizeStandardValue($std['size']);
+                            if (!str_starts_with($sizeStr, '+') && !str_starts_with($sizeStr, '-')) {
+                                $size = (float)$sizeStr;
+                                $tol = $this->normalizeStandardValue($std['tolerance']);
+                                $lowerBound = $size;
+                                $upperBound = $size;
+
+                                if (str_contains($tol, '/')) {
+                                    $parts = explode('/', $tol);
+                                    foreach ($parts as $p) {
+                                        $p = $this->normalizeStandardValue($p);
+                                        $fVal = (float)$p;
+                                        if (str_starts_with($p, '+') || $fVal > 0) {
+                                            $upperBound = $size + abs($fVal);
+                                        } elseif (str_starts_with($p, '-') || $fVal < 0) {
+                                            $lowerBound = $size - abs($fVal);
+                                        }
+                                    }
+                                } elseif (str_starts_with($tol, '+')) {
+                                    $upperBound = $size + (float)substr($tol, 1);
+                                } elseif (str_starts_with($tol, '-')) {
+                                    $lowerBound = $size + (float)$tol; // Negative value handled by parseFloat equivalent
+                                } else {
+                                    $tVal = (float)$tol;
+                                    $lowerBound = $size - $tVal;
+                                    $upperBound = $size + $tVal;
+                                }
+
+                                if ($floatValue < ($lowerBound - $epsilon) || $floatValue > ($upperBound + $epsilon)) {
+                                    $isPointNG = true;
+                                }
+                            }
+                        }
+
+                        if ($isPointNG) {
                             $isAnyInvalid = true;
+                            // We don't break here because we want all matching inputs to be flagged (thought it's simpler to break for backend judgment)
+                            // But for backend judgment calculation, one NG is enough.
                             break 2;
                         }
                     }
@@ -237,21 +317,11 @@ class InProcessChecksheetService extends BaseService
                 if ($isAnyInvalid) {
                     $data['judgment'] = 'NG';
                 } else {
-                    // Only set to OK if it's currently NG but purely due to dimensions (which are now valid)
-                    // BUT, if total_ng > 0, it MUST remain NG.
-                    // If the user submitted a judgment, we should generally respect it unless dimensions fail.
-                    // However, let's enforce: If Total NG > 0 -> NG.
-                    if (isset($data['total_ng']) && $data['total_ng'] > 0) {
+                    if (isset($data['total_ng']) && (int)$data['total_ng'] > 0) {
                         $data['judgment'] = 'NG';
+                    } else {
+                        $data['judgment'] = 'OK';
                     }
-                    // If no defects and dimensions are OK, we leave the judgment input from the form 
-                    // (which should be OK, or user manually set it).
-                    // Or strictly: if ($data['total_ng'] == 0) $data['judgment'] = 'OK'; ? 
-                    // Let's safe-guard: If we are here, dimensions are VALID. 
-                    // If total_ng is 0, then Judgment SHOULD be OK (unless there's some other reason).
-                    // The safest approach for "Edits" is: Don't force OK if the user specifically sent NG. 
-                    // But if the user sent OK and dimensions are NG, we handled that above.
-                    // So we do nothing here, essentially trusting $data['judgment'], EXCEPT if total_ng > 0.
                 }
             }
         }

@@ -1924,6 +1924,14 @@
                     .toUpperCase();
             }
 
+            function normalizeStandardValue(val) {
+                if (val === null || val === undefined || val === '') return null;
+                return val.toString()
+                    .replace(',', '.')
+                    .replace(/[\u2012\u2013\u2014\u2212]/g, '-')
+                    .trim();
+            }
+
             function validateDimensions() {
                 const selectedOption = $('#itemSelect').find('option:selected');
                 const rawPartNumber = selectedOption.data('part-number');
@@ -1949,18 +1957,74 @@
                         let isInvalid = false;
                         const epsilon = 0.00001; // Avoid floating point precision issues
 
-                        if (standard.min !== null && value < (standard.min - epsilon)) {
+                        // Helper for prefix-aware comparison
+                        const checkInvalid = (val, std, mode) => {
+                            if (std === null) return false;
+                            
+                            const stdStr = String(std);
+                            if (stdStr.length > 1 && (stdStr.startsWith('+') || stdStr.startsWith('-'))) {
+                                const operator = stdStr.charAt(0);
+                                const limit = parseFloat(stdStr.substring(1));
+                                if (operator === '+') { // Must be greater than
+                                    return val <= (limit + epsilon);
+                                } else if (operator === '-') { // Must be less than
+                                    return val >= (limit - epsilon);
+                                }
+                            }
+                            
+                            const stdFloat = parseFloat(std);
+                            if (mode === 'min') return val < (stdFloat - epsilon);
+                            if (mode === 'max') return val > (stdFloat + epsilon);
+                            return false;
+                        };
+
+                        if (standard.min !== null && checkInvalid(value, standard.min, 'min')) {
                             isInvalid = true;
                         }
-                        if (standard.max !== null && value > (standard.max + epsilon)) {
+                        if (!isInvalid && standard.max !== null && checkInvalid(value, standard.max, 'max')) {
                             isInvalid = true;
                         }
 
-                        // Fallback to Size +/- Tolerance if no Min/Max is set at all
-                        if (standard.min === null && standard.max === null) {
-                            if (standard.size !== null && standard.tolerance !== null) {
-                                const lowerBound = standard.size - standard.tolerance;
-                                const upperBound = standard.size + standard.tolerance;
+                        // Special case: if Size itself is an operator
+                        if (!isInvalid && standard.size !== null) {
+                            const stdSizeStr = String(standard.size);
+                            if (stdSizeStr.length > 1 && (stdSizeStr.startsWith('+') || stdSizeStr.startsWith('-'))) {
+                                if (checkInvalid(value, standard.size, 'size')) {
+                                    isInvalid = true;
+                                }
+                            }
+                        }
+
+                        // Fallback to Size +/- Tolerance
+                        if (!isInvalid && standard.min === null && standard.max === null) {
+                            const stdSizeStr = normalizeStandardValue(standard.size);
+                            if (standard.size !== null && standard.tolerance !== null && !stdSizeStr.startsWith('+') && !stdSizeStr.startsWith('-')) {
+                                const size = parseFloat(stdSizeStr);
+                                const tol = normalizeStandardValue(standard.tolerance);
+                                let lowerBound = size;
+                                let upperBound = size;
+
+                                if (tol.includes('/')) {
+                                    const parts = tol.split('/');
+                                    parts.forEach(p => {
+                                        p = normalizeStandardValue(p);
+                                        const fVal = parseFloat(p);
+                                        if (p.startsWith('+') || fVal > 0) {
+                                            upperBound = size + Math.abs(fVal);
+                                        } else if (p.startsWith('-') || fVal < 0) {
+                                            lowerBound = size - Math.abs(fVal);
+                                        }
+                                    });
+                                } else if (tol.startsWith('+')) {
+                                    upperBound = size + parseFloat(tol.substring(1).replace(',', '.'));
+                                } else if (tol.startsWith('-')) {
+                                    lowerBound = size + parseFloat(tol.replace(',', '.')); // Negative value
+                                } else {
+                                    const tVal = parseFloat(tol.replace(',', '.'));
+                                    lowerBound = size - tVal;
+                                    upperBound = size + tVal;
+                                }
+
                                 if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
                                     isInvalid = true;
                                 }

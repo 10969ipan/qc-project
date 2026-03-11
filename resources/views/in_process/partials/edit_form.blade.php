@@ -449,6 +449,24 @@
             const ng = parseInt($('#total_ng').val()) || 0;
             const isDimensiInvalid = $('.edit-dimension-input.is-invalid').length > 0;
 
+            // 0. Handle Dimension Defect independently of Lot Judgment
+            var hasDimensiDefect = false;
+            $('.defect-select').each(function () {
+                var text = $(this).find('option:selected').text();
+                if (text.toLowerCase() === 'dimensi') {
+                    hasDimensiDefect = true;
+                    return false;
+                }
+            });
+
+            if (isDimensiInvalid && !hasDimensiDefect) {
+                autoAddDimensionDefect();
+                return; // Re-triggers via calculateTotalNG
+            } else if (!isDimensiInvalid && hasDimensiDefect) {
+                autoRemoveDimensionDefect();
+                return; // Re-triggers via calculateTotalNG
+            }
+
             if (sampling >= ng) {
                 $('#total_ok').val(sampling - ng);
             } else {
@@ -466,8 +484,88 @@
                 } else {
                     judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
                 }
+            } else {
+                judgmentSelect.val('').removeClass('text-success text-danger');
             }
             toggleNextProses();
+        }
+
+        function autoAddDimensionDefect() {
+            var foundRow = null;
+            $('.defect-select').each(function () {
+                var val = $(this).val();
+                var text = $(this).find('option:selected').text();
+                if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
+                    foundRow = $(this).closest('.defect-row');
+                    return false;
+                }
+            });
+
+            if (foundRow) {
+                var qtyInput = foundRow.find('.defect-qty');
+                if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                    qtyInput.val(1).trigger('input');
+                }
+                return;
+            }
+
+            var targetSelect = null;
+            $('.defect-select').each(function () {
+                if ($(this).val() === '') {
+                    targetSelect = $(this);
+                    return false;
+                }
+            });
+
+            if (!targetSelect) {
+                var rowCount = $('.defect-row').length;
+                if (rowCount < 5) {
+                    $('#editAddDefectBtn').trigger('click');
+                    targetSelect = $('.defect-select').last();
+                } else {
+                    targetSelect = $('.defect-select').first();
+                }
+            }
+
+            if (targetSelect) {
+                var options = targetSelect.find('option');
+                var foundVal = '';
+                options.each(function () {
+                    if ($(this).val() === 'dimension' || $(this).text().toLowerCase() === 'dimensi') {
+                        foundVal = $(this).val();
+                        if (!foundVal) foundVal = $(this).text();
+                        return false;
+                    }
+                });
+
+                if (!foundVal) {
+                    targetSelect.append('<option value="Dimensi">Dimensi</option>');
+                    foundVal = 'Dimensi';
+                }
+
+                targetSelect.val(foundVal).trigger('change');
+                targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
+                calculateTotalNG();
+            }
+        }
+
+        function autoRemoveDimensionDefect() {
+            $('.defect-select').each(function () {
+                var val = $(this).val();
+                var text = $(this).find('option:selected').text();
+
+                if (val === 'dimension' || text.toLowerCase() === 'dimensi') {
+                    var row = $(this).closest('.defect-row');
+                    if ($('.defect-row').length === 1) {
+                        $(this).val('').trigger('change');
+                        row.find('.defect-qty').val('');
+                    } else {
+                        row.remove();
+                    }
+                    calculateTotalNG();
+                    return false;
+                }
+            });
         }
 
         function toggleNextProses() {
@@ -490,6 +588,14 @@
                 .toUpperCase();
         }
 
+        function normalizeStandardValue(val) {
+            if (val === null || val === undefined || val === '') return null;
+            return val.toString()
+                .replace(',', '.')
+                .replace(/[\u2012\u2013\u2014\u2212]/g, '-')
+                .trim();
+        }
+
         function validateDimensions() {
             const selectedOption = $('#item_id').find('option:selected');
             const rawPartNumber = selectedOption.data('part-number');
@@ -508,20 +614,77 @@
 
                 if (standard && valStr !== '' && !isNaN(value)) {
                     let isInvalid = false;
+                    const epsilon = 0.00001;
 
-                    if (standard.min !== null && value < standard.min) {
+                    // Helper for prefix-aware comparison
+                    const checkInvalid = (val, std, mode) => {
+                        if (std === null) return false;
+                        
+                        const stdStr = String(std);
+                        if (stdStr.length > 1 && (stdStr.startsWith('+') || stdStr.startsWith('-'))) {
+                            const operator = stdStr.charAt(0);
+                            const limit = parseFloat(stdStr.substring(1));
+                            if (operator === '+') { // Must be greater than
+                                return val <= (limit + epsilon);
+                            } else if (operator === '-') { // Must be less than
+                                return val >= (limit - epsilon);
+                            }
+                        }
+                        
+                        const stdFloat = parseFloat(std);
+                        if (mode === 'min') return val < (stdFloat - epsilon);
+                        if (mode === 'max') return val > (stdFloat + epsilon);
+                        return false;
+                    };
+
+                    if (standard.min !== null && checkInvalid(value, standard.min, 'min')) {
                         isInvalid = true;
                     }
-                    if (standard.max !== null && value > standard.max) {
+                    if (!isInvalid && standard.max !== null && checkInvalid(value, standard.max, 'max')) {
                         isInvalid = true;
+                    }
+
+                    // Special case: if Size itself is an operator
+                    if (!isInvalid && standard.size !== null) {
+                        const stdSizeStr = String(standard.size);
+                        if (stdSizeStr.length > 1 && (stdSizeStr.startsWith('+') || stdSizeStr.startsWith('-'))) {
+                            if (checkInvalid(value, standard.size, 'size')) {
+                                isInvalid = true;
+                            }
+                        }
                     }
 
                     // Fallback to Size +/- Tolerance
-                    if (standard.min === null && standard.max === null) {
-                        if (standard.size !== null && standard.tolerance !== null) {
-                            const lowerBound = standard.size - standard.tolerance;
-                            const upperBound = standard.size + standard.tolerance;
-                            if (value < lowerBound || value > upperBound) {
+                    if (!isInvalid && standard.min === null && standard.max === null) {
+                        const stdSizeStr = normalizeStandardValue(standard.size);
+                        if (standard.size !== null && standard.tolerance !== null && !stdSizeStr.startsWith('+') && !stdSizeStr.startsWith('-')) {
+                            const size = parseFloat(stdSizeStr);
+                            const tol = normalizeStandardValue(standard.tolerance);
+                            let lowerBound = size;
+                            let upperBound = size;
+
+                            if (tol.includes('/')) {
+                                const parts = tol.split('/');
+                                parts.forEach(p => {
+                                    p = normalizeStandardValue(p);
+                                    const fVal = parseFloat(p);
+                                    if (p.startsWith('+') || fVal > 0) {
+                                        upperBound = size + Math.abs(fVal);
+                                    } else if (p.startsWith('-') || fVal < 0) {
+                                        lowerBound = size - Math.abs(fVal);
+                                    }
+                                });
+                            } else if (tol.startsWith('+')) {
+                                upperBound = size + parseFloat(tol.substring(1).replace(',', '.'));
+                            } else if (tol.startsWith('-')) {
+                                lowerBound = size + parseFloat(tol.replace(',', '.')); // Negative value
+                            } else {
+                                const tVal = parseFloat(tol.replace(',', '.'));
+                                lowerBound = size - tVal;
+                                upperBound = size + tVal;
+                            }
+
+                            if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
                                 isInvalid = true;
                             }
                         }

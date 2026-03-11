@@ -371,25 +371,70 @@
                                                                         $isNG = false;
                                                                         if (isset($standards[$j]) && is_numeric($val)) {
                                                                             $std = $standards[$j];
+                                                                            $fVal = (float)$val;
+                                                                            $epsilon = 0.00001;
 
-                                                                            if (($std['min'] ?? null) !== null && $val < $std['min']) {
+                                                                            $check = function($v, $s, $m) use ($epsilon) {
+                                                                                if ($s === null || $s === '') return false;
+                                                                                $sStr = (string)$s;
+                                                                                if (strlen($sStr) > 1 && (str_starts_with($sStr, '+') || str_starts_with($sStr, '-'))) {
+                                                                                    $op = $sStr[0]; $lim = (float)substr($sStr, 1);
+                                                                                    return ($op === '+') ? $v < ($lim - $epsilon) : $v > ($lim + $epsilon);
+                                                                                }
+                                                                                $sf = (float)$s;
+                                                                                if ($m === 'min') return $v < ($sf - $epsilon);
+                                                                                if ($m === 'max') return $v > ($sf + $epsilon);
+                                                                                return false;
+                                                                            };
+
+                                                                            if (($std['min'] ?? null) !== null && $check($fVal, $std['min'], 'min')) {
                                                                                 $isNG = true;
                                                                             }
-                                                                            if (($std['max'] ?? null) !== null && $val > $std['max']) {
+                                                                            if (!$isNG && ($std['max'] ?? null) !== null && $check($fVal, $std['max'], 'max')) {
                                                                                 $isNG = true;
                                                                             }
 
-                                                                            if (!$isNG && ($std['min'] ?? null) === null && ($std['max'] ?? null) === null) {
-                                                                                if (($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null) {
-                                                                                    $min = $std['size'] - $std['tolerance'];
-                                                                                    $max = $std['size'] + $std['tolerance'];
-                                                                                    if ($val < $min || $val > $max) {
+                                                                            if (!$isNG && ($std['size'] ?? null) !== null) {
+                                                                                $sStr = (string)$std['size'];
+                                                                                if (str_starts_with($sStr, '+') || str_starts_with($sStr, '-')) {
+                                                                                    if ($check($fVal, $std['size'], 'size')) {
+                                                                                        $isNG = true;
+                                                                                    }
+                                                                                } elseif (($std['min'] ?? null) === null && ($std['max'] ?? null) === null && ($std['tolerance'] ?? null) !== null) {
+                                                                                    $size = (float)$std['size'];
+                                                                                    $tol = (string)$std['tolerance'];
+                                                                                    $lowerBound = $size;
+                                                                                    $upperBound = $size;
+
+                                                                                    if (str_contains($tol, '/')) {
+                                                                                        $parts = explode('/', $tol);
+                                                                                        foreach ($parts as $p) {
+                                                                                            $p = trim(str_replace(',', '.', $p));
+                                                                                            $fValTol = (float)$p;
+                                                                                            if (str_starts_with($p, '+') || $fValTol > 0) {
+                                                                                                $upperBound = $size + abs($fValTol);
+                                                                                            } elseif (str_starts_with($p, '-') || $fValTol < 0) {
+                                                                                                $lowerBound = $size - abs($fValTol);
+                                                                                            }
+                                                                                        }
+                                                                                    } elseif (str_starts_with($tol, '+')) {
+                                                                                        $upperBound = $size + (float)substr($tol, 1);
+                                                                                    } elseif (str_starts_with($tol, '-')) {
+                                                                                        $lowerBound = $size + (float)$tol;
+                                                                                    } else {
+                                                                                        $tVal = (float)$tol;
+                                                                                        $lowerBound = $size - $tVal;
+                                                                                        $upperBound = $size + $tVal;
+                                                                                    }
+
+                                                                                    if ($fVal < ($lowerBound - $epsilon) || $fVal > ($upperBound + $epsilon)) {
                                                                                         $isNG = true;
                                                                                     }
                                                                                 }
                                                                             }
                                                                         }
                                                                     @endphp
+p
                                                                     <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
                                                                     style="color: #dc3545 !important; font-weight: bold !important;" @endif>
                                                                         {{ $val }}
