@@ -52,28 +52,35 @@
         </div>
 
         <style>
-            #dataTable thead th {
-                position: sticky !important;
-                top: 0;
-                z-index: 100 !important;
-                background-color: #4e73df !important;
-                /* Royal Blue */
-                color: white !important;
-                font-weight: bold;
-                text-transform: uppercase;
-                font-size: 0.85rem;
-                border: 1px solid #ffffff44 !important;
-                box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
-            }
-
-            /* Prevent parents from clipping the sticky header */
-            .card-body, .card {
-                overflow: visible !important;
-            }
-
+            /* Improved Sticky Header for wide tables */
             .table-responsive {
                 overflow-x: auto !important;
                 overflow-y: visible !important;
+                height: auto !important;
+            }
+
+            #dataTable {
+                border-collapse: separate !important;
+                border-spacing: 0 !important;
+            }
+
+            #dataTable thead th {
+                position: -webkit-sticky !important;
+                position: sticky !important;
+                top: -1px !important; /* Slight offset to hide border gaps */
+                z-index: 100 !important;
+                background-color: #4e73df !important;
+                color: white !important;
+                font-weight: bold;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                border: 1px solid #ffffff44 !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+
+            /* Ensure parents allow sticky positioning */
+            #content-wrapper, #content, .container-fluid, .card, .card-body {
+                overflow: visible !important;
             }
         </style>
 
