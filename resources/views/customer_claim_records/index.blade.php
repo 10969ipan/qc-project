@@ -86,7 +86,7 @@
                 </div>
             @endif
 
-            <div class="table-responsive">
+            <div class="table-responsive" id="claimTableWrapper">
                 <table class="table table-bordered table-hover table-sm text-xs" id="dataTable" width="100%" cellspacing="0"
                     style="font-size: 0.75rem;">
                     <thead class="bg-primary text-white text-center">
@@ -264,11 +264,11 @@
             font-size: 0.7rem;
         }
 
-        /* Consistent Sticky Header with Hasil Verifikasi & Schedule */
-        .table-responsive {
-            max-height: 75vh !important;
-            overflow: auto !important;
-            border: 1px solid #dee2e6 !important;
+        /* Sticky Header - Daftar Claim Customer */
+        #claimTableWrapper {
+            max-height: 75vh;
+            overflow: auto;
+            border: 1px solid #dee2e6;
         }
 
         #dataTable {
@@ -277,11 +277,11 @@
         }
 
         #dataTable thead th {
-            position: -webkit-sticky !important;
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 100 !important;
-            background-color: #4e73df !important; /* Royal Blue matching other modules */
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #4e73df !important;
             color: white !important;
             font-weight: bold;
             text-transform: uppercase;
@@ -289,7 +289,7 @@
             padding: 10px 5px !important;
             vertical-align: middle;
             border: 1px solid #ffffff44 !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
     </style>
 @endpush
