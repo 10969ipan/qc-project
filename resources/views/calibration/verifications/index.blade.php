@@ -52,10 +52,10 @@
         </div>
 
         <style>
-            /* Sesuai dengan implementasi SCHEDULE KALIBRASI ALAT UKUR */
+            /* Sesuai dengan implementasi SCHEDULE KALIBRASI ALAT UKUR - Fixed for page scroll */
             .table-responsive {
-                max-height: 75vh !important;
-                overflow: auto !important;
+                overflow-x: auto !important;
+                overflow-y: visible !important;
                 border: 1px solid #dee2e6 !important;
             }
 
@@ -77,6 +77,11 @@
                 padding: 10px 5px !important;
                 border: 1px solid #ffffff44 !important;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            }
+
+            /* Ensure parents allow sticky positioning when scrolling the whole page */
+            #content-wrapper, #content, .container-fluid, .card, .card-body {
+                overflow: visible !important;
             }
         </style>
 

@@ -266,8 +266,8 @@
 
         /* Consistent Sticky Header with Hasil Verifikasi & Schedule */
         .table-responsive {
-            max-height: 75vh !important;
-            overflow: auto !important;
+            overflow-x: auto !important;
+            overflow-y: visible !important;
             border: 1px solid #dee2e6 !important;
         }
 
@@ -290,6 +290,11 @@
             vertical-align: middle;
             border: 1px solid #ffffff44 !important;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Ensure parents allow sticky positioning when scrolling the whole page */
+        #content-wrapper, #content, .container-fluid, .card, .card-body {
+            overflow: visible !important;
         }
     </style>
 @endpush
