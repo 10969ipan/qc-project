@@ -421,26 +421,27 @@ class CalibrationController extends Controller
             $scheduleId = isset($inputIds[$index]) ? $inputIds[$index] : null;
             $prNumber = isset($inputPrNumbers[$index]) ? $inputPrNumbers[$index] : null;
 
-            if ($scheduleId && in_array($scheduleId, $existingIds)) {
-                // Update existing
-                $updateData = ['schedule_date' => $date];
+            if (!empty($date)) {
+                if ($scheduleId && in_array($scheduleId, $existingIds)) {
+                    // Update existing
+                    $updateData = ['schedule_date' => $date];
 
-                // Only update PR if it's provided in the edit form
-                // This allows maintaining existing PRs if they were already there
-                $currentSch = $tool->schedules()->find($scheduleId);
-                if ($prNumber !== null && $currentSch->pr_number !== $prNumber) {
-                    $updateData['pr_number'] = $prNumber;
-                    $updateData['pr_date'] = empty($prNumber) ? null : now();
+                    // Only update PR if it's provided in the edit form
+                    $currentSch = $tool->schedules()->find($scheduleId);
+                    if ($prNumber !== null && $currentSch->pr_number !== $prNumber) {
+                        $updateData['pr_number'] = $prNumber;
+                        $updateData['pr_date'] = empty($prNumber) ? null : now();
+                    }
+
+                    $tool->schedules()->where('id', $scheduleId)->update($updateData);
+                } else {
+                    // Create new
+                    $tool->schedules()->create([
+                        'schedule_date' => $date,
+                        'pr_number' => $prNumber,
+                        'pr_date' => empty($prNumber) ? null : now()
+                    ]);
                 }
-
-                $tool->schedules()->where('id', $scheduleId)->update($updateData);
-            } else {
-                // Create new
-                $tool->schedules()->create([
-                    'schedule_date' => $date,
-                    'pr_number' => $prNumber,
-                    'pr_date' => empty($prNumber) ? null : now()
-                ]);
             }
         }
 
