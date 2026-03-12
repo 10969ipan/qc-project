@@ -502,6 +502,79 @@
                         </div>
                     </div>
 
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-2">
+                            <h6 class="m-0 font-weight-bold text-primary small">Keterangan Icon Status (STAT)</h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row text-left">
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-check-circle text-success fa-lg mr-2" style="width: 25px; text-align: center;"></i>
+                                        <span class="small">Sudah Verifikasi</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="d-inline-block position-relative mr-2" style="width: 25px; height: 25px; vertical-align: middle;">
+                                            <i class="fas fa-calendar text-warning" style="font-size: 1.1rem;"></i>
+                                            <i class="fas fa-clock text-warning" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
+                                        </div>
+                                        <span class="small text-warning font-weight-bold">Mendekati Jadwal Verifikasi</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-hourglass-half text-primary fa-lg mr-2" style="width: 25px; text-align: center;"></i>
+                                        <span class="small font-weight-bold text-primary">PR Out - Menunggu Verifikasi</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="d-inline-block position-relative mr-2" style="width: 25px; height: 25px; vertical-align: middle;">
+                                            <i class="fas fa-calendar text-info" style="font-size: 1.1rem;"></i>
+                                            <i class="fas fa-clock text-info" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
+                                        </div>
+                                        <span class="small text-info">Alat Internal - Menunggu Verifikasi</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="d-inline-block position-relative mr-2" style="width: 25px; height: 25px; vertical-align: middle;">
+                                            <i class="fas fa-calendar text-secondary" style="font-size: 1.1rem;"></i>
+                                            <i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
+                                        </div>
+                                        <span class="small text-secondary">Alat Eksternal - Belum Ada PR</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="d-inline-block position-relative mr-2" style="width: 25px; height: 25px; vertical-align: middle;">
+                                            <i class="fas fa-wrench text-secondary" style="font-size: 1.1rem;"></i>
+                                            <i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
+                                        </div>
+                                        <span class="small text-secondary font-weight-bold">Data Sementara - Belum Ada Jadwal</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-exclamation-circle text-danger fa-lg mr-2" style="width: 25px; text-align: center;"></i>
+                                        <span class="small text-danger">Melewati Jadwal Planning</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-exclamation-triangle text-warning fa-lg mr-2" style="width: 25px; text-align: center;"></i>
+                                        <span class="small text-warning">Mendekati Jadwal Planning</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge badge-danger mr-2" style="width: 60px; font-size: 0.6rem;">BROKEN</span>
+                                        <span class="small text-danger">Alat Rusak / Tidak Digunakan</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="small text-muted border-left pl-3">
+                                        <p class="mb-1 font-weight-bold">Catatan:</p>
+                                        <ul class="pl-3 mb-0" style="font-size: 0.75rem;">
+                                            <li>Icon status berubah otomatis berdasarkan verifikasi & planning.</li>
+                                            <li>Klik pada icon untuk melihat detail per bulan.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- PDF Modal -->
                     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-xl" role="document">
