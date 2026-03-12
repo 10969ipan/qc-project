@@ -19,29 +19,29 @@
         color: white !important;
         font-weight: bold;
         text-transform: uppercase;
-        font-size: 0.8rem;
-        padding: 8px 5px !important;
+        font-size: 0.75rem;
+        padding: 6px 4px !important;
         border: 1px solid #ffffff44 !important;
         vertical-align: middle !important;
-    }
-
-    /* Fixed height for header rows to ensure consistent stacking */
-    #checksheetTable > thead > tr {
-        height: 45px !important;
+        height: 35px !important;
     }
 
     /* First row sticky at top: 0 */
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        box-shadow: 0 1px 0 rgba(255,255,255,0.2) !important;
     }
 
-    /* Second row sticky at top: 45px */
+    /* Second row sticky at top: 35px (matching height of row 1) */
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 45px !important;
+        top: 35px !important;
         z-index: 104 !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Rowspan cell specifically handled to fill both rows correctly */
+    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
+        height: 70px !important;
     }
 </style>
 <div class="card shadow mb-4 border-left-primary">
