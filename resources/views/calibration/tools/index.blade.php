@@ -502,7 +502,7 @@
                         </div>
                                         <div class="card shadow mb-4">
                         <div class="card-header py-2">
-                            <h6 class="m-0 font-weight-bold text-primary small">Keterangan Icon Status (STAT)</h6>
+                            <h6 class="m-0 font-weight-bold text-primary small">Keterangan Status</h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="row no-gutters text-left">
