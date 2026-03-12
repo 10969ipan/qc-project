@@ -4,8 +4,13 @@
 
 @section('content')
 <style>
+    .table-responsive {
+        max-height: 75vh !important;
+        overflow: auto !important;
+        border: 1px solid #dee2e6 !important;
+    }
     #checksheetTable { border-collapse: separate !important; border-spacing: 0 !important; }
-    #checksheetTable thead th {
+    #checksheetTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
         top: 0 !important;
