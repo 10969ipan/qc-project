@@ -322,11 +322,8 @@
                 const data = $(this).data('json');
                 const id = $(this).data('id');
                 const form = $('#formEditRecord');
-                // Derive base URL from current page href to handle subdirectory deployments
-                // e.g. http://192.168.0.39/qc/admin/customer-claim-records -> base = http://192.168.0.39/qc
-                let baseUrl = window.location.href.split('/admin/')[0];
-                let action = baseUrl + '/admin/customer-claim-records/' + id;
-                form.attr('action', action);
+                // Set action - same pattern as KAKOTORA page
+                form.attr('action', '/admin/customer-claim-records/' + id);
 
                 // Fill form fields
                 form.find('[name="tanggal_claim"]').val(data.tanggal_claim ? data.tanggal_claim.split('T')[0] : '');

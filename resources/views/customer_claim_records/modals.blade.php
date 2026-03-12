@@ -300,6 +300,7 @@
             </div>
             <form id="formEditRecord" action="" method="POST" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 <div class="modal-body px-4 py-4">
                     <input type="hidden" name="plant_id" id="edit_plant_id">
                     {{-- Same structure for Edit Modal --}}
