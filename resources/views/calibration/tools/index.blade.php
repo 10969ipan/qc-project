@@ -377,6 +377,9 @@
                                                             $statPrDate = $relevantSchedule->pr_date ? \Carbon\Carbon::parse($relevantSchedule->pr_date)->format('d/m/Y') : '-';
                                                         } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
                                                             $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
+                                                        } elseif (empty($scheduledStatuses) && !$hasVerification) {
+                                                            // No schedules and no verification → Temporary status
+                                                            $statIcon = '<i class="fas fa-history text-secondary fa-lg" title="Data Sementara - Belum Ada Jadwal"></i>';
                                                         } else {
                                                             $statIcon = $icon_base;
                                                         }
