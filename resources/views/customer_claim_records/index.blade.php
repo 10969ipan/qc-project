@@ -86,10 +86,40 @@
                 </div>
             @endif
 
-            <div class="table-responsive" id="claimTableWrapper" style="overflow-x: auto;">
+            {{-- Sticky Header CSS - same approach as Hasil Verifikasi --}}
+            <style>
+                #claimTableWrapper {
+                    max-height: 75vh;
+                    overflow: auto;
+                    border: 1px solid #dee2e6;
+                }
+                #dataTable {
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                }
+                #dataTable thead th {
+                    position: -webkit-sticky !important;
+                    position: sticky !important;
+                    top: 0 !important;
+                    z-index: 100 !important;
+                    background-color: #4e73df !important;
+                    color: white !important;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    padding: 10px 6px !important;
+                    vertical-align: middle !important;
+                    text-align: center;
+                    border: 1px solid rgba(255,255,255,0.3) !important;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+                    white-space: nowrap;
+                }
+            </style>
+
+            <div class="table-responsive" id="claimTableWrapper">
                 <table class="table table-bordered table-hover table-sm text-xs" id="dataTable" width="100%" cellspacing="0"
                     style="font-size: 0.75rem;">
-                    <thead class="bg-primary text-white text-center">
+                    <thead>
                         <tr>
                             <th>No</th>
                             <th>Tanggal Claim</th>
@@ -105,8 +135,7 @@
                             <th>Kategori Penyimpangan (4M/IPQ/OTHER)</th>
                             <th>Initial Operator</th>
                             <th>Initial Inspektor</th>
-                            <th style="min-width: 150px;">Temporary Action
-                            </th>
+                            <th style="min-width: 150px;">Temporary Action</th>
                             <th>Cost Akomodasi (Rp)</th>
                             <th>Cost Overtime (Rp)</th>
                             <th style="min-width: 150px;">Feedback</th>
@@ -247,154 +276,16 @@
 
 @push('styles')
     <style>
-        .col-part {
-            width: 30% !important;
-        }
-
-        .col-problem {
-            width: 10% !important;
-        }
-
-        .text-xs {
-            font-size: 0.75rem;
-        }
-
-        .btn-xs {
-            padding: 0.1rem 0.3rem;
-            font-size: 0.7rem;
-        }
-
-        /* Sticky Header - Daftar Claim Customer */
-        #claimTableWrapper {
-            border: 1px solid #dee2e6;
-        }
-
-        #dataTable {
-            border-collapse: collapse !important;
-        }
-
-        #dataTable thead th {
-            background-color: #4e73df !important;
-            color: white !important;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            padding: 10px 5px !important;
-            vertical-align: middle;
-            border: 1px solid #ffffff44 !important;
-        }
-
-        /* Fixed sticky header clone */
-        #stickyHeaderClone {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1050;
-            background-color: #4e73df;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-            overflow: hidden;
-        }
-
-        #stickyHeaderClone table {
-            margin: 0;
-            border-collapse: collapse;
-        }
-
-        #stickyHeaderClone th {
-            background-color: #4e73df !important;
-            color: white !important;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            padding: 10px 5px !important;
-            vertical-align: middle;
-            border: 1px solid #ffffff44 !important;
-            white-space: nowrap;
-        }
+        .col-part { width: 30% !important; }
+        .col-problem { width: 10% !important; }
+        .text-xs { font-size: 0.75rem; }
+        .btn-xs { padding: 0.1rem 0.3rem; font-size: 0.7rem; }
     </style>
 @endpush
 
 @push('scripts')
     <script>
         $(document).ready(function () {
-
-            // =============================================
-            // Sticky Header for Daftar Claim Customer Table
-            // =============================================
-            (function () {
-                var $table   = $('#dataTable');
-                var $thead   = $table.find('thead');
-                var $wrapper = $('#claimTableWrapper');
-                var $clone   = null;
-
-                function buildClone() {
-                    if ($clone) $clone.remove();
-
-                    // Build a clone of the thead
-                    var $cloneTable = $('<table>').css({
-                        borderCollapse: 'collapse',
-                        marginBottom: 0,
-                        tableLayout: 'fixed'
-                    });
-                    $cloneTable.append($thead.clone());
-
-                    // Wrapper div — all positioning via inline style (no stylesheet dependency)
-                    $clone = $('<div>').css({
-                        position : 'fixed',
-                        top      : 0,
-                        left     : 0,
-                        zIndex   : 9999,
-                        display  : 'none',
-                        overflow : 'hidden',
-                        backgroundColor: '#4e73df',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-                    }).append($cloneTable).appendTo('body');
-                }
-
-                function syncHeader() {
-                    if (!$clone) return;
-
-                    var tableRect   = $table[0].getBoundingClientRect();
-                    var wrapperRect = $wrapper[0].getBoundingClientRect();
-
-                    if (tableRect.top < 0 && tableRect.bottom > 50) {
-                        // Sync column widths from the real thead
-                        var $realThs  = $thead.find('th');
-                        var $cloneThs = $clone.find('th');
-                        $realThs.each(function (i) {
-                            $cloneThs.eq(i).css('width', $(this).outerWidth() + 'px');
-                        });
-
-                        // Position the clone exactly over the table's horizontal span
-                        $clone.css({
-                            display : 'block',
-                            top     : '0px',
-                            left    : wrapperRect.left + 'px',
-                            width   : wrapperRect.width + 'px'
-                        });
-
-                        // Mirror horizontal scroll
-                        $clone.find('table').css('margin-left', -$wrapper[0].scrollLeft + 'px');
-
-                    } else {
-                        $clone.css('display', 'none');
-                    }
-                }
-
-                buildClone();
-                $(window).on('scroll', syncHeader);
-                $wrapper.on('scroll', function () {
-                    if ($clone && $clone.css('display') !== 'none') {
-                        $clone.find('table').css('margin-left', -this.scrollLeft + 'px');
-                    }
-                });
-                $(window).on('resize', function () {
-                    buildClone();
-                    syncHeader();
-                });
-            })();
-
 
             // File Preview Logic
             $(document).on('click', '.btn-preview-file', function () {
