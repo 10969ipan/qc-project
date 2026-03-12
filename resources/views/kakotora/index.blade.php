@@ -520,11 +520,10 @@
 
         /* Fix for DataTables scrollX header gap */
         .dataTables_scrollHead {
-            background-color: #4e73df !important;
             border-radius: 4px 4px 0 0 !important;
         }
 
-        #dataTableKakotora th {
+        #dataTableKakotora thead th {
             font-size: 0.75rem;
             vertical-align: middle;
             text-align: center;
