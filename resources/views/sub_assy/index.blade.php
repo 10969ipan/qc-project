@@ -10,32 +10,37 @@
         border: 1px solid #dee2e6 !important;
     }
     #checksheetTable { border-collapse: separate !important; border-spacing: 0 !important; }
-    #checksheetTable > thead > tr:nth-child(1) > th {
+    
+    /* Global TH sticky setup */
+    #checksheetTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
-        top: 0 !important;
-        z-index: 102 !important;
         background-color: #4e73df !important;
         color: white !important;
         font-weight: bold;
         text-transform: uppercase;
         font-size: 0.8rem;
-        padding: 10px 5px !important;
+        padding: 8px 5px !important;
         border: 1px solid #ffffff44 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        vertical-align: middle !important;
     }
+
+    /* Fixed height for header rows to ensure consistent stacking */
+    #checksheetTable > thead > tr {
+        height: 45px !important;
+    }
+
+    /* First row sticky at top: 0 */
+    #checksheetTable > thead > tr:nth-child(1) > th {
+        top: 0 !important;
+        z-index: 105 !important;
+        box-shadow: 0 1px 0 rgba(255,255,255,0.2) !important;
+    }
+
+    /* Second row sticky at top: 45px */
     #checksheetTable > thead > tr:nth-child(2) > th {
-        position: -webkit-sticky !important;
-        position: sticky !important;
-        top: 43px !important;
-        z-index: 101 !important;
-        background-color: #4e73df !important;
-        color: white !important;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        padding: 10px 5px !important;
-        border: 1px solid #ffffff44 !important;
+        top: 45px !important;
+        z-index: 104 !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
     }
 </style>
