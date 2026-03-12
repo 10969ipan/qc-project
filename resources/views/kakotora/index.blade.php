@@ -202,7 +202,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">No Registrasi</label>
-                                    <input type="text" name="no_reg" class="form-control form-control-sm"
+                                    <input type="text" name="no_reg" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input No Registrasi">
                                 </div>
                                 <div class="form-group">
@@ -211,7 +211,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">No. Revmodel</label>
-                                    <input type="text" name="rev_model" class="form-control form-control-sm"
+                                    <input type="text" name="rev_model" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input No Revmodel">
                                 </div>
                                 <div class="form-group">
@@ -241,74 +241,74 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">MODEL</label>
-                                    <input type="text" name="model" class="form-control form-control-sm"
+                                    <input type="text" name="model" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Model">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Part No.</label>
-                                    <input type="text" name="part_number" class="form-control form-control-sm"
+                                    <input type="text" name="part_number" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Part Number">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Part Name</label>
-                                    <input type="text" name="part_name" class="form-control form-control-sm"
+                                    <input type="text" name="part_name" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Part Name">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Mould</label>
-                                    <input type="text" name="mould" class="form-control form-control-sm"
+                                    <input type="text" name="mould" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Mould">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Owner of Mould</label>
-                                    <input type="text" name="owner_mould" class="form-control form-control-sm"
+                                    <input type="text" name="owner_mould" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Owner Mould">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Similar Part</label>
-                                    <textarea name="similar_part" class="form-control form-control-sm" rows="3"
+                                    <textarea name="similar_part" class="form-control form-control-sm no-autoupper" rows="3"
                                         placeholder="Input Similar Part"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Section</label>
-                                    <input type="text" name="section" class="form-control form-control-sm"
+                                    <input type="text" name="section" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Section">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Proses</label>
-                                    <input type="text" name="process" class="form-control form-control-sm"
+                                    <input type="text" name="process" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Proses">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">PROBLEM</label>
-                                    <textarea name="problem" class="form-control form-control-sm" rows="2"
+                                    <textarea name="problem" class="form-control form-control-sm no-autoupper" rows="2"
                                         placeholder="Input Problem"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">CAUSE</label>
-                                    <textarea name="cause" class="form-control form-control-sm" rows="2"
+                                    <textarea name="cause" class="form-control form-control-sm no-autoupper" rows="2"
                                         placeholder="Input Cause"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">COUNTERMEASURE</label>
-                                    <textarea name="countermeasure" class="form-control form-control-sm" rows="5"
+                                    <textarea name="countermeasure" class="form-control form-control-sm no-autoupper" rows="5"
                                         placeholder="Input Countermeasure"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">PIC</label>
-                                    <input type="text" name="pic" class="form-control form-control-sm"
+                                    <input type="text" name="pic" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input PIC">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Supplier</label>
-                                    <input type="text" name="supplier" class="form-control form-control-sm"
+                                    <input type="text" name="supplier" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Supplier">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Kategori Defect</label>
-                                    <input type="text" name="defect_category" class="form-control form-control-sm"
+                                    <input type="text" name="defect_category" class="form-control form-control-sm no-autoupper"
                                         placeholder="Input Kategori Defect">
                                 </div>
                                 <div class="form-group">
@@ -326,7 +326,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Remarks</label>
-                                    <textarea name="remarks" class="form-control form-control-sm" rows="2"
+                                    <textarea name="remarks" class="form-control form-control-sm no-autoupper" rows="2"
                                         placeholder="Input Remarks"></textarea>
                                 </div>
                             </div>
@@ -365,7 +365,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">No Registrasi</label>
-                                    <input type="text" name="no_reg" id="edit_no_reg" class="form-control form-control-sm">
+                                    <input type="text" name="no_reg" id="edit_no_reg" class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Issue Date</label>
@@ -375,7 +375,7 @@
                                 <div class="form-group">
                                     <label class="small font-weight-bold">No. Revmodel</label>
                                     <input type="text" name="rev_model" id="edit_rev_model"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">FAMILY (M, C, S)</label>
@@ -406,72 +406,72 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">MODEL</label>
-                                    <input type="text" name="model" id="edit_model" class="form-control form-control-sm">
+                                    <input type="text" name="model" id="edit_model" class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Part No.</label>
                                     <input type="text" name="part_number" id="edit_part_number"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Part Name</label>
                                     <input type="text" name="part_name" id="edit_part_name"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Mould</label>
-                                    <input type="text" name="mould" id="edit_mould" class="form-control form-control-sm">
+                                    <input type="text" name="mould" id="edit_mould" class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Owner of Mould</label>
                                     <input type="text" name="owner_mould" id="edit_owner_mould"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Similar Part</label>
                                     <textarea name="similar_part" id="edit_similar_part"
-                                        class="form-control form-control-sm" rows="3"></textarea>
+                                        class="form-control form-control-sm no-autoupper" rows="3"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Section</label>
                                     <input type="text" name="section" id="edit_section"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Proses</label>
                                     <input type="text" name="process" id="edit_process"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">PROBLEM</label>
-                                    <textarea name="problem" id="edit_problem" class="form-control form-control-sm"
+                                    <textarea name="problem" id="edit_problem" class="form-control form-control-sm no-autoupper"
                                         rows="2"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">CAUSE</label>
-                                    <textarea name="cause" id="edit_cause" class="form-control form-control-sm"
+                                    <textarea name="cause" id="edit_cause" class="form-control form-control-sm no-autoupper"
                                         rows="2"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">COUNTERMEASURE</label>
                                     <textarea name="countermeasure" id="edit_countermeasure"
-                                        class="form-control form-control-sm" rows="5"></textarea>
+                                        class="form-control form-control-sm no-autoupper" rows="5"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">PIC</label>
-                                    <input type="text" name="pic" id="edit_pic" class="form-control form-control-sm">
+                                    <input type="text" name="pic" id="edit_pic" class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Supplier</label>
                                     <input type="text" name="supplier" id="edit_supplier"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Kategori Defect</label>
                                     <input type="text" name="defect_category" id="edit_defect_category"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm no-autoupper">
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Status</label>
@@ -490,7 +490,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Remarks</label>
-                                    <textarea name="remarks" id="edit_remarks" class="form-control form-control-sm"
+                                    <textarea name="remarks" id="edit_remarks" class="form-control form-control-sm no-autoupper"
                                         rows="2"></textarea>
                                 </div>
                             </div>
