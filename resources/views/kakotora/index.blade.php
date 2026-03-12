@@ -674,7 +674,7 @@
                 }
 
                 // Set Action URL
-                $('#formEditKakotora').attr('action', '/kakotora/' + id);
+                $('#formEditKakotora').attr('action', '{{ url("kakotora") }}/' + id);
 
                 // Show Modal
                 $('#modalEditKakotora').modal('show');

@@ -323,7 +323,7 @@
                 const id = $(this).data('id');
                 const form = $('#formEditRecord');
                 // Set action - same pattern as KAKOTORA page
-                form.attr('action', '/admin/customer-claim-records/' + id);
+                form.attr('action', '{{ url("admin/customer-claim-records") }}/' + id);
 
                 // Fill form fields
                 form.find('[name="tanggal_claim"]').val(data.tanggal_claim ? data.tanggal_claim.split('T')[0] : '');
