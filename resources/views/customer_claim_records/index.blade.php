@@ -322,8 +322,9 @@
                 const data = $(this).data('json');
                 const id = $(this).data('id');
                 const form = $('#formEditRecord');
-                let action = "{{ route('admin.customer-claim-records.update.post', ':id') }}";
-                form.attr('action', action.replace(':id', id));
+                // Use window.location.origin to avoid APP_URL mismatch on production server
+                let action = window.location.origin + '/admin/customer-claim-records/' + id;
+                form.attr('action', action);
 
                 // Fill form fields
                 form.find('[name="tanggal_claim"]').val(data.tanggal_claim ? data.tanggal_claim.split('T')[0] : '');
