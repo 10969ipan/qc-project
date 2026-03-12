@@ -322,8 +322,10 @@
                 const data = $(this).data('json');
                 const id = $(this).data('id');
                 const form = $('#formEditRecord');
-                // Use window.location.origin to avoid APP_URL mismatch on production server
-                let action = window.location.origin + '/admin/customer-claim-records/' + id;
+                // Derive base URL from current page href to handle subdirectory deployments
+                // e.g. http://192.168.0.39/qc/admin/customer-claim-records -> base = http://192.168.0.39/qc
+                let baseUrl = window.location.href.split('/admin/')[0];
+                let action = baseUrl + '/admin/customer-claim-records/' + id;
                 form.attr('action', action);
 
                 // Fill form fields
