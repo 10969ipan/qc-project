@@ -3,6 +3,23 @@
 @section('title', 'Double Tape')
 
 @section('content')
+<style>
+    #checksheetTable { border-collapse: separate !important; border-spacing: 0 !important; }
+    #checksheetTable thead th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 100 !important;
+        background-color: #4e73df !important;
+        color: white !important;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        padding: 10px 5px !important;
+        border: 1px solid #ffffff44 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    }
+</style>
     <div class="card shadow mb-4 border-left-primary">
         <div class="card-body py-3">
             <div class="row align-items-start">
