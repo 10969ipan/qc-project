@@ -513,21 +513,32 @@
             table-layout: fixed !important;
             width: auto !important;
             min-width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Fix for DataTables scrollX header gap */
+        .dataTables_scrollHead {
+            background-color: #4e73df !important;
+            border-radius: 4px 4px 0 0 !important;
         }
 
         #dataTableKakotora th {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             vertical-align: middle;
             text-align: center;
-            background-color: #4e73df;
-            color: white;
+            background-color: #4e73df !important;
+            color: white !important;
             white-space: nowrap;
-            padding: 12px !important;
+            padding: 8px 10px !important;
+            border: 1px solid #ffffff33 !important;
         }
 
         #dataTableKakotora td {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             vertical-align: middle;
+            border: 1px solid #e3e6f0 !important;
         }
 
         td.details-control {
