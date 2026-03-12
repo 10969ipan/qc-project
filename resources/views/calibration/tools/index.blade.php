@@ -184,9 +184,11 @@
             @endif
 
 
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Daftar Alat Ukur</h6>
+            <div class="row">
+                <div class="col-xl-9 col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Daftar Alat Ukur</h6>
                     <div class="d-flex">
                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
                             <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
