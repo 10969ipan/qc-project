@@ -324,9 +324,39 @@
                                                             '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
                                                             '</div>';
 
+                                                        // Check if next unverified schedule is within 7 days
+                                                        $nextUnverifiedSchedule = null;
+                                                        $isApproachingNextVerif = false;
+                                                        if ($hasVerification && !empty($scheduledStatuses)) {
+                                                            foreach ($scheduledStatuses as $sch) {
+                                                                if (!$sch->is_ok) {
+                                                                    $nextUnverifiedSchedule = $sch;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if ($nextUnverifiedSchedule) {
+                                                                $nextSchDate = \Carbon\Carbon::parse((string) $nextUnverifiedSchedule->schedule_date)->startOfDay();
+                                                                $today = now()->startOfDay();
+                                                                $daysUntil = $today->diffInDays($nextSchDate, false);
+                                                                // Within 7 days BEFORE the next schedule
+                                                                if ($daysUntil >= 0 && $daysUntil <= 7) {
+                                                                    $isApproachingNextVerif = true;
+                                                                }
+                                                            }
+                                                        }
+
                                                         if ($hasVerification) {
-                                                            $statIcon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
-                                                            $statIsClickable = true;
+                                                            if ($isApproachingNextVerif) {
+                                                                // Next verification is within 7 days → show calendar-clock warning icon
+                                                                $statIcon = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;">' .
+                                                                    '<i class="fas fa-calendar text-warning" style="font-size: 1.2rem;"></i>' .
+                                                                    '<i class="fas fa-clock text-warning" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                                    '</div>';
+                                                                $statIsClickable = true;
+                                                            } else {
+                                                                $statIcon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
+                                                                $statIsClickable = true;
+                                                            }
                                                             if ($relevantSchedule) {
                                                                 $statPrDate = property_exists($relevantSchedule, 'pr_date') && $relevantSchedule->pr_date ? \Carbon\Carbon::parse($relevantSchedule->pr_date)->format('d/m/Y') : '-';
                                                                 $statLinkParams = [
