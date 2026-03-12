@@ -323,72 +323,78 @@
             // Sticky Header for Daftar Claim Customer Table
             // =============================================
             (function () {
-                const $table = $('#dataTable');
-                const $thead = $table.find('thead');
-                const $wrapper = $('#claimTableWrapper');
+                var $table   = $('#dataTable');
+                var $thead   = $table.find('thead');
+                var $wrapper = $('#claimTableWrapper');
+                var $clone   = null;
 
-                // Create sticky clone container
-                const $clone = $('<div id="stickyHeaderClone"></div>');
-                $('body').append($clone);
+                function buildClone() {
+                    if ($clone) $clone.remove();
 
-                function updateStickyHeader() {
-                    const tableRect = $table[0].getBoundingClientRect();
-                    const theadRect = $thead[0].getBoundingClientRect();
-                    const theadBottom = theadRect.bottom;
+                    // Build a clone of the thead
+                    var $cloneTable = $('<table>').css({
+                        borderCollapse: 'collapse',
+                        marginBottom: 0,
+                        tableLayout: 'fixed'
+                    });
+                    $cloneTable.append($thead.clone());
 
-                    // Show sticky header when original thead scrolls above viewport
-                    if (tableRect.top < 0 && tableRect.bottom > 0) {
-                        // Sync column widths
-                        const $ths = $thead.find('th');
-                        let $cloneTable = $clone.find('table');
+                    // Wrapper div — all positioning via inline style (no stylesheet dependency)
+                    $clone = $('<div>').css({
+                        position : 'fixed',
+                        top      : 0,
+                        left     : 0,
+                        zIndex   : 9999,
+                        display  : 'none',
+                        overflow : 'hidden',
+                        backgroundColor: '#4e73df',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                    }).append($cloneTable).appendTo('body');
+                }
 
-                        if ($cloneTable.length === 0) {
-                            // Build clone table
-                            const $newTable = $('<table class="table table-bordered table-sm text-xs mb-0"></table>');
-                            const $newThead = $thead.clone();
-                            $newTable.append($newThead);
-                            $clone.html('').append($newTable);
-                            $cloneTable = $newTable;
-                        }
+                function syncHeader() {
+                    if (!$clone) return;
 
-                        // Match column widths from original
-                        const $cloneThs = $clone.find('th');
-                        $ths.each(function (i) {
-                            $cloneThs.eq(i).width($(this).outerWidth());
+                    var tableRect   = $table[0].getBoundingClientRect();
+                    var wrapperRect = $wrapper[0].getBoundingClientRect();
+
+                    if (tableRect.top < 0 && tableRect.bottom > 50) {
+                        // Sync column widths from the real thead
+                        var $realThs  = $thead.find('th');
+                        var $cloneThs = $clone.find('th');
+                        $realThs.each(function (i) {
+                            $cloneThs.eq(i).css('width', $(this).outerWidth() + 'px');
                         });
 
-                        // Position and size
-                        const wrapperRect = $wrapper[0].getBoundingClientRect();
+                        // Position the clone exactly over the table's horizontal span
                         $clone.css({
-                            display: 'block',
-                            left: wrapperRect.left + 'px',
-                            width: wrapperRect.width + 'px',
+                            display : 'block',
+                            top     : '0px',
+                            left    : wrapperRect.left + 'px',
+                            width   : wrapperRect.width + 'px'
                         });
 
-                        // Sync horizontal scroll
+                        // Mirror horizontal scroll
                         $clone.find('table').css('margin-left', -$wrapper[0].scrollLeft + 'px');
 
                     } else {
-                        $clone.hide();
+                        $clone.css('display', 'none');
                     }
                 }
 
-                // Update on scroll (page scroll)
-                $(window).on('scroll', updateStickyHeader);
-
-                // Update on horizontal scroll inside wrapper
+                buildClone();
+                $(window).on('scroll', syncHeader);
                 $wrapper.on('scroll', function () {
-                    if ($clone.is(':visible')) {
+                    if ($clone && $clone.css('display') !== 'none') {
                         $clone.find('table').css('margin-left', -this.scrollLeft + 'px');
                     }
                 });
-
-                // Update on resize
                 $(window).on('resize', function () {
-                    $clone.find('table').remove(); // force rebuild on resize
-                    updateStickyHeader();
+                    buildClone();
+                    syncHeader();
                 });
             })();
+
 
             // File Preview Logic
             $(document).on('click', '.btn-preview-file', function () {
