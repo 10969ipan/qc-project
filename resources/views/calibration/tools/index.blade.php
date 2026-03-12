@@ -378,8 +378,11 @@
                                                         } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
                                                             $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
                                                         } elseif (empty($scheduledStatuses) && !$hasVerification) {
-                                                            // No schedules and no verification → Temporary status
-                                                            $statIcon = '<i class="fas fa-history text-secondary fa-lg" title="Data Sementara - Belum Ada Jadwal"></i>';
+                                                            // No schedules and no verification → Temporary status (Wrench + Clock composite)
+                                                            $statIcon = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;" title="Data Sementara - Belum Ada Jadwal">' .
+                                                                '<i class="fas fa-wrench text-secondary" style="font-size: 1.1rem;"></i>' .
+                                                                '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                                '</div>';
                                                         } else {
                                                             $statIcon = $icon_base;
                                                         }
