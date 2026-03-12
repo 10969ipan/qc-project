@@ -500,23 +500,22 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="card shadow mb-4">
+                                        <div class="card shadow mb-4">
                         <div class="card-header py-2">
                             <h6 class="m-0 font-weight-bold text-primary small">Keterangan Icon Status (STAT)</h6>
                         </div>
-                        <div class="card-body py-3">
-                            <div class="row text-left">
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div style="width: 30px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                        <div class="card-body p-0">
+                            <div class="row no-gutters text-left">
+                                <!-- Column 1 -->
+                                <div class="col-md-3 border-right">
+                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <i class="fas fa-check-circle text-success fa-lg"></i>
                                         </div>
                                         <span class="small">Sudah Verifikasi</span>
                                     </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div style="width: 30px; height: 25px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <div class="position-relative" style="width: 25px; height: 25px;">
                                                 <i class="fas fa-calendar text-warning" style="font-size: 1.1rem;"></i>
                                                 <i class="fas fa-clock text-warning" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
@@ -524,16 +523,17 @@
                                         </div>
                                         <span class="small text-warning font-weight-bold">Mendekati Jadwal Verifikasi</span>
                                     </div>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 30px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                    <div class="p-2 d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <i class="fas fa-hourglass-half text-primary fa-lg"></i>
                                         </div>
                                         <span class="small font-weight-bold text-primary">PR Out - Menunggu Verifikasi</span>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div style="width: 30px; height: 25px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                <!-- Column 2 -->
+                                <div class="col-md-3 border-right">
+                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <div class="position-relative" style="width: 25px; height: 25px;">
                                                 <i class="fas fa-calendar text-info" style="font-size: 1.1rem;"></i>
                                                 <i class="fas fa-clock text-info" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
@@ -541,8 +541,8 @@
                                         </div>
                                         <span class="small text-info">Alat Internal - Menunggu Verifikasi</span>
                                     </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div style="width: 30px; height: 25px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <div class="position-relative" style="width: 25px; height: 25px;">
                                                 <i class="fas fa-calendar text-secondary" style="font-size: 1.1rem;"></i>
                                                 <i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
@@ -550,8 +550,8 @@
                                         </div>
                                         <span class="small text-secondary">Alat Eksternal - Belum Ada PR</span>
                                     </div>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 30px; height: 25px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                    <div class="p-2 d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <div class="position-relative" style="width: 25px; height: 25px;">
                                                 <i class="fas fa-wrench text-secondary" style="font-size: 1.1rem;"></i>
                                                 <i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
@@ -560,30 +560,32 @@
                                         <span class="small text-secondary font-weight-bold">Data Sementara - Belum Ada Jadwal</span>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div style="width: 30px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                <!-- Column 3 -->
+                                <div class="col-md-3 border-right">
+                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <i class="fas fa-exclamation-circle text-danger fa-lg"></i>
                                         </div>
                                         <span class="small text-danger">Melewati Jadwal Planning</span>
                                     </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div style="width: 30px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
                                         </div>
                                         <span class="small text-warning">Mendekati Jadwal Planning</span>
                                     </div>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 30px; display: flex; justify-content: center; align-items: center;" class="mr-2">
+                                    <div class="p-2 d-flex align-items-center" style="height: 45px;">
+                                        <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <span class="badge badge-danger" style="width: 100%; font-size: 0.55rem; padding: 2px 1px;">BROKEN</span>
                                         </div>
                                         <span class="small text-danger">Alat Rusak / Tidak Digunakan</span>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6 mb-3">
-                                    <div class="small text-muted border-left pl-3 h-100 d-flex flex-column justify-content-center">
-                                        <p class="mb-1 font-weight-bold">Catatan:</p>
-                                        <ul class="pl-3 mb-0" style="font-size: 0.75rem;">
+                                <!-- Column 4 (Notes) -->
+                                <div class="col-md-3 bg-light">
+                                    <div class="p-2 h-100 d-flex flex-column justify-content-center">
+                                        <p class="mb-1 font-weight-bold small">Catatan:</p>
+                                        <ul class="pl-3 mb-0" style="font-size: 0.7rem;">
                                             <li>Icon status berubah otomatis berdasarkan verifikasi & planning.</li>
                                             <li>Klik pada icon untuk melihat detail per bulan.</li>
                                         </ul>
