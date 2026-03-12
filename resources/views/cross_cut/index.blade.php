@@ -10,11 +10,11 @@
         border: 1px solid #dee2e6 !important;
     }
     #checksheetTable { border-collapse: separate !important; border-spacing: 0 !important; }
-    #checksheetTable > thead > tr > th {
+    #checksheetTable > thead > tr:nth-child(1) > th {
         position: -webkit-sticky !important;
         position: sticky !important;
         top: 0 !important;
-        z-index: 100 !important;
+        z-index: 102 !important;
         background-color: #4e73df !important;
         color: white !important;
         font-weight: bold;
@@ -22,7 +22,21 @@
         font-size: 0.8rem;
         padding: 10px 5px !important;
         border: 1px solid #ffffff44 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+    }
+    #checksheetTable > thead > tr:nth-child(2) > th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 43px !important;
+        z-index: 101 !important;
+        background-color: #4e73df !important;
+        color: white !important;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        padding: 10px 5px !important;
+        border: 1px solid #ffffff44 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
     }
 </style>
 <div class="card shadow mb-4 border-left-primary">
