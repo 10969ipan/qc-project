@@ -558,14 +558,13 @@
                                                     <div class="col-6">
                                                         <div class="form-group mb-2">
                                                             <label class="small font-weight-bold">Range</label>
-                                                            <input type="text" name="range" class="form-control form-control-sm no-autoupper" required>
+                                                            <input type="text" name="range" class="form-control form-control-sm no-autoupper">
                                                         </div>
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group mb-2">
                                                             <label class="small font-weight-bold">Resolusi</label>
-                                                            <input type="text" name="resolusi" class="form-control form-control-sm no-autoupper"
-                                                                required>
+                                                            <input type="text" name="resolusi" class="form-control form-control-sm no-autoupper">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -573,7 +572,7 @@
                                             <div class="col-md-6 text-left">
                                                 <div class="form-group mb-2">
                                                     <label class="small font-weight-bold">Tanggal Beli</label>
-                                                    <input type="date" name="tanggal_beli" class="form-control form-control-sm" required>
+                                                    <input type="date" name="tanggal_beli" class="form-control form-control-sm">
                                                 </div>
                                                 <div class="form-group mb-2">
                                                     <label class="small font-weight-bold">Frekuensi Kalibrasi</label>
@@ -590,7 +589,7 @@
                                                 <div class="form-group mb-2" id="modal-schedule-container">
                                                     <label class="small font-weight-bold">Schedule Planning</label>
                                                     <div class="input-group input-group-sm mb-2">
-                                                        <input type="date" name="schedule_planning[]" class="form-control" required>
+                                                        <input type="date" name="schedule_planning[]" class="form-control">
                                                         <div class="input-group-append">
                                                             <button class="btn btn-success" type="button" id="modal-add-schedule-btn">
                                                                 <i class="fas fa-plus"></i>
@@ -705,8 +704,7 @@
                                         </div>
 
                                         <div class="form-group text-left mb-2">
-                                            <label class="small font-weight-bold">Schedule Kalibrasi (Planning) <span
-                                                    class="text-danger">*</span></label>
+                                            <label class="small font-weight-bold">Schedule Kalibrasi (Planning)</label>
                                             <div class="table-responsive">
                                                 <table class="table table-bordered table-sm mb-0" id="edit-schedule-table">
                                                     <thead class="bg-light small text-center">
@@ -1052,7 +1050,7 @@
             $('#modal-add-schedule-btn').click(function () {
                 var html = `
                                                                                     <div class="input-group input-group-sm mb-2">
-                                                                                        <input type="date" name="schedule_planning[]" class="form-control" required>
+                                                                                        <input type="date" name="schedule_planning[]" class="form-control">
                                                                                         <div class="input-group-append">
                                                                                             <button class="btn btn-danger modal-remove-schedule" type="button">
                                                                                                 <i class="fas fa-minus"></i>
@@ -1357,7 +1355,7 @@
                                                                         <tr>
                                                                             <td>
                                                                                 <input type="hidden" name="schedule_ids[]" value="${sch.id}">
-                                                                                <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date_formatted}" required>
+                                                                                <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date_formatted}">
                                                                             </td>
                                                                             <td>
                                                                                 <input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" value="${sch.pr_number || ''}" placeholder="PR Number...">
@@ -1368,14 +1366,14 @@
                     } else if (tool.schedule_planning) {
                         schHtml = `
                                                                     <tr>
-                                                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}" required></td>
+                                                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}"></td>
                                                                         <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" placeholder="PR Number..."></td>
                                                                         <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                                     </tr>`;
                     } else {
                         schHtml = `
                                                                     <tr>
-                                                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm"></td>
                                                                         <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" placeholder="PR Number..."></td>
                                                                         <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                                     </tr>`;
@@ -1405,7 +1403,7 @@
         $(document).on('click', '.add-edit-schedule-row', function () {
             var newRow = `
                                                         <tr>
-                                                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" required></td>
+                                                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm"></td>
                                                             <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" placeholder="PR Number..."></td>
                                                             <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
                                                         </tr>`;

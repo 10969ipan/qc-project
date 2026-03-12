@@ -262,13 +262,13 @@ class CalibrationController extends Controller
                     }
                 }
             ],
-            'range' => 'required|string',
-            'resolusi' => 'required|string',
-            'tanggal_beli' => 'required|date',
+            'range' => 'nullable|string',
+            'resolusi' => 'nullable|string',
+            'tanggal_beli' => 'nullable|date',
             'frekuensi_kalibrasi' => 'required|string',
             'jenis_kalibrasi' => 'required|string',
-            'schedule_planning' => 'required|array',
-            'schedule_planning.*' => 'required|date',
+            'schedule_planning' => 'nullable|array',
+            'schedule_planning.*' => 'nullable|date',
             'certification' => 'nullable|sometimes|file|mimes:pdf|max:10240',
         ]);
 
@@ -278,7 +278,9 @@ class CalibrationController extends Controller
         $data['plant_id'] = $plant->id;
 
         // Use the first schedule as the main schedule_planning for legacy purposes
-        $data['schedule_planning'] = $request->schedule_planning[0];
+        $data['schedule_planning'] = (!empty($request->schedule_planning) && !empty($request->schedule_planning[0])) 
+            ? $request->schedule_planning[0] 
+            : null;
 
         if ($request->hasFile('certification')) {
             if (!Storage::disk('public')->exists('calibration/tools')) {
@@ -295,8 +297,12 @@ class CalibrationController extends Controller
         $tool = CalibrationTool::create($data);
 
         // Save multiple schedules
-        foreach ($request->schedule_planning as $date) {
-            $tool->schedules()->create(['schedule_date' => $date]);
+        if ($request->has('schedule_planning') && is_array($request->schedule_planning)) {
+            foreach ($request->schedule_planning as $date) {
+                if (!empty($date)) {
+                    $tool->schedules()->create(['schedule_date' => $date]);
+                }
+            }
         }
 
         return redirect()->route('calibration.tools.index', [
