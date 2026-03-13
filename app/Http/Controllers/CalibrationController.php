@@ -527,9 +527,10 @@ class CalibrationController extends Controller
     {
         $log = CalibrationToolLog::findOrFail($id);
         $tool = $log->tool;
+        $user = auth()->user();
 
-        // Authorization check (moved from original position, but still relevant)
-        if (!in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv'])) {
+        // Authorization check
+        if (!in_array($user->role, ['admin', 'manager', 'asst_manager', 'spv'])) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -540,44 +541,73 @@ class CalibrationController extends Controller
             'evidence_judgment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        $updateData = [
-            'judgment_status' => $request->judgment_status,
-            'judgment_remarks' => $request->judgment_remarks,
-            'judged_by' => auth()->id(),
-            'judged_at' => now(),
-        ];
+        $updateData = [];
+        $isFinal = false;
 
+        if ($user->role === 'spv') {
+            // Supervisor Level
+            $updateData = [
+                'spv_judgment_status' => $request->judgment_status,
+                'spv_judgment_remarks' => $request->judgment_remarks,
+                'spv_judged_by' => $user->id,
+                'spv_judged_at' => now(),
+            ];
+            $message = 'Judgment Supervisor berhasil disimpan. Menunggu validasi Manager.';
+        } elseif (in_array($user->role, ['admin', 'manager', 'asst_manager'])) {
+            // Manager/Admin Level (Final)
+            $updateData = [
+                'mgr_judgment_status' => $request->judgment_status,
+                'mgr_judgment_remarks' => $request->judgment_remarks,
+                'mgr_judged_by' => $user->id,
+                'mgr_judged_at' => now(),
+                // Keep the original fields as the final state
+                'judgment_status' => $request->judgment_status,
+                'judgment_remarks' => $request->judgment_remarks,
+                'judged_by' => $user->id,
+                'judged_at' => now(),
+            ];
+            $isFinal = true;
+        }
+
+        // Handle Evidence
         if ($request->hasFile('evidence_judgment')) {
-            // Delete old file if exists
-            if ($log->evidence_judgment) {
-                Storage::disk('public')->delete($log->evidence_judgment);
+            $path = $request->file('evidence_judgment')->store('calibration/evidence', 'public');
+            
+            if ($user->role === 'spv') {
+                // If we want a separate evidence field for SPV, we'd need another migration
+                // For now, let's just use the main one, or we can use the same field
+                // but usually the final judgment evidence is what matters.
+                // Let's use the main evidence_judgment field for the current judgment level.
+                $updateData['evidence_judgment'] = $path;
+            } else {
+                $updateData['evidence_judgment'] = $path;
             }
-            $updateData['evidence_judgment'] = $request->file('evidence_judgment')->store('calibration/evidence', 'public');
         }
 
         $log->update($updateData);
 
-        if ($request->judgment_status === 'OK') {
-            // Restore tool if it was broken
-            if ($tool->status === 'BROKEN') {
-                $tool->update(['status' => 'ACTIVE']);
-                // Restore soft-deleted schedules
-                $tool->schedules()->restore();
+        // Perform tool action only if final
+        if ($isFinal) {
+            if ($request->judgment_status === 'OK') {
+                // Restore tool if it was broken
+                if ($tool->status === 'BROKEN') {
+                    $tool->update(['status' => 'ACTIVE']);
+                    // Restore soft-deleted schedules
+                    $tool->schedules()->restore();
+                }
+                $message = 'Judgment OK (Final) berhasil disimpan. Alat kembali ACTIVE.';
+            } else {
+                // If NG, soft-delete the tool to remove from master data & schedules
+                $tool->schedules()->delete();
+                $tool->delete();
+                $message = 'Judgment NG (Final) berhasil disimpan. Alat telah dihapus.';
             }
-            $message = 'Judgment OK berhasil disimpan. Alat kembali ACTIVE dan jadwal direstore.';
-        } else {
-            // If NG, soft-delete the tool to remove from master data & schedules
-            // Log will remain visible because we'll use withTrashed() in the report query
-            $tool->schedules()->delete();
-            $tool->delete();
-            $message = 'Judgment NG berhasil disimpan. Alat telah dihapus dari master data.';
         }
 
         return redirect()->route('calibration.tools.problem-logs', [
             'plant' => $request->plant,
             'year' => $request->get('year', date('Y'))
-        ])
-            ->with('success', $message);
+        ])->with('success', $message);
     }
 
     public function updateProblemLog(Request $request, $id)

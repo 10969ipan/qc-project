@@ -90,65 +90,74 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="align-middle" style="min-width: 200px;">
-                                        @if($log->judgment_status)
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="pr-3 w-100">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <span
-                                                            class="badge badge-{{ $log->judgment_status === 'OK' ? 'success' : 'danger' }} badge-pill px-2 mr-2"
-                                                            style="font-size: 0.7rem;">
-                                                            {{ $log->judgment_status }}
+                                    <td class="align-middle" style="min-width: 250px;">
+                                        <!-- Step 1: Supervisor Judgment -->
+                                        <div class="mb-2 pb-2 border-bottom">
+                                            <div class="small font-weight-bold text-muted mb-1 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Level 1: Supervisor</div>
+                                            @if($log->spv_judgment_status)
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge badge-{{ $log->spv_judgment_status === 'OK' ? 'success' : 'danger' }} badge-pill px-2 mr-2" style="font-size: 0.65rem;">
+                                                            {{ $log->spv_judgment_status }}
                                                         </span>
-                                                        <small class="text-muted">
-                                                            {{ \Carbon\Carbon::parse($log->judged_at)->format('d M Y') }}
-                                                        </small>
-                                                    </div>
-
-                                                    @if($log->judgment_remarks)
-                                                        <div class="font-weight-bold text-dark mb-2"
-                                                            style="font-size: 0.9rem; line-height: 1.3;">
-                                                            "{{ $log->judgment_remarks }}"
-                                                        </div>
-                                                    @else
-                                                        <div class="text-muted mb-2 font-italic small">
-                                                            - Tidak ada keterangan -
-                                                        </div>
-                                                    @endif
-
-                                                    <div class="small text-secondary">
-                                                        <i class="fas fa-user-check mr-1 text-muted"></i>
-                                                        <span
-                                                            class="font-weight-bold text-dark">{{ $log->judgedBy->name ?? 'System' }}</span>
+                                                        <small class="text-dark font-weight-bold">{{ $log->spvJudgedBy->name ?? 'Unknown' }}</small>
+                                                        <div class="small text-muted" style="font-size: 0.7rem;">{{ \Carbon\Carbon::parse($log->spv_judged_at)->format('d/m/y H:i') }}</div>
+                                                        @if($log->spv_judgment_remarks)
+                                                            <div class="small font-italic text-secondary mt-1">"{{ $log->spv_judgment_remarks }}"</div>
+                                                        @endif
                                                     </div>
                                                 </div>
-
-                                                @if($log->evidence_judgment)
-                                                    <div class="text-right pl-2">
-                                                        <a href="#"
-                                                            class="small text-primary text-decoration-none text-nowrap btn-preview-evidence"
-                                                            data-title="Bukti Laporan Judgment"
-                                                            data-src="{{ asset('storage/' . $log->evidence_judgment) }}">
-                                                            <i class="fas fa-paperclip mr-1"></i> Bukti Laporan
-                                                        </a>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        @else
-                                            @if(in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv']))
-                                                <button type="button" class="btn btn-sm btn-outline-primary px-3 shadow-sm btn-judgment"
-                                                    data-toggle="modal" data-target="#modalJudgment" data-id="{{ $log->id }}"
-                                                    data-tool="{{ $log->tool->name_alat }}" data-problem="{{ $log->problem_type }}"
-                                                    style="border-radius: 20px; font-weight: 600;">
-                                                    OK/NG
-                                                </button>
                                             @else
-                                                <span class="badge badge-light border text-muted px-3 py-1"
-                                                    style="border-radius: 20px;">
-                                                    <i class="fas fa-hourglass-half mr-1"></i> Menunggu
-                                                </span>
+                                                @if(auth()->user()->role === 'spv' || auth()->user()->role === 'admin')
+                                                    <button type="button" class="btn btn-xs btn-primary px-3 shadow-sm btn-judgment"
+                                                        data-toggle="modal" data-target="#modalJudgment" data-id="{{ $log->id }}"
+                                                        data-level="Supervisor" data-tool="{{ $log->tool->name_alat }}" data-problem="{{ $log->problem_type }}"
+                                                        style="border-radius: 20px; font-weight: 600;">
+                                                        Judgment SPV
+                                                    </button>
+                                                @else
+                                                    <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.65rem;">
+                                                        <i class="fas fa-clock mr-1"></i> Menunggu SPV
+                                                    </span>
+                                                @endif
                                             @endif
-                                        @endif
+                                        </div>
+
+                                        <!-- Step 2: Manager Judgment -->
+                                        <div class="mt-2">
+                                            <div class="small font-weight-bold text-muted mb-1 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Level 2: Manager / Asst Manager</div>
+                                            @if($log->mgr_judgment_status)
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge badge-{{ $log->mgr_judgment_status === 'OK' ? 'success' : 'danger' }} badge-pill px-2 mr-2" style="font-size: 0.65rem;">
+                                                            {{ $log->mgr_judgment_status }}
+                                                        </span>
+                                                        <small class="text-dark font-weight-bold">{{ $log->mgrJudgedBy->name ?? 'Unknown' }}</small>
+                                                        <div class="small text-muted" style="font-size: 0.7rem;">{{ \Carbon\Carbon::parse($log->mgr_judged_at)->format('d/m/y H:i') }}</div>
+                                                        @if($log->mgr_judgment_remarks)
+                                                            <div class="small font-italic text-secondary mt-1">"{{ $log->mgr_judgment_remarks }}"</div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @else
+                                                @if($log->spv_judgment_status)
+                                                    @if(in_array(auth()->user()->role, ['manager', 'asst_manager', 'admin']))
+                                                        <button type="button" class="btn btn-xs btn-info px-3 shadow-sm btn-judgment"
+                                                            data-toggle="modal" data-target="#modalJudgment" data-id="{{ $log->id }}"
+                                                            data-level="Manager" data-tool="{{ $log->tool->name_alat }}" data-problem="{{ $log->problem_type }}"
+                                                            style="border-radius: 20px; font-weight: 600; color: white;">
+                                                            Judgment MGR
+                                                        </button>
+                                                    @else
+                                                        <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.65rem;">
+                                                            <i class="fas fa-clock mr-1"></i> Menunggu MGR
+                                                        </span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted small font-italic" style="font-size: 0.7rem;">Menunggu Level 1</span>
+                                                @endif
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="text-center">
                                         <div class="font-weight-bold">{{ $log->user->name }}</div>
@@ -192,7 +201,7 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="modalJudgmentLabel">
-                        Judgment
+                        Judgment <span id="judgment_level_text" class="badge badge-light"></span>
                     </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -414,9 +423,11 @@
                 const id = $(this).data('id');
                 const toolName = $(this).data('tool');
                 const problemType = $(this).data('problem');
+                const level = $(this).data('level');
 
                 $('#judgment_tool_name').text(toolName);
                 $('#judgment_problem_type').text(problemType);
+                $('#judgment_level_text').text(level);
                 $('#formJudgment').attr('action', `/calibration/tools/problem-log/${id}/judgment`);
 
                 // Reset form
