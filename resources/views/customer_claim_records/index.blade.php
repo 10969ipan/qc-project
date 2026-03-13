@@ -10,8 +10,8 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Claim Customer</h6>
             @if (!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                 <div class="d-flex">
-                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'customer'])) }}"
-                        class="btn btn-danger btn-sm shadow-sm mr-2">
+                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'q'])) }}"
+                        class="btn btn-danger btn-sm shadow-sm mr-2 btn-download">
                         <i class="fas fa-file-pdf fa-sm text-white-50 mr-1"></i> Export PDF
                     </a>
                     <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal"
@@ -20,43 +20,46 @@
                     </button>
                 </div>
             @else
-                <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'customer'])) }}"
-                    class="btn btn-danger btn-sm shadow-sm">
+                <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'q'])) }}"
+                    class="btn btn-danger btn-sm shadow-sm btn-download">
                     <i class="fas fa-file-pdf fa-sm text-white-50 mr-1"></i> Export PDF
                 </a>
             @endif
         </div>
-        <div class="card-body">
+        <div class="card-body py-2">
             {{-- Filter Form --}}
-            <form action="{{ route('admin.customer-claim-records.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    @if(request('plant'))
-                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    @endif
-
-                    <div class="col-lg-2 col-md-4 mb-2">
-                        <label class="small font-weight-bold">Dari Tanggal</label>
-                        <input type="date" name="start_date" class="form-control form-control-sm"
-                            value="{{ request('start_date') }}">
+            <form action="{{ route('admin.customer-claim-records.index') }}" method="GET" class="mb-3">
+                @if(request('plant'))
+                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                @endif
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="d-flex align-items-center mr-3">
+                                <label class="small font-weight-bold mb-0 mr-2 text-nowrap">Tgl Awal:</label>
+                                <input type="date" name="start_date" class="form-control form-control-sm"
+                                    value="{{ request('start_date') }}" style="width: 140px;">
+                            </div>
+                            <div class="d-flex align-items-center mr-3">
+                                <label class="small font-weight-bold mb-0 mr-2 text-nowrap">Tgl Akhir:</label>
+                                <input type="date" name="end_date" class="form-control form-control-sm"
+                                    value="{{ request('end_date') }}" style="width: 140px;">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm shadow-sm mr-2">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <a href="{{ route('admin.customer-claim-records.index', ['plant' => request('plant')]) }}"
+                                class="btn btn-outline-secondary btn-sm shadow-sm" title="Reset">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
-                        <label class="small font-weight-bold">Sampai Tanggal</label>
-                        <input type="date" name="end_date" class="form-control form-control-sm"
-                            value="{{ request('end_date') }}">
-                    </div>
-                    <div class="col-lg-3 col-md-4 mb-2">
-                        <label class="small font-weight-bold">Customer</label>
-                        <input type="text" name="customer" class="form-control form-control-sm uppercase-input"
-                            value="{{ request('customer') }}" placeholder="Cari Customer...">
-                    </div>
-                    <div class="col-lg-2 mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm mr-1">
-                            <i class="fas fa-search"> Cari</i>
-                        </button>
-                        <a href="{{ route('admin.customer-claim-records.index', ['plant' => request('plant')]) }}"
-                            class="btn btn-secondary btn-sm">
-                            <i class="fas fa-undo"> Reset</i>
-                        </a>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center justify-content-end">
+                            <label class="small font-weight-bold mb-0 mr-2">Pencarian:</label>
+                            <input type="text" name="q" class="form-control form-control-sm uppercase-input"
+                                value="{{ request('q') }}" placeholder="Cari..." style="max-width: 200px;">
+                        </div>
                     </div>
                 </div>
             </form>

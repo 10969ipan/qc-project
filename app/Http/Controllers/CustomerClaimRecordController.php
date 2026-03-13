@@ -34,9 +34,26 @@ class CustomerClaimRecordController extends Controller
             $query->where('tanggal_claim', '<=', $request->end_date);
         }
 
-        // Filter by customer
-        if ($request->filled('customer')) {
-            $query->where('customer', 'LIKE', '%' . $request->customer . '%');
+        // Global Search
+        if ($request->filled('q')) {
+            $searchTerm = $request->q;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
+            });
         }
 
         $records = $query->paginate(15)->withQueryString();
@@ -70,8 +87,26 @@ class CustomerClaimRecordController extends Controller
             $query->whereDate('tanggal_claim', '<=', $request->end_date);
         }
 
-        if ($request->filled('customer')) {
-            $query->where('customer', 'LIKE', '%' . $request->customer . '%');
+        // Global Search
+        if ($request->filled('q')) {
+            $searchTerm = $request->q;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
+            });
         }
 
         if ($request->has('page')) {
@@ -100,7 +135,7 @@ class CustomerClaimRecordController extends Controller
 
         $filename = 'List_Claim_Customer_' . str_replace(' ', '_', $plantName) . '_' . date('Ymd_His') . '.pdf';
 
-        return $pdf->stream($filename);
+        return $pdf->download($filename);
     }
 
     /**

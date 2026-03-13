@@ -10,7 +10,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            font-size: 8px;
+            font-size: 7px;
             color: #333;
             margin: 0;
             padding: 0;
@@ -26,17 +26,18 @@
         .table th,
         .table td {
             border: 1px solid #000;
-            padding: 4px;
+            padding: 3px 2px;
             text-align: center;
             vertical-align: middle;
             word-wrap: break-word;
+            line-height: 1.1;
         }
 
         .table thead th {
             background-color: #f2f2f2;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 7px;
+            font-size: 6px;
         }
 
         .header-table {
@@ -87,99 +88,29 @@
         }
 
         /* Optimized Column Widths (Total 100%) */
-        .col-no {
-            width: 1.5%;
-        }
+        .col-no { width: 1.5%; }
+        .col-date { width: 4.5%; }
+        .col-cust { width: 6%; }
+        .col-plant-up { width: 4.5%; }
+        .col-type { width: 4.5%; }
+        .col-report { width: 5%; }
+        .col-project { width: 2.5%; }
+        .col-part { width: 8%; }
+        .col-problem { width: 13.5%; }
+        .col-qty { width: 2%; }
+        .col-defect { width: 4.5%; }
+        .col-penyimpangan { width: 4.5%; }
+        .col-op { width: 2.5%; }
+        .col-ins { width: 2.5%; }
+        .col-akom { width: 4.5%; }
+        .col-ot { width: 4.5%; }
+        .col-action { width: 6.5%; }
+        .col-feed { width: 6%; }
+        .col-sfeed { width: 3%; }
+        .col-scm { width: 3%; }
+        .col-eval { width: 8%; }
+        .col-smon { width: 4.5%; }
 
-        .col-date {
-            width: 4.5%;
-        }
-
-        .col-cust {
-            width: 6%;
-        }
-
-        .col-plant-up {
-            width: 4.5%;
-        }
-
-        .col-type {
-            width: 4%;
-        }
-
-        .col-report {
-            width: 5%;
-        }
-
-
-
-        .col-project {
-            width: 2%;
-        }
-
-        .col-part {
-            width: 7%;
-        }
-
-        .col-problem {
-            width: 11.5%;
-        }
-
-        .col-defect {
-            width: 4%;
-        }
-
-        .col-penyimpangan {
-            width: 4%;
-        }
-
-        .col-qty {
-            width: 2%;
-        }
-
-        .col-op {
-            width: 2.5%;
-        }
-
-        .col-ins {
-            width: 2.5%;
-        }
-
-        .col-akom {
-            width: 4.5%;
-        }
-
-        .col-ot {
-            width: 4.5%;
-        }
-
-        .col-action {
-            width: 7%;
-        }
-
-        .col-feed {
-            width: 5.5%;
-        }
-
-        .col-sfeed {
-            width: 3%;
-        }
-
-        .col-scm {
-            width: 3%;
-        }
-
-        .col-eval {
-            width: 7.5%;
-        }
-
-        .col-smon {
-            width: 4.5%;
-        }
-
-        .col-file {
-            width: 2.5%;
-        }
     </style>
 </head>
 
@@ -250,7 +181,6 @@
                 <th class="col-scm">Status (C/M)</th>
                 <th class="col-eval">Evaluasi Problem</th>
                 <th class="col-smon">Status Mon.</th>
-                <th class="col-file">Dokumen Evidential</th>
             </tr>
         </thead>
         <tbody>
@@ -278,7 +208,6 @@
                     <td>{{ Str::title($record->status_cm) }}</td>
                     <td>{{ $record->evaluasi }}</td>
                     <td>{{ $record->monitoring_status }}</td>
-                    <td>{{ is_array($record->attachments) ? count($record->attachments) : 0 }}</td>
                 </tr>
             @endforeach
         </tbody>
