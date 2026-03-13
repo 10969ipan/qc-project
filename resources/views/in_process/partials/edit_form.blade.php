@@ -703,6 +703,13 @@
             updateJudgment();
         }
 
+        $(document).on('input', '.edit-dimension-input', function() {
+            let val = $(this).val();
+            if (val.startsWith('+0')) {
+                $(this).val(val.replace(/^\+0/, ''));
+            }
+        });
+
         $(document).on('input', '.edit-dimension-input', validateDimensions);
         $('#sampling_qty, #total_ng').on('input', updateJudgment);
         $('#item_id').on('change', validateDimensions);

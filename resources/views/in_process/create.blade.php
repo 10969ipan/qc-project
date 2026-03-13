@@ -2162,6 +2162,13 @@
                 }
             });
 
+            $(document).on('input', '.dimension-input', function() {
+                let val = $(this).val();
+                if (val.startsWith('+0')) {
+                    $(this).val(val.replace(/^\+0/, ''));
+                }
+            });
+
             $(document).on('input', '.dimension-input', validateDimensions);
 
             // --- PDF Cache & Render Logic (Global/Robust) ---
