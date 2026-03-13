@@ -528,8 +528,8 @@ class CalibrationController extends Controller
         $log = CalibrationToolLog::findOrFail($id);
         $tool = $log->tool;
 
-        // Authorization check: Admin, Manager, Asst Manager, and Supervisor (spv) can judge
-        if (!in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv'])) {
+        // Authorization check: Admin, Manager, Asst Manager, and Supervisor (supervisor/spv) can judge
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'spv'])) {
             abort(403, 'Unauthorized action.');
         }
 

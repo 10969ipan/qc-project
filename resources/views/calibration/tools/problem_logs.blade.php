@@ -3,34 +3,39 @@
 @section('content')
     <div class="container-fluid">
         <x-plant-header title="Laporan Problem Alat" :plant="$plantCode">
-            <div class="d-flex align-items-center">
-                <form action="{{ route('calibration.tools.problem-logs') }}" method="GET" class="form-inline mr-2">
-                    <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="input-group input-group-sm">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-right-0">
-                                <i class="fas fa-calendar-alt text-primary"></i>
-                            </span>
-                        </div>
-                        <select name="year" class="form-control border-left-0" onchange="this.form.submit()">
-                            @php $currentYear = date('Y'); @endphp
-                            @for($y = $currentYear + 1; $y >= 2024; $y--)
-                                <option value="{{ $y }}" {{ (isset($year) && $year == $y) ? 'selected' : '' }}>
-                                    Tahun {{ $y }}
-                                </option>
-                            @endfor
-                        </select>
-                    </div>
-                </form>
-                <a href="{{ route('calibration.tools.index', ['plant' => $plantCode, 'year' => $year ?? date('Y')]) }}"
-                    class="btn btn-sm btn-secondary shadow-sm">
-                    <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Master Data
-                </a>
-            </div>
         </x-plant-header>
 
         <div class="card shadow mb-4">
             <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Daftar Laporan Masalah Alat</h6>
+                    <div id="filterSource" style="display: none;">
+                        <div class="d-flex align-items-center" id="customFilters">
+                            <form action="{{ route('calibration.tools.problem-logs') }}" method="GET" class="form-inline mr-2">
+                                <input type="hidden" name="plant" value="{{ $plantCode }}">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-white border-right-0" style="border-radius: 5px 0 0 5px;">
+                                            <i class="fas fa-calendar-alt text-primary"></i>
+                                        </span>
+                                    </div>
+                                    <select name="year" class="form-control border-left-0" onchange="this.form.submit()" style="border-radius: 0 5px 5px 0;">
+                                        @php $currentYear = date('Y'); @endphp
+                                        @for($y = $currentYear + 1; $y >= 2024; $y--)
+                                            <option value="{{ $y }}" {{ (isset($year) && $year == $y) ? 'selected' : '' }}>
+                                                Tahun {{ $y }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                </div>
+                            </form>
+                            <a href="{{ route('calibration.tools.index', ['plant' => $plantCode, 'year' => $year ?? date('Y')]) }}"
+                                class="btn btn-sm btn-secondary shadow-sm">
+                                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Master Data
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover small" id="problemLogsTable">
                         <thead class="bg-primary text-white text-center">
@@ -135,7 +140,7 @@
                                                 @endif
                                             </div>
                                         @else
-                                            @if(in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'spv']))
+                                            @if(in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'spv']))
                                                 <button type="button" class="btn btn-sm btn-outline-primary px-3 shadow-sm btn-judgment"
                                                     data-toggle="modal" data-target="#modalJudgment" data-id="{{ $log->id }}"
                                                     data-tool="{{ $log->tool->name_alat }}" data-problem="{{ $log->problem_type }}"
@@ -401,12 +406,15 @@
             });
 
             $('#problemLogsTable').DataTable({
-                dom: "<'row px-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                dom: "<'row px-2 align-items-center'<'col-sm-12 col-md-3'l><'col-sm-12 col-md-9 d-flex justify-content-end align-items-center'f<\"#customFiltersPlaceholder\">>>" +
                     "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
                     "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 language: {
                     search: "Cari:",
                     lengthMenu: "Tampilkan _MENU_ data",
+                },
+                initComplete: function() {
+                    $('#customFilters').appendTo('#customFiltersPlaceholder').css('margin-left', '15px');
                 }
             });
 
