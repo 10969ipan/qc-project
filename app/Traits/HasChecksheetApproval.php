@@ -130,6 +130,7 @@ trait HasChecksheetApproval
         }
 
         if ($request->ajax() || $request->wantsJson()) {
+            session()->flash('success', 'Data Checksheet berhasil disetujui.');
             return response()->json([
                 'success' => true,
                 'message' => 'Data Checksheet berhasil disetujui.',
@@ -343,6 +344,7 @@ trait HasChecksheetApproval
 
             DB::commit();
 
+            session()->flash('success', "Berhasil approve {$approvedCount} data checksheet.");
             return response()->json([
                 'success' => true,
                 'message' => "Berhasil approve {$approvedCount} data checksheet.",
