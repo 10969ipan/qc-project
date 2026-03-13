@@ -557,7 +557,7 @@
                                                 <i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.6rem; background: white; border-radius: 50%; box-shadow: 0 0 0 1px white;"></i>
                                             </div>
                                         </div>
-                                        <span class="small text-secondary font-weight-bold">Data Sementara - Belum Ada Jadwal</span>
+                                        <span class="small text-secondary font-weight-bold">Alat Cadangan</span>
                                     </div>
                                 </div>
                                 <!-- Column 3 -->
