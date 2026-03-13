@@ -10,8 +10,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="m-0 font-weight-bold text-primary">Daftar Laporan Masalah Alat</h6>
                     <div id="filterSource" style="display: none;">
-                        <div class="d-flex align-items-center" id="customFilters">
-                            <form action="{{ route('calibration.tools.problem-logs') }}" method="GET" class="form-inline mr-2">
+                        <div class="d-flex align-items-center" id="customFilters" style="gap: 10px;">
+                            <form action="{{ route('calibration.tools.problem-logs') }}" method="GET" class="form-inline m-0">
                                 <input type="hidden" name="plant" value="{{ $plantCode }}">
                                 <div class="input-group input-group-sm">
                                     <div class="input-group-prepend">
@@ -30,8 +30,8 @@
                                 </div>
                             </form>
                             <a href="{{ route('calibration.tools.index', ['plant' => $plantCode, 'year' => $year ?? date('Y')]) }}"
-                                class="btn btn-sm btn-secondary shadow-sm">
-                                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Master Data
+                                class="btn btn-sm btn-secondary shadow-sm text-nowrap">
+                                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
                             </a>
                         </div>
                     </div>
@@ -413,8 +413,12 @@
                     search: "Cari:",
                     lengthMenu: "Tampilkan _MENU_ data",
                 },
+                drawCallback: function() {
+                    $('.dataTables_filter').addClass('m-0');
+                    $('.dataTables_filter label').addClass('m-0 d-flex align-items-center');
+                },
                 initComplete: function() {
-                    $('#customFilters').appendTo('#customFiltersPlaceholder').css('margin-left', '15px');
+                    $('#customFilters').appendTo('#customFiltersPlaceholder').css('margin-left', '10px');
                 }
             });
 
