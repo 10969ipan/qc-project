@@ -123,11 +123,8 @@
             </div>
 
             @if(session('modal') == 'edit')
-                <script>
-                    $(document).ready(function () {
-                        // For edit modal, we can't easily reopen with data without the ID
-                    });
-                </script>
+            {{-- Edit modal script moved to external JS --}}
+
             @endif
         @endif
 
@@ -747,386 +744,19 @@
     </style>
     {{-- Inline Auto-Calc Script (guaranteed to load inside content section) --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Auto-Calculate: Hasil Verifikasi = Nilai Koreksi + Ketidakpastian
-            // td[0]=Nilai Alat, td[1]=Koreksi, td[2]=Ketidakpastian, td[3]=Hasil
-            document.addEventListener('input', function (e) {
-                var input = e.target;
-                if (!input || input.tagName !== 'INPUT') return;
-
-                var td = input.closest('td');
-                if (!td) return;
-                var tr = td.closest('tr');
-                if (!tr) return;
-
-                // Check if this row is inside a verification table body
-                var tbody = tr.closest('tbody');
-                if (!tbody) return;
-                var tbodyId = tbody.getAttribute('id');
-                if (tbodyId !== 'modal-verification-body' && tbodyId !== 'edit-modal-verification-body') return;
-
-                // Get cell index (0-based)
-                var cells = Array.from(tr.querySelectorAll('td'));
-                var cellIndex = cells.indexOf(td);
-
-                // Only recalc if editing Koreksi (col 1) or Ketidakpastian (col 2)
-                if (cellIndex !== 1 && cellIndex !== 2) return;
-
-                var koreksiInput = cells[1] ? cells[1].querySelector('input') : null;
-                var ketidakpastianInput = cells[2] ? cells[2].querySelector('input') : null;
-                var hasilInput = cells[3] ? cells[3].querySelector('input') : null;
-
-                if (!koreksiInput || !ketidakpastianInput || !hasilInput) return;
-
-                var koreksiVal = (koreksiInput.value || '').trim();
-                var ketidakpastianVal = (ketidakpastianInput.value || '').trim();
-
-                if (koreksiVal === '' && ketidakpastianVal === '') {
-                    hasilInput.value = '';
-                } else {
-                    var koreksi = parseFloat(koreksiVal) || 0;
-                    var ketidakpastian = parseFloat(ketidakpastianVal) || 0;
-                    var hasil = koreksi + ketidakpastian;
-                    hasilInput.value = parseFloat(hasil.toFixed(6));
-                }
-            });
-        });
+        window.__CALIBRATION_VERIF__ = {
+            plantCode: "{{ $plantCode }}",
+            year: "{{ $year ?? date('Y') }}",
+            csrf: "{{ csrf_token() }}",
+            routes: {
+                edit: "{{ route('calibration.verifications.edit', ':id') }}",
+                update: "{{ route('calibration.verifications.update', ':id') }}",
+                qrData: "{{ route('calibration.verifications.qr-data', ':id') }}"
+            }
+        };
     </script>
-@endsection
+    <script src="{{ asset('js/calibration/calibration-verifications.js') }}"></script>
 
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            // Initialize DataTable if it exists
-            if ($.fn.DataTable) {
-                $('#dataTable').DataTable({
-                    dom: "<'row px-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                        "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
-                        "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                    language: {
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_ data",
-                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                        infoEmpty: "Showing 0 to 0 of 0 entries",
-                        infoFiltered: "(difilter dari _MAX_ total data)",
-                        paginate: {
-                            first: "First",
-                            last: "Last",
-                            next: "Next",
-                            previous: "Previous"
-                        }
-                    }
-                });
-            }
-
-            // Using DataTables compatible modal trigger
-            $('#pdfModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var url = button.data('url');
-                var title = button.data('title');
-
-                var modal = $(this);
-                modal.find('#pdfModalLabel').text(title);
-                modal.find('#pdfFrame').attr('src', url);
-                modal.find('#downloadPdf').attr('href', url);
-            });
-
-            // Clear iframe src when modal is closed to stop loading/playback
-            $('#pdfModal').on('hidden.bs.modal', function () {
-                $(this).find('#pdfFrame').attr('src', '');
-            });
-
-            // --- Modal Verifikasi Baru Logic ---
-            $('#modal_tool_select').on('change', function () {
-                var selected = $(this).find('option:selected');
-                if (selected.val()) {
-                    $('#modal_name_alat').val(selected.data('name'));
-                    $('#modal_serial_number').val(selected.data('serial'));
-                    $('#modal_rentang_ukur').val(selected.data('range'));
-                    $('#modal_resolusi').val(selected.data('resolusi'));
-                    $('#modal_frekuensi_kalibrasi').val(selected.data('frekuensi'));
-
-                    // Clear fields that are not in the tool data
-                    // We don't have merk/toleransi in Tool model, so user must fill them
-                    // but we clear them to avoid leftover data
-                    $('input[name="merk"]').val('');
-                    $('input[name="std_toleransi"]').val('');
-                    $('input[name="acuan_toleransi"]').val('');
-
-                    modalUpdateNextCalibrationDate();
-                }
-            });
-
-            $('#modal_tanggal_verifikasi').on('change', function () {
-                modalUpdateNextCalibrationDate();
-            });
-
-            function modalUpdateNextCalibrationDate() {
-                var selected = $('#modal_tool_select').find('option:selected');
-                var verifDate = $('#modal_tanggal_verifikasi').val();
-
-                if (!selected.val() || !selected.data('schedules')) return;
-
-                var schedules = selected.data('schedules');
-                if (typeof schedules === 'string') {
-                    schedules = JSON.parse(schedules);
-                }
-
-                if (schedules.length > 0) {
-                    schedules.sort();
-                    var referenceDate = verifDate || new Date().toISOString().split('T')[0];
-                    var nextDate = schedules.find(date => date > referenceDate);
-                    if (nextDate) {
-                        $('#modal_next_kalibrasi').val(nextDate);
-                    }
-                }
-            }
-
-            // Modal Add Row
-            $('#modal-add-row').on('click', function () {
-                var newRow = `
-                                                                                                                                                                <tr>
-                                                                                                                                                                    <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                                                                    <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                                                    <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                                                    <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                                                                    <td class="text-center">
-                                                                                                                                                                        <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
-                                                                                                                                                                            <i class="fas fa-trash"></i>
-                                                                                                                                                                        </button>
-                                                                                                                                                                    </td>
-                                                                                                                                                                </tr>`;
-                $('#modal-verification-body').append(newRow);
-                modalUpdateRemoveButtons();
-            });
-
-            // Modal Remove Row
-            $(document).on('click', '.modal-remove-row', function () {
-                $(this).closest('tr').remove();
-                modalUpdateRemoveButtons();
-            });
-
-            function modalUpdateRemoveButtons() {
-                var rowCount = $('#modal-verification-body tr').length;
-                if (rowCount <= 1) {
-                    $('.modal-remove-row').prop('disabled', true);
-                } else {
-                    $('.modal-remove-row').prop('disabled', false);
-                }
-            }
-
-            // --- Edit Logic ---
-            $('.btn-edit-verif').on('click', function () {
-                var id = $(this).data('id');
-                var btn = $(this);
-                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-                var editUrl = "{{ route('calibration.verifications.edit', ':id') }}".replace(':id', id);
-
-                $.ajax({
-                    url: editUrl,
-                    type: 'GET',
-                    data: { plant: "{{ $plantCode }}" },
-                    success: function (response) {
-                        var v = response.verification;
-                        $('#edit_tool_id').val(v.tool_id);
-                        $('#edit_name_alat').val(v.name_alat);
-                        $('#edit_merk').val(v.merk);
-                        $('#edit_serial_number').val(v.serial_number);
-                        $('#edit_resolusi').val(v.resolusi);
-                        $('#edit_rentang_ukur').val(v.rentang_ukur);
-                        $('#edit_frekuensi_kalibrasi').val(v.frekuensi_kalibrasi);
-                        $('#edit_tanggal_kalibrasi').val(v.tanggal_kalibrasi ? v.tanggal_kalibrasi.substring(0, 10) : '');
-                        $('#edit_tanggal_verifikasi').val(v.tanggal_verifikasi ? v.tanggal_verifikasi.substring(0, 10) : '');
-                        $('#edit_next_kalibrasi').val(v.next_kalibrasi ? v.next_kalibrasi.substring(0, 10) : '');
-                        $('#edit_judgment').val(v.judgment);
-                        $('#edit_std_toleransi').val(v.std_toleransi);
-                        $('#edit_acuan_toleransi').val(v.acuan_toleransi);
-
-                        if (v.certification_path) {
-                            $('#edit_existing_pdf').html(`<a href="/storage/${v.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>`);
-                        } else {
-                            $('#edit_existing_pdf').html('');
-                        }
-
-                        // Fill Measurements
-                        var rowsHtml = '';
-                        var nilaiAlat = Array.isArray(v.nilai_alat) ? v.nilai_alat : [v.nilai_alat];
-                        var nilaiKoreksi = Array.isArray(v.nilai_koreksi) ? v.nilai_koreksi : [v.nilai_koreksi];
-                        var nilaiKetidakpastian = Array.isArray(v.nilai_ketidakpastian) ? v.nilai_ketidakpastian : [v.nilai_ketidakpastian];
-                        var hasilVerifikasi = Array.isArray(v.hasil_verifikasi) ? v.hasil_verifikasi : [v.hasil_verifikasi];
-
-                        nilaiAlat.forEach(function (val, i) {
-                            rowsHtml += `
-                                                                                                                                                                    <tr>
-                                                                                                                                                                        <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm" value="${val || ''}"></td>
-                                                                                                                                                                        <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input" value="${nilaiKoreksi[i] || ''}"></td>
-                                                                                                                                                                        <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input" value="${nilaiKetidakpastian[i] || ''}"></td>
-                                                                                                                                                                        <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" value="${hasilVerifikasi[i] || ''}" readonly></td>
-                                                                                                                                                                        <td class="text-center">
-                                                                                                                                                                            <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                                                                                            </button>
-                                                                                                                                                                        </td>
-                                                                                                                                                                    </tr>`;
-                        });
-                        $('#edit-modal-verification-body').html(rowsHtml);
-                        editModalUpdateRemoveButtons();
-
-                        // Update form action
-                        var url = "{{ route('calibration.verifications.update', ':id') }}";
-                        url = url.replace(':id', id);
-                        $('#formEditVerif').attr('action', url);
-
-                        $('#modalEditVerifikasi').modal('show');
-                        btn.prop('disabled', false).html('<i class="fas fa-edit mr-1"></i> EDIT');
-                    },
-                    error: function (xhr) {
-                        var errorMsg = 'Gagal mengambil data verifikasi.';
-                        if (xhr.status === 404) errorMsg += ' (Error 404: Data tidak ditemukan)';
-                        else if (xhr.status === 403) errorMsg += ' (Error 403: Anda tidak memiliki akses)';
-                        else if (xhr.status === 500) errorMsg += ' (Error 500: Terjadi kesalahan di server)';
-
-                        alert(errorMsg);
-                        btn.prop('disabled', false).html('<i class="fas fa-edit mr-1"></i> EDIT');
-                    }
-                });
-            });
-
-            $('#edit-modal-add-row').on('click', function () {
-                var newRow = `
-                                                                                                                                                            <tr>
-                                                                                                                                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                                                                                                                                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                                                                                                                                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
-                                                                                                                                                                <td class="text-center">
-                                                                                                                                                                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
-                                                                                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                                                                                    </button>
-                                                                                                                                                                </td>
-                                                                                                                                                            </tr>`;
-                $('#edit-modal-verification-body').append(newRow);
-                editModalUpdateRemoveButtons();
-            });
-
-            $(document).on('click', '.edit-modal-remove-row', function () {
-                $(this).closest('tr').remove();
-                editModalUpdateRemoveButtons();
-            });
-
-            function editModalUpdateRemoveButtons() {
-                var rowCount = $('#edit-modal-verification-body tr').length;
-                if (rowCount <= 1) {
-                    $('.edit-modal-remove-row').prop('disabled', true);
-                } else {
-                    $('.edit-modal-remove-row').prop('disabled', false);
-                }
-            }
-
-            // --- Auto-Calculate Hasil Verifikasi = Nilai Koreksi + Ketidakpastian ---
-            // Uses cell position: td[0]=Nilai Alat, td[1]=Koreksi, td[2]=Ketidakpastian, td[3]=Hasil
-            function calcHasilVerifikasi(row) {
-                var tds = row.find('td');
-                var koreksiInput = tds.eq(1).find('input');
-                var ketidakpastianInput = tds.eq(2).find('input');
-                var hasilInput = tds.eq(3).find('input');
-
-                var koreksiVal = koreksiInput.val() ? koreksiInput.val().trim() : '';
-                var ketidakpastianVal = ketidakpastianInput.val() ? ketidakpastianInput.val().trim() : '';
-
-                if (koreksiVal === '' && ketidakpastianVal === '') {
-                    hasilInput.val('');
-                } else {
-                    var koreksi = parseFloat(koreksiVal) || 0;
-                    var ketidakpastian = parseFloat(ketidakpastianVal) || 0;
-                    var hasil = koreksi + ketidakpastian;
-                    hasilInput.val(parseFloat(hasil.toFixed(6)));
-                }
-            }
-
-            // Bind to both modal verification bodies (create + edit)
-            $(document).on('input', '#modal-verification-body input, #edit-modal-verification-body input', function () {
-                var row = $(this).closest('tr');
-                var cellIndex = $(this).closest('td').index();
-                // Only auto-calc if editing Nilai Koreksi (col 1) or Ketidakpastian (col 2)
-                if (cellIndex === 1 || cellIndex === 2) {
-                    calcHasilVerifikasi(row);
-                }
-            });
-
-            // QR Code Modal Logic
-            $(document).on('click', '.btn-qr-modal', function () {
-                var btn = $(this);
-                var id = btn.data('id');
-                var originalHtml = btn.html();
-
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>...');
-
-                $.ajax({
-                    url: "{{ route('calibration.verifications.qr-data', ':id') }}".replace(':id', id),
-                    method: 'GET',
-                    success: function (response) {
-                        var v = response.verification;
-                        var qrSvgBase64 = response.qr_code;
-                        var downloadUrl = response.download_url;
-
-                        $('#qr-modal-image').html(`<img src="data:image/png;base64,${qrSvgBase64}" id="qr-img" style="width: 250px; height: 250px;">`);
-                        $('#qr-modal-tool-name').text(v.name_alat);
-                        $('#qr-modal-serial').text(v.serial_number);
-                        $('#qr-modal-date').text(v.tanggal_verifikasi ? new Date(v.tanggal_verifikasi).toLocaleDateString('id-ID') : '-');
-                        if (v.judgment === 'OK' || v.judgment === 'NG') {
-                            var badgeClass = v.judgment === 'OK' ? 'success' : 'danger';
-                            $('#qr-modal-judgment').html(`<span class="badge badge-${badgeClass}">${v.judgment}</span>`);
-                        } else {
-                            $('#qr-modal-judgment').html(v.judgment || '-');
-                        }
-
-                        $('#qr-modal-download-pdf').attr('href', downloadUrl);
-
-                        // Set up PNG download
-                        $('#qr-modal-download-img').off('click').on('click', function () {
-                            var downloadLink = document.createElement("a");
-                            downloadLink.href = "data:image/png;base64," + qrSvgBase64;
-                            downloadLink.download = `QR_${v.serial_number}.png`;
-                            document.body.appendChild(downloadLink);
-                            downloadLink.click();
-                            document.body.removeChild(downloadLink);
-                        });
-
-                        $('#modalQrCode').modal('show');
-                        btn.prop('disabled', false).html(originalHtml);
-                    },
-                    error: function () {
-                        alert('Gagal mengambil data QR.');
-                        btn.prop('disabled', false).html(originalHtml);
-                    }
-                });
-            });
-
-            function downloadQrAsPng(svgBase64, filename) {
-                var img = new Image();
-                img.onload = function () {
-                    var canvas = document.createElement('canvas');
-                    canvas.width = 1000; // High res
-                    canvas.height = 1000;
-                    var ctx = canvas.getContext('2d');
-                    ctx.fillStyle = "white"; // White background
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, 1000, 1000);
-
-                    var pngUrl = canvas.toDataURL("image/png");
-                    var downloadLink = document.createElement("a");
-                    downloadLink.href = pngUrl;
-                    downloadLink.download = filename;
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                };
-                img.src = "data:image/png;base64," + svgBase64;
-            }
-        });
-    </script>
 
     <!-- Modal QR Code -->
     <div class="modal fade" id="modalQrCode" tabindex="-1" role="dialog" aria-labelledby="modalQrCodeLabel"
@@ -1193,4 +823,20 @@
             </div>
         </div>
     </div>
+@endsection
+
+@push('scripts')
+    <script>
+        window.__CALIBRATION_VERIFICATIONS__ = {
+            plantCode: "{{ $plantCode }}",
+            year: "{{ $year ?? date('Y') }}",
+            csrf: "{{ csrf_token() }}",
+            routes: {
+                edit: "{{ route('calibration.verifications.edit', ':id') }}",
+                update: "{{ route('calibration.verifications.update', ':id') }}",
+                qrData: "{{ route('calibration.verifications.qr-data', ':id') }}"
+            }
+        };
+    </script>
+    <script src="{{ asset('js/calibration/calibration-verifications.js') }}"></script>
 @endpush

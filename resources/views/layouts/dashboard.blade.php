@@ -494,7 +494,7 @@
             
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
-                    <div class="modern-card-header">
+                    <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-success text-white mr-3"
                                 style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
@@ -649,7 +649,7 @@
             
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
-                    <div class="modern-card-header">
+                    <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-primary text-white mr-3"
                                 style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-industry"></i></div>
@@ -808,7 +808,7 @@
             
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
-                    <div class="modern-card-header">
+                    <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-info text-white mr-3"
                                 style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
@@ -971,7 +971,7 @@
             
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
-                    <div class="modern-card-header">
+                    <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-warning text-white mr-3"
                                 style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cogs"></i></div>
@@ -1146,7 +1146,7 @@
                             $tableOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
                         }
                     @endphp
-                    <div class="modern-card-header">
+                    <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-primary text-white mr-3"
                                 style="width: 32px; height: 32px; font-size: 0.85rem;">
@@ -1312,7 +1312,7 @@
             
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
-                    <div class="modern-card-header">
+                    <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-info text-white mr-3"
                                 style="width: 40px; height: 40px; font-size: 1rem;">
