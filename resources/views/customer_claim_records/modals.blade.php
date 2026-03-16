@@ -1,4 +1,3 @@
-{{-- Modal Tambah Record --}}
 <div class="modal fade" id="modalTambahRecord" tabindex="-1" role="dialog" aria-labelledby="modalTambahRecordLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
@@ -16,7 +15,6 @@
                 @csrf
                 <div class="modal-body px-3 py-2" style="font-size: 0.85rem;">
                     <input type="hidden" name="plant_id" value="{{ $plantId }}">
-                    {{-- Section: Basic Information --}}
                     <div class="mb-2">
                         <h6 class="text-primary font-weight-bold mb-2 border-bottom pb-1" style="font-size: 0.9rem;">
                             <i class="fas fa-info-circle mr-1"></i> Informasi Dasar
@@ -251,7 +249,6 @@
     </div>
 </div>
 
-{{-- Modal Edit Record --}}
 <div class="modal fade" id="modalEditRecord" tabindex="-1" role="dialog" aria-labelledby="modalEditRecordLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
@@ -269,8 +266,6 @@
                 @method('PUT')
                 <div class="modal-body px-3 py-2" style="font-size: 0.85rem;">
                     <input type="hidden" name="plant_id" id="edit_plant_id">
-                    {{-- Same structure for Edit Modal --}}
-                    {{-- Section: Basic Information --}}
                     <div class="mb-2">
                         <h6 class="text-warning font-weight-bold mb-2 border-bottom pb-1" style="font-size: 0.9rem;">
                             <i class="fas fa-info-circle mr-1"></i> Informasi Dasar
@@ -484,7 +479,6 @@
                                     <label class="small font-weight-bold mb-0">Add Evidence (PDF/XLS/PPT/DOC)</label>
                                     <input type="file" name="attachments[]" class="form-control-file small" multiple>
                                     <div id="edit_attachments_list" class="mt-1 d-flex flex-wrap" style="gap: 5px;">
-                                        <!-- List of existing files will be populated here by JS -->
                                     </div>
                                 </div>
                             </div>
@@ -507,40 +501,3 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            function updateEvaluasiDate(inputSelector, targetSelector) {
-                const dateVal = $(inputSelector).val();
-                if (dateVal) {
-                    const date = new Date(dateVal);
-                    date.setMonth(date.getMonth() + 6);
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    $(targetSelector).val(`${day}-${month}-${year}`);
-                }
-            }
-
-            $('#tambah_tanggal_claim').on('change', function () {
-                updateEvaluasiDate('#tambah_tanggal_claim', '#tambah_evaluasi');
-            });
-
-            $('#edit_tanggal_claim').on('change', function () {
-                updateEvaluasiDate('#edit_tanggal_claim', '#edit_evaluasi');
-            });
-
-            // Customer selection logic
-            $('.customer-select').on('change', function () {
-                const select = $(this);
-                const manual = select.siblings('.customer-manual');
-                if (select.val() === 'OTHER') {
-                    manual.removeClass('d-none').val('').focus().attr('required', true);
-                } else {
-                    manual.addClass('d-none').val(select.val()).attr('required', false);
-                }
-            });
-        });
-    </script>
-@endpush

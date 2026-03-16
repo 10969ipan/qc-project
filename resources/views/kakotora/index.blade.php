@@ -540,6 +540,14 @@
             border: 1px solid #e3e6f0 !important;
         }
 
+        #dataTableKakotora tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.08) !important;
+        }
+
+        #dataTableKakotora tbody tr:hover td {
+            background-color: rgba(78, 115, 223, 0.08) !important;
+        }
+
         td.details-control {
             cursor: pointer;
             text-align: center;

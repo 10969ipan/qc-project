@@ -67,8 +67,9 @@
         <style>
             .schedule-table {
                 table-layout: fixed;
-                border-collapse: collapse !important;
-                width: 1650px; /* 180 + 120 + 100 + 90 + (48 * 25) */
+                border-collapse: separate !important;
+                border-spacing: 0;
+                width: 1650px;
                 min-width: 1650px;
                 background-color: white;
             }
@@ -79,49 +80,17 @@
                 font-size: 10px;
                 text-align: center;
                 vertical-align: middle !important;
-                border: 1px solid #dee2e6 !important;
+                border: 1px solid #dee2e6;
                 padding: 0 !important;
             }
 
-            /* Sticky Columns Positioning */
-            .tool-name-col {
-                width: 180px;
-                min-width: 180px;
-                left: 0;
-                position: sticky;
-                z-index: 30;
-                background-color: white !important;
-            }
+            /* Sticky Columns positioning */
+            .tool-name-col { width: 180px; min-width: 180px; left: 0; position: sticky; z-index: 10; background-color: white !important; }
+            .serial-col { width: 120px; min-width: 120px; left: 180px; position: sticky; z-index: 10; background-color: white !important; }
+            .jenis-col { width: 100px; min-width: 100px; left: 300px; position: sticky; z-index: 10; background-color: white !important; }
+            .status-col { width: 90px; min-width: 90px; left: 400px; position: sticky; z-index: 10; background-color: #f8f9fc !important; border-right: 2px solid #5a5c69 !important; }
 
-            .serial-col {
-                width: 120px;
-                min-width: 120px;
-                left: 180px;
-                position: sticky;
-                z-index: 30;
-                background-color: white !important;
-            }
-
-            .jenis-col {
-                width: 100px;
-                min-width: 100px;
-                left: 300px;
-                position: sticky;
-                z-index: 30;
-                background-color: white !important;
-            }
-
-            .status-col {
-                width: 90px;
-                min-width: 90px;
-                left: 400px;
-                position: sticky;
-                z-index: 30;
-                background-color: #f8f9fc !important;
-                border-right: 2px solid #5a5c69 !important;
-            }
-
-            /* Header Backgrounds */
+            /* Sticky Header Positioning & Backgrounds */
             thead th {
                 background-color: #4e73df !important;
                 color: white !important;
@@ -129,67 +98,62 @@
                 text-transform: uppercase;
                 font-size: 0.8rem;
                 position: sticky;
-                z-index: 40;
                 top: 0;
-                border: 1px solid #ffffff44 !important;
+                z-index: 100;
+                border: 1px solid #ffffff33 !important;
             }
 
-            /* Fix sticky header backgrounds */
-            thead th.tool-name-col,
-            thead th.serial-col,
-            thead th.jenis-col,
+            /* Row Hover Highlighting */
+            .schedule-table tbody tr:hover td {
+                background-color: #eef2ff !important; /* Soft indigo/blue highlight */
+                transition: background-color 0.15s ease;
+            }
+            
+            /* Maintain marker visibility on hover with slight color shift */
+            .schedule-table tbody tr:hover td.marker-p { background-color: #15b377 !important; }
+            .schedule-table tbody tr:hover td.marker-a { background-color: #2fa7b9 !important; }
+
+            /* Ensure header columns that are also sticky stay on top */
+            thead th.tool-name-col, 
+            thead th.serial-col, 
+            thead th.jenis-col, 
             thead th.status-col {
+                z-index: 110 !important;
                 background-color: #4e73df !important;
-                color: white !important;
-                z-index: 50;
-                top: 0;
             }
 
-            /* Month Row (Row 1) */
-            th.month-header {
-                top: 0;
-            }
-
-            /* Week Row (Row 2) */
-            th.week-header {
-                top: 35px; /* month-header height */
-                z-index: 40;
-            }
-
-            /* Rowspan headers (NAMA ALAT, etc.) are in row 1, so top: 0 is correct */
-            thead th.tool-name-col,
-            thead th.serial-col,
-            thead th.jenis-col,
-            thead th.status-col {
-                z-index: 50;
-                top: 0;
-            }
-
-            /* Overwrite sticky backgrounds for body */
-            tbody td.tool-name-col,
-            tbody td.serial-col,
-            tbody td.jenis-col {
-                background-color: white !important;
-                z-index: 20;
-                padding: 4px !important;
-                white-space: normal;
-            }
-
-            tbody td.status-col {
-                background-color: #f8f9fc !important;
-                z-index: 20;
-            }
-
-            /* Grid Cells */
+            /* Vertical alignment adjustments for multi-row headers */
             .month-header {
-                height: 35px;
+                height: 42px;
+                top: 0;
             }
 
             .week-header {
+                height: 25px;
+                top: 42px; /* month-header height */
+                z-index: 100;
                 background-color: #f8f9fc !important;
                 color: #5a5c69 !important;
-                width: 25px;
-                height: 25px;
+            }
+
+            thead th[rowspan="2"] {
+                height: 67px; /* 42 + 25 */
+                z-index: 110;
+            }
+
+            /* Body sticky cells */
+            tbody td.tool-name-col,
+            tbody td.serial-col,
+            tbody td.jenis-col {
+                z-index: 10;
+                background-color: white !important;
+                white-space: normal;
+                padding: 4px !important;
+            }
+
+            tbody td.status-col {
+                z-index: 10;
+                background-color: #f8f9fc !important;
             }
 
             .schedule-table td:not(.tool-name-col):not(.serial-col):not(.status-col) {

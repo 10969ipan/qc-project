@@ -1,13 +1,10 @@
 @php
-    // Roles that can VIEW all plants (for reports/laporan)
     $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 
-    // Roles that can INPUT in all plants
     $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 @endphp
 
 <nav class="navbar topbar static-top shadow px-4 d-flex align-items-center justify-content-between">
-    <!-- Left Section: Branding, Plant, & Navigation -->
     <div class="d-flex align-items-center flex-grow-1">
         <button class="menu-toggle mr-2" id="mobile-menu-toggle">
             <i class="fas fa-bars"></i>
@@ -25,9 +22,7 @@
             </div>
         @endif
 
-        <!-- Navigation Menu (Left Aligned) -->
         <div class="nav-menu-container" id="topbar-nav-menu">
-            <!-- Mobile Header Item -->
             <div class="mobile-header d-lg-none px-4 py-3 font-weight-bold text-white"
                 style="background: rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.2); font-size: 0.9rem; letter-spacing: 1px;">
                 QC APPS
@@ -37,13 +32,12 @@
                     <a href="{{ url('/') }}"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
                 </li>
 
-                <!-- Quality Control Dropdown -->
                 @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating', 'oshef'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-clipboard-check mr-1"></i> Quality Control <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
                         <ul class="dropdown-menu">
-                            <!-- Plant Jakarta QC -->
+                            
                             @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                                 <li class="has-submenu">
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
@@ -119,7 +113,7 @@
                                 </li>
                             @endif
 
-                            <!-- Plant Karawang QC -->
+                            
                             @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                                 <li class="has-submenu">
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
@@ -227,7 +221,7 @@
                     </li>
                 @endif
 
-                <!-- Quality Assurance -->
+                
                 @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-award mr-1"></i> Quality Assurance <i
@@ -267,19 +261,19 @@
                     </li>
                 @endif
 
-                <!-- Quality System -->
+                
                 @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef'])))
                     <li class="dropdown-item-hover">
                         <a href="#"><i class="fas fa-chart-bar mr-1"></i> Quality System <i
                                 class="fas fa-chevron-down ml-1 small"></i></a>
                         <ul class="dropdown-menu shadow">
-                            <!-- PLANT JAKARTA -->
+                            
                             @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                                 <li class="has-submenu">
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
                                             class="fas fa-chevron-right small"></i></a>
                                     <ul class="dropdown-menu sub-menu">
-                                        <!-- KALIBRASI -->
+                                        
                                         <li class="has-submenu">
                                             <a href="#" class="dropdown-item d-flex justify-content-between border-bottom-0">KALIBRASI <i
                                                     class="fas fa-chevron-right small"></i></a>
@@ -289,19 +283,19 @@
                                                 <li><a class="dropdown-item" href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar Alat</a></li>
                                             </ul>
                                         </li>
-                                        <!-- KAKOTORA -->
+                                        
                                         <li><a class="dropdown-item" href="{{ route('kakotora.index', ['plant' => 'jakarta']) }}">KAKOTORA</a></li>
                                     </ul>
                                 </li>
                             @endif
 
-                            <!-- PLANT KARAWANG -->
+                            
                             @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                                 <li class="has-submenu">
                                     <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
                                             class="fas fa-chevron-right small"></i></a>
                                     <ul class="dropdown-menu sub-menu">
-                                        <!-- KALIBRASI -->
+                                        
                                         <li class="has-submenu">
                                             <a href="#" class="dropdown-item d-flex justify-content-between border-bottom-0">KALIBRASI <i
                                                     class="fas fa-chevron-right small"></i></a>
@@ -311,7 +305,7 @@
                                                 <li><a class="dropdown-item" href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar Alat</a></li>
                                             </ul>
                                         </li>
-                                        <!-- KAKOTORA -->
+                                        
                                         <li><a class="dropdown-item" href="{{ route('kakotora.index', ['plant' => 'karawang']) }}">KAKOTORA</a></li>
                                     </ul>
                                 </li>
@@ -323,9 +317,7 @@
         </div>
     </div>
 
-    <!-- Right Section: Utils, Notifications, Profile -->
     <div class="d-flex align-items-center">
-        <!-- Notifications -->
         <div class="dropdown no-arrow mx-2">
             <a class="nav-link dropdown-toggle text-white p-0" href="#" id="alertsDropdown" role="button"
                 data-toggle="dropdown">
@@ -351,7 +343,6 @@
         <div class="topbar-divider d-none d-sm-block mx-3"
             style="height: 24px; width: 1px; background: rgba(255,255,255,0.2);"></div>
 
-        <!-- Profil Stacked -->
         <div class="dropdown no-arrow d-flex align-items-center">
             <a class="dropdown-toggle d-flex align-items-center text-decoration-none" href="#" id="userDropdown"
                 role="button" data-toggle="dropdown">
@@ -378,268 +369,14 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const notificationList = document.getElementById('notification-list');
-            const notificationBadge = document.getElementById('notification-badge');
-            const markAllReadBtn = document.getElementById('mark-all-read');
-
-            // Global function to close all navigation dropdowns
-            function closeAllDropdowns() {
-                const openMenus = document.querySelectorAll('.main-nav .dropdown-menu.show, .main-nav .sub-menu.show');
-                const expandedItems = document.querySelectorAll('.main-nav .expanded');
-                
-                openMenus.forEach(menu => menu.classList.remove('show'));
-                expandedItems.forEach(item => item.classList.remove('expanded'));
-            }
-
-            function fetchNotifications() {
-                fetch('{{ route('notifications.index') }}')
-                    .then(response => {
-                        if (response.status === 419) {
-                            window.location.reload();
-                            return;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        updateBadge(data.unread_count);
-                        renderNotifications(data.notifications);
-                    })
-                    .catch(error => console.error('Error fetching notifications:', error));
-            }
-
-            function updateBadge(count) {
-                if (count > 0) {
-                    notificationBadge.textContent = count > 9 ? '9+' : count;
-                    notificationBadge.classList.remove('d-none');
-                } else {
-                    notificationBadge.classList.add('d-none');
-                }
-            }
-
-            function renderNotifications(notifications) {
-                if (notifications.length === 0) {
-                    notificationList.innerHTML = '<div class="text-center p-3 small text-muted">No notifications</div>';
-                    return;
-                }
-
-                notificationList.innerHTML = notifications.map(notif => {
-                    let iconClass = 'bg-primary';
-                    let icon = 'fas fa-info-circle';
-
-                    if (notif.type === 'ng_finding') {
-                        iconClass = 'bg-danger';
-                        icon = 'fas fa-exclamation-triangle';
-                    } else if (notif.type === 'approval') {
-                        iconClass = 'bg-success';
-                        icon = 'fas fa-check-double';
-                    } else if (notif.type === 'abnormal') {
-                        iconClass = 'bg-warning';
-                        icon = 'fas fa-exclamation-circle';
-                    }
-
-                    const timeAgo = formatTimeAgo(new Date(notif.created_at));
-                    const detailUrl = notif.data && notif.data.url ? notif.data.url : '#';
-                    const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
-
-                    return `
-                                                                                                                                        <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
-                                                                                                                                            <div class="mr-3">
-                                                                                                                                                <div class="icon-circle ${iconClass}">
-                                                                                                                                                    <i class="${icon} text-white"></i>
-                                                                                                                                                </div>
-                                                                                                                                            </div>
-                                                                                                                                            <div>
-                                                                                                                                                <div class="small text-gray-500">${timeAgo}</div>
-                                                                                                                                                <span class="${unreadClass}">${notif.title}</span>
-                                                                                                                                                <div class="small text-gray-600 line-clamp-notification">${notif.message}</div>
-                                                                                                                                            </div>
-                                                                                                                                        </a>
-                                                                                                                                    `;
-                }).join('');
-
-                document.querySelectorAll('.notification-item').forEach(item => {
-                    item.addEventListener('click', function (e) {
-                        const id = this.getAttribute('data-id');
-                        markAsRead(id);
-                    });
-                });
-            }
-
-            function markAsRead(id) {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                fetch(`/notifications/${id}/read`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                }).then(response => {
-                    if (response.status === 419) {
-                        window.location.reload();
-                    }
-                });
-            }
-
-            markAllReadBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                fetch('{{ route('notifications.mark-all-read') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                }).then(response => {
-                    if (response.status === 419) {
-                        window.location.reload();
-                        return;
-                    }
-                    fetchNotifications();
-                });
-            });
-
-            const clearAllBtn = document.getElementById('clear-all-notifications');
-            if (clearAllBtn) {
-                clearAllBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                    fetch('{{ route('notifications.clear-all') }}', {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        }
-                    }).then(response => {
-                        if (response.status === 419) {
-                            window.location.reload();
-                            return;
-                        }
-                        return response.json();
-                    }).then(data => {
-                        fetchNotifications();
-                    }).catch(error => console.error('Error clearing notifications:', error));
-                });
-            }
-
-            function formatTimeAgo(date) {
-                const now = new Date();
-                const diffInSeconds = Math.floor((now - date) / 1000);
-                if (diffInSeconds < 60) return 'Recent';
-                if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
-                if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
-                return date.toLocaleDateString();
-            }
-
-            fetchNotifications();
-
-            // Mobile Menu Toggle
-            const menuToggle = document.getElementById('mobile-menu-toggle');
-            const navMenu = document.getElementById('topbar-nav-menu');
-
-            if (menuToggle && navMenu) {
-                menuToggle.addEventListener('click', function () {
-                    navMenu.classList.toggle('show');
-                });
-
-                // Close menu when clicking outside
-                document.addEventListener('click', function (event) {
-                    if (!navMenu.contains(event.target) && !menuToggle.contains(event.target)) {
-                        navMenu.classList.remove('show');
-                        closeAllDropdowns();
-                    }
-                });
-            }
-
-            // Close dropdowns when a modal is shown (Bootstrap 4 event)
-            $(document).on('show.bs.modal', function () {
-                closeAllDropdowns();
-                if (navMenu) navMenu.classList.remove('show');
-            });
-
-            // Close dropdowns when a "leaf" menu item is clicked
-            const leafItems = document.querySelectorAll('.main-nav a:not([href="#"])');
-            leafItems.forEach(item => {
-                item.addEventListener('click', function () {
-                    closeAllDropdowns();
-                    if (navMenu) navMenu.classList.remove('show');
-                });
-            });
-
-            // Collapsible Menu Toggle (Manual)
-            const mainNavItems = document.querySelectorAll('.main-nav > li.dropdown-item-hover > a');
-            mainNavItems.forEach(item => {
-                item.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const parentLi = this.parentElement;
-                    const dropdownMenu = this.nextElementSibling;
-
-                    if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-                        const isOpen = dropdownMenu.classList.contains('show');
-
-                        // Clear others at same level
-                        const siblings = parentLi.parentElement.querySelectorAll(':scope > li.dropdown-item-hover');
-                        siblings.forEach(sibling => {
-                            if (sibling !== parentLi) {
-                                sibling.classList.remove('expanded');
-                                const siblingLink = sibling.querySelector(':scope > a');
-                                if (siblingLink) siblingLink.classList.remove('expanded');
-                                const siblingMenu = sibling.querySelector(':scope > .dropdown-menu');
-                                if (siblingMenu) siblingMenu.classList.remove('show');
-                            }
-                        });
-
-                        // Toggle current
-                        if (isOpen) {
-                            this.classList.remove('expanded');
-                            dropdownMenu.classList.remove('show');
-                        } else {
-                            this.classList.add('expanded');
-                            dropdownMenu.classList.add('show');
-                        }
-                    }
-                });
-            });
-
-            // Nested submenu toggle (Manual)
-            const subMenuItems = document.querySelectorAll('.main-nav .dropdown-menu .has-submenu > a');
-            subMenuItems.forEach(item => {
-                item.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const dropdownMenu = this.nextElementSibling;
-                    if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-                        const isOpen = dropdownMenu.classList.contains('show');
-
-                        // Close others at same level
-                        const siblings = this.parentElement.parentElement.querySelectorAll(':scope > li.has-submenu');
-                        siblings.forEach(sibling => {
-                            if (sibling !== this.parentElement) {
-                                const siblingLink = sibling.querySelector(':scope > a');
-                                const siblingMenu = sibling.querySelector(':scope > .dropdown-menu');
-                                if (siblingLink) siblingLink.classList.remove('expanded');
-                                if (siblingMenu) siblingMenu.classList.remove('show');
-                            }
-                        });
-
-                        // Toggle current
-                        if (isOpen) {
-                            this.classList.remove('expanded');
-                            dropdownMenu.classList.remove('show');
-                        } else {
-                            this.classList.add('expanded');
-                            dropdownMenu.classList.add('show');
-                        }
-                    }
-                });
-            });
-        });
+        window.__LAYOUTS_TOPBAR__ = {
+            notificationsIndexUrl: "{{ route('notifications.index') }}",
+            markAllReadUrl: "{{ route('notifications.mark-all-read') }}",
+            clearAllNotificationsUrl: "{{ route('notifications.clear-all') }}",
+            markAsReadUrlTemplate: "/notifications/:id/read"
+        };
     </script>
+    <script src="{{ asset('js/layouts/layouts-topbar.js') }}"></script>
     <style>
         #notification-list {
             max-height: 340px;
@@ -653,7 +390,6 @@
             overflow: hidden;
         }
 
-        /* Desktop Navigation System */
         .main-nav > li {
             position: relative;
             margin: 0 2px;
@@ -690,7 +426,6 @@
             opacity: 0.9;
         }
 
-        /* Navigation Sub-menus Blue Style */
         #topbar-nav-menu .dropdown-menu,
         #topbar-nav-menu .dropdown-menu .sub-menu {
             background-color: #4e73df !important;
@@ -702,7 +437,6 @@
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
         }
 
-        /* Scrollbar Styling for Dropdowns */
         #topbar-nav-menu .dropdown-menu::-webkit-scrollbar {
             width: 6px;
         }
@@ -753,7 +487,6 @@
             color: #ffffff;
         }
 
-        /* Improved Dropdown Interaction (Manual Toggle) */
         .dropdown-item-hover .dropdown-menu {
             display: none;
             opacity: 0;
@@ -781,11 +514,6 @@
             display: block;
         }
 
-        /* Badge Positioning Fix */
-        .dropdown.no-arrow .nav-link {
-            position: relative;
-        }
-
         .badge-counter {
             position: absolute;
             transform: translate(50%, -50%);
@@ -795,7 +523,6 @@
             margin-top: 0;
         }
 
-        /* Media Queries for Responsiveness */
         @media (max-width: 991.98px) {
             #topbar-nav-menu {
                 display: none;
@@ -904,7 +631,6 @@
                 padding-left: 80px !important;
             }
 
-            /* Fix chevron rotation and position on mobile */
             .main-nav>li.dropdown-item-hover>a i:last-child,
             .has-submenu>a i:last-child {
                 margin-left: auto !important;
@@ -946,9 +672,4 @@
             }
         }
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Revert to manual click - removing setupHoverMenu and resize listener for hover
-        });
-    </script>
 @endpush

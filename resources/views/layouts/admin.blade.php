@@ -12,29 +12,24 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
 
-    <!-- Professional Corporate Fonts (Localized) -->
     <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
     <link href="{{ asset('fonts/nunito.css') }}" rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}?v={{ time() }}" rel="stylesheet">
 
-    <!-- Custom styles for DataTables -->
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.css') }}"
         rel="stylesheet">
 
-    <!-- Chart.js for Dashboard Charts -->
     <script src="{{ asset('js/vendor/chart.umd.min.js') }}"></script>
     <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}"></script>
 
-    <!-- FusionCharts for Gauge Charts -->
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.widgets.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
 
     <style>
-        /* Professional Corporate Font - Inter */
         body,
         h1,
         h2,
@@ -57,14 +52,12 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
         }
 
-        /* Improve readability */
         body {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-feature-settings: 'liga' 1, 'calt' 1;
         }
 
-        /* Headings optimization */
         h1,
         h2,
         h3,
@@ -81,7 +74,6 @@
             letter-spacing: -0.02em;
         }
 
-        /* Body text optimization */
         p,
         span,
         div,
@@ -92,14 +84,12 @@
             letter-spacing: -0.011em;
         }
 
-        /* Bold text */
         strong,
         b,
         .font-weight-bold {
             font-weight: 600;
         }
 
-        /* Table Header Styling - Professional Background */
         table thead th,
         table thead td,
         .table thead th,
@@ -112,7 +102,6 @@
             vertical-align: middle !important;
         }
 
-        /* Input form tables (without thead) - Target first row with th */
         table tr:first-child th,
         .table tr:first-child th,
         table>tr:first-child th,
@@ -125,7 +114,6 @@
             vertical-align: middle !important;
         }
 
-        /* For tables with tbody but th in first row */
         table tbody tr:first-child th,
         .table tbody tr:first-child th {
             background-color: #4e73df !important;
@@ -136,7 +124,6 @@
             vertical-align: middle !important;
         }
 
-        /* All th elements in tables (fallback) - EXCEPT nested tables */
         table th:not(table table th):not(td table th):not(.table .table th),
         .table th:not(table table th):not(td table th):not(.table .table th) {
             background-color: #4e73df !important;
@@ -145,33 +132,27 @@
             border-color: #3a5bc7 !important;
         }
 
-        /* MAXIMUM PRIORITY: Remove ALL blue backgrounds from nested tables */
-        /* Layer 1: Direct nested table selectors */
         td table th,
         td table tbody th,
         td table thead th,
         td .table th,
         td .table tbody th,
         td .table thead th,
-        /* Layer 2: Kimia column specific */
         .kimia-col table th,
         .kimia-col .table th,
         .kimia-col table tbody th,
         .kimia-col table thead th,
-        /* Layer 3: Table within table */
         table table th,
         table table tbody th,
         table table thead th,
         .table .table th,
         .table .table tbody th,
         .table .table thead th,
-        /* Layer 4: tbody td combinations */
         table tbody td table th,
         .table tbody td table th,
         tbody td table th,
         tbody td table tbody th,
         tbody td table thead th,
-        /* Layer 5: Additional specificity */
         table.table-bordered tbody td table th,
         .table.table-bordered tbody td table th {
             background-color: white !important;
@@ -183,7 +164,6 @@
             padding: 0.25rem !important;
         }
 
-        /* MAXIMUM PRIORITY: Nested table cells - NO BACKGROUND */
         td table td,
         td table tbody td,
         td .table td,
@@ -208,7 +188,6 @@
             padding: 0.25rem !important;
         }
 
-        /* Nested table itself - FORCE white background */
         td table,
         td .table,
         .kimia-col table,
@@ -220,17 +199,14 @@
             background: white !important;
         }
 
-        /* Table striped rows for better readability */
         .table-striped tbody tr:nth-of-type(odd) {
             background-color: rgba(0, 0, 0, 0.02);
         }
 
-        /* Table hover effect */
         .table-hover tbody tr:hover {
             background-color: rgba(78, 115, 223, 0.08);
         }
 
-        /* Table Border Enhancement - Clear but not too thick */
         table,
         .table {
             border: 1.5px solid #dee2e6 !important;
@@ -243,7 +219,7 @@
             border: 1.5px solid #dee2e6 !important;
         }
 
-        /* Table bordered variant */
+        
         .table-bordered {
             border: 1.5px solid #dee2e6 !important;
         }
@@ -253,8 +229,7 @@
             border: 1.5px solid #dee2e6 !important;
         }
 
-        /* Premium Sidebar Animations */
-        /* Premium Sidebar Animations */
+        
         .sidebar .nav-item .nav-link {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -266,21 +241,21 @@
             display: inline-block;
         }
 
-        /* Icon Hover Effect */
+        
         .sidebar .nav-item:hover .nav-link i {
             transform: scale(1.2) rotate(10deg);
             color: #fff;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
-        /* Link Slide & Glow Effect */
+        
         .sidebar .nav-item .nav-link:hover {
             padding-left: 1.5rem !important;
             background: rgba(255, 255, 255, 0.1);
             color: #fff !important;
         }
 
-        /* Active State Pulse Animation */
+        
         @keyframes activePulse {
             0% {
                 background: rgba(255, 255, 255, 0.15);
@@ -305,7 +280,7 @@
             font-weight: 700;
         }
 
-        /* Sub-menu implementation (collapse-inner) */
+        
         .sidebar .collapse-inner .collapse-item {
             transition: all 0.2s ease;
             border-left: 0 solid transparent;
@@ -319,7 +294,7 @@
             transform: translateX(5px);
         }
 
-        /* Logout Slide-out Animation */
+        
         .btn-logout i {
             transition: transform 0.3s ease;
         }
@@ -330,12 +305,12 @@
             text-shadow: 0 0 10px rgba(231, 74, 59, 0.4);
         }
 
-        /* Smooth Collapse Animation */
+        
         .sidebar.toggled .nav-item .nav-link i {
             transform: none !important;
         }
 
-        /* Sidebar Brand Hover */
+        
         .sidebar-brand {
             transition: all 0.3s ease;
         }
@@ -362,7 +337,7 @@
             }
         }
 
-        /* Generic Button & Action Animations (Inspired by Login) */
+        
         .btn,
         .btn-sm {
             transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
@@ -382,7 +357,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12) !important;
         }
 
-        /* Color-specific glow effects */
+        
         .btn-primary:hover {
             box-shadow: 0 8px 15px rgba(78, 115, 223, 0.4) !important;
         }
@@ -403,7 +378,7 @@
             box-shadow: 0 8px 15px rgba(54, 185, 204, 0.4) !important;
         }
 
-        /* Icon within button animation */
+        
         .btn i,
         .btn-sm i {
             transition: transform 0.3s ease;
@@ -415,7 +390,7 @@
             transform: scale(1.2);
         }
 
-        /* Topbar & Navbar Redesign (Top Nav Mode) */
+        
         #content-wrapper {
             background-color: #f8f9fc;
         }
@@ -442,16 +417,12 @@
             align-items: center;
         }
 
-        /* Mobile Navigation Overlay */
         @media (max-width: 991.98px) {
-
-            /* Keep topbar in single row on mobile */
             .topbar {
                 flex-wrap: nowrap !important;
                 padding: 0 0.5rem !important;
             }
 
-            /* Left section should NOT grow on mobile */
             .topbar>div:first-child {
                 flex-grow: 0 !important;
                 flex-shrink: 1 !important;
@@ -459,18 +430,15 @@
                 max-width: 70% !important;
             }
 
-            /* Hide the nav-menu-container when not toggled */
             .nav-menu-container:not(.show) {
                 display: none !important;
             }
 
-            /* Right section stays on the right */
             .topbar>div:last-child {
                 flex-shrink: 0 !important;
                 margin-left: auto !important;
             }
 
-            /* Reduce spacing on mobile */
             .topbar .sidebar-brand {
                 margin-right: 0.5rem !important;
             }
@@ -479,7 +447,6 @@
                 margin-right: 0.5rem !important;
             }
 
-            /* Hide plant badge text on very small screens */
             @media (max-width: 576px) {
                 .topbar .sidebar-brand-text {
                     display: none !important;
@@ -523,7 +490,6 @@
                 width: 100%;
             }
 
-            /* All dropdowns on mobile appear BELOW parent */
             .main-nav .dropdown-menu,
             .main-nav .dropdown-menu .dropdown-menu,
             .main-nav .dropdown-menu .sub-menu {
@@ -531,7 +497,6 @@
                 float: none !important;
                 width: 100% !important;
                 background: #1e40af !important;
-                /* Solid blue */
                 border: none !important;
                 box-shadow: none !important;
                 padding: 0.5rem 0 0.5rem 1rem !important;
@@ -544,28 +509,23 @@
                 border-radius: 0 !important;
             }
 
-            /* Show dropdowns when they have show class */
             .main-nav .dropdown-menu.show,
             .main-nav .dropdown-menu .dropdown-menu.show,
             .main-nav .dropdown-menu .sub-menu.show {
                 display: block !important;
             }
 
-            /* Nested levels - deeper blue for hierarchy */
             .main-nav .dropdown-menu .dropdown-menu,
             .main-nav .dropdown-menu .sub-menu {
                 background: #1e3a8a !important;
-                /* Deeper blue */
                 padding-left: 2rem !important;
             }
 
             .main-nav .dropdown-menu .dropdown-menu .dropdown-menu {
                 background: #172554 !important;
-                /* Deepest blue */
                 padding-left: 3rem !important;
             }
 
-            /* Dropdown items on mobile */
             .main-nav .dropdown-item {
                 color: rgba(255, 255, 255, 0.85) !important;
                 padding: 0.7rem 0 !important;
@@ -577,7 +537,6 @@
                 color: white !important;
             }
 
-            /* Chevron rotation on mobile */
             .main-nav>li.expanded>a i.fa-chevron-down,
             .main-nav .dropdown-item.expanded i {
                 transform: rotate(180deg);
@@ -615,7 +574,6 @@
             display: block !important;
         }
 
-        /* Submenus drop down below instead of to the side */
         .has-submenu:hover>.dropdown-menu {
             display: block !important;
             left: 0 !important;
@@ -654,11 +612,9 @@
         .main-nav>li>a {
             display: block;
             padding: 0.55rem 1.25rem;
-            /* Even more compact */
             color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
             font-size: 0.8rem;
-            /* Slightly smaller font */
             font-weight: 600;
             text-transform: uppercase;
             transition: all 0.2s;
@@ -672,7 +628,6 @@
             border-bottom-color: #36b9cc;
         }
 
-        /* Multi-level Dropdown - Collapsible Style */
         .main-nav .dropdown-menu {
             display: none;
             position: absolute;
@@ -697,15 +652,7 @@
             padding: 0.5rem 0;
         }
 
-        /* Bridge gap between top nav and dropdown */
-        .main-nav .dropdown-menu::before {
-            display: none;
-        }
 
-        .main-nav li:hover>.dropdown-menu {
-            display: none;
-            /* Disable hover, use click instead */
-        }
 
         .main-nav .dropdown-item {
             padding: 0.75rem 1.25rem;
@@ -728,7 +675,6 @@
             padding-left: 1.5rem;
         }
 
-        /* Chevron rotation for expandable items */
         .main-nav .dropdown-item i.submenu-arrow,
         .main-nav>li>a i.fa-chevron-down {
             font-size: 0.7rem;
@@ -740,7 +686,6 @@
             transform: rotate(180deg);
         }
 
-        /* Nested submenus appear BELOW parent in same dropdown */
         .main-nav .dropdown-menu .dropdown-menu,
         .main-nav .dropdown-menu .sub-menu,
         .main-nav .dropdown-menu li .dropdown-menu,
@@ -764,14 +709,12 @@
             transform: none !important;
         }
 
-        /* Show nested dropdowns when they have show class */
         .main-nav .dropdown-menu .dropdown-menu.show,
         .main-nav .dropdown-menu .sub-menu.show {
             display: block !important;
             max-height: none !important;
         }
 
-        /* Third level nested menus */
         .main-nav .dropdown-menu .dropdown-menu .dropdown-menu {
             background: #eaecf4 !important;
             padding-left: 2.5rem !important;
@@ -790,38 +733,25 @@
             color: #4e73df !important;
         }
 
-        /* Ensure parent LI provides the correct context */
         .main-nav .dropdown-menu li {
             position: relative;
         }
 
-        /* Remove bridge gap for nested menus */
-        .main-nav .dropdown-menu .dropdown-menu::before {
-            display: none;
-        }
 
-        /* Hide sidebar on all screens in Top Nav mode */
         .sidebar {
             display: none !important;
         }
 
-        /* --- COMPACT UI MODE (User Requested) --- */
-        /* Reduce font sizes and padding for dense information display */
-
-        /* Form Inputs */
         .form-control {
             font-size: 0.85rem !important;
-            /* Smaller text */
             padding: 0.3rem 0.5rem !important;
-            /* Smaller padding */
             height: auto !important;
-            /* Let height adjust to content */
             min-height: calc(1.5em + 0.5rem + 2px);
         }
 
         select.form-control {
             padding-right: 1.5rem !important;
-            /* Space for arrow */
+        }
         }
 
         .form-control-sm {
@@ -830,7 +760,6 @@
             min-height: calc(1.25em + 0.4rem + 2px);
         }
 
-        /* Buttons */
         .btn {
             font-size: 0.85rem !important;
             padding: 0.3rem 0.6rem !important;
@@ -841,35 +770,28 @@
             padding: 0.2rem 0.4rem !important;
         }
 
-        /* Tables */
         table th,
         table td,
         .table th,
         .table td {
             padding: 0.35rem 0.5rem !important;
-            /* Tighter cells */
             font-size: 0.8rem !important;
-            /* Smaller table text */
         }
 
-        /* Labels */
         label {
             font-size: 0.8rem !important;
             margin-bottom: 0.2rem !important;
         }
 
-        /* Input Groups */
         .input-group-text {
             padding: 0.3rem 0.5rem !important;
             font-size: 0.85rem !important;
         }
 
-        /* Adjust layout spacing */
         .card-body {
             padding: 1rem !important;
         }
 
-        /* Notification Badge Fix */
         .badge-counter {
             display: flex !important;
             align-items: center !important;
@@ -879,7 +801,6 @@
             line-height: normal !important;
         }
 
-        /* --- TOPBAR & NAV REFINEMENTS --- */
         .top-brand-row {
             padding: 0.35rem 1.5rem !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -894,7 +815,6 @@
             align-items: center;
         }
 
-        /* Fix for potential layout shift on dropdown open */
         body.modal-open {
             overflow: hidden !important;
             padding-right: 0 !important;
@@ -911,10 +831,8 @@
             width: 100% !important;
         }
 
-        /* Notification Dropdown Overrides for Top Nav */
         .topbar .dropdown-list {
             width: 320px !important;
-            /* Slightly wider for better text display */
             padding: 0;
             border: 1px solid #e3e6f0 !important;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
@@ -956,7 +874,6 @@
             overflow-y: auto;
         }
 
-        /* General Dropdown Overrides for Topbar */
         .topbar .dropdown-menu {
             position: absolute !important;
             top: 100% !important;
@@ -966,7 +883,6 @@
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
         }
 
-        /* Ensure dropdowns don't expand their parents in flex containers */
         .topbar .nav-item.dropdown {
             position: relative !important;
             display: flex !important;
@@ -974,7 +890,6 @@
             height: 100% !important;
         }
 
-        /* --- MOBILE NAVIGATION RESPONSIVENESS --- */
         .menu-toggle {
             display: none;
             background: transparent;
@@ -1004,15 +919,12 @@
 
             .nav-menu-row {
                 display: none;
-                /* Hidden by default on mobile */
                 flex-direction: column;
                 height: auto !important;
                 padding: 0.5rem 1.5rem !important;
                 background: #224abe !important;
-                /* Solid background for readability */
                 position: absolute;
                 top: 50px;
-                /* Below top-brand-row */
                 left: 0;
                 right: 0;
                 z-index: 1050;
@@ -1043,7 +955,6 @@
                 width: 100%;
             }
 
-            /* Sub-menus adjustment for mobile */
             .main-nav .dropdown-menu {
                 position: static !important;
                 float: none;
@@ -1066,18 +977,15 @@
                 color: white !important;
             }
 
-            /* Sub-sub-menus (3rd level) adjustment for mobile */
             .main-nav .sub-menu {
                 padding-left: 1.5rem !important;
             }
 
             .topbar .topbar-divider {
                 display: none;
-                /* Hide dividers in vertical list */
             }
         }
 
-        /* --- ULTRA-MODERN GLOBAL LOADER (Glassmorphism + Premium Pulse) --- */
         #global-loader {
             display: none;
             position: fixed;
@@ -1120,7 +1028,6 @@
             }
         }
 
-        /* Modern Modern Triple-Dot DNA Loader */
         .dna-loader {
             display: flex;
             gap: 12px;
@@ -1210,9 +1117,8 @@
             <div id="content">
 
                 @include('layouts.topbar')
-                <div class="container-fluid px-3 px-md-4 py-3 py-md-4">
+                <div class="container-fluid px-3 px-md-4 px-xl-5 py-4">
 
-                    {{-- Konten Utama Halaman Diletakkan di sini --}}
                     @yield('content')
 
                 </div>
@@ -1224,7 +1130,6 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-    {{-- Hidden Logout Form --}}
     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
         @csrf
     </form>
@@ -1237,16 +1142,33 @@
 
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}"></script>
 
-    <!-- Page level plugins -->
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/jquery.dataTables.min.js') }}"></script>
     <script
         src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
 
-    {{-- SweetAlert2 --}}
     <script src="{{ asset('sweetalert/sweetalert2.all.min.js') }}"></script>
     <script>
-        // Flash Messages
-        @if(session('success'))
+        window.__LAYOUTS_ADMIN__ = {
+            sessionPingUrl: "{{ route('session.ping') }}",
+            unreadRejections: [
+                @if(isset($unreadRejections))
+                    @foreach($unreadRejections as $rejection)
+                        {
+                            id: "{{ $rejection['id'] }}",
+                            title: @json($rejection['title']),
+                            message: @json($rejection['message']),
+                            url: "{{ $rejection['url'] }}",
+                            markReadUrl: "{{ route('notifications.mark-as-read', $rejection['id']) }}"
+                        },
+                    @endforeach
+                @endif
+            ]
+        };
+    </script>
+    <script src="{{ asset('js/layouts/layouts-admin.js') }}"></script>
+
+    @if(session('success'))
+        <script>
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil',
@@ -1254,248 +1176,41 @@
                 showConfirmButton: false,
                 timer: 1500
             });
-        @endif
+        </script>
+    @endif
 
-        @if(session('error'))
+    @if(session('error'))
+        <script>
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal',
                 text: @json(session('error')),
             });
-        @endif
+        </script>
+    @endif
 
-        @if(session('warning'))
+    @if(session('warning'))
+        <script>
             Swal.fire({
                 icon: 'warning',
                 title: 'Peringatan',
                 text: @json(session('warning')),
             });
-        @endif
+        </script>
+    @endif
 
-        @if(session('info'))
+    @if(session('info'))
+        <script>
             Swal.fire({
                 icon: 'info',
                 title: 'Info',
                 text: @json(session('info')),
             });
-        @endif
+        </script>
+    @endif
 
-        // Global Delete Confirmation
-        $(document).on('click', '.btn-delete', function (e) {
-            e.preventDefault();
-            var form = $(this).closest('form');
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-
-        // Logout Confirmation
-        $(document).on('click', '.btn-logout', function (e) {
-            e.preventDefault();
-            Swal.fire({
-                title: 'Apakah Anda yakin ingin keluar?',
-                text: "Anda akan keluar dari sesi ini.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Keluar!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('logout-form').submit();
-                }
-            });
-        });
-
-        // Catatan: Auto logout saat browser ditutup ditangani oleh config session.php
-        // dengan expire_on_close => true. Session cookie akan otomatis expire saat browser ditutup.
-
-        // Rejection Alerts for Inspectors
-        @if(isset($unreadRejections) && count($unreadRejections) > 0)
-            document.addEventListener('DOMContentLoaded', function() {
-                @foreach($unreadRejections as $rejection)
-                    Swal.fire({
-                        title: '<span class="text-danger font-weight-bold">LAPORAN DITOLAK!</span>',
-                        html: '<div class="text-left mt-2"><b>{{ $rejection['title'] }}</b><br><p class="mt-2">{{ $rejection['message'] }}</p></div>',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#aaa',
-                        confirmButtonText: '<i class="fas fa-eye"></i> Lihat Data',
-                        cancelButtonText: 'Tutup',
-                        backdrop: `rgba(220, 53, 69, 0.2)`
-                    }).then((result) => {
-                        // Mark as read regardless of choice (to ensure it only appears once)
-                        $.post("{{ route('notifications.mark-as-read', $rejection['id']) }}");
-                        
-                        if (result.isConfirmed) {
-                            window.location.href = "{{ $rejection['url'] }}";
-                        }
-                    });
-                @endforeach
-            });
-        @endif
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Auto Uppercase for all text inputs and textareas
-            $(document).on('input', 'input[type="text"]:not(.no-autoupper), textarea:not(.no-autoupper)', function () {
-                let start = this.selectionStart;
-                let end = this.selectionEnd;
-                this.value = this.value.toUpperCase();
-                this.setSelectionRange(start, end);
-            });
-
-            // Global 419 Handler for jQuery AJAX
-            $.ajaxSetup({
-                error: function (jqXHR, textStatus, errorThrown) {
-                    if (jqXHR.status === 419) {
-                        window.location.reload();
-                    }
-                }
-            });
-
-            // Global 419 Handler for Fetch API
-            const originalFetch = window.fetch;
-            window.fetch = function () {
-                return originalFetch.apply(this, arguments)
-                    .then(async response => {
-                        if (response.status === 419) {
-                            window.location.reload();
-                            // Keep the promise pending so downstream .then() doesn't execute with broken state
-                            return new Promise(() => { });
-                        }
-                        return response;
-                    });
-            };
-
-            // Global Form Submission Loader
-            $(document).on('submit', 'form', function (e) {
-                // Ignore search/filter forms with GET method
-                if ($(this).attr('method') && $(this).attr('method').toUpperCase() === 'GET') {
-                    return;
-                }
-
-                // Ignore if form is invalid (standard browser validation)
-                if (this.checkValidity && !this.checkValidity()) {
-                    return;
-                }
-
-                // Ignore forms that are handled via AJAX or have already been prevented
-                if ($(this).hasClass('ajax-form') || e.isDefaultPrevented()) {
-                    return;
-                }
-
-                // For checksheet form, specific checks if needed
-                if ($(this).attr('id') === 'checksheetForm') {
-                    // Form is already validated by judgment logic usually
-                }
-
-                // Show loader
-                $('#global-loader').css('display', 'flex');
-
-                // Optional: Disable submit button to prevent double clicks
-                // But wait a tick so the browser can actually start the submission
-                setTimeout(() => {
-                    $(this).find('button[type="submit"]').prop('disabled', true);
-                }, 10);
-            });
-
-            // Page Navigation Loader (when switching menus)
-            $(document).on('click', 'a', function (e) {
-                const href = $(this).attr('href');
-                const dataToggle = $(this).attr('data-toggle');
-
-                // Conditions to NOT show the loader:
-                // 1. Link is empty or just '#'
-                // 2. Link is a javascript action
-                // 3. Link has target="_blank" (opens in new tab)
-                // 4. Link is an anchor on the same page (starts with #)
-                // 5. Link is for Logout (handled by form submission separately)
-                // 6. Link has some specific classes to ignore
-                // 7. Link is a modal or dropdown toggle
-                // 8. Event has already been prevented (e.g. by a custom click handler)
-                if (!href ||
-                    href === '#' ||
-                    href.startsWith('javascript:') ||
-                    $(this).attr('target') === '_blank' ||
-                    href.startsWith('#') ||
-                    $(this).hasClass('no-loader') ||
-                    $(this).hasClass('btn-logout') ||
-                    $(this).hasClass('dropdown-toggle') ||
-                    dataToggle === 'modal' ||
-                    dataToggle === 'dropdown' ||
-                    e.isDefaultPrevented()) {
-                    return;
-                }
-
-                // Show loader on page transition
-                $('#global-loader').css('display', 'flex');
-            });
-
-            // Hide loader if it was shown but navigation didn't complete (e.g. Back button/BFCache)
-            $(window).on('pageshow', function (event) {
-                $('#global-loader').fadeOut();
-            });
-
-            // Session Heartbeat to prevent logout/CSRF mismatch
-            setInterval(function () {
-                $.get("{{ route('session.ping') }}").catch(function (err) {
-                    console.warn("Session heartbeat failed");
-                });
-            }, 10 * 60 * 1000); // 10 minutes
-
-            // Global AJAX Setup for CSRF and Errors
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-            $(document).ajaxError(function (event, xhr, settings) {
-                if (xhr.status === 419) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Sesi Berakhir',
-                        text: 'Sesi anda telah berakhir atau token keamanan kadaluarsa. Silakan refresh halaman untuk melanjutkan.',
-                        confirmButtonText: 'Refresh Halaman',
-                        allowOutsideClick: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.reload();
-                        }
-                    });
-                }
-            });
-
-            // Specific handler for downloads (PDF exports)
-            // Since downloads don't trigger page navigation, we need to hide the loader after a timeout
-            $(document).on('click', '.btn-download', function () {
-                $('#global-loader').css('display', 'flex');
-                setTimeout(function () {
-                    $('#global-loader').fadeOut();
-                }, 5000); // 5 seconds is usually enough for the server to generate and the browser to start downloading
-            });
-        });
-    </script>
-
-    {{-- Sticky Horizontal Scroll --}}
     <script src="{{ asset('js/sticky-scroll.js') }}?v={{ time() }}"></script>
 
-    {{-- Tambahkan script lain yang dibutuhkan di sini --}}
     <div id="global-loader">
         <div class="loader-card">
             <div class="dna-loader">

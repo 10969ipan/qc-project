@@ -19,7 +19,7 @@
             10 => ['brand' => 'YIZUMI', 'tonnage' => '160'],
             11 => ['brand' => 'SOUND', 'tonnage' => '230'],
             12 => ['brand' => 'SOUND', 'tonnage' => '230'],
-            // 13 skipped
+            
             14 => ['brand' => 'THOSIBA', 'tonnage' => '450'],
             15 => ['brand' => 'YIZUMI', 'tonnage' => '160'],
             16 => ['brand' => 'YIZUMI', 'tonnage' => '120'],
@@ -54,162 +54,118 @@
     @endphp
 
     <style>
-        /* Modern Dashboard CSS remains for other elements */
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.2);
-            --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
-            --shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.12);
-            --gradient-primary: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-            --gradient-success: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
-            --gradient-danger: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
-            --gradient-info: linear-gradient(135deg, #36b9cc 0%, #2c9faf 100%);
-            --gradient-warning: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
-            --gradient-dark: linear-gradient(135deg, #5a5c69 0%, #373840 100%);
-            --gradient-idle: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow-premium: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 5px 15px -5px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            --gradient-welcome: linear-gradient(135deg, #6366f1 0%, #4338ca 50%, #312e81 100%);
+            --accent-glow: 0 0 20px rgba(99, 102, 241, 0.3);
         }
 
         .dashboard-container {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            letter-spacing: -0.01em;
         }
 
-        /* Modern Card */
         .modern-card {
-            background: #fff;
-            border-radius: 15px;
-            border: none;
-            box-shadow: var(--shadow-soft);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: var(--shadow-premium);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
-            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(99, 102, 241, 0.3);
         }
 
         .modern-card-header {
-            background: transparent;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: rgba(248, 250, 252, 0.5);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
         }
 
         .modern-card-title {
             font-weight: 800;
-            font-size: 0.9rem;
-            color: #2d3748;
-            margin: 0;
-            letter-spacing: -0.025em;
+            font-size: 0.95rem;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
-        /* Status Animations from User Template */
-        @keyframes pulse-red-border {
-            0% {
-                border-color: rgba(239, 68, 68, 0.4);
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-            }
-
-            50% {
-                border-color: rgba(239, 68, 68, 1);
-                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
-            }
-
-            100% {
-                border-color: rgba(239, 68, 68, 0.4);
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-            }
-        }
-
-        .border-pulse-red {
-            animation: pulse-red-border 2s infinite;
-        }
-
-        /* Welcome Section Modern */
         .welcome-modern {
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
             border-radius: 12px;
-            padding: 1rem;
+            padding: 1.5rem;
             color: white;
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 20px rgba(78, 115, 223, 0.25);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* Stats Cards Modern */
-        .stat-card-modern {
-            background: white;
+        .glass-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1.25rem;
             border-radius: 12px;
-            padding: 0.5rem;
-            height: 100%;
-            box-shadow: var(--shadow-soft);
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .stat-card-modern:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
+        .welcome-date-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.25rem;
+            border-radius: 18px;
+            text-align: right;
         }
 
-        /* Pie Chart Styling */
-        .chart-pie {
-            position: relative;
-            height: 15rem;
-        }
-
-        .chart-pie canvas {
-            height: 100% !important;
-            width: 100% !important;
+        @media (max-width: 991.98px) {
+            .welcome-modern { padding: 1.5rem; }
+            .welcome-date-card { text-align: left; margin-top: 1.5rem; }
         }
     </style>
 
     <script src="{{ asset('js/vendor/tailwind.min.js') }}"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#607AFB",
-                        "background-light": "#f5f6f8",
-                        "background-dark": "#0f1323",
-                        "card-light": "#ffffff",
-                        "card-dark": "#1e293b",
-                        "accent-green": "#10b981",
-                        "accent-blue": "#3b82f6",
-                        "accent-red": "#ef4444"
-                    }
-                }
-            }
-        };
-    </script>
+    
+    <script src="{{ asset('js/dashboard/tailwind-config.js') }}"></script>
     <link href="{{ asset('fonts/material-icons.css') }}" rel="stylesheet">
 
 
-    <!-- Welcome Section -->
+    
     <div class="row">
         <div class="col-12">
             <div class="welcome-modern shadow">
-                <!-- SVG Background Decoration -->
-                <div
-                    style="position: absolute; top: 0; right: 0; width: 100%; height: 100%; opacity: 0.1; background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
-                </div>
+                <div style="position: absolute; top: 0; right: 0; width: 100%; height: 100%; opacity: 0.1; background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
 
                 <div class="row align-items-center position-relative" style="z-index: 2;">
                     <div class="col-lg-8">
                         <h4 class="font-weight-bold mb-1">Selamat Datang, {{ Auth::user()->name }}! </h4>
                         <p class="mb-0" style="opacity: 0.9; font-size: 0.9rem;">Quality Department</p>
                         <div class="mt-3">
-                            <span class="badge badge-light text-primary px-3 py-2 rounded-pill shadow-sm"
-                                style="font-size: 0.85rem;">
+                            <span class="badge badge-light text-primary px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
                                 <i class="fas fa-user-tag mr-1"></i> {{ getRoleDisplayName(Auth::user()->role) }}
                             </span>
                         </div>
                     </div>
                     <div class="col-lg-4 text-right d-none d-lg-block">
                         <div class="h3 mb-0 font-weight-bold" id="current-date">Loading...</div>
-                        <small style="opacity: 0.8; font-size: 0.9rem;"><i class="fas fa-clock mr-1"></i> <span
-                                id="current-time"></span> WIB</small>
+                        <small style="opacity: 0.8; font-size: 0.9rem;"><i class="fas fa-clock mr-1"></i> <span id="current-time"></span> WIB</small>
                     </div>
                 </div>
             </div>
@@ -218,8 +174,8 @@
 
 
 
-    {{-- Customer Claim Achievement Charts --}}
-    <div class="row mb-5">
+    
+    <div class="row mb-5 px-md-3 px-lg-4">
         <div class="col-12 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div></div>
@@ -237,74 +193,63 @@
             </div>
         </div>
 
-        {{-- Jakarta Card --}}
+        
         @if($isDualView || (Auth::user()->plant->code ?? '') !== 'karawang')
             <div class="{{ $isDualView ? 'col-lg-4' : 'col-lg-6' }} mb-4">
                 <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-danger text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div>
-                                <h6 class="modern-card-title">CLAIM CUSTOMER JAKARTA</h6>
-                                <div class="small text-muted">Statistik Bulanan PPM | Total Claim Jakarta-Karawang:
-                                    {{ array_sum($claimData['combined_total'] ?? []) }}
-                                </div>
-                            </div>
+                    <div class="modern-card-header d-flex align-items-center">
+                        <div class="icon-circle bg-indigo-100 text-indigo-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                            style="width: 42px; height: 42px; border-radius: 12px;">
+                            <i class="fas fa-building" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="modern-card-title mb-0">Claim Jakarta</h6>
+                            <div class="text-xs font-weight-bold text-slate-400 mt-1">Bulan ini: <span class="text-indigo-600">{{ array_sum($claimData['combined_total'] ?? []) }}</span></div>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <div id="chartClaimJakarta" style="height: 320px; width: 100%;"></div>
                     </div>
                 </div>
             </div>
         @endif
 
-        {{-- Karawang Card --}}
+        
         @if($isDualView || (Auth::user()->plant->code ?? '') === 'karawang')
             <div class="{{ $isDualView ? 'col-lg-4' : 'col-lg-6' }} mb-4">
                 <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-danger text-white mr-3"
-                                style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                <i class="fas fa-industry"></i>
-                            </div>
-                            <div>
-                                <h6 class="modern-card-title">CLAIM CUSTOMER KARAWANG</h6>
-                                <div class="small text-muted">Statistik Bulanan PPM | Total Claim Jakarta-Karawang:
-                                    {{ array_sum($claimData['combined_total'] ?? []) }}
-
-                                </div>
-                            </div>
+                    <div class="modern-card-header d-flex align-items-center">
+                        <div class="icon-circle bg-emerald-100 text-emerald-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                            style="width: 42px; height: 42px; border-radius: 12px;">
+                            <i class="fas fa-industry" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="modern-card-title mb-0">Claim Karawang</h6>
+                            <div class="text-xs font-weight-bold text-slate-400 mt-1">Bulan ini: <span class="text-emerald-600">{{ array_sum($claimData['combined_total'] ?? []) }}</span></div>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <div id="chartClaimKarawang" style="height: 320px; width: 100%;"></div>
                     </div>
                 </div>
             </div>
         @endif
 
-        {{-- Frequency Card --}}
-        {{-- Frequency Card --}}
+        
+        
         <div class="{{ $isDualView ? 'col-lg-4' : 'col-lg-6' }} mb-4">
             <div class="modern-card">
-                <div class="modern-card-header">
-                    <div class="d-flex align-items-center">
-                        <div class="icon-circle bg-danger text-white mr-3"
-                            style="width: 32px; height: 32px; font-size: 0.85rem;">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div>
-                            <h6 class="modern-card-title">FREKUENSI (JAKARTA & KARAWANG)</h6>
-                            <div class="small text-muted">Statistik Frekuensi Per Bulan</div>
-                        </div>
+                <div class="modern-card-header d-flex align-items-center">
+                    <div class="icon-circle bg-blue-100 text-blue-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                        style="width: 42px; height: 42px; border-radius: 12px;">
+                        <i class="fas fa-chart-bar" style="font-size: 1.1rem;"></i>
+                    </div>
+                    <div>
+                        <h6 class="modern-card-title mb-0">Frekuensi Global</h6>
+                        <div class="text-xs font-weight-bold text-slate-400 mt-1">Total Frekuensi Jakarta & Karawang</div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div id="chartClaimFrequency" style="height: 320px; width: 100%;"></div>
                 </div>
             </div>
@@ -314,25 +259,23 @@
     @if(isset($combinedStats))
         <div class="row">
             @php
-                /* isDualView already defined above */
+                
             @endphp
             @if($isDualView && isset($statsJakarta) && isset($statsKarawang))
-                {{-- Jakarta Stats Row --}}
+                
                 <div class="col-12 mb-5">
                     <div class="row">
-                        {{-- Jakarta Pie Chart --}}
+                        
                         <div class="col-xl-8 col-lg-7 mb-4 mb-xl-0">
                             <div class="modern-card h-100">
-                                <div class="modern-card-header">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-circle bg-primary text-white mr-3"
-                                            style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                            <i class="fas fa-building"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="modern-card-title">STATUS APPROVAL - JAKARTA</h6>
-                                            <div class="small text-muted">Statistik Jakarta</div>
-                                        </div>
+                                <div class="modern-card-header d-flex align-items-center">
+                                    <div class="icon-circle bg-indigo-100 text-indigo-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 42px; height: 42px; border-radius: 12px;">
+                                        <i class="fas fa-check-circle" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="modern-card-title mb-0">Approval Jakarta</h6>
+                                        <div class="text-xs font-weight-bold text-slate-400 mt-1">Status Verifikasi & Validasi</div>
                                     </div>
                                 </div>
                                 <div class="card-body bg-light" style="background: #fdfdfe;">
@@ -340,16 +283,17 @@
                                 </div>
                             </div>
                         </div>
-                        {{-- Jakarta Daily Gauge --}}
+                        
                         <div class="col-xl-4 col-lg-5">
                             <div class="modern-card h-100">
-                                <div class="modern-card-header">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-circle bg-primary text-white mr-3"
-                                            style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                            <i class="fas fa-chart-line"></i>
-                                        </div>
-                                        <h6 class="modern-card-title">JAKARTA - DAILY APPROVAL</h6>
+                                <div class="modern-card-header d-flex align-items-center">
+                                    <div class="icon-circle bg-blue-100 text-blue-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 42px; height: 42px; border-radius: 12px;">
+                                        <i class="fas fa-tachometer-alt" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="modern-card-title mb-0">Daily Rate Jakarta</h6>
+                                        <div class="text-xs font-weight-bold text-slate-400 mt-1">Persentase Approval Harian</div>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -360,22 +304,20 @@
                     </div>
                 </div>
 
-                {{-- Karawang Stats Row --}}
+                
                 <div class="col-12 mb-5">
                     <div class="row">
-                        {{-- Karawang Pie Chart --}}
+                        
                         <div class="col-xl-8 col-lg-7 mb-4 mb-xl-0">
                             <div class="modern-card h-100">
-                                <div class="modern-card-header">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-circle bg-success text-white mr-3"
-                                            style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                            <i class="fas fa-industry"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="modern-card-title">STATUS APPROVAL - KARAWANG</h6>
-                                            <div class="small text-muted">Statistik Karawang</div>
-                                        </div>
+                                <div class="modern-card-header d-flex align-items-center">
+                                    <div class="icon-circle bg-emerald-100 text-emerald-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 42px; height: 42px; border-radius: 12px;">
+                                        <i class="fas fa-check-double" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="modern-card-title mb-0">Approval Karawang</h6>
+                                        <div class="text-xs font-weight-bold text-slate-400 mt-1">Status Verifikasi & Validasi</div>
                                     </div>
                                 </div>
                                 <div class="card-body bg-light" style="background: #fdfdfe;">
@@ -383,16 +325,17 @@
                                 </div>
                             </div>
                         </div>
-                        {{-- Karawang Daily Gauge --}}
+                        
                         <div class="col-xl-4 col-lg-5">
                             <div class="modern-card h-100">
-                                <div class="modern-card-header">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-circle bg-success text-white mr-3"
-                                            style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                            <i class="fas fa-chart-line"></i>
-                                        </div>
-                                        <h6 class="modern-card-title">KARAWANG - DAILY APPROVAL</h6>
+                                <div class="modern-card-header d-flex align-items-center">
+                                    <div class="icon-circle bg-green-100 text-green-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 42px; height: 42px; border-radius: 12px;">
+                                        <i class="fas fa-tachometer-alt" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="modern-card-title mb-0">Daily Rate Karawang</h6>
+                                        <div class="text-xs font-weight-bold text-slate-400 mt-1">Persentase Approval Harian</div>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -403,7 +346,7 @@
                     </div>
                 </div>
 
-                {{-- NG Rate Jakarta --}}
+                
                 <div class="col-xl-6 col-lg-12 mb-5">
                     <div class="modern-card h-100">
                         <div class="modern-card-header">
@@ -424,7 +367,7 @@
                     </div>
                 </div>
 
-                {{-- NG Rate Karawang --}}
+                
                 <div class="col-xl-6 col-lg-12 mb-5">
                     <div class="modern-card h-100">
                         <div class="modern-card-header">
@@ -445,10 +388,10 @@
                     </div>
                 </div>
             @else
-                {{-- Combined Row --}}
+                
                 <div class="col-12 mb-5">
                     <div class="row">
-                        {{-- Combined Pie Chart --}}
+                        
                         <div class="col-xl-8 col-lg-7 mb-4 mb-xl-0">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header">
@@ -471,7 +414,7 @@
                                 </div>
                             </div>
                         </div>
-                        {{-- Combined Daily Gauge --}}
+                        
                         <div class="col-xl-4 col-lg-5">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header">
@@ -492,7 +435,7 @@
                     </div>
                 </div>
 
-                {{-- NG Rate Single --}}
+                
                 <div class="col-12 mb-5">
                     <div class="modern-card h-100">
                         <div class="modern-card-header">
@@ -521,527 +464,34 @@
         @push('scripts')
             <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
             <script>
-
-                function explodePie(e) {
-                    if (typeof (e.dataSeries.dataPoints[e.dataPointIndex].exploded) === "undefined" || !e.dataSeries.dataPoints[e.dataPointIndex].exploded) {
-                        e.dataSeries.dataPoints[e.dataPointIndex].exploded = true;
-                    } else {
-                        e.dataSeries.dataPoints[e.dataPointIndex].exploded = false;
-                    }
-                    e.chart.render();
-                }
-
-                // Initialize FusionCharts immediately when ready
-                if (window.FusionCharts) {
-                    FusionCharts.ready(function () {
-                        renderGauges();
-                    });
-                }
-
-                window.addEventListener('load', function () {
-                    // Status Approval Charts
-                    @if($isDualView && isset($statsJakarta) && isset($statsKarawang))
-                        var statsJakarta = @json($statsJakarta);
-                        var statsKarawang = @json($statsKarawang);
-                        if (statsJakarta && document.getElementById("chartJakarta")) {
-                            renderChart("chartJakarta", "STATUS APPROVAL - JAKARTA", statsJakarta);
-                        }
-                        if (statsKarawang && document.getElementById("chartKarawang")) {
-                            renderChart("chartKarawang", "STATUS APPROVAL - KARAWANG", statsKarawang);
-                        }
-                    @else
-                                                                                                                                                                                                                                                                                                                        var combinedStats = @json($combinedStats ?? null);
-                        if (combinedStats && document.getElementById("chartContainer")) {
-                            renderChart("chartContainer", "Status Approval", combinedStats);
-                        }
-                    @endif
-
-                    // Customer Claim Chart
-                    renderClaimChart();
-
-                    // NG Rate Charts
-                    renderNgRateCharts();
-                });
-
-                function renderGauges() {
-                    const dailyJkt = @json($dailyStatsJakarta ?? null);
-                    const dailyKrw = @json($dailyStatsKarawang ?? null);
-                    const dailyTotal = @json($dailyCombinedStats ?? null);
-
-                    if (dailyJkt && document.getElementById("gauge-jakarta")) {
-                        renderGauge("gauge-jakarta", "Jakarta", calculateRate(dailyJkt));
-                    }
-                    if (dailyKrw && document.getElementById("gauge-karawang")) {
-                        renderGauge("gauge-karawang", "Karawang", calculateRate(dailyKrw));
-                    }
-                    if (dailyTotal && document.getElementById("gauge-total")) {
-                        const plantLabel = "{{ Auth::user()->plant->name ?? 'Combined' }}";
-                        renderGauge("gauge-total", plantLabel, calculateRate(dailyTotal));
-                    }
-                }
-
-                function calculateRate(stats) {
-                    const total = (stats.approved || 0) + (stats.pending || 0) + (stats.rejected || 0);
-                    if (total === 0) return 0;
-                    return Math.round((stats.approved / total) * 100);
-                }
-
-                function renderGauge(container, label, value) {
-                    if (!window.FusionCharts) return;
-
-                    // Dispose existing chart to prevent conflict
-                    if (FusionCharts.items && FusionCharts.items[container + "-gauge"]) {
-                        FusionCharts.items[container + "-gauge"].dispose();
-                    }
-
-                    const dataSource = {
-                        chart: {
-                            caption: label + " Approval Rate",
-                            lowerLimit: "0",
-                            upperLimit: "100",
-                            showValue: "1",
-                            numberSuffix: "%",
-                            theme: "gammel",
-                            baseFontSize: "11",
-                            captionFontSize: "14",
-                            subcaptionFontSize: "10",
-                            gaugeFillMix: "{light-10},{light-20},{light-30}",
-                            gaugeFillRatio: "40,20,40"
-                        },
-                        colorRange: {
-                            color: [
-                                { minValue: "0", maxValue: "50", code: "#ef4444" },
-                                { minValue: "50", maxValue: "75", code: "#f59e0b" },
-                                { minValue: "75", maxValue: "100", code: "#10b981" }
-                            ]
-                        },
-                        dials: {
-                            dial: [{
-                                value: value.toString(),
-                                tooltext: "<b>" + value + "%</b> approved today"
-                            }]
-                        },
-                        trendpoints: {
-                            point: [{
-                                startvalue: "100",
-                                displayvalue: " ",
-                                thickness: "2",
-                                color: "#E15A26",
-                                hideValue: "1",
-                                usemarker: "1",
-                                markerbordercolor: "#E15A26",
-                                markertooltext: "Target Approval: 100%"
-                            }]
-                        }
-                    };
-
-                    new FusionCharts({
-                        id: container + "-gauge",
-                        type: "angulargauge",
-                        renderAt: container,
-                        width: "100%",
-                        height: "100%",
-                        dataFormat: "json",
-                        dataSource
-                    }).render();
-                }
-
-                function renderClaimChart() {
-                    var claimData = @json($claimData ?? null);
-                    if (!claimData) return;
-
-                    // Common configuration for PPM charts
-                    const commonOptions = {
-                        animationEnabled: true,
-                        theme: "light2",
-                        axisX: {
-                            interval: 1,
-                            labelFontFamily: "Nunito",
-                            labelFontSize: 10
-                        },
-                        axisY: {
-                            title: "PPM",
-                            titleFontFamily: "Nunito",
-                            labelFontFamily: "Nunito",
-                            includeZero: true,
-                            minimum: 0
-                        },
-                        axisY2: {
-                            title: "Total Claim Jakarta-Karawang",
-                            titleFontFamily: "Nunito",
-                            labelFontFamily: "Nunito",
-                            includeZero: true,
-                            minimum: 0
-                        },
-                        toolTip: {
-                            shared: true,
-                            fontFamily: "Nunito"
-                        },
-                        legend: {
-                            cursor: "pointer",
-                            itemclick: toggleDataSeries,
-                            fontFamily: "Nunito",
-                            verticalAlign: "bottom",
-                            horizontalAlign: "center",
-                            fontSize: 10
-                        }
-                    };
-
-                    // 1. Jakarta Chart
-                    if (document.getElementById("chartClaimJakarta") && claimData.jakarta) {
-                        var dataJkt = claimData.jakarta.map(function (val, index) {
-                            var count = claimData.combined_total[index];
-                            var dp = { label: claimData.labels[index], y: val, claim_count: count };
-                            if (val > 0) {
-                                dp.indexLabel = val.toString();
-                                dp.indexLabelFontColor = "#2e59d9";
-                                dp.indexLabelFontWeight = "bold";
-                                dp.indexLabelFontSize = 10;
-                            }
-                            return dp;
-                        });
-
-                        var jktTarget = claimData.target.map((v, i) => {
-                            let dp = { label: claimData.labels[i], y: v };
-                            if (i === 0 || i === claimData.target.length - 1) {
-                                dp.indexLabel = v.toString();
-                                dp.indexLabelFontColor = "#c0392b";
-                                dp.indexLabelFontSize = 9;
-                                dp.indexLabelFontWeight = "bold";
-                            }
-                            return dp;
-                        });
-
-                        var jktTotalClaims = claimData.combined_total.map((v, i) => ({ label: claimData.labels[i], y: v }));
-
-                        var chartJkt = new CanvasJS.Chart("chartClaimJakarta", {
-                            ...commonOptions,
-                            toolTip: {
-                                ...commonOptions.toolTip,
-                                content: "{label}<br/><span style='color:{color}'>{name}</span>: {y}"
-                            },
-                            data: [
-                                {
-                                    type: "splineArea",
-                                    name: "Jakarta PPM",
-                                    showInLegend: true,
-                                    color: "#4e73df", // Solid blue for better contrast
-                                    markerSize: 5,
-                                    dataPoints: dataJkt
-                                },
-                                {
-                                    type: "line",
-                                    name: "Total Claim Jakarta-Karawang",
-                                    axisYType: "secondary",
-                                    showInLegend: true,
-                                    color: "#f6c23e", // Brighter yellow
-                                    markerSize: 5,
-                                    dataPoints: jktTotalClaims
-                                },
-                                {
-                                    type: "line",
-                                    name: "Target",
-                                    showInLegend: true,
-                                    color: "#e74a3b", // Bolder red
-                                    lineDashType: "dash",
-                                    markerSize: 0,
-                                    dataPoints: jktTarget
-                                }
-                            ]
-                        });
-                        chartJkt.render();
-                    }
-
-                    // 2. Karawang Chart
-                    if (document.getElementById("chartClaimKarawang") && claimData.karawang) {
-                        var dataKrw = claimData.karawang.map(function (val, index) {
-                            var count = claimData.combined_total[index];
-                            var dp = { label: claimData.labels[index], y: val, claim_count: count };
-                            if (val > 0) {
-                                dp.indexLabel = val.toString();
-                                dp.indexLabelFontColor = "#17a673";
-                                dp.indexLabelFontWeight = "bold";
-                                dp.indexLabelFontSize = 10;
-                            }
-                            return dp;
-                        });
-
-                        var targetData = claimData.target.map((v, i) => {
-                            let dp = { label: claimData.labels[i], y: v };
-                            if (i === 0 || i === claimData.target.length - 1) {
-                                dp.indexLabel = v.toString();
-                                dp.indexLabelFontColor = "#c0392b";
-                                dp.indexLabelFontSize = 9;
-                                dp.indexLabelFontWeight = "bold";
-                            }
-                            return dp;
-                        });
-
-                        var krwTotalClaims = claimData.combined_total.map((v, i) => ({ label: claimData.labels[i], y: v }));
-
-                        var chartKrw = new CanvasJS.Chart("chartClaimKarawang", {
-                            ...commonOptions,
-                            toolTip: {
-                                ...commonOptions.toolTip,
-                                content: "{label}<br/><span style='color:{color}'>{name}</span>: {y}"
-                            },
-                            data: [
-                                {
-                                    type: "splineArea",
-                                    name: "Karawang PPM",
-                                    showInLegend: true,
-                                    color: "#1cc88a", // Vivid green
-                                    markerSize: 5,
-                                    dataPoints: dataKrw
-                                },
-                                {
-                                    type: "line",
-                                    name: "Total Claim Jakarta-Karawang",
-                                    axisYType: "secondary",
-                                    showInLegend: true,
-                                    color: "#f6c23e", // Brighter yellow
-                                    markerSize: 5,
-                                    dataPoints: krwTotalClaims
-                                },
-                                {
-                                    type: "line",
-                                    name: "Target",
-                                    showInLegend: true,
-                                    color: "#e74a3b", // Bolder red
-                                    lineDashType: "dash",
-                                    markerSize: 0,
-                                    dataPoints: targetData
-                                }
-                            ]
-                        });
-                        chartKrw.render();
-                    }
-
-                    // 3. Frequency Chart (Horizontal Bar) - Data from List Claim Records
-                    var claimFrequency = @json($claimFrequency ?? null);
-                    if (document.getElementById("chartClaimFrequency") && claimFrequency) {
-                        var jktFreqData = claimFrequency.jakarta.map((v, i) => {
-                            var dp = { label: claimFrequency.labels[i], y: v };
-                            if (v > 0) { dp.indexLabel = v.toString(); dp.indexLabelFontSize = 10; dp.indexLabelFontWeight = "bold"; }
-                            return dp;
-                        });
-                        var krwFreqData = claimFrequency.karawang.map((v, i) => {
-                            var dp = { label: claimFrequency.labels[i], y: v };
-                            if (v > 0) { dp.indexLabel = v.toString(); dp.indexLabelFontSize = 10; dp.indexLabelFontWeight = "bold"; }
-                            return dp;
-                        });
-
-                        var chartFreq = new CanvasJS.Chart("chartClaimFrequency", {
-                            animationEnabled: true,
-                            theme: "light2",
-                            axisX: {
-                                interval: 1,
-                                labelFontFamily: "Nunito",
-                                labelFontSize: 10,
-                                reversed: true
-                            },
-                            axisY: {
-                                title: "Frekuensi",
-                                titleFontFamily: "Nunito",
-                                labelFontFamily: "Nunito",
-                                includeZero: true,
-                                minimum: 0
-                            },
-                            toolTip: {
-                                shared: true,
-                                fontFamily: "Nunito",
-                                content: "{label}<br/><span style='color:{color}'>{name}</span>: <strong>{y}</strong> claim"
-                            },
-                            legend: {
-                                cursor: "pointer",
-                                fontFamily: "Nunito",
-                                verticalAlign: "bottom",
-                                horizontalAlign: "center",
-                                fontSize: 10
-                            },
-                            data: [
-                                {
-                                    type: "bar",
-                                    name: "Jakarta",
-                                    showInLegend: true,
-                                    color: "#2e59d9",
-                                    dataPoints: jktFreqData
-                                },
-                                {
-                                    type: "bar",
-                                    name: "Karawang",
-                                    showInLegend: true,
-                                    color: "#17a673",
-                                    dataPoints: krwFreqData
-                                }
-                            ]
-                        });
-                        chartFreq.render();
-                    }
-                }
-                function toggleDataSeries(e) {
-                    if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-                        e.dataSeries.visible = false;
-                    } else {
-                        e.dataSeries.visible = true;
-                    }
-                    e.chart.render();
-                }
-
-                function renderChart(containerId, title, stats) {
-                    if (!document.getElementById(containerId)) return;
-
-                    var chart = new CanvasJS.Chart(containerId, {
-                        exportEnabled: true,
-                        animationEnabled: true,
-                        title: {
-                            text: title,
-                            fontSize: 18,
-                            fontFamily: "Nunito"
-                        },
-                        legend: {
-                            cursor: "pointer",
-                            itemclick: explodePie,
-                            verticalAlign: "bottom",
-                            horizontalAlign: "center"
-                        },
-                        data: [{
-                            type: "pie",
-                            showInLegend: true,
-                            toolTipContent: "{name}: <strong>{y}</strong>",
-                            indexLabel: "{name} - {y}",
-                            dataPoints: [
-                                { y: stats.pending, name: "Pending", color: "#f6c23e", exploded: true },
-                                { y: stats.approved, name: "Approved", color: "#1cc88a" },
-                                { y: stats.rejected, name: "Rejected", color: "#e74a3b" }
-                            ]
-                        }]
-                    });
-                    chart.render();
-                }
-
-                function renderNgRateCharts() {
-                    const ngData = @json($ngRateData ?? null);
-                    if (!ngData) return;
-
-                    const isDualView = {{ $isDualView ? 'true' : 'false' }};
-                    const currentPlant = "{{ strtolower($currentPlant ?? '') }}";
-
-                    if (isDualView) {
-                        if (document.getElementById("chartNgJakarta")) {
-                            renderSingleNgChart("chartNgJakarta", "Jakarta", ngData.jakarta, ngData.labels);
-                        }
-                        if (document.getElementById("chartNgKarawang")) {
-                            renderSingleNgChart("chartNgKarawang", "Karawang", ngData.karawang, ngData.labels);
-                        }
-                    } else {
-                        if (document.getElementById("chartNgSingle")) {
-                            const plantData = currentPlant === 'jakarta' ? ngData.jakarta : ngData.karawang;
-                            const plantTitle = currentPlant === 'jakarta' ? 'JAKARTA' : 'KARAWANG';
-                            renderSingleNgChart("chartNgSingle", plantTitle, plantData, ngData.labels);
-                        }
-                    }
-                }
-
-                function renderSingleNgChart(containerId, plantName, plantData, labels) {
-                    if (!document.getElementById(containerId) || !plantData) return;
-
-                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    const series = [];
-
-                    const formatLabel = (l) => {
-                        const parts = l.split('-');
-                        if (parts.length < 3) return l;
-                        const day = parts[2];
-                        const month = monthNames[parseInt(parts[1]) - 1];
-                        return day + ' ' + month;
-                    };
-
-                    if (plantData.sub_assy) {
-                        series.push({
-                            type: "spline",
-                            name: "Sub Assy",
-                            color: "#0d6efd",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.sub_assy[i] }))
-                        });
-                    }
-
-                    if (plantData.in_process) {
-                        series.push({
-                            type: "spline",
-                            name: "In Process",
-                            color: "#198754",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.in_process[i] }))
-                        });
-                    }
-
-                    if (plantData.cross_cut) {
-                        series.push({
-                            type: "spline",
-                            name: "Cross Cut",
-                            color: "#6f42c1",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.cross_cut[i] }))
-                        });
-                    }
-
-                    if (plantData.sortir) {
-                        series.push({
-                            type: "spline",
-                            name: "Sortir",
-                            color: "#d63384",
-                            showInLegend: true,
-                            yValueFormatString: "##0.00'%'",
-                            dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.sortir[i] }))
-                        });
-                    }
-
-                    const chart = new CanvasJS.Chart(containerId, {
-                        animationEnabled: true,
-                        theme: "light2",
-                        title: {
-                            text: "",
-                            fontFamily: "Nunito"
-                        },
-                        toolTip: {
-                            shared: true,
-                            fontFamily: "Nunito"
-                        },
-                        legend: {
-                            cursor: "pointer",
-                            itemclick: toggleDataSeries,
-                            fontFamily: "Nunito"
-                        },
-                        axisX: {
-                            labelFontFamily: "Nunito",
-                            labelFontSize: 10
-                        },
-                        axisY: {
-                            title: "NG Rate (%)",
-                            suffix: "%",
-                            titleFontFamily: "Nunito",
-                            labelFontFamily: "Nunito"
-                        },
-                        data: series
-                    });
-                    chart.render();
-                }
+                
+                window.__DASHBOARD__ = {
+                    isDualView:          {{ $isDualView ? 'true' : 'false' }},
+                    currentPlant:        "{{ strtolower($currentPlant ?? '') }}",
+                    plantName:           "{{ Auth::user()->plant->name ?? 'Combined' }}",
+                    statsJakarta:        @json($statsJakarta ?? null),
+                    statsKarawang:       @json($statsKarawang ?? null),
+                    combinedStats:       @json($combinedStats ?? null),
+                    dailyStatsJakarta:   @json($dailyStatsJakarta ?? null),
+                    dailyStatsKarawang:  @json($dailyStatsKarawang ?? null),
+                    dailyCombinedStats:  @json($dailyCombinedStats ?? null),
+                    claimData:           @json($claimData ?? null),
+                    claimFrequency:      @json($claimFrequency ?? null),
+                    ngRateData:          @json($ngRateData ?? null),
+                };
             </script>
+            
+            <script src="{{ asset('js/dashboard/dashboard-charts.js') }}"></script>
         @endpush
     @endif
 
 
-    <!-- Production Status Section -->
+    
 
     @if(isset($isDualView) && $isDualView && isset($productionJakarta) && isset($productionKarawang))
-        {{-- DUAL VIEW MODE --}}
+        
         <div class="row">
-            {{-- Sub Assy Jakarta (Left) --}}
+            
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header">
@@ -1196,7 +646,7 @@
                 </div>
             </div>
 
-            {{-- Sub Assy Karawang (Right) --}}
+            
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header">
@@ -1355,7 +805,7 @@
                 </div>
             </div>
 
-            {{-- Injection Jakarta (Left) --}}
+            
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header">
@@ -1518,7 +968,7 @@
                 </div>
             </div>
 
-            {{-- Injection Karawang (Right) --}}
+            
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header">
@@ -1686,7 +1136,7 @@
     @else
 
         <div class="row">
-            <!-- Sub Assy Lines -->
+            
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     @php
@@ -1718,17 +1168,17 @@
                                     $data = $activeLines->get($i);
                                     $manualStatus = $lineStatuses->get($i);
 
-                                    // Default State
+                                    
                                     $isActive = $data ? true : false;
                                     $isNg = $isActive && $data->judgment === 'NG';
                                     $statusClass = 'status-idle';
 
-                                    // Override Logic
+                                    
                                     if ($manualStatus && $manualStatus->status === 'maintenance') {
                                         $statusClass = 'status-maintenance';
-                                        $isActive = false; // Hide production data
+                                        $isActive = false; 
                                     } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped'; // Use stopped style for consistency
+                                        $statusClass = 'status-stopped'; 
                                         $isActive = false;
                                     } elseif ($manualStatus && $manualStatus->status === 'trouble') {
                                         $statusClass = 'status-trouble';
@@ -1859,7 +1309,7 @@
                 </div>
             </div>
 
-            <!-- In Process Machines -->
+            
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header">
@@ -1891,12 +1341,12 @@
                                     $machineInfo = ($plant === 'jakarta') ? ($jakartaMachines[$i] ?? null) : ($karawangMachines[$i] ?? null);
                                     $tonnage = $machineInfo['tonnage'] ?? '-';
 
-                                    // Default State
+                                    
                                     $isActive = $data ? true : false;
                                     $isNg = $isActive && $data->judgment === 'NG';
                                     $statusClass = 'status-idle';
 
-                                    // Override Logic
+                                    
                                     if ($manualStatus && $manualStatus->status === 'maintenance') {
                                         $statusClass = 'status-maintenance';
                                         $isActive = false;
@@ -2037,7 +1487,7 @@
         </div>
     @endif
 
-    <!-- Detail Modal -->
+    
     <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -2052,7 +1502,7 @@
                     </button>
                 </div>
                 <div class="modal-body" id="modalBody">
-                    <!-- Content will be populated by JavaScript -->
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -2063,206 +1513,10 @@
         </div>
     </div>
 
-    <script>
-        // Function to show detail modal
-        function showDetailModal(element) {
-            const card = element.closest('.status-item');
-            if (!card) return;
-
-            const unitName = card.querySelector('h4')?.textContent || 'Unknown';
-            const partNumber = card.dataset.partNumber || '-';
-            const itemName = card.dataset.itemName || '-';
-            const judgment = card.dataset.judgment || '-';
-            const totalQty = card.dataset.totalQty || '-';
-            const samplingQty = card.dataset.samplingQty || '-';
-            const okCount = card.dataset.okCount || '-';
-            const ngCount = card.dataset.ngCount || '-';
-            const operator = card.dataset.operator || '-';
-            const date = card.dataset.date || '-';
-            const shift = card.dataset.shift || '-';
-            const time = card.dataset.time || '-';
-            const tonnage = card.dataset.tonnage || '-';
-            const status = card.dataset.status || 'idle';
-            const manualDescription = card.dataset.manualDescription || '';
-            const manualBy = card.dataset.manualBy || '';
-            const manualUpdated = card.dataset.manualUpdated || '';
-
-            // Set modal title
-            document.getElementById('modalUnitName').textContent = unitName;
-
-            // Build modal content with premium design
-            let content = '';
-
-            const unitLabel = unitName.includes('MEJA') ? 'MEJA' : 'MACHINE';
-
-            if (status === 'active') {
-                content = `
-                                                                                                                                                                                                                                                                    <div class="space-y-6 text-slate-800 dark:text-slate-200">
-                                                                                                                                                                                                                                                                        <!-- Part Info Section -->
-                                                                                                                                                                                                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-                                                                                                                                                                                                                                                                            <div class="flex items-center gap-2 mb-4">
-                                                                                                                                                                                                                                                                                <span class="material-icons-round text-primary">inventory_2</span>
-                                                                                                                                                                                                                                                                                <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Informasi Item</h6>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                                                                                                                                                                                                                                <div class="space-y-1">
-                                                                                                                                                                                                                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Part Number</p>
-                                                                                                                                                                                                                                                                                    <p class="text-sm font-mono font-bold">${partNumber}</p>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                <div class="space-y-1">
-                                                                                                                                                                                                                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Item Name</p>
-                                                                                                                                                                                                                                                                                    <p class="text-sm font-bold">${itemName}</p>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                <div class="space-y-1">
-                                                                                                                                                                                                                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Kapasitas (Tonnage)</p>
-                                                                                                                                                                                                                                                                                    <p class="text-sm font-bold">${tonnage}T</p>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                <div class="space-y-1">
-                                                                                                                                                                                                                                                                                    <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Waktu Update</p>
-                                                                                                                                                                                                                                                                                    <p class="text-sm font-bold">${time} WIB</p>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                        </div>
-
-                                                                                                                                                                                                                                                                        <!-- Quality Control Section -->
-                                                                                                                                                                                                                                                                        <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
-                                                                                                                                                                                                                                                                            <div class="flex items-center gap-2 mb-4">
-                                                                                                                                                                                                                                                                                <span class="material-icons-round text-indigo-600">verified_user</span>
-                                                                                                                                                                                                                                                                                <h6 class="font-bold m-0 uppercase tracking-wider text-xs">Quality Control</h6>
-                                                                                                                                                                                                                                                                            </div>
-
-                                                                                                                                                                                                                                                                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                                                                                                                                                                                                                                                                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                                                                                                                                                                                                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Sampling</p>
-                                                                                                                                                                                                                                                                                    <div class="flex items-end gap-1">
-                                                                                                                                                                                                                                                                                        <span class="text-xl font-bold">${samplingQty}</span>
-                                                                                                                                                                                                                                                                                        <span class="text-[0.65rem] text-slate-400 mb-1">/ ${totalQty} pcs</span>
-                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                                                                                                                                                                                                                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold mb-1">Status Judgment</p>
-                                                                                                                                                                                                                                                                                    <div class="flex items-center gap-1.5">
-                                                                                                                                                                                                                                                                                        <span class="w-2 h-2 rounded-full ${judgment === 'OK' ? 'bg-green-500' : 'bg-red-500'}"></span>
-                                                                                                                                                                                                                                                                                        <span class="text-sm font-extrabold ${judgment === 'OK' ? 'text-green-600' : 'text-red-600'}">${judgment}</span>
-                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                            </div>
-
-                                                                                                                                                                                                                                                                            <div class="grid grid-cols-2 gap-4">
-                                                                                                                                                                                                                                                                                <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 p-2.5 rounded-xl border border-green-100 dark:border-green-900/30">
-                                                                                                                                                                                                                                                                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">OK</div>
-                                                                                                                                                                                                                                                                                    <div>
-                                                                                                                                                                                                                                                                                        <p class="text-[0.6rem] text-green-700 dark:text-green-400 font-bold uppercase">Total OK</p>
-                                                                                                                                                                                                                                                                                        <p class="text-sm font-bold">${okCount}</p>
-                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                <div class="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-xl border border-red-100 dark:border-red-900/30">
-                                                                                                                                                                                                                                                                                    <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-xs shadow-sm">NG</div>
-                                                                                                                                                                                                                                                                                    <div>
-                                                                                                                                                                                                                                                                                        <p class="text-[0.6rem] text-red-700 dark:text-red-400 font-bold uppercase">Total NG</p>
-                                                                                                                                                                                                                                                                                        <p class="text-sm font-bold">${ngCount}</p>
-                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                        </div>
-
-                                                                                                                                                                                                                                                                        <!-- Operator Info -->
-                                                                                                                                                                                                                                                                        <div class="flex items-center justify-between px-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                                                                                                                                                                                                                                                            <div class="flex items-center gap-2">
-                                                                                                                                                                                                                                                                                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                                                                                                                                                                                                                                                                    <span class="material-icons-round text-lg">person</span>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                <div>
-                                                                                                                                                                                                                                                                                    <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Inspector Quality Control</p>
-                                                                                                                                                                                                                                                                                    <p class="text-xs font-bold leading-none">${operator}</p>
-                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                            <div class="text-right">
-                                                                                                                                                                                                                                                                                <p class="text-[0.6rem] text-slate-500 uppercase font-bold leading-none mb-1">Shift / Tanggal</p>
-                                                                                                                                                                                                                                                                                <p class="text-xs font-medium leading-none">Shift ${shift} | ${date}</p>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                    </div>`;
-            } else if (['maintenance', 'stopped', 'trouble'].includes(status)) {
-                let badge = status === 'maintenance' ? 'GANTI MOLD/SETTING' : (status === 'stopped' ? 'STAND BY' : 'TROUBLE');
-                let color = status === 'maintenance' ? 'yellow' : (status === 'stopped' ? 'gray' : 'red');
-                let icon = status === 'maintenance' ? 'engineering' : (status === 'stopped' ? 'pause_circle_outline' : 'warning');
-
-                content = `
-                                                                                                                                                                                                                                                                    <div class="text-center py-6 text-slate-800 dark:text-slate-200">
-                                                                                                                                                                                                                                                                        <div class="w-20 h-20 bg-${color}-50 dark:bg-${color}-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-${color}-100 dark:border-${color}-900/30">
-                                                                                                                                                                                                                                                                            <span class="material-icons-round text-4xl text-${color}-600 dark:text-${color}-400">${icon}</span>
-                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                        <h4 class="text-xl font-black mb-2 uppercase italic">${unitLabel} IN ${badge}</h4>
-                                                                                                                                                                                                                                                                        <div class="max-w-xs mx-auto bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mt-6">
-                                                                                                                                                                                                                                                                            <p class="text-[0.65rem] text-slate-500 uppercase font-bold mb-2">Keterangan / Masalah</p>
-                                                                                                                                                                                                                                                                            <p class="text-sm font-medium italic">"${manualDescription || 'Tidak ada keterangan tambahan'}"</p>
-                                                                                                                                                                                                                                                                            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-[0.6rem]">
-                                                                                                                                                                                                                                                                                <span class="text-slate-400 uppercase font-bold">Dibuat Oleh: ${manualBy}</span>
-                                                                                                                                                                                                                                                                                <span class="text-slate-400 font-medium">${manualUpdated}</span>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                    </div>`;
-            } else {
-                content = `
-                                                                                                                                                                                                                                                                    <div class="text-center py-12 text-slate-800 dark:text-slate-200">
-                                                                                                                                                                                                                                                                        <div class="relative w-24 h-24 mx-auto mb-6">
-                                                                                                                                                                                                                                                                            <div class="absolute inset-0 bg-slate-100 dark:bg-slate-800 rounded-full animate-ping opacity-25"></div>
-                                                                                                                                                                                                                                                                            <div class="relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-inner">
-                                                                                                                                                                                                                                                                                <span class="material-icons-round text-4xl text-slate-400">hourglass_empty</span>
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                        <h4 class="text-lg font-bold mb-2 tracking-tight">Status: ${unitLabel} IDLE</h4>
-                                                                                                                                                                                                                                                                        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto">Menunggu pengecekan dari tim Quality Control.</p>
-                                                                                                                                                                                                                                                                        <button class="mt-8 px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:scale-105 transition-transform" data-dismiss="modal">Tutup Detail</button>
-                                                                                                                                                                                                                                                                    </div>`;
-            }
-
-            // Set modal content
-            document.getElementById('modalBody').innerHTML = content;
-
-            // Show modal
-            $('#detailModal').modal('show');
-        }
-
-        function updateDateTime() {
-            const now = new Date();
-
-            // Format date
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
-            const dayName = days[now.getDay()];
-            const date = now.getDate();
-            const monthName = months[now.getMonth()];
-            const year = now.getFullYear();
-
-            const dateString = `${dayName}, ${date} ${monthName} ${year}`;
-
-            // Format time
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const timeString = `${hours}:${minutes}:${seconds}`;
-
-            // Update DOM
-            const dateElement = document.getElementById('current-date');
-            if (dateElement) {
-                dateElement.textContent = dateString;
-            }
-
-            const timeElement = document.getElementById('current-time');
-            if (timeElement) {
-                timeElement.textContent = timeString;
-            }
-        }
-
-        // Update immediately
-        updateDateTime();
-
-        // Update every second
-        setInterval(updateDateTime, 1000);
-
-    </script>
+    @push('scripts')
+        <script src="{{ asset('js/dashboard/dashboard-ui.js') }}"></script>
+    @endpush
 @endsection
+
+
+

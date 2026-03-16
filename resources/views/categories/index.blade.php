@@ -30,13 +30,10 @@
                 </form>
             @endif
 
-            @php
-                /** @var \Illuminate\Support\ViewErrorBag $errors */
-            @endphp
-            @if(isset($errors) && method_exists($errors, 'any') && $errors->any())
+            @if(isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0)))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <ul class="mb-0">
-                        @foreach($errors->all() as $error)
+                        @foreach(is_object($errors) ? $errors->all() : $errors as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
@@ -132,7 +129,6 @@
     </div>
 
 
-    <!-- Modal Tambah Kategori -->
     <div class="modal fade" id="modalAddCategory" tabindex="-1" role="dialog" aria-labelledby="modalAddCategoryLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content border-0 shadow">
@@ -146,14 +142,16 @@
                     @csrf
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                     <div class="modal-body">
-                        @if($errors->any() && old('_method') !== 'PUT')
-                            <div class="alert alert-danger py-2 mb-3 small">
-                                <ul class="mb-0 pl-3">
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                        @if(isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0)))
+                            @if(old('_method') !== 'PUT')
+                                <div class="alert alert-danger py-2 mb-3 small">
+                                    <ul class="mb-0 pl-3">
+                                        @foreach(is_object($errors) ? $errors->all() : $errors as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         @endif
 
                         <div class="form-group">
@@ -179,7 +177,6 @@
         </div>
     </div>
 
-    <!-- Modal Edit Kategori -->
     <div class="modal fade" id="modalEditCategory" tabindex="-1" role="dialog" aria-labelledby="modalEditCategoryLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content border-0 shadow">
@@ -194,14 +191,16 @@
                     @method('PUT')
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                     <div class="modal-body text-left">
-                        @if($errors->any() && old('_method') === 'PUT')
-                            <div class="alert alert-danger py-2 mb-3 small">
-                                <ul class="mb-0 pl-3">
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                        @if(isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0)))
+                            @if(old('_method') === 'PUT')
+                                <div class="alert alert-danger py-2 mb-3 small">
+                                    <ul class="mb-0 pl-3">
+                                        @foreach(is_object($errors) ? $errors->all() : $errors as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         @endif
 
                         <div class="form-group">
@@ -228,77 +227,18 @@
 
 @push('scripts')
     <script>
+        window.__CATEGORIES__ = {
+            edit_url: "{{ route('admin.categories.edit', ':id') }}",
+            update_url: "{{ route('admin.categories.update', ':id') }}",
+            has_errors: {{ (isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0))) ? 'true' : 'false' }},
+            old_method: "{{ old('_method') }}"
+        };
+
         $(document).ready(function() {
-            // Auto-open modal if there are validation errors
-            @if($errors->any())
-                @if(old('_method') === 'PUT')
-                    // For Category, Edit is also AJAX-based to load data, 
-                    // but we can try to re-open if we have old ID
-                    @if(old('id'))
-                         // This would require more logic to re-trigger the AJAX or pre-fill.
-                         // For now, let's at least handle the Add modal.
-                    @endif
-                @else
-                    $('#modalAddCategory').modal('show');
-                @endif
-            @endif
-
-            $('.btn-edit-category').on('click', function() {
-                var id = $(this).data('id');
-                var btn = $(this);
-                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-                $.ajax({
-                    url: "{{ route('admin.categories.edit', ':id') }}".replace(':id', id),
-                    type: 'GET',
-                    success: function(response) {
-                        $('#edit_category_name').val(response.category.name);
-                        $('#edit_plant_name').val(response.plant ? response.plant.name.toUpperCase() : '-');
-                        
-                        var url = "{{ route('admin.categories.update', ':id') }}";
-                        url = url.replace(':id', id);
-                        $('#formEditCategory').attr('action', url);
-                        
-                        $('#modalEditCategory').modal('show');
-                        btn.prop('disabled', false).html('<i class="fas fa-edit"></i> Edit');
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal mengambil data kategori.';
-                        if (xhr.status === 404) {
-                            message = 'Kategori tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengedit kategori ini.';
-                        } else if (xhr.status === 500) {
-                            message = 'Terjadi kesalahan pada server saat mengambil data.';
-                        }
-                        alert(message);
-                        btn.prop('disabled', false).html('<i class="fas fa-edit"></i> Edit');
-                    }
-                });
-            });
-
-            // SweetAlert for Delete Confirmation
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const form = this.closest('form');
-
-                    Swal.fire({
-                        title: 'Apakah Anda yakin?',
-                        text: "Data kategori ini akan dihapus permanen!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Ya, Hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
-                });
-            });
+            if (window.__CATEGORIES__.has_errors && window.__CATEGORIES__.old_method !== 'PUT') {
+                $('#modalAddCategory').modal('show');
+            }
         });
     </script>
+    <script src="{{ asset('js/admin/categories/categories-index.js') }}"></script>
 @endpush

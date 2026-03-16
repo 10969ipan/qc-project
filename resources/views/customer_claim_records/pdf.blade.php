@@ -87,7 +87,6 @@
             text-align: right;
         }
 
-        /* Optimized Column Widths (Total 100%) */
         .col-no { width: 1.5%; }
         .col-date { width: 4.5%; }
         .col-cust { width: 6%; }

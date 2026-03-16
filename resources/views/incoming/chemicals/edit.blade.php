@@ -17,3 +17,7 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/incoming/incoming-edit.js') }}"></script>
+@endpush

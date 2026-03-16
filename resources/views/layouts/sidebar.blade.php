@@ -1,6 +1,5 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
         <div class="sidebar-brand-icon rotate-n-15">
             <i class="fas fa-laugh-wink"></i>
@@ -13,28 +12,22 @@
         </div>
     </a>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
         <a class="nav-link" href="/">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span></a>
     </li>
 
-    <!-- Divider -->
     <hr class="sidebar-divider">
 
     @php
-        // Roles that can VIEW all plants (for reports/laporan)
         $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 
-        // Roles that can INPUT in all plants
         $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'oshef']);
     @endphp
 
-    <!-- Quality Control -->
     @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'oshef'])))
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
@@ -45,12 +38,10 @@
             <div id="collapseQC" class="collapse" aria-labelledby="headingQC" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
 
-                    <!-- Plant Jakarta -->
                     @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qcPlantJKT">Plant Jakarta</a>
                         <div id="qcPlantJKT" class="collapse pl-2">
-                            <!-- Master Data JKT -->
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcMasterJKT">Master data</a>
@@ -64,7 +55,6 @@
                                 </div>
                             @endif
 
-                            <!-- Report JKT -->
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcReportJKT">Report</a>
@@ -78,7 +68,6 @@
                                 </div>
                             @endif
 
-                            <!-- Checksheet JKT -->
                             @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'asst_manager', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckJKT">Checksheet</a>
@@ -93,7 +82,6 @@
                                 </div>
                             @endif
 
-                            <!-- Laporan JKT -->
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanJKT">Laporan</a>
@@ -113,12 +101,10 @@
 
                     <div class="dropdown-divider"></div>
 
-                    <!-- Plant Karawang -->
                     @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qcPlantKRW">Plant Karawang</a>
                         <div id="qcPlantKRW" class="collapse pl-2">
-                            <!-- Master Data KRW -->
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcMasterKRW">Master data</a>
@@ -132,7 +118,6 @@
                                 </div>
                             @endif
 
-                            <!-- Report KRW -->
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcReportKRW">Report</a>
@@ -149,7 +134,6 @@
                                 </div>
                             @endif
 
-                            <!-- Checksheet KRW -->
                             @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'asst_manager', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckKRW">Checksheet</a>
@@ -171,7 +155,6 @@
                                 </div>
                             @endif
 
-                            <!-- Laporan KRW -->
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanKRW">Laporan</a>
@@ -200,7 +183,6 @@
         </li>
     @endif
 
-    <!-- Quality Assurance -->
     @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager'])))
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQA" aria-expanded="true"
@@ -211,7 +193,6 @@
             <div id="collapseQA" class="collapse" aria-labelledby="headingQA" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
 
-                    <!-- Plant Jakarta -->
                     @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qaPlantJKT">Plant Jakarta</a>
@@ -226,7 +207,6 @@
 
                     <div class="dropdown-divider"></div>
 
-                    <!-- Plant Karawang -->
                     @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qaPlantKRW">Plant Karawang</a>
@@ -244,7 +224,6 @@
     @endif
 
     @if(auth()->check() && (auth()->user()->plant && auth()->user()->plant->code !== 'jakarta') && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
-        <!-- Nav Item - Cross Cut Only (For Plating Roles) -->
         <li class="nav-item">
             <a class="nav-link" href="{{ route('cross_cut.index') }}">
                 <i class="fas fa-fw fa-file-alt"></i>
@@ -253,17 +232,14 @@
         </li>
     @endif
 
-    <!-- Nav Item - Logout -->
     <li class="nav-item">
         <a class="nav-link btn-logout" href="#">
             <i class="fas fa-fw fa-sign-out-alt"></i>
             <span>Logout</span></a>
     </li>
 
-    <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 
-    <!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>

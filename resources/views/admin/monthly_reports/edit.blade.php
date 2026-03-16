@@ -4,7 +4,6 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Edit Laporan Bulanan</h1>
         <a href="{{ route('admin.monthly-reports.index') }}" class="btn btn-secondary">
@@ -111,14 +110,8 @@
     </div>
 </div>
 
-<script>
-// Update file input label with selected filename
-document.querySelector('.custom-file-input').addEventListener('change', function(e) {
-    if (e.target.files.length > 0) {
-        var fileName = e.target.files[0].name;
-        var nextSibling = e.target.nextElementSibling;
-        nextSibling.innerText = fileName;
-    }
-});
-</script>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/admin/monthly-reports/monthly-reports-form.js') }}"></script>
+@endpush

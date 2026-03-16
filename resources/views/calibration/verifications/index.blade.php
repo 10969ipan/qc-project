@@ -78,6 +78,14 @@
                 border: 1px solid #ffffff44 !important;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
             }
+
+            #dataTable tbody tr:hover {
+                background-color: rgba(78, 115, 223, 0.08) !important;
+            }
+
+            #dataTable tbody tr:hover td {
+                background-color: rgba(78, 115, 223, 0.08) !important;
+            }
         </style>
 
         @if(session('success'))

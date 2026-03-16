@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="utf-8">
@@ -303,7 +303,6 @@
             margin-bottom: 0;
         }
 
-        /* Responsive Design Upgrades */
         @media (max-width: 991.98px) {
             .login-card {
                 flex-direction: column;
@@ -363,11 +362,9 @@
             .form-control-modern {
                 padding: 0.85rem 1rem;
                 font-size: 16px;
-                /* iOS zoom prevention */
             }
         }
 
-        /* Landscape orientation handling for mobile */
         @media (max-height: 600px) and (orientation: landscape) {
             .login-container {
                 padding: 1rem;
@@ -427,14 +424,14 @@
                 <form action="{{ route('login.process') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                        <label class="small font-weight-bold text-gray-600 mb-1">EMAIL ADDRESS</label>
+                        <label class="small font-weight-bold text-gray-600 mb-1">ALAMAT EMAIL</label>
                         <input type="email" name="email" class="form-control-modern" id="exampleInputEmail"
                             placeholder="nama@email.com" required autofocus
                             value="{{ old('email', $saved_email ?? '') }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="small font-weight-bold text-gray-600 mb-1">PASSWORD</label>
+                        <label class="small font-weight-bold text-gray-600 mb-1">KATA SANDI</label>
                         <div class="password-wrapper">
                             <input type="password" name="password" class="form-control-modern" id="exampleInputPassword"
                                 placeholder="••••••••" required value="{{ $saved_password ?? '' }}">
@@ -470,22 +467,7 @@
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
 
     <script src="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const togglePassword = document.querySelector('.toggle-password');
-            const password = document.querySelector('#exampleInputPassword');
-
-            if (togglePassword && password) {
-                togglePassword.addEventListener('click', function (e) {
-                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                    password.setAttribute('type', type);
-                    this.classList.toggle('fa-eye');
-                    this.classList.toggle('fa-eye-slash');
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('js/auth/login.js') }}"></script>
 </body>
 
 </html>

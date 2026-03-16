@@ -97,21 +97,6 @@
     </div>
 </form>
 
-<script>
-    $(document).ready(function () {
-        // Simple logic for adding/removing rows in AJAX-loaded content
-        $('#editAddDefectBtn').on('click', function () {
-            const firstRow = $('.edit-defect-row').first().clone();
-            firstRow.find('input').val('');
-            firstRow.find('select').val('');
-            if (firstRow.find('.remove-defect-btn').length === 0) {
-                firstRow.append('<div class="input-group-append"><button type="button" class="btn btn-danger remove-defect-btn"><i class="fas fa-trash"></i></button></div>');
-            }
-            $('#editDefectContainer').append(firstRow);
-        });
-
-        $(document).on('click', '.remove-defect-btn', function () {
-            $(this).closest('.edit-defect-row').remove();
-        });
-    });
-</script>
+@push('scripts')
+    {{-- Script linked in parent edit.blade.php --}}
+@endpush
