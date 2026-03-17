@@ -20,8 +20,15 @@ class SettingsController extends Controller
         $plants = \App\Models\Plant::all();
         $roles = \App\Models\User::distinct()->whereNotNull('role')->pluck('role')->toArray();
         
-        // Fetch all top-level menus with their children
-        $menus = \App\Models\AppMenu::whereNull('parent_id')->with('children.children')->orderBy('order')->get();
+        // Fetch all top-level menus with their children (deeply nested for permission matrix)
+        $menus = \App\Models\AppMenu::whereNull('parent_id')
+            ->with(['children' => function($q) {
+                $q->with(['children' => function($sq) {
+                    $sq->with('children');
+                }]);
+            }])
+            ->orderBy('order')
+            ->get();
         
         // Fetch permissions for the first role (or selected role)
         $selectedRole = $request->get('role', $roles[0] ?? null);

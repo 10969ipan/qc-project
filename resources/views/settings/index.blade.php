@@ -359,57 +359,26 @@
                             
                             <!-- Right: Permission Details -->
                             <div class="permission-detail-panel">
-                                @foreach($parentMenus as $parent)
-                                <div id="module-{{ $parent->id }}" class="module-content-section {{ $loop->first ? '' : 'd-none' }}">
-                                    <div class="panel-header">
-                                        <h5 class="font-weight-bold text-dark mb-1">{{ $parent->name }}</h5>
-                                        <p class="text-muted small mb-0">Konfigurasi izin untuk modul utama dan sub-modul di dalamnya.</p>
-                                    </div>
-                                    
-                                    <div class="permission-grid-header">
-                                        <div>Modul / Sub-Modul</div>
-                                        <div>View</div>
-                                        <div>Input</div>
-                                        <div>Edit/Del</div>
-                                        <div>Approve</div>
-                                        <div>Export</div>
-                                    </div>
+                                    @foreach($parentMenus as $parent)
+                                    <div id="module-{{ $parent->id }}" class="module-content-section {{ $loop->first ? '' : 'd-none' }}">
+                                        <div class="panel-header">
+                                            <h5 class="font-weight-bold text-dark mb-1">{{ $parent->name }}</h5>
+                                            <p class="text-muted small mb-0">Konfigurasi izin untuk modul utama dan sub-modul di dalamnya.</p>
+                                        </div>
+                                        
+                                        <div class="permission-grid-header">
+                                            <div>Modul / Sub-Modul</div>
+                                            <div>View</div>
+                                            <div>Input</div>
+                                            <div>Edit/Del</div>
+                                            <div>Approve</div>
+                                            <div>Export</div>
+                                        </div>
 
-                                    <!-- Parent Entry in Detail View -->
-                                    <div class="permission-row-item">
-                                        <div class="permission-name text-primary">
-                                            <i class="fas fa-star mr-2 small"></i> Main Modul
-                                        </div>
-                                        @foreach(['view', 'input', 'edit', 'approve', 'export'] as $type)
-                                        <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
-                                            <input type="checkbox" class="custom-control-input parent-check" id="{{ $type }}_{{ $parent->id }}" {{ ($permissions[$parent->id]->{"can_$type"} ?? false) ? 'checked' : '' }} data-menu-id="{{ $parent->id }}" data-type="{{ $type }}">
-                                            <label class="custom-control-label" for="{{ $type }}_{{ $parent->id }}"></label>
-                                        </div>
-                                        @endforeach
+                                        <!-- Recursive Permission Matrix -->
+                                        @include('settings.partials.permission_row', ['menu' => $parent, 'level' => 0])
                                     </div>
-
-                                    <!-- Children List -->
-                                    @if($parent->children->isNotEmpty())
-                                        @foreach($parent->children as $child)
-                                        <div class="permission-row-item">
-                                            <div class="permission-name pl-4">
-                                                <i class="fas fa-level-up-alt fa-rotate-90 text-muted mr-3 small opacity-50"></i> {{ $child->name }}
-                                            </div>
-                                            @foreach(['view', 'input', 'edit', 'approve', 'export'] as $type)
-                                            <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
-                                                <input type="checkbox" class="custom-control-input child-check-{{ $parent->id }}" id="{{ $type }}_{{ $child->id }}" {{ ($permissions[$child->id]->{"can_$type"} ?? false) ? 'checked' : '' }} data-menu-id="{{ $child->id }}" data-type="{{ $type }}">
-                                                <label class="custom-control-label" for="{{ $type }}_{{ $child->id }}"></label>
-                                            </div>
-                                            @endforeach
-                                        </div>
-                                        @endforeach
-                                    @else
-                                        <div class="text-center py-5 text-muted small">
-                                            <i class="fas fa-info-circle mr-1"></i> Tidak ada sub-modul untuk menu ini.
-                                        </div>
-                                    @endif
-                                </div>
-                                @endforeach
+                                    @endforeach
                             </div>
                         </div>
                     </div>
