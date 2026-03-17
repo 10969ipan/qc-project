@@ -7,6 +7,7 @@ use App\Services\ItemService;
 use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\UpdateItemRequest;
 use Illuminate\Http\Request;
+use App\Helpers\ActivityLogger;
 
 class ItemController extends Controller
 {
@@ -66,7 +67,8 @@ class ItemController extends Controller
     {
         $data = $request->validated();
 
-        $this->itemService->createItem($data);
+        $item = $this->itemService->createItem($data);
+        ActivityLogger::log('created', $item, "Menambahkan item baru: {$item->name}");
 
         // Redirect back to the same plant view with filters and pagination
         $queryParams = [
@@ -142,6 +144,9 @@ class ItemController extends Controller
             return !is_null($value) && $value !== '';
         });
 
+        $item = Item::withoutGlobalScope('plant')->find($item->id);
+        ActivityLogger::log('updated', $item, "Memperbarui data item: {$item->name}");
+
         return redirect()->route('admin.items.index', $queryParams)->with('success', 'Item berhasil diperbarui.');
     }
 
@@ -151,7 +156,10 @@ class ItemController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         try {
+            $item = Item::withoutGlobalScope('plant')->find($id);
+            $itemName = $item ? $item->name : 'Unknown';
             $this->itemService->deleteItem($id);
+            ActivityLogger::log('deleted', null, "Menghapus item: {$itemName}");
 
             // Preserve pagination and filter parameters
             $queryParams = [
@@ -328,6 +336,8 @@ class ItemController extends Controller
         }
         try {
             $this->itemService->deleteItemPdf($id, $index);
+            $item = Item::withoutGlobalScope('plant')->find($id);
+            ActivityLogger::log('deleted', $item, "Menghapus file PDF index {$index} pada item: {$item->name}");
             return response()->json(['success' => true, 'message' => 'PDF berhasil dihapus.']);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to delete PDF for Item ID {$id}: " . $e->getMessage());
@@ -346,6 +356,8 @@ class ItemController extends Controller
         }
         try {
             $this->itemService->deleteItemSimilarPdf($id);
+            $item = Item::withoutGlobalScope('plant')->find($id);
+            ActivityLogger::log('deleted', $item, "Menghapus Similar Part PDF pada item: {$item->name}");
             return response()->json(['success' => true, 'message' => 'PDF Similar Part berhasil dihapus.']);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to delete Similar Part PDF for Item ID {$id}: " . $e->getMessage());

@@ -11,6 +11,7 @@ use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class IncomingMaterialController extends Controller
 {
@@ -98,7 +99,11 @@ class IncomingMaterialController extends Controller
     public function store(StoreIncomingMaterialRequest $request)
     {
         try {
-            $this->checksheetService->createChecksheet($request->validated());
+            $result = $this->checksheetService->createChecksheet($request->validated());
+            $checksheet = $result['checksheet'] ?? null;
+            if ($checksheet) {
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Material baru: {$checksheet->item->name}");
+            }
             $message = 'Data Incoming Material berhasil disimpan.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -136,12 +141,17 @@ class IncomingMaterialController extends Controller
     public function update(UpdateIncomingMaterialRequest $request, $id)
     {
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = IncomingMaterial::find($id);
+        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Incoming Material: {$checksheet->item->name}");
         return redirect()->route('incoming.materials.index', $request->query())->with('success', 'Incoming Material berhasil diperbarui.');
     }
 
     public function destroy(Request $request, $id)
     {
+        $checksheet = IncomingMaterial::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Material: {$itemName}");
         return redirect()->route('incoming.materials.index', $request->query())->with('success', 'Incoming Material berhasil dihapus.');
     }
 

@@ -143,6 +143,8 @@ class PlatingChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
+            $checksheet = $result['checksheet'];
+            \App\Helpers\ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Plating baru: {$checksheet->item->name}");
             $message = 'Data Checksheet Plating berhasil disimpan.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -186,6 +188,8 @@ class PlatingChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = \App\Models\PlatingChecksheet::find($id);
+        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Plating: {$checksheet->item->name}");
         return redirect()->route('plating.index')->with('success', 'Checksheet Plating berhasil diperbarui.');
     }
 
@@ -193,7 +197,10 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
+        $checksheet = \App\Models\PlatingChecksheet::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Plating: {$itemName}");
         return redirect()->route('plating.index')->with('success', 'Data Checksheet Plating berhasil dihapus.');
     }
 
@@ -236,7 +243,8 @@ class PlatingChecksheetController extends Controller
         ]);
 
         $this->checksheetService->updateApprovalStatus($id, $validated);
-
+        $checksheet = \App\Models\PlatingChecksheet::find($id);
+        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Plating: {$checksheet->item->name}");
         return redirect()->route('plating.index')->with('success', 'Status approval Plating berhasil diperbarui.');
     }
 }

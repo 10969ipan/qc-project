@@ -11,6 +11,7 @@ use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class IncomingChemicalController extends Controller
 {
@@ -98,7 +99,11 @@ class IncomingChemicalController extends Controller
     public function store(StoreIncomingChemicalRequest $request)
     {
         try {
-            $this->checksheetService->createChecksheet($request->validated());
+            $result = $this->checksheetService->createChecksheet($request->validated());
+            $checksheet = $result['checksheet'] ?? null;
+            if ($checksheet) {
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Chemical baru: {$checksheet->item->name}");
+            }
             $message = 'Data Incoming Chemical berhasil disimpan.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -136,12 +141,17 @@ class IncomingChemicalController extends Controller
     public function update(UpdateIncomingChemicalRequest $request, $id)
     {
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = IncomingChemical::find($id);
+        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Incoming Chemical: {$checksheet->item->name}");
         return redirect()->route('incoming.chemicals.index', $request->query())->with('success', 'Incoming Chemical berhasil diperbarui.');
     }
 
     public function destroy(Request $request, $id)
     {
+        $checksheet = IncomingChemical::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Chemical: {$itemName}");
         return redirect()->route('incoming.chemicals.index', $request->query())->with('success', 'Incoming Chemical berhasil dihapus.');
     }
 

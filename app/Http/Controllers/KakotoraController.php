@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kakotora;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\ActivityLogger;
 
 class KakotoraController extends Controller
 {
@@ -64,7 +65,8 @@ class KakotoraController extends Controller
             $data['form_analysis_path'] = $path;
         }
 
-        Kakotora::create($data);
+        $kakotora = Kakotora::create($data);
+        ActivityLogger::log('created', $kakotora, "Menambahkan data KAKOTORA baru: {$kakotora->no_reg}");
 
         return redirect()->route('kakotora.index', ['plant' => $request->plant])->with('success', 'Data KAKOTORA berhasil ditambahkan.');
     }
@@ -119,6 +121,7 @@ class KakotoraController extends Controller
         }
 
         $kakotora->update($validated);
+        ActivityLogger::log('updated', $kakotora, "Memperbarui data KAKOTORA: {$kakotora->no_reg}");
 
         return redirect()->route('kakotora.index', ['plant' => $kakotora->plant])->with('success', 'Data KAKOTORA berhasil diperbarui.');
     }
@@ -129,7 +132,9 @@ class KakotoraController extends Controller
         if ($kakotora->form_analysis_path) {
             Storage::disk('public')->delete($kakotora->form_analysis_path);
         }
+        $noReg = $kakotora->no_reg;
         $kakotora->delete();
+        ActivityLogger::log('deleted', null, "Menghapus data KAKOTORA: {$noReg}");
 
         return redirect()->route('kakotora.index', ['plant' => $plant])->with('success', 'Data KAKOTORA berhasil dihapus.');
     }

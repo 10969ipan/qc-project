@@ -201,7 +201,10 @@ class SortirChecksheetController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         try {
+            $checksheet = SortirChecksheet::find($id);
+            $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->sortirService->deleteChecksheet($id);
+            \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Sortir: {$itemName}");
             return redirect()->route('sortir.index', $this->getFilterParams($request, true))
                 ->with('success', 'Data Sortir berhasil dihapus.');
         } catch (\Exception $e) {

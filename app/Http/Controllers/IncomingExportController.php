@@ -11,6 +11,7 @@ use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class IncomingExportController extends Controller
 {
@@ -90,7 +91,11 @@ class IncomingExportController extends Controller
     public function store(StoreIncomingExportRequest $request)
     {
         try {
-            $this->checksheetService->createChecksheet($request->validated());
+            $result = $this->checksheetService->createChecksheet($request->validated());
+            $checksheet = $result['checksheet'] ?? null;
+            if ($checksheet) {
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Export baru: {$checksheet->item->name}");
+            }
             $message = 'Data Incoming Export berhasil disimpan.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -128,12 +133,17 @@ class IncomingExportController extends Controller
     public function update(UpdateIncomingExportRequest $request, $id)
     {
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = IncomingExport::find($id);
+        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Incoming Export: {$checksheet->item->name}");
         return redirect()->route('incoming.exports.index', $request->query())->with('success', 'Incoming Export berhasil diperbarui.');
     }
 
     public function destroy(Request $request, $id)
     {
+        $checksheet = IncomingExport::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Export: {$itemName}");
         return redirect()->route('incoming.exports.index', $request->query())->with('success', 'Incoming Export berhasil dihapus.');
     }
 

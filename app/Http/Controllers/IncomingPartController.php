@@ -11,6 +11,7 @@ use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class IncomingPartController extends Controller
 {
@@ -92,7 +93,11 @@ class IncomingPartController extends Controller
     public function store(StoreIncomingPartRequest $request)
     {
         try {
-            $this->checksheetService->createChecksheet($request->validated());
+            $result = $this->checksheetService->createChecksheet($request->validated());
+            $checksheet = $result['checksheet'] ?? null;
+            if ($checksheet) {
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Part baru: {$checksheet->item->name}");
+            }
             $message = 'Data Incoming Part berhasil disimpan.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -130,12 +135,17 @@ class IncomingPartController extends Controller
     public function update(UpdateIncomingPartRequest $request, $id)
     {
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = IncomingPart::find($id);
+        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Incoming Part: {$checksheet->item->name}");
         return redirect()->route('incoming.parts.index', $request->query())->with('success', 'Incoming Part berhasil diperbarui.');
     }
 
     public function destroy(Request $request, $id)
     {
+        $checksheet = IncomingPart::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Part: {$itemName}");
         return redirect()->route('incoming.parts.index', $request->query())->with('success', 'Incoming Part berhasil dihapus.');
     }
 

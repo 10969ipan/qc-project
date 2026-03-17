@@ -9,6 +9,7 @@ use App\Models\Plant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Helpers\ActivityLogger;
 // use SimpleSoftwareIO\QrCode\Facades\QrCode; // Temporarily disabled - install library first
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -295,6 +296,7 @@ class CalibrationController extends Controller
 
         // Removal of strtoupper logic for jenis_kalibrasi as per user request for case-sensitive data
         $tool = CalibrationTool::create($data);
+        ActivityLogger::log('created', $tool, "Menambahkan Master Data Alat Kalibrasi baru: {$tool->name_alat}");
 
         // Save multiple schedules
         if ($request->has('schedule_planning') && is_array($request->schedule_planning)) {
@@ -402,6 +404,7 @@ class CalibrationController extends Controller
 
         // Removal of strtoupper logic for jenis_kalibrasi as per user request for case-sensitive data
         $tool->update($data);
+        ActivityLogger::log('updated', $tool, "Memperbarui Master Data Alat Kalibrasi: {$tool->name_alat}");
 
         // Sync schedules: Match by ID to preserve PR numbers/dates
         $inputDates = $request->input('schedule_planning', []);
@@ -472,7 +475,9 @@ class CalibrationController extends Controller
             $v->delete();
         }
 
+        $toolName = $tool->name_alat;
         $tool->delete();
+        ActivityLogger::log('deleted', null, "Menghapus Master Data Alat Kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.tools.index', [
             'plant' => $request->get('plant', 'jakarta'),
@@ -515,6 +520,7 @@ class CalibrationController extends Controller
             'evidence_report' => $evidencePath,
             'user_id' => auth()->id(),
         ]);
+        ActivityLogger::log('created', $tool, "Melaporkan masalah ({$request->problem_type}) pada alat kalibrasi: {$tool->name_alat}");
 
         return redirect()->route('calibration.tools.index', [
             'plant' => $request->plant,
@@ -556,6 +562,7 @@ class CalibrationController extends Controller
         }
 
         $log->update($updateData);
+        ActivityLogger::log('updated', $tool, "Memberikan judgment ({$request->judgment_status}) pada laporan masalah alat: {$tool->name_alat}");
 
         if ($request->judgment_status === 'OK') {
             // Restore tool if it was broken
@@ -625,6 +632,7 @@ class CalibrationController extends Controller
         }
 
         $log->update($updateData);
+        ActivityLogger::log('updated', $tool, "Memperbarui laporan masalah pada alat kalibrasi: {$tool->name_alat}");
 
         return redirect()->route('calibration.tools.problem-logs', [
             'plant' => $request->plant,
@@ -645,7 +653,9 @@ class CalibrationController extends Controller
             $log->tool->schedules()->restore();
         }
 
+        $toolName = $log->tool->name_alat;
         $log->delete();
+        ActivityLogger::log('deleted', null, "Menghapus laporan masalah pada alat kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.tools.problem-logs', [
             'plant' => $request->get('plant', 'jakarta'),
@@ -1007,7 +1017,8 @@ class CalibrationController extends Controller
                 $data['certification_path'] = $path;
             }
 
-            CalibrationVerification::create($data);
+            $verification = CalibrationVerification::create($data);
+            ActivityLogger::log('created', $verification, "Menambahkan data verifikasi alat kalibrasi: {$verification->name_alat}");
 
             // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
@@ -1126,6 +1137,7 @@ class CalibrationController extends Controller
             }
 
             $verification->update($data);
+            ActivityLogger::log('updated', $verification, "Memperbarui data verifikasi alat kalibrasi: {$verification->name_alat}");
 
             // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
@@ -1178,7 +1190,9 @@ class CalibrationController extends Controller
             Storage::disk('public')->delete($verification->certification_path);
         }
 
+        $toolName = $verification->name_alat;
         $verification->delete();
+        ActivityLogger::log('deleted', null, "Menghapus data verifikasi alat kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.verifications.index', [
             'plant' => $request->get('plant', 'jakarta'),
@@ -1217,6 +1231,7 @@ class CalibrationController extends Controller
         }
 
         $schedule->save();
+        ActivityLogger::log('updated', $schedule->tool, "Memperbarui PR Number pada alat kalibrasi: {$schedule->tool->name_alat}");
 
         return response()->json([
             'success' => true,

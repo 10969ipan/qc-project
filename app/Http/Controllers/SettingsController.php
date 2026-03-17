@@ -285,6 +285,8 @@ class SettingsController extends Controller
             DB::commit();
             fclose($handle);
 
+            ActivityLogger::log('updated', null, "Melakukan import/update user secara massal ({$importCount} baru, {$updateCount} diperbarui)");
+
             return redirect()->back()->with('success', "Berhasil memproses data: $importCount user baru ditambahkan, $updateCount user diperbarui.");
         } catch (\Exception $e) {
             DB::rollBack();

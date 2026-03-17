@@ -224,7 +224,10 @@ class CrossCutPaintingChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
+            $checksheet = CrossCutPaintingChecksheet::find($id);
+            $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->paintingService->deleteChecksheet($id);
+            \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut Painting: {$itemName}");
             $redirectParams = [];
             if ($request->has('plant')) {
                 $redirectParams['plant'] = $request->input('plant');
@@ -265,6 +268,8 @@ class CrossCutPaintingChecksheetController extends Controller
 
         try {
             $this->paintingService->rejectChecksheet($id, $type, $request->rejection_remarks);
+            $checksheet = CrossCutPaintingChecksheet::find($id);
+            \App\Helpers\ActivityLogger::log('rejected', $checksheet, "Melakukan rejection pada checksheet Cross Cut Painting: {$checksheet->item->name}");
             return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))
                 ->with('warning', 'Checksheet telah ditolak.');
         } catch (\Exception $e) {
@@ -325,6 +330,8 @@ class CrossCutPaintingChecksheetController extends Controller
 
         try {
             $this->paintingService->updateApprovalStatus($id, $validated);
+            $checksheet = CrossCutPaintingChecksheet::find($id);
+            \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut Painting: {$checksheet->item->name}");
             return redirect()->route('cross_cut_painting.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());

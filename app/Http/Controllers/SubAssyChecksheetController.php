@@ -236,7 +236,10 @@ class SubAssyChecksheetController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
+        $checksheet = SubAssyChecksheet::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Sub Assy: {$itemName}");
 
         // Preserve plant parameter when redirecting back
         $redirectParams = [];
@@ -269,6 +272,8 @@ class SubAssyChecksheetController extends Controller
         ]);
 
         $this->checksheetService->updateApprovalStatus($id, $validated);
+        $checksheet = SubAssyChecksheet::find($id);
+        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Sub Assy: {$checksheet->item->name}");
 
         return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Status approval berhasil diperbarui oleh Admin.');
     }

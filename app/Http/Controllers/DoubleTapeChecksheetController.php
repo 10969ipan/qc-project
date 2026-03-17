@@ -135,6 +135,8 @@ class DoubleTapeChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
+            $checksheet = $result['checksheet'];
+            \App\Helpers\ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Double Tape baru: {$checksheet->item->name}");
             $message = 'Data Checksheet Double Tape berhasil disimpan.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -178,6 +180,8 @@ class DoubleTapeChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = \App\Models\DoubleTapeChecksheet::find($id);
+        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Double Tape: {$checksheet->item->name}");
         return redirect()->route('double_tape.index')->with('success', 'Checksheet Double Tape berhasil diperbarui.');
     }
 
@@ -185,7 +189,10 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
+        $checksheet = \App\Models\DoubleTapeChecksheet::find($id);
+        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
+        \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Double Tape: {$itemName}");
         return redirect()->route('double_tape.index')->with('success', 'Data Checksheet Double Tape berhasil dihapus.');
     }
 
@@ -228,7 +235,8 @@ class DoubleTapeChecksheetController extends Controller
         ]);
 
         $this->checksheetService->updateApprovalStatus($id, $validated);
-
+        $checksheet = \App\Models\DoubleTapeChecksheet::find($id);
+        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Double Tape: {$checksheet->item->name}");
         return redirect()->route('double_tape.index')->with('success', 'Status approval Double Tape berhasil diperbarui.');
     }
 }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Services\CategoryService;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use App\Helpers\ActivityLogger;
+use App\Models\Category;
 
 class CategoryController extends Controller
 {
@@ -47,7 +49,8 @@ class CategoryController extends Controller
             }
         }
 
-        $this->categoryService->createCategory($data);
+        $category = $this->categoryService->createCategory($data);
+        ActivityLogger::log('created', $category, "Menambahkan kategori baru: {$category->name}");
         return redirect()->route('admin.categories.index', ['plant' => $request->get('plant')])->with('success', 'Kategori berhasil ditambahkan.');
     }
 
@@ -76,6 +79,8 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, $id)
     {
         $this->categoryService->updateCategory($id, $request->validated());
+        $category = Category::find($id);
+        ActivityLogger::log('updated', $category, "Memperbarui kategori: {$category->name}");
         return redirect()->route('admin.categories.index', ['plant' => $request->get('plant')])->with('success', 'Kategori berhasil diperbarui.');
     }
 
@@ -88,7 +93,10 @@ class CategoryController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
+        $category = Category::find($id);
+        $categoryName = $category ? $category->name : 'Unknown';
         $this->categoryService->deleteCategory($id);
+        ActivityLogger::log('deleted', null, "Menghapus kategori: {$categoryName}");
         return redirect()->route('admin.categories.index', $request->only('plant'))->with('success', 'Kategori berhasil dihapus.');
     }
 }

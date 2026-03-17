@@ -299,7 +299,10 @@ class InProcessChecksheetController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         try {
+            $checksheet = InProcessChecksheet::find($id);
+            $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->inProcessService->deleteChecksheet($id);
+            ActivityLogger::log('deleted', null, "Menghapus checksheet In Process: {$itemName}");
 
             // Only preserve specific navigation and filter parameters
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
@@ -399,6 +402,8 @@ class InProcessChecksheetController extends Controller
 
         try {
             $this->inProcessService->updateApprovalStatus($id, $validated);
+            $checksheet = InProcessChecksheet::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];

@@ -235,7 +235,10 @@ class CrossCutChecksheetController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         try {
+            $checksheet = CrossCutChecksheet::find($id);
+            $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->crossCutService->deleteChecksheet($id);
+            \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut: {$itemName}");
 
             // Preserve plant parameter when redirecting back
             $redirectParams = [];
@@ -347,6 +350,8 @@ class CrossCutChecksheetController extends Controller
 
         try {
             $this->crossCutService->updateApprovalStatus($id, $validated);
+            $checksheet = CrossCutChecksheet::find($id);
+            \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut: {$checksheet->item->name}");
             return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());

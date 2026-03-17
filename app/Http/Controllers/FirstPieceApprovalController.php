@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateFirstPieceApprovalRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ShiftHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class FirstPieceApprovalController extends Controller
 {
@@ -162,6 +163,10 @@ class FirstPieceApprovalController extends Controller
                 $request->validated(),
                 fn($c) => $this->mapExportRow($c)
             );
+            $checksheet = $result['checksheet'] ?? null;
+            if ($checksheet) {
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet First Piece Approval baru: {$checksheet->item->name}");
+            }
 
             $message = 'Data First Piece Approval berhasil disimpan.';
 
@@ -226,6 +231,8 @@ class FirstPieceApprovalController extends Controller
             $validatedData = $request->validated();
 
             $this->firstPieceService->updateChecksheet($id, $validatedData);
+            $checksheet = FirstPieceApproval::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet First Piece Approval: {$checksheet->item->name}");
 
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);
@@ -256,7 +263,10 @@ class FirstPieceApprovalController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         try {
+            $checksheet = FirstPieceApproval::find($id);
+            $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->firstPieceService->deleteChecksheet($id);
+            ActivityLogger::log('deleted', null, "Menghapus checksheet First Piece Approval: {$itemName}");
 
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);
@@ -343,6 +353,8 @@ class FirstPieceApprovalController extends Controller
 
         try {
             $this->firstPieceService->updateApprovalStatus($id, $validated);
+            $checksheet = FirstPieceApproval::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet First Piece Approval: {$checksheet->item->name}");
 
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);

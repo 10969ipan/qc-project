@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CustomerClaim;
 use App\Models\Plant;
 use Illuminate\Http\Request;
+use App\Helpers\ActivityLogger;
 
 class CustomerClaimController extends Controller
 {
@@ -170,6 +171,8 @@ class CustomerClaimController extends Controller
         ];
         $queryParams = array_filter($queryParams);
 
+        ActivityLogger::log('created', null, "Menambahkan data claim customer tahun {$year} (Plant: " . ($request->plant ?: 'All') . ")");
+
         return redirect()->route('admin.customer-claims.index', $queryParams)
             ->with('success', "Data claim customer tahun $year berhasil disimpan.");
     }
@@ -217,6 +220,8 @@ class CustomerClaimController extends Controller
                 return !is_null($value) && $value !== '';
             });
 
+            ActivityLogger::log('updated', $customerClaim, "Memperbarui data claim customer: {$customerClaim->year}-{$customerClaim->month} (Plant: {$customerClaim->plant->name})");
+
             return redirect()->route('admin.customer-claims.index', $queryParams)
                 ->with('success', 'Data claim customer berhasil diperbarui.');
         } catch (\Illuminate\Database\QueryException $e) {
@@ -239,7 +244,9 @@ class CustomerClaimController extends Controller
                 ->with('error', 'Anda tidak memiliki akses untuk menghapus data.');
         }
 
+        $claimInfo = "{$customerClaim->year}-{$customerClaim->month} (Plant: {$customerClaim->plant->name})";
         $customerClaim->delete();
+        ActivityLogger::log('deleted', null, "Menghapus data claim customer: {$claimInfo}");
 
         $queryParams = [
             'plant' => $request->input('plant'),

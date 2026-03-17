@@ -7,6 +7,7 @@ use App\Models\Plant;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use App\Helpers\ActivityLogger;
 
 class CustomerClaimRecordController extends Controller
 {
@@ -173,7 +174,8 @@ class CustomerClaimRecordController extends Controller
             $data['evaluasi'] = date('d-m-Y', strtotime($data['tanggal_claim'] . ' +6 months'));
         }
 
-        CustomerClaimRecord::create($data);
+        $record = CustomerClaimRecord::create($data);
+        ActivityLogger::log('created', $record, "Menambahkan record claim customer: {$record->customer} - {$record->nama_part}");
 
         return redirect()->back()->with('success', 'Data claim customer berhasil ditambahkan.');
     }
@@ -207,6 +209,7 @@ class CustomerClaimRecordController extends Controller
         }
 
         $customerClaimRecord->update($data);
+        ActivityLogger::log('updated', $customerClaimRecord, "Memperbarui record claim customer: {$customerClaimRecord->customer} - {$customerClaimRecord->nama_part}");
 
         return redirect()->back()->with('success', 'Data claim customer berhasil diperbarui.');
     }
@@ -227,6 +230,7 @@ class CustomerClaimRecordController extends Controller
             unset($attachments[$index]);
             $record->attachments = array_values($attachments); // Re-index
             $record->save();
+            ActivityLogger::log('deleted', $record, "Menghapus lampiran index {$index} pada record claim customer: {$record->customer}");
 
             return response()->json(['success' => true]);
         }
@@ -248,7 +252,9 @@ class CustomerClaimRecordController extends Controller
             }
         }
 
+        $recordInfo = "{$customerClaimRecord->customer} - {$customerClaimRecord->nama_part}";
         $customerClaimRecord->delete();
+        ActivityLogger::log('deleted', null, "Menghapus record claim customer: {$recordInfo}");
 
         return redirect()->back()->with('success', 'Data claim customer berhasil dihapus.');
     }
