@@ -500,7 +500,7 @@
         $(document).ready(function () {
             window.initSubAssyCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
-                pdfUrlPattern: "{{ route('admin.master_checksheet.get_pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
         });
     </script>
