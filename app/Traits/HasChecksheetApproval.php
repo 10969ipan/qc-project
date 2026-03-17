@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\ActivityLogger;
 
 trait HasChecksheetApproval
 {
@@ -100,6 +101,10 @@ trait HasChecksheetApproval
             // Untuk saat ini kita ikuti logic eksisting: Supervisor approve -> Status Approved.
 
             $checksheet->save();
+
+            // Log activity
+            $modelName = str_replace(['App\\Models\\', 'Checksheet'], ['', ''], $modelClass);
+            ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$map['label']}) pada checksheet {$modelName}: ID #{$checksheet->id}");
 
             // Mark related notifications as read after successful approval
             try {
@@ -204,6 +209,10 @@ trait HasChecksheetApproval
             $checksheet->rejection_remarks = "[{$roleLabel}] " . $request->rejection_remarks . " - " . $user->name . " (" . now()->format('d/m/Y H:i') . ")";
 
             $checksheet->save();
+
+            // Log activity
+            $modelName = str_replace(['App\\Models\\', 'Checksheet'], ['', ''], $modelClass);
+            ActivityLogger::log('rejected', $checksheet, "Melakukan rejection pada checksheet {$modelName}: ID #{$checksheet->id}");
 
             // Trigger notification to inspectors
             try {
@@ -340,6 +349,11 @@ trait HasChecksheetApproval
 
                 $checksheet->save();
                 $approvedCount++;
+            }
+
+            if ($approvedCount > 0) {
+                $modelName = str_replace(['App\\Models\\', 'Checksheet'], ['', ''], $modelClass);
+                ActivityLogger::log('approved', null, "Melakukan bulk approval ({$approvedCount} data) pada modul {$modelName}");
             }
 
             DB::commit();

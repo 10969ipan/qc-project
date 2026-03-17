@@ -20,6 +20,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register alias untuk middleware role
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'check_status' => \App\Http\Middleware\CheckUserStatus::class,
+            'check_maintenance' => \App\Http\Middleware\CheckMenuMaintenance::class,
+        ]);
+
+        // Append to web group to ensure it runs for all web requests
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckUserStatus::class,
+            \App\Http\Middleware\CheckMenuMaintenance::class,
         ]);
     })
     ->withSchedule(function ($schedule) {
