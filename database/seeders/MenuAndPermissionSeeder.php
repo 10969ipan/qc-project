@@ -211,16 +211,28 @@ class MenuAndPermissionSeeder extends Seeder
 
         $this->seedMenus($menus);
 
-        // Seed default permissions for some roles
+        // Seed default permissions for all known roles
         $allMenus = AppMenu::all();
-        $roles = User::distinct()->whereNotNull('role')->pluck('role')->toArray();
+        $roles = [
+            'admin', 
+            'manager', 
+            'asst_manager', 
+            'supervisor', 
+            'kashift', 
+            'inspector', 
+            'karu_qc', 
+            'kashift_plating', 
+            'supervisor_plating', 
+            'manager_plating', 
+            'oshef'
+        ];
 
         foreach ($roles as $role) {
             foreach ($allMenus as $menu) {
                 RolePermission::create([
                     'role' => $role,
                     'menu_id' => $menu->id,
-                    'can_view' => true, // default to viewable for simplicity in seeder
+                    'can_view' => true, 
                     'can_input' => in_array($role, ['admin', 'supervisor', 'inspector', 'kashift']),
                     'can_edit' => in_array($role, ['admin', 'supervisor']),
                     'can_delete' => $role === 'admin',
