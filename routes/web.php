@@ -11,8 +11,7 @@ use App\Http\Controllers\CrossCutChecksheetController;
 use App\Http\Controllers\MachineStatusController;
 
 // Rute Default Landing Page
-// Rute Default Landing Page
-Route::any('/', [AuthController::class, 'index'])->name('home');
+Route::get('/', [AuthController::class, 'index'])->name('home');
 
 // Modular Routes (Public)
 require __DIR__ . '/auth.php';
