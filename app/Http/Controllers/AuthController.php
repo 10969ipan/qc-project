@@ -53,6 +53,17 @@ class AuthController extends Controller
 
         // JANGAN lewatkan $remember ke Auth::attempt, karena kita ingin sesi berakhir saat browser ditutup
         if (Auth::attempt($credentials)) {
+            // Cek apakah user aktif
+            if (!Auth::user()->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
 
             if ($remember) {

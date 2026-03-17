@@ -18,7 +18,28 @@ Route::middleware(['auth'])->group(function () {
         // Categories
         Route::resource('categories', CategoryController::class)->except(['create']);
 
-
+        // Settings UI Prototype
+        Route::get('settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/permissions', [\App\Http\Controllers\SettingsController::class, 'getPermissions'])->name('settings.permissions');
+        
+        // User Management CRUD
+        Route::post('settings/users', [\App\Http\Controllers\SettingsController::class, 'storeUser'])->name('settings.users.store');
+        Route::put('settings/users/{id}', [\App\Http\Controllers\SettingsController::class, 'updateUser'])->name('settings.users.update');
+        Route::patch('settings/users/{id}/reset-password', [\App\Http\Controllers\SettingsController::class, 'resetPassword'])->name('settings.users.reset-password');
+        Route::patch('settings/users/{id}/status', [\App\Http\Controllers\SettingsController::class, 'toggleUserStatus'])->name('settings.users.status');
+        Route::get('settings/users/export', [\App\Http\Controllers\SettingsController::class, 'exportUsers'])->name('settings.users.export');
+        Route::post('settings/users/import', [\App\Http\Controllers\SettingsController::class, 'importUsers'])->name('settings.users.import');
+        Route::delete('settings/users/{id}', [\App\Http\Controllers\SettingsController::class, 'deleteUser'])->name('settings.users.delete');
+        
+        // Menu & Permissions Management
+        Route::get('settings/menus/{id}', [\App\Http\Controllers\SettingsController::class, 'getMenuDetails'])->name('settings.menus.details');
+        Route::put('settings/menus/{id}', [\App\Http\Controllers\SettingsController::class, 'updateMenuDetails'])->name('settings.menus.update');
+        Route::post('settings/menus/order', [\App\Http\Controllers\SettingsController::class, 'updateMenuOrder'])->name('settings.menus.order');
+        Route::post('settings/permissions', [\App\Http\Controllers\SettingsController::class, 'savePermissions'])->name('settings.permissions.save');
+        
+        // Activity Logs
+        Route::get('settings/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('settings.activity_logs');
+        
         // Monthly Reports
         Route::resource('monthly-reports', MonthlyReportController::class);
         Route::post('monthly-reports/{id}/set-active', [MonthlyReportController::class, 'setActive'])->name('monthly_reports.set_active');
