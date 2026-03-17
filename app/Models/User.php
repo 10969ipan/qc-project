@@ -23,6 +23,7 @@ class User extends Authenticatable
         'role',
         'plant_id',
         'initials',
+        'is_active',
     ];
 
     /**
@@ -61,13 +62,13 @@ class User extends Authenticatable
     public function getInitialsAttribute($value)
     {
         if ($value) {
-            return strtoupper($value); // Selalu return uppercase agar rapi di laporan
+            return $value; // Return exactly what is in DB per user request
         }
 
         $words = explode(' ', $this->name);
         $initials = '';
         foreach ($words as $word) {
-            $initials .= strtoupper(substr($word, 0, 1));
+            $initials .= substr($word, 0, 1);
         }
         return $initials;
     }
@@ -76,5 +77,33 @@ class User extends Authenticatable
     public function hasRole($role)
     {
         return $this->role === $role;
+    }
+
+    /**
+     * Check if user has permission for a specific menu and action
+     */
+    public function hasPermission($menuId, $action = 'view')
+    {
+        // 1. Check User Specific Override
+        $userPerm = \App\Models\UserPermission::where('user_id', $this->id)
+            ->where('menu_id', $menuId)
+            ->first();
+        
+        if ($userPerm) {
+            $field = "can_{$action}";
+            return (bool) ($userPerm->$field ?? false);
+        }
+
+        // 2. Fallback to Role Permission
+        $rolePerm = \App\Models\RolePermission::where('role', $this->role)
+            ->where('menu_id', $menuId)
+            ->first();
+        
+        if ($rolePerm) {
+            $field = "can_{$action}";
+            return (bool) ($rolePerm->$field ?? false);
+        }
+
+        return false;
     }
 }
