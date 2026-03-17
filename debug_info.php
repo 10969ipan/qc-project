@@ -36,7 +36,7 @@ $debug = [
     ],
     'menus' => [
         'count' => AppMenu::count(),
-        'root_menus' => AppMenu::whereNull('parent_id')->get(['id', 'title', 'route', 'is_active'])->toArray(),
+        'root_menus' => AppMenu::whereNull('parent_id')->get(['id', 'name', 'route', 'is_active'])->toArray(),
     ],
     'route' => [
         'exists' => Route::has('home'),
