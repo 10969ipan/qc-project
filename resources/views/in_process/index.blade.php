@@ -1038,4 +1038,4 @@
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
-@endpushsh
+@endpush
