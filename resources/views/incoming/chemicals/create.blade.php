@@ -133,6 +133,6 @@
     </div>
 @endsection
 
-@@push('scripts')
+@push('scripts')
     <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
 @endpush

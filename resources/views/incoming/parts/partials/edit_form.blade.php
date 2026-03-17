@@ -99,4 +99,4 @@
 
 @push('scripts')
     {{-- Script linked in parent edit.blade.php --}}
-@endpush
+@endpush

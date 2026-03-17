@@ -358,7 +358,7 @@
     </div>
 @endsection
 
-@@push('scripts')
+@push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
     <script>

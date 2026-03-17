@@ -1216,7 +1216,7 @@
     @endforeach
 @endforeach
 
-@@push('scripts')
+@push('scripts')
     <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
     <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
     <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>

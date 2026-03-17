@@ -597,7 +597,7 @@
 
 @endsection
 
-@@push('scripts')
+@push('scripts')
     <script src="{{ asset('js/checksheet/plating.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

@@ -450,7 +450,7 @@
     </div>
 @endsection
 
-@@push('scripts')
+@push('scripts')
     <script src="{{ asset('js/checksheet/sortir.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

@@ -566,7 +566,7 @@
 
 @endsection
 
-@@push('scripts')
+@push('scripts')
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
