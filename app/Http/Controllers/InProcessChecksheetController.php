@@ -174,8 +174,10 @@ class InProcessChecksheetController extends Controller
                 $request->validated(),
                 fn($c) => $this->mapExportRow($c)
             );
-            
-            ActivityLogger::log('created', $result, "Menambahkan checksheet In Process baru: {$result->item->name}");
+            if ($result['checksheet']) {
+                $checksheet = $result['checksheet'];
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet In Process baru: {$checksheet->item->name}");
+            }
 
             $message = 'Data Checksheet Inprocess berhasil disimpan.';
 
