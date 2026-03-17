@@ -54,6 +54,8 @@
                                 <th>Item Part</th>
                                 <th>Tanggal Check</th>
                                 <th>Tanggal Delivery</th>
+                                <th style="min-width: 100px;">Lot Quantity</th>
+                                <th style="min-width: 100px;">Total Check</th>
                                 <th style="min-width: 250px;">Detail NG</th>
                                 <th>Judgment</th>
                                 <th>QC Initials</th>
@@ -77,6 +79,8 @@
                                         value="{{ $defaultDate }}" required></td>
                                 <td><input type="date" class="form-control text-center" name="tanggal_delivery" required>
                                 </td>
+                                <td><input type="number" class="form-control text-center" name="lot_qty" id="lotQtyInput" placeholder="0" min="0" required></td>
+                                <td><input type="number" class="form-control text-center" name="total_check" id="totalCheckInput" placeholder="0" min="0" required></td>
                                 <td>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
@@ -120,5 +124,5 @@
 @endsection
 
 @@push('scripts')
-    <script src="{{ asset('js/incoming/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
 @endpush

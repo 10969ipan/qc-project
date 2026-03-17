@@ -12,6 +12,7 @@ use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class SubAssyChecksheetController extends Controller
 {
@@ -158,6 +159,8 @@ class SubAssyChecksheetController extends Controller
         );
 
         if ($result['checksheet']) {
+            $checksheet = $result['checksheet'];
+            ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Sub Assy baru: {$checksheet->item->name}");
             $message = 'Data Checksheet berhasil disimpan.';
             $plantParam = $request->input('plant') ?? auth()->user()->plant_id;
 
@@ -213,6 +216,8 @@ class SubAssyChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         $this->checksheetService->updateChecksheet($id, $request->validated());
+        $checksheet = \App\Models\SubAssyChecksheet::find($id);
+        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Sub Assy: {$checksheet->item->name}");
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

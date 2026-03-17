@@ -19,5 +19,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/incoming/incoming-edit.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-edit.js') }}"></script>
 @endpush

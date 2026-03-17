@@ -11,7 +11,7 @@
     }
     #checksheetTable { border-collapse: separate !important; border-spacing: 0 !important; }
     
-    /* Global TH sticky setup */
+    /* Pengaturan sticky TH Global */
     #checksheetTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
@@ -26,20 +26,20 @@
         height: 35px !important;
     }
 
-    /* First row sticky at top: 0 */
+    /* Baris pertama sticky di atas: 0 */
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
     }
 
-    /* Second row sticky at top: 35px (matching height of row 1) */
+    /* Baris kedua sticky di atas: 35px (menyesuaikan tinggi baris 1) */
     #checksheetTable > thead > tr:nth-child(2) > th {
         top: 35px !important;
         z-index: 104 !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
     }
 
-    /* Rowspan cell specifically handled to fill both rows correctly */
+    /* Sel Rowspan ditangani secara khusus untuk mengisi kedua baris dengan benar */
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 70px !important;
     }
@@ -86,7 +86,7 @@
             </div>
         </div>
     </div>
-    <!-- Hidden Logo for PDF Export -->
+    <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
@@ -96,13 +96,13 @@
         <div class="card-body">
             <form action="{{ route('cross_cut.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    {{-- Preserve plant parameter for all users --}}
+                    {{-- Pertahankan parameter plant untuk semua pengguna --}}
                     @if(request('plant'))
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
 
 
-                    <!-- Live Search -->
+                    <!-- Pencarian Langsung -->
                     <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label for="search" class="small font-weight-bold">Pencarian</label>
@@ -132,7 +132,7 @@
                         </div>
                     </div>
 
-                    <!-- Buttons: Cari, Reset, Export -->
+                    <!-- Tombol: Cari, Reset, Ekspor -->
                     <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
@@ -238,7 +238,7 @@
                                 <td class="align-middle">{{ $checksheet->result_remark }}</td>
                                 <td class="align-middle">{{ $checksheet->operator_initials }}</td>
 
-                                {{-- Approval Status Columns --}}
+                                {{-- Kolom Status Approval --}}
                                 {{-- Level 1: Karu QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->karu_qc)
@@ -426,7 +426,7 @@
                                             @include('partials.bulk_approve_button')
                                         @endif
                                         @php
-                                            // Modified: Allow approval at any level without waiting for previous levels
+                                            // Dimodifikasi: Mengizinkan approval pada level apa pun tanpa menunggu level sebelumnya
                                             $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED');
                                             $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$checksheet->kashift_plating || $checksheet->kashift_plating === 'REJECTED');
                                             $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
@@ -612,7 +612,7 @@
         </div>
     </div>
 
-    <!-- Image Modal -->
+    <!-- Modal Gambar -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -632,7 +632,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -653,7 +653,7 @@
         </div>
     </div>
 
-    <!-- Status Modal -->
+    <!-- Modal Status -->
     <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -675,12 +675,12 @@
         </div>
     </div>
 
-    <!-- Rejection Modal for each checksheet and type -->
+    <!-- Modal Penolakan untuk setiap checksheet dan tipe -->
     @foreach($checksheets as $cs)
         @foreach(['karu_qc', 'kashift_plating', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
             @php
                 $canReject = false;
-                // Modified: Allow rejection at any level without waiting for previous levels
+                // Dimodifikasi: Mengizinkan penolakan pada level apa pun tanpa menunggu level sebelumnya
                 if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$cs->karu_qc || $cs->karu_qc === 'REJECTED'))) {
                     $canReject = true;
                 } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED'))) {
@@ -749,7 +749,7 @@
         @endforeach
     @endforeach
 
-    <!-- Approval Modal for Kashift Plating -->
+    <!-- Modal Approval untuk Kashift Plating -->
     @foreach($checksheets as $cs)
         @php
             $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED');
@@ -1216,257 +1216,20 @@
     @endforeach
 @endforeach
 
-@push('scripts')
+@@push('scripts')
     <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
     <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+    <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Character counter for rejection remarks
-            @foreach($checksheets as $cs)
-                @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-                    const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
-                    const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
-                    if (textarea{{ $cs->id }}{{ $rejectType }}) {
-                        textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function () {
-                            charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
-                        });
-                    }
-                @endforeach
-            @endforeach
-
-                                                                                                                                                                                                                                            // Live Search Functionality
-                                                                                                                                                                                                                                            const liveSearchInput = document.getElementById('liveSearch');
-            const checksheetTable = document.getElementById('checksheetTable');
-            const tableRows = checksheetTable.querySelectorAll('tbody tr');
-
-            if (liveSearchInput) {
-                liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.toLowerCase().trim();
-
-                    tableRows.forEach(function (row) {
-                        // Get text content from relevant columns (Cross Cut has different column indices)
-                        const itemPart = row.cells[8] ? row.cells[8].textContent.toLowerCase() : '';
-                        const customer = row.cells[9] ? row.cells[9].textContent.toLowerCase() : '';
-                        const partNo = row.cells[10] ? row.cells[10].textContent.toLowerCase() : '';
-                        const initials = row.cells[14] ? row.cells[14].textContent.toLowerCase() : '';
-
-                        // Check if any column contains the search term
-                        const matches = itemPart.includes(searchTerm) ||
-                            customer.includes(searchTerm) ||
-                            partNo.includes(searchTerm) ||
-                            initials.includes(searchTerm);
-
-                        // Show or hide row based on match
-                        if (matches || searchTerm === '') {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                });
-            }
-
-            // View Image Modal
-            const viewImageButtons = document.querySelectorAll('.view-image-btn');
-            const modalImage = document.getElementById('modalImage');
-            const modalItemName = document.getElementById('modalItemName');
-            const modalQcDatetime = document.getElementById('modalQcDatetime');
-            const jsonInfoUrlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
-
-            viewImageButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const checksheetId = this.getAttribute('data-id');
-                    const fetchUrl = jsonInfoUrlTemplate.replace(':id', checksheetId);
-
-                    fetch(fetchUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            modalImage.src = data.image_url;
-                            modalItemName.textContent = `Item: ${data.item_name}`;
-                            modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
-                        })
-                        .catch(error => {
-                            console.error('Error fetching image data:', error);
-                            modalImage.src = '';
-                            modalItemName.textContent = 'Gagal memuat data gambar.';
-                            modalQcDatetime.textContent = '';
-                        });
-                });
-            });
-
-            // PDF Export
-            const { jsPDF } = window.jspdf;
-            const exportPdfBtn = document.getElementById('exportPdfBtn');
-
-            if (exportPdfBtn) {
-                exportPdfBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    const doc = new jsPDF('landscape');
-
-                    // Header Table
-                    doc.autoTable({
-                        startY: 10,
-                        head: [],
-                        body: [
-                            [
-                                { content: '', rowSpan: 4, styles: { minCellHeight: 25, valign: 'middle' } },
-                                { content: 'LAPORAN CHECKSHEET CROSS CUT', rowSpan: 4, styles: { halign: 'center', valign: 'middle', fontSize: 14, fontStyle: 'bold' } },
-                                { content: 'No. Dokumen', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                { content: 'QC-KRW-F-XXXX', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                            ],
-                            [
-                                { content: 'Tgl. Terbit', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                            ],
-                            [
-                                { content: 'Revisi Ke', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                            ],
-                            [
-                                { content: 'Tgl. Revisi', styles: { halign: 'left', valign: 'middle', fontSize: 7 } },
-                                { content: '-', styles: { halign: 'left', valign: 'middle', fontSize: 7 } }
-                            ]
-                        ],
-                        theme: 'grid',
-                        styles: {
-                            lineColor: [0, 0, 0],
-                            lineWidth: 0.1,
-                            cellPadding: 1.5
-                        },
-                        columnStyles: {
-                            0: { cellWidth: 30 },
-                            1: {},
-                            2: {},
-                            3: {}
-                        },
-                        didDrawCell: function (data) {
-                            if (data.section === 'body' && data.column.index === 0) {
-                                const img = document.getElementById('pdf-logo');
-                                if (img) {
-                                    try {
-                                        doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 26, 21);
-                                    } catch (err) {
-                                        console.warn('Error adding logo:', err);
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    const finalY = doc.lastAutoTable.finalY;
-                    doc.setFontSize(6);
-                    doc.text('Tanggal Export: ' + new Date().toLocaleString(), 14, finalY + 5);
-
-                    const originalTable = document.getElementById('checksheetTable');
-                    const tableClone = originalTable.cloneNode(true);
-
-                    // Remove no-export elements
-                    const noExportElements = tableClone.querySelectorAll('.no-export');
-                    noExportElements.forEach(el => el.remove());
-
-                    // Process clone rows to flatten Kimia column
-                    const kimiaCells = tableClone.querySelectorAll('.kimia-col');
-                    kimiaCells.forEach(kimiaCell => {
-                        const nestedTable = kimiaCell.querySelector('table');
-                        if (nestedTable) {
-                            const trs = nestedTable.querySelectorAll('tr');
-                            let text = [];
-                            trs.forEach(tr => {
-                                const th = tr.querySelector('th');
-                                const td = tr.querySelector('td');
-                                if (th && td) {
-                                    text.push(`${th.textContent.trim()}: ${td.textContent.trim()}`);
-                                }
-                            });
-                            // Use textContent to replace the entire table content
-                            kimiaCell.textContent = text.join('\n');
-                            // Ensure styles are reset if they were inherited oddly
-                            kimiaCell.style.whiteSpace = 'pre-wrap';
-                        }
-                    });
-
-                    tableClone.style.position = 'absolute';
-                    tableClone.style.top = '-9999px';
-                    tableClone.style.left = '-9999px';
-                    document.body.appendChild(tableClone);
-
-                    doc.autoTable({
-                        html: tableClone,
-                        startY: finalY + 7,
-                        theme: 'grid',
-                        styles: {
-                            fontSize: 5,
-                            cellPadding: 1,
-                            valign: 'middle',
-                            halign: 'center',
-                            lineColor: [0, 0, 0],
-                            lineWidth: 0.1
-                        },
-                        headStyles: {
-                            fillColor: [78, 115, 223],
-                            textColor: [255, 255, 255],
-                            valign: 'middle',
-                            halign: 'center',
-                            lineColor: [0, 0, 0],
-                            lineWidth: 0.1
-                        },
-                        exportHiddenCells: false
-                    });
-
-                    document.body.removeChild(tableClone);
-                    doc.save('Laporan_Checksheet_Cross_Cut_' + new Date().toISOString().slice(0, 10) + '.pdf');
-                });
-            });
-                                                                                            }
-
-        // Edit Modal Handler
-        $('.btn-edit-modal').on('click', function (e) {
-            e.preventDefault();
-            var url = $(this).attr('href');
-            $('#editModal').modal('show');
-            $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-            $.ajax({
-                url: url,
-                success: function (response) {
-                    $('#editModalBody').html(response);
-                },
-                error: function () {
-                    $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
-                }
+            window.initCrossCutIndex({
+                isPainting: false,
+                moduleName: 'Cross_Cut_Plating',
+                pdfTitle: 'LAPORAN CHECKSHEET CROSS CUT',
+                docNo: 'QC-KRW-F-0214',
+                showRoute: "{{ route('cross_cut.show', ['id' => ':id']) }}"
             });
         });
-
-        // Status Modal Handler
-        $('.btn-status-modal').on('click', function (e) {
-            e.preventDefault();
-            var url = $(this).attr('href');
-            $('#statusModal').modal('show');
-            $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-            $.ajax({
-                url: url,
-                success: function (response) {
-                    $('#statusModalBody').html(response);
-                },
-                error: function (xhr) {
-                    var message = 'Gagal memuat data status approval.';
-                    if (xhr.status === 404) {
-                        message = 'Data tidak ditemukan.';
-                    } else if (xhr.status === 403) {
-                        message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
-                    }
-                    $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                }
-            });
-        });
-                                                                                        });
     </script>
     @php $bulkApproveRoute = route('cross_cut.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')

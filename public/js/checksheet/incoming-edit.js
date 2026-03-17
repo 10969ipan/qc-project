@@ -1,9 +1,9 @@
 /**
- * Incoming Checksheet Edit Logic
- * Handles the dynamic defect rows in edit modals
+ * Logika Edit Checksheet Incoming
+ * Menangani baris defect dinamis di modal edit
  */
 $(document).ready(function () {
-    // Delegation for dynamic content loaded via AJAX
+    // Delegasi untuk konten dinamis yang dimuat via AJAX
     $(document).on('click', '#editAddDefectBtn', function () {
         const container = $('#editDefectContainer');
         const firstRow = container.find('.edit-defect-row').first().clone();
@@ -11,7 +11,7 @@ $(document).ready(function () {
         firstRow.find('input').val('');
         firstRow.find('select').val('');
         
-        // Ensure remove button exists
+        // Pastikan tombol hapus ada
         if (firstRow.find('.remove-defect-btn').length === 0) {
             firstRow.append('<div class="input-group-append"><button type="button" class="btn btn-danger remove-defect-btn"><i class="fas fa-trash"></i></button></div>');
         }
@@ -24,14 +24,14 @@ $(document).ready(function () {
         if (rows.length > 1) {
             $(this).closest('.edit-defect-row').remove();
         } else {
-            // Just clear the first row if it's the only one
+            // Kosongkan baris pertama jika itu satu-satunya
             const row = $(this).closest('.edit-defect-row');
             row.find('input').val('');
             row.find('select').val('');
         }
     });
 
-    // Optional: Auto-judgment logic for edit form if needed
+    // Opsional: Logika judgment otomatis untuk formulir edit jika diperlukan
     $(document).on('input', '.edit-defect-qty, .edit-defect-select', function() {
         let totalNg = 0;
         $('.edit-defect-row').each(function() {

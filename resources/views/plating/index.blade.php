@@ -92,7 +92,7 @@
             </div>
         </div>
     </div>
-    <!-- Hidden Logo for PDF Export -->
+    <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
@@ -106,7 +106,7 @@
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
 
-                    <!-- Live Search -->
+                    <!-- Pencarian Langsung -->
                     <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label for="search" class="small font-weight-bold">Pencarian</label>
@@ -136,7 +136,7 @@
                         </div>
                     </div>
 
-                    <!-- Buttons: Cari, Reset, Export -->
+                    <!-- Tombol: Cari, Reset, Ekspor -->
                     <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
@@ -509,7 +509,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -530,7 +530,7 @@
         </div>
     </div>
 
-    <!-- Status Modal -->
+    <!-- Modal Status -->
     <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -552,7 +552,7 @@
         </div>
     </div>
 
-    <!-- Rejection Modal -->
+    <!-- Modal Penolakan -->
     @foreach($checksheets as $cs)
         @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
@@ -597,49 +597,12 @@
 
 @endsection
 
-@push('scripts')
+@@push('scripts')
+    <script src="{{ asset('js/checksheet/plating.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const liveSearchInput = document.getElementById('liveSearch');
-            if (liveSearchInput) {
-                let searchTimeout;
-                liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.trim();
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(function () {
-                        const startDate = document.getElementById('start_date').value;
-                        const endDate = document.getElementById('end_date').value;
-                        const params = new URLSearchParams();
-                        if (searchTerm) params.append('search', searchTerm);
-                        if (startDate) params.append('start_date', startDate);
-                        if (endDate) params.append('end_date', endDate);
-                        window.location.href = '{{ route('plating.index') }}?' + params.toString();
-                    }, 500);
-                });
-            }
-
-            $('.btn-edit-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
-                $.ajax({
-                    url: url,
-                    success: function (response) { $('#editModalBody').html(response); },
-                    error: function () { $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data.</div>'); }
-                });
-            });
-
-            $('.btn-status-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#statusModal').modal('show');
-                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"></div></div>');
-                $.ajax({
-                    url: url,
-                    success: function (response) { $('#statusModalBody').html(response); },
-                    error: function () { $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data.</div>'); }
-                });
+            window.initPlatingIndex({
+                indexRoute: "{{ route('plating.index') }}"
             });
         });
     </script>

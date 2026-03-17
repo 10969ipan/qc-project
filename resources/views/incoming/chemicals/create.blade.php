@@ -63,7 +63,7 @@
                                 <th rowspan="2">Remarks</th>
                             </tr>
                             <tr>
-                                <th>Total</th>
+                                <th>Lot Qty (Kg)</th>
                                 <th>Komp/Jirigen</th>
                                 <th>Samp. Size</th>
                             </tr>
@@ -86,11 +86,11 @@
                                 <td><input type="date" class="form-control" name="tanggal_datang" required></td>
                                 <td><input type="text" class="form-control" name="lot_batch_number" required></td>
                                 <td><input type="number" step="0.01" class="form-control text-center" name="quantity_kg"
-                                        required></td>
+                                        id="lotQtyInput" required></td>
                                 <td><input type="number" step="0.01" class="form-control text-center"
                                         name="komper_jirigen_kg" required></td>
                                 <td><input type="number" step="0.01" class="form-control text-center"
-                                        name="sampling_size_jirigen_kg" required></td>
+                                        name="sampling_size_jirigen_kg" id="totalCheckInput" required></td>
                                 <td><input type="date" class="form-control" name="expired_date" required></td>
                                 <td>
                                     <div id="defectContainer">
@@ -134,5 +134,5 @@
 @endsection
 
 @@push('scripts')
-    <script src="{{ asset('js/incoming/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
 @endpush

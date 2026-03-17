@@ -16,6 +16,7 @@ class IncomingPart extends Model
         'item_id',
         'date',
         'shift',
+        'lot_qty',
         'total_check',
         'tanggal_datang',
         'judgment',

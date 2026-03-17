@@ -82,7 +82,6 @@
                         </div>
                     </div>
 
-                    {{-- Section: Part & Problem --}}
                     <div class="mb-2">
                         <h6 class="text-primary font-weight-bold mb-2 border-bottom pb-1" style="font-size: 0.9rem;">
                             <i class="fas fa-exclamation-triangle mr-1"></i> Detail Part & Problem
@@ -173,7 +172,6 @@
                         </div>
                     </div>
 
-                    {{-- Section: Feedback & Status --}}
                     <div class="mb-0">
                         <h6 class="text-primary font-weight-bold mb-2 border-bottom pb-1" style="font-size: 0.9rem;">
                             <i class="fas fa-comments mr-1"></i> Feedback & Evaluasi
@@ -333,7 +331,6 @@
                         </div>
                     </div>
 
-                    {{-- Section: Part & Problem --}}
                     <div class="mb-2">
                         <h6 class="text-warning font-weight-bold mb-2 border-bottom pb-1" style="font-size: 0.9rem;">
                             <i class="fas fa-exclamation-triangle mr-1"></i> Detail Part & Problem
@@ -424,7 +421,6 @@
                         </div>
                     </div>
 
-                    {{-- Section: Feedback & Status --}}
                     <div class="mb-0">
                         <h6 class="text-warning font-weight-bold mb-2 border-bottom pb-1" style="font-size: 0.9rem;">
                             <i class="fas fa-comments mr-1"></i> Feedback & Evaluasi

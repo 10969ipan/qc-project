@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 use App\Helpers\ShiftHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class InProcessChecksheetController extends Controller
 {
@@ -173,6 +174,8 @@ class InProcessChecksheetController extends Controller
                 $request->validated(),
                 fn($c) => $this->mapExportRow($c)
             );
+            
+            ActivityLogger::log('created', $result, "Menambahkan checksheet In Process baru: {$result->item->name}");
 
             $message = 'Data Checksheet Inprocess berhasil disimpan.';
 
@@ -251,6 +254,8 @@ class InProcessChecksheetController extends Controller
             ]);
 
             $this->inProcessService->updateChecksheet($id, $validatedData);
+            $checksheet = \App\Models\InProcessChecksheet::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];

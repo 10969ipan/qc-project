@@ -415,106 +415,18 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+    <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
     <script>
-        $(document).ready(function () {
-            // Live Search
-            let searchTimeout;
-            $('#liveSearch').on('keyup', function() {
-                clearTimeout(searchTimeout);
-                const searchTerm = $(this).val();
-                searchTimeout = setTimeout(() => {
-                    const url = new URL(window.location.href);
-                    if (searchTerm) {
-                        url.searchParams.set('search', searchTerm);
-                    } else {
-                        url.searchParams.delete('search');
-                    }
-                    window.location.href = url.toString();
-                }, 700);
+        document.addEventListener('DOMContentLoaded', function () {
+            window.initCrossCutIndex({
+                isPainting: true,
+                moduleName: 'Cross_Cut_Painting',
+                pdfTitle: 'LAPORAN CHECKSHEET CROSS CUT PAINTING',
+                docNo: 'QC-KRW-F-0193',
+                approveRoute: "{{ route('cross_cut_painting.approve', ['id' => ':id', 'type' => ':type']) }}"
             });
-
-            // View Image
-            $('.view-image-btn').click(function () {
-                $('#modalViewImage').attr('src', $(this).data('image'));
-            });
-
-            // Approval Modal Logic
-            $('#approvalModal').on('show.bs.modal', function (event) {
-                const button = $(event.relatedTarget);
-                if (!button.length) return; // Handled by toggleApprovalModal for reject
-
-                const id = button.data('id');
-                const type = button.data('type');
-                const label = button.data('label');
-                
-                setupApprovalForm(id, type, label, false);
-            });
-
-            window.toggleApprovalModal = function(id, type, label, isReject = false) {
-                setupApprovalForm(id, type, label, isReject);
-                $('#approvalModal').modal('show');
-            };
-
-            function setupApprovalForm(id, type, label, isReject) {
-                const form = $('#approvalForm');
-                var url = "{{ route('cross_cut_painting.approve', ['id' => ':id', 'type' => ':type']) }}";
-                url = url.replace(':id', id).replace(':type', type);
-                form.attr('action', url);
-                $('#approvalLabelText').text(label);
-
-                // Kashift Plating special requirement
-                if (type === 'kashift_plating') {
-                    $('#approverNameGroup').show();
-                    $('#approver_name_input').prop('required', true);
-                } else {
-                    $('#approverNameGroup').hide();
-                    $('#approver_name_input').prop('required', false);
-                }
-
-                // Reset and set state
-                if (isReject) {
-                    $('input[name="action_type"][value="reject"]').parent().addClass('active').siblings().removeClass('active');
-                    $('input[name="action_type"][value="reject"]').prop('checked', true);
-                    toggleRejectReason(true);
-                } else {
-                    $('input[name="action_type"][value="approve"]').parent().addClass('active').siblings().removeClass('active');
-                    $('input[name="action_type"][value="approve"]').prop('checked', true);
-                    toggleRejectReason(false);
-                }
-            }
-
-            window.toggleRejectReason = function (show) {
-                const form = $('#approvalForm');
-                const currentAction = form.attr('action');
-                let newAction = currentAction;
-                
-                if (show) {
-                    $('#rejectReasonGroup').slideDown();
-                    $('textarea[name="rejection_remarks"]').prop('required', true);
-                    newAction = currentAction.replace('/approve/', '/reject/');
-                } else {
-                    $('#rejectReasonGroup').slideUp();
-                    $('textarea[name="rejection_remarks"]').prop('required', false);
-                    newAction = currentAction.replace('/reject/', '/approve/');
-                }
-                form.attr('action', newAction);
-            };
-
-            // Edit Logic
-            $('.edit-btn').click(function () {
-                const id = $(this).data('id');
-                const url = '{{ route("cross_cut_painting.edit", ":id") }}'.replace(':id', id);
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><br>Memuat data...</div>');
-                $('#editModal').modal('show');
-                $('#editModalBody').load(url, function (response, status, xhr) {
-                    if (status == "error") {
-                        $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data: ' + xhr.status + " " + xhr.statusText + '</div>');
-                    }
-                });
-            });
-
-            // Tooltip initialization
-            $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
     @php $bulkApproveRoute = route('cross_cut_painting.bulk_approve'); @endphp

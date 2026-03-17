@@ -221,7 +221,7 @@
                 <th rowspan="2" class="col-compact">NG</th>
                 <th colspan="2" class="col-compact">Detail NG</th>
                 <th rowspan="2" class="col-compact">Judg</th>
-                <th rowspan="2" class="col-compact">Insl</th>
+                <th rowspan="2" class="col-compact">Inspector</th>
                 <th rowspan="2" class="w-ket">Ket</th>
             </tr>
             <tr>
@@ -493,7 +493,7 @@
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
-                    <td class="col-compact">{{ $checksheet->operator_initials }}</td>
+                    <td class="col-compact">{{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}</td>
 
 
                     <td>{{ $checksheet->remarks }}</td>

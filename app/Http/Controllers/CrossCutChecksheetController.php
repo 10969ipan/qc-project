@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class CrossCutChecksheetController extends Controller
 {
@@ -111,7 +112,8 @@ class CrossCutChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $this->crossCutService->createChecksheet($request->validated());
+            $checksheet = $this->crossCutService->createChecksheet($request->validated());
+            ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Cross Cut baru: {$checksheet->item->name}");
             $message = 'Cross Cut Checksheet created successfully.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -219,6 +221,8 @@ class CrossCutChecksheetController extends Controller
         }
         try {
             $this->crossCutService->updateChecksheet($id, $request->validated());
+            $checksheet = \App\Models\CrossCutChecksheet::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Cross Cut: {$checksheet->item->name}");
             return redirect()->route('cross_cut.index')->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
@@ -262,6 +266,11 @@ class CrossCutChecksheetController extends Controller
             }
 
             $this->crossCutService->singleApprove($id, $type, $data);
+            $checksheet = \App\Models\CrossCutChecksheet::find($id);
+            $mapping = $this->getApprovalMapping($type);
+            $label = $mapping['label'] ?? $type;
+            ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$label}) pada checksheet Cross Cut: {$checksheet->item->name}");
+
             return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Checksheet approved successfully.');
         } catch (\Exception $e) {
             $code = $e->getCode();

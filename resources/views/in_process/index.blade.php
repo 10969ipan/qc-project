@@ -92,7 +92,7 @@
             </div>
         </div>
     </div>
-    <!-- Hidden Logo for PDF Export -->
+    <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
@@ -102,13 +102,13 @@
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    {{-- Preserve plant parameter for all users --}}
+                    {{-- Pertahankan parameter plant untuk semua pengguna --}}
                     @if(request('plant'))
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
 
 
-                    <!-- Live Search -->
+                    <!-- Pencarian Langsung -->
                     <div class="col-lg-5 col-md-5 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label for="search" class="small font-weight-bold">Pencarian</label>
@@ -138,7 +138,7 @@
                         </div>
                     </div>
 
-                    <!-- Buttons: Cari, Reset, Export -->
+                    <!-- Tombol: Cari, Reset, Ekspor -->
                     <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
@@ -193,7 +193,7 @@
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
+                            <th rowspan="2" class="align-middle">Inspector</th>
 
                             <th colspan="4" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
@@ -242,13 +242,13 @@
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
 
-                                {{-- Dimension Check Detail --}}
+                                {{-- Detail Cek Dimensi --}}
                                 <td class="align-middle p-0">
                                     @php
                                         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
                                         $dimensions = $dimensions ?: [];
 
-                                        // Check if there is any actual user input
+                                        // Periksa apakah ada input pengguna yang sebenarnya
                                         $hasUserInputs = false;
                                         foreach ($dimensions as $cavPoints) {
                                             if (is_array($cavPoints)) {
@@ -264,7 +264,7 @@
                                         $itemPartNumber = strtoupper($itemPartNumber);
                                         $standards = $partDimensionStandards[$itemPartNumber] ?? [];
 
-                                        // Find active points (columns that have data or are defined in standards)
+                                        // Temukan titik aktif (kolom yang memiliki data atau ditentukan dalam standar)
                                         $activePoints = [];
                                         foreach ($dimensions as $cavKey => $points) {
                                             if (is_array($points)) {
@@ -281,12 +281,12 @@
                                         $activePoints = array_keys($activePoints);
                                         sort($activePoints);
 
-                                        // Default points if none found
+                                        // Titik default jika tidak ditemukan
                                         if (empty($activePoints)) {
                                             $activePoints = range(1, 5);
                                         }
 
-                                        // Find max cavity for rendering rows
+                                        // Temukan cavity maksimal untuk merender baris
                                         $actualMaxCavity = 0;
                                         foreach ($dimensions as $cavKey => $pointsData) {
                                             $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
@@ -298,7 +298,7 @@
                                         <div style="max-height: 200px; overflow-y: auto; font-size: 0.7rem;">
                                             <table class="table table-bordered table-sm m-0">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
-                                                    {{-- Standard Row --}}
+                                                    {{-- Baris Standar --}}
                                                     @php
                                                         $hasStdData = false;
                                                         foreach ($activePoints as $j) {
@@ -319,7 +319,7 @@
                                                         </tr>
                                                     @endif
 
-                                                    {{-- Min Row --}}
+                                                    {{-- Baris Min --}}
                                                     @php
                                                         $hasMinData = false;
                                                         foreach ($activePoints as $j) {
@@ -340,7 +340,7 @@
                                                         </tr>
                                                     @endif
 
-                                                    {{-- Max Row --}}
+                                                    {{-- Baris Max --}}
                                                     @php
                                                         $hasMaxData = false;
                                                         foreach ($activePoints as $j) {
@@ -361,7 +361,7 @@
                                                         </tr>
                                                     @endif
 
-                                                    {{-- Tolerance Row --}}
+                                                    {{-- Baris Toleransi --}}
                                                     @php
                                                         $hasTolData = false;
                                                         foreach ($activePoints as $j) {
@@ -382,7 +382,7 @@
                                                         </tr>
                                                     @endif
 
-                                                    {{-- Main Header Row --}}
+                                                    {{-- Baris Header Utama --}}
                                                     <tr>
                                                         <th>Cav</th>
                                                         @foreach ($activePoints as $j)
@@ -391,7 +391,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {{-- Actual Measurements --}}
+                                                    {{-- Pengukuran Aktual --}}
                                                     @for ($i = 1; $i <= $displayMaxCavity; $i++)
                                                         @php
                                                             $rowHasData = false;
@@ -564,7 +564,7 @@
                                         {{ $checksheet->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle">{{ $checksheet->operator_initials }}</td>
+                                <td class="align-middle">{{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}</td>
 
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center">
@@ -693,7 +693,7 @@
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')
                                         @endif
-                                        {{-- Action Buttons for Approvals --}}
+                                        {{-- Tombol Aksi untuk Persetujuan --}}
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
@@ -1029,244 +1029,13 @@
     @endforeach
 
 @endsection
-
 @push('scripts')
-
+    <script src="{{ asset('js/checksheet/in-process.js') }}"></script>
     <script>
-        // Pass standards to JS
-
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Character counter for rejection remarks
-            @foreach($checksheets as $cs)
-                @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-                    const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
-                    const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
-                    if (textarea{{ $cs->id }}{{ $rejectType }}) {
-                        textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function () {
-                            charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
-                        });
-                    }
-                @endforeach
-            @endforeach
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                        // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                                                                                                                                        const liveSearchInput = document.getElementById('liveSearch');
-
-            if (liveSearchInput) {
-                let searchTimeout;
-
-                liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.trim();
-
-                    // Clear previous timeout
-                    clearTimeout(searchTimeout);
-
-                    // Debounce: wait 500ms after user stops typing
-                    searchTimeout = setTimeout(function () {
-                        // Get current filter values
-                        const startDate = document.getElementById('start_date').value;
-                        const endDate = document.getElementById('end_date').value;
-                        const plant = '{{ request('plant') }}';
-
-                        // Build URL with all parameters
-                        const params = new URLSearchParams();
-                        if (searchTerm) params.append('search', searchTerm);
-                        if (startDate) params.append('start_date', startDate);
-                        if (endDate) params.append('end_date', endDate);
-                        if (plant) params.append('plant', plant);
-
-                        // Redirect to index with search parameter
-                        window.location.href = '{{ route('in_process.index') }}?' + params.toString();
-                    }, 500);
-                });
-            }
-
-
-
-        // Edit Modal Handler
-        $('.btn-edit-modal').on('click', function (e) {
-            e.preventDefault();
-            var url = $(this).attr('href');
-            $('#editModal').modal('show');
-            $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-            $.ajax({
-                url: url,
-                success: function (response) {
-                    $('#editModalBody').html(response);
-                },
-                error: function (xhr) {
-                    var message = 'Gagal memuat data checksheet.';
-                    if (xhr.status === 404) {
-                        message = 'Data checksheet tidak ditemukan.';
-                    } else if (xhr.status === 403) {
-                        message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
-                    } else if (xhr.status === 500) {
-                        message = 'Terjadi kesalahan pada server.';
-                    }
-                    $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                }
-            });
-        });
-
-        // Status Modal Handler
-        $('.btn-status-modal').on('click', function (e) {
-            e.preventDefault();
-            var url = $(this).attr('href');
-            $('#statusModal').modal('show');
-            $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-            $.ajax({
-                url: url,
-                success: function (response) {
-                    $('#statusModalBody').html(response);
-                },
-                error: function (xhr) {
-                    var message = 'Gagal memuat data status approval.';
-                    if (xhr.status === 404) {
-                        message = 'Data tidak ditemukan.';
-                    } else if (xhr.status === 403) {
-                        message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
-                    }
-                    $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                }
-            });
-        });
-        // AJAX Form Submission for All Checksheet Actions (Edit, Status, Approve, Reject)
-        $(document).on('submit', '.ajax-form', function (e) {
-            var $form = $(this);
-
-            // Special confirmation for Delete actions
-            if ($form.find('input[name="_method"]').val() === 'DELETE') {
-                if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
-
-            e.preventDefault();
-            var $submitBtn = $form.find('button[type="submit"]');
-            var $modalErrors = $form.find('#modal-errors');
-            var $originalBtnHtml = $submitBtn.html();
-
-            // Clear previous errors
-            $modalErrors.hide().html('');
-            $form.find('.is-invalid').removeClass('is-invalid');
-            $form.find('.invalid-feedback').remove();
-
-            // Disable button and show loading
-            $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
-
-            // Log AJAX request untuk debugging
-            var formData = $form.serializeArray();
-            console.log('=== AJAX Form Submit ===');
-            console.log('URL:', $form.attr('action'));
-            console.log('Method:', $form.attr('method'));
-            console.log('Form Data:', formData);
-            console.log('========================');
-
-            $.ajax({
-                url: $form.attr('action'),
-                method: $form.attr('method'),
-                data: $form.serialize(),
-                dataType: 'json',
-                success: function (response) {
-                    console.log('=== AJAX Success Response ===');
-                    console.log('Response:', response);
-                    console.log('=============================');
-
-                    if (response.success) {
-                        // Success! Reload to the provided URL (to preserve parameters) or current URL
-                        console.log('Redirecting to:', response.redirect || window.location.href);
-                        window.location.href = response.redirect || window.location.href;
-                    } else {
-                        // Error but handled
-                        console.warn('Response success=false:', response.message);
-                        showModalError($modalErrors, response.message || 'Terjadi kesalahan saat menyimpan data.');
-                        $submitBtn.prop('disabled', false).html($originalBtnHtml);
-                    }
-                },
-                error: function (xhr) {
-                    console.error('=== AJAX Error Response ===');
-                    console.error('Status:', xhr.status);
-                    console.error('Response:', xhr.responseJSON);
-                    console.error('===========================');
-
-                    $submitBtn.prop('disabled', false).html($originalBtnHtml);
-
-                    if (xhr.status === 422) {
-                        // Validation errors
-                        var errors = xhr.responseJSON.errors;
-                        var errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
-
-                        if (errors) {
-                            console.error('Validation Errors:', errors);
-                            $.each(errors, function (field, messages) {
-                                errorHtml += '<li>' + messages[0] + '</li>';
-
-                                // Highlight individual fields
-                                var $input = $form.find('[name="' + field + '"]');
-                                if ($input.length) {
-                                    $input.addClass('is-invalid');
-                                    if (!$input.next('.invalid-feedback').length) {
-                                        $input.after('<div class="invalid-feedback">' + messages[0] + '</div>');
-                                    }
-                                }
-                            });
-                        } else {
-                            errorHtml += '<li>' + (xhr.responseJSON.message || 'Validasi gagal.') + '</li>';
-                        }
-
-                        errorHtml += '</ul></div>';
-                        showModalError($modalErrors, errorHtml);
-                    } else {
-                        // General error
-                        var message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
-                        console.error('General Error:', message);
-                        showModalError($modalErrors, '<div class="alert alert-danger">' + message + '</div>');
-                    }
-
-                    // Scroll to top of modal if inside one, otherwise scroll window
-                    var $modalBody = $form.closest('.modal-body');
-                    if ($modalBody.length) {
-                        $modalBody.animate({ scrollTop: 0 }, 'fast');
-                    } else {
-                        $('html, body').animate({ scrollTop: $form.offset().top - 100 }, 'fast');
-                    }
-                }
-            });
-        });
-
-        function showModalError($container, html) {
-            $container.html(html).fadeIn();
-        }
-
-        // QR Code Detail Handler
-        $(document).on('click', '.btn-qr-detail', function() {
-            const data = $(this).data();
-            console.log('QR detail clicked:', data);
-            
-            let sapCode = data.sap || '-';
-            
-            // Fallback: If SAP Code is '-' or empty, try to parse from QR Raw
-            if ((sapCode === '-' || !sapCode) && data.qr) {
-                const parts = data.qr.split('|');
-                if (parts.length >= 5) {
-                    sapCode = parts[4].trim();
-                }
-            }
-
-            $('#modal-qr-raw').text(data.qr || '-');
-            $('#modal-qr-part').text(data.part || '-');
-            $('#modal-qr-supplier').text(data.supplier || '-');
-            $('#modal-qr-qty').text(data.qty || '-');
-            $('#modal-qr-unique').text(data.unique || '-');
-            $('#modal-qr-sap').text(sapCode);
-            $('#qrModal').modal('show');
-        });
+        $(document).ready(function () {
+            window.initInProcessIndex();
         });
     </script>
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
-@endpush
+@endpushsh

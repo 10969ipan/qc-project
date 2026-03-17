@@ -113,6 +113,7 @@ class SubAssyChecksheetService extends BaseService
             // Create checksheet
             $checksheet = SubAssyChecksheet::create([
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
+                'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
@@ -202,6 +203,7 @@ class SubAssyChecksheetService extends BaseService
             $checksheet = SubAssyChecksheet::findOrFail($id);
 
             $updateData = [
+                'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],

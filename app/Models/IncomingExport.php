@@ -17,6 +17,8 @@ class IncomingExport extends Model
         'standard',
         'date',
         'tanggal_delivery',
+        'lot_qty',
+        'total_check',
         'judgment',
         'defects',
         'total_ng',

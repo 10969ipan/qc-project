@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateSortirChecksheetRequest;
 use Illuminate\Http\Request;
 use App\Models\Plant;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class SortirChecksheetController extends Controller
 {
@@ -117,7 +118,8 @@ class SortirChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $this->sortirService->createSortirChecksheet($request->validated());
+            $checksheet = $this->sortirService->createSortirChecksheet($request->validated());
+            ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Sortir baru: {$checksheet->item->name}");
             $message = 'Data Sortir berhasil disimpan.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -169,6 +171,8 @@ class SortirChecksheetController extends Controller
         }
         try {
             $this->sortirService->updateChecksheet($id, $request->validated());
+            $checksheet = \App\Models\SortirChecksheet::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Sortir: {$checksheet->item->name}");
             $message = 'Data Sortir berhasil diperbarui.';
 
             if ($request->ajax() || $request->wantsJson()) {

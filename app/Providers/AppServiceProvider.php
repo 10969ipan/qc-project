@@ -64,5 +64,63 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('unreadRejections', $rejectionAlerts);
             }
         });
+
+        // Share dynamic menus with topbar based on permissions
+        \Illuminate\Support\Facades\View::composer('layouts.topbar', function ($view) {
+            if (auth()->check()) {
+                $role = auth()->user()->role;
+                $userId = auth()->id();
+                
+                $permissionCheck = function($q) use ($role, $userId) {
+                    $q->where(function($query) use ($role, $userId) {
+                        // User specific override (Allows)
+                        $query->whereHas('userPermissions', function($up) use ($userId) {
+                            $up->where('user_id', $userId)->where('can_view', true);
+                        })
+                        // OR Role permission (only if NO user override exists for this menu)
+                        ->orWhere(function($sub) use ($role, $userId) {
+                            $sub->whereHas('permissions', function($p) use ($role) {
+                                $p->where('role', $role)->where('can_view', true);
+                            })->whereDoesntHave('userPermissions', function($up) use ($userId) {
+                                $up->where('user_id', $userId);
+                            });
+                        })
+                        ->orWhere('route', '/'); 
+                    });
+                };
+
+                // Fetch menus including children up to 4 levels, filtered by user/role permissions
+                $menus = \App\Models\AppMenu::whereNull('parent_id')
+                    ->where('is_active', true)
+                    ->where(function($q) use ($permissionCheck) {
+                        $permissionCheck($q);
+                    })
+                    ->with(['children' => function($q) use ($role, $userId, $permissionCheck) {
+                        $q->where('is_active', true)
+                          ->where(function($sq) use ($permissionCheck) {
+                              $permissionCheck($sq);
+                          })
+                          ->with(['children' => function($sq) use ($role, $userId, $permissionCheck) {
+                              $sq->where('is_active', true)
+                                 ->where(function($ssq) use ($permissionCheck) {
+                                     $permissionCheck($ssq);
+                                 })
+                                 ->with(['children' => function($ssq) use ($role, $userId, $permissionCheck) {
+                                     $ssq->where('is_active', true)
+                                         ->where(function($sssq) use ($permissionCheck) {
+                                             $permissionCheck($sssq);
+                                         })
+                                         ->orderBy('order');
+                                 }])
+                                 ->orderBy('order');
+                          }])
+                          ->orderBy('order');
+                    }])
+                    ->orderBy('order')
+                    ->get();
+                    
+                $view->with('dynamicMenus', $menus);
+            }
+        });
     }
 }

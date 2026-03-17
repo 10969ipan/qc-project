@@ -28,291 +28,90 @@
                 QC APPS
             </div>
             <ul class="main-nav d-flex align-items-center list-unstyled mb-0">
-                <li class="{{ url()->current() === url('/dashboard') ? 'active' : '' }}">
-                    <a href="{{ url('/') }}"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
-                </li>
-
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating', 'oshef'])))
-                    <li class="dropdown-item-hover">
-                        <a href="#"><i class="fas fa-clipboard-check mr-1"></i> Quality Control <i
-                                class="fas fa-chevron-down ml-1 small"></i></a>
-                        <ul class="dropdown-menu">
-                            
-                            @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                                <li class="has-submenu">
-                                    <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
-                                            class="fas fa-chevron-right small"></i></a>
-                                    <ul class="dropdown-menu sub-menu">
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
-                                            <li class="has-submenu">
-                                                <a href="#" class="dropdown-item d-flex justify-content-between">MASTER DATA <i
-                                                        class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu">
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('admin.items.index', ['plant' => 'jakarta']) }}">Data
-                                                            Item</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('admin.categories.index', ['plant' => 'jakarta']) }}">Kategori</a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        @endif
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
-                                            <li class="has-submenu">
-                                                <a href="#" class="dropdown-item d-flex justify-content-between">ANALYSIS <i
-                                                        class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu">
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('analysis.monthly_ng', ['plant' => 'jakarta']) }}">Sub
-                                                            Assy Anls</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'jakarta']) }}">Inprocess
-                                                            Anls</a></li>
-                                                </ul>
-                                            </li>
-                                        @endif
+                @foreach($dynamicMenus ?? [] as $menu)
+                    @php
+                        $isActive = request()->is(trim($menu->route, '/').'*') || ($menu->route && request()->routeIs($menu->route));
+                        if (!$isActive) {
+                            foreach($menu->children as $c) {
+                                if (request()->is(trim($c->route, '/').'*') || ($c->route && request()->routeIs($c->route))) { $isActive = true; break; }
+                                foreach($c->children as $gc) {
+                                    if (request()->is(trim($gc->route, '/').'*') || ($gc->route && request()->routeIs($gc->route))) { $isActive = true; break; }
+                                }
+                                if ($isActive) break;
+                            }
+                        }
+                    @endphp
+                    
+                    @if($menu->children->isEmpty())
+                        <li class="{{ $isActive ? 'active' : '' }}">
+                            <a href="{{ $menu->route ? (Route::has($menu->route) ? route($menu->route) : url($menu->route)) : '#' }}" 
+                               @if($menu->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                               <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }}
+                            </a>
+                        </li>
+                    @else
+                        <li class="dropdown-item-hover @if($menu->is_maintenance) menu-maintenance @endif">
+                            <a href="#" class="{{ $isActive ? 'expanded' : '' }}"
+                               @if($menu->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                               <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }} <i class="fas fa-chevron-down ml-1 small"></i>
+                            </a>
+                            <ul class="dropdown-menu">
+                                @foreach($menu->children as $child)
+                                    @php
+                                        $childPlant = $child->plant_code;
+                                        $childUrl = $child->route ? (Route::has($child->route) ? route($child->route, $childPlant ? ['plant' => $childPlant] : []) : url($child->route)) : '#';
+                                    @endphp
+                                    @if($child->children->isEmpty())
+                                        <li>
+                                            <a class="dropdown-item" href="{{ $childUrl }}"
+                                               @if($child->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($child->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                                               {{ $child->name }}
+                                            </a>
+                                        </li>
+                                    @else
                                         <li class="has-submenu">
-                                            <a href="#" class="dropdown-item d-flex justify-content-between">CHECKSHEET <i
-                                                    class="fas fa-chevron-right small"></i></a>
+                                            <a href="#" class="dropdown-item d-flex justify-content-between">{{ $child->name }} <i class="fas fa-chevron-right small"></i></a>
                                             <ul class="dropdown-menu sub-menu">
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub
-                                                        Assy</a></li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
-                                                </li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
-                                                </li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
-                                                </li>
+                                                @foreach($child->children as $grand)
+                                                    @php
+                                                        $grandPlant = $grand->plant_code ?: $childPlant;
+                                                        $grandUrl = $grand->route ? (Route::has($grand->route) ? route($grand->route, $grandPlant ? ['plant' => $grandPlant] : []) : url($grand->route)) : '#';
+                                                    @endphp
+                                                    @if($grand->children->isEmpty())
+                                                        <li>
+                                                            <a class="dropdown-item" href="{{ $grandUrl }}"
+                                                           @if($grand->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($grand->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                                                           {{ $grand->name }}
+                                                        </a>
+                                                        </li>
+                                                    @else
+                                                        <li class="has-submenu">
+                                                            <a href="#" class="dropdown-item d-flex justify-content-between">{{ $grand->name }} <i class="fas fa-chevron-right small"></i></a>
+                                                            <ul class="dropdown-menu sub-menu">
+                                                                @foreach($grand->children as $sub)
+                                                                    @php
+                                                                        $subPlant = $sub->plant_code ?: $grandPlant;
+                                                                        $subUrl = $sub->route ? (Route::has($sub->route) ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : url($sub->route)) : '#';
+                                                                    @endphp
+                                                                    <li>
+                                                                        <a class="dropdown-item" href="{{ $subUrl }}"
+                                                                       @if($sub->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                                                                       {{ $sub->name }}
+                                                                    </a>
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </li>
+                                                    @endif
+                                                @endforeach
                                             </ul>
                                         </li>
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
-                                            <li class="has-submenu">
-                                                <a href="#" class="dropdown-item d-flex justify-content-between">LAPORAN <i
-                                                        class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu">
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub
-                                                            Assy</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        @endif
-                                    </ul>
-                                </li>
-                            @endif
-
-                            
-                            @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                                <li class="has-submenu">
-                                    <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
-                                            class="fas fa-chevron-right small"></i></a>
-                                    <ul class="dropdown-menu sub-menu">
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
-                                            <li class="has-submenu">
-                                                <a href="#" class="dropdown-item d-flex justify-content-between">MASTER DATA <i
-                                                        class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu">
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('admin.items.index', ['plant' => 'karawang']) }}">Data
-                                                            Item</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        @endif
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef']))
-                                            <li class="has-submenu">
-                                                <a href="#" class="dropdown-item d-flex justify-content-between">ANALYSIS <i
-                                                        class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu">
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('analysis.monthly_ng', ['plant' => 'karawang']) }}">Sub
-                                                            Assy Anls</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'karawang']) }}">Inprocess
-                                                            Anls</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('analysis.monthly_ng_cross_cut', ['plant' => 'karawang']) }}">Cross
-                                                            Cut Anls</a></li>
-                                                </ul>
-                                            </li>
-                                        @endif
-                                        <li class="has-submenu">
-                                            <a href="#" class="dropdown-item d-flex justify-content-between">CHECKSHEET <i
-                                                    class="fas fa-chevron-right small"></i></a>
-                                            <ul class="dropdown-menu sub-menu shadow">
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub
-                                                        Assy</a></li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('in_process.create', ['plant' => 'karawang']) }}">Inprocess</a>
-                                                </li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('first_piece_approval.create', ['plant' => 'karawang']) }}">FPA</a>
-                                                </li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('cross_cut.create', ['plant' => 'karawang']) }}">Cross
-                                                        Cut Plating</a></li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('cross_cut_painting.create', ['plant' => 'karawang']) }}">Cross
-                                                        Cut Painting</a></li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
-                                                </li>
-                                                <li><a class="dropdown-item" href="{{ route('plating.create') }}">Plating</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('double_tape.create') }}">Double Tape</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('incoming.parts.create', ['plant' => 'karawang']) }}">Incoming Part</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('incoming.materials.create', ['plant' => 'karawang']) }}">Incoming Material</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('incoming.sub_parts.create', ['plant' => 'karawang']) }}">Incoming Sub-Part</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('incoming.exports.create', ['plant' => 'karawang']) }}">Incoming Export</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('incoming.chemicals.create', ['plant' => 'karawang']) }}">Incoming Chemical</a></li>
-                                            </ul>
-                                        </li>
-                                        @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
-                                            <li class="has-submenu">
-                                                <a href="#" class="dropdown-item d-flex justify-content-between">LAPORAN <i
-                                                        class="fas fa-chevron-right small"></i></a>
-                                                <ul class="dropdown-menu sub-menu shadow">
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('admin.checksheets.index', ['plant' => 'karawang']) }}">Sub
-                                                            Assy</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('in_process.index', ['plant' => 'karawang']) }}">Inprocess</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('first_piece_approval.index', ['plant' => 'karawang']) }}">FPA</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('cross_cut.index', ['plant' => 'karawang']) }}">Cross Cut
-                                                            Plating</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('cross_cut_painting.index', ['plant' => 'karawang']) }}">Cross
-                                                            Cut Painting</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item" href="{{ route('plating.index') }}">Plating</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('double_tape.index') }}">Double Tape</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('incoming.parts.index', ['plant' => 'karawang']) }}">Incoming Part</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('incoming.materials.index', ['plant' => 'karawang']) }}">Incoming Material</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('incoming.sub_parts.index', ['plant' => 'karawang']) }}">Incoming Sub-Part</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('incoming.exports.index', ['plant' => 'karawang']) }}">Incoming Export</a></li>
-                                                    <li><a class="dropdown-item" href="{{ route('incoming.chemicals.index', ['plant' => 'karawang']) }}">Incoming Chemical</a></li>
-                                                </ul>
-                                            </li>
-                                        @endif
-                                    </ul>
-                                </li>
-                            @endif
-                        </ul>
-                    </li>
-                @endif
-
-                
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef'])))
-                    <li class="dropdown-item-hover">
-                        <a href="#"><i class="fas fa-award mr-1"></i> Quality Assurance <i
-                                class="fas fa-chevron-down ml-1 small"></i></a>
-                        <ul class="dropdown-menu">
-                            @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                                <li class="has-submenu">
-                                    <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
-                                            class="fas fa-chevron-right small"></i></a>
-                                    <ul class="dropdown-menu sub-menu">
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('admin.customer-claim-records.index', ['plant' => 'jakarta']) }}">List
-                                                Claim</a></li>
-                                    </ul>
-                                </li>
-                            @endif
-                            @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                                <li class="has-submenu">
-                                    <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
-                                            class="fas fa-chevron-right small"></i></a>
-                                    <ul class="dropdown-menu sub-menu">
-                                        <li><a class="dropdown-item"
-                                                href="{{ route('admin.customer-claim-records.index', ['plant' => 'karawang']) }}">List
-                                                Claim</a></li>
-                                    </ul>
-                                </li>
-                            @endif
-                            @if($canInputAllPlants || auth()->user()->role === 'oshef')
-                                <li>
-                                    <a class="dropdown-item font-weight-bold text-primary"
-                                        href="{{ route('admin.customer-claims.index') }}">
-                                        Input Ppm dan Total Claim <i class="fas fa-plus-circle ml-1"></i>
-                                    </a>
-                                </li>
-                            @endif
-                        </ul>
-                    </li>
-                @endif
-
-                
-                @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'oshef'])))
-                    <li class="dropdown-item-hover">
-                        <a href="#"><i class="fas fa-chart-bar mr-1"></i> Quality System <i
-                                class="fas fa-chevron-down ml-1 small"></i></a>
-                        <ul class="dropdown-menu shadow">
-                            
-                            @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'jakarta'))
-                                <li class="has-submenu">
-                                    <a href="#" class="dropdown-item d-flex justify-content-between">PLANT JAKARTA <i
-                                            class="fas fa-chevron-right small"></i></a>
-                                    <ul class="dropdown-menu sub-menu">
-                                        
-                                        <li class="has-submenu">
-                                            <a href="#" class="dropdown-item d-flex justify-content-between border-bottom-0">KALIBRASI <i
-                                                    class="fas fa-chevron-right small"></i></a>
-                                            <ul class="dropdown-menu sub-menu">
-                                                <li><a class="dropdown-item" href="{{ route('calibration.schedule.index', ['plant' => 'jakarta']) }}">Jadwal Kalibrasi</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('calibration.verifications.index', ['plant' => 'jakarta']) }}">Hasil Verif</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('calibration.tools.index', ['plant' => 'jakarta']) }}">Daftar Alat</a></li>
-                                            </ul>
-                                        </li>
-                                        
-                                        <li><a class="dropdown-item" href="{{ route('kakotora.index', ['plant' => 'jakarta']) }}">KAKOTORA</a></li>
-                                    </ul>
-                                </li>
-                            @endif
-
-                            
-                            @if($canInputAllPlants || (auth()->user()->plant && auth()->user()->plant->code === 'karawang'))
-                                <li class="has-submenu">
-                                    <a href="#" class="dropdown-item d-flex justify-content-between">PLANT KARAWANG <i
-                                            class="fas fa-chevron-right small"></i></a>
-                                    <ul class="dropdown-menu sub-menu">
-                                        
-                                        <li class="has-submenu">
-                                            <a href="#" class="dropdown-item d-flex justify-content-between border-bottom-0">KALIBRASI <i
-                                                    class="fas fa-chevron-right small"></i></a>
-                                            <ul class="dropdown-menu sub-menu">
-                                                <li><a class="dropdown-item" href="{{ route('calibration.schedule.index', ['plant' => 'karawang']) }}">Jadwal Kalibrasi</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('calibration.verifications.index', ['plant' => 'karawang']) }}">Hasil Verif</a></li>
-                                                <li><a class="dropdown-item" href="{{ route('calibration.tools.index', ['plant' => 'karawang']) }}">Daftar Alat</a></li>
-                                            </ul>
-                                        </li>
-                                        
-                                        <li><a class="dropdown-item" href="{{ route('kakotora.index', ['plant' => 'karawang']) }}">KAKOTORA</a></li>
-                                    </ul>
-                                </li>
-                            @endif
-                        </ul>
-                    </li>
-                @endif
+                                    @endif
+                                @endforeach
+                            </ul>
+                        </li>
+                    @endif
+                @endforeach
             </ul>
         </div>
     </div>

@@ -55,7 +55,7 @@
                                 <th>Tanggal Check</th>
                                 <th>Tgl Datang</th>
                                 <th>Lot/Batch Number</th>
-                                <th>Quantity (Pcs)</th>
+                                <th>Quantity (Pcs) / Lot</th>
                                 <th>Sampling (Pcs)</th>
                                 <th>Check Dimensi</th>
                                 <th>Expired Date</th>
@@ -82,8 +82,8 @@
                                 </td>
                                 <td><input type="date" class="form-control" name="tanggal_datang" required></td>
                                 <td><input type="text" class="form-control" name="lot_batch_number" required></td>
-                                <td><input type="number" class="form-control text-center" name="quantity" required></td>
-                                <td><input type="number" class="form-control text-center" name="sampling_size_pcs" required>
+                                <td><input type="number" class="form-control text-center" name="quantity" id="lotQtyInput" required></td>
+                                <td><input type="number" class="form-control text-center" name="sampling_size_pcs" id="totalCheckInput" required>
                                 </td>
                                 <td>
                                     <select class="form-control" name="check_dimensi">
@@ -134,5 +134,5 @@
 @endsection
 
 @@push('scripts')
-    <script src="{{ asset('js/incoming/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
 @endpush

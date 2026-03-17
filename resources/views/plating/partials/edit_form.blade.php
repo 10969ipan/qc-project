@@ -160,27 +160,3 @@
         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
     </div>
 </form>
-
-<script>
-    $(document).ready(function () {
-        $('#editTotalQty').on('input', function () {
-            $('#editSamplingQty').val($(this).val()).trigger('input');
-        });
-
-        $('#editTotalNG, #editSamplingQty').on('input', function () {
-            let total = parseInt($('#editSamplingQty').val()) || 0;
-            let ng = parseInt($('#editTotalNG').val()) || 0;
-            let ok = total - ng;
-            $('input[name="total_ok"]').val(ok < 0 ? 0 : ok);
-            $('#editJudgment').val(ng > 0 ? 'NG' : 'OK').trigger('change');
-        });
-
-        $('#editJudgment').change(function () {
-            if ($(this).val() === 'NG') {
-                $('#editNextProses').slideDown();
-            } else {
-                $('#editNextProses').slideUp();
-            }
-        });
-    });
-</script>

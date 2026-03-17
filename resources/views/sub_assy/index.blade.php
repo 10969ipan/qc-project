@@ -92,7 +92,7 @@
             </div>
         </div>
     </div>
-    <!-- Hidden Logo for PDF Export -->
+    <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
@@ -102,14 +102,14 @@
         <div class="card-body">
             <form action="{{ route('admin.checksheets.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    {{-- Preserve plant parameter for all users --}}
+                    {{-- Pertahankan parameter plant untuk semua pengguna --}}
                     @if(request('plant'))
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
 
 
                     <!-- Filter Tanggal -->
-                    <!-- Live Search -->
+                    <!-- Pencarian Langsung -->
                     <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label for="search" class="small font-weight-bold">Pencarian</label>
@@ -141,7 +141,7 @@
                         </div>
                     </div>
 
-                    <!-- Buttons: Cari, Reset, Export -->
+                    <!-- Tombol: Cari, Reset, Ekspor -->
                     <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
@@ -195,7 +195,7 @@
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
+                            <th rowspan="2" class="align-middle">Inspector</th>
 
                             <th colspan="4" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
@@ -282,7 +282,7 @@
                                         {{ $checksheet->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle">{{ $checksheet->operator_initials }}</td>
+                                <td class="align-middle">{{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}</td>
 
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center">
@@ -408,7 +408,7 @@
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')
                                         @endif
-                                        {{-- Action Buttons for Approvals --}}
+                                        {{-- Tombol Aksi untuk Persetujuan --}}
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
@@ -427,7 +427,7 @@
                                             $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
                                                 $checksheet->manager_qc === 'REJECTED');
 
-                                            // Determine Acronym for Kashift button
+                                            // Tentukan Akronim untuk tombol Kashift
                                             $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
                                             $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
                                         @endphp
@@ -561,7 +561,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -582,7 +582,7 @@
         </div>
     </div>
 
-    <!-- Status Modal -->
+    <!-- Modal Status -->
     <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -604,7 +604,7 @@
         </div>
     </div>
 
-    <!-- Rejection Modal for each checksheet and type -->
+    <!-- Modal Rejection untuk setiap checksheet dan tipe -->
     @foreach($checksheets as $cs)
         @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
@@ -680,107 +680,11 @@
 
 @endsection
 
-@push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+@@push('scripts')
+    <script src="{{ asset('js/checksheet/sub-assy.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Character counter for rejection remarks
-            @foreach($checksheets as $cs)
-                @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-                    const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
-                    const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
-                    if (textarea{{ $cs->id }}{{ $rejectType }}) {
-                        textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function () {
-                            charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
-                        });
-                    }
-                @endforeach
-            @endforeach
-
-                                                                                                                                                                                                                                                                                                                    // Live Search Functionality - Server-side search across all pages
-                                                                                                                                                                                                                                                                                                                    const liveSearchInput = document.getElementById('liveSearch');
-
-            if (liveSearchInput) {
-                let searchTimeout;
-
-                liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.trim();
-
-                    // Clear previous timeout
-                    clearTimeout(searchTimeout);
-
-                    // Debounce: wait 500ms after user stops typing
-                    searchTimeout = setTimeout(function () {
-                        // Get current filter values
-                        const startDate = document.getElementById('start_date').value;
-                        const endDate = document.getElementById('end_date').value;
-                        const plant = document.querySelector('[name="plant"]')?.value;
-
-                        // Build URL with all parameters
-                        const params = new URLSearchParams();
-                        if (searchTerm) params.append('search', searchTerm);
-                        if (startDate) params.append('start_date', startDate);
-                        if (endDate) params.append('end_date', endDate);
-                        if (plant) params.append('plant', plant);
-
-                        // Redirect to index with search parameter
-                        window.location.href = '{{ route('admin.checksheets.index') }}?' + params.toString();
-                    }, 500);
-                });
-            }
-
-            // PDF Generation Removed (Server-side Export Implemented)
-
-            // Edit Modal Handler
-            $('.btn-edit-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#editModalBody').html(response);
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal memuat data checksheet.';
-                        if (xhr.status === 404) {
-                            message = 'Data checksheet tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
-                        } else if (xhr.status === 500) {
-                            message = 'Terjadi kesalahan pada server.';
-                        }
-                        $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                    }
-                });
-            });
-
-            // Status Modal Handler
-            $('.btn-status-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#statusModal').modal('show');
-                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#statusModalBody').html(response);
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal memuat data status approval.';
-                        if (xhr.status === 404) {
-                            message = 'Data tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
-                        }
-                        $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                    }
-                });
-            });
+        $(document).ready(function () {
+            window.initSubAssyIndex();
         });
     </script>
     @php $bulkApproveRoute = route('admin.checksheets.bulk_approve'); @endphp

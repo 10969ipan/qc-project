@@ -1209,6 +1209,16 @@
         </script>
     @endif
 
+    @if(session('maintenance_alert'))
+        <script>
+            Swal.fire({
+                icon: 'warning',
+                title: 'Maintenance',
+                text: @json(session('maintenance_alert')),
+            });
+        </script>
+    @endif
+
     <script src="{{ asset('js/sticky-scroll.js') }}?v={{ time() }}"></script>
 
     <div id="global-loader">

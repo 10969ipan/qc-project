@@ -13,6 +13,7 @@ class SubAssyChecksheet extends Model
 
     protected $fillable = [
         'plant_id',
+        'user_id',
         'item_id',
         'created_at',
         'date',
@@ -53,5 +54,10 @@ class SubAssyChecksheet extends Model
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

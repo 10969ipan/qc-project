@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 
 class CrossCutPaintingChecksheetController extends Controller
 {
@@ -108,7 +109,8 @@ class CrossCutPaintingChecksheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
-            $this->paintingService->createChecksheet($request->validated());
+            $checksheet = $this->paintingService->createChecksheet($request->validated());
+            ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Cross Cut Painting baru: {$checksheet->item->name}");
             $message = 'Cross Cut Painting Checksheet created successfully.';
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -208,6 +210,8 @@ class CrossCutPaintingChecksheetController extends Controller
         }
         try {
             $this->paintingService->updateChecksheet($id, $request->validated());
+            $checksheet = \App\Models\CrossCutPaintingChecksheet::find($id);
+            ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Cross Cut Painting: {$checksheet->item->name}");
             return redirect()->route('cross_cut_painting.index')->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
@@ -240,6 +244,11 @@ class CrossCutPaintingChecksheetController extends Controller
                 $data['approver_name'] = $request->approver_name;
             }
             $this->paintingService->singleApprove($id, $type, $data);
+            $checksheet = \App\Models\CrossCutPaintingChecksheet::find($id);
+            $mapping = $this->getApprovalMapping($type);
+            $label = $mapping['label'] ?? $type;
+            ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$label}) pada checksheet Cross Cut Painting: {$checksheet->item->name}");
+
             return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Painting Checksheet approved successfully.');
         } catch (\Exception $e) {
             if ($e->getCode() == 403)

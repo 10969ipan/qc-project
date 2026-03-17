@@ -245,7 +245,7 @@
                         <i class="fas fa-chart-bar" style="font-size: 1.1rem;"></i>
                     </div>
                     <div>
-                        <h6 class="modern-card-title mb-0">Frekuensi Global</h6>
+                        <h6 class="modern-card-title mb-0">Frekuensi</h6>
                         <div class="text-xs font-weight-bold text-slate-400 mt-1">Total Frekuensi Jakarta & Karawang</div>
                     </div>
                 </div>
@@ -292,7 +292,7 @@
                                         <i class="fas fa-tachometer-alt" style="font-size: 1.1rem;"></i>
                                     </div>
                                     <div>
-                                        <h6 class="modern-card-title mb-0">Daily Rate Jakarta</h6>
+                                        <h6 class="modern-card-title mb-0">Approval Daily Jakarta</h6>
                                         <div class="text-xs font-weight-bold text-slate-400 mt-1">Persentase Approval Harian</div>
                                     </div>
                                 </div>
@@ -334,7 +334,7 @@
                                         <i class="fas fa-tachometer-alt" style="font-size: 1.1rem;"></i>
                                     </div>
                                     <div>
-                                        <h6 class="modern-card-title mb-0">Daily Rate Karawang</h6>
+                                        <h6 class="modern-card-title mb-0">Approval Daily Karawang</h6>
                                         <div class="text-xs font-weight-bold text-slate-400 mt-1">Persentase Approval Harian</div>
                                     </div>
                                 </div>

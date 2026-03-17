@@ -18,6 +18,8 @@ class StoreIncomingExportRequest extends FormRequest
             'standard' => 'nullable|string',
             'date' => 'required|date',
             'tanggal_delivery' => 'required|date',
+            'lot_qty' => 'required|integer|min:0',
+            'total_check' => 'required|integer|min:0',
             'judgment' => 'required|in:OK,NG',
             'total_ng' => 'nullable|integer',
             'remarks' => 'nullable|string',

@@ -72,7 +72,7 @@
                                 <th rowspan="2">Remarks</th>
                             </tr>
                             <tr>
-                                <th>Total</th>
+                                <th>Lot Qty (Kg)</th>
                                 <th>Komper/Karung</th>
                                 <th>Sampling Size</th>
                             </tr>
@@ -111,7 +111,7 @@
                                 <!-- Quantity Details -->
                                 <td>
                                     <input type="number" step="0.01" class="form-control text-center" name="quantity_kg"
-                                        placeholder="0.00" required>
+                                        id="lotQtyInput" placeholder="0.00" required>
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" class="form-control text-center"
@@ -119,7 +119,7 @@
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" class="form-control text-center"
-                                        name="sampling_size_karung_kg" placeholder="0.00" required>
+                                        name="sampling_size_karung_kg" id="totalCheckInput" placeholder="0.00" required>
                                 </td>
 
                                 <!-- Expired Date -->
@@ -181,5 +181,5 @@
 @endsection
 
 @@push('scripts')
-    <script src="{{ asset('js/incoming/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
 @endpush

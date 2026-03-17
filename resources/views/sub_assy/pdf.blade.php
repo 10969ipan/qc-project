@@ -179,7 +179,7 @@
                 <th rowspan="2">NG</th>
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2">Jdg</th>
-                <th rowspan="2">Inisial</th>
+                <th rowspan="2">Inspector</th>
                 <th rowspan="2">Ket</th>
             </tr>
             <tr>
@@ -236,7 +236,7 @@
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
-                    <td>{{ $checksheet->operator_initials }}</td>
+                    <td>{{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}</td>
                     <td>{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

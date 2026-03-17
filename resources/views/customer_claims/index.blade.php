@@ -10,7 +10,6 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Data Claim Customer</h6>
             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                 <div class="d-flex align-items-center">
-
                     <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal"
                         data-target="#modalTambahData">
                         <i class="fas fa-plus"></i> Tambah Data
@@ -19,10 +18,8 @@
             @endif
         </div>
         <div class="card-body">
-            {{-- Filter Form --}}
             <form action="{{ route('admin.customer-claims.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    {{-- Preserve plant parameter --}}
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
                         <div class="form-group mb-0">
                             <label for="plant_filter" class="small font-weight-bold">Plant</label>
@@ -79,7 +76,6 @@
                 </div>
             </form>
 
-            {{-- Success/Error Messages --}}
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="fas fa-check-circle"></i> {{ session('success') }}
@@ -98,7 +94,6 @@
                 </div>
             @endif
 
-            {{-- Table --}}
             @php
                 $groupedClaims = $claims->groupBy(function ($item) {
                     return $item->plant->code;
@@ -189,13 +184,9 @@
                     </div>
                 @endforeach
             </div>
-
-
         </div>
     </div>
 
-
-    {{-- Modal Tambah Data (Bulk Input) --}}
     <div class="modal fade" id="modalTambahData" tabindex="-1" role="dialog" aria-labelledby="modalTambahDataLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -255,7 +246,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- Row for Month 0 (Summary) --}}
                                     <tr class="bg-light font-weight-bold">
                                         <td class="align-middle text-info pl-3">TAHUNAN (0)</td>
                                         <td class="modal-ppm-fields">
@@ -319,7 +309,6 @@
         </div>
     </div>
 
-    <!-- Modal Edit Data -->
     <div class="modal fade" id="modalEditData" tabindex="-1" role="dialog" aria-labelledby="modalEditDataLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -335,7 +324,6 @@
                 <form id="formEditClaim" action="" method="POST">
                     @csrf
                     @method('PUT')
-                    {{-- Preserve filters --}}
                     <input type="hidden" name="filter_plant" value="{{ request('plant') }}">
                     <input type="hidden" name="filter_year" value="{{ request('year') }}">
                     <input type="hidden" name="filter_month" value="{{ request('month') }}">
@@ -413,97 +401,11 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            function toggleFields(plantId, modalPrefix) {
-                // Always show detailed fields for all plants including TOTAL
-                $(`.${modalPrefix}-ppm-fields`).show();
-                $(`.${modalPrefix}-total-fields`).hide();
+        window.__CUSTOMER_CLAIMS__ = {
+            routes: {
+                update: "{{ route('admin.customer-claims.update', ':id') }}"
             }
-
-            // Calculation Logic
-            function calculatePPM(pcs, delivery) {
-                if (pcs && delivery && delivery > 0) {
-                    return ((pcs / delivery) * 1000000).toFixed(2);
-                }
-                return '';
-            }
-
-            // Calculation for Tambah Data Modal
-            $(document).on('input', '.calc-input-summary, [class*="calc-input-"]', function() {
-                let month = $(this).data('month');
-                let pcsInput, deliveryInput, ppmInput;
-
-                if (month === 'summary') {
-                    pcsInput = $('input[name="total_claim_pcs"]');
-                    deliveryInput = $('input[name="total_delivery"]');
-                    ppmInput = $('#ppm_value_summary');
-                } else {
-                    pcsInput = $(`input[name="data[${month}][total_claim_pcs]"]`);
-                    deliveryInput = $(`input[name="data[${month}][total_delivery]"]`);
-                    ppmInput = $(`#ppm_value_${month}`);
-                }
-
-                let pcs = parseFloat(pcsInput.val());
-                let delivery = parseFloat(deliveryInput.val());
-
-                ppmInput.val(calculatePPM(pcs, delivery));
-            });
-
-             // Calculation for Edit Modal
-            $(document).on('input', '.calc-input-edit', function() {
-                let pcs = parseFloat($('#edit_total_claim_pcs').val());
-                let delivery = parseFloat($('#edit_total_delivery').val());
-                $('#edit_ppm_value').val(calculatePPM(pcs, delivery));
-            });
-
-
-            // For Tambah Data Modal
-            $('#modal_plant_id').on('change', function() {
-                toggleFields($(this).val(), 'modal');
-            });
-            // Initial toggle for Tambah Data
-            if ($('#modal_plant_id').val()) {
-                toggleFields($('#modal_plant_id').val(), 'modal');
-            }
-
-            // Edit Claim Logic
-            $('.btn-edit-claim').on('click', function() {
-                var id = $(this).data('id');
-                var plantId = $(this).data('plant');
-                var plantCode = $(this).data('plant-code');
-                var year = $(this).data('year');
-                var month = $(this).data('month');
-                var ppm = $(this).data('ppm');
-                var target = $(this).data('target-val');
-                var total = $(this).data('total');
-                // We need to fetch the new fields if they exist in the row data, 
-                // but since they might not be in the table view yet, we might need to rely on what's available or fetch via ajax. 
-                // For now, assuming we might need to add data attributes to the button.
-                // Assuming the button attributes for new fields are added in the blade loop.
-                var pcs = $(this).data('total-claim-pcs');
-                var delivery = $(this).data('total-delivery');
-
-                $('#edit_plant_id').val(plantId);
-                $('#edit_year').val(year);
-                $('#edit_month').val(month);
-                $('#edit_ppm_value').val(ppm);
-                $('#edit_target_value').val(target);
-                $('#edit_total_claims').val(total);
-                $('#edit_total_claim_pcs').val(pcs);
-                $('#edit_total_delivery').val(delivery);
-
-                toggleFields(plantId, 'edit');
-
-                // Update form action
-                var url = "{{ route('admin.customer-claims.update', ':id') }}";
-                url = url.replace(':id', id);
-                $('#formEditClaim').attr('action', url);
-            });
-
-            // Handle plant change in Edit modal
-            $('#edit_plant_id').on('change', function() {
-                toggleFields($(this).val(), 'edit');
-            });
-        });
+        };
     </script>
+    <script src="{{ asset('js/customer-claims/customer-claims.js') }}"></script>
 @endpush

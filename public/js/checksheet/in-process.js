@@ -1,0 +1,1137 @@
+/**
+ * Modul JavaScript InProcess
+ * Merangkum logika untuk tampilan index dan create In-Process.
+ */
+
+class InProcessIndex {
+    constructor(config) {
+        this.config = config;
+        this.init();
+    }
+
+    init() {
+        this.initCharacterCounter();
+        this.initLiveSearch();
+        this.initEditModal();
+        this.initStatusModal();
+        this.initAjaxForms();
+        this.initQRDetail();
+    }
+
+    initCharacterCounter() {
+        const _this = this;
+        $(document).on('input', 'textarea[name="rejection_remarks"]', function() {
+            const id = $(this).attr('id').replace('rejection_remarks', '');
+            $('#charCount' + id).text(this.value.length);
+        });
+    }
+
+    initLiveSearch() {
+        const liveSearchInput = document.getElementById('liveSearch');
+        if (liveSearchInput) {
+            let searchTimeout;
+            liveSearchInput.addEventListener('keyup', function () {
+                const searchTerm = this.value.trim();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const startDate = document.getElementById('start_date').value;
+                    const endDate = document.getElementById('end_date').value;
+                    const plant = new URLSearchParams(window.location.search).get('plant') || '';
+
+                    const params = new URLSearchParams();
+                    if (searchTerm) params.append('search', searchTerm);
+                    if (startDate) params.append('start_date', startDate);
+                    if (endDate) params.append('end_date', endDate);
+                    if (plant) params.append('plant', plant);
+
+                    window.location.href = window.location.pathname + '?' + params.toString();
+                }, 500);
+            });
+        }
+    }
+
+    initEditModal() {
+        $(document).on('click', '.btn-edit-modal', function (e) {
+            e.preventDefault();
+            const url = $(this).attr('href');
+            $('#editModal').modal('show');
+            $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#editModalBody').html(response);
+                },
+                error: function (xhr) {
+                    let message = 'Gagal memuat data checksheet.';
+                    if (xhr.status === 404) message = 'Data checksheet tidak ditemukan.';
+                    else if (xhr.status === 403) message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
+                    else if (xhr.status === 500) message = 'Terjadi kesalahan pada server.';
+                    $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
+                }
+            });
+        });
+    }
+
+    initStatusModal() {
+        $(document).on('click', '.btn-status-modal', function (e) {
+            e.preventDefault();
+            const url = $(this).attr('href');
+            $('#statusModal').modal('show');
+            $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-info" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+            $.ajax({
+                url: url,
+                success: function (response) {
+                    $('#statusModalBody').html(response);
+                },
+                error: function (xhr) {
+                    let message = 'Gagal memuat data status approval.';
+                    if (xhr.status === 404) message = 'Data tidak ditemukan.';
+                    else if (xhr.status === 403) message = 'Anda tidak memiliki akses untuk mengubah status approval ini.';
+                    $('#statusModalBody').html('<div class="alert alert-danger">' + message + '</div>');
+                }
+            });
+        });
+    }
+
+    initAjaxForms() {
+        $(document).on('submit', '.ajax-form', function (e) {
+            const $form = $(this);
+            if ($form.find('input[name="_method"]').val() === 'DELETE') {
+                if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            e.preventDefault();
+            const $submitBtn = $form.find('button[type="submit"]');
+            const $modalErrors = $form.find('#modal-errors');
+            const $originalBtnHtml = $submitBtn.html();
+
+            $modalErrors.hide().html('');
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $form.find('.invalid-feedback').remove();
+            $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        window.location.href = response.redirect || window.location.href;
+                    } else {
+                        $modalErrors.html(response.message || 'Terjadi kesalahan saat menyimpan data.').fadeIn();
+                        $submitBtn.prop('disabled', false).html($originalBtnHtml);
+                    }
+                },
+                error: function (xhr) {
+                    $submitBtn.prop('disabled', false).html($originalBtnHtml);
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                        if (errors) {
+                            $.each(errors, function (field, messages) {
+                                errorHtml += '<li>' + messages[0] + '</li>';
+                                const $input = $form.find('[name="' + field + '"]');
+                                if ($input.length) {
+                                    $input.addClass('is-invalid');
+                                    if (!$input.next('.invalid-feedback').length) {
+                                        $input.after('<div class="invalid-feedback">' + messages[0] + '</div>');
+                                    }
+                                }
+                            });
+                        } else {
+                            errorHtml += '<li>' + (xhr.responseJSON.message || 'Validasi gagal.') + '</li>';
+                        }
+                        errorHtml += '</ul></div>';
+                        $modalErrors.html(errorHtml).fadeIn();
+                    } else {
+                        const message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
+                        $modalErrors.html('<div class="alert alert-danger">' + message + '</div>').fadeIn();
+                    }
+                    const $modalBody = $form.closest('.modal-body');
+                    if ($modalBody.length) $modalBody.animate({ scrollTop: 0 }, 'fast');
+                    else $('html, body').animate({ scrollTop: $form.offset().top - 100 }, 'fast');
+                }
+            });
+        });
+    }
+
+    initQRDetail() {
+        $(document).on('click', '.btn-qr-detail', function() {
+            const data = $(this).data();
+            let sapCode = data.sap || '-';
+            if ((sapCode === '-' || !sapCode) && data.qr) {
+                const parts = data.qr.split('|');
+                if (parts.length >= 5) sapCode = parts[4].trim();
+            }
+            $('#modal-qr-raw').text(data.qr || '-');
+            $('#modal-qr-part').text(data.part || '-');
+            $('#modal-qr-supplier').text(data.supplier || '-');
+            $('#modal-qr-qty').text(data.qty || '-');
+            $('#modal-qr-unique').text(data.unique || '-');
+            $('#modal-qr-sap').text(sapCode);
+            $('#qrModal').modal('show');
+        });
+    }
+}
+
+class InProcessCreate {
+    constructor(config) {
+        this.config = config;
+        this.html5QrCode = null;
+        this.timerInterval = null;
+        this.totalSeconds = 0;
+        this.timerRunning = false;
+        this.pdfCache = {};
+        
+        // State Referensi PDF
+        this.refStandardPdfDoc = null;
+        this.refStandardPageNum = 1;
+        this.refStandardFileIndex = 0;
+        this.refStandardFiles = [];
+        this.refSimilarPdfDoc = null;
+        this.refSimilarPageNum = 1;
+        this.standardZoomLevel = 1.0;
+        this.similarZoomLevel = 1.0;
+
+        // Logika perluasan dimensi
+        this.currentCavities = 2;
+        this.currentPoints = 5;
+        this.maxCavities = 30;
+        this.maxPoints = 30;
+        
+        // Berat cavity maksimal
+        this.MAX_WEIGHT_CAV = 8;
+
+        this.init();
+    }
+
+    init() {
+        this.initQRScanner();
+        this.initTimer();
+        this.initItemSelect();
+        this.initDimensionControls();
+        this.initWeightControls();
+        this.initDefectList();
+        this.initFormValidation();
+        this.initZoomLogic();
+        this.initPDFReference();
+        this.lockInputs();
+        this.checkUrlParams();
+    }
+
+    lockInputs() {
+        this.formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
+        this.formInputs.prop('disabled', true);
+        $('#checksheetForm').addClass('inputs-locked');
+        if (!$('#inputsLockedStyles').length) {
+            $('<style id="inputsLockedStyles">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo('head');
+        }
+    }
+
+    unlockInputs() {
+        this.formInputs.prop('disabled', false);
+        $('#checksheetForm').removeClass('inputs-locked');
+        $('#saveBtn').prop('disabled', false);
+    }
+
+    initQRScanner() {
+        const _this = this;
+        $('#btnScanQR').click(() => $('#qrScannerModal').modal('show'));
+
+        $('#qrScannerModal').on('shown.bs.modal', function () {
+            _this.html5QrCode = new Html5Qrcode("qr-reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            _this.html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                _this.handleQRScanned(decodedText);
+            }).catch(err => {
+                console.error("Scanner error", err);
+                $('#qr-reader').html(`<div class="alert alert-warning m-3"><b>Kamera tidak dapat diakses:</b> ${err}</div>`);
+            });
+        });
+
+        $('#qr-input-file').on('change', async function (e) {
+            if (e.target.files.length == 0) return;
+            const imageFile = e.target.files[0];
+            $('#qr-reader').addClass('d-none');
+            $('#qr-reader-results').removeClass('d-none').find('p').text('Memproses QR dari file...');
+            try {
+                await _this.stopScanner();
+                if (!_this.html5QrCode) _this.html5QrCode = new Html5Qrcode("qr-reader");
+                const decodedText = await _this.html5QrCode.scanFile(imageFile, true);
+                _this.handleQRScanned(decodedText);
+            } catch (err) {
+                console.error("Error scanning file:", err);
+                $('#qr-reader-results').addClass('d-none');
+                $('#qr-reader').removeClass('d-none');
+                Swal.fire({ icon: 'error', title: 'Gagal Membaca QR', text: 'Sistem tidak menemukan QR Code pada gambar ini.' });
+            } finally {
+                $(this).val('');
+            }
+        });
+
+        $('#qrScannerModal').on('hidden.bs.modal', () => {
+            this.stopScanner();
+            $('#qr-reader-results').addClass('d-none');
+            $('#qr-reader').removeClass('d-none');
+        });
+    }
+
+    async stopScanner() {
+        if (this.html5QrCode && this.html5QrCode.isScanning) {
+            try {
+                await this.html5QrCode.stop();
+            } catch (err) {
+                console.error("Failed to stop scanner", err);
+            }
+        }
+    }
+
+    handleQRScanned(decodedText) {
+        this.stopScanner();
+        $('#qr-reader').addClass('d-none');
+        $('#qr-reader-results').removeClass('d-none').find('p').text('QR Ditemukan! Mengolah data...');
+
+        const safetyTimeout = setTimeout(() => {
+            if ($('#qrScannerModal').hasClass('show') && !$('#qr-reader-results').hasClass('d-none')) {
+                $('#qr-reader-results').addClass('d-none');
+                $('#qr-reader').removeClass('d-none');
+                Swal.fire('Timeout', 'Proses terlalu lama.', 'warning');
+            }
+        }, 15000);
+
+        this.parseAndFillQR(decodedText, (success) => {
+            clearTimeout(safetyTimeout);
+            if (success) {
+                $('#qrScannerModal').modal('hide');
+                Swal.fire({ icon: 'success', title: 'QR Berhasil Discan', text: 'Data item terisi.', timer: 2000, showConfirmButton: false });
+            } else {
+                $('#qr-reader-results').addClass('d-none');
+                $('#qr-reader').removeClass('d-none');
+            }
+        });
+    }
+
+    parseAndFillQR(qrString, callback) {
+        const _this = this;
+        try {
+            const parts = qrString.split('|');
+            if (parts.length < 5) throw new Error("Format QR tidak valid");
+
+            const part_code = parts[0].trim();
+            const supplier_id = parts[1].trim();
+            const quantity = parts[2].trim();
+            const unique_code_id = parts[3].trim();
+            const sap_code = parts[4].trim();
+
+            $('#qrcodeInput').val(qrString);
+            $('#partCodeInput').val(part_code);
+            $('#supplierIdInput').val(supplier_id);
+            $('#quantityInput').val(quantity);
+            $('#uniqueCodeInput').val(unique_code_id);
+            $('#sapCodeInputHidden').val(sap_code);
+
+            $('#qr-reader-results').find('p').text('Mencari data item: ' + part_code);
+
+            $.ajax({
+                url: this.config.itemSearchUrl,
+                method: 'GET',
+                data: { part_number: part_code, sap_code: sap_code },
+                success: function (response) {
+                    if (response.success && response.item) {
+                        $('#itemSelect').val(response.item.id).trigger('change');
+                        if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
+                        if (callback) callback(true);
+                    } else {
+                        Swal.fire('Error', 'Item tidak ditemukan.', 'error');
+                        if (callback) callback(false);
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire('Error', 'Gagal mencari item', 'error');
+                    if (callback) callback(false);
+                }
+            });
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
+            if (callback) callback(false);
+        }
+    }
+
+    checkUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qrFromUrl = urlParams.get('qrcode');
+        if (qrFromUrl) setTimeout(() => { this.parseAndFillQR(qrFromUrl); }, 1000);
+    }
+
+    initTimer() {
+        const _this = this;
+        $('#startTimerBtn').click(function () {
+            if (!_this.timerRunning) {
+                _this.timerRunning = true;
+                $(this).removeClass('btn-success').addClass('btn-secondary').attr('disabled', true).html('<i class="fas fa-clock"></i> Running...');
+                _this.unlockInputs();
+                _this.timerInterval = setInterval(() => {
+                    _this.totalSeconds++;
+                    _this.updateTimerDisplay();
+                }, 1000);
+            }
+        });
+    }
+
+    updateTimerDisplay() {
+        const hours = Math.floor(this.totalSeconds / 3600);
+        const minutes = Math.floor((this.totalSeconds % 3600) / 60);
+        const seconds = this.totalSeconds % 60;
+        const text = (hours < 10 ? "0" + hours : hours) + ":" + (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        $('#timerDisplay').text(text);
+        $('#cycleTimeInput').val(this.totalSeconds);
+    }
+
+    initItemSelect() {
+        const _this = this;
+        $('#itemSelect').change(function () {
+            const selectedOption = $(this).find('option:selected');
+            const itemId = $(this).val();
+            if (!itemId) return;
+
+            const imageUrl = selectedOption.data('image');
+            const files = selectedOption.data('files');
+            const name = selectedOption.data('name');
+            const description = selectedOption.data('description');
+            let defectsData = selectedOption.data('defects');
+            const customer = selectedOption.data('customer');
+            const weightStandard = selectedOption.data('weight-standard');
+            const cavityData = selectedOption.data('cavity');
+
+            // Berat Part Logic
+            if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM') || customer.toUpperCase().includes('PT. TAKAGI SARI MULTI UTAMA'))) {
+                $('.col-berat-part').attr('style', 'display: table-cell !important;');
+                const itemCavity = parseInt(cavityData) || 1;
+                _this.initWeightCavities(Math.min(itemCavity, 8));
+                if (weightStandard) {
+                    $('#weightStandardDisplay').text(weightStandard);
+                    $('#weightStandardBadge').show();
+                } else {
+                    $('#weightStandardBadge').hide();
+                }
+            } else {
+                $('.col-berat-part').attr('style', 'display: none !important;');
+                _this.initWeightCavities(1);
+                $('#weightStandardBadge').hide();
+            }
+
+            // Logika Referensi PDF
+            const standardPdf = selectedOption.data('standard');
+            const similarPdf = selectedOption.data('similar');
+            _this.refStandardPdfDoc = null;
+            _this.refStandardPageNum = 1;
+            _this.refStandardFileIndex = 0;
+            _this.refStandardFiles = files || [];
+            _this.refSimilarPdfDoc = null;
+            _this.refSimilarPageNum = 1;
+
+            if (standardPdf) _this.renderPdfToCanvas(standardPdf, 'standardPdfCanvas', 'standardPdfPlaceholder', 'standardPdfLoading', 1);
+            else {
+                $('#standardPdfCanvas').addClass('d-none').hide();
+                $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').text('Standard PDF tidak tersedia');
+                $('.standard-nav-controls').hide();
+            }
+
+            if (similarPdf) {
+                _this.renderPdfToCanvas(similarPdf, 'similarPdfCanvas', 'similarPdfPlaceholder', 'similarPdfLoading', 1);
+                $('#similarStatusText').text('');
+            } else {
+                $('#similarPdfCanvas').addClass('d-none').hide();
+                $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex');
+                $('#similarStatusText').text('Referral Dimensi Part tidak tersedia untuk item ini');
+                $('.similar-nav-controls').hide();
+            }
+            _this.updateRefNavControls();
+
+            // Pembaruan Kontainer Gambar
+            const container = $('#imageContainer');
+            let htmlContent = '';
+            if (files && files.length > 0) {
+                htmlContent += `<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="${itemId}" data-count="${files.length}"><i class="fas fa-file-pdf"></i> PDF (${files.length})</button>`;
+            }
+            if (imageUrl) {
+                htmlContent += `<img src="${imageUrl}" style="max-width: 100px; max-height: 80px; border: 1px solid #dee2e6; cursor: pointer; display:block; margin: 0 auto;" class="img-thumbnail" data-toggle="modal" data-target="#imageModal" data-image="${imageUrl}" data-title="${name}" data-description="${description}">`;
+            }
+            if ((!files || files.length === 0) && !imageUrl) {
+                htmlContent = '<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>';
+            }
+            container.html(htmlContent);
+
+            // Pembaruan Daftar Defect
+            $('#defectContainer').html('<div class="input-group mb-2 defect-row"><select class="form-control defect-select" name="defect_types[]" id="defectSelect"><option value="">-- Pilih Defect --</option></select><input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;"></div>');
+            const defectSelect = $('#defectSelect');
+            if (typeof defectsData === 'string') {
+                try { defectsData = JSON.parse(defectsData); } catch (e) { defectsData = []; }
+            }
+            if (Array.isArray(defectsData) && defectsData.length > 0) {
+                $.each(defectsData, (i, v) => defectSelect.append(`<option value="${v}">${v}</option>`));
+            } else {
+                const defaultDefects = [{ v: 'scratch', t: 'BARET' }, { v: 'silver', t: 'SILVER' }, { v: 'flow', t: 'FLOW' }, { v: 'flash', t: 'FLASH' }, { v: 'shoot_mold', t: 'SHOOT MOLD' }, { v: 'bending', t: 'BENDING' }, { v: 'sinkmark', t: 'SINKMARK' }, { v: 'dimension', t: 'Dimensi' }];
+                $.each(defaultDefects, (i, d) => defectSelect.append(`<option value="${d.v}">${d.t}</option>`));
+            }
+            if (!defectSelect.find('option[value="dimension"]').length && !defectSelect.find('option:contains("Dimensi")').length) {
+                defectSelect.append('<option value="dimension">Dimensi</option>');
+            }
+
+            // Logika Cavity & Point (Khusus plant Karawang)
+            let pointCount = 5;
+            const dimStandards = selectedOption.data('dimension-standards');
+            if (dimStandards) {
+                if (Array.isArray(dimStandards)) pointCount = dimStandards.length;
+                else if (typeof dimStandards === 'object') {
+                    const keys = Object.keys(dimStandards).map(k => parseInt(k));
+                    if (keys.length > 0) pointCount = Math.max(...keys);
+                }
+            }
+            if (_this.config.plantContext === 'karawang') {
+                _this.updateCavityRows(cavityData || 1, pointCount);
+                _this.toggleManualCavityButtons(true);
+            }
+            _this.calculateTotalNG();
+        });
+
+        $('#sapCodeInput').on('input', function () {
+            const sapCode = $(this).val().trim();
+            if (sapCode.length >= 1) {
+                const matchedOption = $('#itemSelect option').filter(function () {
+                    const itemSapCode = $(this).data('sap-code');
+                    return itemSapCode && itemSapCode.toString().toLowerCase() === sapCode.toLowerCase();
+                });
+                if (matchedOption.length > 0) {
+                    $('#itemSelect').val(matchedOption.val()).trigger('change');
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                } else $(this).removeClass('is-valid').addClass('is-invalid');
+            } else $(this).removeClass('is-valid is-invalid');
+        });
+
+        $('input[name="total_qty"]').on('input', function () {
+            const lotSize = parseInt($(this).val()) || 0;
+            const sampleSize = _this.getSampleSize(lotSize);
+            $('input[name="sampling_qty"]').val(sampleSize).trigger('input');
+        });
+
+        $('input[name="total_ng"], input[name="sampling_qty"]').on('input', () => this.updateJudgment());
+        $('#judgmentSelect').on('change', function () {
+            if ($(this).val() === 'OK') _this.autoRemoveDimensionDefect();
+            else if ($(this).val() === 'NG') _this.autoAddDimensionDefect();
+            _this.toggleNextProsesDropdown();
+        });
+    }
+
+    initDimensionControls() {
+        $('#addCavityBtn').click(() => {
+            if (this.currentCavities < this.maxCavities) {
+                this.currentCavities++;
+                let newRow = `<tr class="cavity-row" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${this.currentCavities}</td>`;
+                for (let j = 1; j <= this.currentPoints; j++) {
+                    newRow += `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${this.currentCavities}][${j}]" placeholder="P${j}"></td>`;
+                }
+                newRow += `</tr>`;
+                $('#dimensionBody').append(newRow);
+            }
+        });
+
+        $('#deleteCavityBtn').click(() => {
+            if (this.currentCavities > 1) {
+                $('#dimensionBody tr:last-child').remove();
+                this.currentCavities--;
+                this.updateJudgment();
+            }
+        });
+
+        $('#addPointBtn').click(() => {
+            if (this.currentPoints < this.maxPoints) {
+                this.currentPoints++;
+                $('#dimensionHeadRow').append(`<th class="point-header">Point ${this.currentPoints}</th>`);
+                $('.cavity-row').each(function () {
+                    const cavityNum = $(this).data('cavity');
+                    $(this).append(`<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${cavityNum}][${this.currentPoints}]" placeholder="P${this.currentPoints}"></td>`.replace('this.currentPoints', this.currentPoints));
+                });
+            }
+        });
+
+        const _this = this;
+        $(document).on('click', '#addPointBtn', function() {
+             if (_this.currentPoints < _this.maxPoints) {
+                _this.currentPoints++;
+                $('#dimensionHeadRow').append(`<th class="point-header">Point ${_this.currentPoints}</th>`);
+                $('.cavity-row').each(function () {
+                    const cavityNum = $(this).data('cavity');
+                    $(this).append(`<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${cavityNum}][${_this.currentPoints}]" placeholder="P${_this.currentPoints}"></td>`);
+                });
+            }
+        });
+
+        $('#deletePointBtn').click(() => {
+            if (this.currentPoints > 1) {
+                $('#dimensionHeadRow th.point-header:last-child').remove();
+                $('.cavity-row').each(function () { $(this).find('td.point-cell:last-child').remove(); });
+                this.currentPoints--;
+                this.updateJudgment();
+            }
+        });
+
+        $(document).on('input', '.dimension-input', function() {
+            let val = $(this).val();
+            if (val.startsWith('+0')) $(this).val(val.replace(/^\+0/, ''));
+        });
+
+        $(document).on('input', '.dimension-input', () => this.validateDimensions());
+    }
+
+    updateCavityRows(cavityCount, pointCount = 5) {
+        if (this.config.plantContext !== 'karawang') return;
+        const tbody = $('#dimensionBody');
+        const theadRow = $('#dimensionHeadRow');
+        tbody.empty();
+        let headerHtml = '<th style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">Cavity</th>';
+        for (let j = 1; j <= pointCount; j++) headerHtml += `<th class="point-header">Point ${j}</th>`;
+        theadRow.html(headerHtml);
+        for (let i = 1; i <= cavityCount; i++) {
+            let rowHtml = `<tr class="cavity-row" data-cavity="${i}"><td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
+            for (let j = 1; j <= pointCount; j++) {
+                rowHtml += `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${i}][${j}]" placeholder="P${j}"></td>`;
+            }
+            rowHtml += `</tr>`;
+            tbody.append(rowHtml);
+        }
+        this.currentCavities = cavityCount;
+        this.currentPoints = pointCount;
+    }
+
+    toggleManualCavityButtons(isDynamic) {
+        if (this.config.plantContext !== 'karawang') return;
+        if (isDynamic) $('#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn').hide();
+        else $('#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn').show();
+    }
+
+    initWeightControls() {
+        const _this = this;
+        $(document).on('click', '#addWeightCavBtn', function () {
+            const cnt = $('#weightCavContainer .weight-cav-row').length;
+            if (cnt >= _this.MAX_WEIGHT_CAV) return;
+            $('#weightCavContainer').append(_this.buildWeightCavRow(cnt + 1));
+            _this.updateWeightCavBadge();
+        });
+        $(document).on('click', '#removeWeightCavBtn', function () {
+            const rows = $('#weightCavContainer .weight-cav-row');
+            if (rows.length <= 1) return;
+            rows.last().remove();
+            _this.updateWeightCavBadge();
+        });
+    }
+
+    buildWeightCavRow(cavNum) {
+        return `<div class="weight-cav-row" style="display:flex; align-items:center; margin-bottom:6px; gap:8px;"><span style="font-size:0.85rem; font-weight:600; color:#444; white-space:nowrap; min-width:45px;">CAV ${cavNum}</span><input type="number" step="0.01" min="0" class="form-control form-control-sm text-center" name="part_weight[]" placeholder="0.00" style="width:100px; flex:none;"><span style="font-size:0.85rem; color:#666;">gr</span></div>`;
+    }
+
+    updateWeightCavBadge() {
+        const cnt = $('#weightCavContainer .weight-cav-row').length;
+        $('#addWeightCavBtn').prop('disabled', cnt >= this.MAX_WEIGHT_CAV);
+        $('#removeWeightCavBtn').prop('disabled', cnt <= 1);
+    }
+
+    initWeightCavities(count) {
+        count = Math.min(Math.max(1, parseInt(count) || 1), this.MAX_WEIGHT_CAV);
+        const container = $('#weightCavContainer');
+        container.empty();
+        for (let i = 1; i <= count; i++) container.append(this.buildWeightCavRow(i));
+        this.updateWeightCavBadge();
+    }
+
+    initDefectList() {
+        const _this = this;
+        $('#addDefectBtn').click(function () {
+            const rowCount = $('.defect-row').length;
+            if (rowCount < 4) {
+                const firstSelect = $('#defectSelect');
+                const newRow = $(`<div class="input-group mb-2 defect-row"><select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]">${firstSelect.html()}</select><input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1"><div class="input-group-append"><button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button></div></div>`);
+                $('#defectContainer').append(newRow);
+            }
+            if ($('.defect-row').length >= 4) $(this).hide();
+        });
+
+        $(document).on('input', '.defect-qty', () => this.calculateTotalNG());
+        $(document).on('click', '.remove-defect-btn', function () {
+            $(this).closest('.defect-row').remove();
+            _this.calculateTotalNG();
+            if ($('.defect-row').length < 4) $('#addDefectBtn').show();
+        });
+
+        $('input[name="total_ng"]').on('input', function () {
+            const ng = parseInt($(this).val()) || 0;
+            if (ng >= 1 && $('.defect-row').length < 4) $('#addDefectBtn').show();
+            else $('#addDefectBtn').hide();
+        });
+    }
+
+    calculateTotalNG() {
+        let total = 0;
+        $('.defect-qty').each(function () { total += parseInt($(this).val()) || 0; });
+        $('input[name="total_ng"]').val(total).trigger('input');
+    }
+
+    getSampleSize(lotSize) {
+        if (lotSize >= 500001) return 1250;
+        if (lotSize >= 150001) return 800;
+        if (lotSize >= 35001) return 500;
+        if (lotSize >= 10001) return 315;
+        if (lotSize >= 3201) return 200;
+        if (lotSize >= 1201) return 125;
+        if (lotSize >= 501) return 80;
+        if (lotSize >= 281) return 50;
+        if (lotSize >= 151) return 32;
+        if (lotSize >= 91) return 20;
+        if (lotSize >= 51) return 13;
+        if (lotSize >= 26) return 8;
+        if (lotSize >= 16) return 5;
+        if (lotSize >= 9) return 3;
+        if (lotSize >= 2) return 2;
+        return 0;
+    }
+
+    getAqlLimits(sampleSize) {
+        if (sampleSize >= 1250) return { acc: 14, rej: 15 };
+        if (sampleSize >= 800) return { acc: 10, rej: 11 };
+        if (sampleSize >= 500) return { acc: 7, rej: 8 };
+        if (sampleSize >= 315) return { acc: 5, rej: 6 };
+        if (sampleSize >= 200) return { acc: 3, rej: 4 };
+        if (sampleSize >= 125) return { acc: 2, rej: 3 };
+        if (sampleSize >= 80) return { acc: 1, rej: 2 };
+        if (sampleSize >= 20) return { acc: 0, rej: 1 };
+        return { acc: 0, rej: 1 };
+    }
+
+    updateJudgment() {
+        const sampling = parseInt($('input[name="sampling_qty"]').val()) || 0;
+        const ng = parseInt($('input[name="total_ng"]').val()) || 0;
+        const isDimensiInvalid = $('.dimension-input.is-invalid').length > 0;
+
+        let hasDimensiDefect = false;
+        $('.defect-select').each(function () {
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (text === 'dimensi' || $(this).val() === 'dimension') { hasDimensiDefect = true; return false; }
+        });
+
+        if (isDimensiInvalid && !hasDimensiDefect) { this.autoAddDimensionDefect(); return; }
+        else if (!isDimensiInvalid && hasDimensiDefect) { this.autoRemoveDimensionDefect(); return; }
+
+        $('input[name="total_ok"]').val(Math.max(0, sampling - ng));
+        const limits = this.getAqlLimits(sampling);
+        $('#acc_val').text(limits.acc);
+        $('#rej_val').text(limits.rej);
+        $('#aql_info').show();
+
+        const judgmentSelect = $('#judgmentSelect');
+        const judgmentBadge = $('#judgmentBadge');
+
+        if (ng > 0 || sampling > 0 || isDimensiInvalid) {
+            if (isDimensiInvalid || ng >= limits.rej) {
+                judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger').css({ 'border-color': '#dc3545', 'background-color': '#fff' });
+            } else {
+                judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+                judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success').css({ 'border-color': '#28a745', 'background-color': '#fff' });
+            }
+        } else {
+            judgmentSelect.val('').removeClass('text-success text-danger');
+            judgmentBadge.addClass('d-none').text('-');
+        }
+        this.toggleNextProsesDropdown();
+    }
+
+    toggleNextProsesDropdown() {
+        const judgment = $('#judgmentSelect').val();
+        const ngCount = parseInt($('#total_ng').val()) || 0;
+        if (judgment === 'NG' || ngCount > 0) $('#nextProsesContainer').show();
+        else $('#nextProsesContainer').hide();
+    }
+
+    autoAddDimensionDefect() {
+        let foundRow = null;
+        $('.defect-select').each(function () {
+            const val = $(this).val();
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (val === 'dimension' || text === 'dimensi') { foundRow = $(this).closest('.defect-row'); return false; }
+        });
+
+        if (foundRow) {
+            const qtyInput = foundRow.find('.defect-qty');
+            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) qtyInput.val(1).trigger('input');
+            return;
+        }
+
+        let targetSelect = null;
+        $('.defect-select').each(function () { if ($(this).val() === '') { targetSelect = $(this); return false; } });
+
+        if (!targetSelect) {
+            if ($('.defect-row').length < 4) { $('#addDefectBtn').trigger('click'); targetSelect = $('.defect-select').last(); }
+            else targetSelect = $('.defect-select').first();
+        }
+
+        if (targetSelect) {
+            let foundVal = '';
+            targetSelect.find('option').each(function () {
+                if ($(this).val() === 'dimension' || $(this).text().toLowerCase() === 'dimensi') { foundVal = $(this).val(); return false; }
+            });
+            if (!foundVal) { targetSelect.append('<option value="dimension">Dimensi</option>'); foundVal = 'dimension'; }
+            targetSelect.val(foundVal).trigger('change');
+            targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
+            this.calculateTotalNG();
+        }
+    }
+
+    autoRemoveDimensionDefect() {
+        $('.defect-select').each(function () {
+            const val = $(this).val();
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (val === 'dimension' || text === 'dimensi') {
+                const row = $(this).closest('.defect-row');
+                if ($('.defect-row').length === 1) { $(this).val('').trigger('change'); row.find('.defect-qty').val(''); }
+                else { row.remove(); if ($('.defect-row').length < 4) $('#addDefectBtn').show(); }
+            }
+        });
+        this.calculateTotalNG();
+    }
+
+    initFormValidation() {
+        const _this = this;
+        $('#checksheetForm').on('submit', function (e) {
+            e.preventDefault();
+            const judgment = $('#judgmentSelect').val();
+            const nextProses = $('#nextProses').val();
+            if (judgment === 'NG' && !nextProses) {
+                Swal.fire({ icon: 'warning', title: 'Next Proses Wajib Dipilih', text: 'Untuk hasil NG, silakan pilih Next Proses!' });
+                $('#nextProses').addClass('is-invalid').focus();
+                setTimeout(() => $('#nextProses').removeClass('is-invalid'), 3000);
+                return false;
+            }
+
+            if (!_this.checkMandatoryDimensions()) return false;
+
+            let dimensionDefectSelected = false;
+            let dimensionQtyEmpty = false;
+            $('.defect-select').each(function () {
+                const text = $(this).find('option:selected').text().toLowerCase();
+                if ($(this).val() === 'dimension' || text === 'dimensi') {
+                    dimensionDefectSelected = true;
+                    const qtyInput = $(this).closest('.defect-row').find('.defect-qty');
+                    if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) { dimensionQtyEmpty = true; qtyInput.addClass('is-invalid'); }
+                    else qtyInput.removeClass('is-invalid');
+                }
+            });
+
+            if (dimensionDefectSelected && dimensionQtyEmpty) {
+                Swal.fire({ icon: 'warning', title: 'Qty Defect Dimensi Wajib Diisi' });
+                return false;
+            }
+
+            if (_this.timerRunning) { clearInterval(_this.timerInterval); _this.timerRunning = false; $('#cycleTimeInput').val(_this.totalSeconds); }
+
+            const saveBtn = $('#saveBtn');
+            const originalHtml = saveBtn.html();
+            saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+            const formData = new FormData(this);
+            $.ajax({
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data Berhasil Disimpan', showCancelButton: true, confirmButtonText: 'Lihat Data' }).then((result) => {
+                            if (result.isConfirmed) window.location.href = response.index_url;
+                            else _this.resetForm();
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    const errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal menyimpan data.';
+                    Swal.fire({ icon: 'error', title: 'Error', text: errorMsg });
+                    saveBtn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        });
+    }
+
+    resetForm() {
+        $('#checksheetForm')[0].reset();
+        clearInterval(this.timerInterval);
+        this.timerRunning = false;
+        this.totalSeconds = 0;
+        this.updateTimerDisplay();
+        $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').removeAttr('disabled').html('<i class="fas fa-play"></i> Start');
+        this.lockInputs();
+        $('#saveBtn').prop('disabled', true);
+        $('#addDefectBtn').hide();
+        $('.defect-row').not(':first').remove();
+        $('#imageContainer').html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
+        $('#standardPdfCanvas, #similarPdfCanvas').hide();
+        $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
+        $('#similarPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Dimensi Part');
+        $('#fullStandardBtn, #fullSimilarBtn, .standard-nav-controls, .similar-nav-controls').hide();
+        $('#judgmentBadge').addClass('d-none').text('-');
+        $('#itemSelect').val('').trigger('change');
+    }
+
+    normalizePartNumber(pn) {
+        if (!pn) return '';
+        return pn.toString().replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/\s+/g, '').toUpperCase();
+    }
+
+    normalizeStandardValue(val) {
+        if (val === null || val === undefined || val === '') return null;
+        return val.toString().replace(',', '.').replace(/[\u2012\u2013\u2014\u2212]/g, '-').trim();
+    }
+
+    validateDimensions() {
+        const _this = this;
+        const selectedOption = $('#itemSelect').find('option:selected');
+        const itemPartNumber = this.normalizePartNumber(selectedOption.data('part-number'));
+        const dimensionStandards = (this.config.partDimensionStandards || {})[itemPartNumber];
+
+        $('input[name^="dimensions"]').each(function () {
+            const name = $(this).attr('name');
+            const match = name.match(/\[(\d+)\]\[(\d+)\]/);
+            if (!match) return;
+            const point = match[2];
+            const standard = dimensionStandards ? dimensionStandards[point] : null;
+            const valStr = $(this).val().trim();
+            const value = parseFloat(valStr.replace(',', '.'));
+
+            if (standard && valStr !== '' && !isNaN(value)) {
+                let isInvalid = false;
+                const epsilon = 0.00001;
+                const checkInvalid = (v, std, mode) => {
+                    if (std === null) return false;
+                    const stdStr = String(std);
+                    if (stdStr.length > 1 && (stdStr.startsWith('+') || stdStr.startsWith('-'))) {
+                        const op = stdStr.charAt(0);
+                        const lim = parseFloat(stdStr.substring(1));
+                        return op === '+' ? v <= (lim + epsilon) : v >= (lim - epsilon);
+                    }
+                    const stdFloat = parseFloat(std);
+                    if (mode === 'min') return v < (stdFloat - epsilon);
+                    if (mode === 'max') return v > (stdFloat + epsilon);
+                    return false;
+                };
+
+                if (standard.min !== null && checkInvalid(value, standard.min, 'min')) isInvalid = true;
+                if (!isInvalid && standard.max !== null && checkInvalid(value, standard.max, 'max')) isInvalid = true;
+                if (!isInvalid && standard.size !== null) {
+                    const sz = String(standard.size);
+                    if ((sz.startsWith('+') || sz.startsWith('-')) && checkInvalid(value, standard.size, 'size')) isInvalid = true;
+                }
+
+                if (!isInvalid && standard.min === null && standard.max === null) {
+                    const stdSzStr = _this.normalizeStandardValue(standard.size);
+                    if (standard.size !== null && standard.tolerance !== null && !stdSzStr.startsWith('+') && !stdSzStr.startsWith('-')) {
+                        const size = parseFloat(stdSzStr);
+                        const tol = _this.normalizeStandardValue(standard.tolerance);
+                        let lb = size, ub = size;
+                        if (tol.includes('/')) {
+                            tol.split('/').forEach(p => {
+                                p = _this.normalizeStandardValue(p);
+                                const fv = parseFloat(p);
+                                if (p.startsWith('+') || fv > 0) ub = size + Math.abs(fv);
+                                else if (p.startsWith('-') || fv < 0) lb = size - Math.abs(fv);
+                            });
+                        } else if (tol.startsWith('+')) ub = size + parseFloat(tol.substring(1));
+                        else if (tol.startsWith('-')) lb = size + parseFloat(tol);
+                        else { const tv = parseFloat(tol); lb = size - tv; ub = size + tv; }
+                        if (value < (lb - epsilon) || value > (ub + epsilon)) isInvalid = true;
+                    }
+                }
+                if (isInvalid) $(this).addClass('is-invalid'); else $(this).removeClass('is-invalid');
+            } else $(this).removeClass('is-invalid');
+        });
+        this.updateJudgment();
+    }
+
+    checkMandatoryDimensions() {
+        const selectedOption = $('#itemSelect').find('option:selected');
+        const itemPartNumber = this.normalizePartNumber(selectedOption.data('part-number'));
+        const dimensionStandards = (this.config.partDimensionStandards || {})[itemPartNumber];
+        if (!dimensionStandards || this.config.plantContext === 'jakarta') return true;
+
+        let allFilled = true;
+        let firstEmpty = null;
+        $('.dimension-input').each(function () {
+            const match = $(this).attr('name').match(/\[(\d+)\]\[(\d+)\]/);
+            if (match && dimensionStandards[match[2]] && $(this).val().trim() === '') {
+                allFilled = false; $(this).addClass('is-invalid'); if (!firstEmpty) firstEmpty = $(this);
+            }
+        });
+        if (!allFilled) {
+            Swal.fire({ icon: 'warning', title: 'Data Dimensi Belum Lengkap', text: 'Mohon isi semua kolom dimensi yang memiliki standar!' });
+            if (firstEmpty) { $('html, body').animate({ scrollTop: firstEmpty.offset().top - 200 }, 500); firstEmpty.focus(); }
+            return false;
+        }
+        return true;
+    }
+
+    initZoomLogic() {
+        let zoom = 1, step = 0.25;
+        const updateImageZoom = () => {
+            $('#modalImage').css({ 'transform': 'scale(' + zoom + ')', 'transform-origin': zoom > 1 ? 'top center' : 'center center' });
+        };
+        $('#zoomIn').click(() => { zoom += step; updateImageZoom(); });
+        $('#zoomOut').click(() => { if (zoom > step) { zoom -= step; updateImageZoom(); } });
+        $('#zoomReset').click(() => { zoom = 1; updateImageZoom(); });
+        $('#imageModal').on('show.bs.modal', function (e) {
+            const btn = $(e.relatedTarget);
+            $(this).find('#modalImage').attr('src', btn.data('image'));
+            $(this).find('#modalTitle').text(btn.data('title'));
+            $(this).find('#modalDescription').text(btn.data('description'));
+            zoom = 1; updateImageZoom();
+        });
+    }
+
+    initPDFReference() {
+        const _this = this;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = this.config.pdfWorkerSrc;
+
+        $('#prevStandardPage').click(() => {
+            if (this.refStandardPageNum > 1) { this.refStandardPageNum--; this.renderPageOnCanvas(this.refStandardPdfDoc, 'standardPdfCanvas', this.refStandardPageNum); }
+        });
+        $('#nextStandardPage').click(() => {
+            if (this.refStandardPdfDoc && this.refStandardPageNum < this.refStandardPdfDoc.numPages) { this.refStandardPageNum++; this.renderPageOnCanvas(this.refStandardPdfDoc, 'standardPdfCanvas', this.refStandardPageNum); }
+        });
+        $('#prevSimilarPage').click(() => {
+            if (this.refSimilarPageNum > 1) { this.refSimilarPageNum--; this.renderPageOnCanvas(this.refSimilarPdfDoc, 'similarPdfCanvas', this.refSimilarPageNum); }
+        });
+        $('#nextSimilarPage').click(() => {
+            if (this.refSimilarPdfDoc && this.refSimilarPageNum < this.refSimilarPdfDoc.numPages) { this.refSimilarPageNum++; this.renderPageOnCanvas(this.refSimilarPdfDoc, 'similarPdfCanvas', this.refSimilarPageNum); }
+        });
+
+        // Logika Zoom Referensi PDF
+        $('#zoomInStandard').click(() => { this.standardZoomLevel += 0.25; if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, 'standardPdfCanvas', this.refStandardPageNum); });
+        $('#zoomOutStandard').click(() => { if (this.standardZoomLevel > 0.5) { this.standardZoomLevel -= 0.25; if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, 'standardPdfCanvas', this.refStandardPageNum); } });
+        $('#zoomResetStandard').click(() => { this.standardZoomLevel = 1.0; if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, 'standardPdfCanvas', this.refStandardPageNum); });
+
+        $('#zoomInSimilar').click(() => { this.similarZoomLevel += 0.25; if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, 'similarPdfCanvas', this.refSimilarPageNum); });
+        $('#zoomOutSimilar').click(() => { if (this.similarZoomLevel > 0.5) { this.similarZoomLevel -= 0.25; if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, 'similarPdfCanvas', this.refSimilarPageNum); } });
+        $('#zoomResetSimilar').click(() => { this.similarZoomLevel = 1.0; if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, 'similarPdfCanvas', this.refSimilarPageNum); });
+
+        // Logika Modal PDF Layar Penuh
+        $(document).on('click', '.view-pdf-btn', function () {
+            const itemId = $(this).data('id');
+            const isSimilar = $(this).data('similar');
+            _this.totalPdfFilesFull = isSimilar ? 1 : $(this).data('count');
+            _this.currentPdfIndexFull = isSimilar ? 'similar' : 0;
+            _this.fullCurrentItemId = itemId;
+            $('#pdfModal').modal('show');
+            _this.loadFullPdf(itemId, _this.currentPdfIndexFull);
+        });
+
+        // Navigasi Modal PDF Layar Penuh
+        $('#prevPdf').click(() => { if (this.currentPdfIndexFull > 0) { this.currentPdfIndexFull--; this.loadFullPdf(this.fullCurrentItemId, this.currentPdfIndexFull); } });
+        $('#nextPdf').click(() => { if (this.currentPdfIndexFull < this.totalPdfFilesFull - 1) { this.currentPdfIndexFull++; this.loadFullPdf(this.fullCurrentItemId, this.currentPdfIndexFull); } });
+        
+        let fullPdfDoc = null, fullPageNum = 1, fullScale = 1.0;
+        const fullCanvas = document.getElementById('the-canvas');
+        const fullCtx = fullCanvas.getContext('2d');
+
+        $('#prevPage').click(() => { if (fullPageNum > 1) { fullPageNum--; this.renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale); } });
+        $('#nextPage').click(() => { if (fullPdfDoc && fullPageNum < fullPdfDoc.numPages) { fullPageNum++; this.renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale); } });
+        $('#pdfZoomIn').click(() => { fullScale += 0.25; this.renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale); });
+        $('#pdfZoomOut').click(() => { if (fullScale > 0.25) { fullScale -= 0.25; this.renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale); } });
+        $('#pdfZoomReset').click(() => { fullScale = 1.0; this.renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale); });
+
+        this.loadFullPdf = (id, idx) => {
+            const url = this.config.pdfUrlPattern.replace('ID_PLACEHOLDER', id).replace('INDEX_PLACEHOLDER', idx);
+            fullPdfDoc = null; fullPageNum = 1; fullCtx.clearRect(0,0,fullCanvas.width, fullCanvas.height);
+            $('#pageInfo').text('Loading...');
+            if (idx === 'similar') { $('#pdfInfo').text('Dimensi Part PDF'); $('#prevPdf, #nextPdf').hide(); }
+            else { $('#pdfInfo').text(`File ${idx + 1} of ${this.totalPdfFilesFull}`); $('#prevPdf, #nextPdf').show(); }
+            
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                fullPdfDoc = pdf; this.renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
+            }).catch(err => { console.error(err); $('#pageInfo').text('Error loading PDF'); });
+        };
+
+        this.renderFullPage = (pdf, canvas, ctx, num, scale) => {
+            pdf.getPage(num).then(page => {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height; canvas.width = viewport.width;
+                page.render({ canvasContext: ctx, viewport: viewport }).promise.then(() => {
+                     $('#pageInfo').text(`Page ${num} of ${pdf.numPages}`);
+                     fullPageNum = num;
+                });
+            });
+        };
+    }
+
+    renderPdfToCanvas(url, canvasId, placeholderId, loadingId, pageNum = 1) {
+        const _this = this;
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        const $placeholder = $('#' + placeholderId);
+        const $loading = $('#' + loadingId);
+        const $canvas = $(canvas);
+
+        $placeholder.removeClass('d-flex').addClass('d-none');
+        $canvas.addClass('d-none').hide();
+        $loading.removeClass('d-none').addClass('d-flex');
+
+        if (this.pdfCache[url]) { this.drawPage(this.pdfCache[url], canvas, ctx, $loading, $canvas, pageNum, canvasId); return; }
+
+        pdfjsLib.getDocument(url).promise.then(pdf => {
+            _this.pdfCache[url] = pdf;
+            _this.drawPage(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+        }).catch(err => {
+            $loading.removeClass('d-flex').addClass('d-none');
+            $placeholder.removeClass('d-none').addClass('d-flex').find('p').text('Gagal memuat PDF');
+        });
+    }
+
+    drawPage(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+        const _this = this;
+        pdf.getPage(pageNum).then(page => {
+            const containerWidth = $canvas.parent().width() || 500;
+            const availableWidth = containerWidth - 40;
+            const viewport = page.getViewport({ scale: 1.0 });
+            let zoom = (canvasId === 'standardPdfCanvas') ? _this.standardZoomLevel : _this.similarZoomLevel;
+            const scale = (availableWidth / viewport.width) * zoom;
+            const scaledViewport = page.getViewport({ scale: scale });
+
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            if (zoom > 1.0) $canvas.css({ 'width': 'auto', 'max-width': 'none' });
+            else $canvas.css({ 'width': '100%', 'max-width': '100%' });
+            $canvas.css('height', 'auto');
+
+            page.render({ canvasContext: ctx, viewport: scaledViewport }).promise.then(() => {
+                $loading.removeClass('d-flex').addClass('d-none');
+                $canvas.removeClass('d-none').show();
+                if (canvasId === 'standardPdfCanvas') { _this.refStandardPdfDoc = pdf; $('#standardPageInfo').text(`P ${pageNum}/${pdf.numPages}`); _this.refStandardPageNum = pageNum; }
+                else if (canvasId === 'similarPdfCanvas') { _this.refSimilarPdfDoc = pdf; $('#similarPageInfo').text(`P ${pageNum}/${pdf.numPages}`); _this.refSimilarPageNum = pageNum; }
+                _this.updateRefNavControls();
+            });
+        });
+    }
+
+    updateRefNavControls() {
+        if (this.refStandardFiles && this.refStandardFiles.length > 0) $('.standard-nav-controls').attr('style', 'display: flex !important;');
+        else $('.standard-nav-controls').hide();
+        if (this.refSimilarPdfDoc) $('.similar-nav-controls').attr('style', 'display: flex !important;');
+        else $('.similar-nav-controls').hide();
+    }
+}
+
+// Fungsi inisialisasi Global
+window.initInProcessIndex = (config) => new InProcessIndex(config);
+window.initInProcessCreate = (config) => new InProcessCreate(config);

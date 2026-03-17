@@ -4,7 +4,7 @@
 
 @section('content')
     <x-plant-header title="Hasil Data Sortir" :plant="request()->get('plant')" />
-    <!-- Hidden Logo for PDF Export -->
+    <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
@@ -14,13 +14,13 @@
         <div class="card-body">
             <form action="{{ route('sortir.index') }}" method="GET" class="mb-4">
                 <div class="row align-items-end">
-                    {{-- Preserve plant parameter for all users --}}
+                    {{-- Pertahankan parameter plant untuk semua pengguna --}}
                     @if(request('plant'))
                         <input type="hidden" name="plant" value="{{ request('plant') }}">
                     @endif
 
 
-                    <!-- Live Search -->
+                    <!-- Pencarian Langsung -->
                     <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label for="search" class="small font-weight-bold">Pencarian</label>
@@ -66,7 +66,7 @@
                         </div>
                     </div>
 
-                    <!-- Buttons: Cari, Reset, Export -->
+                    <!-- Tombol: Cari, Reset, Ekspor -->
                     <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
                             <label class="small font-weight-bold d-block">&nbsp;</label>
@@ -272,7 +272,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Body cells for AM and Manager removed --}}
+                                {{-- Sel tabel untuk AM dan Manager dihapus --}}
 
                                 <td class="align-middle text-left">
                                     @if($checksheet->next_proses)
@@ -354,7 +354,7 @@
                                 @endif
                             </tr>
 
-                            <!-- Rejection Modals -->
+                            <!-- Modal Penolakan -->
                             @foreach(['kashift', 'supervisor'] as $rejectType)
                                 @php
                                     $isAdmin = auth()->user()->role === 'admin';
@@ -415,7 +415,7 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
+            <!-- Paginasi -->
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <div>
                     Showing {{ $checksheets->firstItem() ?? 0 }} to {{ $checksheets->lastItem() ?? 0 }} of
@@ -428,7 +428,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -450,55 +450,11 @@
     </div>
 @endsection
 
-@push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
+@@push('scripts')
+    <script src="{{ asset('js/checksheet/sortir.js') }}"></script>
     <script>
-        $(document).ready(function () {
-            // Live search functionality
-            let searchTimeout;
-            $('#liveSearch').on('input', function () {
-                clearTimeout(searchTimeout);
-                const searchTerm = $(this).val();
-
-                searchTimeout = setTimeout(function () {
-                    const url = new URL(window.location.href);
-                    if (searchTerm) {
-                        url.searchParams.set('search', searchTerm);
-                    } else {
-                        url.searchParams.delete('search');
-                    }
-                    window.location.href = url.toString();
-                }, 500);
-            });
-
-            // Edit Modal Handler
-            $('.btn-edit-modal').on('click', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
-
-                $.ajax({
-                    url: url,
-                    success: function (response) {
-                        $('#editModalBody').html(response);
-                    },
-                    error: function (xhr) {
-                        var message = 'Gagal memuat data checksheet.';
-                        if (xhr.status === 404) {
-                            message = 'Data checksheet tidak ditemukan.';
-                        } else if (xhr.status === 403) {
-                            message = 'Anda tidak memiliki akses untuk mengedit checksheet ini.';
-                        } else if (xhr.status === 500) {
-                            message = 'Terjadi kesalahan pada server.';
-                        }
-                        $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
-                    }
-                });
-            });
-
-            // PDF Export Functionality Removed (Replaced by Server-Side Export)
+        document.addEventListener('DOMContentLoaded', function () {
+            window.initSortirIndex();
         });
     </script>
     @php $bulkApproveRoute = route('sortir.bulk_approve'); @endphp

@@ -13,6 +13,7 @@ class InProcessChecksheet extends Model
 
     protected $fillable = [
         'plant_id',
+        'user_id',
         'item_id',
         'qrcode',
         'part_code',
@@ -66,5 +67,10 @@ class InProcessChecksheet extends Model
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
