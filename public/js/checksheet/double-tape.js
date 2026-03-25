@@ -180,8 +180,10 @@ class DoubleTapeCreate {
             // Toggle Judgment column visibility
             if (this.isFullcheck) {
                 $('.judgment-header, .judgment-cell').hide();
+                $('#samplingQtyHeader').text('Fullcheck Qty');
             } else {
                 $('.judgment-header, .judgment-cell').show();
+                $('#samplingQtyHeader').text('Sampling Qty');
             }
 
             if (this.timerRunning) {

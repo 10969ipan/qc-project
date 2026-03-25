@@ -86,8 +86,8 @@
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" class="align-middle">Total Qty (Lot)</th>
-                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle">Total Qty</th>
+                            <th rowspan="2" class="align-middle" id="samplingQtyHeader">Sampling Qty</th>
                             <th rowspan="2" class="align-middle" style="min-width: 280px;">Detail NG</th>
                             <th rowspan="2" class="align-middle">Total (OK/NG)</th>
                             <th rowspan="2" class="align-middle judgment-header">Judgment</th>
