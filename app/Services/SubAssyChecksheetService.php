@@ -125,7 +125,7 @@ class SubAssyChecksheetService extends BaseService
                 'judgment' => $data['judgment'],
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
-                'next_proses' => $data['next_proses'] ?? null,
+                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => $defects,
             ]);
@@ -214,7 +214,7 @@ class SubAssyChecksheetService extends BaseService
                 'judgment' => $data['judgment'],
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
-                'next_proses' => $data['next_proses'] ?? null,
+                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ];
 
             // Allow manual correction of inspector if provided
