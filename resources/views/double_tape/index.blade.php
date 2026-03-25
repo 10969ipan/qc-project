@@ -459,6 +459,13 @@
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
+                                            @if($checksheet->judgment === 'NG' && $checksheet->next_proses === 'SORTIR')
+                                                <a href="{{ route('sortir.create', ['plant' => 'karawang']) }}"
+                                                    class="btn btn-danger btn-sm m-1 no-loader" title="Input Sortir"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-sort-amount-down"></i> Sortir
+                                                </a>
+                                            @endif
                                             <form action="{{ route('double_tape.destroy', $checksheet->id) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
