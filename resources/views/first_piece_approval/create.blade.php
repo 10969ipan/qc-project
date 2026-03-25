@@ -163,6 +163,8 @@
             <form action="{{ route('first_piece_approval.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
@@ -185,7 +187,9 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold">Kode SAP</label>
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="font-weight-bold mb-0">Kode SAP</label>
+                                        </div>
                                         <input type="text" class="form-control" id="sapCodeInput"
                                             placeholder="Ketik Kode SAP..." style="min-width: 200px;">
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
@@ -251,13 +255,13 @@
 
                                 <!-- Total Kualitas (Total Kuantitas diproduksi) -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                    <input type="number" id="total_qty" class="form-control text-center" style="min-width: 60px;"
                                         name="total_qty" placeholder="0" min="0" required>
                                 </td>
 
-                                <!-- Kuantitas Cek Sampling -->
+                                <!-- Sampling Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
+                                    <input type="number" id="sampling_qty" class="form-control text-center" style="min-width: 60px;"
                                         name="sampling_qty" placeholder="0" min="0" required>
                                 </td>
 
@@ -341,14 +345,7 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                            id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
-                                            (Pass)</label>
-                                    </div>
-                                    <hr class="my-2">
-                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
+                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
                                             <select class="form-control defect-select" style="min-width: 180px;"
@@ -364,7 +361,6 @@
                                         <i class="fas fa-plus"></i> Tambah Jenis
                                     </button>
                                 </td>
-
                                 <!-- Total OK / NG -->
                                 <td class="align-middle" style="min-width: 120px;">
                                     <div class="row no-gutters mb-1">
@@ -372,9 +368,9 @@
                                             class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
                                             OK</div>
                                         <div class="col-8">
-                                            <input type="number"
+                                            <input type="number" id="total_ok"
                                                 class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
+                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required readonly>
                                         </div>
                                     </div>
                                     <div class="row no-gutters">
@@ -382,21 +378,20 @@
                                             class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
                                             NG</div>
                                         <div class="col-8">
-                                            <input type="number"
+                                            <input type="number" id="total_ng"
                                                 class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required>
+                                                style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required readonly>
                                         </div>
                                     </div>
                                 </td>
 
-                                <!-- Keputusan -->
-                                <td class="align-middle">
-                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
-                                        required>
-                                        <option value="" disabled selected>-- Result --</option>
-                                        <option value="OK" class="text-success">OK</option>
-                                        <option value="NG" class="text-danger">NG</option>
-                                    </select>
+                                <!-- Judgment -->
+                                <td class="align-middle text-center" style="min-width: 150px;">
+                                    <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
+                                        style="border: 2px solid transparent;">
+                                        -
+                                    </div>
+                                    <input type="hidden" name="judgment" id="judgmentSelect" required>
                                     <div id="aql_info" class="small mt-1 font-weight-bold text-center"
                                         style="display:none;">
                                         <span class="text-success">Acc: <span id="acc_val">-</span></span> |

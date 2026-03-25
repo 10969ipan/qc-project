@@ -13,7 +13,12 @@
     <div class="row">
         <div class="col-md-6 border-right">
             <div class="form-group mb-2">
-                <label class="small font-weight-bold">Item Part <span class="text-danger">*</span></label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="small font-weight-bold mb-0">Item Part <span class="text-danger">*</span></label>
+                    <a href="#" id="view-item-pdf" class="btn btn-xs btn-outline-info d-none" target="_blank">
+                        <i class="fas fa-file-pdf"></i> View PDF
+                    </a>
+                </div>
                 <select name="item_id" id="item_id" class="form-control form-control-sm" required>
                     <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
                     @foreach($items as $item)
@@ -159,7 +164,7 @@
             <div class="row">
                 <div class="col-12">
                      <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Detail NG (Defect List)</label>
+                        <label class="small font-weight-bold">Jenis (OK/NG) & Detail NG</label>
                         <div id="editDefectContainer">
                             {{-- Rows will be populated by JS or Server-side loop --}}
                             @php
@@ -196,23 +201,34 @@
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">Total OK (pcs) <span class="text-danger">*</span></label>
                         <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm"
-                            value="{{ $checksheet->total_ok }}" min="0" required>
+                            value="{{ $checksheet->total_ok }}" min="0" required readonly>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">Total NG (pcs) <span class="text-danger">*</span></label>
                         <input type="number" name="total_ng" id="total_ng" class="form-control form-control-sm"
-                            value="{{ $checksheet->total_ng }}" min="0" required>
+                            value="{{ $checksheet->total_ng }}" min="0" required readonly>
                     </div>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-6">
+                <div class="col-6 text-center">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">Judgment Final <span class="text-danger">*</span></label>
-                        <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold d-none {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
+                        @php
+                            $judgmentColor = ($checksheet->judgment == 'OK') ? '#28a745' : (($checksheet->judgment == 'NG') ? '#dc3545' : 'transparent');
+                        @endphp
+                        <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded {{ $checksheet->judgment ? '' : 'd-none' }} shadow-sm {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}"
+                            style="border: 2px solid {{ $judgmentColor }}; background-color: #fff;">
+                            {{ $checksheet->judgment ?? '-' }}
+                        </div>
+                        <div id="aql_info" class="small mt-1 font-weight-bold text-center" style="display: none;">
+                            <span class="text-success">Acc: <span id="acc_val">-</span></span> |
+                            <span class="text-danger">Rej: <span id="rej_val">-</span></span>
+                        </div>
+                        <select name="judgment" id="judgmentSelect" class="form-control form-control-sm font-weight-bold d-none {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
                             <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
                             <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
                         </select>
@@ -327,7 +343,10 @@
 // We remove @push because this is loaded via AJAX and @push doesn't work in AJAX responses.
 // The script will execute normally when inserted into the DOM.
 @endphp
-<script id="edit-fpa-data" type="application/json" data-cavities="{{ $maxCavityFound }}" data-points="{{ $maxPointFound }}">
+<script id="edit-fpa-data" type="application/json" 
+    data-cavities="{{ $maxCavityFound }}" 
+    data-points="{{ $maxPointFound }}"
+    data-pdf-route-pattern="{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}">
     @json($partDimensionStandards)
 </script>
 <script>
@@ -346,6 +365,7 @@
         
         window.initFpaEdit({
             partDimensionStandards: partDimensionStandards,
+            pdfRoutePattern: dataEl.getAttribute('data-pdf-route-pattern'),
             currentCavities: currentCavities,
             currentPoints: currentPoints,
             maxCavities: 30,

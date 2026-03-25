@@ -168,7 +168,7 @@ class FpaIndex {
 
 class FpaCreate {
     constructor(config) {
-        console.log('FpaCreate loaded - version 2026-03-25-v1');
+        console.log('FpaCreate loaded - version 2026-03-25-v2');
         this.config = config;
         this.timer = {
             startTime: null,
@@ -184,6 +184,9 @@ class FpaCreate {
     }
 
     init() {
+        if (this.config.pdfWorkerSrc) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = this.config.pdfWorkerSrc;
+        }
         this.lockInputs();
         this.initTimer();
         this.initPdfHandling();
@@ -258,13 +261,20 @@ class FpaCreate {
     }
 
     loadPdf(type, url) {
+        if (!url) {
+            console.warn(`No URL provided for ${type} PDF`);
+            $(`#${type}PdfLoading`).removeClass('d-flex').addClass('d-none');
+            $(`#${type}PdfPlaceholder`).show().find('p').first().text(`File ${type} tidak tersedia.`);
+            return;
+        }
+
         const p = this.pdf[type];
         p.doc = null;
         p.page = 1;
         p.rendering = false;
         p.pending = null;
         
-        $(`#${type}PdfPlaceholder`).hide();
+        $(`#${type}PdfPlaceholder`).removeClass('d-flex').addClass('d-none');
         $(`#${type}PdfLoading`).removeClass('d-none').addClass('d-flex');
         $(`#${type}PdfCanvas`).addClass('d-none');
         $(`.${type}-nav-controls`).hide();
@@ -281,7 +291,7 @@ class FpaCreate {
         }).catch(err => {
             console.error(`Error loading ${type} PDF:`, err);
             $(`#${type}PdfLoading`).removeClass('d-flex').addClass('d-none');
-            $(`#${type}PdfPlaceholder`).show().find('p').text(`Error loading PDF: ${err.message}`);
+            $(`#${type}PdfPlaceholder`).removeClass('d-none').addClass('d-flex').find('p').first().text(`Error loading PDF: ${err.message}`);
         });
     }
 
@@ -309,6 +319,13 @@ class FpaCreate {
         });
     }
 
+    getPdfUrl(itemId, index) {
+        if (!this.config.pdfRoutePattern) return "";
+        return this.config.pdfRoutePattern
+            .replace('ID_PLACEHOLDER', itemId)
+            .replace('INDEX_PLACEHOLDER', index);
+    }
+
     changePage(type, delta) {
         const p = this.pdf[type];
         if (!p.doc) return;
@@ -325,7 +342,8 @@ class FpaCreate {
         if (next < 0 || next >= p.files.length) return;
         p.currentIndex = next;
         $(`#${type}FileInfo`).text(`${next + 1}/${p.files.length}`);
-        const url = `${this.config.routes.pdfProxy}?path=${encodeURIComponent(p.files[next])}`;
+        const itemId = $('#itemSelect').val();
+        const url = this.getPdfUrl(itemId, next);
         this.loadPdf(type, url);
     }
 
@@ -402,7 +420,8 @@ class FpaCreate {
         if (next < 0 || next >= m.files.length) return;
         m.currentIndex = next;
         this.updateModalFileInfo();
-        const url = `${this.config.routes.pdfProxy}?path=${encodeURIComponent(m.files[next])}`;
+        const itemId = $('#itemSelect').val();
+        const url = this.getPdfUrl(itemId, next);
         pdfjsLib.getDocument(url).promise.then(pdf => {
             m.doc = pdf;
             m.page = 1;
@@ -483,7 +502,7 @@ class FpaCreate {
         for (let i = 1; i <= count; i++) {
             container.append(`
                 <div class="input-group input-group-sm mb-1 weight-row" data-index="${i-1}">
-                    <div class="input-group-prepend"><span class="input-group-text py-0" style="font-size:0.65rem;">C${i}</span></div>
+                    <div class="input-group-prepend"><span class="input-group-text py-0" style="font-size:0.65rem;">CAV ${i}</span></div>
                     <input type="text" name="part_weight[]" class="form-control form-control-sm weight-input" placeholder="0.00">
                 </div>
             `);
@@ -494,7 +513,7 @@ class FpaCreate {
         const nextIdx = $('#weightCavContainer .weight-row').length + 1;
         $('#weightCavContainer').append(`
             <div class="input-group input-group-sm mb-1 weight-row" data-index="${nextIdx-1}">
-                <div class="input-group-prepend"><span class="input-group-text py-0" style="font-size:0.65rem;">C${nextIdx}</span></div>
+                <div class="input-group-prepend"><span class="input-group-text py-0" style="font-size:0.65rem;">CAV ${nextIdx}</span></div>
                 <input type="text" name="part_weight[]" class="form-control form-control-sm weight-input" placeholder="0.00">
             </div>
         `);
@@ -507,48 +526,79 @@ class FpaCreate {
     }
 
     initSapSelection() {
-        $('#sapCodeInput').on('change', (e) => {
-            const code = e.target.value.trim().toUpperCase();
-            if (!code) return;
-            const $option = $(`#itemSelect option[data-sap-code="${code}"]`);
-            if ($option.length) {
-                $('#itemSelect').val($option.val()).trigger('change');
+        $('#sapCodeInput').on('input', (e) => {
+            const sapCode = $(e.currentTarget).val().trim().toLowerCase();
+            const $hiddenInput = $('#sapCodeInputHidden');
+            
+            if (sapCode.length >= 1) {
+                const matchedOption = $('#itemSelect option').filter(function() {
+                    return String($(this).data('sap-code')).toLowerCase() === sapCode;
+                });
+
+                if (matchedOption.length > 0) {
+                    $('#itemSelect').val(matchedOption.val()).trigger('change');
+                    $(e.currentTarget).removeClass('is-invalid').addClass('is-valid');
+                    $hiddenInput.val(matchedOption.data('sap-code'));
+                } else {
+                    $(e.currentTarget).removeClass('is-valid').addClass('is-invalid');
+                    $hiddenInput.val('');
+                }
             } else {
-                Swal.fire('Not Found', `Kode SAP "${code}" tidak ditemukan.`, 'warning');
+                $(e.currentTarget).removeClass('is-valid is-invalid');
+                $hiddenInput.val('');
             }
         });
 
         $('#itemSelect').on('change', (e) => {
-            const $opt = $(e.target.selectedOptions[0]);
+            const $opt = $(e.currentTarget).find(':selected');
+            if (!$opt.length || !$opt.val()) return;
+
             this.handleItemChange($opt);
+            
+            // Sync SAP code inputs
+            const sapCode = $opt.data('sap-code') || '';
+            $('#sapCodeInput').val(sapCode).removeClass('is-invalid').addClass(sapCode ? 'is-valid' : '');
+            $('#sapCodeInputHidden').val(sapCode);
         });
     }
 
     handleItemChange($opt) {
-        const files = $opt.data('files') || [];
+        let files = $opt.data('files');
+        // Ensure files is an array
+        if (typeof files === 'string') {
+            try { files = JSON.parse(files); } catch(e) { files = []; }
+        }
+        files = files || [];
+
         const similar = $opt.data('similar');
         const weightStd = $opt.data('weight-standard');
         const dimStds = $opt.data('dimension-standards');
         const rawPartNumber = $opt.data('part-number');
         const itemId = $opt.val();
 
+        console.log(`Item changed: ID=${itemId}, PN=${rawPartNumber}, Files=${files.length}`);
+
         this.config.itemPartNumber = this.normalizePartNumber(rawPartNumber);
         this.pdf.standard.files = files;
         this.pdf.standard.currentIndex = 0;
+
         if (files.length > 0) {
             $('#standardFileInfo').text(`1/${files.length}`);
-            this.loadPdf('standard', `${this.config.routes.pdfProxy}?path=${encodeURIComponent(files[0])}`);
+            const url = this.getPdfUrl(itemId, 0);
+            this.loadPdf('standard', url);
         } else {
-            $('#standardPdfPlaceholder').show().find('p').text('Item ini tidak memiliki file Standard (PCCP).');
             $('#standardPdfCanvas').addClass('d-none');
+            $('#standardPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').first().text('Item ini tidak memiliki file Standard (PCCP).');
             $('.standard-nav-controls, #fullStandardBtn').hide();
         }
 
         if (similar) {
             this.loadPdf('similar', similar);
+            $('#similarStatusText').text('');
         } else {
-            $('#similarPdfPlaceholder').show().find('p').text('Item ini tidak memiliki file Dimensi Part.');
             $('#similarPdfCanvas').addClass('d-none');
+            $('#similarPdfPlaceholder').removeClass('d-none').addClass('d-flex').find('p').first().text('Item ini tidak memiliki file Dimensi Part.');
+            $('#similarStatusText').text(''); // Clear the second P tag to avoid repetition
             $('.similar-nav-controls, #fullSimilarBtn').hide();
         }
 
@@ -556,9 +606,11 @@ class FpaCreate {
             $('.col-berat-part').show();
             $('#weightStandardDisplay').text(weightStd);
             $('#weightStandardBadge').show();
+            this.updateWeightCavs();
         } else {
             $('.col-berat-part').hide();
             $('#weightStandardBadge').hide();
+            $('#weightCavContainer').empty();
         }
 
         this.config.currentDimensionStandards = dimStds || {};
@@ -618,12 +670,14 @@ class FpaCreate {
     }
 
     initAqlLogic() {
-        $('input[name="total_qty"], input[name="sampling_qty"]').on('input', () => this.updateAqlRequirement());
-        $('input[name="total_ok"], input[name="total_ng"]').on('input', () => this.updateJudgment());
-        $('#checkOK').on('change', (e) => {
-            if (e.target.checked) $('input[name="total_ng"]').val(0);
-            this.updateJudgment();
+        const _this = this;
+        $('#total_qty').on('input', function () {
+            const lotSize = parseInt($(this).val()) || 0;
+            const sampleSize = _this.getSampleSize(lotSize);
+            $('#sampling_qty').val(sampleSize).trigger('input');
         });
+
+        $('#sampling_qty, #total_ok, #total_ng').on('input', () => this.updateJudgment());
     }
 
     normalizePartNumber(pn) {
@@ -683,19 +737,40 @@ class FpaCreate {
     }
 
     updateJudgment() {
-        const sampling = parseInt($('input[name="sampling_qty"]').val()) || 0;
-        const ng = parseInt($('input[name="total_ng"]').val()) || 0;
-        const isCheckOkChecked = $('#checkOK').is(':checked');
+        const sampling = parseInt($('#sampling_qty').val()) || 0;
+        const ng = parseInt($('#total_ng').val()) || 0;
         const isDimensiInvalid = $('.dimension-input.is-invalid').length > 0;
+
+        let hasDimensiDefect = false;
+        $('.defect-select').each(function () {
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (text === 'dimensi' || $(this).val() === 'dimension') {
+                hasDimensiDefect = true;
+                return false;
+            }
+        });
+
+        if (isDimensiInvalid && !hasDimensiDefect) {
+            this.autoAddDimensionDefect();
+            return;
+        } else if (!isDimensiInvalid && hasDimensiDefect) {
+            this.autoRemoveDimensionDefect();
+            return;
+        }
+
         const aql = this.getAqlLimits(sampling);
+        $('#acc_val').text(aql.acc);
+        $('#rej_val').text(aql.rej);
+        $('#aql_info').show();
 
         const ok = Math.max(0, sampling - ng);
-        $('input[name="total_ok"]').val(ok);
+        $('#total_ok').val(ok);
+
+        const judgmentSelect = $('#judgmentSelect');
+        const judgmentBadge = $('#judgmentBadge');
 
         let res = "";
-        if (isCheckOkChecked) {
-            res = "OK";
-        } else if (isDimensiInvalid || ng >= aql.rej) {
+        if (isDimensiInvalid || ng >= aql.rej) {
             res = "NG";
         } else if (ok > 0 && ng <= aql.acc) {
             res = "OK";
@@ -703,9 +778,19 @@ class FpaCreate {
             res = "OK";
         }
 
-        $('#judgmentSelect').val(res).removeClass('d-none text-success text-danger');
-        if (res === "OK") $('#judgmentSelect').addClass('text-success');
-        else if (res === "NG") $('#judgmentSelect').addClass('text-danger');
+        if (res) {
+            judgmentSelect.val(res).removeClass('d-none text-success text-danger');
+            if (res === 'OK') {
+                judgmentSelect.addClass('text-success');
+                judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success').css({ 'border-color': '#28a745', 'background-color': '#fff' });
+            } else {
+                judgmentSelect.addClass('text-danger');
+                judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger').css({ 'border-color': '#dc3545', 'background-color': '#fff' });
+            }
+        } else {
+            judgmentSelect.val('').removeClass('text-success text-danger');
+            judgmentBadge.addClass('d-none').text('-');
+        }
 
         const isNG = (res === "NG");
         $('#nextProsesContainer').toggle(isNG);
@@ -713,6 +798,74 @@ class FpaCreate {
         else $('#nextProses').removeAttr('required').val('');
 
         $('#saveBtn').prop('disabled', !res);
+    }
+
+    autoAddDimensionDefect() {
+        let foundRow = null;
+        $('.defect-select').each(function () {
+            const val = $(this).val();
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (val === 'dimension' || text === 'dimensi') {
+                foundRow = $(this).closest('.defect-row');
+                return false;
+            }
+        });
+
+        if (foundRow) {
+            const qtyInput = foundRow.find('.defect-qty');
+            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                qtyInput.val(1).trigger('input');
+            }
+            return;
+        }
+
+        let targetSelect = null;
+        $('.defect-select').each(function () {
+            if ($(this).val() === '') {
+                targetSelect = $(this);
+                return false;
+            }
+        });
+
+        if (!targetSelect) {
+            $('#addDefectBtn').trigger('click');
+            targetSelect = $('.defect-select').last();
+        }
+
+        if (targetSelect) {
+            let foundVal = '';
+            targetSelect.find('option').each(function () {
+                if ($(this).val() === 'dimension' || $(this).text().toLowerCase() === 'dimensi') {
+                    foundVal = $(this).val();
+                    return false;
+                }
+            });
+            if (!foundVal) {
+                targetSelect.append('<option value="dimension">Dimensi</option>');
+                foundVal = 'dimension';
+            }
+            targetSelect.val(foundVal).trigger('change');
+            targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
+            this.updateJudgment();
+        }
+    }
+
+    autoRemoveDimensionDefect() {
+        $('.defect-select').each(function () {
+            const val = $(this).val();
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (val === 'dimension' || text === 'dimensi') {
+                const row = $(this).closest('.defect-row');
+                if ($('.defect-row').length > 1) {
+                    row.remove();
+                } else {
+                    row.find('.defect-select').val('');
+                    row.find('.defect-qty').val('');
+                }
+                return false;
+            }
+        });
+        this.updateJudgment();
     }
 
     initDefectManagement() {
@@ -729,17 +882,25 @@ class FpaCreate {
         $(document).on('click', '.remove-defect', (e) => {
             $(e.currentTarget).closest('.defect-row').remove();
             this.config.hasDefects = $('.defect-row').length > 1 || $('.defect-select').val() !== "";
-            this.updateJudgment();
+            this.calculateTotalNG();
         });
 
-        $(document).on('change', '.defect-select, .defect-qty', () => {
+        $(document).on('change input', '.defect-select, .defect-qty', () => {
             let hasAny = false;
             $('.defect-row').each(function() {
                 if ($(this).find('.defect-select').val() !== "") hasAny = true;
             });
             this.config.hasDefects = hasAny;
-            this.updateJudgment();
+            this.calculateTotalNG();
         });
+    }
+
+    calculateTotalNG() {
+        let total = 0;
+        $('.defect-qty').each(function () {
+            total += parseInt($(this).val()) || 0;
+        });
+        $('#total_ng').val(total).trigger('input');
     }
 
     initFormValidation() {
@@ -827,6 +988,36 @@ class FpaEdit {
         }
     }
 
+    initAqlLogic() {
+        $('#total_qty').on('input', (e) => {
+            const lotSize = parseInt($(e.target).val()) || 0;
+            const sampleSize = this.getSampleSize(lotSize);
+            $('#sampling_qty').val(sampleSize).trigger('input');
+        });
+
+        $('#sampling_qty, #total_ng').on('input', () => this.updateJudgment());
+        $('#judgmentSelect').on('change', () => this.toggleNextProses());
+    }
+
+    getSampleSize(lotSize) {
+        if (lotSize >= 500001) return 1250;
+        if (lotSize >= 150001) return 800;
+        if (lotSize >= 35001) return 500;
+        if (lotSize >= 10001) return 315;
+        if (lotSize >= 3201) return 200;
+        if (lotSize >= 1201) return 125;
+        if (lotSize >= 501) return 80;
+        if (lotSize >= 281) return 50;
+        if (lotSize >= 151) return 32;
+        if (lotSize >= 91) return 20;
+        if (lotSize >= 51) return 13;
+        if (lotSize >= 26) return 8;
+        if (lotSize >= 16) return 5;
+        if (lotSize >= 9) return 3;
+        if (lotSize >= 2) return 2;
+        return 0;
+    }
+
     getAqlLimits(sampleSize) {
         if (sampleSize >= 1250) return { acc: 14, rej: 15 };
         if (sampleSize >= 800) return { acc: 10, rej: 11 };
@@ -844,6 +1035,23 @@ class FpaEdit {
         const ng = parseInt($('#total_ng').val()) || 0;
         const isDimensiInvalid = $('.edit-dimension-input.is-invalid').length > 0;
 
+        let hasDimensiDefect = false;
+        $('.defect-select').each(function () {
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (text === 'dimensi' || $(this).val() === 'dimension') {
+                hasDimensiDefect = true;
+                return false;
+            }
+        });
+
+        if (isDimensiInvalid && !hasDimensiDefect) {
+            this.autoAddDimensionDefect();
+            return;
+        } else if (!isDimensiInvalid && hasDimensiDefect) {
+            this.autoRemoveDimensionDefect();
+            return;
+        }
+
         if (sampling >= ng) {
             $('#total_ok').val(sampling - ng);
         } else {
@@ -851,29 +1059,98 @@ class FpaEdit {
         }
 
         const limits = this.getAqlLimits(sampling);
-        const judgmentSelect = $('#judgment');
+        $('#acc_val').text(limits.acc);
+        $('#rej_val').text(limits.rej);
+        $('#aql_info').show();
 
-        let res = "";
+        const judgmentSelect = $('#judgmentSelect');
+        const judgmentBadge = $('#judgmentBadge');
+
         if (ng > 0 || sampling > 0 || isDimensiInvalid) {
             if (isDimensiInvalid || ng >= limits.rej) {
-                res = "NG";
-            } else if (ng <= limits.acc) {
-                res = "OK";
+                judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger').css({ 'border-color': '#dc3545', 'background-color': '#fff' });
             } else {
-                res = "NG";
+                judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+                judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success').css({ 'border-color': '#28a745', 'background-color': '#fff' });
             }
-        }
-        
-        if (res) {
-            judgmentSelect.val(res).removeClass('d-none text-success text-danger');
-            if (res === 'OK') judgmentSelect.addClass('text-success');
-            else judgmentSelect.addClass('text-danger');
+        } else {
+            judgmentSelect.val('').removeClass('text-success text-danger');
+            judgmentBadge.addClass('d-none').text('-');
         }
         this.toggleNextProses();
     }
 
+    autoAddDimensionDefect() {
+        let foundRow = null;
+        $('.defect-select').each(function () {
+            const val = $(this).val();
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (val === 'dimension' || text === 'dimensi') {
+                foundRow = $(this).closest('.defect-row');
+                return false;
+            }
+        });
+
+        if (foundRow) {
+            const qtyInput = foundRow.find('.defect-qty');
+            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                qtyInput.val(1).trigger('input');
+            }
+            return;
+        }
+
+        let targetSelect = null;
+        $('.defect-select').each(function () {
+            if ($(this).val() === '') {
+                targetSelect = $(this);
+                return false;
+            }
+        });
+
+        if (!targetSelect) {
+            $('#editAddDefectBtn').trigger('click');
+            targetSelect = $('.defect-select').last();
+        }
+
+        if (targetSelect) {
+            let foundVal = '';
+            targetSelect.find('option').each(function () {
+                if ($(this).val() === 'dimension' || $(this).text().toLowerCase() === 'dimensi') {
+                    foundVal = $(this).val();
+                    return false;
+                }
+            });
+            if (!foundVal) {
+                targetSelect.append('<option value="dimension">Dimensi</option>');
+                foundVal = 'dimension';
+            }
+            targetSelect.val(foundVal).trigger('change');
+            targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
+            this.updateJudgment();
+        }
+    }
+
+    autoRemoveDimensionDefect() {
+        $('.defect-select').each(function () {
+            const val = $(this).val();
+            const text = $(this).find('option:selected').text().toLowerCase();
+            if (val === 'dimension' || text === 'dimensi') {
+                const row = $(this).closest('.defect-row');
+                if ($('.defect-row').length > 1) {
+                    row.remove();
+                } else {
+                    row.find('.defect-select').val('');
+                    row.find('.defect-qty').val('');
+                }
+                return false;
+            }
+        });
+        this.updateJudgment();
+    }
+
     toggleNextProses() {
-        const judgment = $('#judgment').val();
+        const judgment = $('#judgmentSelect').val();
         const ngCount = parseInt($('#total_ng').val()) || 0;
         const container = $('#nextProsesContainer');
         if (judgment === 'NG' || ngCount > 0) {
@@ -929,10 +1206,6 @@ class FpaEdit {
         this.updateJudgment();
     }
 
-    initAqlLogic() {
-        $('#sampling_qty, #total_ng').on('input', () => this.updateJudgment());
-        $('#judgment').on('change', () => this.toggleNextProses());
-    }
 
     initDefectManagement() {
         this.defaultDefects = [
@@ -1002,8 +1275,8 @@ class FpaEdit {
 
     calculateTotalNG() {
         let total = 0;
-        $('.defect-qty').each((_, input) => {
-            total += parseInt($(input).val()) || 0;
+        $('.defect-qty').each(function () {
+            total += parseInt($(this).val()) || 0;
         });
         $('#total_ng').val(total).trigger('input');
         if (total >= 0 || $('.defect-row').length > 0) $('#editAddDefectBtn').show();
@@ -1059,11 +1332,12 @@ class FpaEdit {
     }
 
     initItemHandling() {
-        $('#item_id').on('change', () => {
-            const $opt = $('#item_id').find('option:selected');
-            const customer = $opt.data('customer');
+        $('#item_id').on('change', (e) => {
+            const $opt = $(e.currentTarget).find('option:selected');
+            const customer = $opt.data('customer') || '';
             const weightStandard = $opt.data('weight-standard');
 
+            // Berat Part Logic
             if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM'))) {
                 $('#editBeratPartContainer').show();
                 if (weightStandard) {
@@ -1078,6 +1352,9 @@ class FpaEdit {
                 $('#editWeightStandardBadge').hide();
             }
 
+            // PDF Link Logic
+            this.updatePdfLink($opt);
+            
             this.updateDefectOptions();
             this.validateDimensions();
         }).trigger('change');
@@ -1115,6 +1392,20 @@ class FpaEdit {
             $('#loadingOverlay').hide();
             $('#btnSubmit').prop('disabled', false);
         });
+    }
+
+
+    updatePdfLink($opt) {
+        const itemId = $opt.val();
+        const $link = $('#view-item-pdf');
+        if (itemId && this.config.pdfRoutePattern) {
+            const url = this.config.pdfRoutePattern
+                .replace('ID_PLACEHOLDER', itemId)
+                .replace('INDEX_PLACEHOLDER', '0');
+            $link.attr('href', url).removeClass('d-none');
+        } else {
+            $link.addClass('d-none');
+        }
     }
 }
 

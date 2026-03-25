@@ -14,6 +14,8 @@ class FirstPieceApproval extends Model
     protected $fillable = [
         'plant_id',
         'item_id',
+        'user_id',
+        'sap_code',
         'created_at',
         'date',
         'shift',

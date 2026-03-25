@@ -44,6 +44,8 @@ class StoreFirstPieceApprovalRequest extends FormRequest
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
             'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'sap_code' => 'nullable|string',
+            'user_id' => 'nullable|integer',
         ];
     }
 

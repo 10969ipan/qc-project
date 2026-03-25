@@ -56,6 +56,8 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
             'defect_types.*' => 'nullable|string',
             'defect_quantities' => 'nullable|array',
             'defect_quantities.*' => 'nullable|numeric|min:1',
+            'sap_code' => 'nullable|string',
+            'user_id' => 'nullable|integer',
         ];
     }
 

@@ -287,6 +287,7 @@ class FirstPieceApprovalService extends BaseService
 
             $checksheet = FirstPieceApproval::create([
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
+                'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
@@ -303,6 +304,7 @@ class FirstPieceApprovalService extends BaseService
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => json_encode($defects),
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
+                'sap_code' => $data['sap_code'] ?? null,
             ]);
 
             // Clear manual machine status override
@@ -387,6 +389,8 @@ class FirstPieceApprovalService extends BaseService
                 'dimension_check' => $dimensionCheck,
                 'defects' => json_encode($defects),
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
+                'sap_code' => $data['sap_code'] ?? null,
+                'user_id' => $data['user_id'] ?? auth()->id(),
             ];
 
             // Update created_at and cycle_time if user has authority
