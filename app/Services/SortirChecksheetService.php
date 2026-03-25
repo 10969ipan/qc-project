@@ -178,7 +178,10 @@ class SortirChecksheetService extends BaseService
         $shift = $c->shift ?? $c->qc_shift;
 
         // Get total qty from source checksheet
-        $totalQty = (int) ($c->total_qty ?? 0);
+        // For Double Tape, use total_ng as the sortable quantity (only defective pieces)
+        $totalQty = ($type === 'double_tape')
+            ? (int) ($c->total_ng ?? 0)
+            : (int) ($c->total_qty ?? 0);
 
         // Get sorted qty from sortir checksheets for this source
         $sortedQty = (int) ($sortedQtyBySource[$type][$c->id] ?? 0);
