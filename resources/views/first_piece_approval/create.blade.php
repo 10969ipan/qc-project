@@ -166,18 +166,18 @@
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
-                            <th rowspan="2" style="align-middle">Item Part</th>
-                            <th rowspan="2" style="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" style="align-middle">Total Qty</th>
-                            <th rowspan="2" style="align-middle">Sampling Qty</th>
-                            <th rowspan="2" style="align-middle">Check Dimensi</th>
+                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Tanggal / Shift</th>
+                            <th rowspan="2" class="align-middle">Total Qty</th>
+                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle">Check Dimensi</th>
                             <th rowspan="2" class="align-middle col-berat-part" style="display: none; min-width: 280px;">
                                 Berat Part</th>
-                            <th rowspan="2" style="align-middle; min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
-                            <th rowspan="2" style="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" style="align-middle">Judgment</th>
-                            <th rowspan="2" style="align-middle">Inisial QC</th>
-                            <th rowspan="2" style="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" class="align-middle">Total (OK/NG)</th>
+                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle">Inisial QC</th>
+                            <th rowspan="2" class="align-middle">Keterangan</th>
                         </tr>
                         <tbody>
                             <tr>
@@ -640,13 +640,25 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/checksheet/fpa.js') }}"></script>
+    {{-- Hidden JSON data to resolve IDE lint errors --}}
+    <script id="fpa-create-data" type="application/json" 
+        data-pdf-worker-src="{{ asset('js/vendor/pdf.worker.min.js') }}"
+        data-pdf-route-pattern="{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+        data-current-plant="{{ request('plant') ?? auth()->user()->plant_id }}">
+        @json($partDimensionStandards)
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const dataEl = document.getElementById('fpa-create-data');
+            if (!dataEl) return;
+
+            const partDimensionStandards = JSON.parse(dataEl.textContent);
+            
             window.initFpaCreate({
-                pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
-                pdfRoutePattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
-                currentPlant: "{{ request('plant') ?? auth()->user()->plant_id }}",
-                partDimensionStandards: {!! $partDimensionStandards !!},
+                pdfWorkerSrc: dataEl.getAttribute('data-pdf-worker-src'),
+                pdfRoutePattern: dataEl.getAttribute('data-pdf-route-pattern'),
+                currentPlant: dataEl.getAttribute('data-current-plant'),
+                partDimensionStandards: partDimensionStandards,
                 initialLock: true
             });
         });

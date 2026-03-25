@@ -104,7 +104,7 @@ class FirstPieceApprovalController extends Controller
         }
 
         $filters = [
-            'plant' => $request->get('plant'),
+            'plant' => $request->input('plant'),
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
@@ -149,7 +149,7 @@ class FirstPieceApprovalController extends Controller
             'items' => $items,
             'defaultDate' => $defaultDate,
             'defaultShift' => $defaultShift,
-            'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
+            'partDimensionStandards' => $this->getConsolidatedStandards()
         ]);
     }
 
@@ -205,7 +205,7 @@ class FirstPieceApprovalController extends Controller
             ->where('plant_id', $checksheet->plant_id)
             ->orderBy('name')
             ->get();
-        $partDimensionStandards = json_encode($this->getConsolidatedStandards());
+        $partDimensionStandards = $this->getConsolidatedStandards();
 
         if (request()->ajax()) {
             return view('first_piece_approval.partials.edit_form', [

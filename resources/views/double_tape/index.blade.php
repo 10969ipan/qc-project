@@ -567,6 +567,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

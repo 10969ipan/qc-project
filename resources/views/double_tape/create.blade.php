@@ -83,15 +83,15 @@
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <tr class="text-center">
-                            <th rowspan="2" style="align-middle">Item Part</th>
-                            <th rowspan="2" style="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" style="align-middle">Total Qty (Lot)</th>
-                            <th rowspan="2" style="align-middle">Sampling Qty</th>
-                            <th rowspan="2" style="align-middle; min-width: 280px;">Detail NG</th>
-                            <th rowspan="2" style="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" style="align-middle">Judgment</th>
-                            <th rowspan="2" style="align-middle">Inisial QC</th>
-                            <th rowspan="2" style="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Tanggal / Shift</th>
+                            <th rowspan="2" class="align-middle">Total Qty (Lot)</th>
+                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Detail NG</th>
+                            <th rowspan="2" class="align-middle">Total (OK/NG)</th>
+                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle">Inisial QC</th>
+                            <th rowspan="2" class="align-middle">Keterangan</th>
                         </tr>
                         <tbody>
                             <tr>
@@ -462,6 +462,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

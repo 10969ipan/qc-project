@@ -925,14 +925,22 @@
 @endsection
 @push('scripts')
     <script src="{{ asset('public/js/checksheet/fpa.js') }}"></script>
+    <script id="fpa-index-data" type="application/json" 
+        data-route-index="{{ route('first_piece_approval.index') }}"
+        data-plant="{{ request('plant') }}">
+        @json($checksheets->pluck('id'))
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const dataEl = document.getElementById('fpa-index-data');
+            if (!dataEl) return;
+
             window.initFpaIndex({
                 routes: {
-                    index: "{{ route('first_piece_approval.index') }}",
+                    index: dataEl.getAttribute('data-route-index'),
                 },
-                plant: "{{ request('plant') }}",
-                checksheets: @json($checksheets->pluck('id'))
+                plant: dataEl.getAttribute('data-plant'),
+                checksheets: JSON.parse(dataEl.textContent)
             });
         });
     </script>

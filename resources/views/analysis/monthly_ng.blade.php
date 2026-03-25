@@ -106,22 +106,28 @@
     <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}"></script>
     <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
 
+    @php
+        $analysisData = [
+            'labels' => $labels,
+            'dataValues' => $data,
+            'dataPercentage' => $dataPercentage,
+            'dataCycleTime' => $dataCycleTime,
+            'itemLabels' => $itemLabels,
+            'itemCycleTimeData' => $itemCycleTimeData,
+            'inspectorItemLabels' => $inspectorItemLabels,
+            'inspectorItemDatasets' => $inspectorItemDatasets,
+            'sortedItemTotalPcs' => $sortedItemTotalPcs,
+            'sortedItemTotalSeconds' => $sortedItemTotalSeconds,
+            'defectLabels' => $defectLabels,
+            'defectData' => $defectData,
+        ];
+    @endphp
+    <script id="analysis-data" type="application/json">
+        @json($analysisData)
+    </script>
     <script>
-        window.__ANALYSIS__ = {
-            labels: @json($labels),
-            dataValues: @json($data),
-            dataPercentage: @json($dataPercentage),
-            dataCycleTime: @json($dataCycleTime),
-            itemLabels: @json($itemLabels),
-            itemCycleTimeData: @json($itemCycleTimeData),
-            inspectorItemLabels: @json($inspectorItemLabels),
-            inspectorItemDatasets: @json($inspectorItemDatasets),
-            sortedItemTotalPcs: @json($sortedItemTotalPcs),
-            sortedItemTotalSeconds: @json($sortedItemTotalSeconds),
-            defectLabels: @json($defectLabels),
-            defectData: @json($defectData),
-            maxCycleTimeY: 30
-        };
+        window.__ANALYSIS__ = JSON.parse(document.getElementById('analysis-data').textContent);
+        window.__ANALYSIS__.maxCycleTimeY = 30;
     </script>
     <script src="{{ asset('js/analysis/analysis-charts.js') }}"></script>
 @endsection

@@ -1110,19 +1110,34 @@
                             </div>
                         </div>
         {{-- Inline Auto-Calc Script --}}
+        <script id="calibration-tools-data" type="application/json"
+            data-plant-code="{{ $plantCode }}"
+            data-year="{{ $year ?? date('Y') }}"
+            data-csrf="{{ csrf_token() }}"
+            data-route-index="{{ route('calibration.tools.index') }}"
+            data-route-update-pr="{{ route('calibration.tools.update-pr') }}"
+            data-route-edit="{{ route('calibration.tools.edit', ':id') }}"
+            data-route-update="{{ route('calibration.tools.update', ':id') }}">
+            @json($availableYears)
+        </script>
         <script>
-            window.__CALIBRATION_TOOLS__ = {
-                plantCode: "{{ $plantCode }}",
-                year: "{{ $year ?? date('Y') }}",
-                availableYears: @json($availableYears),
-                csrf: "{{ csrf_token() }}",
-                routes: {
-                    index: "{{ route('calibration.tools.index') }}",
-                    updatePr: "{{ route('calibration.tools.update-pr') }}",
-                    edit: "{{ route('calibration.tools.edit', ':id') }}",
-                    update: "{{ route('calibration.tools.update', ':id') }}"
-                }
-            };
+            (function() {
+                const dataEl = document.getElementById('calibration-tools-data');
+                if (!dataEl) return;
+
+                window.__CALIBRATION_TOOLS__ = {
+                    plantCode: dataEl.getAttribute('data-plant-code'),
+                    year: dataEl.getAttribute('data-year'),
+                    availableYears: JSON.parse(dataEl.textContent),
+                    csrf: dataEl.getAttribute('data-csrf'),
+                    routes: {
+                        index: dataEl.getAttribute('data-route-index'),
+                        updatePr: dataEl.getAttribute('data-route-update-pr'),
+                        edit: dataEl.getAttribute('data-route-edit'),
+                        update: dataEl.getAttribute('data-route-update')
+                    }
+                };
+            })();
         </script>
 
 @endsection

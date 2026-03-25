@@ -752,7 +752,6 @@
         select.form-control {
             padding-right: 1.5rem !important;
         }
-        }
 
         .form-control-sm {
             font-size: 0.75rem !important;
@@ -1072,6 +1071,7 @@
             font-weight: 800;
             background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
             letter-spacing: 1px;
@@ -1147,75 +1147,106 @@
         src="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
 
     <script src="{{ asset('sweetalert/sweetalert2.all.min.js') }}"></script>
+    <script id="layouts-admin-data" type="application/json"
+        data-session-ping-url="{{ route('session.ping') }}">
+        @json($unreadRejections ?? [])
+    </script>
     <script>
-        window.__LAYOUTS_ADMIN__ = {
-            sessionPingUrl: "{{ route('session.ping') }}",
-            unreadRejections: [
-                @if(isset($unreadRejections))
-                    @foreach($unreadRejections as $rejection)
-                        {
-                            id: "{{ $rejection['id'] }}",
-                            title: @json($rejection['title']),
-                            message: @json($rejection['message']),
-                            url: "{{ $rejection['url'] }}",
-                            markReadUrl: "{{ route('notifications.mark-as-read', $rejection['id']) }}"
-                        },
-                    @endforeach
-                @endif
-            ]
-        };
+        (function() {
+            const dataEl = document.getElementById('layouts-admin-data');
+            if (dataEl) {
+                const unreadRejections = JSON.parse(dataEl.textContent);
+                window.__LAYOUTS_ADMIN__ = {
+                    sessionPingUrl: dataEl.getAttribute('data-session-ping-url'),
+                    unreadRejections: unreadRejections.map(r => ({
+                        ...r,
+                        markReadUrl: `/notifications/${r.id}/read`
+                    }))
+                };
+            }
+        })();
     </script>
     <script src="{{ asset('js/layouts/layouts-admin.js') }}"></script>
 
     @if(session('success'))
+        <div id="session-success-data" class="d-none" data-message="{{ session('success') }}"></div>
         <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: @json(session('success')),
-                showConfirmButton: false,
-                timer: 1500
-            });
+            (function() {
+                const successEl = document.getElementById('session-success-data');
+                if (successEl) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: successEl.getAttribute('data-message'),
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            })();
         </script>
     @endif
 
     @if(session('error'))
+        <div id="session-error-data" class="d-none" data-message="{{ session('error') }}"></div>
         <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: @json(session('error')),
-            });
+            (function() {
+                const errorEl = document.getElementById('session-error-data');
+                if (errorEl) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: errorEl.getAttribute('data-message'),
+                    });
+                }
+            })();
         </script>
     @endif
 
     @if(session('warning'))
+        <div id="session-warning-data" class="d-none" data-message="{{ session('warning') }}"></div>
         <script>
-            Swal.fire({
-                icon: 'warning',
-                title: 'Peringatan',
-                text: @json(session('warning')),
-            });
+            (function() {
+                const warningEl = document.getElementById('session-warning-data');
+                if (warningEl) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Peringatan',
+                        text: warningEl.getAttribute('data-message'),
+                    });
+                }
+            })();
         </script>
     @endif
 
     @if(session('info'))
+        <div id="session-info-data" class="d-none" data-message="{{ session('info') }}"></div>
         <script>
-            Swal.fire({
-                icon: 'info',
-                title: 'Info',
-                text: @json(session('info')),
-            });
+            (function() {
+                const infoEl = document.getElementById('session-info-data');
+                if (infoEl) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Info',
+                        text: infoEl.getAttribute('data-message'),
+                    });
+                }
+            })();
         </script>
     @endif
 
     @if(session('maintenance_alert'))
+        <div id="session-maintenance-data" class="d-none" data-message="{{ session('maintenance_alert') }}"></div>
         <script>
-            Swal.fire({
-                icon: 'warning',
-                title: 'Maintenance',
-                text: @json(session('maintenance_alert')),
-            });
+            (function() {
+                const maintEl = document.getElementById('session-maintenance-data');
+                if (maintEl) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Maintenance',
+                        text: maintEl.getAttribute('data-message'),
+                    });
+                }
+            })();
         </script>
     @endif
 

@@ -470,32 +470,32 @@ class DoubleTapeCreate {
 
         $('#zoomInStandard').on('click', () => {
             this.standardZoomLevel += 0.25;
-            if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, document.getElementById('standardPdfCanvas'), this.standardZoomLevel, refStandardPageNum, 'standardPdfCanvas');
+            if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, document.getElementById('standardPdfCanvas'), this.standardZoomLevel, this.refStandardPageNum, 'standardPdfCanvas');
         });
         $('#zoomOutStandard').on('click', () => {
             if (this.standardZoomLevel > 0.5) {
                 this.standardZoomLevel -= 0.25;
-                if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, document.getElementById('standardPdfCanvas'), this.standardZoomLevel, refStandardPageNum, 'standardPdfCanvas');
+                if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, document.getElementById('standardPdfCanvas'), this.standardZoomLevel, this.refStandardPageNum, 'standardPdfCanvas');
             }
         });
         $('#zoomResetStandard').on('click', () => {
             this.standardZoomLevel = 1.0;
-            if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, document.getElementById('standardPdfCanvas'), this.standardZoomLevel, refStandardPageNum, 'standardPdfCanvas');
+            if (this.refStandardPdfDoc) this.renderPageOnCanvas(this.refStandardPdfDoc, document.getElementById('standardPdfCanvas'), this.standardZoomLevel, this.refStandardPageNum, 'standardPdfCanvas');
         });
 
         $('#zoomInSimilar').on('click', () => {
             this.similarZoomLevel += 0.25;
-            if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), this.similarZoomLevel, refSimilarPageNum, 'similarPdfCanvas');
+            if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), this.similarZoomLevel, this.refSimilarPageNum, 'similarPdfCanvas');
         });
         $('#zoomOutSimilar').on('click', () => {
             if (this.similarZoomLevel > 0.5) {
                 this.similarZoomLevel -= 0.25;
-                if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), this.similarZoomLevel, refSimilarPageNum, 'similarPdfCanvas');
+                if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), this.similarZoomLevel, this.refSimilarPageNum, 'similarPdfCanvas');
             }
         });
         $('#zoomResetSimilar').on('click', () => {
             this.similarZoomLevel = 1.0;
-            if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), this.similarZoomLevel, refSimilarPageNum, 'similarPdfCanvas');
+            if (this.refSimilarPdfDoc) this.renderPageOnCanvas(this.refSimilarPdfDoc, document.getElementById('similarPdfCanvas'), this.similarZoomLevel, this.refSimilarPageNum, 'similarPdfCanvas');
         });
 
         $('#prevStandardPage').on('click', () => {

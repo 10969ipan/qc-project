@@ -446,7 +446,7 @@
                                 </div>
                                 <div>
                                     @php
-                                        $currentPlantDisplay = strtolower(Auth::user()->plant->code ?? request('plant') ?? 'jakarta');
+                                        $currentPlantDisplay = strtolower(Auth::user()->plant?->code ?? request('plant') ?? 'jakarta');
                                     @endphp
                                     <h6 class="modern-card-title">MONITORING RATE NG - {{ strtoupper($currentPlantDisplay) }}</h6>
                                     <div class="small text-muted">Trend Rate NG 1 Bulan Terakhir</div>
@@ -463,22 +463,32 @@
 
         @push('scripts')
             <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
+            @php
+                $dashboardStats = [
+                    'isDualView'         => (bool)($isDualView ?? false),
+                    'currentPlant'       => strtolower($currentPlant ?? ''),
+                    'plantName'          => Auth::user()->plant?->name ?? 'Combined',
+                    'statsJakarta'       => $statsJakarta ?? null,
+                    'statsKarawang'      => $statsKarawang ?? null,
+                    'combinedStats'      => $combinedStats ?? null,
+                    'dailyStatsJakarta'  => $dailyStatsJakarta ?? null,
+                    'dailyStatsKarawang' => $dailyStatsKarawang ?? null,
+                    'dailyCombinedStats' => $dailyCombinedStats ?? null,
+                    'claimData'          => $claimData ?? null,
+                    'claimFrequency'     => $claimFrequency ?? null,
+                    'ngRateData'         => $ngRateData ?? null,
+                ];
+            @endphp
+            <script id="dashboard-stats" type="application/json">
+                @json($dashboardStats)
+            </script>
             <script>
-                
-                window.__DASHBOARD__ = {
-                    isDualView:          {{ $isDualView ? 'true' : 'false' }},
-                    currentPlant:        "{{ strtolower($currentPlant ?? '') }}",
-                    plantName:           "{{ Auth::user()->plant->name ?? 'Combined' }}",
-                    statsJakarta:        @json($statsJakarta ?? null),
-                    statsKarawang:       @json($statsKarawang ?? null),
-                    combinedStats:       @json($combinedStats ?? null),
-                    dailyStatsJakarta:   @json($dailyStatsJakarta ?? null),
-                    dailyStatsKarawang:  @json($dailyStatsKarawang ?? null),
-                    dailyCombinedStats:  @json($dailyCombinedStats ?? null),
-                    claimData:           @json($claimData ?? null),
-                    claimFrequency:      @json($claimFrequency ?? null),
-                    ngRateData:          @json($ngRateData ?? null),
-                };
+                (function() {
+                    const statsEl = document.getElementById('dashboard-stats');
+                    if (statsEl) {
+                        window.__DASHBOARD__ = JSON.parse(statsEl.textContent);
+                    }
+                })();
             </script>
             
             <script src="{{ asset('js/dashboard/dashboard-charts.js') }}"></script>

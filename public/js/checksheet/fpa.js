@@ -198,23 +198,23 @@ class FpaCreate {
         const formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
         formInputs.prop('disabled', true);
         $('#checksheetForm').addClass('inputs-locked');
+        this.config.isLocked = true;
     }
 
     unlockInputs() {
         const formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
         formInputs.prop('disabled', false);
         $('#checksheetForm').removeClass('inputs-locked');
-        $('#startTimerBtn').html('<i class="fas fa-pause"></i> Pause').removeClass('btn-success').addClass('btn-warning');
         this.config.isLocked = false;
     }
 
     initTimer() {
-        $('#startTimerBtn').on('click', () => {
+        $('#startTimerBtn').on('click', (e) => {
             if (!this.timer.isRunning) {
                 this.startTimer();
-                if (this.config.isLocked) this.unlockInputs();
-            } else {
-                this.pauseTimer();
+                this.unlockInputs();
+                $(e.currentTarget).prop('disabled', true).removeClass('btn-success').addClass('btn-secondary').html('<i class="fas fa-clock"></i> Running...');
+                $('#saveBtn').prop('disabled', false);
             }
         });
     }
@@ -226,13 +226,6 @@ class FpaCreate {
             this.timer.elapsed = Math.floor((Date.now() - this.timer.startTime) / 1000);
             this.updateTimerDisplay();
         }, 1000);
-        $('#startTimerBtn').html('<i class="fas fa-pause"></i> Pause').removeClass('btn-success').addClass('btn-warning');
-    }
-
-    pauseTimer() {
-        this.timer.isRunning = false;
-        clearInterval(this.timer.interval);
-        $('#startTimerBtn').html('<i class="fas fa-play"></i> Resume').removeClass('btn-warning').addClass('btn-success');
     }
 
     updateTimerDisplay() {

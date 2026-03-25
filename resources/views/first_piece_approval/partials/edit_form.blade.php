@@ -184,7 +184,7 @@
                                 <div class="input-group mb-2 defect-row" style="display:none"></div>
                             @endif
                         </div>
-                        <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs mt-1" style="{{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
+                        <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs mt-1 {{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'd-none' }}">
                             <i class="fas fa-plus"></i> Tambah Jenis
                         </button>
                     </div>
@@ -218,7 +218,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-6" id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
+                <div class="col-6 {{ $checksheet->judgment == 'NG' ? '' : 'd-none' }}" id="nextProsesContainer">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
                         <select class="form-control" id="next_proses" name="next_proses">
@@ -327,6 +327,9 @@
 // We remove @push because this is loaded via AJAX and @push doesn't work in AJAX responses.
 // The script will execute normally when inserted into the DOM.
 @endphp
+<script id="edit-fpa-data" type="application/json" data-cavities="{{ $maxCavityFound }}" data-points="{{ $maxPointFound }}">
+    @json($partDimensionStandards)
+</script>
 <script>
     (function() {
         if (typeof jQuery === 'undefined') {
@@ -334,10 +337,17 @@
             return;
         }
         
+        const dataEl = document.getElementById('edit-fpa-data');
+        if (!dataEl) return;
+        
+        const partDimensionStandards = JSON.parse(dataEl.textContent);
+        const currentCavities = parseInt(dataEl.getAttribute('data-cavities') || 0);
+        const currentPoints = parseInt(dataEl.getAttribute('data-points') || 0);
+        
         window.initFpaEdit({
-            partDimensionStandards: {!! $partDimensionStandards !!},
-            currentCavities: {{ $maxCavityFound }},
-            currentPoints: {{ $maxPointFound }},
+            partDimensionStandards: partDimensionStandards,
+            currentCavities: currentCavities,
+            currentPoints: currentPoints,
             maxCavities: 30,
             maxPoints: 30
         });

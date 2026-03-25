@@ -45,14 +45,21 @@
                     @if($menu->children->isEmpty())
                         <li class="{{ $isActive ? 'active' : '' }}">
                             <a href="{{ $menu->route ? (Route::has($menu->route) ? route($menu->route) : url($menu->route)) : '#' }}" 
-                               @if($menu->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                               @if($menu->is_maintenance) 
+                                 class="menu-maintenance-trigger" 
+                                 data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                 onclick="return false;" 
+                               @endif>
                                <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }}
                             </a>
                         </li>
                     @else
                         <li class="dropdown-item-hover @if($menu->is_maintenance) menu-maintenance @endif">
-                            <a href="#" class="{{ $isActive ? 'expanded' : '' }}"
-                               @if($menu->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                            <a href="#" class="{{ $isActive ? 'expanded' : '' }} @if($menu->is_maintenance) menu-maintenance-trigger @endif"
+                               @if($menu->is_maintenance) 
+                                 data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                 onclick="return false;" 
+                               @endif>
                                <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }} <i class="fas fa-chevron-down ml-1 small"></i>
                             </a>
                             <ul class="dropdown-menu">
@@ -63,8 +70,11 @@
                                     @endphp
                                     @if($child->children->isEmpty())
                                         <li>
-                                            <a class="dropdown-item" href="{{ $childUrl }}"
-                                               @if($child->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($child->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                                            <a class="dropdown-item @if($child->is_maintenance) menu-maintenance-trigger @endif" href="{{ $childUrl }}"
+                                               @if($child->is_maintenance) 
+                                                 data-message="{{ $child->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                 onclick="return false;" 
+                                               @endif>
                                                {{ $child->name }}
                                             </a>
                                         </li>
@@ -79,8 +89,11 @@
                                                     @endphp
                                                     @if($grand->children->isEmpty())
                                                         <li>
-                                                            <a class="dropdown-item" href="{{ $grandUrl }}"
-                                                           @if($grand->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($grand->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                                                            <a class="dropdown-item @if($grand->is_maintenance) menu-maintenance-trigger @endif" href="{{ $grandUrl }}"
+                                                           @if($grand->is_maintenance) 
+                                                             data-message="{{ $grand->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                             onclick="return false;" 
+                                                           @endif>
                                                            {{ $grand->name }}
                                                         </a>
                                                         </li>
@@ -94,8 +107,11 @@
                                                                         $subUrl = $sub->route ? (Route::has($sub->route) ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : url($sub->route)) : '#';
                                                                     @endphp
                                                                     <li>
-                                                                        <a class="dropdown-item" href="{{ $subUrl }}"
-                                                                       @if($sub->is_maintenance) onclick="Swal.fire({icon: 'warning', title: 'Maintenance', text: @json($sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.')}); return false;" @endif>
+                                                                        <a class="dropdown-item @if($sub->is_maintenance) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
+                                                                       @if($sub->is_maintenance) 
+                                                                         data-message="{{ $sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                         onclick="return false;" 
+                                                                       @endif>
                                                                        {{ $sub->name }}
                                                                     </a>
                                                                     </li>
@@ -167,13 +183,37 @@
 </nav>
 
 @push('scripts')
+    <script id="layouts-topbar-data" type="application/json"
+        data-notifications-index-url="{{ route('notifications.index') }}"
+        data-mark-all-read-url="{{ route('notifications.mark-all-read') }}"
+        data-clear-all-notifications-url="{{ route('notifications.clear-all') }}"
+        data-mark-as-read-url-template="/notifications/:id/read">
+        {}
+    </script>
     <script>
-        window.__LAYOUTS_TOPBAR__ = {
-            notificationsIndexUrl: "{{ route('notifications.index') }}",
-            markAllReadUrl: "{{ route('notifications.mark-all-read') }}",
-            clearAllNotificationsUrl: "{{ route('notifications.clear-all') }}",
-            markAsReadUrlTemplate: "/notifications/:id/read"
-        };
+        (function() {
+            const dataEl = document.getElementById('layouts-topbar-data');
+            if (dataEl) {
+                window.__LAYOUTS_TOPBAR__ = {
+                    notificationsIndexUrl: dataEl.getAttribute('data-notifications-index-url'),
+                    markAllReadUrl: dataEl.getAttribute('data-mark-all-read-url'),
+                    clearAllNotificationsUrl: dataEl.getAttribute('data-clear-all-notifications-url'),
+                    markAsReadUrlTemplate: dataEl.getAttribute('data-mark-as-read-url-template')
+                };
+            }
+
+            // Maintenance Alert Handler
+            document.querySelectorAll('.menu-maintenance-trigger').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Maintenance',
+                        text: this.getAttribute('data-message')
+                    });
+                });
+            });
+        })();
     </script>
     <script src="{{ asset('js/layouts/layouts-topbar.js') }}"></script>
     <style>
@@ -185,6 +225,7 @@
         .line-clamp-notification {
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
