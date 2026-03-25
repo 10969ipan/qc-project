@@ -168,6 +168,7 @@ class FpaIndex {
 
 class FpaCreate {
     constructor(config) {
+        console.log('FpaCreate loaded - version 2026-03-25-v1');
         this.config = config;
         this.timer = {
             startTime: null,
