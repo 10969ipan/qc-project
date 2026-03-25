@@ -87,7 +87,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-6">
+                <div class="col-4">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">No Mesin <span class="text-danger">*</span></label>
                         <select name="code_machine" id="code_machine" class="form-control form-control-sm" required>
@@ -104,13 +104,28 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <div class="form-group mb-2">
                         <label class="small font-weight-bold">Inisial Operator</label>
                         <input type="text" name="operator_initials" id="operator_initials" class="form-control form-control-sm"
                             value="{{ $checksheet->operator_initials }}" placeholder="Inisial...">
                     </div>
                 </div>
+                @if(auth()->user()->role !== 'inspector')
+                <div class="col-4">
+                    <div class="form-group mb-2">
+                        <label class="small font-weight-bold text-primary">Inspector (User)</label>
+                        <select name="user_id" id="user_id" class="form-control form-control-sm border-primary">
+                            <option value="">-- Tetap --</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }} ({{ $user->initials }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
             </div>
             
             <div class="row">

@@ -485,7 +485,7 @@ class InProcessChecksheetService extends BaseService
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
-                'code_machine' => $data['code_machine'],
+                'code_machine' => $data['code_machine'] ?? null,
                 'total_qty' => $data['total_qty'],
                 'sampling_qty' => $data['sampling_qty'],
                 'total_ok' => $data['total_ok'],
@@ -494,16 +494,21 @@ class InProcessChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
-                'defects' => json_encode($defects),
+                'defects' => $defects,
                 'part_weight' => $data['part_weight'] ?? null,
+                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
                 'qrcode' => $data['qrcode'] ?? null,
                 'part_code' => $data['part_code'] ?? null,
                 'supplier_id' => $data['supplier_id'] ?? null,
                 'quantity' => $data['quantity'] ?? null,
                 'unique_code_id' => $data['unique_code_id'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
-                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
             ];
+
+            // Allow manual correction of inspector if provided
+            if (isset($data['user_id'])) {
+                $updateData['user_id'] = $data['user_id'];
+            }
 
             // Update created_at and cycle_time if user has authority
             if (auth()->user()->role !== 'inspector') {

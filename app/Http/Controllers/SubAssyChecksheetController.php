@@ -202,11 +202,16 @@ class SubAssyChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $users = \App\Models\User::where('is_active', true)
+            ->whereIn('role', ['admin', 'inspector', 'supervisor', 'kashift'])
+            ->orderBy('name')
+            ->get();
+
         if (request()->ajax()) {
-            return view('sub_assy.partials.edit_form', compact('checksheet', 'items'));
+            return view('sub_assy.partials.edit_form', compact('checksheet', 'items', 'users'));
         }
 
-        return view('sub_assy.edit', compact('checksheet', 'items'));
+        return view('sub_assy.edit', compact('checksheet', 'items', 'users'));
     }
 
     // Update Checksheet

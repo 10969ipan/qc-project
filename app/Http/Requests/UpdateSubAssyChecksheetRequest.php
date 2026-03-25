@@ -62,8 +62,9 @@ class UpdateSubAssyChecksheetRequest extends FormRequest
             'defect_types' => 'nullable|array',
             'defect_types.*' => 'nullable|string',
             'defect_quantities' => 'nullable|array',
-            'defect_quantities.*' => 'nullable|integer|min:1',
+            'defect_quantities.*' => 'nullable|numeric|min:1',
             'plant' => 'nullable|string', // Support for admin to move reports between plants
+            'user_id' => 'nullable|exists:users,id', // Allow manual correction of inspector
         ];
     }
 

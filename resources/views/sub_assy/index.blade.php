@@ -282,7 +282,7 @@
                                         {{ $checksheet->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle">{{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}</td>
+                                <td class="align-middle">{{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}</td>
 
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center">

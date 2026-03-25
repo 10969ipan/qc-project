@@ -152,7 +152,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="judgment">Judgment</label>
                 <select name="judgment" id="judgment_edit" class="form-control" required>
@@ -161,13 +161,28 @@
                 </select>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="operator_initials">Inisial Operator</label>
                 <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control"
                     value="{{ $checksheet->operator_initials }}">
             </div>
         </div>
+        @if(auth()->user()->role !== 'inspector')
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="user_id" class="text-primary font-weight-bold">Inspector (User)</label>
+                <select name="user_id" id="user_id_edit" class="form-control border-primary">
+                    <option value="">-- Tetap --</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
+                            {{ $user->name }} ({{ $user->initials }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        @endif
     </div>
 
     <div id="nextProsesContainer_edit" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">

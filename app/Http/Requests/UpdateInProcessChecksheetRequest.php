@@ -63,6 +63,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'defect_types.*' => 'nullable|string',
             'defect_quantities' => 'nullable|array',
             'defect_quantities.*' => 'nullable|numeric|min:1',
+            'user_id' => 'nullable|exists:users,id', // Allow manual correction of inspector
         ];
     }
 

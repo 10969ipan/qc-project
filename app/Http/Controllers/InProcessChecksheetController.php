@@ -220,18 +220,25 @@ class InProcessChecksheetController extends Controller
             ->get();
         $partDimensionStandards = json_encode($this->getConsolidatedStandards());
 
+        $users = \App\Models\User::where('is_active', true)
+            ->whereIn('role', ['admin', 'inspector', 'supervisor', 'kashift'])
+            ->orderBy('name')
+            ->get();
+
         if (request()->ajax()) {
             return view('in_process.partials.edit_form', [
                 'checksheet' => $checksheet,
                 'items' => $items,
-                'partDimensionStandards' => $partDimensionStandards
+                'partDimensionStandards' => $partDimensionStandards,
+                'users' => $users
             ]);
         }
 
         return view('in_process.edit', [
             'checksheet' => $checksheet,
             'items' => $items,
-            'partDimensionStandards' => $partDimensionStandards
+            'partDimensionStandards' => $partDimensionStandards,
+            'users' => $users
         ]);
     }
 

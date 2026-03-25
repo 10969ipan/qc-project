@@ -217,6 +217,11 @@ class SubAssyChecksheetService extends BaseService
                 'next_proses' => $data['next_proses'] ?? null,
             ];
 
+            // Allow manual correction of inspector if provided
+            if (isset($data['user_id'])) {
+                $updateData['user_id'] = $data['user_id'];
+            }
+
             // Update plant_id if provided (primarily for admin)
             if (isset($data['plant'])) {
                 $updateData['plant_id'] = $this->resolvePlantId($data['plant']);
