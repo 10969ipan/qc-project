@@ -111,6 +111,10 @@
             color: #212529;
             background-color: #ffc107;
         }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -235,7 +239,7 @@
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
-                    <td>{{ $checksheet->operator_initials }}</td>
+                    <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
                     <td>{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

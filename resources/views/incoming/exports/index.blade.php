@@ -109,7 +109,7 @@
                                         {{ $d['type'] ?? '-' }}
                                     </div> @endforeach
                                 </td>
-                                <td class="align-middle">{{ $cs->operator_initials }}</td>
+                                <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
                                 @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
                                     <td class="align-middle">
                                         <span

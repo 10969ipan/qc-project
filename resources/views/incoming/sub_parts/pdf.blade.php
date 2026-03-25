@@ -97,6 +97,10 @@
             color: #fff;
             background-color: #dc3545;
         }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -176,7 +180,7 @@
                         @foreach($defects ?? [] as $d) <div style="border-bottom: 0.1px solid #ddd;">{{ $d['type'] ?? '-' }}
                         </div> @endforeach
                     </td>
-                    <td>{{ $cs->operator_initials }}</td>
+                    <td class="text-uppercase">{{ $cs->operator_initials }}</td>
                 </tr>
             @endforeach
         </tbody>

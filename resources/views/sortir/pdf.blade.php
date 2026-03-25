@@ -115,6 +115,10 @@
         .page-break {
             page-break-after: always;
         }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -231,7 +235,7 @@
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
-                    <td>{{ $checksheet->operator_initials }}</td>
+                    <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                     <td>{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>

@@ -98,6 +98,10 @@
             color: #fff;
             background-color: #dc3545;
         }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -188,7 +192,7 @@
                             {{ $cs->judgment }}
                         </span>
                     </td>
-                    <td>{{ $cs->operator_initials }}</td>
+                    <td class="text-uppercase">{{ $cs->operator_initials }}</td>
                     <td>{{ $cs->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

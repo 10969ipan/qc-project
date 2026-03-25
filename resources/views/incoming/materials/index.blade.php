@@ -143,7 +143,7 @@
                                     @endforeach
                                 </td>
 
-                                <td class="align-middle">{{ $cs->operator_initials }}</td>
+                                <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
 
                                 {{-- Approval Columns --}}
                                 @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)

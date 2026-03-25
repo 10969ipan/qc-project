@@ -236,7 +236,7 @@
                                     {{ $checksheet->position_remark_no_lot }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->result_remark }}</td>
-                                <td class="align-middle">{{ $checksheet->operator_initials }}</td>
+                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kolom Status Approval --}}
                                 {{-- Level 1: Karu QC --}}
@@ -612,25 +612,6 @@
         </div>
     </div>
 
-    <!-- Modal Gambar -->
-    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">Cross Cut Image</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalImage" src="" class="img-fluid" alt="Cross Cut Image">
-                    <p id="modalItemName" class="mt-2"></p>
-                    <p id="modalQcDatetime"></p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -721,10 +702,13 @@
                                         <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
                                             Alasan Rejection <span class="text-danger">*</span>
                                         </label>
-                                        <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
-                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
-                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
-                                            maxlength="500">{{ old('rejection_remarks') }}</textarea>
+                                        <textarea class="form-control rejection-textarea @error('rejection_remarks') is-invalid @enderror"
+                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" 
+                                            name="rejection_remarks" rows="4"
+                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" 
+                                            required minlength="10"
+                                            maxlength="500"
+                                            data-count-id="charCount{{ $cs->id }}{{ $rejectType }}">{{ old('rejection_remarks') }}</textarea>
                                         <small class="form-text text-muted">
                                             <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
                                         </small>
@@ -885,23 +869,19 @@
     <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Character counter for rejection remarks
-            @foreach($checksheets as $cs)
-                @foreach(['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating', 'manager', 'manager_plating'] as $rejectType)
-                    const textarea{{ $cs->id }}{{ $rejectType }} = document.getElementById('rejection_remarks{{ $cs->id }}{{ $rejectType }}');
-                    const charCount{{ $cs->id }}{{ $rejectType }} = document.getElementById('charCount{{ $cs->id }}{{ $rejectType }}');
-                    if (textarea{{ $cs->id }}{{ $rejectType }}) {
-                        textarea{{ $cs->id }}{{ $rejectType }}.addEventListener('input', function () {
-                            charCount{{ $cs->id }}{{ $rejectType }}.textContent = this.value.length;
-                        });
+            // Event delegation for rejection remarks character counter
+            document.addEventListener('input', function (e) {
+                if (e.target.classList.contains('rejection-textarea')) {
+                    const countId = e.target.getAttribute('data-count-id');
+                    const countSpan = document.getElementById(countId);
+                    if (countSpan) {
+                        countSpan.textContent = e.target.value.length;
                     }
-                @endforeach
-            @endforeach
+                }
+            });
 
-                                                                                                                                                                                                                        // Image Modal Handler
-                                                                                                                                                    const imageModal = document.getElementById('imageModal');
+            // Image Modal Handler
             const viewImageBtns = document.querySelectorAll('.view-image-btn');
-
             viewImageBtns.forEach(btn => {
                 btn.addEventListener('click', function () {
                     const checksheetId = this.getAttribute('data-id');
@@ -1043,42 +1023,12 @@
                         if (endDate) params.append('end_date', endDate);
 
                         // Redirect to index with search parameter
-                        window.location.href = '{{ route('cross_cut.index') }}?' + params.toString();
+                        const baseUrl = "{{ route('cross_cut.index') }}";
+                        window.location.href = baseUrl + '?' + params.toString();
                     }, 500);
                 });
             }
 
-            const viewImageButtons = document.querySelectorAll('.view-image-btn');
-            const modalImage = document.getElementById('modalImage');
-            const modalItemName = document.getElementById('modalItemName');
-            const modalQcDatetime = document.getElementById('modalQcDatetime');
-            const jsonInfoUrlTemplate = "{{ route('cross_cut.show', ['id' => ':id']) }}";
-
-            viewImageButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const checksheetId = this.getAttribute('data-id');
-                    const fetchUrl = jsonInfoUrlTemplate.replace(':id', checksheetId);
-
-                    fetch(fetchUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            modalImage.src = data.image_url;
-                            modalItemName.textContent = `Item: ${data.item_name}`;
-                            modalQcDatetime.textContent = `QC Datetime: ${data.qc_datetime}`;
-                        })
-                        .catch(error => {
-                            console.error('Error fetching image data:', error);
-                            modalImage.src = '';
-                            modalItemName.textContent = 'Gagal memuat data gambar.';
-                            modalQcDatetime.textContent = '';
-                        });
-                });
-            });
 
             // PDF Export
             const exportPdfBtn = document.getElementById('exportPdfBtn');
@@ -1097,7 +1047,8 @@
                     if (endDate) params.append('end_date', endDate);
                     if (searchTerm) params.append('search', searchTerm);
 
-                    window.location.href = '{{ route('cross_cut.export_pdf') }}?' + params.toString();
+                    const exportUrl = "{{ route('cross_cut.export_pdf') }}";
+                    window.location.href = exportUrl + '?' + params.toString();
                 });
             }
             // Edit Modal Handler
@@ -1124,110 +1075,6 @@
                         $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>');
                     }
                 });
-            });
-        });
-    </script>
-@endpush
-
-<!-- Image Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="imageModalLabel">Cross Cut Image</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body text-center">
-                <img id="modalImage" src="" class="img-fluid" alt="Cross Cut Image">
-                <p id="modalItemName" class="mt-2"></p>
-                <p id="modalQcDatetime"></p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Rejection Modal for each checksheet and type -->
-@foreach($checksheets as $cs)
-    @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-        @php
-            $canReject = false;
-            if ($rejectType == 'kashift' && ((auth()->user()->role === 'kashift' || auth()->user()->role === 'admin') && !$cs->kashift_qc)) {
-                $canReject = true;
-            } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && $cs->kashift_qc && $cs->kashift_qc !== 'REJECTED' && !$cs->supervisor_qc)) {
-                $canReject = true;
-            } elseif ($rejectType == 'asst_manager' && ((auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && $cs->supervisor_qc && $cs->supervisor_qc !== 'REJECTED' && !$cs->asst_manager_qc)) {
-                $canReject = true;
-            } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && $cs->asst_manager_qc && $cs->asst_manager_qc !== 'REJECTED' && !$cs->manager_qc)) {
-                $canReject = true;
-            }
-        @endphp
-        @if($canReject)
-            <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
-                aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
-                            </h5>
-                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="{{ route('cross_cut.reject', ['id' => $cs->id, 'type' => $rejectType]) }}" method="POST">
-                            @csrf
-                            <div class="modal-body">
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                    <strong>{{ ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
-                                </div>
-                                <div class="form-group">
-                                    <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
-                                        Alasan Rejection <span class="text-danger">*</span>
-                                    </label>
-                                    <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
-                                        id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
-                                        placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
-                                        maxlength="500">{{ old('rejection_remarks') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
-                                    </small>
-                                    @error('rejection_remarks')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                    <i class="fas fa-times"></i> Batal
-                                </button>
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="fas fa-ban"></i> Tolak Checksheet
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @endif
-    @endforeach
-@endforeach
-
-@push('scripts')
-    <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
-    <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            window.initCrossCutIndex({
-                isPainting: false,
-                moduleName: 'Cross_Cut_Plating',
-                pdfTitle: 'LAPORAN CHECKSHEET CROSS CUT',
-                docNo: 'QC-KRW-F-0214',
-                showRoute: "{{ route('cross_cut.show', ['id' => ':id']) }}"
             });
         });
     </script>

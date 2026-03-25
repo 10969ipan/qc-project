@@ -113,6 +113,10 @@
             background-color: #ffc107;
         }
 
+        .text-uppercase {
+            text-transform: uppercase;
+        }
+
         .page-break {
             page-break-after: always;
         }
@@ -236,7 +240,7 @@
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
-                    <td>{{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}</td>
+                    <td class="text-uppercase">{{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}</td>
                     <td>{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

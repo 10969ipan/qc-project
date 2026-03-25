@@ -96,6 +96,10 @@
             text-align: left;
             font-size: 6px;
         }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -199,7 +203,7 @@
                         {{ $checksheet->position_remark_no_lot }}
                     </td>
                     <td class="text-left">{{ $checksheet->result_remark }}</td>
-                    <td>{{ $checksheet->operator_initials }}</td>
+                    <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
                 </tr>
             @empty
                 <tr>

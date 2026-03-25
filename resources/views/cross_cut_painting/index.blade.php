@@ -197,7 +197,7 @@
                                 <td class="align-middle font-weight-bold {{ $checksheet->position_remark_judgment === 'OK' ? 'text-success' : 'text-danger' }}">
                                     {{ $checksheet->position_remark_judgment }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->operator_initials }}</td>
+                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Approval Columns --}}
                                 @foreach ($approvalOrder as $role)

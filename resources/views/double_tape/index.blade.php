@@ -251,7 +251,7 @@
                                         {{ $checksheet->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle">{{ $checksheet->operator_initials }}</td>
+                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center">
