@@ -482,7 +482,6 @@ class InProcessChecksheetService extends BaseService
             $defects = $this->processDefects($data);
 
             $updateData = [
-                'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],

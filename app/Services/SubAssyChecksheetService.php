@@ -203,7 +203,6 @@ class SubAssyChecksheetService extends BaseService
             $checksheet = SubAssyChecksheet::findOrFail($id);
 
             $updateData = [
-                'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
