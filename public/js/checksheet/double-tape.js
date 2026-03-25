@@ -242,12 +242,10 @@ class DoubleTapeCreate {
                     judgmentSelect.val('OK');
                     judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                         .css({ 'border-color': '#28a745', 'background-color': '#fff' });
-                    this.autoRemoveDimensionDefect();
                 } else {
                     judgmentSelect.val('NG');
                     judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                         .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
-                    this.autoAddDimensionDefect();
                 }
             } else {
                 $('#aql_info').hide();
@@ -272,11 +270,9 @@ class DoubleTapeCreate {
             if (val === 'OK') {
                 judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                     .css({ 'border-color': '#28a745', 'background-color': '#fff' });
-                this.autoRemoveDimensionDefect();
             } else if (val === 'NG') {
                 judgmentBadge.text('NG').removeClass('d-none text-success').addClass('text-danger')
                     .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
-                this.autoAddDimensionDefect();
             } else {
                 judgmentBadge.addClass('d-none').text('-');
             }
@@ -388,80 +384,6 @@ class DoubleTapeCreate {
         $('#totalNG').val(totalNG).trigger('input');
     }
 
-    autoAddDimensionDefect() {
-        let foundRow = null;
-        $('.defect-select').each(function () {
-            const val = $(this).val();
-            const text = $(this).find('option:selected').text();
-            if (val === 'dimension' || text === 'Dimensi' || text.toLowerCase() === 'dimensi') {
-                foundRow = $(this).closest('.defect-row');
-                return false;
-            }
-        });
-
-        if (foundRow) {
-            const qtyInput = foundRow.find('.defect-qty');
-            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                qtyInput.val(1).trigger('input');
-            }
-            return;
-        }
-
-        let targetSelect = null;
-        $('.defect-select').each(function () {
-            if ($(this).val() === '') {
-                targetSelect = $(this);
-                return false;
-            }
-        });
-
-        if (!targetSelect) {
-            const rowCount = $('.defect-row').length;
-            if (rowCount < 4) {
-                $('#addDefectBtn').trigger('click');
-                targetSelect = $('.defect-select').last();
-            } else {
-                targetSelect = $('.defect-select').first();
-            }
-        }
-
-        if (targetSelect) {
-            const options = targetSelect.find('option');
-            let foundVal = '';
-            options.each(function () {
-                if ($(this).val() === 'dimension' || $(this).text() === 'Dimensi' || $(this).text().toLowerCase() === 'dimensi') {
-                    foundVal = $(this).val();
-                    return false;
-                }
-            });
-
-            if (!foundVal) {
-                targetSelect.append('<option value="Dimensi">Dimensi</option>');
-                foundVal = 'Dimensi';
-            }
-
-            targetSelect.val(foundVal).trigger('change');
-            targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
-            this.calculateTotalNG();
-        }
-    }
-
-    autoRemoveDimensionDefect() {
-        $('.defect-select').each(function () {
-            const val = $(this).val();
-            const text = $(this).find('option:selected').text();
-            if (val === 'dimension' || text === 'Dimensi' || text.toLowerCase() === 'dimensi') {
-                const row = $(this).closest('.defect-row');
-                if ($('.defect-row').length === 1) {
-                    $(this).val('').trigger('change');
-                    row.find('.defect-qty').val('');
-                } else {
-                    row.remove();
-                }
-            }
-        });
-        this.calculateTotalNG();
-    }
 
     initPDFSideBySide() {
         window.renderPdfToCanvas = (url, canvasId, placeholderId, loadingId, pageNum = 1) => {
