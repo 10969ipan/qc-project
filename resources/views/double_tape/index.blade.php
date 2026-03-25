@@ -247,9 +247,13 @@
                                 </td>
 
                                 <td class="align-middle">
-                                    <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
-                                        {{ $checksheet->judgment }}
-                                    </span>
+                                    @if($checksheet->check_type === 'fullcheck')
+                                        <span class="badge badge-secondary">-</span>
+                                    @else
+                                        <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
+                                            {{ $checksheet->judgment }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 

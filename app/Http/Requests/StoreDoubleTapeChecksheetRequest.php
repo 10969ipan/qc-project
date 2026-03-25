@@ -37,6 +37,7 @@ class StoreDoubleTapeChecksheetRequest extends FormRequest
             'plant' => 'required',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'check_type' => 'nullable|in:sampling,fullcheck',
             // 'line' is omitted for Double Tape
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',

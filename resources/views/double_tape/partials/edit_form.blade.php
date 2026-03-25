@@ -1,6 +1,7 @@
 <form action="{{ route('double_tape.update', $checksheet->id) }}" method="POST">
     @csrf
     @method('PUT')
+    <input type="hidden" name="check_type" value="{{ $checksheet->check_type ?? 'sampling' }}">
     <div class="modal-header bg-warning">
         <h5 class="modal-title font-weight-bold">Edit Double Tape #{{ $checksheet->id }}</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -58,11 +59,16 @@
                     </div>
                     <div class="col-4">
                         <label class="small font-weight-bold">Judgment</label>
-                        <select class="form-control form-control-sm font-weight-bold" name="judgment" id="editJudgment"
-                            required>
-                            <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
-                            <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
-                        </select>
+                        @if(($checksheet->check_type ?? 'sampling') === 'fullcheck')
+                            <div class="form-control form-control-sm bg-light text-center font-weight-bold text-muted">-</div>
+                            <input type="hidden" name="judgment" value="{{ $checksheet->judgment }}">
+                        @else
+                            <select class="form-control form-control-sm font-weight-bold" name="judgment" id="editJudgment"
+                                required>
+                                <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
+                                <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
+                            </select>
+                        @endif
                     </div>
                 </div>
                 <div class="form-group mt-2">

@@ -80,6 +80,7 @@ class DoubleTapeChecksheetService extends BaseService
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
+                'check_type' => $data['check_type'] ?? 'sampling',
                 // No 'line' field
                 'total_qty' => $data['total_qty'],
                 'sampling_qty' => $data['sampling_qty'],
@@ -130,6 +131,7 @@ class DoubleTapeChecksheetService extends BaseService
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
+                'check_type' => $data['check_type'] ?? 'sampling',
                 'total_qty' => $data['total_qty'],
                 'sampling_qty' => $data['sampling_qty'],
                 'total_ok' => $data['total_ok'],

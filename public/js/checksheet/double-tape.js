@@ -173,6 +173,17 @@ class DoubleTapeCreate {
     initTypeHandling() {
         $('input[name="check_type_option"]').on('change', (e) => {
             this.isFullcheck = ($(e.currentTarget).val() === 'fullcheck');
+
+            // Sync hidden field for form submission
+            $('#checkTypeHidden').val(this.isFullcheck ? 'fullcheck' : 'sampling');
+
+            // Toggle Judgment column visibility
+            if (this.isFullcheck) {
+                $('.judgment-header, .judgment-cell').hide();
+            } else {
+                $('.judgment-header, .judgment-cell').show();
+            }
+
             if (this.timerRunning) {
                 $('#samplingQty').prop('readonly', this.isFullcheck);
             }

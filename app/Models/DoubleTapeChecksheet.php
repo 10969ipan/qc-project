@@ -15,6 +15,7 @@ class DoubleTapeChecksheet extends Model
         'plant_id',
         'item_id',
         'created_at',
+        'check_type',
         'date',
         'shift',
         // 'line' is omitted

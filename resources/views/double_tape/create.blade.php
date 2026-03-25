@@ -56,6 +56,7 @@
         <div class="card-body">
             <form action="{{ route('double_tape.store') }}" method="POST" id="checksheetForm">
                 @csrf
+                <input type="hidden" name="check_type" id="checkTypeHidden" value="sampling">
                 <input type="hidden" name="plant" value="karawang">
 
                 <div class="alert alert-info mb-3">
@@ -89,7 +90,7 @@
                             <th rowspan="2" class="align-middle">Sampling Qty</th>
                             <th rowspan="2" class="align-middle" style="min-width: 280px;">Detail NG</th>
                             <th rowspan="2" class="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle judgment-header">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial QC</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                         </tr>
@@ -203,7 +204,7 @@
                                 </td>
 
                                 <!-- Keputusan -->
-                                <td class="align-middle text-center" style="min-width: 150px;">
+                                <td class="align-middle text-center judgment-cell" style="min-width: 150px;">
                                     <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
                                         style="border: 2px solid transparent;">
                                         -

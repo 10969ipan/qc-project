@@ -25,6 +25,7 @@ class UpdateDoubleTapeChecksheetRequest extends FormRequest
             'item_id' => 'required|exists:items,id',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'check_type' => 'nullable|in:sampling,fullcheck',
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
