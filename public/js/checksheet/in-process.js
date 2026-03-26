@@ -680,13 +680,8 @@ class InProcessCreate {
         if (lotSize >= 501) return 80;
         if (lotSize >= 281) return 50;
         if (lotSize >= 151) return 32;
-        if (lotSize >= 91) return 20;
-        if (lotSize >= 51) return 13;
-        if (lotSize >= 26) return 8;
-        if (lotSize >= 16) return 5;
-        if (lotSize >= 9) return 3;
-        if (lotSize >= 2) return 2;
-        return 0;
+        if (lotSize >= 20) return 20;
+        return lotSize; // 100% Check for lots < 20
     }
 
     getAqlLimits(sampleSize) {
@@ -697,8 +692,10 @@ class InProcessCreate {
         if (sampleSize >= 200) return { acc: 3, rej: 4 };
         if (sampleSize >= 125) return { acc: 2, rej: 3 };
         if (sampleSize >= 80) return { acc: 1, rej: 2 };
+        if (sampleSize >= 50) return { acc: 1, rej: 2 };
+        if (sampleSize >= 32) return { acc: 0, rej: 1 };
         if (sampleSize >= 20) return { acc: 0, rej: 1 };
-        return { acc: 0, rej: 1 };
+        return { acc: 0, rej: 1 }; // Default for smaller samples
     }
 
     updateJudgment() {
