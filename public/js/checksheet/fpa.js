@@ -196,6 +196,10 @@ class FpaCreate {
         this.initAqlLogic();
         this.initDefectManagement();
         this.initFormValidation();
+
+        // Initialize state
+        this.calculateTotalNG();
+        this.updateJudgment();
     }
 
     lockInputs() {

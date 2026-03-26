@@ -370,7 +370,7 @@
                                         <div class="col-8">
                                             <input type="number" id="total_ok"
                                                 class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required readonly>
+                                                style="font-size: 14px;" name="total_ok" value="0" min="0" required readonly>
                                         </div>
                                     </div>
                                     <div class="row no-gutters">
@@ -380,7 +380,7 @@
                                         <div class="col-8">
                                             <input type="number" id="total_ng"
                                                 class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ng" placeholder="0" min="0" required readonly>
+                                                style="font-size: 14px;" name="total_ng" value="0" min="0" required readonly>
                                         </div>
                                     </div>
                                 </td>
