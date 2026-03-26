@@ -953,7 +953,7 @@ class InProcessCreate {
         const selectedOption = $('#itemSelect').find('option:selected');
         const itemPartNumber = this.normalizePartNumber(selectedOption.data('part-number'));
         const dimensionStandards = (this.config.partDimensionStandards || {})[itemPartNumber];
-        if (!dimensionStandards || this.config.plantContext === 'jakarta') return true;
+        if (!dimensionStandards || this.config.plantContext === 'jakarta' || this.config.plantContext === 'karawang') return true;
 
         let allFilled = true;
         let firstEmpty = null;
