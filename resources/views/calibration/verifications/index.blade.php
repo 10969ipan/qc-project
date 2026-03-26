@@ -305,8 +305,7 @@
                                                 @method('DELETE')
                                                 <input type="hidden" name="year" value="{{ $year }}">
                                                 <button type="submit"
-                                                    class="btn btn-sm btn-danger shadow-sm d-flex align-items-center"
-                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                                    class="btn btn-sm btn-danger shadow-sm d-flex align-items-center btn-delete">
                                                     <i class="fas fa-trash mr-1"></i> HAPUS
                                                 </button>
                                             </form>
@@ -742,20 +741,7 @@
             border-radius: 4px;
         }
     </style>
-    {{-- Inline Auto-Calc Script (guaranteed to load inside content section) --}}
-    <script>
-        window.__CALIBRATION_VERIF__ = {
-            plantCode: "{{ $plantCode }}",
-            year: "{{ $year ?? date('Y') }}",
-            csrf: "{{ csrf_token() }}",
-            routes: {
-                edit: "{{ route('calibration.verifications.edit', ':id') }}",
-                update: "{{ route('calibration.verifications.update', ':id') }}",
-                qrData: "{{ route('calibration.verifications.qr-data', ':id') }}"
-            }
-        };
-    </script>
-    <script src="{{ asset('js/calibration/calibration-verifications.js') }}"></script>
+
 
 
     <!-- Modal QR Code -->
@@ -811,7 +797,7 @@
                         </div>
                         <div class="col">
                             <a href="#" id="qr-modal-download-pdf" target="_blank"
-                                class="btn btn-outline-danger btn-block shadow-sm">
+                                class="btn btn-outline-danger btn-block shadow-sm no-loader">
                                 <i class="fas fa-file-pdf mr-1"></i> DOWNLOAD PDF (2-PAGE)
                             </a>
                         </div>
@@ -838,5 +824,27 @@
             }
         };
     </script>
-    <script src="{{ asset('js/calibration/calibration-verifications.js') }}"></script>
+    <script src="{{ asset('js/calibration/calibration-verifications.js') }}?v={{ filemtime(public_path('js/calibration/calibration-verifications.js')) }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.delete-form').on('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endpush

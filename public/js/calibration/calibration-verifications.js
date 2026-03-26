@@ -249,11 +249,26 @@ $(document).ready(function () {
         }
     });
 
-    // QR Code Modal
+    // QR Code Modal - move modal to body to avoid overflow container conflicts
+    var $qrModal = $('#modalQrCode');
+    if ($qrModal.length && $qrModal.parent()[0] !== document.body) {
+        $qrModal.appendTo('body');
+    }
+
     $(document).on('click', '.btn-qr-modal', function () {
         var btn = $(this);
         var id = btn.data('id');
         var originalHtml = btn.html();
+
+        if (!id) {
+            alert('ID tidak ditemukan. Silakan refresh halaman.');
+            return;
+        }
+
+        if (!window.__CALIBRATION_VERIFICATIONS__ || !window.__CALIBRATION_VERIFICATIONS__.routes) {
+            alert('Konfigurasi halaman tidak ditemukan. Silakan refresh halaman.');
+            return;
+        }
 
         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>...');
 
@@ -262,38 +277,61 @@ $(document).ready(function () {
         $.ajax({
             url: qrDataUrl,
             method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
             success: function (response) {
+                if (!response || !response.verification) {
+                    alert('Respons dari server tidak valid.');
+                    btn.prop('disabled', false).html(originalHtml);
+                    return;
+                }
+
                 var v = response.verification;
                 var qrSvgBase64 = response.qr_code;
                 var downloadUrl = response.download_url;
 
-                $('#qr-modal-image').html(`<img src="data:image/png;base64,${qrSvgBase64}" id="qr-img" style="width: 250px; height: 250px;">`);
-                $('#qr-modal-tool-name').text(v.name_alat);
-                $('#qr-modal-serial').text(v.serial_number);
-                $('#qr-modal-date').text(v.tanggal_verifikasi ? new Date(v.tanggal_verifikasi).toLocaleDateString('id-ID') : '-');
+                $('#qr-modal-image').html(
+                    '<img src="data:image/png;base64,' + qrSvgBase64 + '" id="qr-img" style="width:250px;height:250px;">'
+                );
+                $('#qr-modal-tool-name').text(v.name_alat || '-');
+                $('#qr-modal-serial').text(v.serial_number || '-');
+                $('#qr-modal-date').text(v.tanggal_verifikasi
+                    ? new Date(v.tanggal_verifikasi).toLocaleDateString('id-ID')
+                    : '-');
+
                 if (v.judgment === 'OK' || v.judgment === 'NG') {
                     var badgeClass = v.judgment === 'OK' ? 'success' : 'danger';
-                    $('#qr-modal-judgment').html(`<span class="badge badge-${badgeClass}">${v.judgment}</span>`);
+                    $('#qr-modal-judgment').html('<span class="badge badge-' + badgeClass + '">' + v.judgment + '</span>');
                 } else {
                     $('#qr-modal-judgment').html(v.judgment || '-');
                 }
 
                 $('#qr-modal-download-pdf').attr('href', downloadUrl);
 
-                $('#qr-modal-download-img').off('click').on('click', function () {
-                    var downloadLink = document.createElement("a");
-                    downloadLink.href = "data:image/png;base64," + qrSvgBase64;
-                    downloadLink.download = `QR_${v.serial_number}.png`;
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
+                $('#qr-modal-download-img').off('click.qr').on('click.qr', function () {
+                    var link = document.createElement('a');
+                    link.href = 'data:image/png;base64,' + qrSvgBase64;
+                    link.download = 'QR_' + (v.serial_number || 'code') + '.png';
+                    link.className = 'no-loader'; // prevent global loader trigger
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(function() { $('#global-loader').fadeOut(); }, 200);
                 });
 
-                $('#modalQrCode').modal('show');
                 btn.prop('disabled', false).html(originalHtml);
+                $('#modalQrCode').modal('show');
             },
-            error: function () {
-                alert('Gagal mengambil data QR.');
+            error: function (xhr) {
+                var msg = 'Gagal mengambil data QR.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg += ' (' + xhr.responseJSON.message + ')';
+                } else if (xhr.status) {
+                    msg += ' (HTTP ' + xhr.status + ')';
+                }
+                alert(msg);
                 btn.prop('disabled', false).html(originalHtml);
             }
         });

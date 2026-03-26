@@ -794,7 +794,7 @@ class CalibrationController extends Controller
             'eccLevel' => QRCode::ECC_H,
             'addQuietzone' => true,
             'outputBase64' => true,
-            'imageTransparent' => false,
+            'imageTransparent' => true,
         ]);
         $qrCodeDataUrl = (new QRCode($options))->render($data);
 
@@ -838,7 +838,7 @@ class CalibrationController extends Controller
                 'eccLevel' => QRCode::ECC_H,
                 'addQuietzone' => true,
                 'outputBase64' => true,
-                'imageTransparent' => false,
+                'imageTransparent' => true,
             ]);
             $qrCodeDataUrl = (new QRCode($options))->render($downloadUrl);
 
@@ -892,7 +892,7 @@ class CalibrationController extends Controller
             'eccLevel' => QRCode::ECC_H,
             'addQuietzone' => true,
             'outputBase64' => true,
-            'imageTransparent' => false,
+            'imageTransparent' => true,
         ]);
         $qrCodeDataUrlHal1 = (new QRCode($options))->render($downloadUrl);
 
