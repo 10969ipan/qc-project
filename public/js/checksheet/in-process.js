@@ -554,21 +554,9 @@ class InProcessCreate {
             if (this.currentPoints < this.maxPoints) {
                 this.currentPoints++;
                 $('#dimensionHeadRow').append(`<th class="point-header">Point ${this.currentPoints}</th>`);
-                $('.cavity-row').each(function () {
-                    const cavityNum = $(this).data('cavity');
-                    $(this).append(`<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${cavityNum}][${this.currentPoints}]" placeholder="P${this.currentPoints}"></td>`.replace('this.currentPoints', this.currentPoints));
-                });
-            }
-        });
-
-        const _this = this;
-        $(document).on('click', '#addPointBtn', function() {
-             if (_this.currentPoints < _this.maxPoints) {
-                _this.currentPoints++;
-                $('#dimensionHeadRow').append(`<th class="point-header">Point ${_this.currentPoints}</th>`);
-                $('.cavity-row').each(function () {
-                    const cavityNum = $(this).data('cavity');
-                    $(this).append(`<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${cavityNum}][${_this.currentPoints}]" placeholder="P${_this.currentPoints}"></td>`);
+                $('.cavity-row').each((index, element) => {
+                    const cavityNum = $(element).data('cavity');
+                    $(element).append(`<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${cavityNum}][${this.currentPoints}]" placeholder="P${this.currentPoints}"></td>`);
                 });
             }
         });

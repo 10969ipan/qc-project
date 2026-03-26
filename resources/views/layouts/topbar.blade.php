@@ -10,9 +10,6 @@
             <i class="fas fa-bars"></i>
         </button>
         <a class="sidebar-brand d-flex align-items-center text-decoration-none mr-3" href="{{ url('/') }}">
-            <div class="sidebar-brand-icon rotate-n-15 mr-2">
-                <i class="fas fa-laugh-wink text-white" style="font-size: 1.4rem;"></i>
-            </div>
             <div class="sidebar-brand-text font-weight-bold text-white h6 mb-0">QC APPS</div>
         </a>
         @if(auth()->check() && auth()->user()->plant)
@@ -30,12 +27,33 @@
             <ul class="main-nav d-flex align-items-center list-unstyled mb-0">
                 @foreach($dynamicMenus ?? [] as $menu)
                     @php
-                        $isActive = request()->is(trim($menu->route, '/').'*') || ($menu->route && request()->routeIs($menu->route));
+                        $menuRoutePath = trim($menu->route, '/');
+                        $isActive = false;
+                        
+                        if ($menu->route && $menu->route !== '#') {
+                            if ($menuRoutePath === '') { // Root path '/'
+                                $isActive = request()->is('/');
+                            } else {
+                                $isActive = request()->is($menuRoutePath . '*') || request()->routeIs($menu->route);
+                            }
+                        }
+
                         if (!$isActive) {
                             foreach($menu->children as $c) {
-                                if (request()->is(trim($c->route, '/').'*') || ($c->route && request()->routeIs($c->route))) { $isActive = true; break; }
+                                $cPath = trim($c->route, '/');
+                                if ($c->route && $c->route !== '#' && $cPath !== '') {
+                                    if (request()->is($cPath . '*') || request()->routeIs($c->route)) { $isActive = true; break; }
+                                } elseif ($c->route === '/' || $cPath === '') {
+                                    if (request()->is('/')) { $isActive = true; break; }
+                                }
+                                
                                 foreach($c->children as $gc) {
-                                    if (request()->is(trim($gc->route, '/').'*') || ($gc->route && request()->routeIs($gc->route))) { $isActive = true; break; }
+                                    $gcPath = trim($gc->route, '/');
+                                    if ($gc->route && $gc->route !== '#' && $gcPath !== '') {
+                                        if (request()->is($gcPath . '*') || request()->routeIs($gc->route)) { $isActive = true; break; }
+                                    } elseif ($gc->route === '/' || $gcPath === '') {
+                                        if (request()->is('/')) { $isActive = true; break; }
+                                    }
                                 }
                                 if ($isActive) break;
                             }
