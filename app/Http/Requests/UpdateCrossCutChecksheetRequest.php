@@ -11,6 +11,15 @@ class UpdateCrossCutChecksheetRequest extends FormRequest
         return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
     }
 
+    protected function prepareForValidation()
+    {
+        $now = now();
+        $this->merge([
+            'production_datetime' => $this->production_date ? $this->production_date . ' ' . $now->format('H:i:s') : null,
+            'qc_datetime' => $this->qc_date ? $this->qc_date . ' ' . $now->format('H:i:s') : null,
+        ]);
+    }
+
     public function rules(): array
     {
         return [
@@ -19,7 +28,7 @@ class UpdateCrossCutChecksheetRequest extends FormRequest
             'qc_shift' => 'required|string|max:255',
             'production_datetime' => 'required|date',
             'qc_datetime' => 'required|date',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
             'chemical_catalyst' => 'nullable|string|max:255',
             'chemical_abu' => 'nullable|string|max:255',
             'position_remark_judgment' => 'required|in:OK,NG',
