@@ -897,6 +897,8 @@ class InProcessCreate {
             const valStr = $(this).val().trim();
             const value = parseFloat(valStr.replace(',', '.'));
 
+            $(this).removeClass('is-invalid is-valid');
+
             if (standard && valStr !== '' && !isNaN(value)) {
                 let isInvalid = false;
                 const epsilon = 0.00001;
@@ -940,8 +942,12 @@ class InProcessCreate {
                         if (value < (lb - epsilon) || value > (ub + epsilon)) isInvalid = true;
                     }
                 }
-                if (isInvalid) $(this).addClass('is-invalid'); else $(this).removeClass('is-invalid');
-            } else $(this).removeClass('is-invalid');
+                if (isInvalid) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).addClass('is-valid');
+                }
+            }
         });
         this.updateJudgment();
     }

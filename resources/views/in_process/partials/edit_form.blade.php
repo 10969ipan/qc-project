@@ -627,6 +627,8 @@
                 const valStr = $(this).val().trim();
                 const value = parseFloat(valStr.replace(',', '.'));
 
+                $(this).removeClass('is-invalid is-valid');
+
                 if (standard && valStr !== '' && !isNaN(value)) {
                     let isInvalid = false;
                     const epsilon = 0.00001;
@@ -708,10 +710,8 @@
                     if (isInvalid) {
                         $(this).addClass('is-invalid');
                     } else {
-                        $(this).removeClass('is-invalid');
+                        $(this).addClass('is-valid');
                     }
-                } else {
-                    $(this).removeClass('is-invalid');
                 }
             });
 
