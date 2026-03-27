@@ -44,43 +44,44 @@
         height: 70px !important;
     }
 </style>
-    <div class="card shadow mb-4 border-left-primary">
-        <div class="card-body py-3">
-            <div class="row align-items-start">
-                <div class="col-md-8 border-right">
-                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        LAPORAN DATA CHECKSHEET DOUBLE TAPE
-                        @php
-                            $plantCode = 'karawang'; // For Double Tape it is always Karawang
-                        @endphp
-                        <span class="badge badge-primary d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
-                            style="font-size: 0.8rem; width: fit-content;">
-                            <i class="fas fa-building mr-1"></i>
-                            Plant {{ ucfirst($plantCode) }}
-                        </span>
-                    </h1>
-                </div>
-                <div class="col-md-4 d-flex justify-content-end">
-                    <div class="col p-0" style="max-width: 250px;">
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: QC-KRW-F-0213</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 25/03/2015</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 3 / 22/12/2025</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 1 / 1</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="card shadow mb-2">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            LAPORAN DATA CHECKSHEET DOUBLE TAPE
+                        </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0237</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">3 / 22/12/2025</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
