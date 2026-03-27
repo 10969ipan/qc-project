@@ -617,7 +617,7 @@ class FpaCreate {
             $('#weightCavContainer').empty();
         }
 
-        this.config.currentDimensionStandards = dimStds || {};
+        this.config.currentDimensionStandards = this.config.partDimensionStandards[this.config.itemPartNumber] || {};
         this.updateDefectList($opt.data('defects'));
         this.validateDimensions();
     }
@@ -642,19 +642,23 @@ class FpaCreate {
 
         $('.dimension-input').each((_, input) => {
             const $input = $(input);
-            const val = parseFloat($input.val().replace(',', '.'));
             const nameMatch = $input.attr('name').match(/\[\d+\]\[(\d+)\]/);
             if (!nameMatch) return;
+
             const pIdx = nameMatch[1];
             const std = stds[pIdx];
+            const valStr = $input.val().trim().replace(',', '.');
+            const val = parseFloat(valStr);
 
             $input.removeClass('is-invalid is-valid text-danger font-weight-bold');
-            if (isNaN(val)) return;
-
-            if (std) {
+            
+            if (valStr !== '' && !isNaN(val) && std) {
                 let isNG = false;
+                // Use min/max if both are set, otherwise fallback to size +/- tolerance
                 if (std.min !== null && val < parseFloat(std.min)) isNG = true;
                 if (std.max !== null && val > parseFloat(std.max)) isNG = true;
+
+                // Fallback to size +/- tolerance if no Min/Max is set
                 if (!isNG && std.min === null && std.max === null && std.size !== null && std.tolerance !== null) {
                     const min = parseFloat(std.size) - parseFloat(std.tolerance);
                     const max = parseFloat(std.size) + parseFloat(std.tolerance);
@@ -669,6 +673,7 @@ class FpaCreate {
                 }
             }
         });
+        
         this.config.dimensionNG = anyNG;
         this.updateJudgment();
     }

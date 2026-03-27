@@ -21,12 +21,12 @@ class CalibrationController extends Controller
 {
     public function scheduleIndex(Request $request)
     {
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->get('year', date('Y'));
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        $year = $request->input('year', date('Y'));
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
 
         $query = CalibrationTool::where('plant_id', $plant->id)
             ->where('status', '!=', 'BROKEN')
@@ -121,13 +121,13 @@ class CalibrationController extends Controller
 
     public function toolsIndex(Request $request)
     {
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->get('year', 'all');
+        $year = $request->input('year', 'all');
 
         // Fetch dynamic years for filter from verification results for this plant
-        $availableYears = \App\Models\CalibrationVerification::whereHas('tool', function ($q) use ($plant) {
+        $availableYears = CalibrationVerification::whereHas('tool', function ($q) use ($plant) {
             $q->where('plant_id', $plant->id);
         })
             ->whereNotNull('tanggal_verifikasi')
@@ -309,7 +309,7 @@ class CalibrationController extends Controller
 
         return redirect()->route('calibration.tools.index', [
             'plant' => $request->plant,
-            'year' => $request->get('year', date('Y'))
+            'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Master Data Alat berhasil disimpan.');
     }
@@ -320,7 +320,7 @@ class CalibrationController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         $tool = CalibrationTool::findOrFail($id);
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         if ($request->ajax()) {
             $tool->load('schedules');
 
@@ -450,7 +450,7 @@ class CalibrationController extends Controller
 
         return redirect()->route('calibration.tools.index', [
             'plant' => $request->plant,
-            'year' => $request->get('year', date('Y'))
+            'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Master Data Alat berhasil diperbarui.');
     }
@@ -480,8 +480,8 @@ class CalibrationController extends Controller
         ActivityLogger::log('deleted', null, "Menghapus Master Data Alat Kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.tools.index', [
-            'plant' => $request->get('plant', 'jakarta'),
-            'year' => $request->get('year', date('Y'))
+            'plant' => $request->input('plant', 'jakarta'),
+            'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Master Data Alat dan seluruh riwayat verifikasinya berhasil dihapus.');
     }
@@ -524,7 +524,7 @@ class CalibrationController extends Controller
 
         return redirect()->route('calibration.tools.index', [
             'plant' => $request->plant,
-            'year' => $request->get('year', date('Y'))
+            'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Laporan masalah berhasil disimpan.');
     }
@@ -581,7 +581,7 @@ class CalibrationController extends Controller
 
         return redirect()->route('calibration.tools.problem-logs', [
             'plant' => $request->plant,
-            'year' => $request->get('year', date('Y'))
+            'year' => $request->input('year', date('Y'))
         ])->with('success', $message);
     }
 
@@ -636,7 +636,7 @@ class CalibrationController extends Controller
 
         return redirect()->route('calibration.tools.problem-logs', [
             'plant' => $request->plant,
-            'year' => $request->get('year', date('Y'))
+            'year' => $request->input('year', date('Y'))
         ])->with('success', 'Laporan masalah berhasil diperbarui.');
     }
 
@@ -658,17 +658,17 @@ class CalibrationController extends Controller
         ActivityLogger::log('deleted', null, "Menghapus laporan masalah pada alat kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.tools.problem-logs', [
-            'plant' => $request->get('plant', 'jakarta'),
-            'year' => $request->get('year', date('Y'))
+            'plant' => $request->input('plant', 'jakarta'),
+            'year' => $request->input('year', date('Y'))
         ])->with('success', 'Laporan masalah berhasil dihapus.');
     }
 
     public function problemLogs(Request $request)
     {
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->get('year', date('Y'));
+        $year = $request->input('year', date('Y'));
 
         $logs = CalibrationToolLog::with([
             'tool' => function ($q) {
@@ -689,10 +689,10 @@ class CalibrationController extends Controller
 
     public function verificationsIndex(Request $request)
     {
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->get('year', date('Y'));
+        $year = $request->input('year', date('Y'));
 
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
@@ -720,10 +720,10 @@ class CalibrationController extends Controller
 
     public function verificationsPdf(Request $request)
     {
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->get('year', date('Y'));
+        $year = $request->input('year', date('Y'));
 
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
@@ -1042,7 +1042,7 @@ class CalibrationController extends Controller
 
             return redirect()->route('calibration.verifications.index', [
                 'plant' => $request->plant,
-                'year' => $request->get('year', date('Y', strtotime($request->tanggal_verifikasi)))
+                'year' => $request->input('year', date('Y', strtotime($request->tanggal_verifikasi)))
             ])
                 ->with('success', 'Data Verifikasi berhasil disimpan.');
 
@@ -1065,7 +1065,7 @@ class CalibrationController extends Controller
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         $verification = CalibrationVerification::findOrFail($id);
-        $plantCode = $request->get('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
         $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->get();
@@ -1161,7 +1161,7 @@ class CalibrationController extends Controller
 
             return redirect()->route('calibration.verifications.index', [
                 'plant' => $request->plant,
-                'year' => $request->get('year', date('Y'))
+                'year' => $request->input('year', date('Y'))
             ])
                 ->with('success', 'Data Verifikasi berhasil diperbarui.');
 
@@ -1195,8 +1195,8 @@ class CalibrationController extends Controller
         ActivityLogger::log('deleted', null, "Menghapus data verifikasi alat kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.verifications.index', [
-            'plant' => $request->get('plant', 'jakarta'),
-            'year' => $request->get('year', date('Y'))
+            'plant' => $request->input('plant', 'jakarta'),
+            'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Data Verifikasi berhasil dihapus.');
     }
