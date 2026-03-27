@@ -6,7 +6,6 @@ use App\Models\SortirChecksheet;
 use App\Models\SubAssyChecksheet;
 use App\Models\InProcessChecksheet;
 use App\Models\CrossCutChecksheet;
-use App\Models\DoubleTapeChecksheet;
 use App\Models\Item;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
@@ -145,22 +144,10 @@ class SortirChecksheetService extends BaseService
             ->map(fn($c) => $this->mapNgItemWithQty($c, 'cross_cut', $sortedQtyBySource))
             ->filter(fn($item) => $item['remaining_qty'] > 0);
 
-        // Double Tape - Include NG items with next_proses = SORTIR
-        $queryDoubleTape = DoubleTapeChecksheet::where('judgment', 'NG')
-            ->whereNotNull('next_proses')
-            ->with('item');
-        if ($shouldFilterByPlant) {
-            $queryDoubleTape->withoutGlobalScope('plant')->where('plant_id', $plantId);
-        }
-        $ngDoubleTape = $queryDoubleTape->get()
-            ->map(fn($c) => $this->mapNgItemWithQty($c, 'double_tape', $sortedQtyBySource))
-            ->filter(fn($item) => $item['remaining_qty'] > 0);
-
         return collect(array_merge(
             $ngSubAssy->toArray(),
             $ngInProcess->toArray(),
-            $ngCrossCut->toArray(),
-            $ngDoubleTape->toArray()
+            $ngCrossCut->toArray()
         ));
     }
 

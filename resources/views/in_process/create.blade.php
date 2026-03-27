@@ -437,6 +437,7 @@
                                             <option value="REBUS + FINISHING + PACKING">REBUS + FINISHING + PACKING</option>
                                             <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
                                             <option value="SORTIR + CRUSHING">SORTIR + CRUSHING</option>
+                                            <option value="FINISHING + MARKING + PACKING">FINISHING + MARKING + PACKING</option>
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="remarks" rows="4"
