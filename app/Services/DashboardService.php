@@ -68,13 +68,27 @@ class DashboardService extends BaseService
             $currentPlant = auth()->user()->plant?->name ?? 'unknown';
 
             // Operator Map (Initials -> Name)
+            // Maps both by stored initials AND by full name for consistent display
             $users = \App\Models\User::all();
             $operatorMap = [];
             foreach ($users as $u) {
-                // Using accessor to ensure we get initials even if not in DB column explicit
+                // Map by stored initials (e.g. "SH" => "Sopian Handani")
                 $init = $u->initials;
                 if ($init) {
                     $operatorMap[$init] = $u->name;
+                    // Also map case-insensitive variants
+                    $operatorMap[strtoupper($init)] = $u->name;
+                    $operatorMap[strtolower($init)] = $u->name;
+                }
+                // Map by full name so if operator_initials already contains full name it still resolves
+                if ($u->name) {
+                    $operatorMap[$u->name] = $u->name;
+                    // Also map abbreviated first+last name combos (e.g. "Sopian H" => "Sopian Handani")
+                    $nameParts = explode(' ', $u->name);
+                    if (count($nameParts) > 1) {
+                        $shortName = $nameParts[0] . ' ' . strtoupper(substr(end($nameParts), 0, 1));
+                        $operatorMap[$shortName] = $u->name;
+                    }
                 }
             }
 
