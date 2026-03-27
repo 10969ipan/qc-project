@@ -811,14 +811,15 @@
                 <div class="modal-body">
                     <div class="row">
                         {{-- Image Section --}}
-                        <div class="col-md-7">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                     <h6 class="m-0 font-weight-bold text-primary">
                                         <i class="fas fa-camera mr-2"></i>Hasil Cross Cut
                                     </h6>
+                                    <div id="imageDetailInfo" class="small text-muted"></div>
                                 </div>
-                                <div class="card-body text-center p-2">
+                                <div class="card-body text-center p-2 bg-dark rounded-bottom">
                                     <div id="imageContainer"
                                         style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
                                         <div class="spinner-border text-primary" role="status">
@@ -829,8 +830,8 @@
                             </div>
                         </div>
 
-                        {{-- Details Section --}}
-                        <div class="col-md-5">
+                        {{-- Details Section (Hidden as requested) --}}
+                        <div class="col-md-5 d-none">
                             <div class="card shadow-sm">
                                 <div class="card-header bg-light">
                                     <h6 class="m-0 font-weight-bold text-primary">
@@ -905,16 +906,22 @@
                     .then(data => {
                         // Display image
                         if (data.image_path) {
-                            const imagePath = `/storage/${data.image_path}`;
+                            const imagePath = "{{ route('cross_cut.image', ':id') }}".replace(':id', id);
                             imageContainer.innerHTML = `
-                                                                                                                                                                        <img src="${imagePath}" 
-                                                                                                                                                                             class="img-fluid rounded shadow" 
-                                                                                                                                                                             alt="Cross Cut Image"
-                                                                                                                                                                             style="max-height: 600px; width: auto; cursor: zoom-in;"
-                                                                                                                                                                             onclick="window.open('${imagePath}', '_blank')">
-                                                                                                                                                                    `;
+                                <img src="${imagePath}" 
+                                     class="img-fluid rounded shadow" 
+                                     alt="Cross Cut Image"
+                                     style="max-height: 80vh; width: auto; cursor: zoom-in;"
+                                     onclick="window.open('${imagePath}', '_blank')">
+                            `;
                             downloadBtn.href = imagePath;
                             downloadBtn.style.display = 'inline-block';
+                            
+                            // Optional: Show brief info in header since we hid the side panel
+                            const infoHeader = document.getElementById('imageDetailInfo');
+                            if (infoHeader) {
+                                infoHeader.innerHTML = `<strong>Item:</strong> ${data.item_name || '-'} | <strong>Tanggal QC:</strong> ${data.qc_date || '-'}`;
+                            }
                         } else {
                             imageContainer.innerHTML = `
                                                                                                                                                                         <div class="alert alert-warning">
