@@ -852,7 +852,7 @@ class FpaCreate {
             }
             targetSelect.val(foundVal).trigger('change');
             targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
-            this.updateJudgment();
+            this.calculateTotalNG();
         }
     }
 
@@ -871,7 +871,7 @@ class FpaCreate {
                 return false;
             }
         });
-        this.updateJudgment();
+        this.calculateTotalNG();
     }
 
     initDefectManagement() {
@@ -1133,7 +1133,7 @@ class FpaEdit {
             }
             targetSelect.val(foundVal).trigger('change');
             targetSelect.closest('.defect-row').find('.defect-qty').val(1).trigger('input');
-            this.updateJudgment();
+            this.calculateTotalNG();
         }
     }
 
@@ -1152,7 +1152,7 @@ class FpaEdit {
                 return false;
             }
         });
-        this.updateJudgment();
+        this.calculateTotalNG();
     }
 
     toggleNextProses() {
@@ -1202,10 +1202,13 @@ class FpaEdit {
                         if (value < lowerBound || value > upperBound) isInvalid = true;
                     }
                 }
-                if (isInvalid) $input.addClass('is-invalid');
-                else $input.removeClass('is-invalid');
+                if (isInvalid) {
+                    $input.addClass('is-invalid').removeClass('is-valid');
+                } else {
+                    $input.addClass('is-valid').removeClass('is-invalid');
+                }
             } else {
-                $input.removeClass('is-invalid');
+                $input.removeClass('is-invalid is-valid');
             }
         });
 
