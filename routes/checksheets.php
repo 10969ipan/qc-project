@@ -83,6 +83,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Export & Sync
         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
+        Route::get('/report/in-process-checksheets/print', [InProcessChecksheetController::class, 'printView'])->name('in_process.print');
+
         Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
         Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::get('/report/checksheets/export-pdf', [SubAssyChecksheetController::class, 'exportPdf'])->name('admin.checksheets.export_pdf');

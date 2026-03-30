@@ -118,8 +118,8 @@
             <tr>
                 <th rowspan="2">No</th>
                 <th rowspan="2">Tanggal</th>
-                <th rowspan="2">Jam (Bef)</th>
-                <th rowspan="2">Jam (Aft)</th>
+                <th rowspan="2">Jam (Before)</th>
+                <th rowspan="2">Jam (After)</th>
                 <th rowspan="2">Cycle (s)</th>
                 <th rowspan="2">Shift</th>
                 <th rowspan="2" class="col-hidden">Kode SAP</th>
@@ -131,7 +131,7 @@
                 <th rowspan="2">OK</th>
                 <th rowspan="2">NG</th>
                 <th colspan="2">Detail NG</th>
-                <th rowspan="2">Jdg</th>
+                <th rowspan="2">Judgment</th>
                 <th rowspan="2">Inspector</th>
                 <th rowspan="2">Ket</th>
             </tr>
