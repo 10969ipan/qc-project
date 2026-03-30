@@ -184,79 +184,84 @@ class DashboardService extends BaseService
     private function getProductionMonitoring(?string $plantIdentifier = null): array
     {
         $now = now();
-        $hour = $now->hour;
-
         $plantId = $this->resolvePlantId($plantIdentifier ?? request('plant') ?? auth()->user()->plant_id);
 
-        $plantId = $this->resolvePlantId($plantIdentifier ?? request('plant') ?? auth()->user()->plant_id);
-
-        // Determine current production date and shift using ShiftHelper
         $currentProductionDate = ShiftHelper::getProductionDate($now);
         $currentShift = ShiftHelper::getShift($now);
         $shiftStartTime = ShiftHelper::getShiftStartTime($currentProductionDate, $currentShift, $now->dayOfWeek);
 
-        // Active Sub Assy Lines - Filter by current shift and date
-        $linesQuery = SubAssyChecksheet::with('item')
-            ->whereDate('date', $currentProductionDate)
-            ->where('shift', $currentShift)
-            ->whereNotNull('line')
-            ->orderBy('created_at', 'desc');
+        $activeLines = $this->fetchActiveLines($currentProductionDate, $currentShift, $plantId);
+        $activeMachines = $this->fetchActiveMachines($currentProductionDate, $currentShift, $plantId);
 
-        if ($plantId)
-            $linesQuery->where('plant_id', $plantId);
-
-        $activeLines = $linesQuery->get()
-            ->unique('line')
-            ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
-
-        $machinesQuery = InProcessChecksheet::with('item')
-            ->whereDate('date', $currentProductionDate)
-            ->where('shift', $currentShift)
-            ->whereNotNull('code_machine')
-            ->orderBy('created_at', 'desc');
-
-        if ($plantId)
-            $machinesQuery->where('plant_id', $plantId);
-
-        $inProcessMachines = $machinesQuery->get();
-
-        // Active First Piece Approval Machines
-        $fpaQuery = FirstPieceApproval::with('item')
-            ->whereDate('date', $currentProductionDate)
-            ->where('shift', $currentShift)
-            ->whereNotNull('code_machine')
-            ->orderBy('created_at', 'desc');
-
-        if ($plantId)
-            $fpaQuery->where('plant_id', $plantId);
-
-        $fpaMachines = $fpaQuery->get();
-
-        // Combine both into one collection and take the most recent input for each machine
-        $activeMachines = $inProcessMachines->concat($fpaMachines)
-            ->sortByDesc('created_at')
-            ->unique('code_machine')
-            ->mapWithKeys(fn($item) => [(int) $item->code_machine => $item]);
-
-        // Status Overrides - Filter by shift start time to reset automatically when shift changes
-        $statusQuery = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble']);
-
-        if ($shiftStartTime) {
-            $statusQuery->where('updated_at', '>=', $shiftStartTime);
-        }
-
-        if ($plantId)
-            $statusQuery->where('plant_id', $plantId);
-
-        $manualStatuses = $statusQuery->get();
+        $manualStatuses = $this->fetchManualStatuses($shiftStartTime, $plantId);
         $lineStatuses = $manualStatuses->where('type', 'line')->keyBy('number');
         $machineStatuses = $manualStatuses->where('type', 'machine')->keyBy('number');
 
-        // Running Counts
         $runningLinesCount = $activeLines->count() - $activeLines->keys()->intersect($lineStatuses->keys())->count();
         $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble'])->keys())->count();
 
         return compact('activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount');
+    }
+
+    private function fetchActiveLines($date, $shift, $plantId)
+    {
+        $query = SubAssyChecksheet::with('item')
+            ->whereDate('date', $date)
+            ->where('shift', $shift)
+            ->whereNotNull('line')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        return $query->get()
+            ->unique('line')
+            ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
+    }
+
+    private function fetchActiveMachines($date, $shift, $plantId)
+    {
+        $inProcessQuery = InProcessChecksheet::with('item')
+            ->whereDate('date', $date)
+            ->where('shift', $shift)
+            ->whereNotNull('code_machine')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $inProcessQuery->where('plant_id', $plantId);
+        }
+
+        $fpaQuery = FirstPieceApproval::with('item')
+            ->whereDate('date', $date)
+            ->where('shift', $shift)
+            ->whereNotNull('code_machine')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $fpaQuery->where('plant_id', $plantId);
+        }
+
+        return $inProcessQuery->get()
+            ->concat($fpaQuery->get())
+            ->sortByDesc('created_at')
+            ->unique('code_machine')
+            ->mapWithKeys(fn($item) => [(int) $item->code_machine => $item]);
+    }
+
+    private function fetchManualStatuses($shiftStartTime, $plantId)
+    {
+        $query = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble']);
+
+        if ($shiftStartTime) {
+            $query->where('updated_at', '>=', $shiftStartTime);
+        }
+
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        return $query->get();
     }
 
     /**

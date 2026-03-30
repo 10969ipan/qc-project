@@ -36,11 +36,7 @@ return new class extends Migration
             if (Schema::hasColumn('checksheets', 'approval_status')) {
                 $table->dropColumn('approval_status');
             }
-            // Note: We don't drop the QC columns here assuming they might be managed by another migration,
-            // or we can drop them if we are sure we added them. 
-            // Given the confusion, let's keep it safe and only drop what we definitely added as "new" in this logical step.
-            // But if we want to be clean:
-            // $table->dropColumn(['kashift_qc', 'supervisor_qc', 'asst_manager_qc']);
+
         });
     }
 };

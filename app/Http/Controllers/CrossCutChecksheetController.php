@@ -54,13 +54,13 @@ class CrossCutChecksheetController extends Controller
         }
 
         $filters = [
-            'plant' => $request->get('plant'),
-            'start_date' => $request->get('start_date'),
-            'end_date' => $request->get('end_date'),
-            'item_id' => $request->get('item_id'),
-            'approval_status' => $request->get('approval_status'),
-            'id' => $request->get('id'),
-            'search' => $request->get('search'),
+            'plant' => $request->input('plant'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+            'item_id' => $request->input('item_id'),
+            'approval_status' => $request->input('approval_status'),
+            'id' => $request->input('id'),
+            'search' => $request->input('search'),
         ];
         $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();
@@ -120,7 +120,7 @@ class CrossCutChecksheetController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => $message,
-                    'index_url' => route('cross_cut.index', ['plant' => $request->get('plant')])
+                    'index_url' => route('cross_cut.index', ['plant' => $request->input('plant')])
                 ]);
             }
 
@@ -221,7 +221,7 @@ class CrossCutChecksheetController extends Controller
         }
         try {
             $this->crossCutService->updateChecksheet($id, $request->validated());
-            $checksheet = \App\Models\CrossCutChecksheet::find($id);
+            $checksheet = CrossCutChecksheet::find($id);
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Cross Cut: {$checksheet->item->name}");
             return redirect()->route('cross_cut.index')->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
@@ -238,7 +238,7 @@ class CrossCutChecksheetController extends Controller
             $checksheet = CrossCutChecksheet::find($id);
             $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->crossCutService->deleteChecksheet($id);
-            \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut: {$itemName}");
+            ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut: {$itemName}");
 
             // Preserve plant parameter when redirecting back
             $redirectParams = [];
@@ -269,7 +269,7 @@ class CrossCutChecksheetController extends Controller
             }
 
             $this->crossCutService->singleApprove($id, $type, $data);
-            $checksheet = \App\Models\CrossCutChecksheet::find($id);
+            $checksheet = CrossCutChecksheet::find($id);
             $mapping = $this->getApprovalMapping($type);
             $label = $mapping['label'] ?? $type;
             ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$label}) pada checksheet Cross Cut: {$checksheet->item->name}");
@@ -351,7 +351,7 @@ class CrossCutChecksheetController extends Controller
         try {
             $this->crossCutService->updateApprovalStatus($id, $validated);
             $checksheet = CrossCutChecksheet::find($id);
-            \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut: {$checksheet->item->name}");
+            ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut: {$checksheet->item->name}");
             return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
