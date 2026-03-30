@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/in-process-checksheets/print', [InProcessChecksheetController::class, 'printView'])->name('in_process.print');
 
         Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
+        Route::get('/report/first-piece-approvals/print', [FirstPieceApprovalController::class, 'printView'])->name('first_piece_approval.print');
         Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::get('/report/checksheets/export-pdf', [SubAssyChecksheetController::class, 'exportPdf'])->name('admin.checksheets.export_pdf');
         Route::get('/report/checksheets/print', [SubAssyChecksheetController::class, 'printView'])->name('admin.checksheets.print');
@@ -102,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/cross-cut-painting-checksheets/export-pdf', [CrossCutPaintingChecksheetController::class, 'exportPdf'])->name('cross_cut_painting.export_pdf');
         Route::get('/report/sortir-checksheets/export', [SortirChecksheetController::class, 'export'])->name('sortir.export');
         Route::get('/report/sortir-checksheets/export-pdf', [SortirChecksheetController::class, 'exportPdf'])->name('sortir.export_pdf');
+        Route::get('/report/sortir-checksheets/print', [SortirChecksheetController::class, 'printView'])->name('sortir.print');
 
         // --- Incoming Routes (Reports & Export) ---
         Route::get('/report/incoming-part', [IncomingPartController::class, 'index'])->name('incoming.parts.index');

@@ -378,4 +378,44 @@ class FirstPieceApprovalController extends Controller
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }
     }
+
+    public function printView(Request $request)
+    {
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        if (in_array(auth()->user()->role, $restrictedRoles)) {
+            $request->merge(['plant' => auth()->user()->plant_id]);
+        }
+
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
+
+        if (empty($filters['start_date'])) {
+            $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
+            $filters['end_date'] = now()->toDateString();
+        }
+
+        $checksheets = $this->firstPieceService->buildFilteredQuery($filters)->latest()->get();
+        $partDimensionStandards = $this->getConsolidatedStandards();
+
+        $user = auth()->user();
+        $plantCode = 'karawang';
+        $plantName = 'Karawang';
+
+        if ($request->plant) {
+            $plant = \App\Models\Plant::where('code', $request->plant)->orWhere('id', $request->plant)->first();
+            if ($plant) {
+                $plantCode = strtolower($plant->code);
+                $plantName = $plant->name;
+            }
+        } elseif ($user->plant) {
+            $plantCode = strtolower($user->plant->code);
+            $plantName = $user->plant->name;
+        }
+
+        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+
+        return view('first_piece_approval.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
+    }
 }
