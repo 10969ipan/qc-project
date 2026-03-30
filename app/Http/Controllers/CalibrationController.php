@@ -1106,6 +1106,16 @@ class CalibrationController extends Controller
                 throw $e;
             }
 
+            // Check for duplicate entry: same tool, same verification date, same calibration date
+            $exists = CalibrationVerification::where('tool_id', $request->tool_id)
+                ->where('tanggal_verifikasi', $request->tanggal_verifikasi)
+                ->where('tanggal_kalibrasi', $request->tanggal_kalibrasi)
+                ->exists();
+            
+            if ($exists) {
+                return back()->withInput()->with('error', 'Data verifikasi untuk alat ini pada tanggal tersebut sudah ada. Silakan periksa kembali.');
+            }
+
             $plant = Plant::where('code', $request->plant)->firstOrFail();
 
             $data = $request->except(['certification', 'plant', '_token']);
@@ -1221,6 +1231,17 @@ class CalibrationController extends Controller
                 session()->flash('modal', 'edit');
                 session()->flash('edit_id', $id);
                 throw $e;
+            }
+
+            // Check for duplicate entry: same tool, same verification date, same calibration date (excluding current record)
+            $exists = CalibrationVerification::where('tool_id', $request->tool_id)
+                ->where('tanggal_verifikasi', $request->tanggal_verifikasi)
+                ->where('tanggal_kalibrasi', $request->tanggal_kalibrasi)
+                ->where('id', '!=', $id)
+                ->exists();
+            
+            if ($exists) {
+                return back()->withInput()->with('error', 'Data verifikasi untuk alat ini pada tanggal tersebut sudah ada. Silakan periksa kembali.');
             }
 
             $verification = CalibrationVerification::findOrFail($id);
