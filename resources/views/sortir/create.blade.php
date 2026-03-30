@@ -157,6 +157,7 @@
                                                 <option value="{{ $ngItem['item_id'] }}"
                                                     data-name="{{ $ngItem['item_name'] }}"
                                                     data-part-number="{{ $ngItem['part_number'] ?? '' }}"
+                                                    data-detail="{{ strtoupper(str_replace('_', ' ', $ngItem['source_type'])) }} · {{ $ngItem['date'] }} Shift {{ $ngItem['shift'] }} · Sisa: {{ number_format($ngItem['remaining_qty']) }} pcs{{ !empty($ngItem['next_proses']) ? ' · ' . $ngItem['next_proses'] : '' }}"
                                                     data-source-type="{{ $ngItem['source_type'] }}"
                                                     data-source-id="{{ $ngItem['source_id'] }}"
                                                     data-source-date="{{ $ngItem['date'] }}"

@@ -58,6 +58,7 @@
             '  background:#e9ecef; color:#6c757d; cursor:not-allowed;',
             '  border-color:#ced4da;',
             '}',
+            '.ips-detail { color:#4e73df !important; font-size:10px !important; }',
         ].join('\n');
         document.head.appendChild(style);
     }
@@ -178,9 +179,12 @@
                 if (sapCode) sub.push('SAP: ' + sapCode);
                 if (customer)sub.push(customer);
 
+                var detail = opt.dataset.detail || '';
+
                 item.innerHTML =
                     '<div class="ips-name">' + highlight(name, q) + '</div>' +
-                    (sub.length ? '<div class="ips-sub">' + highlight(sub.join(' · '), q) + '</div>' : '');
+                    (sub.length ? '<div class="ips-sub">' + highlight(sub.join(' · '), q) + '</div>' : '') +
+                    (detail  ? '<div class="ips-sub ips-detail">' + detail + '</div>' : '');
 
                 item.addEventListener('mousedown', function(e) {
                     e.preventDefault();
