@@ -1135,7 +1135,8 @@ class CalibrationController extends Controller
                     'range' => $request->rentang_ukur,
                     'resolusi' => $request->resolusi,
                     'frekuensi_kalibrasi' => $request->frekuensi_kalibrasi,
-                    'schedule_planning' => $request->next_kalibrasi
+                    'schedule_planning' => $request->next_kalibrasi,
+                    'riwayat_kalibrasi' => \Carbon\Carbon::parse($request->tanggal_verifikasi)->format('d/m/Y')
                 ]);
 
                 // Sync next_kalibrasi to schedules table if it doesn't exist
