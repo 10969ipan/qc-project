@@ -1,8 +1,14 @@
 /**
  * Item Part Search Autocomplete
  * Usage: initItemSearch(selectId, options?)
- *   selectId  – id of the <select name="item_id"> element
- *   options   – { placeholder, maxResults }
+ *   selectId       – id of the <select name="item_id"> element
+ *   options        – { placeholder, maxResults, startButtonId }
+ *
+ * Lock behaviour:
+ *   The search input mirrors the disabled state of the underlying <select>.
+ *   If a startButtonId is provided (default: 'startTimerBtn'), the widget
+ *   also listens for that button's click and unlocks at that moment — same
+ *   as every other field in the checksheet forms.
  */
 (function (global) {
     'use strict';
@@ -48,6 +54,10 @@
             '.ips-badge { display:inline-block; padding:1px 5px; border-radius:10px;',
             '  font-size:10px; font-weight:600; margin-left:4px;',
             '  background:#e8f5e9; color:#388e3c; }',
+            '.ips-input:disabled, .ips-input[readonly] {',
+            '  background:#e9ecef; color:#6c757d; cursor:not-allowed;',
+            '  border-color:#ced4da;',
+            '}',
         ].join('\n');
         document.head.appendChild(style);
     }
@@ -67,6 +77,7 @@
      * @param {object} [opts]
      * @param {string} [opts.placeholder]
      * @param {number} [opts.maxResults=50]
+     * @param {string} [opts.startButtonId='startTimerBtn']  – button that unlocks all fields
      */
     function initItemSearch(selectEl, opts) {
         if (typeof selectEl === 'string') {
@@ -79,8 +90,9 @@
         selectEl.dataset.ipsInit = '1';
 
         opts = opts || {};
-        var placeholder = opts.placeholder || 'Cari nama / part no / SAP...';
-        var maxResults  = opts.maxResults  || 60;
+        var placeholder   = opts.placeholder   || 'Cari nama / part no / SAP...';
+        var maxResults    = opts.maxResults    || 60;
+        var startBtnId    = opts.startButtonId !== undefined ? opts.startButtonId : 'startTimerBtn';
 
         injectStyles();
 
@@ -256,6 +268,43 @@
             closeDropdown();
             input.focus();
         });
+
+        /* ── Lock / unlock to match other form fields ── */
+        function applyLockState(locked) {
+            input.disabled = locked;
+            if (locked) {
+                input.placeholder = 'Klik Start terlebih dahulu...';
+                input.style.cursor = 'not-allowed';
+                clearBtn.style.display = 'none';
+                closeDropdown();
+            } else {
+                input.placeholder = placeholder;
+                input.style.cursor = '';
+            }
+        }
+
+        // Mirror disabled state of the underlying <select> on init
+        applyLockState(selectEl.disabled);
+
+        // Listen to the start button (same element that unlocks other fields)
+        if (startBtnId) {
+            var startBtn = document.getElementById(startBtnId);
+            if (startBtn) {
+                startBtn.addEventListener('click', function () {
+                    applyLockState(false);
+                });
+            }
+        }
+
+        // Also observe if <select> itself gets enabled/disabled externally
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (m) {
+                if (m.attributeName === 'disabled') {
+                    applyLockState(selectEl.disabled);
+                }
+            });
+        });
+        observer.observe(selectEl, { attributes: true, attributeFilter: ['disabled'] });
 
         /* ── Sync if select already has a value (e.g. after validation error) ── */
         if (selectEl.value) {
