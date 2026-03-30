@@ -193,14 +193,20 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <label class="font-weight-bold mb-0">Kode SAP</label>
-                                            <button type="button" class="btn btn-primary btn-xs" id="btnScanQR">
-                                                <i class="fas fa-qrcode"></i> Scan QR
-                                            </button>
+                                        <label class="font-weight-bold small text-muted mb-1">
+                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control" id="sapCodeInput"
+                                                placeholder="Ketik Kode SAP..." autocomplete="off">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-primary" id="btnScanQR"
+                                                    title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode"></i>
+                                                    <span class="d-none d-md-inline ml-1">Scan QR</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <input type="text" class="form-control" id="sapCodeInput"
-                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
                                     </div>
                                     <div class="form-group mb-0">
