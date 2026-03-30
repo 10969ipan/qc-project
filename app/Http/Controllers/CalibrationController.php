@@ -321,7 +321,7 @@ class CalibrationController extends Controller
         }
         $tool = CalibrationTool::findOrFail($id);
         $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->wantsJson()) {
             $tool->load('schedules');
 
             // Format dates to prevent timezone shifts in JS serialization

@@ -123,12 +123,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const href = $(this).attr('href');
         const dataToggle = $(this).attr('data-toggle');
 
+        // Aggressive exclusion: don't show loader for table links, modals, or simple hash links
         if (!href ||
             href === '#' ||
             href.startsWith('javascript:') ||
             $(this).attr('target') === '_blank' ||
             href.startsWith('#') ||
+            $(this).closest('table').length || // NEW: Ignore links inside tables
             $(this).hasClass('no-loader') ||
+            $(this).hasClass('btn-edit-tool') ||
             $(this).hasClass('btn-logout') ||
             $(this).hasClass('dropdown-toggle') ||
             dataToggle === 'modal' ||
@@ -137,7 +140,18 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        $('#global-loader').css('display', 'flex');
+        $('#global-loader').css({
+            'display': 'flex',
+            'pointer-events': 'auto' // Re-enable pointer events when showing
+        });
+
+        // Safety: auto-hide loader if navigation doesn't complete (e.g. external link, back nav)
+        if (window.__globalLoaderTimeout) clearTimeout(window.__globalLoaderTimeout);
+        window.__globalLoaderTimeout = setTimeout(function () {
+            $('#global-loader').fadeOut(function() {
+                $(this).css('pointer-events', 'none'); // Ensure it's not blocking after fade
+            });
+        }, 3000);
     });
 
     // Hide loader if it was shown but navigation didn't complete

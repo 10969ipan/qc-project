@@ -457,7 +457,9 @@
                                                             </button>
 
                                                             <button type="button" class="btn btn-sm btn-info btn-edit-tool"
-                                                                data-id="{{ $tool->id }}" title="Edit">
+                                                                style="position: relative; z-index: 10001; cursor: pointer;"
+                                                                onclick="window.openEditToolModal('{{ $tool->id }}', this)" title="Edit"
+                                                                data-id="{{ $tool->id }}">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
 
@@ -1143,5 +1145,102 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/calibration/calibration-tools.js') }}"></script>
+    <script src="{{ asset('js/calibration/calibration-tools.js') }}?v={{ filemtime(public_path('js/calibration/calibration-tools.js')) }}"></script>
+
+    <script>
+    // Inline failsafe for Edit Tool to bypass caching/loading issues
+    window.openEditToolModal = function (id, btnElement) {
+        console.log('--- Edit Modal Failsafe v2 Triggered ---');
+        console.log('Target ID:', id);
+        
+        // Safety: Force hide any stuck loader or backdrop that might block interaction
+        if (typeof $ !== 'undefined') {
+            $('#global-loader').fadeOut(200);
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('overflow', 'auto');
+        }
+
+        if (!window.__CALIBRATION_TOOLS__ || !window.__CALIBRATION_TOOLS__.routes) {
+            console.error('Calibration config missing!');
+            alert('Konfigurasi sistem belum siap. Mohon refresh halaman jika masalah berlanjut.');
+            return;
+        }
+
+        var btn = btnElement ? $(btnElement) : $(`.btn-edit-tool[data-id="${id}"]`);
+        var originalContent = btn.html();
+        
+        if (btn.length) {
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        }
+
+        var editUrl = window.__CALIBRATION_TOOLS__.routes.edit.replace(':id', id);
+
+        $.ajax({
+            url: editUrl,
+            type: 'GET',
+            data: { plant: window.__CALIBRATION_TOOLS__.plantCode },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            success: function (response) {
+                console.log('Edit Data Received:', response);
+                if (!response || !response.tool) {
+                    alert('Gagal mengambil data: Response tidak valid.');
+                    if (btn.length) btn.prop('disabled', false).html(originalContent);
+                    return;
+                }
+
+                const tool = response.tool;
+                // Populate Form
+                $('#edit_bagian').val(tool.bagian);
+                $('#edit_name_alat').val(tool.name_alat);
+                $('#edit_merk').val(tool.merk);
+                $('#edit_serial_number').val(tool.serial_number);
+                $('#edit_range').val(tool.range);
+                $('#edit_resolusi').val(tool.resolusi);
+                $('#edit_tanggal_beli').val(tool.tanggal_beli_formatted || '');
+                $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
+                $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);
+                $('#edit_riwayat_kalibrasi').val(tool.riwayat_kalibrasi);
+
+                $('#edit_existing_cert').html(tool.certification_path 
+                    ? `<a href="/storage/${tool.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>` 
+                    : '');
+
+                let schHtml = '';
+                if (tool.schedules && tool.schedules.length > 0) {
+                    tool.schedules.forEach(sch => {
+                        schHtml += `<tr>
+                            <td><input type="hidden" name="schedule_ids[]" value="${sch.id}"><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date_formatted}"></td>
+                            <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" value="${sch.pr_number || ''}" placeholder="PR Number..."></td>
+                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                        </tr>`;
+                    });
+                } else {
+                    let spDate = tool.schedule_planning ? String(tool.schedule_planning).substring(0, 10) : '';
+                    schHtml = `<tr>
+                        <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${spDate}"></td>
+                        <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" placeholder="PR Number..."></td>
+                        <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
+                }
+                $('#edit-schedule-table tbody').html(schHtml);
+                $('#formEditAlat').attr('action', window.__CALIBRATION_TOOLS__.routes.update.replace(':id', id));
+                
+                // Show Modal
+                $('#modalEditAlat').modal('show');
+                
+                if (btn.length) btn.prop('disabled', false).html(originalContent);
+            },
+            error: function (xhr) {
+                console.error('Edit Error:', xhr);
+                let msg = 'Gagal mengambil data alat (Error ' + xhr.status + ')';
+                if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                else alert(msg);
+                if (btn.length) btn.prop('disabled', false).html(originalContent);
+            }
+        });
+    };
+    </script>
 @endpush

@@ -1,7 +1,3 @@
-/**
- * Calibration Tools Management
- */
-
 $(document).ready(function () {
     // Modal Add Schedule rows
     $('#modal-add-schedule-btn').click(function () {
@@ -250,85 +246,11 @@ $(document).ready(function () {
         });
     });
 
-    // Edit Tool Logic
-    $('.btn-edit-tool').on('click', function () {
+
+    // Keep jQuery handler as fallback for any remaining class-based triggers
+    $(document).on('click', '.btn-edit-tool', function () {
         var id = $(this).data('id');
-        var btn = $(this);
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-        var editUrl = window.__CALIBRATION_TOOLS__.routes.edit.replace(':id', id);
-
-        $.ajax({
-            url: editUrl,
-            type: 'GET',
-            data: { plant: window.__CALIBRATION_TOOLS__.plantCode },
-            success: function (response) {
-                var tool = response.tool;
-                $('#edit_bagian').val(tool.bagian);
-                $('#edit_name_alat').val(tool.name_alat);
-                $('#edit_merk').val(tool.merk);
-                $('#edit_serial_number').val(tool.serial_number);
-                $('#edit_range').val(tool.range);
-                $('#edit_resolusi').val(tool.resolusi);
-                $('#edit_tanggal_beli').val(tool.tanggal_beli_formatted ? tool.tanggal_beli_formatted : '');
-                $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
-                $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);
-                $('#edit_riwayat_kalibrasi').val(tool.riwayat_kalibrasi);
-
-                if (tool.certification_path) {
-                    $('#edit_existing_cert').html(`<a href="/storage/${tool.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>`);
-                } else {
-                    $('#edit_existing_cert').html('');
-                }
-
-                var schHtml = '';
-                if (tool.schedules && tool.schedules.length > 0) {
-                    tool.schedules.forEach(function (sch) {
-                        schHtml += `
-                            <tr>
-                                <td>
-                                    <input type="hidden" name="schedule_ids[]" value="${sch.id}">
-                                    <input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${sch.schedule_date_formatted}">
-                                </td>
-                                <td>
-                                    <input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" value="${sch.pr_number || ''}" placeholder="PR Number...">
-                                </td>
-                                <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                            </tr>`;
-                    });
-                } else if (tool.schedule_planning) {
-                    schHtml = `
-                        <tr>
-                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm" value="${tool.schedule_planning.substring(0, 10)}"></td>
-                            <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" placeholder="PR Number..."></td>
-                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                        </tr>`;
-                } else {
-                    schHtml = `
-                        <tr>
-                            <td><input type="date" name="schedule_planning[]" class="form-control form-control-sm"></td>
-                            <td><input type="text" name="schedule_pr_numbers[]" class="form-control form-control-sm no-autoupper" placeholder="PR Number..."></td>
-                            <td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger remove-schedule-row"><i class="fas fa-trash"></i></button></td>
-                        </tr>`;
-                }
-                $('#edit-schedule-table tbody').html(schHtml);
-
-                var updateUrl = window.__CALIBRATION_TOOLS__.routes.update.replace(':id', id);
-                $('#formEditAlat').attr('action', updateUrl);
-
-                $('#modalEditAlat').modal('show');
-                btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
-            },
-            error: function (xhr) {
-                var errorMsg = 'Gagal mengambil data alat.';
-                if (xhr.status === 404) errorMsg += ' (Error 404: Alat tidak ditemukan)';
-                else if (xhr.status === 403) errorMsg += ' (Error 403: Anda tidak memiliki akses)';
-                else if (xhr.status === 500) errorMsg += ' (Error 500: Terjadi kesalahan di server)';
-
-                alert(errorMsg);
-                btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
-            }
-        });
+        window.openEditToolModal(id, this);
     });
 
     $(document).on('click', '.add-edit-schedule-row', function () {
