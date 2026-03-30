@@ -100,6 +100,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/first-piece-approvals/export', [FirstPieceApprovalController::class, 'export'])->name('first_piece_approval.export');
         Route::post('/report/first-piece-approvals/sync', [FirstPieceApprovalController::class, 'syncToGoogleSheets'])->name('first_piece_approval.sync');
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
+        Route::get('/report/cross-cut-checksheets/print', [CrossCutChecksheetController::class, 'printView'])->name('cross_cut.print');
         Route::get('/report/cross-cut-painting-checksheets/export-pdf', [CrossCutPaintingChecksheetController::class, 'exportPdf'])->name('cross_cut_painting.export_pdf');
         Route::get('/report/sortir-checksheets/export', [SortirChecksheetController::class, 'export'])->name('sortir.export');
         Route::get('/report/sortir-checksheets/export-pdf', [SortirChecksheetController::class, 'exportPdf'])->name('sortir.export_pdf');

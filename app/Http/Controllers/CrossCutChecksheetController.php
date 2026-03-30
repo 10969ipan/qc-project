@@ -61,6 +61,7 @@ class CrossCutChecksheetController extends Controller
             'approval_status' => $request->input('approval_status'),
             'id' => $request->input('id'),
             'search' => $request->input('search'),
+            'check_type' => $request->input('check_type'),
         ];
         $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();
@@ -287,7 +288,7 @@ class CrossCutChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status']);
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type']);
 
         $query = $this->crossCutService->buildFilteredQuery($filters)->latest();
 
@@ -315,6 +316,30 @@ class CrossCutChecksheetController extends Controller
 
         $pdf = Pdf::loadView('cross_cut.pdf', $viewData);
         return $pdf->setPaper('a4', 'landscape')->stream('laporan-cross-cut.pdf');
+    }
+
+    public function printView(Request $request)
+    {
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type']);
+
+        // Default to today if no date range is provided
+        if (!$request->filled('start_date') && !$request->filled('end_date')) {
+            $filters['start_date'] = date('Y-m-d');
+            $filters['end_date'] = date('Y-m-d');
+        }
+
+        $query = $this->crossCutService->buildFilteredQuery($filters)->latest();
+        $checksheets = $query->get();
+
+        $itemName = null;
+        if ($request->filled('item_id')) {
+            $item = Item::find($request->item_id);
+            $itemName = $item ? $item->name : null;
+        }
+
+        $plantName = \App\Models\Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+
+        return view('cross_cut.print', compact('checksheets', 'filters', 'itemName', 'plantName'));
     }
 
     // Unified filtering delegating to service

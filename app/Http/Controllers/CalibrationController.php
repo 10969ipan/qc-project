@@ -692,11 +692,42 @@ class CalibrationController extends Controller
         $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->input('year', date('Y'));
+        // Get available years from verifications for this plant
+        $availableYears = CalibrationVerification::where('plant_id', $plant->id)
+            ->whereNotNull('tanggal_verifikasi')
+            ->selectRaw('YEAR(tanggal_verifikasi) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        // Default to latest year available, otherwise current year
+        $defaultYear = !empty($availableYears) ? $availableYears[0] : date('Y');
+        $year = $request->input('year', $defaultYear);
+
+        // Ensure current year is in the list if not already there
+        if (!in_array(date('Y'), $availableYears)) {
+            $availableYears[] = (int)date('Y');
+            rsort($availableYears);
+        }
 
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
             ->whereYear('tanggal_verifikasi', $year);
+
+        // Filter Search (Alat / Serial)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name_alat', 'LIKE', "%{$search}%")
+                    ->orWhere('serial_number', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter Judgment
+        if ($request->filled('judgment')) {
+            $query->where('judgment', $request->judgment);
+        }
 
         // Filter Tanggal Verifikasi
         if ($request->filled('start_date')) {
@@ -711,11 +742,11 @@ class CalibrationController extends Controller
             $query->where('tool_id', $request->tool_id);
         }
 
-        $verifications = $query->latest()->get();
+        $verifications = $query->latest('tanggal_verifikasi')->get();
 
         $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->orderBy('name_alat')->get();
 
-        return view('calibration.verifications.index', compact('verifications', 'plantCode', 'tools', 'year'));
+        return view('calibration.verifications.index', compact('verifications', 'plantCode', 'tools', 'year', 'availableYears'));
     }
 
     public function verificationsPdf(Request $request)
@@ -723,11 +754,35 @@ class CalibrationController extends Controller
         $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->input('year', date('Y'));
+        // Get default year if not provided
+        if (!$request->filled('year')) {
+            $latestYear = CalibrationVerification::where('plant_id', $plant->id)
+                ->whereNotNull('tanggal_verifikasi')
+                ->selectRaw('YEAR(tanggal_verifikasi) as year')
+                ->orderBy('year', 'desc')
+                ->value('year');
+            $year = $latestYear ?: date('Y');
+        } else {
+            $year = $request->year;
+        }
 
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
             ->whereYear('tanggal_verifikasi', $year);
+
+        // Filter Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name_alat', 'LIKE', "%{$search}%")
+                    ->orWhere('serial_number', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter Judgment
+        if ($request->filled('judgment')) {
+            $query->where('judgment', $request->judgment);
+        }
 
         // Filter Tanggal Verifikasi
         if ($request->filled('start_date')) {
@@ -742,7 +797,7 @@ class CalibrationController extends Controller
             $query->where('tool_id', $request->tool_id);
         }
 
-        $verifications = $query->latest()->get();
+        $verifications = $query->latest('tanggal_verifikasi')->get();
 
         // Generate PDF
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.verifications.pdf', compact('verifications', 'plantCode', 'request'))
@@ -764,7 +819,17 @@ class CalibrationController extends Controller
         $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
 
-        $year = $request->input('year', date('Y'));
+        // Get default year if not provided
+        if (!$request->filled('year')) {
+            $latestYear = CalibrationVerification::where('plant_id', $plant->id)
+                ->whereNotNull('tanggal_verifikasi')
+                ->selectRaw('YEAR(tanggal_verifikasi) as year')
+                ->orderBy('year', 'desc')
+                ->value('year');
+            $year = $latestYear ?: date('Y');
+        } else {
+            $year = $request->year;
+        }
 
         // Default to today if no date filter
         $startDate = $request->input('start_date', date('Y-m-d'));
@@ -772,9 +837,12 @@ class CalibrationController extends Controller
 
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
-            ->whereYear('tanggal_verifikasi', $year)
-            ->whereDate('tanggal_verifikasi', '>=', $startDate)
-            ->whereDate('tanggal_verifikasi', '<=', $endDate);
+            ->whereYear('tanggal_verifikasi', $year);
+
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $query->whereDate('tanggal_verifikasi', '>=', $startDate)
+                  ->whereDate('tanggal_verifikasi', '<=', $endDate);
+        }
 
         // Filter Judgment
         if ($request->filled('judgment')) {

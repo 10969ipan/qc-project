@@ -44,115 +44,93 @@
         height: 70px !important;
     }
 </style>
-<div class="card shadow mb-4 border-left-primary">
-        <div class="card-body py-3">
-            <div class="row align-items-start">
-                <div class="col-md-8 border-right">
-                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        LAPORAN DATA CROSS CUT PLATING
-                        @php
-                            $plant = request('plant') ?? auth()->user()->plant_id;
-                            $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-                            $plantCode = strtolower($plantCode ?: 'karawang');
-                        @endphp
-                        <span
-                            class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
-                            style="font-size: 0.8rem; width: fit-content;">
-                            <i class="fas fa-building mr-1"></i>
-                            Plant {{ ucfirst($plantCode) }}
-                        </span>
-                    </h1>
-                </div>
-                <div class="col-md-4 d-flex justify-content-end">
-                    <div class="col p-0" style="max-width: 250px;">
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: QC-KRW-F-0214</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 25/03/2015</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 3 / 22/12/2025</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 1 / 1</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="card shadow mb-2">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            LAPORAN DATA CHECKSHEET CROSS CUT PLATING
+                        </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0214</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">3 / 22/12/2025</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk Cross Cut Plating</h6>
-        </div>
         <div class="card-body">
-            <form action="{{ route('cross_cut.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    {{-- Pertahankan parameter plant untuk semua pengguna --}}
-                    @if(request('plant'))
-                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    @endif
+            <form action="{{ route('cross_cut.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 10px;">
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
 
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
+                    <input type="text" id="liveSearch" name="search" class="form-control form-control-sm border-0 shadow-sm"
+                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama Item / Part No."
+                        value="{{ request('search') }}">
+                </div>
 
-                    <!-- Pencarian Langsung -->
-                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Pencarian</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
-                                    value="{{ request('search') }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filter Tanggal -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
-                            <input type="date" id="start_date" name="start_date" class="form-control form-control-sm"
-                                value="{{ request('start_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
-                            <input type="date" id="end_date" name="end_date" class="form-control form-control-sm"
-                                value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-
-                    <!-- Tombol: Cari, Reset, Ekspor -->
-                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <div class="d-flex">
-                                <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
-                                    <i class="fas fa-search"></i> Cari
-                                </button>
-                                <a href="{{ route('cross_cut.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
-                                    <i class="fas fa-undo"></i> Reset
-                                </a>
-                                <a href="{{ route('cross_cut.export_pdf', request()->query()) }}"
-                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
-                                    <i class="fas fa-file-pdf"></i> Export
-                                </a>
-                            </div>
-                        </div>
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-2 text-gray-500 small">-</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                     </div>
                 </div>
+
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                    <a href="{{ route('cross_cut.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i>
+                    </a>
+                    <a href="{{ route('cross_cut.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm"></i>
+                    </a>
+                    <a href="{{ route('cross_cut.print', request()->query()) }}"
+                        target="_blank"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
+                        style="background-color: #17a589; color: white;">
+                        <i class="fas fa-print fa-sm"></i>
+                    </a>
+                </div>
             </form>
+
             <hr>
             <div class="table-responsive">
                 <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
@@ -166,7 +144,7 @@
                             <th rowspan="2" class="align-middle">Jam Before</th>
                             <th rowspan="2" class="align-middle">Jam After</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
-                            <th rowspan="2" class="align-middle">Kode SAP</th>
+                            <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Part No</th>
@@ -208,7 +186,7 @@
                                 <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
+                                <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
@@ -1005,36 +983,22 @@
                     });
             }
 
-            // Live Search Functionality - Server-side search across all pages
+            // Auto-Submit Filtering
+            const filterForm = document.querySelector('form[action="{{ route('cross_cut.index') }}"]');
             const liveSearchInput = document.getElementById('liveSearch');
+            const dateInputs = filterForm.querySelectorAll('input[type="date"]');
 
             if (liveSearchInput) {
                 let searchTimeout;
-
-                liveSearchInput.addEventListener('keyup', function () {
-                    const searchTerm = this.value.trim();
-
-                    // Clear previous timeout
+                liveSearchInput.addEventListener('input', function() {
                     clearTimeout(searchTimeout);
-
-                    // Debounce: wait 500ms after user stops typing
-                    searchTimeout = setTimeout(function () {
-                        // Get current filter values
-                        const startDate = document.getElementById('start_date').value;
-                        const endDate = document.getElementById('end_date').value;
-
-                        // Build URL with all parameters
-                        const params = new URLSearchParams();
-                        if (searchTerm) params.append('search', searchTerm);
-                        if (startDate) params.append('start_date', startDate);
-                        if (endDate) params.append('end_date', endDate);
-
-                        // Redirect to index with search parameter
-                        const baseUrl = "{{ route('cross_cut.index') }}";
-                        window.location.href = baseUrl + '?' + params.toString();
-                    }, 500);
+                    searchTimeout = setTimeout(() => filterForm.submit(), 500);
                 });
             }
+
+            dateInputs.forEach(input => {
+                input.addEventListener('change', () => filterForm.submit());
+            });
 
 
             // PDF Export

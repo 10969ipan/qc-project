@@ -131,8 +131,17 @@
             <div class="card-body pt-2 pb-2">
                 <form id="filterFormVerif" action="{{ route('calibration.verifications.index') }}" method="GET">
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <input type="hidden" name="year" value="{{ $year }}">
                     <div class="d-flex flex-wrap align-items-end" style="gap: 8px;">
+
+                        {{-- Tahun --}}
+                        <div style="min-width:100px;">
+                            <label class="small font-weight-bold mb-1">Tahun</label>
+                            <select name="year" id="yearVerif" class="form-control form-control-sm shadow-sm">
+                                @foreach($availableYears as $ay)
+                                    <option value="{{ $ay }}" {{ $year == $ay ? 'selected' : '' }}>{{ $ay }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
                         {{-- Cari --}}
                         <div style="min-width:180px; flex:1;">
@@ -867,8 +876,8 @@
                 }, 500);
             });
 
-            // Auto-submit filter: instant for date + select
-            $('#startDateVerif, #endDateVerif, #judgmentVerif').on('change', function () {
+            // Auto-submit filter: instant for date + select + year
+            $('#startDateVerif, #endDateVerif, #judgmentVerif, #yearVerif').on('change', function () {
                 $('#filterFormVerif').submit();
             });
         });

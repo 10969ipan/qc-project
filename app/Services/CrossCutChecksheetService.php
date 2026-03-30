@@ -72,7 +72,11 @@ class CrossCutChecksheetService extends BaseService
 
         // ID filter (for direct links from Sortir)
         if (!empty($filters['id'])) {
-            $query->where('id', $filters['id']);
+            $query->where($query->getModel()->getTable() . '.id', $filters['id']);
+        }
+
+        if (!empty($filters['check_type']) && is_array($filters['check_type'])) {
+            $query->whereIn('check_type', $filters['check_type']);
         }
 
         return $query;
