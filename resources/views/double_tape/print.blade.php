@@ -17,7 +17,7 @@
             font-size: 8px;
             color: #333;
             margin: 0;
-            padding: 10mm;
+            padding: 10mm 10mm 5mm 10mm;
         }
 
         /* ===== HEADER DOKUMEN ===== */
@@ -172,6 +172,10 @@
     {{-- Tabel Data --}}
     <table class="table">
         <thead>
+            {{-- Spacer row: muncul di setiap halaman (header group repeat) untuk memberi jarak atas --}}
+            <tr class="thead-spacer">
+                <td colspan="19" style="height:10mm; border:none; padding:0; background:#fff;"></td>
+            </tr>
             <tr>
                 <th rowspan="2">No</th>
                 <th rowspan="2">Tanggal</th>
