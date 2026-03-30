@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4 landscape;
-            margin: 10mm 10mm 15mm 10mm;
+            margin: 0;
         }
 
         * { box-sizing: border-box; }
@@ -17,7 +17,7 @@
             font-size: 8px;
             color: #333;
             margin: 0;
-            padding: 0;
+            padding: 10mm 10mm 20mm 10mm; /* extra bottom untuk footer */
         }
 
         /* ===== HEADER DOKUMEN ===== */
