@@ -174,7 +174,7 @@
         <thead>
             {{-- Spacer row: muncul di setiap halaman (header group repeat) untuk memberi jarak atas --}}
             <tr class="thead-spacer">
-                <td colspan="19" style="height:10mm; border:none; padding:0; background:#fff;"></td>
+                <td colspan="19" style="height:4mm; border:none; padding:0; background:#fff;"></td>
             </tr>
             <tr>
                 <th rowspan="2">No</th>
@@ -185,7 +185,7 @@
                 <th rowspan="2">Shift</th>
                 <th rowspan="2" class="col-hidden">Kode SAP</th>
                 <th rowspan="2">Item Part</th>
-                <th rowspan="2">Cust</th>
+                <th rowspan="2">Customer</th>
                 <th rowspan="2">Part No</th>
                 <th rowspan="2">Total</th>
                 <th rowspan="2">Sample</th>
