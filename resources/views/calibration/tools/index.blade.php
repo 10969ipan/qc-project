@@ -449,7 +449,7 @@
                                                                 @endif
 
                                                                 {{-- Verification Date below check icon --}}
-                                                                @if($hasVerification && $latestVerifDate)
+                                                                @if($hasVerification && $latestVerifDate && !$isOverdueNextVerif && !$isApproachingNextVerif)
                                                                     <span class="text-muted font-weight-bold" style="font-size: 0.6rem; margin-top: -2px;">
                                                                         {{ $latestVerifDate }}
                                                                     </span>
