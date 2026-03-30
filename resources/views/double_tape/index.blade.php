@@ -89,9 +89,6 @@
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk Double Tape</h6>
-        </div>
         <div class="card-body">
             <form action="{{ route('double_tape.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 10px;">
                 <input type="hidden" name="plant" value="{{ request('plant') }}">

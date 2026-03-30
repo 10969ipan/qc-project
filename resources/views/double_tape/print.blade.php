@@ -179,8 +179,8 @@
             <tr>
                 <th rowspan="2">No</th>
                 <th rowspan="2">Tanggal</th>
-                <th rowspan="2">Jam (Bef)</th>
-                <th rowspan="2">Jam (Aft)</th>
+                <th rowspan="2">Jam (Before)</th>
+                <th rowspan="2">Jam (After)</th>
                 <th rowspan="2">Cycle (s)</th>
                 <th rowspan="2">Shift</th>
                 <th rowspan="2" class="col-hidden">Kode SAP</th>
