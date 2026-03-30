@@ -121,7 +121,10 @@
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
-                                                    data-name="{{ $item->name }}" data-description="{{ $item->description }}"
+                                                    data-name="{{ $item->name }}"
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    data-customer="{{ $item->customer ?? '' }}"
+                                                    data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})

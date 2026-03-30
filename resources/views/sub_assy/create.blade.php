@@ -241,7 +241,10 @@
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
-                                                    data-name="{{ $item->name }}" data-description="{{ $item->description }}"
+                                                    data-name="{{ $item->name }}"
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    data-customer="{{ $item->customer ?? '' }}"
+                                                    data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
