@@ -223,12 +223,20 @@ class DoubleTapeChecksheetController extends Controller
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
         $filters['plant'] = 'karawang';
 
+        // Default ke hari ini jika tidak ada filter tanggal
+        if (empty($filters['start_date'])) {
+            $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
+            $filters['end_date'] = now()->toDateString();
+        }
+
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
 
         $plantName = 'Karawang';
         $plantCode = 'karawang';
-        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
-        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
 
         return view('double_tape.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
