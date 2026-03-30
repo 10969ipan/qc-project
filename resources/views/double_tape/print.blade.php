@@ -17,7 +17,7 @@
             font-size: 8px;
             color: #333;
             margin: 0;
-            padding: 10mm 10mm 20mm 10mm; /* extra bottom untuk footer */
+            padding: 10mm;
         }
 
         /* ===== HEADER DOKUMEN ===== */
@@ -93,7 +93,10 @@
         }
 
         /* Hindari baris terpotong di tengah halaman */
-        tbody tr { page-break-inside: avoid; }
+        tbody tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
 
         /* ===== KOLOM TERSEMBUNYI ===== */
         .col-hidden { display: none; }
@@ -130,11 +133,10 @@
 
         /* ===== FOOTER KUSTOM ===== */
         .print-footer {
-            position: fixed;
-            bottom: 4mm;
-            left: 10mm;
+            margin-top: 8mm;
             font-size: 7.5px;
             color: #666;
+            text-align: left;
         }
     </style>
 </head>
