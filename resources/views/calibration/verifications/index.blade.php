@@ -36,15 +36,6 @@
                                 <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi Ke-</div>
                                 <div class="col-7 text-xs font-weight-bold text-gray-800">: -</div>
                             </div>
-                            <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tanggal Revisi
-                                </div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">: -</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">: -</div>
-                            </div>
                         </div>
                     </div>
                 </div>
