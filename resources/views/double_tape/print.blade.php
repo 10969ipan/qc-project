@@ -5,13 +5,9 @@
     <meta charset="UTF-8">
     <title>Laporan Checksheet Double Tape</title>
     <style>
-        /*
-         * @page margin: 0 → Menghapus header/footer bawaan browser (date, URL, title).
-         * Konten diberi padding via body.
-         */
         @page {
             size: A4 landscape;
-            margin: 0;
+            margin: 10mm 10mm 15mm 10mm;
         }
 
         * { box-sizing: border-box; }
@@ -21,10 +17,10 @@
             font-size: 8px;
             color: #333;
             margin: 0;
-            padding: 10mm 10mm 20mm 10mm; /* extra bottom untuk footer */
+            padding: 0;
         }
 
-        /* ===== TABEL HEADER ===== */
+        /* ===== HEADER DOKUMEN ===== */
         .header-table {
             width: 100%;
             border-collapse: collapse;
@@ -38,44 +34,47 @@
         }
 
         .logo {
-            width: 80px;
+            width: 90px;
             text-align: center;
         }
 
         .title {
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #000;
         }
 
         .doc-info {
-            width: 150px;
-            font-size: 9px;
-            text-align: left;
+            width: 160px;
+            font-size: 8.5px;
         }
 
         .doc-info table { width: 100%; border: none; }
-        .doc-info td   { border: none; padding: 1px 2px; text-align: left; }
+        .doc-info td   { border: none; padding: 1px 2px; }
+
+        /* ===== INFO PERIODE ===== */
+        .sub-header {
+            margin-bottom: 8px;
+            font-size: 9px;
+        }
 
         /* ===== TABEL DATA ===== */
         .table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
-            table-layout: fixed;
+            table-layout: auto;
         }
 
-        .table th,
-        .table td {
+        /* Header tabel mengikuti di setiap halaman baru */
+        thead { display: table-header-group; }
+        tfoot { display: table-footer-group; }
+
+        .table th {
             border: 1px solid #000;
-            padding: 4px;
+            padding: 3px 4px;
             text-align: center;
             vertical-align: middle;
-            word-wrap: break-word;
-        }
-
-        .table thead th {
             background-color: #f2f2f2;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -84,35 +83,58 @@
             font-size: 6px;
         }
 
+        .table td {
+            border: 1px solid #000;
+            padding: 3px 4px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 7.5px;
+            word-wrap: break-word;
+        }
+
+        /* Hindari baris terpotong di tengah halaman */
+        tbody tr { page-break-inside: avoid; }
+
+        /* ===== KOLOM TERSEMBUNYI ===== */
+        .col-hidden { display: none; }
+
         /* ===== BADGE ===== */
         .badge {
             display: inline-block;
-            padding: .2em .4em;
+            padding: .2em .35em;
             font-size: 75%;
             font-weight: 700;
             line-height: 1;
             text-align: center;
             white-space: nowrap;
-            vertical-align: baseline;
             border-radius: .25rem;
         }
 
-        .badge-success { color: #fff; background-color: #28a745; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .badge-danger  { color: #fff; background-color: #dc3545; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .badge-warning { color: #212529; background-color: #ffc107; }
+        .badge-success {
+            color: #fff;
+            background-color: #28a745;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
 
-        .text-success    { color: #28a745; }
-        .text-danger     { color: #dc3545; }
-        .text-uppercase  { text-transform: uppercase; }
+        .badge-danger {
+            color: #fff;
+            background-color: #dc3545;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
 
-        /* ===== FOOTER KUSTOM (pojok bawah kiri, fixed) ===== */
+        .text-success   { color: #28a745; }
+        .text-danger    { color: #dc3545; }
+        .text-uppercase { text-transform: uppercase; }
+
+        /* ===== FOOTER KUSTOM ===== */
         .print-footer {
             position: fixed;
-            bottom: 5mm;
+            bottom: 4mm;
             left: 10mm;
-            font-size: 8px;
-            color: #555;
-            line-height: 1.6;
+            font-size: 7.5px;
+            color: #666;
         }
     </style>
 </head>
@@ -123,7 +145,8 @@
     <table class="header-table">
         <tr>
             <td class="logo">
-                <img src="{{ asset('master item/ipp.jpg') }}" style="max-width: 70px; max-height: 50px; object-fit: contain;">
+                <img src="{{ asset('master item/ipp.jpg') }}"
+                     style="max-width: 75px; max-height: 55px; object-fit: contain;">
             </td>
             <td class="title">LAPORAN CHECK SHEET DOUBLE TAPE</td>
             <td class="doc-info">
@@ -139,9 +162,8 @@
     </table>
 
     {{-- Sub-header: Periode & Plant --}}
-    <div style="margin-bottom: 8px; font-size: 10px;">
-        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
-        &nbsp;&nbsp;
+    <div class="sub-header">
+        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
         <strong>Plant:</strong> {{ strtoupper($plantName) }}
     </div>
 
@@ -155,7 +177,7 @@
                 <th rowspan="2">Jam (Aft)</th>
                 <th rowspan="2">Cycle (s)</th>
                 <th rowspan="2">Shift</th>
-                <th rowspan="2">Kode SAP</th>
+                <th rowspan="2" class="col-hidden">Kode SAP</th>
                 <th rowspan="2">Item Part</th>
                 <th rowspan="2">Cust</th>
                 <th rowspan="2">Part No</th>
@@ -201,7 +223,7 @@
                     <td>{{ $checksheet->created_at->format('H:i') }}</td>
                     <td>{{ $checksheet->cycle_time ?? '-' }}</td>
                     <td>{{ $checksheet->shift }}</td>
-                    <td>{{ $checksheet->item->sap_code ?? '-' }}</td>
+                    <td class="col-hidden">{{ $checksheet->item->sap_code ?? '-' }}</td>
                     <td>{{ $checksheet->item->name ?? '-' }}</td>
                     <td>{{ $checksheet->item->customer ?? '-' }}</td>
                     <td>{{ $checksheet->item->part_number ?? '-' }}</td>
@@ -209,10 +231,10 @@
                     <td>{{ $checksheet->sampling_qty }}</td>
                     <td class="text-success">{{ $checksheet->total_ok }}</td>
                     <td class="text-danger">{{ $checksheet->total_ng }}</td>
-                    <td class="text-danger" style="font-size: 7px;">
+                    <td class="text-danger" style="font-size: 6.5px;">
                         {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
                     </td>
-                    <td class="text-danger" style="font-size: 7px;">
+                    <td class="text-danger" style="font-size: 6.5px;">
                         {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
                     </td>
                     <td>
@@ -221,19 +243,18 @@
                         </span>
                     </td>
                     <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
-                    <td style="text-align:left;">{{ $checksheet->remarks ?? '-' }}</td>
+                    <td style="text-align:left; font-size:6.5px;">{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    {{-- Footer kustom: di pojok bawah kiri --}}
+    {{-- Footer: tanggal cetak di pojok bawah kiri --}}
     <div class="print-footer" id="printFooter">
         <span id="footerDateTime"></span>
     </div>
 
     <script>
-        // Isi tanggal & jam cetak di footer
         (function () {
             var now = new Date();
             var pad = function(n){ return n < 10 ? '0' + n : n; };
@@ -242,7 +263,6 @@
             document.getElementById('footerDateTime').textContent = 'Dicetak: ' + dateStr;
         })();
 
-        // Auto print
         window.onload = function () {
             window.print();
         };

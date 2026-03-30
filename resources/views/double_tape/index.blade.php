@@ -159,7 +159,7 @@
                             <th rowspan="2" class="align-middle">Jam (After)</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                             <th rowspan="2" class="align-middle">Shift</th>
-                            <th rowspan="2" class="align-middle">Kode SAP</th>
+                            <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Part No</th>
@@ -199,7 +199,7 @@
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
+                                <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
