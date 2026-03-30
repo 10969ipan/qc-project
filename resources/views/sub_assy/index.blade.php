@@ -99,73 +99,54 @@
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk Sub Assy</h6>
-        </div>
         <div class="card-body">
-            <form action="{{ route('admin.checksheets.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    {{-- Pertahankan parameter plant untuk semua pengguna --}}
-                    @if(request('plant'))
-                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    @endif
+            <form action="{{ route('admin.checksheets.index') }}" method="GET"
+                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+                style="gap: 10px;" id="filterFormSubAssy">
 
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                    <!-- Filter Tanggal -->
-                    <!-- Pencarian Langsung -->
-                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Pencarian</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" class="form-control" placeholder="Cari..."
-                                    value="{{ request('search') }}">
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                    <!-- Filter Tanggal -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm"
-                                value="{{ request('start_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm"
-                                value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-
-                    <!-- Tombol: Cari, Reset, Ekspor -->
-                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <div class="d-flex">
-                                <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
-                                    <i class="fas fa-search"></i> Cari
-                                </button>
-                                <a href="{{ route('admin.checksheets.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
-                                    <i class="fas fa-undo"></i> Reset
-                                </a>
-                                <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
-                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
-                                    <i class="fas fa-file-pdf"></i> Export
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-
+                <!-- Field: Cari -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
+                    <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm"
+                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama item, part no..."
+                        value="{{ request('search') }}">
                 </div>
+
+                <!-- Field: Tanggal -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Dari:</label>
+                    <input type="date" name="start_date" class="form-control form-control-sm border-0 shadow-sm"
+                        style="border-radius: 0.35rem;" value="{{ request('start_date') }}">
+                </div>
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Sampai:</label>
+                    <input type="date" name="end_date" class="form-control form-control-sm border-0 shadow-sm"
+                        style="border-radius: 0.35rem;" value="{{ request('end_date') }}">
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                    <a href="{{ route('admin.checksheets.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i>
+                    </a>
+                    <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm"></i>
+                    </a>
+                    <a href="{{ route('admin.checksheets.print', request()->query()) }}"
+                        target="_blank"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
+                        style="background-color: #17a589; color: white;">
+                        <i class="fas fa-print fa-sm"></i>
+                    </a>
+                </div>
+
             </form>
 
             <div class="table-responsive">
@@ -188,7 +169,7 @@
                             <th rowspan="2" class="align-middle">Jam (After)</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                             <th rowspan="2" class="align-middle">Shift</th>
-                            <th rowspan="2" class="align-middle">Kode SAP</th>
+                            <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Part No</th>
@@ -229,7 +210,7 @@
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
+                                <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
@@ -688,6 +669,26 @@
     <script>
         $(document).ready(function () {
             window.initSubAssyIndex();
+        });
+
+        // Auto-submit filter
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.getElementById('filterFormSubAssy');
+            if (!form) return;
+
+            function debounce(fn, delay) {
+                var timer;
+                return function () { clearTimeout(timer); timer = setTimeout(fn, delay); };
+            }
+
+            var searchInput = form.querySelector('input[name="search"]');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(function () { form.submit(); }, 500));
+            }
+
+            form.querySelectorAll('input[type="date"]').forEach(function (el) {
+                el.addEventListener('change', function () { form.submit(); });
+            });
         });
     </script>
     @php $bulkApproveRoute = route('admin.checksheets.bulk_approve'); @endphp

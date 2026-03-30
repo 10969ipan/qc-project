@@ -335,4 +335,44 @@ class SubAssyChecksheetController extends Controller
 
         return $pdf->download('Laporan_Sub_Assy_' . date('Y-m-d_H-i-s') . '.pdf');
     }
+
+    public function printView(Request $request)
+    {
+        $user = auth()->user();
+
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        if (in_array($user->role, $restrictedRoles)) {
+            $request->merge(['plant' => $user->plant_id]);
+        }
+
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift']);
+
+        if (empty($filters['start_date'])) {
+            $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
+            $filters['end_date'] = now()->toDateString();
+        }
+
+        $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
+
+        $plantCode = 'karawang';
+        $plantName = 'Karawang';
+
+        if ($request->plant) {
+            $plant = Plant::where('code', $request->plant)->orWhere('id', $request->plant)->first();
+            if ($plant) {
+                $plantCode = strtolower($plant->code);
+                $plantName = $plant->name;
+            }
+        } elseif ($user->plant) {
+            $plantCode = strtolower($user->plant->code);
+            $plantName = $user->plant->name;
+        }
+
+        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+
+        return view('sub_assy.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
+    }
 }
