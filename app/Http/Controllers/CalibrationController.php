@@ -1145,9 +1145,9 @@ class CalibrationController extends Controller
                 }
             }
 
-            return redirect()->route('calibration.verifications.index', [
+            return redirect()->route('calibration.tools.index', [
                 'plant' => $request->plant,
-                'year' => $request->input('year', date('Y', strtotime($request->tanggal_verifikasi)))
+                'year' => date('Y', strtotime($request->tanggal_verifikasi))
             ])
                 ->with('success', 'Data Verifikasi berhasil disimpan.');
 
@@ -1264,7 +1264,7 @@ class CalibrationController extends Controller
                 }
             }
 
-            return redirect()->route('calibration.verifications.index', [
+            return redirect()->route('calibration.tools.index', [
                 'plant' => $request->plant,
                 'year' => $request->input('year', date('Y'))
             ])
