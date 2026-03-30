@@ -226,7 +226,7 @@
                             </select>
                         </div>
 
-                        <div class="ml-auto d-flex" style="gap: 5px;">
+                        <div class="ml-auto d-flex align-items-center" style="gap: 8px;">
                             <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3">
                                 <i class="fas fa-search fa-sm"></i>
                             </button>
@@ -234,16 +234,13 @@
                                 class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3">
                                 <i class="fas fa-undo fa-sm"></i>
                             </a>
+                            <div class="d-flex align-items-center" style="gap: 5px; border-left: 1px solid #dee2e6; padding-left: 10px; white-space: nowrap;">
+                                <span class="badge" style="background-color: #1cc88a; color: white; font-size: 0.7rem;">P</span><span class="small text-muted">Plan</span>
+                                <span class="badge" style="background-color: #36b9cc; color: white; font-size: 0.7rem;">A</span><span class="small text-muted">Actual</span>
+                                <span class="badge bg-white border shadow-sm" style="padding: 2px 5px; font-size: 0.7rem;"><i class="fas fa-hourglass-half text-primary"></i></span><span class="small text-muted">PR Out</span>
+                            </div>
                         </div>
                     </form>
-                    {{-- Legend Badge --}}
-                    <div class="d-flex align-items-center ml-2" style="gap: 8px; border-left: 1px solid #dee2e6; padding-left: 12px; white-space: nowrap;">
-                        <span class="badge" style="background-color: #1cc88a; color: white; font-size: 0.7rem;">P</span><span class="small text-muted">Plan</span>
-                        <span class="badge ml-1" style="background-color: #36b9cc; color: white; font-size: 0.7rem;">A</span><span class="small text-muted">Actual</span>
-                        <span class="badge bg-white border shadow-sm ml-1" style="padding: 2px 5px; font-size: 0.7rem;">
-                            <i class="fas fa-hourglass-half text-primary"></i>
-                        </span><span class="small text-muted">PR Out</span>
-                    </div>
                 </div>
 
                 <hr class="my-4 border-light">
