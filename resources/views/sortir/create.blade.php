@@ -155,6 +155,8 @@
                                             <option value="" disabled selected>Pilih Item NG</option>
                                             @foreach($ngItems as $ngItem)
                                                 <option value="{{ $ngItem['item_id'] }}"
+                                                    data-name="{{ $ngItem['item_name'] }}"
+                                                    data-part-number="{{ $ngItem['part_number'] ?? '' }}"
                                                     data-source-type="{{ $ngItem['source_type'] }}"
                                                     data-source-id="{{ $ngItem['source_id'] }}"
                                                     data-source-date="{{ $ngItem['date'] }}"
