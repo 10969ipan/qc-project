@@ -130,57 +130,71 @@
 
 
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Data Hasil Verifikasi</h6>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('calibration.verifications.index') }}" method="GET" class="row align-items-end mb-4">
+            <div class="card-body pt-2 pb-2">
+                <form id="filterFormVerif" action="{{ route('calibration.verifications.index') }}" method="GET">
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Tahun</label>
-                            <select name="year" class="form-control form-control-sm shadow-sm">
-                                @php
-                                    $currentYear = date('Y');
-                                    $selectedYear = request('year', $currentYear);
-                                @endphp
-                                @for($y = $currentYear - 2; $y <= $currentYear + 2; $y++)
-                                    <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endfor
+                    <input type="hidden" name="year" value="{{ $year }}">
+                    <div class="d-flex flex-wrap align-items-end" style="gap: 8px;">
+
+                        {{-- Cari --}}
+                        <div style="min-width:180px; flex:1;">
+                            <label class="small font-weight-bold mb-1">Cari Nama Alat / No. Seri</label>
+                            <input type="text" name="search" id="searchVerif"
+                                class="form-control form-control-sm shadow-sm"
+                                placeholder="Ketik nama alat atau serial..."
+                                value="{{ request('search') }}" autocomplete="off">
+                        </div>
+
+                        {{-- Judgment --}}
+                        <div style="min-width:120px;">
+                            <label class="small font-weight-bold mb-1">Judgment</label>
+                            <select name="judgment" id="judgmentVerif" class="form-control form-control-sm shadow-sm">
+                                <option value="">Semua</option>
+                                <option value="OK" {{ request('judgment') == 'OK' ? 'selected' : '' }}>OK</option>
+                                <option value="NG" {{ request('judgment') == 'NG' ? 'selected' : '' }}>NG</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Dari Tanggal</label>
-                            <input type="date" name="start_date" class="form-control form-control-sm shadow-sm"
+
+                        {{-- Dari --}}
+                        <div style="min-width:130px;">
+                            <label class="small font-weight-bold mb-1">Dari</label>
+                            <input type="date" name="start_date" id="startDateVerif"
+                                class="form-control form-control-sm shadow-sm"
                                 value="{{ request('start_date') }}">
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold">Sampai Tanggal</label>
-                            <input type="date" name="end_date" class="form-control form-control-sm shadow-sm"
+
+                        {{-- Sampai --}}
+                        <div style="min-width:130px;">
+                            <label class="small font-weight-bold mb-1">Sampai</label>
+                            <input type="date" name="end_date" id="endDateVerif"
+                                class="form-control form-control-sm shadow-sm"
                                 value="{{ request('end_date') }}">
                         </div>
-                    </div>
-                    <div class="col-md-6 d-flex justify-content-end" style="gap: 10px;">
-                        <button type="submit" class="btn btn-primary btn-sm shadow-sm px-4">
-                            <i class="fas fa-search mr-1"></i> CARI
-                        </button>
-                        <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode]) }}"
-                            class="btn btn-secondary btn-sm shadow-sm px-4">
-                            <i class="fas fa-sync mr-1"></i> RESET
-                        </a>
-                        <a href="{{ route('calibration.verifications.pdf', array_merge(request()->all(), ['plant' => $plantCode])) }}"
-                            target="_blank" class="btn btn-danger btn-sm shadow-sm px-4">
-                            <i class="fas fa-file-pdf mr-1"></i> EXPORT PDF
-                        </a>
+
+                        {{-- Action Buttons --}}
+                        <div class="d-flex" style="gap: 6px; padding-bottom:1px;">
+                            <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'year' => $year]) }}"
+                                class="btn btn-secondary btn-sm shadow-sm">
+                                <i class="fas fa-sync mr-1"></i> Reset
+                            </a>
+                            <a id="printBtnVerif"
+                                href="{{ route('calibration.verifications.print', array_merge(request()->only(['plant','year','judgment','tool_id']), ['start_date' => request('start_date'), 'end_date' => request('end_date')])) }}"
+                                target="_blank" class="btn btn-sm shadow-sm"
+                                style="background:#0d9488; color:#fff;">
+                                <i class="fas fa-print mr-1"></i> Print
+                            </a>
+                            <a href="{{ route('calibration.verifications.pdf', array_merge(request()->all(), ['plant' => $plantCode])) }}"
+                                target="_blank" class="btn btn-danger btn-sm shadow-sm">
+                                <i class="fas fa-file-pdf mr-1"></i> Export PDF
+                            </a>
+                        </div>
                     </div>
                 </form>
+            </div>
+        </div>
 
-                <hr class="my-4 border-light">
-
+        <div class="card shadow mb-4">
+            <div class="card-body">
                 <table class="table table-bordered text-center align-middle" id="dataTable" width="100%" cellspacing="0">
                     <thead class="bg-light text-dark">
                         <tr>
@@ -845,6 +859,21 @@
                     }
                 });
             });
+
+            // Auto-submit filter: debounce for text input
+            var debounceTimer;
+            $('#searchVerif').on('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    $('#filterFormVerif').submit();
+                }, 500);
+            });
+
+            // Auto-submit filter: instant for date + select
+            $('#startDateVerif, #endDateVerif, #judgmentVerif').on('change', function () {
+                $('#filterFormVerif').submit();
+            });
         });
     </script>
 @endpush
+

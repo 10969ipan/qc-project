@@ -759,6 +759,43 @@ class CalibrationController extends Controller
         return $pdf->stream($filename);
     }
 
+    public function verificationsPrint(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+
+        $year = $request->input('year', date('Y'));
+
+        // Default to today if no date filter
+        $startDate = $request->input('start_date', date('Y-m-d'));
+        $endDate   = $request->input('end_date',   date('Y-m-d'));
+
+        $query = CalibrationVerification::where('plant_id', $plant->id)
+            ->with('tool')
+            ->whereYear('tanggal_verifikasi', $year)
+            ->whereDate('tanggal_verifikasi', '>=', $startDate)
+            ->whereDate('tanggal_verifikasi', '<=', $endDate);
+
+        // Filter Judgment
+        if ($request->filled('judgment')) {
+            $query->where('judgment', $request->judgment);
+        }
+
+        // Filter Tool ID
+        if ($request->filled('tool_id')) {
+            $query->where('tool_id', $request->tool_id);
+        }
+
+        $verifications = $query->orderBy('tanggal_verifikasi')->get();
+
+        $plantName = strtolower($plantCode) === 'jakarta' ? 'Jakarta' : 'Karawang';
+
+        return view('calibration.verifications.print', compact(
+            'verifications', 'plantCode', 'plantName', 'startDate', 'endDate', 'year'
+        ));
+    }
+
+
     public function verificationsQrPdf($id)
     {
         $verification = CalibrationVerification::with('tool')->findOrFail($id);
