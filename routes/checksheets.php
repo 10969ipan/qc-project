@@ -89,6 +89,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/report/checksheets/sync', [SubAssyChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
         Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
         Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');
+        Route::get('/report/double-tape-checksheets/print', [DoubleTapeChecksheetController::class, 'printView'])->name('double_tape.print');
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');
         Route::post('/report/in-process-checksheets/sync', [InProcessChecksheetController::class, 'syncToGoogleSheets'])->name('in_process.sync');
         Route::get('/report/first-piece-approvals/export', [FirstPieceApprovalController::class, 'export'])->name('first_piece_approval.export');

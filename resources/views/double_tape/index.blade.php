@@ -43,6 +43,7 @@
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 70px !important;
     }
+
 </style>
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -92,57 +93,59 @@
             <h6 class="m-0 font-weight-bold text-primary">Data Masuk Double Tape</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('double_tape.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    <!-- Pencarian Langsung -->
-                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Pencarian</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" name="search" class="form-control" placeholder="Cari..."
-                                    value="{{ request('search') }}">
-                            </div>
-                        </div>
-                    </div>
+            <form action="{{ route('double_tape.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 10px;">
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                    <!-- Filter Tanggal -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm"
-                                value="{{ request('start_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm"
-                                value="{{ request('end_date') }}">
-                        </div>
-                    </div>
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
+                    <input type="text" id="liveSearch" name="search" class="form-control form-control-sm border-0 shadow-sm"
+                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama Item / Part No."
+                        value="{{ request('search') }}">
+                </div>
 
-                    <!-- Tombol: Cari, Reset, Ekspor -->
-                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <div class="d-flex">
-                                <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
-                                    <i class="fas fa-search"></i> Cari
-                                </button>
-                                <a href="{{ route('double_tape.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
-                                    <i class="fas fa-undo"></i> Reset
-                                </a>
-                                <a href="{{ route('double_tape.export_pdf', request()->query()) }}"
-                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
-                                    <i class="fas fa-file-pdf"></i> Export
-                                </a>
-                            </div>
-                        </div>
+                <div class="d-flex align-items-center bg-white shadow-sm rounded px-2 py-1" style="gap: 10px;">
+                    <span class="small font-weight-bold text-gray-700 mr-1">Tipe:</span>
+                    <div class="form-check form-check-inline mb-0">
+                        <input class="form-check-input" type="checkbox" name="check_type[]" id="filterSampling" value="sampling"
+                            {{ in_array('sampling', (array) request('check_type', [])) ? 'checked' : '' }}>
+                        <label class="form-check-label small font-weight-bold" for="filterSampling" style="color: #4e73df;">Sampling</label>
                     </div>
+                    <div class="form-check form-check-inline mb-0">
+                        <input class="form-check-input" type="checkbox" name="check_type[]" id="filterFullcheck" value="fullcheck"
+                            {{ in_array('fullcheck', (array) request('check_type', [])) ? 'checked' : '' }}>
+                        <label class="form-check-label small font-weight-bold" for="filterFullcheck" style="color: #1cc88a;">Full Check</label>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-2 text-gray-500 small">-</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                    </div>
+                </div>
+
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                    <a href="{{ route('double_tape.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i>
+                    </a>
+                    <a href="{{ route('double_tape.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm"></i>
+                    </a>
+                    <a href="{{ route('double_tape.print', request()->query()) }}"
+                        target="_blank"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
+                        style="background-color: #17a589; color: white;">
+                        <i class="fas fa-print fa-sm"></i>
+                    </a>
                 </div>
             </form>
 
@@ -585,6 +588,42 @@
         document.addEventListener('DOMContentLoaded', function () {
             window.initDoubleTapeIndex({
                 indexRoute: "{{ route('double_tape.index') }}"
+            });
+
+
+            // Auto-submit filter form
+            const filterForm = document.querySelector('form[action="{{ route('double_tape.index') }}"]');
+            if (!filterForm) return;
+
+            // Debounce helper
+            function debounce(fn, delay) {
+                let timer;
+                return function (...args) {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fn.apply(this, args), delay);
+                };
+            }
+
+            // Field Cari: debounce 500ms
+            const searchInput = filterForm.querySelector('#liveSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(function () {
+                    filterForm.submit();
+                }, 500));
+            }
+
+            // Date fields: submit langsung saat berubah
+            filterForm.querySelectorAll('input[type="date"]').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    filterForm.submit();
+                });
+            });
+
+            // Checkboxes Tipe: submit langsung saat berubah
+            filterForm.querySelectorAll('input[name="check_type[]"]').forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    filterForm.submit();
+                });
             });
         });
     </script>

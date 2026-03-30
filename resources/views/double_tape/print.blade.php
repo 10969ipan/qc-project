@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Checksheet Double Tape</title>
+    <style>
+        /*
+         * @page margin: 0 → Menghapus header/footer bawaan browser (date, URL, title).
+         * Konten diberi padding via body.
+         */
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 8px;
+            color: #333;
+            margin: 0;
+            padding: 10mm 10mm 20mm 10mm; /* extra bottom untuk footer */
+        }
+
+        /* ===== TABEL HEADER ===== */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .header-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            vertical-align: middle;
+        }
+
+        .logo {
+            width: 80px;
+            text-align: center;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .doc-info {
+            width: 150px;
+            font-size: 9px;
+            text-align: left;
+        }
+
+        .doc-info table { width: 100%; border: none; }
+        .doc-info td   { border: none; padding: 1px 2px; text-align: left; }
+
+        /* ===== TABEL DATA ===== */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            table-layout: fixed;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        .table thead th {
+            background-color: #f2f2f2;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 6px;
+        }
+
+        /* ===== BADGE ===== */
+        .badge {
+            display: inline-block;
+            padding: .2em .4em;
+            font-size: 75%;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: .25rem;
+        }
+
+        .badge-success { color: #fff; background-color: #28a745; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .badge-danger  { color: #fff; background-color: #dc3545; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .badge-warning { color: #212529; background-color: #ffc107; }
+
+        .text-success    { color: #28a745; }
+        .text-danger     { color: #dc3545; }
+        .text-uppercase  { text-transform: uppercase; }
+
+        /* ===== FOOTER KUSTOM (pojok bawah kiri, fixed) ===== */
+        .print-footer {
+            position: fixed;
+            bottom: 5mm;
+            left: 10mm;
+            font-size: 8px;
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    {{-- Header: Logo | Judul | Info Dokumen --}}
+    <table class="header-table">
+        <tr>
+            <td class="logo">
+                <img src="{{ asset('master item/ipp.jpg') }}" style="max-width: 70px; max-height: 50px; object-fit: contain;">
+            </td>
+            <td class="title">LAPORAN CHECK SHEET DOUBLE TAPE</td>
+            <td class="doc-info">
+                <table>
+                    <tr><td>No. Dokumen</td><td>: QC-KRW-F-0213</td></tr>
+                    <tr><td>Tgl. Terbit</td><td>: 25/03/2015</td></tr>
+                    <tr><td>Revisi Ke</td><td>: 3</td></tr>
+                    <tr><td>Tgl. Revisi</td><td>: 22/12/2025</td></tr>
+                    <tr><td>Hal</td><td>: 1/1</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Sub-header: Periode & Plant --}}
+    <div style="margin-bottom: 8px; font-size: 10px;">
+        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+        &nbsp;&nbsp;
+        <strong>Plant:</strong> {{ strtoupper($plantName) }}
+    </div>
+
+    {{-- Tabel Data --}}
+    <table class="table">
+        <thead>
+            <tr>
+                <th rowspan="2">No</th>
+                <th rowspan="2">Tanggal</th>
+                <th rowspan="2">Jam (Bef)</th>
+                <th rowspan="2">Jam (Aft)</th>
+                <th rowspan="2">Cycle (s)</th>
+                <th rowspan="2">Shift</th>
+                <th rowspan="2">Kode SAP</th>
+                <th rowspan="2">Item Part</th>
+                <th rowspan="2">Cust</th>
+                <th rowspan="2">Part No</th>
+                <th rowspan="2">Total</th>
+                <th rowspan="2">Sample</th>
+                <th rowspan="2">OK</th>
+                <th rowspan="2">NG</th>
+                <th colspan="2">Detail NG</th>
+                <th rowspan="2">Jdg</th>
+                <th rowspan="2">Inisial</th>
+                <th rowspan="2">Ket</th>
+            </tr>
+            <tr>
+                <th>Pcs</th>
+                <th>Jenis</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($checksheets as $checksheet)
+                @php
+                    $defectsData = is_array($checksheet->defects)
+                        ? $checksheet->defects
+                        : json_decode($checksheet->defects, true);
+                    $pcsLines  = [];
+                    $nameLines = [];
+
+                    if (is_array($defectsData)) {
+                        foreach ($defectsData as $d) {
+                            if (is_array($d) && isset($d['type'])) {
+                                $pcsLines[]  = $d['qty'] ?? 1;
+                                $nameLines[] = $d['type'];
+                            } elseif (is_string($d)) {
+                                $pcsLines[]  = 1;
+                                $nameLines[] = $d;
+                            }
+                        }
+                    }
+                @endphp
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-y') }}</td>
+                    <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
+                    <td>{{ $checksheet->created_at->format('H:i') }}</td>
+                    <td>{{ $checksheet->cycle_time ?? '-' }}</td>
+                    <td>{{ $checksheet->shift }}</td>
+                    <td>{{ $checksheet->item->sap_code ?? '-' }}</td>
+                    <td>{{ $checksheet->item->name ?? '-' }}</td>
+                    <td>{{ $checksheet->item->customer ?? '-' }}</td>
+                    <td>{{ $checksheet->item->part_number ?? '-' }}</td>
+                    <td>{{ $checksheet->total_qty }}</td>
+                    <td>{{ $checksheet->sampling_qty }}</td>
+                    <td class="text-success">{{ $checksheet->total_ok }}</td>
+                    <td class="text-danger">{{ $checksheet->total_ng }}</td>
+                    <td class="text-danger" style="font-size: 7px;">
+                        {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
+                    </td>
+                    <td class="text-danger" style="font-size: 7px;">
+                        {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
+                            {{ $checksheet->judgment }}
+                        </span>
+                    </td>
+                    <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
+                    <td style="text-align:left;">{{ $checksheet->remarks ?? '-' }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    {{-- Footer kustom: di pojok bawah kiri --}}
+    <div class="print-footer" id="printFooter">
+        <span id="footerDateTime"></span>
+    </div>
+
+    <script>
+        // Isi tanggal & jam cetak di footer
+        (function () {
+            var now = new Date();
+            var pad = function(n){ return n < 10 ? '0' + n : n; };
+            var dateStr = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear()
+                        + '  ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+            document.getElementById('footerDateTime').textContent = 'Dicetak: ' + dateStr;
+        })();
+
+        // Auto print
+        window.onload = function () {
+            window.print();
+        };
+    </script>
+
+</body>
+</html>

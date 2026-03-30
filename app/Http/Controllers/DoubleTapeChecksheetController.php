@@ -97,7 +97,7 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
@@ -200,7 +200,7 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
@@ -214,6 +214,23 @@ class DoubleTapeChecksheetController extends Controller
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('Laporan_Double_Tape_' . date('Y-m-d_H-i-s') . '.pdf');
+    }
+
+    public function printView(Request $request)
+    {
+        $this->restrictToKarawang();
+
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
+        $filters['plant'] = 'karawang';
+
+        $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
+
+        $plantName = 'Karawang';
+        $plantCode = 'karawang';
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        return view('double_tape.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
 
     public function editApproval($id)

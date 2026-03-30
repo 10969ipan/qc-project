@@ -61,6 +61,10 @@ class DoubleTapeChecksheetService extends BaseService
             });
         }
 
+        if (!empty($filters['check_type']) && is_array($filters['check_type'])) {
+            $query->whereIn('check_type', $filters['check_type']);
+        }
+
         return $query;
     }
 
