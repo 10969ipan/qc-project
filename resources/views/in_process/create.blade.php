@@ -706,6 +706,7 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/in-process.js') }}"></script>
     <script>
         $(document).ready(function () {
@@ -716,6 +717,8 @@
                 plantContext: "{{ request('plant') ?? auth()->user()->plant_id }}",
                 partDimensionStandards: {!! $partDimensionStandards !!}
             });
+            // Pasang autocomplete di field Item Part
+            window.initItemSearch('itemSelect');
         });
     </script>
 @endpush

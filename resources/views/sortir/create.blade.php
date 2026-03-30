@@ -375,6 +375,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/sortir.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -382,6 +383,9 @@
                 heartbeatUrl: "{{ route('session.ping') }}",
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+            });
+            window.initItemSearch('ngItemSelect', {
+                placeholder: 'Cari nama item / part no...'
             });
         });
     </script>

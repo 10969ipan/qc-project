@@ -638,6 +638,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/fpa.js') }}?v={{ time() }}"></script>
     {{-- Hidden JSON data to resolve IDE lint errors --}}
     <script id="fpa-create-data" type="application/json" 
@@ -660,6 +661,7 @@
                 partDimensionStandards: partDimensionStandards,
                 initialLock: true
             });
+            window.initItemSearch('itemSelect');
         });
     </script>
 @endpush

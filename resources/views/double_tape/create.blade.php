@@ -468,6 +468,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -475,6 +476,7 @@
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
+            window.initItemSearch('itemSelect');
         });
     </script>
 @endpush

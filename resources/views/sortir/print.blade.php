@@ -99,14 +99,14 @@
                 <th rowspan="2" class="col-compact">Line</th>
                 <th rowspan="2" class="col-compact">Sumber</th>
                 <th rowspan="2" style="width:14%">Item Part</th>
-                <th rowspan="2" style="width:10%">Cust</th>
+                <th rowspan="2" style="width:10%">Customer</th>
                 <th rowspan="2" style="width:10%">Part No</th>
                 <th rowspan="2" class="col-compact">Total</th>
                 <th rowspan="2" class="col-compact">Sample</th>
                 <th rowspan="2" class="col-compact">OK</th>
                 <th rowspan="2" class="col-compact">NG</th>
                 <th colspan="2" class="col-compact">Detail NG</th>
-                <th rowspan="2" class="col-compact">Judg</th>
+                <th rowspan="2" class="col-compact">Judgment</th>
                 <th rowspan="2" class="col-compact">Inisial</th>
                 <th rowspan="2" style="width:10%">Keterangan</th>
             </tr>

@@ -106,22 +106,22 @@
             <tr>
                 <th rowspan="2" class="col-compact">No</th>
                 <th rowspan="2" class="col-compact">Tgl</th>
-                <th rowspan="2" class="col-compact">Jam (Bef)</th>
-                <th rowspan="2" class="col-compact">Jam (Aft)</th>
+                <th rowspan="2" class="col-compact">Jam (Before)</th>
+                <th rowspan="2" class="col-compact">Jam (After)</th>
                 <th rowspan="2" class="col-compact">Cycle</th>
                 <th rowspan="2" class="col-compact">Shift</th>
                 <th rowspan="2" class="w-barang">Barang</th>
                 <th rowspan="2" class="w-part-no">Part No</th>
-                <th rowspan="2" class="w-cust">Cust</th>
+                <th rowspan="2" class="w-cust">Customer</th>
                 <th rowspan="2" class="col-compact">Total</th>
-                <th rowspan="2" class="col-compact">Smpl</th>
+                <th rowspan="2" class="col-compact">Sample</th>
                 <th rowspan="2" class="w-dimensi">Check Dimensi</th>
                 <th rowspan="2" class="col-compact">Berat</th>
                 <th rowspan="2" class="col-compact">OK</th>
                 <th rowspan="2" class="col-compact">NG</th>
                 <th colspan="2" class="col-compact">Detail NG</th>
-                <th rowspan="2" class="col-compact">Judg</th>
-                <th rowspan="2" class="col-compact">Insl</th>
+                <th rowspan="2" class="col-compact">Judgment</th>
+                <th rowspan="2" class="col-compact">Inisial</th>
                 <th rowspan="2" class="w-ket">Ket</th>
             </tr>
             <tr>
