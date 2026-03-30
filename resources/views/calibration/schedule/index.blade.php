@@ -176,17 +176,6 @@
         </style>
 
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Jadwal Kalibrasi - {{ $year }}</h6>
-                <div class="small">
-                    <span class="badge" style="background-color: #1cc88a; color: white;">P</span> Plan
-                    <span class="badge ml-2" style="background-color: #36b9cc; color: white;">A</span> Actual
-                    <span class="badge ml-2 bg-white border shadow-sm" style="padding: 2px 5px;">
-                        <i class="fas fa-hourglass-half text-primary" style="font-size: 0.9rem;"></i>
-                        <span class="small ml-1">PR Out</span>
-                    </span>
-                </div>
-            </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 15px;">
                     <form action="{{ route('calibration.schedule.index') }}" method="GET" class="d-flex flex-wrap align-items-center w-100" style="gap: 10px;">
