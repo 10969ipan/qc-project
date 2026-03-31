@@ -145,6 +145,9 @@ class DashboardService extends BaseService
 
         $dateColumn = in_array($modelClass, [CrossCutChecksheet::class, CrossCutPaintingChecksheet::class]) ? 'production_datetime' : 'date';
 
+        // Define what is considered "Late" (more than 24 hours since creation)
+        $lateThreshold = now()->subHours(24);
+
         foreach ($columns as $column) {
             $query = DB::table($table);
             if ($plantId) {
@@ -158,12 +161,14 @@ class DashboardService extends BaseService
             $results = $query->selectRaw("
                 SUM(CASE WHEN $column = 'REJECTED' THEN 1 ELSE 0 END) as rejected,
                 SUM(CASE WHEN $column IS NOT NULL AND $column != '' AND $column != 'REJECTED' THEN 1 ELSE 0 END) as approved,
-                SUM(CASE WHEN $column IS NULL OR $column = '' THEN 1 ELSE 0 END) as pending
-            ")->first();
+                SUM(CASE WHEN ($column IS NULL OR $column = '') THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN ($column IS NULL OR $column = '') AND created_at < ? THEN 1 ELSE 0 END) as pending_late
+            ", [$lateThreshold])->first();
 
             $stats['rejected'] += (int) $results->rejected;
             $stats['approved'] += (int) $results->approved;
             $stats['pending'] += (int) $results->pending;
+            $stats['pending_late'] = ($stats['pending_late'] ?? 0) + (int) $results->pending_late;
         }
     }
 

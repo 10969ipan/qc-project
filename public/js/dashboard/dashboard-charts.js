@@ -73,9 +73,21 @@
     }
 
     function calculateRate(stats) {
-        const total = (stats.approved || 0) + (stats.pending || 0) + (stats.rejected || 0);
-        if (total === 0) return 0;
-        return Math.round((stats.approved / total) * 100);
+        if (!stats) return 0;
+        
+        // Handled = Approved + Rejected
+        const handled = (stats.approved || 0) + (stats.rejected || 0);
+        
+        // Late Pending = Items created > 24h ago that are still pending
+        const latePending = (stats.pending_late || 0);
+        
+        // Total "Due" = Handled + Late Pending
+        const totalDue = handled + latePending;
+        
+        if (totalDue === 0) return 100; // No overdue items = 100% compliance
+        
+        // Rate = Handled / Total Due
+        return Math.min(100, Math.round((handled / totalDue) * 100));
     }
 
     function renderGauges() {
