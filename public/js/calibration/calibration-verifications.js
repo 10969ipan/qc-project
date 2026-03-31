@@ -42,6 +42,11 @@ $(document).ready(function () {
     });
 
     // --- Modal Verifikasi Baru Logic ---
+    $(document).on('change', '.custom-file-input', function() {
+        let fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').addClass("selected").html(fileName);
+    });
+
     $('#modal_tool_select').on('change', function () {
         var selected = $(this).find('option:selected');
         if (selected.val()) {
@@ -88,12 +93,12 @@ $(document).ready(function () {
     $('#modal-add-row').on('click', function () {
         var newRow = `
             <tr>
-                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm border-0 bg-light mx-auto" style="border-radius: 6px; width: 80%;"></td>
+                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm border-0 bg-light mx-auto calc-input" style="border-radius: 6px; width: 80%;"></td>
+                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm border-0 bg-light mx-auto calc-input" style="border-radius: 6px; width: 80%;"></td>
+                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm border-0 bg-light mx-auto shadow-none" style="border-radius: 6px; width: 80%;" readonly></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger modal-remove-row">
+                    <button type="button" class="btn btn-sm text-danger modal-remove-row" title="Hapus">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -194,12 +199,12 @@ $(document).ready(function () {
     $('#edit-modal-add-row').on('click', function () {
         var newRow = `
             <tr>
-                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm"></td>
-                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm calc-input"></td>
-                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm calc-input"></td>
-                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm bg-light" readonly></td>
+                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm border-0 bg-light mx-auto" style="border-radius: 6px; width: 80%;"></td>
+                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm border-0 bg-light mx-auto calc-input" style="border-radius: 6px; width: 80%;"></td>
+                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm border-0 bg-light mx-auto calc-input" style="border-radius: 6px; width: 80%;"></td>
+                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm border-0 bg-light mx-auto shadow-none" style="border-radius: 6px; width: 80%;" readonly></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger edit-modal-remove-row">
+                    <button type="button" class="btn btn-sm text-danger edit-modal-remove-row" title="Hapus">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>

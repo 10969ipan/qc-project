@@ -159,12 +159,12 @@
                                 <tr>
                                     <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
                                     <td style="padding:1px 2px;">:</td>
-                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">0 / -</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">- / -</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
                                     <td style="padding:1px 2px;">:</td>
-                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">- / -</td>
                                 </tr>
                             </table>
                         </td>
@@ -468,26 +468,39 @@
                                                 <td>
                                                     <div class="d-flex justify-content-center" style="gap: 5px; white-space: nowrap;">
                                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
-                                                            <button type="button" class="btn btn-sm btn-success btn-verifikasi" data-toggle="modal"
+                                                            {{-- Sertifikat (Blue PDF) --}}
+                                                            @if($tool->certification_path)
+                                                                <button type="button" class="btn btn-sm btn-primary view-pdf shadow-sm" data-toggle="modal"
+                                                                    data-target="#pdfModal"
+                                                                    data-url="{{ asset('storage/' . $tool->certification_path) }}"
+                                                                    data-title="Check Sertifikat - {{ $tool->name_alat }}" title="Check Sertifikat">
+                                                                    <i class="fas fa-file-pdf"></i>
+                                                                </button>
+                                                            @endif
+
+                                                            {{-- Input Verifikasi (Green Check) --}}
+                                                            <button type="button" class="btn btn-sm btn-success btn-verifikasi shadow-sm" data-toggle="modal"
                                                                 data-target="#modalVerifikasiBaru" data-tool-id="{{ $tool->id }}"
                                                                 title="Input Verifikasi">
                                                                 <i class="fas fa-check-circle"></i>
                                                             </button>
-
-                                                            <button type="button" class="btn btn-sm btn-info btn-edit-tool"
-                                                                style="position: relative; z-index: 10001; cursor: pointer;"
+                    
+                                                            {{-- Edit (Cyan Pencil) --}}
+                                                            <button type="button" class="btn btn-sm btn-info btn-edit-tool shadow-sm"
                                                                 onclick="window.openEditToolModal('{{ $tool->id }}', this)" title="Edit"
                                                                 data-id="{{ $tool->id }}">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
-
-                                                            <button type="button" class="btn btn-sm btn-warning btn-report-problem"
+                    
+                                                            {{-- Lapor Masalah (Orange) --}}
+                                                            <button type="button" class="btn btn-sm btn-warning btn-report-problem shadow-sm"
                                                                 data-toggle="modal" data-target="#modalReportProblem" data-tool-id="{{ $tool->id }}"
                                                                 data-tool-name="{{ $tool->name_alat }}" title="Lapor Masalah">
                                                                 <i class="fas fa-exclamation-triangle"></i>
                                                             </button>
-
-                                                            <button type="button" class="btn btn-sm btn-danger"
+                    
+                                                            {{-- Hapus (Red) --}}
+                                                            <button type="button" class="btn btn-sm btn-danger shadow-sm"
                                                                 onclick="confirmDeleteTool('{{ $tool->id }}')" title="Hapus">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
@@ -498,13 +511,12 @@
                                                                 @method('DELETE')
                                                                 <input type="hidden" name="plant" value="{{ $plantCode }}">
                                                             </form>
-                                                        @endif
-
-                                                        @if($tool->certification_path)
-                                                            <button type="button" class="btn btn-sm btn-primary view-pdf" data-toggle="modal"
+                                                        @elseif($tool->certification_path)
+                                                            {{-- Manager can only view PDF --}}
+                                                            <button type="button" class="btn btn-sm btn-primary view-pdf shadow-sm" data-toggle="modal"
                                                                 data-target="#pdfModal"
                                                                 data-url="{{ asset('storage/' . $tool->certification_path) }}"
-                                                                data-title="Sertifikat - {{ $tool->name_alat }}">
+                                                                data-title="Check Sertifikat - {{ $tool->name_alat }}" title="Check Sertifikat">
                                                                 <i class="fas fa-file-pdf"></i>
                                                             </button>
                                                         @endif

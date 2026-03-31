@@ -167,8 +167,21 @@ class CalibrationController extends Controller
 
         // Apply year filter if not 'all'
         if ($year !== 'all') {
-            $query->whereHas('verifications', function ($q) use ($year) {
-                $q->whereYear('tanggal_verifikasi', $year);
+            $query->where(function ($q) use ($year, $request) {
+                // If a specific tool is requested, allow it regardless of activity in this year
+                if ($request->filled('tool_id')) {
+                    $q->where('id', $request->tool_id);
+                }
+
+                $q->orWhere(function($subQ) use ($year) {
+                    $subQ->whereHas('verifications', function ($q2) use ($year) {
+                        $q2->whereYear('tanggal_verifikasi', $year);
+                    })
+                    ->orWhereHas('schedules', function ($q2) use ($year) {
+                        $q2->whereYear('schedule_date', $year);
+                    })
+                    ->orWhereYear('schedule_planning', $year);
+                });
             });
         }
 
@@ -713,7 +726,17 @@ class CalibrationController extends Controller
 
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
-            ->whereYear('tanggal_verifikasi', $year);
+            ->where(function ($q) use ($year, $request) {
+                if ($request->filled('tool_id')) {
+                    $q->where('tool_id', $request->tool_id);
+                    // Only apply year filter if no tool_id and no explicit search
+                    if ($year !== 'all' && !($request->filled('search') || $request->filled('tool_id'))) {
+                         $q->whereYear('tanggal_verifikasi', $year);
+                    }
+                } else {
+                    $q->whereYear('tanggal_verifikasi', $year);
+                }
+            });
 
         // Filter Search (Alat / Serial)
         if ($request->filled('search')) {
@@ -1286,7 +1309,7 @@ class CalibrationController extends Controller
                 }
             }
 
-            return redirect()->route('calibration.tools.index', [
+            return redirect()->route('calibration.verifications.index', [
                 'plant' => $request->plant,
                 'year' => $request->input('year', date('Y'))
             ])
