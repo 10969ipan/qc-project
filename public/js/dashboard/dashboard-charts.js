@@ -362,11 +362,33 @@
                 dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.in_process[i] }))
             });
         }
-        if (plantData.cross_cut) {
+        if (plantData.fpa) {
             series.push({
-                type: "spline", name: "Cross Cut", color: "#6f42c1",
+                type: "spline", name: "FPA", color: "#fd7e14",
                 showInLegend: true, yValueFormatString: "##0.00'%'",
-                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.cross_cut[i] }))
+                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.fpa[i] }))
+            });
+        }
+        if (plantData.cross_cut_plating || plantData.cross_cut) {
+            const data = plantData.cross_cut_plating || plantData.cross_cut;
+            series.push({
+                type: "spline", name: "Cross Cut Plating", color: "#6f42c1",
+                showInLegend: true, yValueFormatString: "##0.00'%'",
+                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: data[i] }))
+            });
+        }
+        if (plantData.cross_cut_painting) {
+            series.push({
+                type: "spline", name: "Cross Cut Painting", color: "#20c997",
+                showInLegend: true, yValueFormatString: "##0.00'%'",
+                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.cross_cut_painting[i] }))
+            });
+        }
+        if (plantData.double_tape) {
+            series.push({
+                type: "spline", name: "Double Tape", color: "#ffc107",
+                showInLegend: true, yValueFormatString: "##0.00'%'",
+                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.double_tape[i] }))
             });
         }
         if (plantData.sortir) {
