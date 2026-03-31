@@ -22,6 +22,7 @@ Route::get('/calibration/verification/{id}/download', [\App\Http\Controllers\Cal
 // Main Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/tv', [\App\Http\Controllers\DashboardController::class, 'tvIndex'])->name('dashboard.tv');
     Route::post('/machine-status/update', [MachineStatusController::class, 'update'])->name('machine-status.update');
 
     require __DIR__ . '/checksheets.php';

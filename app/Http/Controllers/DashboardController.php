@@ -42,4 +42,18 @@ class DashboardController extends Controller
         $data = $this->dashboardService->getCustomerClaimData($request->year);
         return response()->json($data);
     }
+
+    /**
+     * TV Signage Dashboard
+     */
+    public function tvIndex(Request $request)
+    {
+        $data = $this->dashboardService->getDashboardData();
+
+        if ($request->ajax()) {
+            return response()->json($data);
+        }
+
+        return view('dashboard.tv', $data);
+    }
 }
