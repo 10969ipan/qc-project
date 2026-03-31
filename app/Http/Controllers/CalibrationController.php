@@ -28,90 +28,103 @@ class CalibrationController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        $query = CalibrationTool::where('plant_id', $plant->id)
-            ->where('status', '!=', 'BROKEN')
-            ->whereDoesntHave('pendingLogs') // Hide tools waiting for judgment
-            ->with([
-                'verifications' => function ($q) use ($year, $startDate, $endDate) {
+        $query = CalibrationTool::where('plant_id', $plant->id);
+
+        // Relationships loading
+        $query->with([
+            'verifications' => function ($q) use ($year, $startDate, $endDate, $request) {
+                // If a specific tool is requested, we might want to see more context, 
+                // but for the schedule year-view, we usually only need that year's data.
+                // However, we must handle 'all' year case.
+                if ($year !== 'all') {
                     $q->whereYear('tanggal_verifikasi', $year);
-                    if ($startDate)
-                        $q->whereDate('tanggal_verifikasi', '>=', $startDate);
-                    if ($endDate)
-                        $q->whereDate('tanggal_verifikasi', '<=', $endDate);
-                },
-                'schedules' => function ($q) use ($year, $startDate, $endDate) {
+                }
+                
+                // Only apply date range if not specifically looking for one tool OR if dates are explicitly provided
+                if ($startDate)
+                    $q->whereDate('tanggal_verifikasi', '>=', $startDate);
+                if ($endDate)
+                    $q->whereDate('tanggal_verifikasi', '<=', $endDate);
+            },
+            'schedules' => function ($q) use ($year, $startDate, $endDate, $request) {
+                if ($year !== 'all') {
                     $q->whereYear('schedule_date', $year);
-                    if ($startDate)
-                        $q->whereDate('schedule_date', '>=', $startDate);
-                    if ($endDate)
-                        $q->whereDate('schedule_date', '<=', $endDate);
-                },
-                'latestVerification'
-            ])
-            ->where(function ($q) use ($year) {
-                $q->whereHas('schedules', function ($sq) use ($year) {
-                    $sq->whereYear('schedule_date', $year);
-                })
+                }
+                if ($startDate)
+                    $q->whereDate('schedule_date', '>=', $startDate);
+                if ($endDate)
+                    $q->whereDate('schedule_date', '<=', $endDate);
+            },
+            'latestVerification'
+        ]);
+
+        // Filter by tool_id if provided (highest priority) - Bypass all other filters
+        if ($request->filled('tool_id')) {
+            $query->where('id', $request->tool_id);
+        } else {
+            // APPLY GENERAL LIST FILTERS ONLY IF NOT LOOKING FOR A SPECIFIC TOOL
+            
+            // 1. Status & Pending Logs
+            $query->where('status', '!=', 'BROKEN')
+                  ->whereDoesntHave('pendingLogs');
+
+            // 2. Year Activity Filter
+            if ($year !== 'all') {
+                $query->where(function ($q) use ($year) {
+                    $q->whereHas('schedules', function ($sq) use ($year) {
+                        $sq->whereYear('schedule_date', $year);
+                    })
                     ->orWhereHas('verifications', function ($vq) use ($year) {
                         $vq->whereYear('tanggal_verifikasi', $year);
                     })
                     ->orWhereYear('schedule_planning', $year);
-            });
-
-        // Filter Tool ID (Click-to-filter dari Chart)
-        if ($request->filled('tool_id')) {
-            $query->where('id', $request->tool_id);
-        }
-
-        // Filter Tanggal Schedule Planning (New Logic)
-        if ($startDate || $endDate) {
-            $query->where(function ($q) use ($startDate, $endDate) {
-                // Check in multiple schedules table
-                $q->whereHas('schedules', function ($sq) use ($startDate, $endDate) {
-                    if ($startDate)
-                        $sq->whereDate('schedule_date', '>=', $startDate);
-                    if ($endDate)
-                        $sq->whereDate('schedule_date', '<=', $endDate);
-                });
-
-                // OR check in legacy schedule_planning field
-                $q->orWhere(function ($lq) use ($startDate, $endDate) {
-                    if ($startDate)
-                        $lq->whereDate('schedule_planning', '>=', $startDate);
-                    if ($endDate)
-                        $lq->whereDate('schedule_planning', '<=', $endDate);
-                });
-            });
-        }
-
-        // Filter Frekuensi Kalibrasi
-        if ($request->filled('frequency')) {
-            if ($request->frequency === '1_year') {
-                $query->where('frekuensi_kalibrasi', 'LIKE', '%1 TAHUN%')
-                    ->orWhere('frekuensi_kalibrasi', 'LIKE', '%1 YEAR%');
-            } elseif ($request->frequency === 'more_than_1_year') {
-                $query->where(function ($q) {
-                    $q->where('frekuensi_kalibrasi', 'REGEXP', '[2-9] TAHUN|[2-9] YEAR|TAHUN|YEAR')
-                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 TAHUN%')
-                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 YEAR%')
-                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%BULAN%')
-                        ->where('frekuensi_kalibrasi', 'NOT LIKE', '%MONTH%');
                 });
             }
-        }
 
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('bagian', 'LIKE', "%{$search}%")
-                    ->orWhere('name_alat', 'LIKE', "%{$search}%")
-                    ->orWhere('serial_number', 'LIKE', "%{$search}%");
-            });
-        }
+            // 3. Date Range Filter
+            if ($startDate || $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereHas('schedules', function ($sq) use ($startDate, $endDate) {
+                        if ($startDate) $sq->whereDate('schedule_date', '>=', $startDate);
+                        if ($endDate) $sq->whereDate('schedule_date', '<=', $endDate);
+                    })
+                    ->orWhere(function ($lq) use ($startDate, $endDate) {
+                        if ($startDate) $lq->whereDate('schedule_planning', '>=', $startDate);
+                        if ($endDate) $lq->whereDate('schedule_planning', '<=', $endDate);
+                    });
+                });
+            }
 
-        if ($request->filled('jenis_kalibrasi')) {
-            $query->where('jenis_kalibrasi', $request->jenis_kalibrasi);
+            // 4. Frequency Filter
+            if ($request->filled('frequency')) {
+                if ($request->frequency === '1_year') {
+                    $query->where('frekuensi_kalibrasi', 'LIKE', '%1 TAHUN%')
+                        ->orWhere('frekuensi_kalibrasi', 'LIKE', '%1 YEAR%');
+                } elseif ($request->frequency === 'more_than_1_year') {
+                    $query->where(function ($q) {
+                        $q->where('frekuensi_kalibrasi', 'REGEXP', '[2-9] TAHUN|[2-9] YEAR|TAHUN|YEAR')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 TAHUN%')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 YEAR%')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%BULAN%')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%MONTH%');
+                    });
+                }
+            }
+
+            // 5. Search
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('bagian', 'LIKE', "%{$search}%")
+                        ->orWhere('name_alat', 'LIKE', "%{$search}%")
+                        ->orWhere('serial_number', 'LIKE', "%{$search}%");
+                });
+            }
+
+            // 6. Type Filter
+            if ($request->filled('jenis_kalibrasi')) {
+                $query->where('jenis_kalibrasi', $request->jenis_kalibrasi);
+            }
         }
 
         $tools = $query->get();
@@ -683,7 +696,7 @@ class CalibrationController extends Controller
 
         $year = $request->input('year', date('Y'));
 
-        $logs = CalibrationToolLog::with([
+        $query = CalibrationToolLog::with([
             'tool' => function ($q) {
                 $q->withTrashed();
             },
@@ -692,12 +705,24 @@ class CalibrationController extends Controller
         ])
             ->whereHas('tool', function ($q) use ($plant) {
                 $q->withTrashed()->where('plant_id', $plant->id);
-            })
-            ->whereYear('reported_date', $year)
-            ->latest('reported_date')
-            ->get();
+            });
 
-        return view('calibration.tools.problem_logs', compact('logs', 'plantCode', 'year'));
+        // Filter by tool_id if provided
+        if ($request->filled('tool_id')) {
+            $query->where('calibration_tool_id', $request->tool_id);
+        } elseif ($year !== 'all') {
+            // Apply year filter only if no tool_id and year is not 'all'
+            $query->whereYear('reported_date', $year);
+        }
+
+        $logs = $query->latest('reported_date')->get();
+
+        $tool = null;
+        if ($request->filled('tool_id')) {
+            $tool = \App\Models\CalibrationTool::withTrashed()->find($request->tool_id);
+        }
+
+        return view('calibration.tools.problem_logs', compact('logs', 'plantCode', 'year', 'tool'));
     }
 
     public function verificationsIndex(Request $request)
@@ -729,11 +754,7 @@ class CalibrationController extends Controller
             ->where(function ($q) use ($year, $request) {
                 if ($request->filled('tool_id')) {
                     $q->where('tool_id', $request->tool_id);
-                    // Only apply year filter if no tool_id and no explicit search
-                    if ($year !== 'all' && !($request->filled('search') || $request->filled('tool_id'))) {
-                         $q->whereYear('tanggal_verifikasi', $year);
-                    }
-                } else {
+                } elseif ($year !== 'all') {
                     $q->whereYear('tanggal_verifikasi', $year);
                 }
             });

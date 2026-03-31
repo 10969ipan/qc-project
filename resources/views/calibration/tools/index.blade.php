@@ -348,54 +348,58 @@
                                                             }
                                                         }
 
+                                                        // Set default route for status icons (Schedule)
+                                                        $statRouteName = 'calibration.schedule.index';
+
                                                         if ($hasVerification) {
                                                             if ($isOverdueNextVerif) {
-                                                                // Missed a schedule → show red exclamation circle
-                                                                $statIcon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal Kalibrasi"></i>';
-                                                                $statIsClickable = true;
+                                                                 // Missed a schedule → show red exclamation circle
+                                                                 $statIcon = '<i class="fas fa-exclamation-circle text-danger fa-lg" title="Melewati Jadwal Kalibrasi"></i>';
+                                                                 $statIsClickable = true;
                                                             } elseif ($isApproachingNextVerif) {
-                                                                // Next verification is within 30 days → show calendar-clock warning icon
-                                                                $isInternal = strtoupper($tool->jenis_kalibrasi) === 'INTERNAL';
-                                                                $iconColor = $isInternal ? 'info' : 'warning';
-                                                                $iconTitle = $isInternal ? 'Alat Internal - Menunggu Verifikasi' : 'Mendekati Jadwal Kalibrasi';
+                                                                 // Next verification is within 30 days → show calendar-clock warning icon
+                                                                 $isInternal = strtoupper($tool->jenis_kalibrasi) === 'INTERNAL';
+                                                                 $iconColor = $isInternal ? 'info' : 'warning';
+                                                                 $iconTitle = $isInternal ? 'Alat Internal - Menunggu Verifikasi' : 'Mendekati Jadwal Kalibrasi';
 
-                                                                $statIcon = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;" title="' . $iconTitle . '">' .
-                                                                    '<i class="fas fa-calendar text-' . $iconColor . '" style="font-size: 1.2rem;"></i>' .
-                                                                    '<i class="fas fa-clock text-' . $iconColor . '" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
-                                                                    '</div>';
-                                                                $statIsClickable = true;
+                                                                 $statIcon = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;" title="' . $iconTitle . '">' .
+                                                                     '<i class="fas fa-calendar text-' . $iconColor . '" style="font-size: 1.2rem;"></i>' .
+                                                                     '<i class="fas fa-clock text-' . $iconColor . '" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
+                                                                     '</div>';
+                                                                 $statIsClickable = true;
                                                             } else {
-                                                                $statIcon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
-                                                                $statIsClickable = true;
+                                                                 $statIcon = '<i class="fas fa-check-circle text-success fa-lg" title="Sudah Verifikasi"></i>';
+                                                                 $statIsClickable = true;
+                                                                 $statRouteName = 'calibration.verifications.index'; // Verified tool links to history
                                                             }
-                                                            if ($relevantSchedule) {
-                                                                $statPrDate = property_exists($relevantSchedule, 'pr_date') && $relevantSchedule->pr_date ? \Carbon\Carbon::parse($relevantSchedule->pr_date)->format('d/m/Y') : '-';
-                                                                $statLinkParams = [
-                                                                    'plant' => $plantCode,
-                                                                    'tool_id' => $tool->id,
-                                                                    'start_date' => \Carbon\Carbon::parse($relevantSchedule->schedule_date)->copy()->startOfMonth()->format('Y-m-d'),
-                                                                    'end_date' => \Carbon\Carbon::parse($relevantSchedule->schedule_date)->copy()->endOfMonth()->format('Y-m-d')
-                                                                ];
-                                                            } else {
-                                                                // No schedule data, just link to verifications filtered by tool
-                                                                $statLinkParams = [
-                                                                    'plant' => $plantCode,
-                                                                    'tool_id' => $tool->id,
-                                                                ];
-                                                            }
+                                                            
+                                                            // Simply link to the tool's history without restrictive date ranges
+                                                            $statLinkParams = [
+                                                                'plant' => $plantCode,
+                                                                'tool_id' => $tool->id,
+                                                                'year' => $statRouteName === 'calibration.verifications.index' ? 'all' : $year
+                                                            ];
                                                         } elseif ($relevantSchedule && !empty($relevantSchedule->pr_number)) {
                                                             $statIcon = '<i class="fas fa-hourglass-half text-primary fa-lg" title="PR Out - Menunggu Verifikasi"></i>';
                                                             $statPrDate = $relevantSchedule->pr_date ? \Carbon\Carbon::parse($relevantSchedule->pr_date)->format('d/m/Y') : '-';
+                                                            $statIsClickable = true;
+                                                            $statLinkParams = ['plant' => $plantCode, 'tool_id' => $tool->id];
                                                         } elseif (empty($scheduledStatuses) && !$hasVerification) {
                                                             // No schedules and no verification → Temporary status (Wrench + Clock composite)
                                                             $statIcon = '<div class="d-inline-block position-relative" style="width: 25px; height: 25px; vertical-align: middle;" title="Data Sementara - Belum Ada Jadwal">' .
                                                                 '<i class="fas fa-wrench text-secondary" style="font-size: 1.1rem;"></i>' .
                                                                 '<i class="fas fa-clock text-secondary" style="position: absolute; bottom: -2px; right: -2px; font-size: 0.7rem; background: white; border-radius: 50%; box-shadow: 0 0 0 2px white;"></i>' .
                                                                 '</div>';
+                                                            $statIsClickable = true;
+                                                            $statLinkParams = ['plant' => $plantCode, 'tool_id' => $tool->id];
                                                         } elseif (strtoupper($tool->jenis_kalibrasi) === 'INTERNAL') {
                                                             $statIcon = str_replace(['text-secondary" style'], ['text-info" style'], $icon_base);
+                                                            $statIsClickable = true;
+                                                            $statLinkParams = ['plant' => $plantCode, 'tool_id' => $tool->id];
                                                         } else {
                                                             $statIcon = $icon_base;
+                                                            $statIsClickable = true;
+                                                            $statLinkParams = ['plant' => $plantCode, 'tool_id' => $tool->id];
                                                         }
 
                                                         // Override: warning for approaching/past schedule (only if NOT verified and NO PR)
@@ -426,7 +430,7 @@
                                                             {{-- Problem Icon - Prioritized --}}
                                                             @if($hasPendingLog)
                                                                 <div class="d-flex flex-column align-items-center">
-                                                                    <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode, 'year' => $year]) }}" 
+                                                                    <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode, 'tool_id' => $tool->id, 'year' => 'all']) }}" 
                                                                        class="text-warning" 
                                                                        title="Alat dilaporkan bermasalah & menunggu judgment"
                                                                        style="font-size: 1.2rem;">
@@ -440,7 +444,7 @@
                                                                 {{-- Normal Status Icon --}}
                                                                 @if($statIsClickable && !empty($statLinkParams))
                                                                     @php $statLinkParams['year'] = $year; @endphp
-                                                                    <a href="{{ route('calibration.verifications.index', $statLinkParams) }}"
+                                                                    <a href="{{ route($statRouteName, $statLinkParams) }}"
                                                                         style="text-decoration: none;">
                                                                         {!! $statIcon !!}
                                                                     </a>
@@ -594,7 +598,7 @@
                                 </div>
                                 <!-- Column 3 -->
                                 <div class="col-md-3 border-right">
-                                    <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
+                                    <div class="p-2 d-flex align-items-center" style="height: 45px;">
                                         <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
                                             <i class="fas fa-exclamation-circle text-danger fa-lg"></i>
                                         </div>
@@ -602,9 +606,9 @@
                                     </div>
                                     <div class="p-2 border-bottom d-flex align-items-center" style="height: 45px;">
                                         <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">
-                                            <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
+                                            <i class="fas fa-wrench text-warning fa-lg"></i>
                                         </div>
-                                        <span class="small text-warning">Mendekati Jadwal Planning</span>
+                                        <span class="small text-warning font-weight-bold">Alat Bermasalah / Judgment</span>
                                     </div>
                                     <div class="p-2 d-flex align-items-center" style="height: 45px;">
                                         <div style="width: 35px; display: flex; justify-content: center;" class="mr-2">

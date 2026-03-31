@@ -51,7 +51,17 @@
         <div class="card shadow mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Daftar Laporan Masalah Alat</h6>
+                    <div>
+                        <h6 class="m-0 font-weight-bold text-primary d-inline-block">
+                            {{ $tool ? 'Laporan Problem: ' . $tool->name_alat : 'Daftar Laporan Masalah Alat' }}
+                        </h6>
+                        @if($tool)
+                            <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode, 'year' => $year]) }}" 
+                               class="badge badge-light border text-muted ml-2 py-1 px-2" style="font-weight: 500; font-size: 0.75rem;">
+                                <i class="fas fa-times-circle mr-1 text-danger"></i> Lihat Semua
+                            </a>
+                        @endif
+                    </div>
                     <div id="filterSource" style="display: none;">
                         <div class="d-flex align-items-center" id="customFilters" style="gap: 10px;">
                             <form action="{{ route('calibration.tools.problem-logs') }}" method="GET" class="form-inline m-0">
