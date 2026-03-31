@@ -110,7 +110,7 @@ class DashboardService extends BaseService
      */
     private function calculateApprovalStats(?string $plantOverride = null, bool $dailyOnly = false): array
     {
-        $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0];
+        $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
         // Use override if provided, otherwise check request or auth user
         $plantIdentifier = $plantOverride ?? request('plant') ?? auth()->user()->plant_id;
         $plantId = $this->resolvePlantId($plantIdentifier);
@@ -155,7 +155,8 @@ class DashboardService extends BaseService
             }
 
             if ($dailyOnly) {
-                $query->whereDate($dateColumn, now()->toDateString());
+                // Window covers Today and Yesterday
+                $query->whereDate($dateColumn, '>=', now()->subDay()->toDateString());
             }
 
             $results = $query->selectRaw("
