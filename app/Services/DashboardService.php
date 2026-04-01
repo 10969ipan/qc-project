@@ -249,7 +249,8 @@ class DashboardService extends BaseService
         // Change logic to fetch LATEST record for each line within last 48 hours
         // This ensures the TV always has "Active" data similar to what's at the top of the index page
         $query = SubAssyChecksheet::with('item')
-            ->where('created_at', '>=', now()->subHours(48))
+            ->where('date', $date)
+            ->where('shift', $shift)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
 
@@ -266,7 +267,8 @@ class DashboardService extends BaseService
     {
         // Change logic to fetch LATEST record for each machine within last 48 hours
         $inProcessQuery = InProcessChecksheet::with('item')
-            ->where('created_at', '>=', now()->subHours(48))
+            ->where('date', $date)
+            ->where('shift', $shift)
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc');
 
@@ -275,7 +277,8 @@ class DashboardService extends BaseService
         }
 
         $fpaQuery = FirstPieceApproval::with('item')
-            ->where('created_at', '>=', now()->subHours(48))
+            ->where('date', $date)
+            ->where('shift', $shift)
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc');
 
@@ -293,10 +296,6 @@ class DashboardService extends BaseService
     private function fetchManualStatuses($shiftStartTime, $plantId)
     {
         $query = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble']);
-
-        if ($shiftStartTime) {
-            $query->where('updated_at', '>=', $shiftStartTime);
-        }
 
         if ($plantId) {
             $query->where('plant_id', $plantId);

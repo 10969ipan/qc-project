@@ -49,26 +49,27 @@
         }
 
         .slide-container {
+            height: calc(100vh - 80px);
+            overflow: hidden;
             position: relative;
-            height: calc(100vh - 80px); /* Tighter header */
+            background: #f8fafc;
+        }
+
+        .slides-wrapper {
+            display: flex;
+            height: 100%;
             width: 100%;
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+            will-change: transform;
         }
 
         .slide {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: scale(0.98);
-            padding: 0.75rem 1.25rem;
-        }
-
-        .slide.active {
-            opacity: 1;
-            visibility: visible;
-            transform: scale(1);
-            z-index: 10;
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
         }
 
         .modern-card {
@@ -178,6 +179,7 @@
     <div class="progress-timer" id="timer-bar"></div>
 
     <main class="slide-container">
+        <div class="slides-wrapper" id="slides-wrapper">
         @php
             // AKTUAL KARAWANG CONFIGURATION
             $karawangMeja = range(1, 15);
@@ -201,7 +203,7 @@
                     </span>
                 </div>
                 <!-- Grid optimized for 15 Meja -->
-                <div class="flex-1 p-4 grid grid-cols-5 grid-rows-3 gap-3 overflow-hidden min-h-0">
+                <div class="flex-1 p-4 grid grid-cols-5 grid-rows-3 gap-3 overflow-hidden">
                     @foreach($karawangMeja as $i)
                                 @php
                                     $data = $activeLines->get($i);
@@ -239,27 +241,18 @@
                                         @endif
                                     </div>
 
-                                    <div class="flex-1 flex flex-col pt-1.5">
+                                    <div class="flex-1 flex flex-col pt-1.5 min-h-0">
                                         @if($isActive)
                                             <div class="flex-1 flex flex-col justify-center space-y-2">
-                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
-                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-800 text-right">{{ $data->item->part_number }}</span></div>
-                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-800 text-right">{{ $data->created_at->format('H:i') }} WIB</span></div>
-                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">QC</span><span class="font-bold text-slate-800 truncate ml-2 text-right">{{ $qcName }}</span></div>
-                                            </div>
-                                            <div class="mt-3">
-                                                <div class="flex justify-between items-end pt-1">
-                                                    <span class="text-[9px] text-slate-400 uppercase font-black tracking-widest leading-none">STATUS</span>
-                                                    <span class="text-3xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
-                                                </div>
-                                                <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
-                                                    <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
-                                                </div>
+                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-xs leading-tight">{{ $data->item->name }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
                                             </div>
                                         @else
-                                            <div class="flex flex-col items-center justify-center opacity-30 h-full">
-                                                <div class="text-2xl font-black text-slate-300 tracking-tighter">Meja Idle</div>
-                                                <p class="text-[10px] font-bold text-slate-400 uppercase mt-0.5 tracking-widest">Wait Setup</p>
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
+                                                <h3 class="text-2xl font-black text-slate-200 uppercase tracking-tighter">Meja Idle</h3>
+                                                <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Wait Setup</p>
                                             </div>
                                         @endif
                                     </div>
@@ -343,7 +336,7 @@
                                             </div>
                                         @else
                                             <div class="flex flex-col items-center justify-center opacity-30 h-full mt-1">
-                                                <div class="text-lg font-black text-slate-300 tracking-tighter">Machine Idle</div>
+                                                <div class="text-lg font-black text-slate-300 tracking-tighter">MESIN IDLE</div>
                                                 <p class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 tracking-widest">Wait Setup</p>
                                             </div>
                                         @endif
@@ -384,6 +377,66 @@
                 </div>
             </div>
         </section>
+
+        <!-- CLONE SLIDE 1 FOR INFINITE LOOP -->
+        <section class="slide" id="slide-subassy-clone" data-label="Outgoing Sub-Assy">
+             <div class="modern-card">
+                <div class="p-3.5 bg-slate-50/50 border-b flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Outgoing Sub-Assy</h2>
+                    </div>
+                    <span class="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full border border-green-200 uppercase">
+                        {{ $activeLines->count() }} Meja Aktif
+                    </span>
+                </div>
+                <div class="flex-1 p-4 grid grid-cols-5 grid-rows-3 gap-3 overflow-hidden">
+                    @foreach($karawangMeja as $i)
+                        @php
+                            $data = $activeLines->get($i);
+                            $manualStatus = $lineStatuses->get($i);
+                            $isTrouble = ($manualStatus && $manualStatus->status === 'trouble');
+                            $isMaintenance = ($manualStatus && $manualStatus->status === 'maintenance');
+                            $isActive = ($data && !$isTrouble && !$isMaintenance);
+                            $statusLabel = $isActive ? 'OK' : ($isTrouble ? 'NG' : ($isMaintenance ? 'MAIN' : 'IDLE'));
+                        @endphp
+                        <div class="station-container relative h-full min-h-0">
+                            <div class="station-card flex flex-col p-1.5 bg-white border-2 border-slate-100 rounded-xl shadow-sm h-full min-h-0 overflow-hidden">
+                                <div class="flex justify-between items-center mb-1 border-b border-slate-50 pb-1">
+                                    <div>
+                                        <h3 class="text-base font-extrabold text-slate-800 tracking-tighter leading-none">MEJA-{{ $i }}</h3>
+                                    </div>
+                                    @if($isTrouble)
+                                        <span class="flex items-center gap-1 bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase"><i class="fas fa-exclamation-triangle"></i> NG</span>
+                                    @elseif($isMaintenance)
+                                        <span class="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">MAIN</span>
+                                    @elseif($isActive)
+                                        <span class="bg-green-100 text-green-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">OK</span>
+                                    @else
+                                        <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">IDLE</span>
+                                    @endif
+                                </div>
+                                <div class="flex-1 flex flex-col pt-1.5">
+                                    @if($isActive)
+                                        <div class="flex-1 flex flex-col justify-center space-y-2">
+                                            <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
+                                            <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
+                                            <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
+                                            <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                        </div>
+                                    @else
+                                        <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
+                                            <h3 class="text-2xl font-black text-slate-200 uppercase tracking-tighter">Meja Idle</h3>
+                                            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Wait Setup</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        </div>
     </main>
 
     <script id="dashboard-stats" type="application/json">
@@ -394,14 +447,15 @@
     </script>
 
     <script>
-        const SLIDE_TIME = 5000; // 15 seconds for more data density
-        const POLL_TIME = 60000;
-        let activeIdx = 0;
+        const SLIDE_TIME = 10000; // 10 seconds per slide
+        const POLL_TIME = 30000;  // 30 seconds sync
+        const slidesWrapper = document.getElementById('slides-wrapper');
         const slides = document.querySelectorAll('.slide');
         const dots = document.querySelectorAll('.indicator-dot');
         const timerBar = document.getElementById('timer-bar');
         const slideLabel = document.getElementById('current-slide-label');
-        let JSON_STATS = JSON.parse(document.getElementById('dashboard-stats').textContent);
+        let activeIdx = 0;
+        const JSON_STATS = JSON.parse(document.getElementById('dashboard-stats').textContent);
 
         function updateClock() {
             const now = new Date();
@@ -414,16 +468,34 @@
         }
 
         function switchSlide() {
-            slides[activeIdx].classList.remove('active');
-            dots[activeIdx].classList.remove('active');
+            // Calculate virtual index for dots (looping back to 0 when on clone)
+            const dotIdx = activeIdx % dots.length;
+            dots[dotIdx].classList.remove('active');
 
-            activeIdx = (activeIdx + 1) % slides.length;
+            // Move to next slide
+            activeIdx++;
 
-            slides[activeIdx].classList.add('active');
-            dots[activeIdx].classList.add('active');
-            slideLabel.textContent = slides[activeIdx].getAttribute('data-label');
+            // Animate wrapper
+            if (slidesWrapper) {
+                slidesWrapper.style.transition = 'transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1)';
+                slidesWrapper.style.transform = `translateX(-${activeIdx * 100}%)`;
+            }
 
-            if(activeIdx === 2) renderAllGauges();
+            // Update dots based on new index
+            const nextDotIdx = activeIdx % dots.length;
+            dots[nextDotIdx].classList.add('active');
+
+            // Update header text based on data-label of current slide
+            // Use modulo to correctly pick label for the clone
+            const labelIdx = activeIdx % slides.length;
+            if (slideLabel && slides[labelIdx]) {
+                slideLabel.textContent = slides[labelIdx].getAttribute('data-label');
+            }
+
+            // If we are on Slide 3 (Stats) or its clone, handle gauges
+            if(labelIdx === 2) {
+                setTimeout(renderAllGauges, 300);
+            }
 
             timerBar.style.transition = 'none';
             timerBar.style.width = '0%';
@@ -431,6 +503,18 @@
                 timerBar.style.transition = `width ${SLIDE_TIME}ms linear`;
                 timerBar.style.width = '100%';
             }, 50);
+        }
+
+        // Handle the seamless reset at the end of the transition
+        if (slidesWrapper) {
+            slidesWrapper.addEventListener('transitionend', () => {
+                // If we've reached the clone (Slide 4, index 3)
+                if (activeIdx >= slides.length - 1) {
+                    slidesWrapper.style.transition = 'none';
+                    activeIdx = 0;
+                    slidesWrapper.style.transform = `translateX(0)`;
+                }
+            });
         }
 
         function calculateRate(stats) {
@@ -506,26 +590,38 @@
 
         async function syncData() {
             try {
-                // Ensure plant=karawang is always appended for consistency with TV requirements
-                const res = await fetch('/dashboard/tv?plant=karawang', { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-                const data = await res.json();
+                // Fetch the entire page as HTML to extract updated monitoring cards
+                const res = await fetch('/dashboard/tv?plant=karawang', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const html = await res.text();
                 
-                // Update total counts in headers
-                const subassyHeaderCount = document.querySelector('#slide-subassy .bg-green-100');
-                const inprocessHeaderCount = document.querySelector('#slide-inprocess .bg-blue-100');
-                if(subassyHeaderCount) subassyHeaderCount.textContent = `${Object.keys(data.activeLines).length} Meja Aktif`;
-                if(inprocessHeaderCount) inprocessHeaderCount.textContent = `${Object.keys(data.activeMachines).length} Mesin Aktif`;
+                // Use DOMParser to extract the new data
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // 1. Update the Slides Content (Meja, Machine, Stats, and Clone)
+                const newWrapper = doc.getElementById('slides-wrapper');
+                const currentWrapper = document.getElementById('slides-wrapper');
+                if (newWrapper && currentWrapper) {
+                    // Update innerHTML but preserve the current transform state
+                    currentWrapper.innerHTML = newWrapper.innerHTML;
+                }
 
-                // Update internal JSON stats object
-                if(data.dailyStatsSubAssy) {
-                    JSON_STATS.statsSubAssy = data.dailyStatsSubAssy;
-                }
-                if(data.dailyStatsInProcess) {
-                    JSON_STATS.statsInProcess = data.dailyStatsInProcess;
+                // 2. Update JSON stats for gauges
+                const newStatsScript = doc.getElementById('dashboard-stats');
+                if (newStatsScript) {
+                    const newData = JSON.parse(newStatsScript.textContent);
+                    JSON_STATS.statsSubAssy = newData.statsSubAssy;
+                    JSON_STATS.statsInProcess = newData.statsInProcess;
                 }
                 
-                // If we are currently on the stat slide, refresh gauges
-                if(activeIdx === 2) renderAllGauges();
+                // 3. Refresh gauges if we are on the stats slide
+                if (activeIdx % slides.length === 2) {
+                    renderAllGauges();
+                }
+
+                console.log("Dashboard Sync: Data updated successfully.");
 
             } catch (e) {
                 console.warn("Polling Sync failed", e);
