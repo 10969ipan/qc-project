@@ -248,15 +248,15 @@
                                     <div class="flex-1 flex flex-col pt-1.5 min-h-0">
                                         @if($isActive)
                                             <div class="flex-1 flex flex-col justify-center space-y-2">
-                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-xs leading-tight">{{ $data->item->name }}</span></div>
-                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                                <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
-                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                                <div class="flex justify-between text-[14px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[13px] leading-tight">{{ $data->item->name }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
                                             </div>
                                             <div class="mt-2 border-t border-slate-50 pt-1">
                                                 <div class="flex justify-between items-end">
-                                                    <span class="text-[7px] text-slate-400 uppercase font-black tracking-widest leading-none">STATUS</span>
-                                                    <span class="text-xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                                    <span class="text-[11px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
+                                                    <span class="text-2xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
                                                 </div>
                                                 <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
                                                     <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
@@ -344,15 +344,15 @@
                                     <div class="flex-1 flex flex-col pt-1">
                                         @if($isActive)
                                             <div class="flex-1 flex flex-col justify-center space-y-1.5">
-                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
-                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-700 text-right">{{ $data->created_at->format('H:i') }} WIB</span></div>
-                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">QC</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $qcName }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-700 text-right">{{ $data->created_at->format('H:i') }} WIB</span></div>
+                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">QC</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $qcName }}</span></div>
                                             </div>
                                             <div class="mt-2">
                                                 <div class="flex justify-between items-end pt-1">
-                                                    <span class="text-[7px] text-slate-400 uppercase font-black tracking-widest leading-none">STATUS</span>
-                                                    <span class="text-2xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                                    <span class="text-[11px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
+                                                    <span class="text-3xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
                                                 </div>
                                                 <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
                                                     <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
@@ -449,15 +449,15 @@
                                 <div class="flex-1 flex flex-col pt-1.5">
                                     @if($isActive)
                                         <div class="flex-1 flex flex-col justify-center space-y-2">
-                                            <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
-                                            <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                            <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
-                                            <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                            <div class="flex justify-between text-[14px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[13px] leading-tight">{{ $data->item->name }}</span></div>
+                                            <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
+                                            <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
+                                            <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
                                         </div>
                                         <div class="mt-2 border-t border-slate-50 pt-1">
                                             <div class="flex justify-between items-end">
-                                                <span class="text-[7px] text-slate-400 uppercase font-black tracking-widest leading-none">STATUS</span>
-                                                <span class="text-xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                                <span class="text-[11px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
+                                                <span class="text-2xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
                                             </div>
                                             <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
                                                 <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
