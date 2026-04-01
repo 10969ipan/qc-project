@@ -61,4 +61,59 @@ class DashboardController extends Controller
 
         return view('dashboard.tv', $data);
     }
+
+    /**
+     * TV Signage: NG Defect aggregation for Slide 3 panel
+     */
+    public function tvDefects()
+    {
+        $karawangId = \App\Models\Plant::resolveId('karawang');
+        $startDate  = now()->subDays(30)->toDateString();
+
+        $tables = [
+            'sub_assy'   => 'sub_assy_checksheets',
+            'in_process' => 'in_process_checksheets',
+        ];
+
+        $result = [];
+
+        foreach ($tables as $key => $table) {
+            $rows = \Illuminate\Support\Facades\DB::table($table)
+                ->where('plant_id', $karawangId)
+                ->where('date', '>=', $startDate)
+                ->whereNotNull('defects')
+                ->whereRaw("defects != '[]' AND defects != 'null' AND defects != '\"[]\"'")
+                ->pluck('defects');
+
+            $totals = [];
+            $grandTotal = 0;
+
+            foreach ($rows as $raw) {
+                $defects = is_string($raw) ? json_decode($raw, true) : $raw;
+                if (!is_array($defects)) continue;
+                foreach ($defects as $d) {
+                    $type = strtoupper(trim($d['type'] ?? 'UNKNOWN'));
+                    $qty  = (int) ($d['qty'] ?? 0);
+                    if ($qty <= 0) continue;
+                    $totals[$type] = ($totals[$type] ?? 0) + $qty;
+                    $grandTotal += $qty;
+                }
+            }
+
+            // Sort descending, take top 8
+            arsort($totals);
+            $top = array_slice($totals, 0, 8, true);
+
+            $result[$key] = [
+                'total' => $grandTotal,
+                'items' => array_map(fn($type, $qty) => [
+                    'type' => $type,
+                    'qty'  => $qty,
+                    'pct'  => $grandTotal > 0 ? round($qty / $grandTotal * 100, 1) : 0,
+                ], array_keys($top), array_values($top)),
+            ];
+        }
+
+        return response()->json($result);
+    }
 }

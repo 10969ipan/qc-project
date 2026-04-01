@@ -144,6 +144,14 @@
             background: white;
             transform: scale(1.3);
         }
+
+        /* Suppress FusionCharts Trial Branding */
+        div[id^="gauge-"] svg > g[class$="-caption-group"] + g > g[style*="cursor:pointer"],
+        div[id^="gauge-"] svg > g[class$="-caption-group"] + g > g[style*="cursor: pointer"],
+        div[id^="gauge-"] svg > g rect[fill="#ffffff"][fill-opacity="0"],
+        div[id^="gauge-"] svg > g text[style*="10px"] {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -182,7 +190,7 @@
         <div class="slides-wrapper" id="slides-wrapper">
         @php
             // AKTUAL KARAWANG CONFIGURATION
-            $karawangMeja = range(1, 15);
+            $karawangMeja = range(1, 14);
             $karawangMachines = [
                 1 => '850T', 2 => '650T', 3 => '650T', 4 => '650T',
                 5 => '550T', 6 => '450T', 7 => '360T', 8 => '210T',
@@ -223,59 +231,63 @@
                                     elseif ($isStopped) $statusText = 'OFF';
                                     elseif ($isActive) $statusText = 'RUNNING';
                                 @endphp
-                                <div class="station-card flex flex-col p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
-                                    <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
+                                <div class="station-card flex flex-col p-3.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                    <div class="flex justify-between items-center mb-1.5 border-b border-slate-50 pb-1.5">
                                         <h3 class="text-xl font-extrabold text-slate-800 tracking-tighter capitalize">MEJA-{{ $i }}</h3>
                                         @if($isTrouble)
-                                            <span class="text-[9px] bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse">
-                                                <i class="material-icons-round text-xs">warning</i> TROUBLE
+                                            <span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse">
+                                                <i class="material-icons-round text-base">warning</i> TROUBLE
                                             </span>
                                         @elseif($isActive)
-                                            <span class="text-[9px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
-                                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> RUNNING
+                                            <span class="text-[14px] bg-green-100 text-green-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-green-200">
+                                                <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span> RUNNING
                                             </span>
                                         @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
-                                            <span class="text-[9px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
-                                                <i class="fas fa-hourglass-half text-[10px]"></i> STAND BY
+                                            <span class="text-[14px] bg-slate-100 text-slate-600 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-200">
+                                                <i class="fas fa-hourglass-half text-xs"></i> STAND BY
                                             </span>
                                         @else
-                                            <span class="text-[9px] bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
-                                                <i class="fas fa-pause text-[8px]"></i> IDLE
+                                            <span class="text-[14px] bg-slate-50 text-slate-400 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-100">
+                                                <i class="fas fa-pause text-xs"></i> IDLE
                                             </span>
                                         @endif
                                     </div>
 
-                                    <div class="flex-1 flex flex-col pt-1.5 min-h-0">
+                                    <div class="flex-1 flex flex-col pt-1 min-h-0">
                                         @if($isActive)
-                                            <div class="flex-1 flex flex-col justify-center space-y-3">
-                                                <div class="flex justify-between text-[14px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[13px] leading-tight">{{ $data->item->name }}</span></div>
-                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                                <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1.5 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
-                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                            <div class="flex-1 flex flex-col justify-center space-y-1">
+                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[12px] leading-tight">{{ $data->item->name }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right text-[10px]">{{ $data->item->part_number }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-0.5 mt-0.5"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase truncate ml-2 max-w-[100px] text-right">{{ $qcName }}</span></div>
                                             </div>
-                                            <div class="mt-2 border-t border-slate-50 pt-1">
+                                            <div class="mt-1.5 border-t border-slate-50 pt-1">
                                                 <div class="flex justify-between items-end">
-                                                    <span class="text-[11px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
-                                                    <span class="text-2xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
+                                                    <span class="text-xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
                                                 </div>
                                                 <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
                                                     <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
                                                 </div>
                                             </div>
                                         @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
-                                            <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center">
-                                                <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
-                                                <p class="text-[12px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center py-1">
+                                                <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
+                                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic line-clamp-1 px-2">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
                                             </div>
                                         @else
                                             <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
-                                                <h3 class="text-2xl font-black text-slate-200 uppercase tracking-tighter">Meja Idle</h3>
-                                                <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Wait Setup</p>
+                                                <h3 class="text-xl font-black text-slate-300 uppercase tracking-tighter">Meja Idle</h3>
                                             </div>
                                         @endif
                                     </div>
                                 </div>
                     @endforeach
+
+                    <!-- SLOT 15: INTEGRATED ACTIVITY GAUGE -->
+                    <div class="station-card flex flex-col p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden bg-slate-50/30">
+                        <div id="gauge-subassy-activity" class="w-full h-full"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -300,108 +312,130 @@
                                     $isTrouble = ($manualStatus && $manualStatus->status === 'trouble');
                                     $isMaintenance = ($manualStatus && $manualStatus->status === 'maintenance');
                                     $isStopped = ($manualStatus && $manualStatus->status === 'stopped');
-                                    
-                                    // Machine is ONLY active if running and NOT in manual state
                                     $isActive = ($data && !$isTrouble && !$isMaintenance && !$isStopped);
-                                    
                                     $qcName = ($isActive && isset($operatorMap[$data->operator_initials])) ? $operatorMap[$data->operator_initials] : ($data->operator_initials ?? '-');
-                                    
-                                    $statusText = 'IDLE';
-                                    if ($isTrouble) $statusText = 'TROUBLE';
-                                    elseif ($isMaintenance) $statusText = 'MAINTENANCE';
-                                    elseif ($isStopped) $statusText = 'OFF';
-                                    elseif ($isActive) $statusText = 'RUNNING';
                                 @endphp
-                                <div class="station-card flex flex-col p-6 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
-                                    <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
+                                <div class="station-card flex flex-col p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                    <div class="flex justify-between items-center mb-1 border-b border-slate-50 pb-1">
                                         <div>
-                                            <h3 class="text-base font-extrabold text-slate-800 tracking-tighter leading-none">MESIN-{{ $i }}</h3>
-                                            <p class="text-[9px] font-bold text-slate-400 tracking-tighter mt-0.5">({{ $tonnage }})</p>
+                                            <h3 class="text-sm font-black text-slate-800 tracking-tighter leading-none uppercase">MESIN-{{ $i }}</h3>
+                                            <p class="text-[8px] font-bold text-slate-400 tracking-tighter mt-0.5">({{ $tonnage }})</p>
                                         </div>
                                         @if($isTrouble)
-                                            <span class="text-[8px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse">
-                                                <i class="material-icons-round text-[9px]">warning</i> ALERT
+                                            <span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse">
+                                                <i class="material-icons-round text-base">warning</i> TROUBLE
                                             </span>
                                         @elseif($isActive)
-                                            <span class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
-                                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> RUNNING
+                                            <span class="text-[14px] bg-green-100 text-green-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-green-200">
+                                                <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span> RUNNING
                                             </span>
                                         @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
-                                            <div class="flex items-center gap-1 px-1.5 py-0.5 border border-slate-200 rounded-full bg-slate-50">
-                                                <span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest flex items-center gap-1">
-                                                    <i class="fas fa-hourglass-half text-[8px]"></i> STAND BY
-                                                </span>
-                                            </div>
+                                            <span class="text-[14px] bg-slate-100 text-slate-600 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-200">
+                                                <i class="fas fa-hourglass-half text-xs"></i> STAND BY
+                                            </span>
                                         @else
-                                            <div class="flex items-center gap-1 px-1.5 py-0.5 border border-slate-200 rounded-full bg-slate-50">
-                                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                                                    <i class="fas fa-pause text-[8px]"></i> IDLE
-                                                </span>
-                                            </div>
+                                            <span class="text-[14px] bg-slate-50 text-slate-400 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-100">
+                                                <i class="fas fa-pause text-xs"></i> IDLE
+                                            </span>
                                         @endif
                                     </div>
-
-                                    <div class="flex-1 flex flex-col pt-1">
+                                    <div class="flex-1 flex flex-col pt-1 min-h-0">
                                         @if($isActive)
-                                            <div class="flex-1 flex flex-col justify-center space-y-3">
-                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
-                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-700 text-right">{{ $data->created_at->format('H:i') }} WIB</span></div>
-                                                <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">QC</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $qcName }}</span></div>
+                                            <div class="flex-1 flex flex-col justify-center space-y-1">
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-700 truncate ml-2 text-right text-[10px] leading-tight">{{ $data->item->name }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-700 truncate ml-2 text-right text-[10px] leading-tight">{{ $data->item->part_number }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-0.5"><span class="text-slate-500 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-700 text-right text-[10px]">{{ $data->created_at->format('H:i') }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">QC</span><span class="font-bold text-slate-700 truncate ml-2 max-w-[80px] text-right text-[10px]">{{ $qcName }}</span></div>
                                             </div>
-                                            <div class="mt-2">
-                                                <div class="flex justify-between items-end pt-1">
-                                                    <span class="text-[11px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
-                                                    <span class="text-3xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                            <div class="mt-1 border-t border-slate-50 pt-1">
+                                                <div class="flex justify-between items-end">
+                                                    <span class="text-[9px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
+                                                    <span class="text-xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
                                                 </div>
-                                                <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
+                                                <div class="w-full bg-slate-100 rounded-full h-0.5 mt-0.5 overflow-hidden">
                                                     <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
                                                 </div>
                                             </div>
                                         @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
-                                            <div class="flex flex-col items-center justify-center opacity-70 h-full mt-1 w-full text-center">
-                                                <div class="text-2xl font-black text-slate-800 tracking-tighter">STAND BY</div>
-                                                <p class="text-[12px] font-bold text-slate-500 uppercase mt-0.5 tracking-widest italic leading-tight">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center py-0.5">
+                                                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
+                                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic line-clamp-1 px-1">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
                                             </div>
                                         @else
-                                            <div class="flex flex-col items-center justify-center opacity-30 h-full mt-1">
-                                                <div class="text-lg font-black text-slate-300 tracking-tighter">MESIN IDLE</div>
-                                                <p class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 tracking-widest">Wait Setup</p>
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
+                                                <h3 class="text-lg font-black text-slate-200 uppercase tracking-tighter">IDLE</h3>
                                             </div>
                                         @endif
                                     </div>
                                 </div>
                     @endforeach
+
+                    <!-- SLOT 18: INTEGRATED ACTIVITY GAUGE -->
+                    <div class="station-card flex flex-col p-6 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden bg-slate-50/30">
+                        <div id="gauge-inprocess-activity" class="w-full h-full"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 3: APPROVAL STATISTICS (CATEGORIZED GAUGES) -->
-        <section class="slide" id="slide-stats" data-label="Approval Statistics">
-             <div class="grid grid-cols-2 gap-10 h-full">
-                <!-- Sub-Assy Stats Card -->
-                <div class="modern-card">
-                    <div class="p-6 border-b flex flex-col">
-                        <div>
-                            <h2 class="text-2xl font-black text-slate-800 uppercase">Sub-Assy Approval</h2>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">QC Rate Hari Ini</p>
-                        </div>
+        <!-- SLIDE 3: MONITORING RATE NG - KARAWANG -->
+        <section class="slide" id="slide-ng-rate" data-label="Monitoring Rate NG - Karawang">
+             <div class="modern-card">
+                <div class="p-3.5 bg-slate-50/50 border-b flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Monitoring Rate NG - Karawang</h2>
                     </div>
-                    <div class="flex-1 flex flex-col items-center justify-center p-8">
-                        <div id="gauge-subassy" class="w-full h-[400px]"></div>
-                    </div>
+                    <span class="bg-red-100 text-red-700 text-xs font-black px-3 py-1 rounded-full border border-red-200 uppercase">
+                        30 Day Trend
+                    </span>
                 </div>
-
-                <!-- In-Process Stats Card -->
-                <div class="modern-card">
-                    <div class="p-6 border-b flex flex-col">
-                        <div>
-                            <h2 class="text-2xl font-black text-slate-800 uppercase">In-Process Approval</h2>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">QC Rate Hari Ini</p>
-                        </div>
+                <!-- Split Layout: Chart Left | Defect Table Right -->
+                <div class="flex-1 flex gap-0 min-h-0 overflow-hidden">
+                    <!-- Left: Line Chart 60% -->
+                    <div class="flex-1 p-4 min-h-0" style="position:relative;">
+                        <canvas id="chart-ng-trend" style="width:100%;height:100%;"></canvas>
                     </div>
-                    <div class="flex-1 flex flex-col items-center justify-center p-8">
-                        <div id="gauge-inprocess" class="w-full h-[400px]"></div>
+                    <!-- Right: Defect Detail Panel 40% -->
+                    <div class="w-[38%] border-l border-slate-100 p-5 flex flex-col gap-4 overflow-auto bg-slate-50/30" id="defect-panel">
+                        <!-- Sub-Assy Table -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="w-4 h-4 rounded-full bg-blue-500 inline-block"></span>
+                                <h3 class="text-base font-black text-slate-700 uppercase tracking-widest">Sub-Assy NG</h3>
+                                <span class="ml-auto text-sm font-bold text-slate-400" id="defect-sub-total">—</span>
+                            </div>
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-slate-400 uppercase tracking-wider text-xs border-b border-slate-200">
+                                        <th class="text-left pb-2 font-bold">Jenis Defect</th>
+                                        <th class="text-right pb-2 font-bold">Pcs</th>
+                                        <th class="text-right pb-2 font-bold">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-sub-body">
+                                    <tr><td colspan="3" class="text-center py-4 text-slate-400 italic">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="border-t-2 border-slate-200 pt-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="w-4 h-4 rounded-full bg-amber-400 inline-block"></span>
+                                <h3 class="text-base font-black text-slate-700 uppercase tracking-widest">In-Process NG</h3>
+                                <span class="ml-auto text-sm font-bold text-slate-400" id="defect-inp-total">—</span>
+                            </div>
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-slate-400 uppercase tracking-wider text-xs border-b border-slate-200">
+                                        <th class="text-left pb-2 font-bold">Jenis Defect</th>
+                                        <th class="text-right pb-2 font-bold">Pcs</th>
+                                        <th class="text-right pb-2 font-bold">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-inp-body">
+                                    <tr><td colspan="3" class="text-center py-4 text-slate-400 italic">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,79 +452,71 @@
                         {{ $activeLines->count() }} Meja Aktif
                     </span>
                 </div>
+                <!-- Grid optimized for 15 Meja (14 Data + 1 Gauge) -->
                 <div class="flex-1 p-4 grid grid-cols-5 grid-rows-3 gap-3 overflow-hidden">
                     @foreach($karawangMeja as $i)
-                        @php
-                            $data = $activeLines->get($i);
-                            $manualStatus = $lineStatuses->get($i);
-                            $isTrouble = ($manualStatus && $manualStatus->status === 'trouble');
-                            $isMaintenance = ($manualStatus && $manualStatus->status === 'maintenance');
-                            $isActive = ($data && !$isTrouble && !$isMaintenance);
-                            $statusLabel = $isActive ? 'OK' : ($isTrouble ? 'NG' : ($isMaintenance ? 'MAIN' : 'IDLE'));
-                        @endphp
-                        <div class="station-container relative h-full min-h-0">
-                            <div class="station-card flex flex-col p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
-                                <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
-                                    <div>
-                                        <h3 class="text-base font-extrabold text-slate-800 tracking-tighter leading-none">MEJA-{{ $i }}</h3>
+                                @php
+                                    $data = $activeLines->get($i);
+                                    $manualStatus = $lineStatuses->get($i);
+                                    $isTrouble = ($manualStatus && $manualStatus->status === 'trouble');
+                                    $isMaintenance = ($manualStatus && $manualStatus->status === 'maintenance');
+                                    $isStopped = ($manualStatus && $manualStatus->status === 'stopped');
+                                    $isActive = ($data && !$isTrouble && !$isMaintenance && !$isStopped);
+                                    $qcName = ($isActive && isset($operatorMap[$data->operator_initials])) ? $operatorMap[$data->operator_initials] : ($data->operator_initials ?? '-');
+                                @endphp
+                                <div class="station-card flex flex-col p-3.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                    <div class="flex justify-between items-center mb-1.5 border-b border-slate-50 pb-1.5">
+                                        <h3 class="text-xl font-extrabold text-slate-800 tracking-tighter capitalize">MEJA-{{ $i }}</h3>
+                                        @if($isTrouble)
+                                            <span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse">
+                                                <i class="material-icons-round text-base">warning</i> TROUBLE
+                                            </span>
+                                        @elseif($isActive)
+                                            <span class="text-[14px] bg-green-100 text-green-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-green-200">
+                                                <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span> RUNNING
+                                            </span>
+                                        @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                            <span class="text-[14px] bg-slate-100 text-slate-600 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-200">
+                                                <i class="fas fa-hourglass-half text-xs"></i> STAND BY
+                                            </span>
+                                        @else
+                                            <span class="text-[14px] bg-slate-50 text-slate-400 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-100">
+                                                <i class="fas fa-pause text-xs"></i> IDLE
+                                            </span>
+                                        @endif
                                     </div>
-                                    @if($isTrouble)
-                                        <span class="flex items-center gap-1 bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase"><i class="fas fa-exclamation-triangle"></i> NG</span>
-                                    @elseif($isMaintenance)
-                                        <span class="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">MAIN</span>
-                                    @elseif($isActive)
-                                        <span class="bg-green-100 text-green-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">OK</span>
-                                    @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
-                                        <span class="flex items-center gap-1 bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase"><i class="fas fa-hourglass-half"></i> STAND BY</span>
-                                    @else
-                                        <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">IDLE</span>
-                                    @endif
-                                </div>
-                                <div class="flex-1 flex flex-col pt-1.5">
-                                    @if($isActive)
-                                        <div class="flex-1 flex flex-col justify-center space-y-3">
-                                            <div class="flex justify-between text-[14px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[13px] leading-tight">{{ $data->item->name }}</span></div>
-                                            <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                            <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1.5 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
-                                            <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
-                                        </div>
-                                        <div class="mt-2 border-t border-slate-50 pt-1">
-                                            <div class="flex justify-between items-end">
-                                                <span class="text-[11px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
-                                                <span class="text-2xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                    <div class="flex-1 flex flex-col pt-1 min-h-0">
+                                        @if($isActive)
+                                            <div class="flex-1 flex flex-col justify-center space-y-1">
+                                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[12px] leading-tight">{{ $data->item->name }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right text-[10px]">{{ $data->item->part_number }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-0.5 mt-0.5"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
+                                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase truncate ml-2 max-w-[100px] text-right">{{ $qcName }}</span></div>
                                             </div>
-                                            <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
-                                                <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
+                                        @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center py-1">
+                                                <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
+                                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic line-clamp-1 px-2">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
                                             </div>
-                                        </div>
-                                    @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
-                                        <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center">
-                                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
-                                            <p class="text-[12px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
-                                        </div>
-                                    @else
-                                        <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
-                                            <h3 class="text-2xl font-black text-slate-200 uppercase tracking-tighter">Meja Idle</h3>
-                                            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Wait Setup</p>
-                                        </div>
-                                    @endif
+                                        @else
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
+                                                <h3 class="text-xl font-black text-slate-300 uppercase tracking-tighter">Meja Idle</h3>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
                     @endforeach
+
+                    <!-- SLOT 15: INTEGRATED ACTIVITY GAUGE (CLONE) -->
+                    <div class="station-card flex flex-col p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden bg-slate-50/30">
+                        <div id="gauge-subassy-activity-clone" class="w-full h-full"></div>
+                    </div>
                 </div>
             </div>
         </section>
         </div>
     </main>
 
-    <script id="dashboard-stats" type="application/json">
-        {
-            "statsSubAssy": @json($dailyStatsSubAssy),
-            "statsInProcess": @json($dailyStatsInProcess),
-            "statsKarawang": @json($dailyStatsKarawang)
-        }
-    </script>
 
     <script>
         const SLIDE_TIME = 10000; // 10 seconds per slide
@@ -501,7 +527,29 @@
         const timerBar = document.getElementById('timer-bar');
         const slideLabel = document.getElementById('current-slide-label');
         let activeIdx = 0;
-        const JSON_STATS = JSON.parse(document.getElementById('dashboard-stats').textContent);
+        
+        const chartInstances = {};
+        let ngRateDataRaw = @json($ngRateData['karawang'] ?? (object)[]);
+        let ngLabelsRaw = @json($ngRateData['labels'] ?? []);
+        let activityStats = {
+            subAssy: { active: 0, total: 14 },
+            inProcess: { active: 0, total: 17 }
+        };
+
+        function calculateActivity() {
+            // Count badges from current DOM
+            const slideSub = document.getElementById('slide-subassy');
+            const slideInp = document.getElementById('slide-inprocess');
+            
+            if(slideSub) {
+                const active = slideSub.querySelectorAll('.bg-green-100').length;
+                activityStats.subAssy.active = active;
+            }
+            if(slideInp) {
+                const active = slideInp.querySelectorAll('.bg-green-100').length;
+                activityStats.inProcess.active = active;
+            }
+        }
 
         function updateClock() {
             const now = new Date();
@@ -514,34 +562,31 @@
         }
 
         function switchSlide() {
-            // Calculate virtual index for dots (looping back to 0 when on clone)
-            const dotIdx = activeIdx % dots.length;
-            dots[dotIdx].classList.remove('active');
-
-            // Move to next slide
+            if (!slidesWrapper || !dots.length) return;
+            const dotsCount = dots.length;
+            
+            // Clean current dot
+            dots.forEach(d => d.classList.remove('active'));
+            
             activeIdx++;
+            
+            // Premium smooth transition
+            slidesWrapper.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            slidesWrapper.style.transform = `translateX(-${activeIdx * 100}%)`;
 
-            // Animate wrapper
-            if (slidesWrapper) {
-                slidesWrapper.style.transition = 'transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1)';
-                slidesWrapper.style.transform = `translateX(-${activeIdx * 100}%)`;
-            }
-
-            // Update dots based on new index
-            const nextDotIdx = activeIdx % dots.length;
+            const nextDotIdx = activeIdx % dotsCount;
             dots[nextDotIdx].classList.add('active');
 
-            // Update header text based on data-label of current slide
-            // Use modulo to correctly pick label for the clone
-            const labelIdx = activeIdx % slides.length;
-            if (slideLabel && slides[labelIdx]) {
-                slideLabel.textContent = slides[labelIdx].getAttribute('data-label');
+            // Update label
+            // Slide 0: Sub-Assy, Slide 1: In-Process, Slide 2: NG Rate
+            const labelIdx = activeIdx % dotsCount; 
+            const labels = ["Outgoing Sub-Assy", "In-Process Monitoring", "Monitoring Rate NG - Karawang"];
+            if (slideLabel) {
+                slideLabel.textContent = labels[labelIdx] || "Monitoring";
             }
 
-            // If we are on Slide 3 (Stats) or its clone, handle gauges
-            if(labelIdx === 2) {
-                setTimeout(renderAllGauges, 300);
-            }
+            // NOTE: Charts are now persistent, no need to re-render here.
+            // They just slide into view smoothly.
 
             timerBar.style.transition = 'none';
             timerBar.style.width = '0%';
@@ -554,8 +599,9 @@
         // Handle the seamless reset at the end of the transition
         if (slidesWrapper) {
             slidesWrapper.addEventListener('transitionend', () => {
-                // If we've reached the clone (Slide 4, index 3)
-                if (activeIdx >= slides.length - 1) {
+                // If we've reached the clone (Slide index 3)
+                const realSlidesCount = 3; 
+                if (activeIdx >= realSlidesCount) {
                     slidesWrapper.style.transition = 'none';
                     activeIdx = 0;
                     slidesWrapper.style.transform = `translateX(0)`;
@@ -563,127 +609,280 @@
             });
         }
 
-        function calculateRate(stats) {
-            if (!stats) return 0;
-            
-            // Handled = Approved + Rejected
-            const handled = (stats.approved || 0) + (stats.rejected || 0);
-            
-            // Late Pending = Items created > 24h ago that are still pending
-            const latePending = (stats.pending_late || 0);
-            
-            // Total "Due" = Handled + Late Pending
-            const totalDue = handled + latePending;
-            
-            if (totalDue === 0) return 100; // No overdue items = 100% compliance
-            
-            // Rate = Handled / Total Due
-            return Math.min(100, Math.round((handled / totalDue) * 100));
+        function calculateRate(type) {
+            const stats = activityStats[type];
+            if (!stats || stats.total === 0) return 0;
+            return Math.round((stats.active / stats.total) * 100);
         }
 
         function renderGauge(container, label, value) {
             if (!window.FusionCharts || !document.getElementById(container)) return;
-            new FusionCharts({
+            
+            const dataSource = {
+                chart: {
+                    caption: label,
+                    lowerLimit: "0",
+                    upperLimit: "100",
+                    showValue: "1",
+                    numberSuffix: "%",
+                    theme: "gammel",
+                    baseFontSize: "14",
+                    captionFontSize: "24",
+                    subcaptionFontSize: "12",
+                    gaugeFillMix: "{light-10},{light-20},{light-30}",
+                    gaugeFillRatio: "40,20,40",
+                    valueBelowPivot: "1",
+                    valuePadding: "20",
+                    manageResize: "1",
+                    autoScale: "1",
+                    animation: "0"
+                },
+                colorRange: {
+                    color: [
+                        { minValue: "0",  maxValue: "50",  code: "#ef4444" },
+                        { minValue: "50", maxValue: "75",  code: "#f59e0b" },
+                        { minValue: "75", maxValue: "100", code: "#10b981" }
+                    ]
+                },
+                dials: {
+                    dial: [{
+                        value: value.toString(),
+                        tooltext: "<b>" + value + "%</b> unit aktif saat ini",
+                        borderAlpha: "0",
+                        baseWidth: "6",
+                        topWidth: "1",
+                        radius: "70%"
+                    }]
+                },
+                trendpoints: {
+                    point: [{
+                        startvalue: "100",
+                        displayvalue: " ",
+                        thickness: "3",
+                        color: "#E15A26",
+                        hideValue: "1",
+                        usemarker: "1",
+                        markerbordercolor: "#E15A26",
+                        markertooltext: "Target Approval: 100%"
+                    }]
+                }
+            };
+
+            // Optimize: Update if exists
+            if (chartInstances[container]) {
+                chartInstances[container].setJSONData(dataSource);
+                return;
+            }
+
+            chartInstances[container] = new FusionCharts({
+                id: container + "-gauge",
                 type: "angulargauge",
                 renderAt: container,
                 width: "100%",
                 height: "100%",
                 dataFormat: "json",
-                dataSource: {
-                    chart: {
-                        caption: label + " Compliance Rate",
-                        lowerLimit: "0",
-                        upperLimit: "100",
-                        showValue: "1",
-                        numberSuffix: "%",
-                        theme: "gammel",
-                        baseFontSize: "14",
-                        captionFontSize: "20",
-                        subcaptionFontSize: "12",
-                        gaugeFillMix: "{light-10},{light-20},{light-30}",
-                        gaugeFillRatio: "40,20,40",
-                        valueBelowPivot: "1",
-                        valuePadding: "20"
-                    },
-                    colorRange: {
-                        color: [
-                            { minValue: "0",  maxValue: "50",  code: "#ef4444" },
-                            { minValue: "50", maxValue: "75",  code: "#f59e0b" },
-                            { minValue: "75", maxValue: "100", code: "#10b981" }
-                        ]
-                    },
-                    dials: {
-                        dial: [{
-                            value: value.toString(),
-                            tooltext: "<b>" + value + "%</b> disetujui hari ini",
-                            borderAlpha: "0",
-                            baseWidth: "15",
-                            topWidth: "1",
-                            radius: "150"
-                        }]
-                    },
-                    trendpoints: {
-                        point: [{
-                            startvalue: "100",
-                            displayvalue: " ",
-                            thickness: "3",
-                            color: "#E15A26",
-                            hideValue: "1",
-                            usemarker: "1",
-                            markerbordercolor: "#E15A26",
-                            markertooltext: "Target Approval: 100%"
-                        }]
-                    }
-                }
+                dataSource: dataSource
             }).render();
         }
 
-        function renderAllGauges() {
-            if (!window.FusionCharts) return;
+        function renderNGRateChart() {
+            const canvas = document.getElementById('chart-ng-trend');
+            if (!canvas) return;
+
+            const subData = ngRateDataRaw.sub_assy || [];
+            const inpData = ngRateDataRaw.in_process || [];
+
+            const ctx = canvas.getContext('2d');
+            const W = canvas.parentElement.clientWidth - 32;
+            const H = canvas.parentElement.clientHeight - 32;
+            canvas.width = W;
+            canvas.height = H;
+            ctx.clearRect(0, 0, W, H);
+
+            const padL = 60, padR = 20, padT = 40, padB = 60;
+            const chartW = W - padL - padR;
+            const chartH = H - padT - padB;
+            const n = Math.max(ngLabelsRaw.length, 2);
+
+            const allVals = [...subData, ...inpData].filter(v => v > 0);
+            const maxVal = allVals.length ? Math.max(...allVals) * 1.3 : 5;
+
+            function xPos(i) { return padL + (i / (n - 1)) * chartW; }
+            function yPos(v) { return padT + chartH - (v / maxVal) * chartH; }
+
+            // --- Grid lines
+            ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+            for (let g = 0; g <= 5; g++) {
+                const y = padT + (g / 5) * chartH;
+                ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + chartW, y); ctx.stroke();
+                const val = maxVal * (1 - g / 5);
+                ctx.fillStyle = '#64748b'; ctx.font = '11px Inter, sans-serif'; ctx.textAlign = 'right';
+                ctx.fillText(val.toFixed(1) + '%', padL - 8, y + 4);
+            }
+
+            // --- X-axis labels in Indonesian "DD-Mon" format
+            const bulanID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '10px Inter, sans-serif';
+            ngLabelsRaw.forEach((rawDate, i) => {
+                if (i % 3 === 0) {
+                    const parts = rawDate.split('-');
+                    const day = parseInt(parts[2]);
+                    const mon = bulanID[parseInt(parts[1]) - 1] || '';
+                    ctx.fillText(`${day}-${mon}`, xPos(i), padT + chartH + 18);
+                }
+            });
+
+            // --- Draw lines
+            function drawLine(data, color) {
+                ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 4;
+                ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+                let started = false;
+                data.forEach((v, i) => {
+                    const x = xPos(i), y = yPos(v);
+                    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                data.forEach((v, i) => {
+                    if (v > 0) {
+                        ctx.beginPath(); ctx.arc(xPos(i), yPos(v), 4, 0, Math.PI * 2);
+                        ctx.fillStyle = color; ctx.fill();
+                    }
+                });
+            }
+            drawLine(subData, '#3b82f6');
+            drawLine(inpData, '#f59e0b');
+
+            // --- Legend bottom
+            const legendY = padT + chartH + 42;
+            const centerX = (padL + padL + chartW) / 2;
+            ctx.font = 'bold 12px Inter, sans-serif'; ctx.textAlign = 'left';
+            ctx.fillStyle = '#3b82f6'; ctx.fillRect(centerX - 120, legendY - 10, 26, 4);
+            ctx.fillStyle = '#334155'; ctx.fillText('Sub-Assy', centerX - 90, legendY);
+            ctx.fillStyle = '#f59e0b'; ctx.fillRect(centerX + 20, legendY - 10, 26, 4);
+            ctx.fillStyle = '#334155'; ctx.fillText('In-Process', centerX + 50, legendY);
+
+        }
+
+        function killWatermark() {
+            const cleaner = () => {
+                const watermarks = document.querySelectorAll('svg g[style*="cursor:pointer"], svg g[style*="cursor: pointer"], text');
+                watermarks.forEach(el => {
+                    if (el.textContent.toLowerCase().includes('fusioncharts')) {
+                        el.style.setProperty('display', 'none', 'important');
+                        // If it's a group containing the text, hide the whole group
+                        if(el.tagName === 'text' && el.parentNode) {
+                            el.parentNode.style.setProperty('display', 'none', 'important');
+                        }
+                    }
+                });
+            };
             
+            // Run immediately and then multiple times to catch late renders
+            cleaner();
+            setTimeout(cleaner, 100);
+            setTimeout(cleaner, 500);
+            setTimeout(cleaner, 1000);
+            setTimeout(cleaner, 3000);
+        }
+        
+        // Continuous observer to keep it hidden during transitions/refreshes
+        const observer = new MutationObserver(() => killWatermark());
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        function renderAllGauges() {
+            // Canvas chart (instant, no library needed)
+            calculateActivity();
+            renderNGRateChart();
+
+            // FusionCharts gauges (rendered when library is ready)
+            if (!window.FusionCharts) return;
+            const subAssyRate = calculateRate('subAssy');
+            const inProcessRate = calculateRate('inProcess');
+
             FusionCharts.ready(function() {
-                renderGauge("gauge-subassy", "Sub-Assy", calculateRate(JSON_STATS.statsSubAssy));
-                renderGauge("gauge-inprocess", "In-Process", calculateRate(JSON_STATS.statsInProcess));
-                renderGauge("gauge-karawang", "Karawang", calculateRate(JSON_STATS.statsKarawang));
+                renderGauge("gauge-subassy-activity", "Utility", subAssyRate);
+                renderGauge("gauge-inprocess-activity", "Utility", inProcessRate);
+                const cloneGauge = document.getElementById('gauge-subassy-activity-clone');
+                if(cloneGauge) {
+                    renderGauge("gauge-subassy-activity-clone", "Utility", subAssyRate);
+                }
+                killWatermark();
             });
         }
 
         async function syncData() {
             try {
-                // Fetch the entire page as HTML to extract updated monitoring cards
+                // Fetch the HTML for workstation cards first
                 const res = await fetch('/dashboard/tv?plant=karawang', {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const html = await res.text();
                 
-                // Use DOMParser to extract the new data
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                // 1. Update the Slides Content (Meja, Machine, Stats, and Clone)
-                const newWrapper = doc.getElementById('slides-wrapper');
-                const currentWrapper = document.getElementById('slides-wrapper');
-                if (newWrapper && currentWrapper) {
-                    // Update innerHTML but preserve the current transform state
-                    currentWrapper.innerHTML = newWrapper.innerHTML;
+                // Update workstation cards but EXCLUDE chart containers to prevent re-render
+                const newCards = doc.querySelectorAll('.station-card:not(:has([id^="gauge-"])):not(:has([id^="chart-"]))');
+                const currentCards = document.querySelectorAll('.station-card:not(:has([id^="gauge-"])):not(:has([id^="chart-"]))');
+                
+                newCards.forEach((card, i) => {
+                    if(currentCards[i]) currentCards[i].innerHTML = card.innerHTML;
+                });
+
+                // Fetch the JSON for chart data
+                const resData = await fetch('/dashboard/tv?plant=karawang', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const jsonData = await resData.json();
+                
+                if (jsonData.ngRateData) {
+                    ngRateDataRaw = jsonData.ngRateData.karawang || [];
+                    ngLabelsRaw = jsonData.ngRateData.labels || [];
                 }
 
-                // 2. Update internal stats for gauges
-                const newStatsJson = doc.getElementById('dashboard-stats');
-                if (newStatsJson) {
-                    const newStats = JSON.parse(newStatsJson.textContent);
-                    Object.assign(JSON_STATS, newStats);
-                    // Refresh gauges if we are on the stats slide
-                    const currentIdx = Math.abs(parseFloat(slidesWrapper.style.transform.replace('translateX(', '').replace('%)', ''))) / 100 || 0;
-                    if (Math.round(currentIdx) % slides.length === 2) {
-                        renderAllGauges();
-                    }
-                }
+                // Update activity levels & charts
+                calculateActivity();
+                renderAllGauges();
                 
-                console.log('Data synced successfully');
+                console.log('Data and Charts synced successfully');
 
             } catch (e) {
                 console.warn("Polling Sync failed", e);
+            }
+        }
+
+        async function fetchDefects() {
+            try {
+                const res = await fetch('/dashboard/tv/defects', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+
+                function buildTable(bodyId, totalId, items, total) {
+                    const body = document.getElementById(bodyId);
+                    const totalEl = document.getElementById(totalId);
+                    if (!body) return;
+                    if (!items || items.length === 0) {
+                        body.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-slate-400 italic text-xs">Tidak ada data NG</td></tr>';
+                        if (totalEl) totalEl.textContent = 'Total: 0 pcs';
+                        return;
+                    }
+                    if (totalEl) totalEl.textContent = `Total: ${total} pcs`;
+                    body.innerHTML = items.map(d => {
+                        const color = d.pct >= 30 ? 'text-red-600 font-black' : (d.pct >= 10 ? 'text-amber-600 font-bold' : 'text-slate-700 font-semibold');
+                        return `<tr>
+                            <td class="py-1.5 pr-2 text-sm font-medium text-slate-700 leading-snug">${d.type}</td>
+                            <td class="py-1.5 text-right text-sm font-black ${color}">${d.qty}</td>
+                            <td class="py-1.5 text-right text-sm font-bold ${color}">${d.pct}%</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                buildTable('defect-sub-body', 'defect-sub-total', data.sub_assy?.items, data.sub_assy?.total);
+                buildTable('defect-inp-body', 'defect-inp-total', data.in_process?.items, data.in_process?.total);
+
+            } catch (e) {
+                console.warn('Defect fetch failed', e);
             }
         }
 
@@ -691,10 +890,15 @@
         setInterval(updateClock, 1000);
         setInterval(switchSlide, SLIDE_TIME);
         setInterval(syncData, POLL_TIME);
-        
+
+        // Initial First Render
         FusionCharts.ready(() => {
-            if(activeIdx === 2) renderAllGauges();
+            renderAllGauges();
         });
+
+        // Load defect detail panel immediately
+        fetchDefects();
+        setInterval(fetchDefects, POLL_TIME);
 
         timerBar.style.transition = `width ${SLIDE_TIME}ms linear`;
         timerBar.style.width = '100%';
