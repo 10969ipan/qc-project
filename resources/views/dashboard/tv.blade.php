@@ -207,7 +207,7 @@
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Outgoing Sub-Assy</h2>
                     </div>
                     <span class="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full border border-green-200 uppercase">
-                        {{ $activeLines->count() }} Meja Aktif
+                       RUNNING  {{ $activeLines->count() }} 
                     </span>
                 </div>
                 <!-- Grid optimized for 15 Meja -->
@@ -300,7 +300,7 @@
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">In-Process Injection</h2>
                     </div>
                     <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-0.5 rounded-full border border-blue-200 uppercase">
-                        {{ $activeMachines->count() }} Mesin Aktif
+                       RUNNING {{ $activeMachines->count() }}
                     </span>
                 </div>
                 <!-- Grid optimized for Karawang Machines -->
@@ -707,6 +707,28 @@
             }
             drawLine(subData, '#3b82f6');
             drawLine(inpData, '#f59e0b');
+
+            // --- Last data point labels
+            function drawLastLabel(data, color, offset) {
+                if (!data || data.length === 0) return;
+                const val = data[data.length - 1];
+                const x = xPos(data.length - 1);
+                const y = yPos(val);
+
+                ctx.font = 'black 16px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                
+                // Shadow for readability
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = 'rgba(255,255,255,0.8)';
+                ctx.fillStyle = color;
+                ctx.fillText(`${val.toFixed(2)}%`, x + 10, y + offset);
+                
+                // Reset shadow
+                ctx.shadowBlur = 0;
+            }
+            drawLastLabel(subData, '#3b82f6', -5);
+            drawLastLabel(inpData, '#f59e0b', 15);
 
             // --- Legend bottom
             const legendY = padT + chartH + 42;
