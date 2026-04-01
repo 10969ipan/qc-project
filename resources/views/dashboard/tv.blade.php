@@ -253,6 +253,15 @@
                                                 <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
                                                 <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
                                             </div>
+                                            <div class="mt-2 border-t border-slate-50 pt-1">
+                                                <div class="flex justify-between items-end">
+                                                    <span class="text-[7px] text-slate-400 uppercase font-black tracking-widest leading-none">STATUS</span>
+                                                    <span class="text-xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                                </div>
+                                                <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
+                                                    <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
+                                                </div>
+                                            </div>
                                         @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
                                             <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center">
                                                 <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
@@ -444,6 +453,15 @@
                                             <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
                                             <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
                                             <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                        </div>
+                                        <div class="mt-2 border-t border-slate-50 pt-1">
+                                            <div class="flex justify-between items-end">
+                                                <span class="text-[7px] text-slate-400 uppercase font-black tracking-widest leading-none">STATUS</span>
+                                                <span class="text-xl font-black leading-none {{ $data->judgment === 'OK' ? 'text-green-600' : 'text-red-600' }}">{{ $data->judgment }}</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
+                                                <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
+                                            </div>
                                         </div>
                                     @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
                                         <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center">
