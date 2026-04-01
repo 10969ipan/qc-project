@@ -405,13 +405,6 @@
                                 <span class="ml-auto text-sm font-bold text-slate-400" id="defect-sub-total">—</span>
                             </div>
                             <table class="w-full">
-                                <thead>
-                                    <tr class="text-slate-400 uppercase tracking-wider text-xs border-b border-slate-200">
-                                        <th class="text-left pb-2 font-bold">Jenis Defect</th>
-                                        <th class="text-right pb-2 font-bold">Pcs</th>
-                                        <th class="text-right pb-2 font-bold">%</th>
-                                    </tr>
-                                </thead>
                                 <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-sub-body">
                                     <tr><td colspan="3" class="text-center py-4 text-slate-400 italic">Loading…</td></tr>
                                 </tbody>
@@ -424,13 +417,6 @@
                                 <span class="ml-auto text-sm font-bold text-slate-400" id="defect-inp-total">—</span>
                             </div>
                             <table class="w-full">
-                                <thead>
-                                    <tr class="text-slate-400 uppercase tracking-wider text-xs border-b border-slate-200">
-                                        <th class="text-left pb-2 font-bold">Jenis Defect</th>
-                                        <th class="text-right pb-2 font-bold">Pcs</th>
-                                        <th class="text-right pb-2 font-bold">%</th>
-                                    </tr>
-                                </thead>
                                 <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-inp-body">
                                     <tr><td colspan="3" class="text-center py-4 text-slate-400 italic">Loading…</td></tr>
                                 </tbody>
