@@ -537,18 +537,19 @@
         };
 
         function calculateActivity() {
-            // Count badges from current DOM
-            const slideSub = document.getElementById('slide-subassy');
-            const slideInp = document.getElementById('slide-inprocess');
-            
-            if(slideSub) {
-                const active = slideSub.querySelectorAll('.bg-green-100').length;
-                activityStats.subAssy.active = active;
+            // Count ONLY station cards with status RUNNING (not STAND BY / TROUBLE / IDLE)
+            function countRunning(slideId) {
+                const slide = document.getElementById(slideId);
+                if (!slide) return 0;
+                let count = 0;
+                // Select all status badge spans and check if their text contains 'RUNNING'
+                slide.querySelectorAll('.station-card span.bg-green-100').forEach(el => {
+                    if (el.textContent.toUpperCase().includes('RUNNING')) count++;
+                });
+                return count;
             }
-            if(slideInp) {
-                const active = slideInp.querySelectorAll('.bg-green-100').length;
-                activityStats.inProcess.active = active;
-            }
+            activityStats.subAssy.active   = countRunning('slide-subassy');
+            activityStats.inProcess.active = countRunning('slide-inprocess');
         }
 
         function updateClock() {
