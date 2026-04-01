@@ -206,8 +206,8 @@
                     <div class="flex items-center gap-4">
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Outgoing Sub-Assy</h2>
                     </div>
-                    <span class="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full border border-green-200 uppercase">
-                       RUNNING  {{ $activeLines->count() }} 
+                    <span class="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full border border-green-200 uppercase header-status-badge">
+                       RUNNING <span class="active-count">{{ $activeLines->count() }}</span>
                     </span>
                 </div>
                 <!-- Grid optimized for 15 Meja -->
@@ -299,8 +299,8 @@
                     <div class="flex items-center gap-4">
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">In-Process Injection</h2>
                     </div>
-                    <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-0.5 rounded-full border border-blue-200 uppercase">
-                       RUNNING {{ $activeMachines->count() }}
+                    <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-0.5 rounded-full border border-blue-200 uppercase header-status-badge">
+                       RUNNING <span class="active-count">{{ $activeMachines->count() }}</span>
                     </span>
                 </div>
                 <!-- Grid optimized for Karawang Machines -->
@@ -384,6 +384,9 @@
                 <div class="p-3.5 bg-slate-50/50 border-b flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Monitoring Rate NG - Karawang</h2>
+                        <span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200 uppercase flex items-center gap-1.5 shadow-sm">
+                           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> LIVE
+                        </span>
                     </div>
                     <span class="bg-red-100 text-red-700 text-xs font-black px-3 py-1 rounded-full border border-red-200 uppercase">
                         30 Day Trend
@@ -715,12 +718,12 @@
                 const x = xPos(data.length - 1);
                 const y = yPos(val);
 
-                ctx.font = 'black 16px Inter, sans-serif';
+                ctx.font = 'bold 16px Inter, sans-serif';
                 ctx.textAlign = 'left';
                 
-                // Shadow for readability
+                // Shadow / Glow for clarity on background
                 ctx.shadowBlur = 4;
-                ctx.shadowColor = 'rgba(255,255,255,0.8)';
+                ctx.shadowColor = 'white';
                 ctx.fillStyle = color;
                 ctx.fillText(`${val.toFixed(2)}%`, x + 10, y + offset);
                 
@@ -805,6 +808,13 @@
                 
                 newCards.forEach((card, i) => {
                     if(currentCards[i]) currentCards[i].innerHTML = card.innerHTML;
+                });
+
+                // Update Header counts
+                const newHeaders = doc.querySelectorAll('.header-status-badge .active-count');
+                const currHeaders = document.querySelectorAll('.header-status-badge .active-count');
+                newHeaders.forEach((h, i) => {
+                    if(currHeaders[i]) currHeaders[i].innerHTML = h.innerHTML;
                 });
 
                 // Fetch the JSON for chart data
