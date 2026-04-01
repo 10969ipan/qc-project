@@ -223,8 +223,8 @@
                                     elseif ($isStopped) $statusText = 'OFF';
                                     elseif ($isActive) $statusText = 'RUNNING';
                                 @endphp
-                                <div class="station-card flex flex-col p-2.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
-                                    <div class="flex justify-between items-center mb-1 border-b border-slate-50 pb-1">
+                                <div class="station-card flex flex-col p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                    <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
                                         <h3 class="text-xl font-extrabold text-slate-800 tracking-tighter capitalize">MEJA-{{ $i }}</h3>
                                         @if($isTrouble)
                                             <span class="text-[9px] bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse">
@@ -247,10 +247,10 @@
 
                                     <div class="flex-1 flex flex-col pt-1.5 min-h-0">
                                         @if($isActive)
-                                            <div class="flex-1 flex flex-col justify-center space-y-2">
+                                            <div class="flex-1 flex flex-col justify-center space-y-3">
                                                 <div class="flex justify-between text-[14px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[13px] leading-tight">{{ $data->item->name }}</span></div>
                                                 <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                                <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
+                                                <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1.5 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
                                                 <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
                                             </div>
                                             <div class="mt-2 border-t border-slate-50 pt-1">
@@ -312,8 +312,8 @@
                                     elseif ($isStopped) $statusText = 'OFF';
                                     elseif ($isActive) $statusText = 'RUNNING';
                                 @endphp
-                                <div class="station-card flex flex-col p-1.5 bg-white border-2 border-slate-100 rounded-xl shadow-sm h-full min-h-0 overflow-hidden">
-                                    <div class="flex justify-between items-center mb-1 border-b border-slate-50 pb-1">
+                                <div class="station-card flex flex-col p-6 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                    <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
                                         <div>
                                             <h3 class="text-base font-extrabold text-slate-800 tracking-tighter leading-none">MESIN-{{ $i }}</h3>
                                             <p class="text-[9px] font-bold text-slate-400 tracking-tighter mt-0.5">({{ $tonnage }})</p>
@@ -343,7 +343,7 @@
 
                                     <div class="flex-1 flex flex-col pt-1">
                                         @if($isActive)
-                                            <div class="flex-1 flex flex-col justify-center space-y-1.5">
+                                            <div class="flex-1 flex flex-col justify-center space-y-3">
                                                 <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->name }}</span></div>
                                                 <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-700 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
                                                 <div class="flex justify-between text-[12px] items-center"><span class="text-slate-500 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-700 text-right">{{ $data->created_at->format('H:i') }} WIB</span></div>
@@ -429,8 +429,8 @@
                             $statusLabel = $isActive ? 'OK' : ($isTrouble ? 'NG' : ($isMaintenance ? 'MAIN' : 'IDLE'));
                         @endphp
                         <div class="station-container relative h-full min-h-0">
-                            <div class="station-card flex flex-col p-1.5 bg-white border-2 border-slate-100 rounded-xl shadow-sm h-full min-h-0 overflow-hidden">
-                                <div class="flex justify-between items-center mb-1 border-b border-slate-50 pb-1">
+                            <div class="station-card flex flex-col p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
                                     <div>
                                         <h3 class="text-base font-extrabold text-slate-800 tracking-tighter leading-none">MEJA-{{ $i }}</h3>
                                     </div>
@@ -448,10 +448,10 @@
                                 </div>
                                 <div class="flex-1 flex flex-col pt-1.5">
                                     @if($isActive)
-                                        <div class="flex-1 flex flex-col justify-center space-y-2">
+                                        <div class="flex-1 flex flex-col justify-center space-y-3">
                                             <div class="flex justify-between text-[14px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[13px] leading-tight">{{ $data->item->name }}</span></div>
                                             <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
-                                            <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
+                                            <div class="flex justify-between text-[12px] items-center border-t border-slate-50 pt-1.5 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
                                             <div class="flex justify-between text-[12px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
                                         </div>
                                         <div class="mt-2 border-t border-slate-50 pt-1">
@@ -601,7 +601,9 @@
                         captionFontSize: "20",
                         subcaptionFontSize: "12",
                         gaugeFillMix: "{light-10},{light-20},{light-30}",
-                        gaugeFillRatio: "40,20,40"
+                        gaugeFillRatio: "40,20,40",
+                        valueBelowPivot: "1",
+                        valuePadding: "20"
                     },
                     colorRange: {
                         color: [
