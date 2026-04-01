@@ -666,20 +666,14 @@
                     currentWrapper.innerHTML = newWrapper.innerHTML;
                 }
 
-                // 2. Update JSON stats for gauges
-                const newStatsScript = doc.getElementById('dashboard-stats');
-                if (newStatsScript) {
-                    const newData = JSON.parse(newStatsScript.textContent);
-                    JSON_STATS.statsSubAssy = newData.statsSubAssy;
-                    JSON_STATS.statsInProcess = newData.statsInProcess;
-                // Update internal stats for gauges
+                // 2. Update internal stats for gauges
                 const newStatsJson = doc.getElementById('dashboard-stats');
                 if (newStatsJson) {
                     const newStats = JSON.parse(newStatsJson.textContent);
                     Object.assign(JSON_STATS, newStats);
                     // Refresh gauges if we are on the stats slide
-                    const activeIdx = Math.abs(parseFloat(slidesWrapper.style.transform.replace('translateX(', '').replace('%)', ''))) / 100 || 0;
-                    if (activeIdx % slides.length === 2) {
+                    const currentIdx = Math.abs(parseFloat(slidesWrapper.style.transform.replace('translateX(', '').replace('%)', ''))) / 100 || 0;
+                    if (Math.round(currentIdx) % slides.length === 2) {
                         renderAllGauges();
                     }
                 }
