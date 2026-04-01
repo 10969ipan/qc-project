@@ -487,7 +487,8 @@
     <script id="dashboard-stats" type="application/json">
         {
             "statsSubAssy": @json($dailyStatsSubAssy),
-            "statsInProcess": @json($dailyStatsInProcess)
+            "statsInProcess": @json($dailyStatsInProcess),
+            "statsKarawang": @json($dailyStatsKarawang)
         }
     </script>
 
@@ -564,9 +565,20 @@
 
         function calculateRate(stats) {
             if (!stats) return 0;
-            const total = (stats.approved || 0) + (stats.pending || 0) + (stats.rejected || 0);
-            if (total === 0) return 0;
-            return Math.round(((stats.approved || 0) / total) * 100);
+            
+            // Handled = Approved + Rejected
+            const handled = (stats.approved || 0) + (stats.rejected || 0);
+            
+            // Late Pending = Items created > 24h ago that are still pending
+            const latePending = (stats.pending_late || 0);
+            
+            // Total "Due" = Handled + Late Pending
+            const totalDue = handled + latePending;
+            
+            if (totalDue === 0) return 100; // No overdue items = 100% compliance
+            
+            // Rate = Handled / Total Due
+            return Math.min(100, Math.round((handled / totalDue) * 100));
         }
 
         function renderGauge(container, label, value) {
@@ -579,7 +591,7 @@
                 dataFormat: "json",
                 dataSource: {
                     chart: {
-                        caption: label + " Approval Rate",
+                        caption: label + " Compliance Rate",
                         lowerLimit: "0",
                         upperLimit: "100",
                         showValue: "1",
@@ -630,6 +642,7 @@
             FusionCharts.ready(function() {
                 renderGauge("gauge-subassy", "Sub-Assy", calculateRate(JSON_STATS.statsSubAssy));
                 renderGauge("gauge-inprocess", "In-Process", calculateRate(JSON_STATS.statsInProcess));
+                renderGauge("gauge-karawang", "Karawang", calculateRate(JSON_STATS.statsKarawang));
             });
         }
 
@@ -659,14 +672,19 @@
                     const newData = JSON.parse(newStatsScript.textContent);
                     JSON_STATS.statsSubAssy = newData.statsSubAssy;
                     JSON_STATS.statsInProcess = newData.statsInProcess;
+                // Update internal stats for gauges
+                const newStatsJson = doc.getElementById('dashboard-stats');
+                if (newStatsJson) {
+                    const newStats = JSON.parse(newStatsJson.textContent);
+                    Object.assign(JSON_STATS, newStats);
+                    // Refresh gauges if we are on the stats slide
+                    const activeIdx = Math.abs(parseFloat(slidesWrapper.style.transform.replace('translateX(', '').replace('%)', ''))) / 100 || 0;
+                    if (activeIdx % slides.length === 2) {
+                        renderAllGauges();
+                    }
                 }
                 
-                // 3. Refresh gauges if we are on the stats slide
-                if (activeIdx % slides.length === 2) {
-                    renderAllGauges();
-                }
-
-                console.log("Dashboard Sync: Data updated successfully.");
+                console.log('Data synced successfully');
 
             } catch (e) {
                 console.warn("Polling Sync failed", e);
