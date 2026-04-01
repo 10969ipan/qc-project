@@ -234,6 +234,10 @@
                                             <span class="text-[9px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
                                                 <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> RUNNING
                                             </span>
+                                        @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                            <span class="text-[9px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
+                                                <i class="fas fa-hourglass-half text-[10px]"></i> STAND BY
+                                            </span>
                                         @else
                                             <span class="text-[9px] bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
                                                 <i class="fas fa-pause text-[8px]"></i> IDLE
@@ -248,6 +252,11 @@
                                                 <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
                                                 <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">{{ $data->created_at->format('H:i') }}</span></div>
                                                 <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                            </div>
+                                        @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                            <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center">
+                                                <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
+                                                <p class="text-[12px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
                                             </div>
                                         @else
                                             <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
@@ -308,6 +317,12 @@
                                             <span class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider">
                                                 <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> RUNNING
                                             </span>
+                                        @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                            <div class="flex items-center gap-1 px-1.5 py-0.5 border border-slate-200 rounded-full bg-slate-50">
+                                                <span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest flex items-center gap-1">
+                                                    <i class="fas fa-hourglass-half text-[8px]"></i> STAND BY
+                                                </span>
+                                            </div>
                                         @else
                                             <div class="flex items-center gap-1 px-1.5 py-0.5 border border-slate-200 rounded-full bg-slate-50">
                                                 <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1">
@@ -333,6 +348,11 @@
                                                 <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
                                                     <div class="{{ $data->judgment === 'OK' ? 'bg-green-500' : 'bg-red-500' }} h-full" style="width: 100%"></div>
                                                 </div>
+                                            </div>
+                                        @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                            <div class="flex flex-col items-center justify-center opacity-70 h-full mt-1 w-full text-center">
+                                                <div class="text-2xl font-black text-slate-800 tracking-tighter">STAND BY</div>
+                                                <p class="text-[12px] font-bold text-slate-500 uppercase mt-0.5 tracking-widest italic leading-tight">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
                                             </div>
                                         @else
                                             <div class="flex flex-col items-center justify-center opacity-30 h-full mt-1">
@@ -411,6 +431,8 @@
                                         <span class="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">MAIN</span>
                                     @elseif($isActive)
                                         <span class="bg-green-100 text-green-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">OK</span>
+                                    @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                        <span class="flex items-center gap-1 bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase"><i class="fas fa-hourglass-half"></i> STAND BY</span>
                                     @else
                                         <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">IDLE</span>
                                     @endif
@@ -422,6 +444,11 @@
                                             <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right">{{ $data->item->part_number }}</span></div>
                                             <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-1 mt-1"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600 tracking-tighter">{{ $data->created_at->format('H:i') }}</span></div>
                                             <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase">{{ $qcName }}</span></div>
+                                        </div>
+                                    @elseif($manualStatus && ($manualStatus->status === 'standby' || $manualStatus->status === 'stopped'))
+                                        <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center">
+                                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
+                                            <p class="text-[12px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">{{ $manualStatus->description ?: 'Waiting MP' }}</p>
                                         </div>
                                     @else
                                         <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
