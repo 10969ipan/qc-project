@@ -389,38 +389,9 @@
                         30 Day Trend
                     </span>
                 </div>
-                <!-- Split Layout: Chart Left | Defect Table Right -->
-                <div class="flex-1 flex gap-0 min-h-0 overflow-hidden">
-                    <!-- Left: Line Chart 60% -->
-                    <div class="flex-1 p-4 min-h-0" style="position:relative;">
-                        <canvas id="chart-ng-trend" style="width:100%;height:100%;"></canvas>
-                    </div>
-                    <!-- Right: Defect Detail Panel 40% -->
-                    <div class="w-[38%] border-l border-slate-100 p-5 flex flex-col gap-4 overflow-auto bg-slate-50/30" id="defect-panel">
-                        <!-- Sub-Assy Table -->
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="w-4 h-4 rounded-full bg-blue-500 inline-block"></span>
-                                <h3 class="text-base font-black text-slate-700 uppercase tracking-widest">Sub-Assy NG</h3>
-                            </div>
-                            <table class="w-full">
-                                <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-sub-body">
-                                    <tr><td colspan="3" class="text-center py-4 text-slate-400 italic">Loading…</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="border-t-2 border-slate-200 pt-4">
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="w-4 h-4 rounded-full bg-amber-400 inline-block"></span>
-                                <h3 class="text-base font-black text-slate-700 uppercase tracking-widest">In-Process NG</h3>
-                            </div>
-                            <table class="w-full">
-                                <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-inp-body">
-                                    <tr><td colspan="3" class="text-center py-4 text-slate-400 italic">Loading…</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <!-- Full Width Line Chart -->
+                <div class="flex-1 p-6 min-h-0" style="position:relative;">
+                    <canvas id="chart-ng-trend" style="width:100%;height:100%;"></canvas>
                 </div>
             </div>
         </section>
@@ -684,7 +655,7 @@
             canvas.height = H;
             ctx.clearRect(0, 0, W, H);
 
-            const padL = 60, padR = 20, padT = 40, padB = 60;
+            const padL = 60, padR = 60, padT = 40, padB = 60;
             const chartW = W - padL - padR;
             const chartH = H - padT - padB;
             const n = Math.max(ngLabelsRaw.length, 2);
@@ -836,39 +807,6 @@
             }
         }
 
-        async function fetchDefects() {
-            try {
-                const res = await fetch('/dashboard/tv/defects', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await res.json();
-
-                function buildTable(bodyId, totalId, items, total) {
-                    const body = document.getElementById(bodyId);
-                    const totalEl = document.getElementById(totalId);
-                    if (!body) return;
-                    if (!items || items.length === 0) {
-                        body.innerHTML = '';
-                        return;
-                    }
-                    body.innerHTML = items.map(d => {
-                        const color = d.pct >= 30 ? 'text-red-600 font-black' : (d.pct >= 10 ? 'text-amber-600 font-bold' : 'text-slate-700 font-semibold');
-                        return `<tr>
-                            <td class="py-1.5 pr-2 text-sm font-medium text-slate-700 leading-snug">${d.type}</td>
-                            <td class="py-1.5 text-right text-sm font-black ${color}">${d.qty}</td>
-                            <td class="py-1.5 text-right text-sm font-bold ${color}">${d.pct}%</td>
-                        </tr>`;
-                    }).join('');
-                }
-
-                buildTable('defect-sub-body', 'defect-sub-total', data.sub_assy?.items, data.sub_assy?.total);
-                buildTable('defect-inp-body', 'defect-inp-total', data.in_process?.items, data.in_process?.total);
-
-            } catch (e) {
-                console.warn('Defect fetch failed', e);
-            }
-        }
-
         updateClock();
         setInterval(updateClock, 1000);
         setInterval(switchSlide, SLIDE_TIME);
@@ -878,10 +816,6 @@
         FusionCharts.ready(() => {
             renderAllGauges();
         });
-
-        // Load defect detail panel immediately
-        fetchDefects();
-        setInterval(fetchDefects, POLL_TIME);
 
         timerBar.style.transition = `width ${SLIDE_TIME}ms linear`;
         timerBar.style.width = '100%';
