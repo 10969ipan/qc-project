@@ -402,7 +402,6 @@
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="w-4 h-4 rounded-full bg-blue-500 inline-block"></span>
                                 <h3 class="text-base font-black text-slate-700 uppercase tracking-widest">Sub-Assy NG</h3>
-                                <span class="ml-auto text-sm font-bold text-slate-400" id="defect-sub-total">—</span>
                             </div>
                             <table class="w-full">
                                 <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-sub-body">
@@ -414,7 +413,6 @@
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="w-4 h-4 rounded-full bg-amber-400 inline-block"></span>
                                 <h3 class="text-base font-black text-slate-700 uppercase tracking-widest">In-Process NG</h3>
-                                <span class="ml-auto text-sm font-bold text-slate-400" id="defect-inp-total">—</span>
                             </div>
                             <table class="w-full">
                                 <tbody class="text-slate-700 divide-y divide-slate-100" id="defect-inp-body">
@@ -850,11 +848,9 @@
                     const totalEl = document.getElementById(totalId);
                     if (!body) return;
                     if (!items || items.length === 0) {
-                        body.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-slate-400 italic text-xs">Tidak ada data NG</td></tr>';
-                        if (totalEl) totalEl.textContent = 'Total: 0 pcs';
+                        body.innerHTML = '';
                         return;
                     }
-                    if (totalEl) totalEl.textContent = `Total: ${total} pcs`;
                     body.innerHTML = items.map(d => {
                         const color = d.pct >= 30 ? 'text-red-600 font-black' : (d.pct >= 10 ? 'text-amber-600 font-bold' : 'text-slate-700 font-semibold');
                         return `<tr>
