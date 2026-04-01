@@ -48,6 +48,11 @@ class DashboardController extends Controller
      */
     public function tvIndex(Request $request)
     {
+        // Force Karawang for TV Dashboard unless explicitly overridden by URL
+        if (!$request->has('plant')) {
+            $request->merge(['plant' => 'karawang']);
+        }
+
         $data = $this->dashboardService->getDashboardData();
 
         if ($request->ajax()) {

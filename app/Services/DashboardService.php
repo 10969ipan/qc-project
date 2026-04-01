@@ -48,17 +48,26 @@ class DashboardService extends BaseService
             $productionJakarta = [];
             $productionKarawang = [];
 
+            $dailyStatsSubAssy = null;
+            $dailyStatsInProcess = null;
+
             if (in_array($authRole, $dualViewRoles)) {
                 $statsJakarta = $this->calculateApprovalStats('jakarta');
                 $statsKarawang = $this->calculateApprovalStats('karawang');
-
+                
                 $dailyStatsJakarta = $this->calculateApprovalStats('jakarta', true);
                 $dailyStatsKarawang = $this->calculateApprovalStats('karawang', true);
 
+                $targetPlant = request('plant') ?: 'karawang';
+                $dailyStatsSubAssy = $this->calculateApprovalStats($targetPlant, true, 'sub_assy');
+                $dailyStatsInProcess = $this->calculateApprovalStats($targetPlant, true, 'in_process');
+
                 $productionJakarta = $this->getProductionMonitoring('jakarta');
                 $productionKarawang = $this->getProductionMonitoring('karawang');
+            } else {
+                $dailyStatsSubAssy = $this->calculateApprovalStats(null, true, 'sub_assy');
+                $dailyStatsInProcess = $this->calculateApprovalStats(null, true, 'in_process');
             }
-
             $productionMonitoring = $this->getProductionMonitoring(); // Default
 
             $activeReport = MonthlyReport::where('is_active', true)->first();
@@ -100,7 +109,7 @@ class DashboardService extends BaseService
             $claimFrequency = $this->getClaimFrequencyData();
 
             return array_merge(
-                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView', 'claimFrequency'),
+                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'dailyStatsSubAssy', 'dailyStatsInProcess', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView', 'claimFrequency'),
                 $productionMonitoring
             );
         })();
@@ -109,7 +118,7 @@ class DashboardService extends BaseService
     /**
      * Calculate global approval statistics
      */
-    private function calculateApprovalStats(?string $plantOverride = null, bool $dailyOnly = false): array
+    private function calculateApprovalStats(?string $plantOverride = null, bool $dailyOnly = false, ?string $type = null): array
     {
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
         // Use override if provided, otherwise check request or auth user
@@ -122,14 +131,21 @@ class DashboardService extends BaseService
             $plantCode = Plant::where('id', $plantId)->value('code');
         }
 
-        $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly);
-        $this->processModelStats(InProcessChecksheet::class, $stats, $plantId, $dailyOnly);
-        $this->processModelStats(FirstPieceApproval::class, $stats, $plantId, $dailyOnly);
+        if (!$type || $type === 'sub_assy') {
+            $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly);
+        }
 
-        // Jakarta only shows Sub Assy and In Process per user request
-        if ($plantCode !== 'jakarta') {
-            $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly);
-            $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly);
+        if (!$type || $type === 'in_process') {
+            $this->processModelStats(InProcessChecksheet::class, $stats, $plantId, $dailyOnly);
+            $this->processModelStats(FirstPieceApproval::class, $stats, $plantId, $dailyOnly);
+        }
+
+        if (!$type) {
+            // Jakarta only shows Sub Assy and In Process per user request
+            if ($plantCode !== 'jakarta') {
+                $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly);
+                $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly);
+            }
         }
 
         return $stats;
@@ -138,39 +154,57 @@ class DashboardService extends BaseService
     private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false): void
     {
         $table = (new $modelClass)->getTable();
-        $hasKaru = Schema::hasColumn($table, 'karu_qc');
+        
+        // Define all possible signature columns across different models
+        $potentialColumns = ['kashift_qc', 'supervisor_qc', 'karu_qc', 'asst_manager_qc', 'manager_qc'];
+        $columns = [];
+        foreach ($potentialColumns as $col) {
+            if (Schema::hasColumn($table, $col)) {
+                $columns[] = $col;
+            }
+        }
+        
+        if (empty($columns)) return;
 
-        $columns = ['kashift_qc', 'supervisor_qc'];
-        if ($hasKaru)
-            $columns[] = 'karu_qc';
-
-        $dateColumn = in_array($modelClass, [CrossCutChecksheet::class, CrossCutPaintingChecksheet::class]) ? 'production_datetime' : 'date';
+        // Default column names are 'date' or 'check_date' depending on model implementation
+        $dateColumn = 'date';
+        if (Schema::hasColumn($table, 'check_date')) {
+            $dateColumn = 'check_date';
+        } elseif (Schema::hasColumn($table, 'production_datetime')) {
+            $dateColumn = 'production_datetime';
+        }
 
         // Define what is considered "Late" (more than 24 hours since creation)
         $lateThreshold = now()->subHours(24);
 
+        $query = DB::table($table);
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        if ($dailyOnly) {
+            // "24 jam kemarin dan hari ini" = Yesterday and Today
+            $query->whereDate($dateColumn, '>=', now()->subDay()->toDateString());
+        }
+
+        // Build a single aggregated query for all columns to ensure atomicity and performance
+        $selects = [];
         foreach ($columns as $column) {
-            $query = DB::table($table);
-            if ($plantId) {
-                $query->where('plant_id', $plantId);
+            $selects[] = "SUM(CASE WHEN UPPER($column) = 'REJECTED' THEN 1 ELSE 0 END) as {$column}_rejected";
+            $selects[] = "SUM(CASE WHEN $column IS NOT NULL AND $column != '' AND UPPER($column) != 'REJECTED' THEN 1 ELSE 0 END) as {$column}_approved";
+            $selects[] = "SUM(CASE WHEN ($column IS NULL OR $column = '') THEN 1 ELSE 0 END) as {$column}_pending";
+            $selects[] = "SUM(CASE WHEN ($column IS NULL OR $column = '') AND created_at < '{$lateThreshold}' THEN 1 ELSE 0 END) as {$column}_pending_late";
+        }
+
+        $results = $query->selectRaw(implode(', ', $selects))->first();
+
+        if ($results) {
+            foreach ($columns as $column) {
+                $stats['rejected'] += (int) ($results->{"{$column}_rejected"} ?? 0);
+                $stats['approved'] += (int) ($results->{"{$column}_approved"} ?? 0);
+                $stats['pending'] += (int) ($results->{"{$column}_pending"} ?? 0);
+                $stats['pending_late'] = ($stats['pending_late'] ?? 0) + (int) ($results->{"{$column}_pending_late"} ?? 0);
             }
-
-            if ($dailyOnly) {
-                // Window covers Today and Yesterday
-                $query->whereDate($dateColumn, '>=', now()->subDay()->toDateString());
-            }
-
-            $results = $query->selectRaw("
-                SUM(CASE WHEN $column = 'REJECTED' THEN 1 ELSE 0 END) as rejected,
-                SUM(CASE WHEN $column IS NOT NULL AND $column != '' AND $column != 'REJECTED' THEN 1 ELSE 0 END) as approved,
-                SUM(CASE WHEN ($column IS NULL OR $column = '') THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN ($column IS NULL OR $column = '') AND created_at < ? THEN 1 ELSE 0 END) as pending_late
-            ", [$lateThreshold])->first();
-
-            $stats['rejected'] += (int) $results->rejected;
-            $stats['approved'] += (int) $results->approved;
-            $stats['pending'] += (int) $results->pending;
-            $stats['pending_late'] = ($stats['pending_late'] ?? 0) + (int) $results->pending_late;
         }
     }
 
@@ -212,9 +246,10 @@ class DashboardService extends BaseService
 
     private function fetchActiveLines($date, $shift, $plantId)
     {
+        // Change logic to fetch LATEST record for each line within last 48 hours
+        // This ensures the TV always has "Active" data similar to what's at the top of the index page
         $query = SubAssyChecksheet::with('item')
-            ->whereDate('date', $date)
-            ->where('shift', $shift)
+            ->where('created_at', '>=', now()->subHours(48))
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
 
@@ -229,9 +264,9 @@ class DashboardService extends BaseService
 
     private function fetchActiveMachines($date, $shift, $plantId)
     {
+        // Change logic to fetch LATEST record for each machine within last 48 hours
         $inProcessQuery = InProcessChecksheet::with('item')
-            ->whereDate('date', $date)
-            ->where('shift', $shift)
+            ->where('created_at', '>=', now()->subHours(48))
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc');
 
@@ -240,8 +275,7 @@ class DashboardService extends BaseService
         }
 
         $fpaQuery = FirstPieceApproval::with('item')
-            ->whereDate('date', $date)
-            ->where('shift', $shift)
+            ->where('created_at', '>=', now()->subHours(48))
             ->whereNotNull('code_machine')
             ->orderBy('created_at', 'desc');
 
