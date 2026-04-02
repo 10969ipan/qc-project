@@ -756,8 +756,8 @@
                     }
                 });
             }
-            drawValueLabels(subData, '#3b82f6', -10); // Above the point
-            drawValueLabels(inpData, '#f59e0b', 20);  // Below the point to avoid overlap
+            drawValueLabels(subData, '#3b82f6', -15);
+            drawValueLabels(inpData, '#f59e0b', -15);
 
             // --- Legend bottom
             const legendY = padT + chartH + 42;
