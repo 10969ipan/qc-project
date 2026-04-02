@@ -733,6 +733,35 @@
             drawLastLabel(subData, '#3b82f6', -5);
             drawLastLabel(inpData, '#f59e0b', 15);
 
+            // --- Peak data point labels
+            function drawPeakLabel(data, color) {
+                if (!data || data.length === 0) return;
+                let maxVal = -1;
+                let maxIdx = -1;
+                data.forEach((v, i) => {
+                    if (v > maxVal) { maxVal = v; maxIdx = i; }
+                });
+                
+                if (maxIdx === -1 || maxVal === 0) return;
+
+                const x = xPos(maxIdx);
+                const y = yPos(maxVal);
+
+                ctx.font = 'bold 14px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                
+                // Shadow / Glow for clarity on background
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = 'white';
+                ctx.fillStyle = color;
+                ctx.fillText(`${maxVal.toFixed(2)}%`, x, y - 10);
+                
+                // Reset shadow
+                ctx.shadowBlur = 0;
+            }
+            drawPeakLabel(subData, '#3b82f6');
+            drawPeakLabel(inpData, '#f59e0b');
+
             // --- Legend bottom
             const legendY = padT + chartH + 42;
             const centerX = (padL + padL + chartW) / 2;
