@@ -122,6 +122,8 @@
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-name="{{ $item->name }}"
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    data-customer="{{ $item->customer ?? '' }}"
                                                     data-description="{{ $item->description ?? '' }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
@@ -358,6 +360,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -365,6 +368,7 @@
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
+            window.initItemSearch('item_id');
         });
     </script>
 @endpush
