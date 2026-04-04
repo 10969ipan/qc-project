@@ -141,9 +141,11 @@ class InProcessChecksheetService extends BaseService
         }
 
         if (!empty($filters['item_id'])) {
-            $query->where('items.id', $filters['item_id'])
-                ->leftJoin('items', 'in_process_checksheets.item_id', '=', 'items.id')
-                ->select('in_process_checksheets.*');
+            $query->where('in_process_checksheets.item_id', $filters['item_id']);
+        }
+
+        if (!empty($filters['operator_initials'])) {
+            $query->where('in_process_checksheets.operator_initials', $filters['operator_initials']);
         }
 
         if (!empty($filters['customer'])) {
@@ -396,7 +398,9 @@ class InProcessChecksheetService extends BaseService
                 'quantity' => $data['quantity'] ?? null,
                 'unique_code_id' => $data['unique_code_id'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
-                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
+                'next_proses' => ($data['judgment'] === 'NG') 
+                    ? ($data['next_proses'] ?: 'SORTIR') 
+                    : null,
             ]);
 
             // Clear manual machine status override
@@ -496,7 +500,9 @@ class InProcessChecksheetService extends BaseService
                 'dimension_check' => $dimensionCheck,
                 'defects' => $defects,
                 'part_weight' => $data['part_weight'] ?? null,
-                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
+                'next_proses' => ($data['judgment'] === 'NG') 
+                    ? ($data['next_proses'] ?: 'SORTIR') 
+                    : null,
                 'qrcode' => $data['qrcode'] ?? null,
                 'part_code' => $data['part_code'] ?? null,
                 'supplier_id' => $data['supplier_id'] ?? null,

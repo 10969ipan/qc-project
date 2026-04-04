@@ -315,7 +315,9 @@ class CrossCutCreate {
         };
 
         const loadFile = (itemId, index) => {
+            if (!itemId) return; // guard: no item selected
             const url = this.config.pdfUrlPattern.replace('ID_PLACEHOLDER', itemId).replace('INDEX_PLACEHOLDER', index);
+            if (!url || url.trim() === '') return; // guard: empty path
             this.pdf.doc = null;
             this.pdf.page = 1;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -326,8 +328,8 @@ class CrossCutCreate {
                 this.pdf.doc = pdfDoc;
                 renderPage(1);
             }).catch(err => {
-                console.error(err);
-                alert('Error loading PDF.');
+                console.warn('PDF load warning:', err);
+                // Silently ignore path errors — item simply has no PDF
             });
         };
 
@@ -359,15 +361,18 @@ class CrossCutCreate {
             const container = $('#imageContainer');
             let html = '';
 
-            if (files && files.length > 0) {
-                html += `<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="${id}" data-count="${files.length}"><i class="fas fa-file-pdf"></i> PDF (${files.length})</button>`;
+            // Guard: only show PDF button if files array has valid non-empty entries
+            const validFiles = Array.isArray(files) ? files.filter(f => f && f.trim && f.trim() !== '') : [];
+
+            if (validFiles.length > 0) {
+                html += `<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="${id}" data-count="${validFiles.length}"><i class="fas fa-file-pdf"></i> PDF (${validFiles.length})</button>`;
             }
             if (img) {
-                html += `<img src="${img}" class="img-thumbnail" style="max-width: 100px; max-height: 80px; cursor: pointer; display:block; margin: 0 auto;" data-toggle="modal" data-target="#imageModal" data-image="${img}" data-title="${opt.data('name')}" data-description="${opt.data('description')}">`;
+                html += `<img src="${img}" class="img-thumbnail" style="max-width: 100px; max-height: 80px; cursor: pointer; display:block; margin: 0 auto;" data-toggle="modal" data-target="#imageModal" data-image="${img}" data-title="${opt.data('name')}" data-description="${opt.data('description')}">` ;
             }
             if (!html) html = '<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>';
             
-            container.html(files && files.length > 0 && img ? `<div class="d-flex flex-column align-items-center">${html}</div>` : html);
+            container.html(validFiles.length > 0 && img ? `<div class="d-flex flex-column align-items-center">${html}</div>` : html);
         });
     }
 
@@ -494,7 +499,14 @@ class CrossCutCreate {
         $('#checksheetForm')[0].reset();
         $('#imageContainer').html('<i class="fas fa-image fa-2x text-gray-300"></i>');
         $('#previewBtn').hide();
-        $('#saveBtn').prop('disabled', true);
+        
+        // Kembalikan tombol Ambil Gambar ke semula
+        $('#fileName').text('');
+        $('#captureBtnText').html('<i class="fas fa-camera"></i> Buka Kamera / Pilih Foto');
+        $('#captureBtn').removeClass('btn-warning').addClass('btn-primary');
+        
+        // Kembalikan tombol Simpan Data ke semula
+        $('#saveBtn').prop('disabled', true).html('<i class="fas fa-save fa-sm"></i> Simpan Data');
     }
 }
 

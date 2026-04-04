@@ -11,7 +11,6 @@ class InProcessIndex {
 
     init() {
         this.initCharacterCounter();
-        this.initLiveSearch();
         this.initEditModal();
         this.initStatusModal();
         this.initAjaxForms();
@@ -26,29 +25,6 @@ class InProcessIndex {
         });
     }
 
-    initLiveSearch() {
-        const liveSearchInput = document.getElementById('liveSearch');
-        if (liveSearchInput) {
-            let searchTimeout;
-            liveSearchInput.addEventListener('keyup', function () {
-                const searchTerm = this.value.trim();
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    const startDate = document.getElementById('start_date').value;
-                    const endDate = document.getElementById('end_date').value;
-                    const plant = new URLSearchParams(window.location.search).get('plant') || '';
-
-                    const params = new URLSearchParams();
-                    if (searchTerm) params.append('search', searchTerm);
-                    if (startDate) params.append('start_date', startDate);
-                    if (endDate) params.append('end_date', endDate);
-                    if (plant) params.append('plant', plant);
-
-                    window.location.href = window.location.pathname + '?' + params.toString();
-                }, 500);
-            });
-        }
-    }
 
     initEditModal() {
         $(document).on('click', '.btn-edit-modal', function (e) {

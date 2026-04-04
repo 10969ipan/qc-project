@@ -198,4 +198,20 @@ document.addEventListener('DOMContentLoaded', function () {
             $('#global-loader').fadeOut();
         }, 5000);
     });
+    // Global Native Validation Indonesian Translation
+    document.addEventListener('invalid', (function () {
+        return function (e) {
+            e.preventDefault();
+            const target = e.target;
+            if (target.validity.valueMissing) {
+                target.setCustomValidity('Harap isi bidang ini.');
+            } else if (target.validity.typeMismatch && target.type === 'email') {
+                target.setCustomValidity('Harap masukkan alamat email yang valid.');
+            }
+        };
+    })(), true);
+
+    document.addEventListener('input', function (e) {
+        e.target.setCustomValidity('');
+    });
 });

@@ -4,7 +4,7 @@
     $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'oshef']);
 @endphp
 
-<nav class="navbar topbar static-top shadow px-4 d-flex align-items-center justify-content-between">
+<nav class="navbar topbar static-top shadow px-4 d-flex align-items-center justify-content-between flex-nowrap">
     <div class="d-flex align-items-center flex-grow-1">
         <button class="menu-toggle mr-2" id="mobile-menu-toggle">
             <i class="fas fa-bars"></i>
@@ -19,138 +19,138 @@
             </div>
         @endif
 
-        <div class="nav-menu-container" id="topbar-nav-menu">
+        <div class="nav-menu-container flex-grow-1" id="topbar-nav-menu" style="z-index: 1000;">
             <div class="mobile-header d-lg-none px-4 py-3 font-weight-bold text-white"
                 style="background: rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.2); font-size: 0.9rem; letter-spacing: 1px;">
                 QC APPS
             </div>
             <ul class="main-nav d-flex align-items-center list-unstyled mb-0">
-                @foreach($dynamicMenus ?? [] as $menu)
-                    @php
-                        $menuRoutePath = trim($menu->route, '/');
-                        $isActive = false;
-                        
-                        if ($menu->route && $menu->route !== '#') {
-                            if ($menuRoutePath === '') { // Root path '/'
-                                $isActive = request()->is('/');
-                            } else {
-                                $isActive = request()->is($menuRoutePath . '*') || request()->routeIs($menu->route);
-                            }
-                        }
-
-                        if (!$isActive) {
-                            foreach($menu->children as $c) {
-                                $cPath = trim($c->route, '/');
-                                if ($c->route && $c->route !== '#' && $cPath !== '') {
-                                    if (request()->is($cPath . '*') || request()->routeIs($c->route)) { $isActive = true; break; }
-                                } elseif ($c->route === '/' || $cPath === '') {
-                                    if (request()->is('/')) { $isActive = true; break; }
+                    @foreach($dynamicMenus ?? [] as $menu)
+                        @php
+                            $menuRoutePath = trim($menu->route, '/');
+                            $isActive = false;
+                            
+                            if ($menu->route && $menu->route !== '#') {
+                                if ($menuRoutePath === '') { // Root path '/'
+                                    $isActive = request()->is('/');
+                                } else {
+                                    $isActive = request()->is($menuRoutePath . '*') || request()->routeIs($menu->route);
                                 }
-                                
-                                foreach($c->children as $gc) {
-                                    $gcPath = trim($gc->route, '/');
-                                    if ($gc->route && $gc->route !== '#' && $gcPath !== '') {
-                                        if (request()->is($gcPath . '*') || request()->routeIs($gc->route)) { $isActive = true; break; }
-                                    } elseif ($gc->route === '/' || $gcPath === '') {
+                            }
+
+                            if (!$isActive) {
+                                foreach($menu->children as $c) {
+                                    $cPath = trim($c->route, '/');
+                                    if ($c->route && $c->route !== '#' && $cPath !== '') {
+                                        if (request()->is($cPath . '*') || request()->routeIs($c->route)) { $isActive = true; break; }
+                                    } elseif ($c->route === '/' || $cPath === '') {
                                         if (request()->is('/')) { $isActive = true; break; }
                                     }
+                                    
+                                    foreach($c->children as $gc) {
+                                        $gcPath = trim($gc->route, '/');
+                                        if ($gc->route && $gc->route !== '#' && $gcPath !== '') {
+                                            if (request()->is($gcPath . '*') || request()->routeIs($gc->route)) { $isActive = true; break; }
+                                        } elseif ($gc->route === '/' || $gcPath === '') {
+                                            if (request()->is('/')) { $isActive = true; break; }
+                                        }
+                                    }
+                                    if ($isActive) break;
                                 }
-                                if ($isActive) break;
                             }
-                        }
-                    @endphp
-                    
-                    @if($menu->children->isEmpty())
-                        <li class="{{ $isActive ? 'active' : '' }}">
-                            <a href="{{ $menu->route ? (Route::has($menu->route) ? route($menu->route) : url($menu->route)) : '#' }}" 
-                               @if($menu->is_maintenance) 
-                                 class="menu-maintenance-trigger" 
-                                 data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
-                                 onclick="return false;" 
-                               @endif>
-                               <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }}
-                            </a>
-                        </li>
-                    @else
-                        <li class="dropdown-item-hover @if($menu->is_maintenance) menu-maintenance @endif">
-                            <a href="#" class="{{ $isActive ? 'expanded' : '' }} @if($menu->is_maintenance) menu-maintenance-trigger @endif"
-                               @if($menu->is_maintenance) 
-                                 data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
-                                 onclick="return false;" 
-                               @endif>
-                               <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }} <i class="fas fa-chevron-down ml-1 small"></i>
-                            </a>
-                            <ul class="dropdown-menu">
-                                @foreach($menu->children as $child)
-                                    @php
-                                        $childPlant = $child->plant_code;
-                                        $childUrl = $child->route ? (Route::has($child->route) ? route($child->route, $childPlant ? ['plant' => $childPlant] : []) : url($child->route)) : '#';
-                                    @endphp
-                                    @if($child->children->isEmpty())
-                                        <li>
-                                            <a class="dropdown-item @if($child->is_maintenance) menu-maintenance-trigger @endif" href="{{ $childUrl }}"
-                                               @if($child->is_maintenance) 
-                                                 data-message="{{ $child->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
-                                                 onclick="return false;" 
-                                               @endif>
-                                               {{ $child->name }}
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="has-submenu">
-                                            <a href="#" class="dropdown-item d-flex justify-content-between">{{ $child->name }} <i class="fas fa-chevron-right small"></i></a>
-                                            <ul class="dropdown-menu sub-menu">
-                                                @foreach($child->children as $grand)
-                                                    @php
-                                                        $grandPlant = $grand->plant_code ?: $childPlant;
-                                                        $grandUrl = $grand->route ? (Route::has($grand->route) ? route($grand->route, $grandPlant ? ['plant' => $grandPlant] : []) : url($grand->route)) : '#';
-                                                    @endphp
-                                                    @if($grand->children->isEmpty())
-                                                        <li>
-                                                            <a class="dropdown-item @if($grand->is_maintenance) menu-maintenance-trigger @endif" href="{{ $grandUrl }}"
-                                                           @if($grand->is_maintenance) 
-                                                             data-message="{{ $grand->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
-                                                             onclick="return false;" 
-                                                           @endif>
-                                                           {{ $grand->name }}
-                                                        </a>
-                                                        </li>
-                                                    @else
-                                                        <li class="has-submenu">
-                                                            <a href="#" class="dropdown-item d-flex justify-content-between">{{ $grand->name }} <i class="fas fa-chevron-right small"></i></a>
-                                                            <ul class="dropdown-menu sub-menu">
-                                                                @foreach($grand->children as $sub)
-                                                                    @php
-                                                                        $subPlant = $sub->plant_code ?: $grandPlant;
-                                                                        $subUrl = $sub->route ? (Route::has($sub->route) ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : url($sub->route)) : '#';
-                                                                    @endphp
-                                                                    <li>
-                                                                        <a class="dropdown-item @if($sub->is_maintenance) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
-                                                                       @if($sub->is_maintenance) 
-                                                                         data-message="{{ $sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
-                                                                         onclick="return false;" 
-                                                                       @endif>
-                                                                       {{ $sub->name }}
-                                                                    </a>
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
-                                                        </li>
-                                                    @endif
-                                                @endforeach
-                                            </ul>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
-                        </li>
-                    @endif
-                @endforeach
-            </ul>
+                        @endphp
+                        
+                        @if($menu->children->isEmpty())
+                            <li class="{{ $isActive ? 'active' : '' }}">
+                                <a href="{{ $menu->route ? (Route::has($menu->route) ? route($menu->route) : url($menu->route)) : '#' }}" 
+                                @if($menu->is_maintenance) 
+                                    class="menu-maintenance-trigger" 
+                                    data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                    onclick="return false;" 
+                                @endif>
+                                <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }}
+                                </a>
+                            </li>
+                        @else
+                            <li class="dropdown-item-hover @if($menu->is_maintenance) menu-maintenance @endif">
+                                <a href="#" class="{{ $isActive ? 'expanded' : '' }} @if($menu->is_maintenance) menu-maintenance-trigger @endif"
+                                @if($menu->is_maintenance) 
+                                    data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                    onclick="return false;" 
+                                @endif>
+                                <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }} <i class="fas fa-chevron-down ml-1 small"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    @foreach($menu->children as $child)
+                                        @php
+                                            $childPlant = $child->plant_code;
+                                            $childUrl = $child->route ? (Route::has($child->route) ? route($child->route, $childPlant ? ['plant' => $childPlant] : []) : url($child->route)) : '#';
+                                        @endphp
+                                        @if($child->children->isEmpty())
+                                            <li>
+                                                <a class="dropdown-item @if($child->is_maintenance) menu-maintenance-trigger @endif" href="{{ $childUrl }}"
+                                                    @if($child->is_maintenance) 
+                                                    data-message="{{ $child->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                    onclick="return false;" 
+                                                    @endif>
+                                                    {{ $child->name }}
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="has-submenu">
+                                                <a href="#" class="dropdown-item d-flex justify-content-between">{{ $child->name }} <i class="fas fa-chevron-right small"></i></a>
+                                                <ul class="dropdown-menu sub-menu">
+                                                    @foreach($child->children as $grand)
+                                                        @php
+                                                            $grandPlant = $grand->plant_code ?: $childPlant;
+                                                            $grandUrl = $grand->route ? (Route::has($grand->route) ? route($grand->route, $grandPlant ? ['plant' => $grandPlant] : []) : url($grand->route)) : '#';
+                                                        @endphp
+                                                        @if($grand->children->isEmpty())
+                                                            <li>
+                                                                <a class="dropdown-item @if($grand->is_maintenance) menu-maintenance-trigger @endif" href="{{ $grandUrl }}"
+                                                                @if($grand->is_maintenance) 
+                                                                    data-message="{{ $grand->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                    onclick="return false;" 
+                                                                @endif>
+                                                                {{ $grand->name }}
+                                                            </a>
+                                                            </li>
+                                                        @else
+                                                            <li class="has-submenu">
+                                                                <a href="#" class="dropdown-item d-flex justify-content-between">{{ $grand->name }} <i class="fas fa-chevron-right small"></i></a>
+                                                                <ul class="dropdown-menu sub-menu">
+                                                                    @foreach($grand->children as $sub)
+                                                                        @php
+                                                                            $subPlant = $sub->plant_code ?: $grandPlant;
+                                                                            $subUrl = $sub->route ? (Route::has($sub->route) ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : url($sub->route)) : '#';
+                                                                        @endphp
+                                                                        <li>
+                                                                            <a class="dropdown-item @if($sub->is_maintenance) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
+                                                                            @if($sub->is_maintenance) 
+                                                                                data-message="{{ $sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                                onclick="return false;" 
+                                                                            @endif>
+                                                                            {{ $sub->name }}
+                                                                        </a>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            </li>
+                                                        @endif
+                                                    @endforeach
+                                                </ul>
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </li>
+                        @endif
+                    @endforeach
+                </ul>
         </div>
     </div>
 
-    <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center flex-shrink-0">
         <div class="dropdown no-arrow mx-2">
             <a class="nav-link dropdown-toggle text-white p-0" href="#" id="alertsDropdown" role="button"
                 data-toggle="dropdown">
@@ -251,6 +251,7 @@
         .main-nav > li {
             position: relative;
             margin: 0 2px;
+            z-index: 1001;
         }
 
         .main-nav > li > a {
@@ -293,6 +294,7 @@
             overflow-y: auto;  /* Enable vertical scroll */
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            z-index: 1050 !important;
         }
 
         #topbar-nav-menu .dropdown-menu::-webkit-scrollbar {

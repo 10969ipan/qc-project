@@ -138,9 +138,9 @@
                                     <div class="form-group mb-2">
                                         <label>Tgl. & Shift Produksi</label>
                                         <div class="input-group">
-                                            <input type="date" class="form-control" name="production_date"
+                                            <input type="date" class="form-control" name="production_date" id="productionDateInput"
                                                 value="{{ $defaultDate }}" required>
-                                            <select class="form-control" name="production_shift" required>
+                                            <select class="form-control" name="production_shift" id="productionShiftInput" required>
                                                 <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
                                                 </option>
                                                 <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
@@ -155,7 +155,7 @@
                                         <div class="input-group">
                                             <input type="date" class="form-control" name="qc_date"
                                                 value="{{ $defaultDate }}" required>
-                                            <select class="form-control" name="qc_shift" required>
+                                            <select class="form-control" name="qc_shift" id="qcShiftInput" required>
                                                 <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
                                                 </option>
                                                 <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
@@ -200,16 +200,26 @@
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
                                         </select>
+                                     </div>
+                                    <div class="form-group mb-0">
+                                        <label>No Lot QC</label>
+                                        <div class="position-relative">
+                                            <input type="text" class="form-control" name="position_remark_no_lot" id="noLotInput" placeholder="Auto atau ketik manual..." autocomplete="off" required>
+                                            <small id="noLotHint" class="text-muted d-none" style="font-size:11px;"></small>
+                                        </div>
                                     </div>
-                                    <div class="form-group mb-0"><label>No Lot QC</label><input type="text"
-                                            class="form-control" name="position_remark_no_lot" required></div>
                                 </td>
                                 <!-- Result Remark -->
-                                <td class="align-middle"><input type="text" class="form-control" name="result_remark">
+                                <td class="align-middle">
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" name="result_remark" id="resultRemarkInput"
+                                            placeholder="Auto atau ketik manual..." autocomplete="off">
+                                        <small id="remarkHint" class="text-muted d-none" style="font-size:11px;"></small>
+                                    </div>
                                 </td>
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" name="operator_initials"
+                                    <input type="text" class="form-control text-center" name="operator_initials" id="operatorInitialsInput"
                                         placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
                                 </td>
                                 <!-- Keterangan -->
@@ -361,7 +371,7 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
-    <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
+    <script src="{{ asset('js/checksheet/cross-cut.js') }}?v={{ time() }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.initCrossCutCreate({
@@ -369,6 +379,138 @@
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
             window.initItemSearch('item_id');
+
+            // --- Auto-fill Result Remark ---
+            var nextRemarkUrl = "{{ route('cross_cut.next_remark') }}";
+            var itemSelect    = document.getElementById('item_id');
+            var remarkInput   = document.getElementById('resultRemarkInput');
+            var remarkHint    = document.getElementById('remarkHint');
+
+            function fetchNextRemark() {
+                var itemId = itemSelect ? itemSelect.value : '';
+                var initials = initialsInput ? initialsInput.value : '';
+
+                if (!itemId) {
+                    remarkInput.readOnly = false;
+                    remarkInput.value = '';
+                    remarkHint.classList.add('d-none');
+                    return;
+                }
+
+                fetch(nextRemarkUrl + '?item_id=' + encodeURIComponent(itemId) + '&operator_initials=' + encodeURIComponent(initials), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.remark && data.count > 0) {
+                        // Has previous records: auto-fill & lock, allow manual override on click
+                        remarkInput.value    = data.remark;
+                        remarkInput.readOnly = true;
+                        remarkInput.title    = 'Klik untuk edit manual';
+                        remarkHint.textContent = '\u2139 Auto: ' + data.count + ' data sebelumnya ditemukan. Klik untuk ubah.';
+                        remarkHint.classList.remove('d-none');
+
+                        remarkInput.onclick = function() {
+                            remarkInput.readOnly = false;
+                            remarkInput.title    = '';
+                            remarkHint.textContent = '\u270F Mode manual aktif.';
+                        };
+                    } else if (data.remark) {
+                        // First time for this item: suggest but keep editable
+                        remarkInput.value    = data.remark;
+                        remarkInput.readOnly = false;
+                        remarkHint.textContent = '\u2713 Pertama kali untuk item ini. Bisa diedit.';
+                        remarkHint.classList.remove('d-none');
+                    } else {
+                        // No initials configured: manual
+                        remarkInput.value    = '';
+                        remarkInput.readOnly = false;
+                        remarkHint.classList.add('d-none');
+                    }
+                })
+                .catch(function() {
+                    remarkInput.readOnly = false;
+                });
+            }
+
+            if (itemSelect) {
+                itemSelect.addEventListener('change', function() {
+                    fetchNextRemark();
+                });
+                // Trigger on page load if item already selected (e.g. after validation error)
+                if (itemSelect.value) fetchNextRemark();
+            }
+
+            // --- Auto-fill No Lot QC ---
+            var nextNoLotUrl     = "{{ route('cross_cut.next_no_lot') }}";
+            var prodDateInput    = document.getElementById('productionDateInput');
+            var prodShiftInput   = document.getElementById('productionShiftInput');
+            var qcShiftInput     = document.getElementById('qcShiftInput');
+            var initialsInput    = document.getElementById('operatorInitialsInput');
+            var noLotInput       = document.getElementById('noLotInput');
+            var noLotHint        = document.getElementById('noLotHint');
+
+            function fetchNextNoLot() {
+                var itemId = itemSelect ? itemSelect.value : '';
+                var prodDate = prodDateInput ? prodDateInput.value : '';
+                var prodShift = prodShiftInput ? prodShiftInput.value : '1';
+                var qcShift = qcShiftInput ? qcShiftInput.value : '1';
+                var initials = initialsInput ? initialsInput.value : '';
+
+                if (!itemId || !prodDate || !initials) {
+                    noLotInput.readOnly = false;
+                    noLotHint.classList.add('d-none');
+                    return;
+                }
+
+                var queryParams = '?item_id=' + encodeURIComponent(itemId) +
+                                  '&production_date=' + encodeURIComponent(prodDate) +
+                                  '&production_shift=' + encodeURIComponent(prodShift) +
+                                  '&qc_shift=' + encodeURIComponent(qcShift) +
+                                  '&operator_initials=' + encodeURIComponent(initials);
+
+                fetch(nextNoLotUrl + queryParams, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.no_lot) {
+                        noLotInput.value = data.no_lot;
+                        noLotInput.readOnly = false; // Always editable based on user preference
+                        noLotHint.textContent = '\u2139 Format otomatis diterapkan. Ubah manual jika perlu.';
+                        noLotHint.classList.remove('d-none');
+                    } else {
+                        noLotInput.readOnly = false;
+                        noLotHint.classList.add('d-none');
+                    }
+                })
+                .catch(function(e) {
+                    console.error('Failed to fetch auto no lot:', e);
+                    noLotInput.readOnly = false;
+                });
+            }
+
+            // Helper to delay network requests on typing
+            function debounce(func, wait) {
+                var timeout;
+                return function() {
+                    var context = this, args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() { func.apply(context, args); }, wait);
+                };
+            }
+
+            if (itemSelect) itemSelect.addEventListener('change', fetchNextNoLot);
+            if (prodDateInput) prodDateInput.addEventListener('change', fetchNextNoLot);
+            if (prodShiftInput) prodShiftInput.addEventListener('change', fetchNextNoLot);
+            if (qcShiftInput) qcShiftInput.addEventListener('change', fetchNextNoLot);
+            if (initialsInput) initialsInput.addEventListener('input', debounce(function() {
+                fetchNextNoLot();
+                fetchNextRemark();
+            }, 500));
+
+            // Trigger fetch on page load if values are already filled
+            setTimeout(fetchNextNoLot, 300);
         });
     </script>
 @endpush

@@ -74,7 +74,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Laporan Cross Cut Painting</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('cross_cut_painting.index') }}" method="GET" class="mb-4">
+            <form action="{{ route('cross_cut_painting.index') }}" method="GET" class="mb-4" id="filterFormPainting">
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                 <div class="row align-items-end">
                     <!-- Live Search -->
@@ -119,9 +119,13 @@
                                     class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('cross_cut_painting.export_pdf', request()->all()) }}"
-                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF" target="_blank">
+                                <a href="{{ route('cross_cut_painting.export_pdf') }}"
+                                    class="btn btn-danger btn-sm no-loader" title="Export to PDF" target="_blank">
                                     <i class="fas fa-file-pdf"></i> Export
+                                </a>
+                                <a href="{{ route('cross_cut_painting.print') }}"
+                                    class="btn btn-success btn-sm no-loader ml-2" title="Print" target="_blank">
+                                    <i class="fas fa-print"></i> Print
                                 </a>
                             </div>
                         </div>
@@ -427,6 +431,48 @@
                 docNo: 'QC-KRW-F-0193',
                 approveRoute: "{{ route('cross_cut_painting.approve', ['id' => ':id', 'type' => ':type']) }}"
             });
+
+            // Link Synchronization (Sync Print/Export links with current filter selections)
+            var form = document.getElementById('filterFormPainting');
+            if (form) {
+                function syncExportLinks() {
+                    var baseUrlPrint = "{{ route('cross_cut_painting.print') }}";
+                    var baseUrlPdf = "{{ route('cross_cut_painting.export_pdf') }}";
+                    
+                    var params = new URLSearchParams();
+                    var formData = new FormData(form);
+                    for (var pair of formData.entries()) {
+                        if (pair[1]) params.append(pair[0], pair[pair[0] === 'search' ? 'search' : pair[0]]); // Key fix: FormData uses name attribute
+                        if (pair[1]) params.set(pair[0], pair[1]);
+                    }
+                    
+                    var queryString = params.toString();
+                    
+                    var printBtn = form.querySelector('a[title="Print"]');
+                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    
+                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
+                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                }
+
+                $(form).find('input, select').on('change', syncExportLinks);
+                $(form).find('input[type="text"]').on('input', syncExportLinks);
+                syncExportLinks();
+
+                $(form).on('submit', function(e) {
+                    var startDate = document.getElementById('start_date').value;
+                    var endDate = document.getElementById('end_date').value;
+
+                    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Rentang Tanggal Tidak Valid',
+                            text: 'Tanggal Akhir tidak boleh lebih kecil dari Tanggal Mulai!'
+                        });
+                    }
+                });
+            }
         });
     </script>
     @php $bulkApproveRoute = route('cross_cut_painting.bulk_approve'); @endphp

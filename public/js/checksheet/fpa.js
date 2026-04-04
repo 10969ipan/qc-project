@@ -6,7 +6,6 @@ class FpaIndex {
 
     init() {
         this.initCharCounters();
-        this.initLiveSearch();
         this.initModalHandlers();
         this.initAjaxForms();
     }
@@ -27,32 +26,9 @@ class FpaIndex {
         });
     }
 
-    initLiveSearch() {
-        const liveSearchInput = document.getElementById('liveSearch');
-        if (liveSearchInput) {
-            let searchTimeout;
-            liveSearchInput.addEventListener('keyup', () => {
-                const searchTerm = liveSearchInput.value.trim();
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    const startDate = document.getElementById('start_date').value;
-                    const endDate = document.getElementById('end_date').value;
-                    const plant = this.config.plant;
-
-                    const params = new URLSearchParams();
-                    if (searchTerm) params.append('search', searchTerm);
-                    if (startDate) params.append('start_date', startDate);
-                    if (endDate) params.append('end_date', endDate);
-                    if (plant) params.append('plant', plant);
-
-                    window.location.href = `${this.config.routes.index}?${params.toString()}`;
-                }, 500);
-            });
-        }
-    }
 
     initModalHandlers() {
-        $('.btn-edit-modal').on('click', function(e) {
+        $(document).on('click', '.btn-edit-modal', function(e) {
             e.preventDefault();
             const url = $(this).attr('href');
             $('#editModal').modal('show');
@@ -71,7 +47,7 @@ class FpaIndex {
             });
         });
 
-        $('.btn-status-modal').on('click', function(e) {
+        $(document).on('click', '.btn-status-modal', function(e) {
             e.preventDefault();
             const url = $(this).attr('href');
             $('#statusModal').modal('show');

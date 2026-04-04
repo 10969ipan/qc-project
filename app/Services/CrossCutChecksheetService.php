@@ -59,6 +59,16 @@ class CrossCutChecksheetService extends BaseService
             $this->applyApprovalStatusFilter($query, $filters['approval_status']);
         }
 
+        if (!empty($filters['operator_initials'])) {
+            $query->where('operator_initials', $filters['operator_initials']);
+        }
+
+        if (!empty($filters['customer'])) {
+            $query->whereHas('item', function ($q) use ($filters) {
+                $q->where('customer', $filters['customer']);
+            });
+        }
+
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
             $query->where(function ($q) use ($searchTerm) {
@@ -93,7 +103,13 @@ class CrossCutChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             $imagePath = null;
-            if (isset($data['image'])) {
+            if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $realPath = $data['image']->getRealPath();
+                if (!$data['image']->isValid() || empty($realPath) || !file_exists($realPath)) {
+                    $errMsg = $data['image']->getErrorMessage() ?: 'File temporary tidak ditemukan.';
+                    \Log::error("Upload failed in CrossCutChecksheetService. Error: {$errMsg}");
+                    throw new \Exception("Gambar gagal diunggah atau hilang dari server temporer ({$errMsg}). Silakan coba lagi.");
+                }
                 $imagePath = $data['image']->store('cross_cut_images', 'public');
             }
 
@@ -104,7 +120,7 @@ class CrossCutChecksheetService extends BaseService
                 'qc_shift' => $data['qc_shift'],
                 'production_datetime' => $data['production_datetime'],
                 'qc_datetime' => $data['qc_datetime'],
-                'image_path' => $imagePath,
+                'image_path' => (!empty($imagePath)) ? $imagePath : null,
                 'chemical_catalyst' => $data['chemical_catalyst'] ?? null,
                 'chemical_abu' => $data['chemical_abu'] ?? null,
                 'position_remark_judgment' => $data['position_remark_judgment'],
@@ -153,7 +169,14 @@ class CrossCutChecksheetService extends BaseService
             $checksheet = CrossCutChecksheet::findOrFail($id);
 
             $imagePath = $checksheet->image_path;
-            if (isset($data['image'])) {
+            if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $realPath = $data['image']->getRealPath();
+                if (!$data['image']->isValid() || empty($realPath) || !file_exists($realPath)) {
+                    $errMsg = $data['image']->getErrorMessage() ?: 'File temporary tidak ditemukan.';
+                    \Log::error("Upload failed in CrossCutChecksheetService update. Error: {$errMsg}");
+                    throw new \Exception("Gambar gagal diunggah atau hilang dari server temporer ({$errMsg}). Silakan coba lagi.");
+                }
+
                 if ($imagePath && Storage::disk('public')->exists($imagePath)) {
                     Storage::disk('public')->delete($imagePath);
                 }

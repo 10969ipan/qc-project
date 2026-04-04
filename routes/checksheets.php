@@ -44,6 +44,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet/cross-cut/{id}', [CrossCutChecksheetController::class, 'show'])->name('cross_cut.show');
     Route::get('/checksheet/cross-cut/{id}/image', [CrossCutChecksheetController::class, 'serveImage'])->name('cross_cut.image');
     Route::get('/cross_cut/{id}/data', [CrossCutChecksheetController::class, 'getData'])->name('cross_cut.data');
+    Route::get('/api/cross-cut/next-remark', [CrossCutChecksheetController::class, 'getNextResultRemark'])->name('cross_cut.next_remark');
+    Route::get('/api/cross-cut/next-no-lot', [CrossCutChecksheetController::class, 'getAutoNoLot'])->name('cross_cut.next_no_lot');
 
     // Cross Cut Painting
     Route::get('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'create'])->name('cross_cut_painting.create');
@@ -102,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/cross-cut-checksheets/export-pdf', [CrossCutChecksheetController::class, 'exportPdf'])->name('cross_cut.export_pdf');
         Route::get('/report/cross-cut-checksheets/print', [CrossCutChecksheetController::class, 'printView'])->name('cross_cut.print');
         Route::get('/report/cross-cut-painting-checksheets/export-pdf', [CrossCutPaintingChecksheetController::class, 'exportPdf'])->name('cross_cut_painting.export_pdf');
+        Route::get('/report/cross-cut-painting-checksheets/print', [CrossCutPaintingChecksheetController::class, 'printView'])->name('cross_cut_painting.print');
         Route::get('/report/sortir-checksheets/export', [SortirChecksheetController::class, 'export'])->name('sortir.export');
         Route::get('/report/sortir-checksheets/export-pdf', [SortirChecksheetController::class, 'exportPdf'])->name('sortir.export_pdf');
         Route::get('/report/sortir-checksheets/print', [SortirChecksheetController::class, 'printView'])->name('sortir.print');

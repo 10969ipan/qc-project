@@ -89,7 +89,13 @@ class CrossCutPaintingChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             $imagePath = null;
-            if (isset($data['image'])) {
+            if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $realPath = $data['image']->getRealPath();
+                if (!$data['image']->isValid() || empty($realPath) || !file_exists($realPath)) {
+                    $errMsg = $data['image']->getErrorMessage() ?: 'File temporary tidak ditemukan.';
+                    \Log::error("Upload failed in CrossCutPaintingChecksheetService. Error: {$errMsg}");
+                    throw new \Exception("Gambar gagal diunggah atau hilang dari server temporer ({$errMsg}). Silakan coba lagi.");
+                }
                 $imagePath = $data['image']->store('cross_cut_images', 'public');
             }
 
@@ -147,7 +153,14 @@ class CrossCutPaintingChecksheetService extends BaseService
             $checksheet = CrossCutPaintingChecksheet::findOrFail($id);
 
             $imagePath = $checksheet->image_path;
-            if (isset($data['image'])) {
+            if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+                $realPath = $data['image']->getRealPath();
+                if (!$data['image']->isValid() || empty($realPath) || !file_exists($realPath)) {
+                    $errMsg = $data['image']->getErrorMessage() ?: 'File temporary tidak ditemukan.';
+                    \Log::error("Upload failed in CrossCutPaintingChecksheetService update. Error: {$errMsg}");
+                    throw new \Exception("Gambar gagal diunggah atau hilang dari server temporer ({$errMsg}). Silakan coba lagi.");
+                }
+
                 if ($imagePath && Storage::disk('public')->exists($imagePath)) {
                     Storage::disk('public')->delete($imagePath);
                 }

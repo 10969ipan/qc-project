@@ -13,11 +13,20 @@ class UpdateCrossCutChecksheetRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $mergeData = [];
         $now = now();
-        $this->merge([
-            'production_datetime' => $this->production_date ? $this->production_date . ' ' . $now->format('H:i:s') : null,
-            'qc_datetime' => $this->qc_date ? $this->qc_date . ' ' . $now->format('H:i:s') : null,
-        ]);
+
+        if ($this->has('production_date') && !$this->has('production_datetime')) {
+            $mergeData['production_datetime'] = $this->production_date . ' ' . $now->format('H:i:s');
+        }
+
+        if ($this->has('qc_date') && !$this->has('qc_datetime')) {
+            $mergeData['qc_datetime'] = $this->qc_date . ' ' . $now->format('H:i:s');
+        }
+
+        if (!empty($mergeData)) {
+            $this->merge($mergeData);
+        }
     }
 
     public function rules(): array

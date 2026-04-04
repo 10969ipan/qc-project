@@ -427,6 +427,8 @@
                         <label class="small font-weight-bold text-gray-600 mb-1">ALAMAT EMAIL</label>
                         <input type="email" name="email" class="form-control-modern" id="exampleInputEmail"
                             placeholder="nama@email.com" required autofocus
+                            oninvalid="this.setCustomValidity('Harap isi bidang ini.')"
+                            oninput="this.setCustomValidity('')"
                             value="{{ old('email', $saved_email ?? '') }}">
                     </div>
 
@@ -434,7 +436,10 @@
                         <label class="small font-weight-bold text-gray-600 mb-1">KATA SANDI</label>
                         <div class="password-wrapper">
                             <input type="password" name="password" class="form-control-modern" id="exampleInputPassword"
-                                placeholder="••••••••" required value="{{ $saved_password ?? '' }}">
+                                placeholder="••••••••" required
+                                oninvalid="this.setCustomValidity('Harap isi bidang ini.')"
+                                oninput="this.setCustomValidity('')"
+                                value="{{ $saved_password ?? '' }}">
                             <span toggle="#exampleInputPassword" class="fas fa-eye toggle-password"></span>
                         </div>
                     </div>

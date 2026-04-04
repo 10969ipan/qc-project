@@ -43,6 +43,32 @@ class Plant extends Model
             ->value('id');
     }
 
+    /**
+     * Resolve a plant identifier to a name.
+     * 
+     * @param mixed $identifier
+     * @return string|null
+     */
+    public static function resolveName($identifier)
+    {
+        if (empty($identifier))
+            return null;
+
+        if ($identifier instanceof self) {
+            return $identifier->name;
+        }
+
+        if (is_string($identifier) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
+            return self::where('id', $identifier)->value('name');
+        }
+
+        $plant = self::where('name', 'like', $identifier)
+            ->orWhere('code', 'like', $identifier)
+            ->first();
+            
+        return $plant ? $plant->name : (is_string($identifier) ? $identifier : null);
+    }
+
     protected $casts = [
         'is_active' => 'boolean',
     ];

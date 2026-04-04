@@ -154,7 +154,7 @@
                 <div style="position: absolute; top: 0; right: 0; width: 100%; height: 100%; opacity: 0.1; background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
 
                 <div class="row align-items-center position-relative" style="z-index: 2;">
-                    <div class="col-lg-8">
+                    <div class="col-lg-8 text-center text-lg-left">
                         <h4 class="font-weight-bold mb-1">Selamat Datang, {{ Auth::user()->name }}! </h4>
                         <p class="mb-0" style="opacity: 0.9; font-size: 0.9rem;">Quality Department</p>
                         <div class="mt-3">
@@ -163,7 +163,7 @@
                             </span>
                         </div>
                     </div>
-                    <div class="col-lg-4 text-right d-none d-lg-block">
+                    <div class="col-lg-4 text-center text-lg-right mt-3 mt-lg-0 d-none d-md-block">
                         <div class="h3 mb-0 font-weight-bold" id="current-date">Loading...</div>
                         <small style="opacity: 0.8; font-size: 0.9rem;"><i class="fas fa-clock mr-1"></i> <span id="current-time"></span> WIB</small>
                     </div>
@@ -195,7 +195,7 @@
 
         
         @if($isDualView || (Auth::user()->plant->code ?? '') !== 'karawang')
-            <div class="{{ $isDualView ? 'col-lg-4' : 'col-lg-6' }} mb-4">
+            <div class="{{ $isDualView ? 'col-xl-4 col-lg-6' : 'col-lg-6' }} col-md-12 mb-4">
                 <div class="modern-card">
                     <div class="modern-card-header d-flex align-items-center">
                         <div class="icon-circle bg-indigo-100 text-indigo-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
@@ -216,7 +216,7 @@
 
         
         @if($isDualView || (Auth::user()->plant->code ?? '') === 'karawang')
-            <div class="{{ $isDualView ? 'col-lg-4' : 'col-lg-6' }} mb-4">
+            <div class="{{ $isDualView ? 'col-xl-4 col-lg-6' : 'col-lg-6' }} col-md-12 mb-4">
                 <div class="modern-card">
                     <div class="modern-card-header d-flex align-items-center">
                         <div class="icon-circle bg-emerald-100 text-emerald-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"
@@ -237,7 +237,7 @@
 
         
         
-        <div class="{{ $isDualView ? 'col-lg-4' : 'col-lg-6' }} mb-4">
+        <div class="{{ $isDualView ? 'col-xl-4 col-lg-6' : 'col-lg-6' }} col-md-12 mb-4">
             <div class="modern-card">
                 <div class="modern-card-header d-flex align-items-center">
                     <div class="icon-circle bg-blue-100 text-blue-600 mr-3 d-flex align-items-center justify-content-center shadow-sm"

@@ -106,25 +106,67 @@
 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
+                <!-- Field: Part -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama item, part no..."
-                        value="{{ request('search') }}">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 240px;" class="custom-filter-wrapper">
+                        <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Item / Part No.</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
+                <!-- Field: Tanggal -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Dari:</label>
-                    <input type="date" name="start_date" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;" value="{{ request('start_date') }}">
-                </div>
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Sampai:</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;" value="{{ request('end_date') }}">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-2 text-gray-500 small">-</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                    </div>
                 </div>
 
+                <!-- Field: Inisial -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Inisial:</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: Customer -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
+                    <div style="width: 130px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                        .custom-filter-wrapper { position: relative; top: -1px; }
+                    </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
                         <i class="fas fa-search fa-sm"></i>
                     </button>
@@ -910,44 +952,75 @@
 
 @endsection
 @push('scripts')
-    <script src="{{ asset('public/js/checksheet/fpa.js') }}"></script>
-    <script id="fpa-index-data" type="application/json" 
-        data-route-index="{{ route('first_piece_approval.index') }}"
-        data-plant="{{ request('plant') }}">
-        @json($checksheets->pluck('id'))
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('js/checksheet/fpa.js') }}"></script>
+    <script id="fpa-index-data" type="application/json">
+        {
+            "routeIndex": "{{ route('first_piece_approval.index') }}",
+            "plant": "{{ request('plant') }}",
+            "checksheetIds": @json($checksheets->pluck('id'))
+        }
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             const dataEl = document.getElementById('fpa-index-data');
-            if (!dataEl) return;
+            if (dataEl) {
+                const config = JSON.parse(dataEl.textContent);
+                window.initFpaIndex({
+                    routes: { index: config.routeIndex },
+                    plant: config.plant,
+                    checksheets: config.checksheetIds
+                });
+            }
 
-            window.initFpaIndex({
-                routes: {
-                    index: dataEl.getAttribute('data-route-index'),
-                },
-                plant: dataEl.getAttribute('data-plant'),
-                checksheets: JSON.parse(dataEl.textContent)
-            });
-        });
+            // Initialize Custom Search
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+                initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
+                initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+            }
 
-        // Auto-submit filter
-        document.addEventListener('DOMContentLoaded', function () {
             var form = document.getElementById('filterFormFpa');
-            if (!form) return;
+            if (form) {
+                // Link Synchronization (Sync Print/Export links with current filter selections)
+                function syncExportLinks() {
+                    var baseUrlPrint = "{{ route('first_piece_approval.print') }}";
+                    var baseUrlPdf = "{{ route('first_piece_approval.export_pdf') }}";
+                    
+                    var params = new URLSearchParams();
+                    var formData = new FormData(form);
+                    for (var pair of formData.entries()) {
+                        if (pair[1]) params.append(pair[0], pair[1]);
+                    }
+                    
+                    var queryString = params.toString();
+                    
+                    var printBtn = form.querySelector('a[title="Print"]');
+                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    
+                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
+                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                }
 
-            function debounce(fn, delay) {
-                var timer;
-                return function () { clearTimeout(timer); timer = setTimeout(fn, delay); };
+                $(form).find('input, select').on('change', syncExportLinks);
+                // Also sync on initial load
+                syncExportLinks();
+
+                $(form).on('submit', function(e) {
+                    var startDate = document.getElementById('start_date').value;
+                    var endDate = document.getElementById('end_date').value;
+
+                    if (startDate && endDate && startDate > endDate) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Rentang Tanggal Tidak Valid',
+                            text: 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir.',
+                            confirmButtonColor: '#4e73df'
+                        });
+                    }
+                });
             }
-
-            var searchInput = form.querySelector('input[name="search"]');
-            if (searchInput) {
-                searchInput.addEventListener('input', debounce(function () { form.submit(); }, 500));
-            }
-
-            form.querySelectorAll('input[type="date"]').forEach(function (el) {
-                el.addEventListener('change', function () { form.submit(); });
-            });
         });
     </script>
 @endpush

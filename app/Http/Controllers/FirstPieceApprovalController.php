@@ -104,22 +104,38 @@ class FirstPieceApprovalController extends Controller
         }
 
         $filters = [
-            'plant' => $request->input('plant'),
+            'plant' => $request->get('plant'),
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
             'item_id' => $request->item_id,
+            'operator_initials' => $request->operator_initials,
             'customer' => $request->customer,
-            'part_no' => $request->part_no,
             'next_proses' => $request->next_proses,
             'id' => $request->id,
-            'search' => $request->search,
         ];
 
         $checksheets = $this->firstPieceService->getFilteredChecksheets($filters);
         $partDimensionStandards = $this->getConsolidatedStandards();
 
-        return view('first_piece_approval.index', compact('checksheets', 'partDimensionStandards'));
+        // Data for filters (Standardized with Cross-Cut)
+        $plantId = \App\Models\Plant::resolveId($filters['plant']);
+        
+        $items = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('first_piece_approvals')->where('plant_id', $plantId);
+        })->orderBy('name')->get();
+
+        $customers = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('first_piece_approvals')->where('plant_id', $plantId);
+        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+
+        $initials = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials')
+            ->distinct()
+            ->pluck('operator_initials')
+            ->sort();
+
+        return view('first_piece_approval.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials'));
     }
 
     public function create(Request $request)
@@ -207,18 +223,25 @@ class FirstPieceApprovalController extends Controller
             ->get();
         $partDimensionStandards = $this->getConsolidatedStandards();
 
+        $users = \App\Models\User::where('is_active', true)
+            ->whereIn('role', ['admin', 'inspector', 'supervisor', 'kashift'])
+            ->orderBy('name')
+            ->get();
+
         if (request()->ajax()) {
             return view('first_piece_approval.partials.edit_form', [
                 'checksheet' => $checksheet,
                 'items' => $items,
-                'partDimensionStandards' => $partDimensionStandards
+                'partDimensionStandards' => $partDimensionStandards,
+                'users' => $users
             ]);
         }
 
         return view('first_piece_approval.edit', [
             'checksheet' => $checksheet,
             'items' => $items,
-            'partDimensionStandards' => $partDimensionStandards
+            'partDimensionStandards' => $partDimensionStandards,
+            'users' => $users
         ]);
     }
 
@@ -299,14 +322,21 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
+
+        if (empty($filters['start_date'])) {
+            $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
+            $filters['end_date'] = now()->toDateString();
+        }
 
         $query = $this->firstPieceService->buildFilteredQuery($filters)->latest();
 
         if ($request->has('page')) {
             $checksheets = $query->paginate(10)->getCollection();
         } else {
-            $checksheets = $query->limit(10)->get();
+            $checksheets = $query->get();
         }
         $items = Item::orderBy('name')->get();
         $partDimensionStandards = $this->getConsolidatedStandards();
@@ -326,8 +356,8 @@ class FirstPieceApprovalController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
-        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
+        $endDate = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
 
         $pdf = Pdf::loadView('first_piece_approval.pdf', compact('checksheets', 'items', 'request', 'partDimensionStandards', 'startDate', 'endDate', 'plantName', 'plantCode'));
         return $pdf->setPaper('a4', 'landscape')->download('Laporan_FirstPieceApproval_' . date('Y-m-d_H-i-s') . '.pdf');
@@ -354,12 +384,27 @@ class FirstPieceApprovalController extends Controller
         try {
             $this->firstPieceService->updateApprovalStatus($id, $validated);
             $checksheet = FirstPieceApproval::find($id);
+
+            // Jika status dirubah menjadi Rejected melalui modal admin, kirim notifikasi dan berikan remarks
+            if ($checksheet->approval_status === 'Rejected' && empty($checksheet->rejection_remarks)) {
+                $checksheet->rejection_remarks = "[Admin] Status dirubah menjadi Rejected via Edit Status - " . auth()->user()->name . " (" . now()->format('d/m/Y H:i') . ")";
+                $checksheet->save();
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->notifyRejection($checksheet, 'First Piece Approval', auth()->user()->name);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi rejection FPA: ' . $ne->getMessage());
+                }
+            }
+
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet First Piece Approval: {$checksheet->item->name}");
 
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
+                session()->flash('success', 'Status approval berhasil diperbarui oleh Admin.');
                 return response()->json([
                     'success' => true,
                     'message' => 'Status approval berhasil diperbarui oleh Admin.',
@@ -386,7 +431,7 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -396,6 +441,7 @@ class FirstPieceApprovalController extends Controller
         }
 
         $checksheets = $this->firstPieceService->buildFilteredQuery($filters)->latest()->get();
+
         $partDimensionStandards = $this->getConsolidatedStandards();
 
         $user = auth()->user();
@@ -413,8 +459,12 @@ class FirstPieceApprovalController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+        // For display labels: use provided dates or default to 'Today' for the label only
+        $dispStart = ($filters['start_date'] ?? null) ?: now()->toDateString();
+        $dispEnd = ($filters['end_date'] ?? null) ?: now()->toDateString();
+
+        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
 
         return view('first_piece_approval.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

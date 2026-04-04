@@ -122,8 +122,12 @@ class FirstPieceApprovalService extends BaseService
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
-        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
-            $query->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('first_piece_approvals.date', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('first_piece_approvals.date', '<=', $filters['end_date']);
         }
 
         if (!empty($filters['approval_status'])) {
@@ -131,9 +135,11 @@ class FirstPieceApprovalService extends BaseService
         }
 
         if (!empty($filters['item_id'])) {
-            $query->where('items.id', $filters['item_id'])
-                ->leftJoin('items', 'first_piece_approvals.item_id', '=', 'items.id')
-                ->select('first_piece_approvals.*');
+            $query->where('first_piece_approvals.item_id', $filters['item_id']);
+        }
+
+        if (!empty($filters['operator_initials'])) {
+            $query->where('first_piece_approvals.operator_initials', $filters['operator_initials']);
         }
 
         if (!empty($filters['customer'])) {
@@ -172,6 +178,24 @@ class FirstPieceApprovalService extends BaseService
     }
 
     /**
+     * Normalize standard value string (e.g., replace comma with dot, normalize dashes)
+     * 
+     * @param mixed $val
+     * @return string|null
+     */
+    private function normalizeStandardValue($val)
+    {
+        if ($val === null || $val === '') return null;
+        $val = (string)$val;
+        // Replace commas with dots
+        $val = str_replace(',', '.', $val);
+        // Replace non-standard dashes with standard hyphen-minus
+        $val = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $val);
+        // Trim whitespace
+        return trim($val);
+    }
+
+    /**
      * Validate dimensions and auto-set judgment
      * 
      * @param array $data
@@ -196,31 +220,86 @@ class FirstPieceApprovalService extends BaseService
                 foreach ($points as $point => $value) {
                     if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
                         $hasValidDimensions = true;
-                        $standard = $dimensionStandards[$point];
+                        $std = $dimensionStandards[$point];
                         $floatValue = (float) $value;
+                        $isPointNG = false;
+                        $epsilon = 0.00001;
 
-                        // Use min/max if both are set, otherwise fallback to size +/- tolerance
-                        $isPointInvalid = false;
+                        // Helper for prefix-aware comparison
+                        $checkInvalid = function($val, $stdVal, $mode) use ($epsilon) {
+                            if ($stdVal === null) return false;
+                            $stdStr = $this->normalizeStandardValue($stdVal);
+                            
+                            if (strlen($stdStr) > 1 && (str_starts_with($stdStr, '+') || str_starts_with($stdStr, '-'))) {
+                                $operator = substr($stdStr, 0, 1);
+                                $limit = (float) substr($stdStr, 1);
+                                if ($operator === '+') { // Must be greater than
+                                    return $val <= ($limit + $epsilon);
+                                } elseif ($operator === '-') { // Must be less than
+                                    return $val >= ($limit - $epsilon);
+                                }
+                            }
+                            
+                            $stdFloat = (float) $stdStr;
+                            if ($mode === 'min') return $val < ($stdFloat - $epsilon);
+                            if ($mode === 'max') return $val > ($stdFloat + $epsilon);
+                            return false;
+                        };
 
-                        if ($standard['min'] !== null && $floatValue < $standard['min']) {
-                            $isPointInvalid = true;
+                        if ($std['min'] !== null && $checkInvalid($floatValue, $std['min'], 'min')) {
+                            $isPointNG = true;
                         }
-                        if ($standard['max'] !== null && $floatValue > $standard['max']) {
-                            $isPointInvalid = true;
+                        if (!$isPointNG && $std['max'] !== null && $checkInvalid($floatValue, $std['max'], 'max')) {
+                            $isPointNG = true;
                         }
 
-                        // Fallback to size +/- tolerance if no Min/Max is set
-                        if ($standard['min'] === null && $standard['max'] === null) {
-                            if ($standard['size'] !== null && $standard['tolerance'] !== null) {
-                                $lowerBound = $standard['size'] - $standard['tolerance'];
-                                $upperBound = $standard['size'] + $standard['tolerance'];
-                                if ($floatValue < $lowerBound || $floatValue > $upperBound) {
-                                    $isPointInvalid = true;
+                        // Special case: if Size is a prefix operator (+ or -)
+                        if (!$isPointNG && ($std['size'] ?? null) !== null) {
+                            $sizeStr = $this->normalizeStandardValue($std['size']);
+                            if (strlen($sizeStr) > 1 && (str_starts_with($sizeStr, '+') || str_starts_with($sizeStr, '-'))) {
+                                if ($checkInvalid($floatValue, $sizeStr, 'size')) {
+                                    $isPointNG = true;
                                 }
                             }
                         }
 
-                        if ($isPointInvalid) {
+                        // Fallback to Size +/- Tolerance
+                        if (!$isPointNG && ($std['min'] ?? null) === null && ($std['max'] ?? null) === null && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null) {
+                            $sizeStr = $this->normalizeStandardValue($std['size']);
+                            if (!str_starts_with($sizeStr, '+') && !str_starts_with($sizeStr, '-')) {
+                                $size = (float)$sizeStr;
+                                $tol = $this->normalizeStandardValue($std['tolerance']);
+                                $lowerBound = $size;
+                                $upperBound = $size;
+
+                                if (str_contains($tol, '/')) {
+                                    $parts = explode('/', $tol);
+                                    foreach ($parts as $p) {
+                                        $p = $this->normalizeStandardValue($p);
+                                        $fVal = (float)$p;
+                                        if (str_starts_with($p, '+') || $fVal > 0) {
+                                            $upperBound = $size + abs($fVal);
+                                        } elseif (str_starts_with($p, '-') || $fVal < 0) {
+                                            $lowerBound = $size - abs($fVal);
+                                        }
+                                    }
+                                } elseif (str_starts_with($tol, '+')) {
+                                    $upperBound = $size + (float)substr($tol, 1);
+                                } elseif (str_starts_with($tol, '-')) {
+                                    $lowerBound = $size + (float)$tol; // Negative value handled by parseFloat equivalent
+                                } else {
+                                    $tVal = (float)$tol;
+                                    $lowerBound = $size - $tVal;
+                                    $upperBound = $size + $tVal;
+                                }
+
+                                if ($floatValue < ($lowerBound - $epsilon) || $floatValue > ($upperBound + $epsilon)) {
+                                    $isPointNG = true;
+                                }
+                            }
+                        }
+
+                        if ($isPointNG) {
                             $isAnyInvalid = true;
                             break 2;
                         }
@@ -232,8 +311,10 @@ class FirstPieceApprovalService extends BaseService
                 if ($isAnyInvalid) {
                     $data['judgment'] = 'NG';
                 } else {
-                    if (isset($data['total_ng']) && $data['total_ng'] > 0) {
+                    if (isset($data['total_ng']) && (int)$data['total_ng'] > 0) {
                         $data['judgment'] = 'NG';
+                    } else {
+                        $data['judgment'] = 'OK';
                     }
                 }
             }
@@ -303,7 +384,9 @@ class FirstPieceApprovalService extends BaseService
                 'dimension_check' => $dimensionCheck,
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => json_encode($defects),
-                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
+                'next_proses' => ($data['judgment'] === 'NG') 
+                    ? ($data['next_proses'] ?: 'SORTIR') 
+                    : null,
                 'sap_code' => $data['sap_code'] ?? null,
             ]);
 
@@ -388,7 +471,9 @@ class FirstPieceApprovalService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
                 'defects' => json_encode($defects),
-                'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
+                'next_proses' => ($data['judgment'] === 'NG') 
+                    ? ($data['next_proses'] ?: 'SORTIR') 
+                    : null,
                 'sap_code' => $data['sap_code'] ?? null,
                 'user_id' => $data['user_id'] ?? auth()->id(),
             ];

@@ -3,6 +3,9 @@
     <div id="modal-errors" class="mb-3" style="display: none;"></div>
     @csrf
     @method('PUT')
+    @php
+        $defects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
+    @endphp
     {{-- Preserve all filter and pagination parameters --}}
     @foreach(request()->all() as $key => $value)
         @if(!in_array($key, ['_token', '_method', 'id']))
@@ -10,113 +13,118 @@
         @endif
     @endforeach
 
-    <div class="row">
-        <div class="col-md-6 border-right">
-            <div class="card bg-light mb-3">
-                <div class="card-header py-2">
-                    <h6 class="m-0 font-weight-bold text-primary small">Traceability QR Code</h6>
+    <!-- 1. Header: Penelusuran (Traceability) - Dibuat Ringkas -->
+    <div class="alert alert-secondary py-2 mb-3 border-left-info shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <div class="small text-muted font-weight-bold text-uppercase mb-1">
+                    <i class="fas fa-barcode mr-1"></i> Informasi Traceability (QR Code)
                 </div>
-                <div class="card-body p-2" style="font-size: 0.75rem;">
-                    <div class="row no-gutters mb-1">
-                        <div class="col-4 font-weight-bold">QR Raw:</div>
-                        <div class="col-8 text-break">{{ $checksheet->qrcode }}</div>
-                    </div>
-                    <div class="row no-gutters mb-1">
-                        <div class="col-4 font-weight-bold">Part Code:</div>
-                        <div class="col-8">{{ $checksheet->part_code }}</div>
-                    </div>
-                    <div class="row no-gutters mb-1">
-                        <div class="col-4 font-weight-bold">Supplier ID:</div>
-                        <div class="col-8">{{ $checksheet->supplier_id }}</div>
-                    </div>
-                    <div class="row no-gutters mb-1">
-                        <div class="col-4 font-weight-bold">Qty:</div>
-                        <div class="col-8">{{ $checksheet->quantity }}</div>
-                    </div>
-                    <div class="row no-gutters mb-1">
-                        <div class="col-4 font-weight-bold text-danger">Unique ID:</div>
-                        <div class="col-8 font-weight-bold text-danger">{{ $checksheet->unique_code_id }}</div>
-                    </div>
-                    <div class="row no-gutters">
-                        <div class="col-4 font-weight-bold">SAP Code:</div>
-                        <div class="col-8">{{ $checksheet->sap_code }}</div>
-                    </div>
+                <div class="small text-dark font-italic text-truncate mb-1" title="{{ $checksheet->qrcode }}">
+                    <strong>Raw QR:</strong> {{ \Illuminate\Support\Str::limit($checksheet->qrcode, 80) }}
+                </div>
+                <div class="d-flex flex-wrap" style="gap: 15px;">
+                    <span class="small"><strong>Part Code:</strong> {{ $checksheet->part_code }}</span>
+                    <span class="small"><strong>Supplier:</strong> {{ $checksheet->supplier_id }}</span>
+                    <span class="small"><strong>Qty QR:</strong> {{ $checksheet->quantity }}</span>
+                    <span class="small text-danger font-weight-bold"><strong>Unique ID:</strong> {{ $checksheet->unique_code_id }}</span>
+                    <span class="small"><strong>SAP Code:</strong> {{ $checksheet->sap_code }}</span>
                 </div>
             </div>
-            
-            {{-- Hidden inputs to preserve QR data during update if not changed --}}
-            <input type="hidden" name="qrcode" value="{{ $checksheet->qrcode }}">
-            <input type="hidden" name="part_code" value="{{ $checksheet->part_code }}">
-            <input type="hidden" name="supplier_id" value="{{ $checksheet->supplier_id }}">
-            <input type="hidden" name="quantity" value="{{ $checksheet->quantity }}">
-            <input type="hidden" name="unique_code_id" value="{{ $checksheet->unique_code_id }}">
-            <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
+            <div class="col-md-3 text-right">
+                <span class="badge badge-info p-2 px-3 shadow-sm">
+                    ID: {{ $checksheet->id }}
+                </span>
+            </div>
+        </div>
+    </div>
 
-            <div class="form-group mb-2">
-                <label class="small font-weight-bold">Item Part <span class="text-danger">*</span></label>
-                <select name="item_id" id="item_id" class="form-control form-control-sm" required>
-                    <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
-                    @foreach($items as $item)
-                        <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
-                            data-part-number="{{ $item->part_number }}"
-                            data-customer="{{ $item->customer }}"
-                            data-weight-standard="{{ $item->weight_standard }}"
-                            data-defects="{{ json_encode($item->defects) }}">
-                            {{ $item->name }} ({{ $item->customer }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Tanggal <span class="text-danger">*</span></label>
-                        <input type="date" name="date" id="date" class="form-control form-control-sm"
-                            value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
-                    </div>
+    {{-- Hidden inputs to preserve QR data during update --}}
+    <input type="hidden" name="qrcode" value="{{ $checksheet->qrcode }}">
+    <input type="hidden" name="part_code" value="{{ $checksheet->part_code }}">
+    <input type="hidden" name="supplier_id" value="{{ $checksheet->supplier_id }}">
+    <input type="hidden" name="quantity" value="{{ $checksheet->quantity }}">
+    <input type="hidden" name="unique_code_id" value="{{ $checksheet->unique_code_id }}">
+    <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
+
+    <div class="row">
+        <!-- 2. Kolom Kiri: Informasi Produksi -->
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm h-100 border-0 border-top-primary" style="border-top-width: 3px !important;">
+                <div class="card-header bg-white py-2">
+                    <h6 class="m-0 font-weight-bold text-primary small">
+                        <i class="fas fa-info-circle mr-1"></i> Data Identitas & Produksi
+                    </h6>
                 </div>
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Shift <span class="text-danger">*</span></label>
-                        <select name="shift" id="shift" class="form-control form-control-sm" required>
-                            <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
-                            <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
-                            <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-4">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">No Mesin <span class="text-danger">*</span></label>
-                        <select name="code_machine" id="code_machine" class="form-control form-control-sm" required>
-                            <option value="">Pilih Mesin</option>
-                            @php
-                                $plantCode = strtolower($checksheet->plant->code ?? 'karawang');
-                                $jakartaMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-                                $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
-                                $machineNumbers = ($plantCode === 'jakarta') ? $jakartaMachineNumbers : $karawangMachineNumbers;
-                            @endphp
-                            @foreach ($machineNumbers as $num)
-                                <option value="{{ $num }}" {{ $checksheet->code_machine == $num ? 'selected' : '' }}>Mesin {{ $num }}</option>
+                <div class="card-body py-3">
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
+                        <select name="item_id" id="item_id" class="form-control form-control-sm select2-standard" required>
+                            <option value="" disabled>Pilih Item Part</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
+                                    data-part-number="{{ $item->part_number }}"
+                                    data-customer="{{ $item->customer }}"
+                                    data-weight-standard="{{ $item->weight_standard }}"
+                                    data-defects="{{ json_encode($item->defects) }}">
+                                    {{ $item->name }} ({{ $item->customer }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
-                </div>
-                <div class="col-4">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Inisial Operator</label>
-                        <input type="text" name="operator_initials" id="operator_initials" class="form-control form-control-sm"
-                            value="{{ $checksheet->operator_initials }}" placeholder="Inisial...">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Tanggal <span class="text-danger">*</span></label>
+                                <input type="date" name="date" id="date" class="form-control form-control-sm"
+                                    value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
+                                <select name="shift" id="shift" class="form-control form-control-sm" required>
+                                    <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
+                                    <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
+                                    <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                @if(auth()->user()->role !== 'inspector')
-                <div class="col-4">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold text-primary">Inspector (User)</label>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">No Mesin <span class="text-danger">*</span></label>
+                                <select name="code_machine" id="code_machine" class="form-control form-control-sm" required>
+                                    <option value="">-- Pilih --</option>
+                                    @php
+                                        $plantCode = strtolower($checksheet->plant->code ?? 'karawang');
+                                        $jakartaMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+                                        $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
+                                        $machineNumbers = ($plantCode === 'jakarta') ? $jakartaMachineNumbers : $karawangMachineNumbers;
+                                    @endphp
+                                    @foreach ($machineNumbers as $num)
+                                        <option value="{{ $num }}" {{ $checksheet->code_machine == $num ? 'selected' : '' }}>Machine {{ $num }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Inisial Operator</label>
+                                <input type="text" name="operator_initials" id="operator_initials" class="form-control form-control-sm text-uppercase"
+                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial...">
+                            </div>
+                        </div>
+                    </div>
+
+                    @if(auth()->user()->role !== 'inspector')
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-primary">Inspector (System User)</label>
                         <select name="user_id" id="user_id" class="form-control form-control-sm border-primary">
-                            <option value="">-- Tetap --</option>
+                            <option value="">-- Pertahankan User Saat Ini --</option>
                             @foreach($users as $user)
                                 <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
                                     {{ $user->name }} ({{ $user->initials }})
@@ -124,44 +132,25 @@
                             @endforeach
                         </select>
                     </div>
-                </div>
-                @endif
-            </div>
-            
-            <div class="row">
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Total Qty <span class="text-danger">*</span></label>
-                        <input type="number" name="total_qty" id="total_qty" class="form-control form-control-sm"
-                            value="{{ $checksheet->total_qty }}" min="0" required>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Sampling Qty <span class="text-danger">*</span></label>
-                        <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm"
-                            value="{{ $checksheet->sampling_qty }}" min="0" required>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row" id="editBeratPartRow" style="display: none;">
-                <div class="col-12">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Berat Part (gr.)</label>
-                        {{-- Cavity controls --}}
-                        <div class="d-flex align-items-center mb-1" style="gap:4px;">
-                            <button type="button" id="editAddWeightCavBtn"
-                                class="btn btn-primary btn-xs" title="Tambah Cavity">
-                                <i class="fas fa-plus"></i> Cav
-                            </button>
-                            <button type="button" id="editRemoveWeightCavBtn"
-                                class="btn btn-outline-danger btn-xs" title="Hapus Cavity Terakhir">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <span id="editWeightCavCount" class="badge badge-secondary ml-1">1 Cav</span>
+                    @endif
+
+                    <!-- Section Berat Part (Hanya muncul jika customer tertentu) -->
+                    <div id="editBeratPartRow" style="display: none;" class="bg-light p-2 rounded border">
+                        <label class="small font-weight-bold text-gray-800 mb-2 mt-0">
+                            <i class="fas fa-weight mr-1"></i> Berat Part (gr.)
+                            <span class="badge badge-secondary ml-2 font-weight-normal" id="editWeightStandardBadge" style="display: none;">
+                                Std: <span id="editWeightStandardDisplay">-</span> gr
+                            </span>
+                        </label>
+                        
+                        <div class="d-flex align-items-center mb-2" style="gap:5px;">
+                            <div class="btn-group shadow-sm">
+                                <button type="button" id="editAddWeightCavBtn" class="btn btn-primary btn-xs"><i class="fas fa-plus"></i></button>
+                                <button type="button" id="editRemoveWeightCavBtn" class="btn btn-outline-danger btn-xs"><i class="fas fa-minus"></i></button>
+                            </div>
+                            <span id="editWeightCavCount" class="badge badge-primary px-2 py-1">1 Cav</span>
                         </div>
-                        {{-- Per-cavity rows --}}
+
                         <div id="editWeightCavContainer">
                             @php
                                 $existingWeights = is_array($checksheet->part_weight)
@@ -171,200 +160,203 @@
                             @foreach($existingWeights as $cavIdx => $wVal)
                                 <div class="input-group input-group-sm mb-1 edit-weight-cav-row">
                                     <div class="input-group-prepend">
-                                        <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
+                                        <span class="input-group-text bg-white" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
                                     </div>
-                                    <input type="number" step="0.01" min="0" class="form-control text-center"
+                                    <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold"
                                         name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
                                     <div class="input-group-append">
-                                        <span class="input-group-text text-muted small">gr</span>
+                                        <span class="input-group-text bg-white text-muted">gr</span>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
-                        <div class="mt-1">
-                            <span class="badge badge-secondary" id="editWeightStandardBadge"
-                                style="display: none;">Std: <span
-                                    id="editWeightStandardDisplay">-</span> gr.</span>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            @if(auth()->user()->role !== 'inspector')
-                <div class="row">
-                    <div class="col-6">
-                        <div class="form-group mb-2">
+        <!-- 3. Kolom Kanan: Hasil Kualitas -->
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm h-100 border-0 border-top-danger" style="border-top-width: 3px !important;">
+                <div class="card-header bg-white py-2">
+                    <h6 class="m-0 font-weight-bold text-danger small">
+                        <i class="fas fa-clipboard-check mr-1"></i> Hasil Pemeriksaan & Kualitas
+                    </h6>
+                </div>
+                <div class="card-body py-3">
+                    @if(auth()->user()->role !== 'inspector')
+                    <div class="row mb-3">
+                        <div class="col-6">
                             <label class="small font-weight-bold">Jam (Before)</label>
-                            <input type="time" name="jam_before" id="jam_before" class="form-control form-control-sm"
+                            <input type="time" name="jam_before" id="jam_before" class="form-control form-control-sm border-left-info"
                                 value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-group mb-2">
+                        <div class="col-6">
                             <label class="small font-weight-bold">Jam (After)</label>
-                            <input type="time" name="jam_after" id="jam_after" class="form-control form-control-sm"
+                            <input type="time" name="jam_after" id="jam_after" class="form-control form-control-sm border-left-info"
                                 value="{{ $checksheet->created_at->format('H:i') }}">
                         </div>
                     </div>
-                </div>
-            @endif
+                    @endif
 
-            <div class="row">
-                <div class="col-12">
-                     <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Detail NG (Defect List)</label>
-                        <div id="editDefectContainer">
-                            {{-- Rows will be populated by JS or Server-side loop --}}
-                            @php
-                                $defects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
-                            @endphp
-                            
-                            @if(count($defects) > 0)
-                                @foreach($defects as $index => $defect)
-                                    <div class="input-group mb-2 defect-row">
-                                        <select class="form-control form-control-sm defect-select" name="defect_types[]">
-                                            <option value="">-- Pilih Defect --</option>
-                                            <option value="{{ $defect['type'] }}" selected>{{ $defect['type'] }}</option>
-                                        </select>
-                                        <input type="number" class="form-control form-control-sm defect-qty" name="defect_quantities[]" 
-                                            value="{{ $defect['qty'] }}" min="1" placeholder="Qty" style="max-width: 80px;">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>
-                                        </div>
-                                    </div>
-                                @endforeach
-                                {{-- Empty initial row for structure, hidden or shown based on needs --}}
-                                <div class="input-group mb-2 defect-row" style="display:none"></div>
-                            @endif
+                    <div class="row mb-3 pb-3 border-bottom">
+                        <div class="col-6">
+                            <label class="small font-weight-bold text-gray-700">Total Produksi (Qty)</label>
+                            <input type="number" name="total_qty" id="total_qty" class="form-control form-control-sm font-weight-bold"
+                                value="{{ $checksheet->total_qty }}" min="0" required>
                         </div>
-                        <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs mt-1" style="{{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
-                            <i class="fas fa-plus"></i> Tambah Jenis
-                        </button>
+                        <div class="col-6">
+                            <label class="small font-weight-bold text-gray-700 text-info">Sampling Qty</label>
+                            <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm font-weight-bold border-info"
+                                value="{{ $checksheet->sampling_qty }}" min="0" required>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Total OK (pcs) <span class="text-danger">*</span></label>
-                        <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm"
-                            value="{{ $checksheet->total_ok }}" min="0" required>
+                    <div class="form-group mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="small font-weight-bold text-gray-700 mb-0">Detail NG (Defect List)</label>
+                            <button type="button" id="editAddDefectBtn" class="btn btn-outline-info btn-xs rounded-pill" style="{{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
+                                <i class="fas fa-plus"></i> Tambah Jenis NG
+                            </button>
+                        </div>
+                        <div id="editDefectContainer" class="bg-light p-2 rounded border-dashed">
+                            {{-- Rows will be populated by JS --}}
+                            
+                            @forelse($defects as $index => $defect)
+                                <div class="input-group mb-2 defect-row shadow-sm">
+                                    <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
+                                        <option value="">-- Pilih Defect --</option>
+                                        <option value="{{ $defect['type'] }}" selected>{{ $defect['type'] }}</option>
+                                    </select>
+                                    <input type="number" class="form-control form-control-sm defect-qty bg-white font-weight-bold" name="defect_quantities[]" 
+                                        value="{{ $defect['qty'] }}" min="1" placeholder="Qty" style="max-width: 80px;">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-2 text-muted small" id="noDefectMsg">
+                                    <i class="fas fa-check-circle mr-1 text-success"></i> Tidak ada data defect tercatat.
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Total NG (pcs) <span class="text-danger">*</span></label>
-                        <input type="number" name="total_ng" id="total_ng" class="form-control form-control-sm"
-                            value="{{ $checksheet->total_ng }}" min="0" required>
-                    </div>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-6">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Judgment Final <span class="text-danger">*</span></label>
-                        <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold d-none {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
-                            <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
-                            <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
-                        </select>
+                    <div class="row align-items-end">
+                        <div class="col-4">
+                            <label class="small font-weight-bold text-success text-uppercase">Total OK</label>
+                            <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm font-weight-bold border-success"
+                                value="{{ $checksheet->total_ok }}" min="0" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="small font-weight-bold text-danger text-uppercase">Total NG</label>
+                            <input type="number" name="total_ng" id="total_ng" class="form-control form-control-sm font-weight-bold border-danger"
+                                value="{{ $checksheet->total_ng }}" min="0" required>
+                        </div>
+                        <div class="col-4">
+                             <label class="small font-weight-bold text-uppercase">Judgment</label>
+                             <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold d-none {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
+                                <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
+                                <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
+                            </select>
+                            {{-- Visual display for judgment --}}
+                            <div id="judgmentDisplay" class="alert mb-0 p-1 text-center font-weight-bold border {{ $checksheet->judgment == 'OK' ? 'alert-success border-success' : 'alert-danger border-danger' }}" style="height: 31px; line-height: 20px;">
+                                {{ $checksheet->judgment }}
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-6" id="nextProsesContainer" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
-                    <div class="form-group mb-2">
-                        <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
-                        <select class="form-control" id="next_proses" name="next_proses">
-                            <option value="">-- Pilih Next Proses --</option>
-                            <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
-                            <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR</option>
-                            <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
-                            <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR</option>
-                            <option value="SORTIR + FINISHING" {{ $checksheet->next_proses == 'SORTIR + FINISHING' ? 'selected' : '' }}>SORTIR + FINISHING</option>
-                            <option value="FINISHING + PASANG SUB PART" {{ $checksheet->next_proses == 'FINISHING + PASANG SUB PART' ? 'selected' : '' }}>FINISHING + PASANG SUB PART</option>
-                            <option value="FINISHING + PACKING" {{ $checksheet->next_proses == 'FINISHING + PACKING' ? 'selected' : '' }}>FINISHING + PACKING</option>
-                            <option value="REBUS + FINISHING + PACKING" {{ $checksheet->next_proses == 'REBUS + FINISHING + PACKING' ? 'selected' : '' }}>REBUS + FINISHING + PACKING</option>
-                            <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>MARKING+FINISHING+PACKING</option>
-                            <option value="SORTIR + CRUSHING" {{ $checksheet->next_proses == 'SORTIR + CRUSHING' ? 'selected' : '' }}>SORTIR + CRUSHING</option>
-                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'SORTIR + FINISHING', 'FINISHING + PASANG SUB PART', 'FINISHING + PACKING', 'REBUS + FINISHING + PACKING', 'SORTIR + CRUSHING']))
+
+                    <div id="nextProsesContainer" class="mt-3" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
+                        <label class="small font-weight-bold text-danger"><i class="fas fa-directions mr-1"></i> Instruksi Lanjutan (Next Proses) <span class="text-danger">*</span></label>
+                        <select class="form-control form-control-sm border-danger font-weight-bold" id="next_proses" name="next_proses">
+                            <option value="">-- Pilih --</option>
+                            @php
+                                $options = ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'SORTIR + FINISHING', 'FINISHING + PASANG SUB PART', 'FINISHING + PACKING', 'REBUS + FINISHING + PACKING', 'MARKING+FINISHING+PACKING', 'SORTIR + CRUSHING'];
+                            @endphp
+                            @foreach($options as $opt)
+                                <option value="{{ $opt }}" {{ $checksheet->next_proses == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                            @endforeach
+                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, $options))
                                 <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                             @endif
                         </select>
                     </div>
-                </div>
-            </div>
 
-            <div class="form-group mb-0">
-                <label class="small font-weight-bold">Keterangan / Remarks</label>
-                <textarea name="remarks" id="remarks" class="form-control form-control-sm" rows="3" placeholder="Tambahkan keterangan...">{{ $checksheet->remarks }}</textarea>
+                    <div class="form-group mb-0 mt-3">
+                        <label class="small font-weight-bold">Keterangan / Remarks</label>
+                        <textarea name="remarks" id="remarks" class="form-control form-control-sm border-left-secondary" rows="2" placeholder="Catatan tambahan...">{{ $checksheet->remarks }}</textarea>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Check Dimensi Styled exactly like Jadwal Kalibrasi in screenshot -->
-    <div class="form-group mb-3 mt-3">
-        <label class="small font-weight-bold">Check Dimensi (mm) <span class="text-danger">*</span></label>
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center" style="background-color: #4e73df !important;">
-                <h6 class="m-0 font-weight-bold small text-center flex-grow-1">Tampilan Titik Pengukuran</h6>
-                <button type="button" class="btn btn-success btn-xs" id="editAddCavityBtn" title="Tambah Cavity" style="background-color: #1cc88a !important; border:none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-plus"></i>
+    <!-- 4. Footer Row: Check Dimensi (Full Width) -->
+    <div class="card shadow-sm border-0 border-top-info mt-2" style="border-top-width: 3px !important;">
+        <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-info small">
+                <i class="fas fa-ruler-combined mr-1"></i> Pemeriksaan Dimensi (mm)
+            </h6>
+            <div class="btn-group shadow-sm">
+                <button type="button" class="btn btn-success btn-xs px-3" id="editAddCavityBtn" title="Tambah Cavity">
+                    <i class="fas fa-plus mr-1"></i> Tambah Cavity
+                </button>
+                <button type="button" class="btn btn-info btn-xs px-3" id="editAddPointBtn" title="Tambah Point">
+                    <i class="fas fa-plus-circle mr-1"></i> Tambah Point
                 </button>
             </div>
-            <div class="card-body p-0">
-                @php
-                    $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
-                    $maxCavityFound = 5;
-                    $maxPointFound = 5;
-                    foreach ($dimensions as $cav => $pts) {
-                        if (is_numeric($cav)) $maxCavityFound = max($maxCavityFound, (int) $cav);
-                        if (is_array($pts)) {
-                            foreach (array_keys($pts) as $pt) {
-                                if (is_numeric($pt)) $maxPointFound = max($maxPointFound, (int) $pt);
-                            }
+        </div>
+        <div class="card-body p-0">
+            @php
+                $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
+                $maxCavityFound = 5;
+                $maxPointFound = 5;
+                foreach ($dimensions as $cav => $pts) {
+                    if (is_numeric($cav)) $maxCavityFound = max($maxCavityFound, (int) $cav);
+                    if (is_array($pts)) {
+                        foreach (array_keys($pts) as $pt) {
+                            if (is_numeric($pt)) $maxPointFound = max($maxPointFound, (int) $pt);
                         }
                     }
-                @endphp
-                <div class="table-responsive" style="max-height: 350px;">
-                    <table class="table table-sm table-bordered mb-0" id="editDimensionTable">
-                        <thead class="text-center bg-white small">
-                            <tr id="editDimensionHeadRow">
-                                <th style="min-width: 80px; position: sticky; left: 0; z-index: 2; background: white;">Cavity</th>
-                                @for ($j = 1; $j <= $maxPointFound; $j++)
-                                    <th class="point-header">P{{ $j }}</th>
-                                @endfor
-                                <th style="width: 40px;"><button type="button" class="btn btn-primary btn-xs" id="editAddPointBtn"><i class="fas fa-plus"></i></button></th>
-                            </tr>
-                        </thead>
-                        <tbody id="editDimensionBody">
-                            @for ($i = 1; $i <= $maxCavityFound; $i++)
-                                <tr class="edit-cavity-row" data-cavity="{{ $i }}">
-                                    <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
-                                    @for ($j = 1; $j <= $maxPointFound; $j++)
-                                        <td class="p-0">
-                                            <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center"
-                                                style="min-width: 50px; font-size: 0.75rem; height: 35px;" name="dimensions[{{ $i }}][{{ $j }}]"
-                                                value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="-">
-                                        </td>
-                                    @endfor
-                                    <td class="text-center bg-light">
-                                        <button type="button" class="btn btn-link text-danger p-0" disabled><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
+                }
+            @endphp
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTable">
+                    <thead class="bg-light text-center small font-weight-bold">
+                        <tr id="editDimensionHeadRow">
+                            <th style="min-width: 100px; position: sticky; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
+                            @for ($j = 1; $j <= $maxPointFound; $j++)
+                                <th class="point-header">P{{ $j }}</th>
                             @endfor
-                        </tbody>
-                    </table>
-                </div>
+                        </tr>
+                    </thead>
+                    <tbody id="editDimensionBody">
+                        @for ($i = 1; $i <= $maxCavityFound; $i++)
+                            <tr class="edit-cavity-row" data-cavity="{{ $i }}">
+                                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
+                                    Cavity {{ $i }}
+                                </td>
+                                @for ($j = 1; $j <= $maxPointFound; $j++)
+                                    <td class="p-0">
+                                        <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
+                                            style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}]"
+                                            value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="-">
+                                    </td>
+                                @endfor
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="mt-4 pb-2 text-right">
-        <button type="button" class="btn btn-secondary btn-sm px-4" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-info btn-sm px-4 shadow-sm" id="btnSubmit">
-            <i class="fas fa-save mr-1"></i> Update
+    <div class="mt-4 pb-2 d-flex justify-content-end" style="gap: 10px;">
+        <button type="button" class="btn btn-light btn-sm px-4 border shadow-sm" data-dismiss="modal">
+            <i class="fas fa-times mr-1"></i> Batal
+        </button>
+        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm font-weight-bold" id="btnSubmit">
+            <i class="fas fa-save mr-1"></i> Simpan Perubahan
         </button>
     </div>
 </form>
@@ -384,45 +376,36 @@
 // The script will execute normally when inserted into the DOM.
 @endphp
 <script>
-    // Ensure jQuery is loaded before executing
-    (function() {
-        // Check if jQuery is available
-        if (typeof jQuery === 'undefined') {
-            console.error('jQuery is not loaded! Waiting for it...');
-            // Retry after a short delay
-            setTimeout(arguments.callee, 50);
-            return;
-        }
-        
-        // jQuery is available, proceed with initialization
+    (function () {
         (function ($) {
-        // Use PHP to inject the variable
-        const partDimensionStandards = JSON.parse('{!! $partDimensionStandards !!}');
-
-        // Initial counts from PHP
-        let currentCavities = {{ $maxCavityFound }};
-        let currentPoints = {{ $maxPointFound }};
-        const maxCavities = 30;
-        const maxPoints = 30;
+            // Initial counts from PHP
+            // Note: $partDimensionStandards is already a JSON string from the controller
+            const partDimensionStandards = {!! $partDimensionStandards ?: '{}' !!};
+            let currentCavities = {{ $maxCavityFound }};
+            let currentPoints = {{ $maxPointFound }};
+            const maxCavities = 30;
+            const maxPoints = 30;
 
         $('#editAddCavityBtn').click(function () {
             if (currentCavities < maxCavities) {
                 currentCavities++;
                 let newRow = `<tr class="edit-cavity-row" data-cavity="${currentCavities}">
-                                        <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${currentCavities}</td>`;
+                                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
+                                    Cavity ${currentCavities}
+                                </td>`;
 
                 for (let j = 1; j <= currentPoints; j++) {
-                    newRow += `<td class="point-cell">
-                                            <input type="text" class="form-control form-control-sm edit-dimension-input" 
-                                                style="min-width: 60px;"
-                                                name="dimensions[${currentCavities}][${j}]" 
-                                                placeholder="P${j}">
-                                        </td>`;
+                    newRow += `<td class="p-0">
+                                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" 
+                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
+                                        name="dimensions[${currentCavities}][${j}]" 
+                                        placeholder="-">
+                                </td>`;
                 }
                 newRow += `</tr>`;
                 $('#editDimensionBody').append(newRow);
             } else {
-                alert('Maximum 30 cavities reached');
+                Swal.fire('Limit!', 'Maksimum 30 cavities.', 'warning');
             }
         });
 
@@ -430,22 +413,36 @@
             if (currentPoints < maxPoints) {
                 currentPoints++;
                 // Add header
-                $('#editDimensionHeadRow').append(`<th class="point-header">Point ${currentPoints}</th>`);
+                $('#editDimensionHeadRow').append(`<th class="point-header">P${currentPoints}</th>`);
 
                 // Add cells to each row
                 $('.edit-cavity-row').each(function () {
                     let cavityNum = $(this).data('cavity');
-                    $(this).append(`<td class="point-cell">
-                                            <input type="text" class="form-control form-control-sm edit-dimension-input" 
-                                                style="min-width: 60px;"
-                                                name="dimensions[${cavityNum}][${currentPoints}]" 
-                                                placeholder="P${currentPoints}">
-                                        </td>`);
+                    $(this).append(`<td class="p-0">
+                                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" 
+                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
+                                        name="dimensions[${cavityNum}][${currentPoints}]" 
+                                        placeholder="-">
+                                </td>`);
                 });
             } else {
-                alert('Maximum 30 points reached');
+                Swal.fire('Limit!', 'Maksimum 30 points.', 'warning');
             }
         });
+
+        function getSampleSize(lotSize) {
+            if (lotSize >= 500001) return 1250;
+            if (lotSize >= 150001) return 800;
+            if (lotSize >= 35001) return 500;
+            if (lotSize >= 10001) return 315;
+            if (lotSize >= 3201) return 200;
+            if (lotSize >= 1201) return 125;
+            if (lotSize >= 501) return 80;
+            if (lotSize >= 281) return 50;
+            if (lotSize >= 151) return 32;
+            if (lotSize >= 20) return 20;
+            return lotSize; // 100% Check for lots < 20
+        }
 
         function getAqlLimits(sampleSize) {
             if (sampleSize >= 1250) return { acc: 14, rej: 15 };
@@ -455,6 +452,8 @@
             if (sampleSize >= 200) return { acc: 3, rej: 4 };
             if (sampleSize >= 125) return { acc: 2, rej: 3 };
             if (sampleSize >= 80) return { acc: 1, rej: 2 };
+            if (sampleSize >= 50) return { acc: 1, rej: 2 };
+            if (sampleSize >= 32) return { acc: 0, rej: 1 };
             if (sampleSize >= 20) return { acc: 0, rej: 1 };
             return { acc: 0, rej: 1 };
         }
@@ -476,31 +475,46 @@
 
             if (isDimensiInvalid && !hasDimensiDefect) {
                 autoAddDimensionDefect();
-                return; // Re-triggers via calculateTotalNG
             } else if (!isDimensiInvalid && hasDimensiDefect) {
                 autoRemoveDimensionDefect();
-                return; // Re-triggers via calculateTotalNG
             }
 
-            if (sampling >= ng) {
-                $('#total_ok').val(sampling - ng);
+            // RE-INITIALIZE NG after auto-defect might have changed it
+            const currentNg = parseInt($('#total_ng').val()) || 0;
+
+            if (sampling >= currentNg) {
+                $('#total_ok').val(sampling - currentNg);
             } else {
-                $('#total_ok').val(Math.max(0, sampling - ng));
+                $('#total_ok').val(Math.max(0, sampling - currentNg));
             }
 
             const limits = getAqlLimits(sampling);
             const judgmentSelect = $('#judgment');
+            const judgmentDisplay = $('#judgmentDisplay');
 
-            if (ng > 0 || sampling > 0 || isDimensiInvalid) {
-                if (isDimensiInvalid || ng >= limits.rej) {
-                    judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
-                } else if (ng <= limits.acc) {
-                    judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+            if (currentNg > 0 || sampling > 0 || isDimensiInvalid) {
+                let finalJudgment = 'OK';
+                if (isDimensiInvalid || currentNg >= limits.rej) {
+                    finalJudgment = 'NG';
+                } else if (currentNg <= limits.acc) {
+                    finalJudgment = 'OK';
                 } else {
-                    judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                    finalJudgment = 'NG';
+                }
+
+                judgmentSelect.val(finalJudgment);
+                judgmentDisplay.text(finalJudgment);
+                
+                if (finalJudgment === 'OK') {
+                    judgmentSelect.removeClass('text-danger').addClass('text-success');
+                    judgmentDisplay.removeClass('alert-danger border-danger').addClass('alert-success border-success');
+                } else {
+                    judgmentSelect.removeClass('text-success').addClass('text-danger');
+                    judgmentDisplay.removeClass('alert-success border-success').addClass('alert-danger border-danger');
                 }
             } else {
-                judgmentSelect.val('').removeClass('text-success text-danger');
+                judgmentSelect.val('');
+                judgmentDisplay.text('-').removeClass('alert-success alert-danger border-success border-danger');
             }
             toggleNextProses();
         }
@@ -589,9 +603,9 @@
             const container = $('#nextProsesContainer');
 
             if (judgment === 'NG' || ngCount > 0) {
-                container.show();
+                container.fadeIn();
             } else {
-                container.hide();
+                container.fadeOut();
             }
         }
 
@@ -726,58 +740,45 @@
         });
 
         $(document).on('input', '.edit-dimension-input', validateDimensions);
-        $('#sampling_qty, #total_ng').on('input', updateJudgment);
-        $('#item_id').on('change', validateDimensions);
-        $('#judgment').on('change', toggleNextProses);
+
+        // --- Otomatisasi Input & Kalkulasi (AQL & OK/NG) ---
+        
+        // 1. Saat Total Produksi diubah -> Update Sampling Qty (AQL)
+        // Menggunakan delegasi pada form untuk keandalan maksimal
+        $(document).on('input keyup change', '#total_qty, input[name="total_qty"]', function() {
+            const lotSize = parseInt($(this).val()) || 0;
+            const sampleSize = getSampleSize(lotSize);
+            
+            // Update Sampling Qty
+            const $sampling = $('#sampling_qty, input[name="sampling_qty"]');
+            $sampling.val(sampleSize);
+            
+            // Panggil paksa updateJudgment untuk menghitung ulang Total OK
+            updateJudgment();
+            
+            // Trigger event input agar listener lain ikut terupdate
+            $sampling.trigger('input').trigger('change');
+        });
+
+        // 2. Saat Sampling Qty atau Total NG diubah -> Hitung Total OK & Judgment
+        $(document).on('input change', '#sampling_qty, input[name="sampling_qty"], #total_ng, input[name="total_ng"]', function() {
+            updateJudgment();
+        });
+
+        $(document).on('change', '#item_id', function() {
+            validateDimensions();
+            updateJudgment();
+        });
+        
+        $(document).on('change', '#judgment', updateJudgment);
 
         // Form Submit Validation
         $('#editChecksheetForm').on('submit', function (e) {
             const judgment = $('#judgment').val();
             const nextProses = $('#next_proses').val();
 
-            // Log data yang akan dikirim untuk debugging
-            console.log('=== Form Edit Checksheet Submit ===');
-            console.log('Judgment:', judgment);
-            console.log('Next Proses:', nextProses);
-            
-            // Collect dimension data
-            const dimensionData = {};
-            $('.edit-dimension-input').each(function() {
-                const name = $(this).attr('name');
-                const value = $(this).val();
-                if (value && value.trim() !== '') {
-                    const match = name.match(/\[(\d+)\]\[(\d+)\]/);
-                    if (match) {
-                        const cavity = match[1];
-                        const point = match[2];
-                        if (!dimensionData[cavity]) dimensionData[cavity] = {};
-                        dimensionData[cavity][point] = value;
-                    }
-                }
-            });
-            console.log('Dimension Data:', dimensionData);
-            console.log('Dimension Count:', Object.keys(dimensionData).length);
-            
-            // Collect defect data
-            const defectData = [];
-            $('.defect-row').each(function() {
-                const type = $(this).find('.defect-select').val();
-                const qty = $(this).find('.defect-qty').val();
-                if (type && qty) {
-                    defectData.push({ type, qty });
-                }
-            });
-            console.log('Defect Data:', defectData);
-            console.log('Defect Count:', defectData.length);
-            
-            // Collect all form data
-            const formData = $(this).serializeArray();
-            console.log('All Form Data:', formData);
-            console.log('===================================');
-
             if (judgment === 'NG' && !nextProses) {
                 e.preventDefault();
-                console.warn('Validation Failed: Next Proses required for NG judgment');
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
@@ -785,7 +786,6 @@
                     confirmButtonColor: '#3085d6'
                 });
                 
-                // Specific highlight
                 const $nextProses = $('#next_proses');
                 $nextProses.addClass('is-invalid').focus();
                 setTimeout(function() {
@@ -795,22 +795,14 @@
                 return false;
             }
             
-            console.log('Form validation passed, submitting...');
-            
-            // Pastikan tidak ada input yang disabled (yang bisa menghalangi data terkirim)
             $('#editChecksheetForm').find(':input:disabled').each(function() {
-                console.warn('Found disabled input:', $(this).attr('name'), '- Enabling temporarily');
                 $(this).prop('disabled', false).addClass('was-disabled');
             });
             
-            // Show loading overlay
             $('#loadingOverlay').css('display', 'flex');
-            
-            // Disable submit button to prevent double submit
             $('#btnSubmit').prop('disabled', true);
         });
         
-        // Re-enable disabled inputs after form is processed (in case of error)
         $(document).on('ajaxComplete ajaxError', function() {
             $('.was-disabled').prop('disabled', true).removeClass('was-disabled');
             $('#loadingOverlay').hide();
@@ -820,7 +812,7 @@
         // Initial check
         validateDimensions();
 
-        // --- Defect & NG Logic (Copied/Adapted from create.blade.php) ---
+        // --- Defect & NG Logic ---
         var defaultDefects = [
             { value: 'scratch', text: 'BARET' },
             { value: 'silver', text: 'SILVER' },
@@ -836,18 +828,12 @@
             var selectedOption = $('#item_id').find('option:selected');
             var defectsData = selectedOption.data('defects');
 
-            // Normalize defectsData
             if (typeof defectsData === 'string') {
-                try {
-                    defectsData = JSON.parse(defectsData);
-                } catch (e) {
-                    defectsData = [];
-                }
+                try { defectsData = JSON.parse(defectsData); } catch (e) { defectsData = []; }
             }
 
-            // Provide options for ALL defect selects
             $('.defect-select').each(function() {
-                var currentVal = $(this).val(); // preserve selection
+                var currentVal = $(this).val();
                 $(this).empty();
                 $(this).append('<option value="">-- Pilih Defect --</option>');
 
@@ -859,26 +845,21 @@
                 } else {
                     var that = this;
                     $.each(defaultDefects, function (index, defect) {
-                        $(that).append('<option value="' + defect.text + '">' + defect.text + '</option>'); // Using text as value to match existing data likely
+                        $(that).append('<option value="' + defect.text + '">' + defect.text + '</option>');
                     });
                 }
                 
-                if (currentVal) {
-                    $(this).val(currentVal);
-                }
+                if (currentVal) $(this).val(currentVal);
             });
         }
 
-        var isInitialLoad = true;
-        // Run updates on item change
         $('#item_id').change(function() {
             var selectedOption = $(this).find('option:selected');
             var customer = selectedOption.data('customer');
             var weightStandard = selectedOption.data('weight-standard');
 
-            // --- Berat Part Logic ---
             if (customer && (customer.toUpperCase().includes('ASTRA HONDA MOTOR') || customer.toUpperCase().includes('AHM') || customer.toUpperCase().includes('PT. TAKAGI SARI MULTI UTAMA'))) {
-                $('#editBeratPartRow').show();
+                $('#editBeratPartRow').fadeIn();
                 if (weightStandard) {
                     $('#editWeightStandardDisplay').text(weightStandard);
                     $('#editWeightStandardBadge').show();
@@ -886,42 +867,45 @@
                     $('#editWeightStandardBadge').hide();
                 }
             } else {
-                $('#editBeratPartRow').hide();
+                $('#editBeratPartRow').fadeOut();
                 $('#editWeightCavContainer input').val('');
                 $('#editWeightStandardBadge').hide();
             }
 
             updateDefectOptions();
-            validateDimensions(); // existing call
+            validateDimensions();
         });
 
-        // Trigger on load to ensure dropdowns have options (if not already populated nicely)
-        // Since we manually put the 'selected' option in HTML, we just need to fill the rest.
         updateDefectOptions();
         $('#item_id').trigger('change');
-        isInitialLoad = false;
 
         $('#editAddDefectBtn').click(function () {
             var rowCount = $('.defect-row').length;
-            if (rowCount < 5) { // Limit to reasonable number
-                var newRow = $('<div class="input-group mb-2 defect-row">' +
-                    '<select class="form-control form-control-sm defect-select" name="defect_types[]">' +
+            if (rowCount < 8) {
+                var newRow = $('<div class="input-group mb-2 defect-row shadow-sm">' +
+                    '<select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">' +
                     '<option value="">-- Pilih Defect --</option>' +
                     '</select>' +
-                    '<input type="number" class="form-control form-control-sm defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;">' +
+                    '<input type="number" class="form-control form-control-sm defect-qty bg-white font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;">' +
                     '<div class="input-group-append">' +
-                    '<button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-minus"></i></button>' +
+                    '<button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-times"></i></button>' +
                     '</div>' +
                     '</div>');
                 
                 $('#editDefectContainer').append(newRow);
-                updateDefectOptions(); // Populate options for new row
+                $('#noDefectMsg').hide();
+                updateDefectOptions();
             }
         });
 
         $(document).on('click', '.remove-defect-btn', function () {
-            $(this).closest('.defect-row').remove();
-            calculateTotalNG();
+            $(this).closest('.defect-row').fadeOut(200, function() {
+                $(this).remove();
+                calculateTotalNG();
+                if ($('.defect-row').length === 0) {
+                    $('#noDefectMsg').fadeIn();
+                }
+            });
         });
 
         function calculateTotalNG() {
@@ -932,48 +916,38 @@
             });
             $('#total_ng').val(total).trigger('input');
             
-            // Toggle Add Defect button
             if (total >= 0 || $('.defect-row').length > 0) {
                  $('#editAddDefectBtn').show();
             }
         }
 
-        $(document).on('input', '.defect-qty', function () {
-            calculateTotalNG();
-        });
+        $(document).on('input', '.defect-qty', calculateTotalNG);
 
-        // Toggle "Add Defect" button based on NG count
         $('#total_ng').on('input', function () {
             var ng = parseInt($(this).val()) || 0;
-            // If user manually types NG, we should ensure there is at least one defect row if NG > 0
-            // But if they just want to type NG without details, we shouldn't force it?
-            // The constraint is matching NG to defects. 
-            // Let's just show the button if NG > 0
             if (ng > 0) {
                 $('#editAddDefectBtn').show();
-            } 
-            // Logic to add a row if none exists but NG > 0? 
-            if (ng > 0 && $('.defect-row').length === 0) {
-                // Perhaps auto-add one?
-                $('#editAddDefectBtn').trigger('click');
+                if ($('.defect-row').length === 0) {
+                    $('#editAddDefectBtn').trigger('click');
+                }
             }
         });
 
         // ============================================================
         // EDIT WEIGHT CAVITY HELPERS
         // ============================================================
-        const EDIT_MAX_WEIGHT_CAV = 8;
+        const EDIT_MAX_WEIGHT_CAV = 12;
 
         function buildEditWeightCavRow(cavNum, value) {
             value = value || '';
             return `<div class="input-group input-group-sm mb-1 edit-weight-cav-row">
                 <div class="input-group-prepend">
-                    <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${cavNum}</span>
+                    <span class="input-group-text bg-white" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${cavNum}</span>
                 </div>
-                <input type="number" step="0.01" min="0" class="form-control text-center"
+                <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold"
                     name="part_weight[]" placeholder="0.00" value="${value}">
                 <div class="input-group-append">
-                    <span class="input-group-text text-muted small">gr</span>
+                    <span class="input-group-text bg-white text-muted">gr</span>
                 </div>
             </div>`;
         }
@@ -1007,11 +981,14 @@
         border-color: #dc3545 !important;
         background-color: #f8d7da !important;
     }
-
-    .btn-xs {
-        padding: 1px 5px;
-        font-size: 12px;
-        line-height: 1.5;
-        border-radius: 3px;
+    .defect-row {
+        transition: all 0.2s ease;
+    }
+    .defect-row:hover {
+        transform: translateX(3px);
+    }
+    .border-dashed {
+        border-style: dashed !important;
+        border-width: 2px !important;
     }
 </style>

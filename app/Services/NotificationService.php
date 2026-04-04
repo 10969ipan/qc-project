@@ -60,12 +60,18 @@ class NotificationService
     {
         try {
             $item = $checksheet->item;
-            $dateStr = ($checksheet->date instanceof Carbon)
-                ? $checksheet->date->format('d-m-Y')
-                : Carbon::parse($checksheet->date)->format('d-m-Y');
+            $rawDate = $checksheet->date ?? $checksheet->qc_datetime ?? $checksheet->production_datetime ?? clone $checksheet->created_at;
+            $dateStr = ($rawDate instanceof \Carbon\Carbon)
+                ? $rawDate->format('d-m-Y')
+                : \Carbon\Carbon::parse($rawDate)->format('d-m-Y');
 
-            $title = "Laporan Ditolak: {$item->name}";
-            $message = "Laporan {$type} pada {$dateStr} (Shift {$checksheet->shift}) telah DITOLAK" . ($rejector ? " oleh {$rejector}" : "") . ".";
+            $title = "Laporan Ditolak: " . ($item ? $item->name : 'N/A');
+            $shift = $checksheet->shift ?? $checksheet->qc_shift ?? $checksheet->production_shift ?? '-';
+            $message = "Laporan {$type} pada {$dateStr} (Shift {$shift}) telah DITOLAK" . ($rejector ? " oleh {$rejector}" : "") . ".";
+
+            if (!empty($checksheet->rejection_remarks)) {
+                $message .= "<br><br><strong>Keterangan:</strong><br>" . nl2br(htmlspecialchars($checksheet->rejection_remarks));
+            }
 
             $url = $this->getChecksheetUrl($checksheet, $type);
 
@@ -109,14 +115,16 @@ class NotificationService
     {
         try {
             $item = $checksheet->item;
-            $dateStr = ($checksheet->date instanceof Carbon)
-                ? $checksheet->date->format('d-m-Y')
-                : Carbon::parse($checksheet->date)->format('d-m-Y');
+            $rawDate = $checksheet->date ?? $checksheet->qc_datetime ?? $checksheet->production_datetime ?? clone $checksheet->created_at;
+            $dateStr = ($rawDate instanceof \Carbon\Carbon)
+                ? $rawDate->format('d-m-Y')
+                : \Carbon\Carbon::parse($rawDate)->format('d-m-Y');
 
-            $title = "Permintaan Approval: {$item->name}";
+            $title = "Permintaan Approval: " . ($item ? $item->name : 'N/A');
             $locationLabel = $this->getLocationLabel($type);
             $locationValue = $this->getLineInfo($checksheet, $type);
-            $message = "Laporan {$type} pada {$dateStr} (Shift {$checksheet->shift})" . ($locationValue ? " {$locationLabel} {$locationValue}" : "") . " membutuhkan approval.";
+            $shift = $checksheet->shift ?? $checksheet->qc_shift ?? $checksheet->production_shift ?? '-';
+            $message = "Laporan {$type} pada {$dateStr} (Shift {$shift})" . ($locationValue ? " {$locationLabel} {$locationValue}" : "") . " membutuhkan approval.";
 
             $url = $this->getChecksheetUrl($checksheet, $type);
 

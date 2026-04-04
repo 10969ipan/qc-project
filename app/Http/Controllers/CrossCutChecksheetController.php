@@ -62,11 +62,25 @@ class CrossCutChecksheetController extends Controller
             'id' => $request->input('id'),
             'search' => $request->input('search'),
             'check_type' => $request->input('check_type'),
+            'operator_initials' => $request->input('operator_initials'),
+            'customer' => $request->input('customer'),
         ];
         $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
-        $items = Item::orderBy('name')->get();
+        // Fetch unique item IDs that have checksheets
+        $existingItemIds = CrossCutChecksheet::withoutGlobalScope('plant')->distinct()->pluck('item_id');
 
-        return view('cross_cut.index', compact('checksheets', 'items'));
+        $items = Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+
+        $customers = Item::whereIn('id', $existingItemIds)
+            ->whereNotNull('customer')
+            ->where('customer', '!=', '')
+            ->distinct()
+            ->orderBy('customer')
+            ->pluck('customer');
+            
+        $initials = CrossCutChecksheet::withoutGlobalScope('plant')->whereNotNull('operator_initials')->where('operator_initials', '!=', '')->distinct()->orderBy('operator_initials')->pluck('operator_initials');
+
+        return view('cross_cut.index', compact('checksheets', 'items', 'customers', 'initials'));
     }
 
     /**
@@ -138,6 +152,82 @@ class CrossCutChecksheetController extends Controller
     }
 
     /**
+     * API: Get next auto-generated Result Remark for a given item + current user.
+     * Response: { remark: "IA3", count: 2, initials: "IA" }
+     */
+    public function getNextResultRemark(Request $request)
+    {
+        $itemId   = $request->input('item_id');
+        $operatorInitials = $request->input('operator_initials');
+        $initials = strtoupper(trim($operatorInitials ?: auth()->user()->initials ?? ''));
+
+        if (!$itemId || !$initials) {
+            return response()->json(['remark' => null, 'count' => 0, 'initials' => $initials]);
+        }
+
+        // Count records for this item where result_remark starts with the user's initials
+        $count = CrossCutChecksheet::withoutGlobalScope('plant')
+            ->where('item_id', $itemId)
+            ->where('result_remark', 'LIKE', $initials . '%')
+            ->count();
+
+        $next = $initials . ($count + 1);
+
+        return response()->json([
+            'remark'   => $next,
+            'count'    => $count,
+            'initials' => $initials,
+        ]);
+    }
+
+    /**
+     * API: Get auto-generated No Lot QC based on format A07AE26A.
+     * Month(1 char) + Date(2 chars) + Initials + Year(2 chars) + SequenceChar(repeated by shift count)
+     */
+    public function getAutoNoLot(Request $request)
+    {
+        $itemId = $request->input('item_id');
+        $productionDate = $request->input('production_date');
+        $prodShift = (int) $request->input('production_shift', 1);
+        $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
+        $qcShift = (int) $request->input('qc_shift', 1);
+
+        if (!$itemId || !$productionDate || !$operatorInitials) {
+            return response()->json(['no_lot' => null, 'count' => 0]);
+        }
+
+        try {
+            $dateObj = \Carbon\Carbon::parse($productionDate);
+            $month = $dateObj->month; // 1-12
+            $day = $dateObj->format('d'); // 01-31
+            $year2 = $dateObj->format('y'); // 26
+            
+            $monthChar = chr(64 + $month); // 1->A, 2->B, etc.
+            
+            $count = CrossCutChecksheet::withoutGlobalScope('plant')
+                ->where('item_id', $itemId)
+                ->whereDate('production_datetime', $dateObj->toDateString())
+                ->where('operator_initials', $operatorInitials)
+                ->where('production_shift', $prodShift)
+                ->count();
+                
+            $seqCount = $count % 26; 
+            $seqChar = chr(65 + $seqCount); 
+            
+            $suffix = str_repeat($seqChar, max(1, $qcShift));
+            
+            $noLot = "{$monthChar}{$day}{$operatorInitials}{$year2}{$suffix}";
+            
+            return response()->json([
+                'no_lot' => $noLot,
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['no_lot' => null, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Menampilkan resource spesifik (detail).
      */
     public function show($id)
@@ -153,13 +243,23 @@ class CrossCutChecksheetController extends Controller
     // Menyajikan gambar dari storage privat/public agar aman
     public function serveImage($id)
     {
-        $checksheet = CrossCutChecksheet::findOrFail($id);
+        try {
+            $checksheet = CrossCutChecksheet::findOrFail($id);
 
-        if (!Storage::disk('public')->exists($checksheet->image_path)) {
-            abort(404);
+            // Guard: prevent Path cannot be empty error
+            if (empty($checksheet->image_path)) {
+                return abort(404, 'Image path is empty.');
+            }
+
+            if (!Storage::disk('public')->exists($checksheet->image_path)) {
+                return abort(404, 'Image file does not exist on disk.');
+            }
+
+            return response()->file(Storage::disk('public')->path($checksheet->image_path));
+        } catch (\Exception $e) {
+            \Log::error("Path cannot be empty or related error in serveImage (Plating) ID {$id}: " . $e->getMessage());
+            return abort(404, 'Error processing image: ' . $e->getMessage());
         }
-
-        return response()->file(Storage::disk('public')->path($checksheet->image_path));
     }
 
     // Get checksheet data for image modal
@@ -224,8 +324,16 @@ class CrossCutChecksheetController extends Controller
             $this->crossCutService->updateChecksheet($id, $request->validated());
             $checksheet = CrossCutChecksheet::find($id);
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Cross Cut: {$checksheet->item->name}");
+            
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui.']);
+            }
+            
             return redirect()->route('cross_cut.index')->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Gagal memperbarui data: ' . $e->getMessage()], 500);
+            }
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
     }
@@ -288,14 +396,20 @@ class CrossCutChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type']);
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type', 'operator_initials', 'customer']);
+
+        // Default to today if no date range is provided
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            $filters['start_date'] = now()->toDateString();
+            $filters['end_date'] = now()->toDateString();
+        }
 
         $query = $this->crossCutService->buildFilteredQuery($filters)->latest();
 
         if ($request->has('page')) {
             $checksheets = $query->paginate(10)->getCollection();
         } else {
-            $checksheets = $query->limit(10)->get();
+            $checksheets = $query->get();
         }
 
         $itemName = null;
@@ -320,12 +434,12 @@ class CrossCutChecksheetController extends Controller
 
     public function printView(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type']);
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type', 'operator_initials', 'customer']);
 
         // Default to today if no date range is provided
-        if (!$request->filled('start_date') && !$request->filled('end_date')) {
-            $filters['start_date'] = date('Y-m-d');
-            $filters['end_date'] = date('Y-m-d');
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            $filters['start_date'] = now()->toDateString();
+            $filters['end_date'] = now()->toDateString();
         }
 
         $query = $this->crossCutService->buildFilteredQuery($filters)->latest();
@@ -342,14 +456,7 @@ class CrossCutChecksheetController extends Controller
         return view('cross_cut.print', compact('checksheets', 'filters', 'itemName', 'plantName'));
     }
 
-    // Unified filtering delegating to service
-    private function applyFilters($query, Request $request)
-    {
-        // This is now redundant as we use service for filtering.
-        // Keeping it for now if any legacy code still calls it, but redirecting to service logic would be better.
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'search']);
-        // Service already handles this.
-    }
+
 
     // Tampilkan form untuk admin mengedit status approval
     public function editApproval($id)
@@ -375,7 +482,21 @@ class CrossCutChecksheetController extends Controller
 
         try {
             $this->crossCutService->updateApprovalStatus($id, $validated);
-            $checksheet = CrossCutChecksheet::find($id);
+            $checksheet = \App\Models\CrossCutChecksheet::find($id);
+
+            // Jika status dirubah menjadi Rejected melalui modal admin, kirim notifikasi dan berikan remarks
+            if ($checksheet->approval_status === 'Rejected' && empty($checksheet->rejection_remarks)) {
+                $checksheet->rejection_remarks = "[Admin] Status dirubah menjadi Rejected via Edit Status - " . auth()->user()->name . " (" . now()->format('d/m/Y H:i') . ")";
+                $checksheet->save();
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->notifyRejection($checksheet, 'Cross Cut', auth()->user()->name);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi rejection: ' . $ne->getMessage());
+                }
+            }
+
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut: {$checksheet->item->name}");
             return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {

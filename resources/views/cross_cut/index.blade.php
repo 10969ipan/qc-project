@@ -89,14 +89,21 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('cross_cut.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 10px;">
+            <form action="{{ route('cross_cut.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" id="filterFormCrossCut" style="gap: 10px;">
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" id="liveSearch" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama Item / Part No."
-                        value="{{ request('search') }}">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 240px;" class="custom-filter-wrapper">
+                        <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Item / Part No.</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center">
@@ -110,7 +117,37 @@
                     </div>
                 </div>
 
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Inisial:</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
+                    <div style="width: 130px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <div class="ml-auto d-flex" style="gap: 5px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                        .custom-filter-wrapper { position: relative; top: -1px; }
+                    </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
                         <i class="fas fa-search fa-sm"></i>
                     </button>
@@ -118,11 +155,11 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
-                    <a href="{{ route('cross_cut.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
+                    <a href="{{ route('cross_cut.export_pdf') }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader" title="Export to PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
                     </a>
-                    <a href="{{ route('cross_cut.print', request()->query()) }}"
+                    <a href="{{ route('cross_cut.print') }}"
                         target="_blank"
                         class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
                         style="background-color: #17a589; color: white;">
@@ -594,14 +631,16 @@
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit Checksheet Cross Cut</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="editModalLabel">
+                        <i class="fas fa-edit mr-2"></i> Edit Data Checksheet
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" id="editModalBody">
+                <div class="modal-body p-3" id="editModalBody">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
@@ -616,9 +655,11 @@
     <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
+            <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="statusModalLabel">Edit Status Approval</h5>
+                    <h5 class="modal-title" id="statusModalLabel">
+                        <i class="fas fa-user-check mr-2"></i> Edit Status Approval
+                    </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -884,7 +925,7 @@
                     .then(data => {
                         // Display image
                         if (data.image_path) {
-                            const imagePath = "{{ route('cross_cut.image', ':id') }}".replace(':id', id);
+                            const imagePath = "{{ route('cross_cut.image', ':id') }}".replace(':id', id) + '?t=' + new Date().getTime();
                             imageContainer.innerHTML = `
                                 <img src="${imagePath}" 
                                      class="img-fluid rounded shadow" 
@@ -983,43 +1024,47 @@
                     });
             }
 
-            // Auto-Submit Filtering
-            const filterForm = document.querySelector('form[action="{{ route('cross_cut.index') }}"]');
-            const liveSearchInput = document.getElementById('liveSearch');
-            const dateInputs = filterForm.querySelectorAll('input[type="date"]');
+            // Link Synchronization (Sync Print/Export links with current filter selections)
+            var form = document.getElementById('filterFormCrossCut');
+            if (form) {
+                function syncExportLinks() {
+                    var baseUrlPrint = "{{ route('cross_cut.print') }}";
+                    var baseUrlPdf = "{{ route('cross_cut.export_pdf') }}";
+                    
+                    var params = new URLSearchParams();
+                    var formData = new FormData(form);
+                    for (var pair of formData.entries()) {
+                        if (pair[1]) params.append(pair[0], pair[1]);
+                    }
+                    
+                    var queryString = params.toString();
+                    
+                    var printBtn = form.querySelector('a[title="Print"]');
+                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    
+                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
+                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                }
 
-            if (liveSearchInput) {
-                let searchTimeout;
-                liveSearchInput.addEventListener('input', function() {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => filterForm.submit(), 500);
-                });
-            }
+                $(form).find('input, select').on('change', syncExportLinks);
+                syncExportLinks();
 
-            dateInputs.forEach(input => {
-                input.addEventListener('change', () => filterForm.submit());
-            });
+                $(form).on('submit', function(e) {
+                    var startDate = document.getElementById('start_date').value;
+                    var endDate = document.getElementById('end_date').value;
 
-
-            // PDF Export
-            const exportPdfBtn = document.getElementById('exportPdfBtn');
-
-            if (exportPdfBtn) {
-                exportPdfBtn.classList.add('btn-download'); // Add btn-download class
-                exportPdfBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    const startDate = document.getElementById('start_date').value;
-                    const endDate = document.getElementById('end_date').value;
-                    const searchTerm = document.getElementById('liveSearch').value.trim();
-
-                    const params = new URLSearchParams();
-                    if (startDate) params.append('start_date', startDate);
-                    if (endDate) params.append('end_date', endDate);
-                    if (searchTerm) params.append('search', searchTerm);
-
-                    const exportUrl = "{{ route('cross_cut.export_pdf') }}";
-                    window.location.href = exportUrl + '?' + params.toString();
+                    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                        e.preventDefault();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Rentang Tanggal Tidak Valid',
+                                text: 'Tanggal Akhir tidak boleh lebih kecil dari Tanggal Mulai!'
+                            });
+                        } else {
+                            alert('Tanggal Akhir tidak boleh lebih kecil dari Tanggal Mulai!');
+                        }
+                    }
                 });
             }
             // Edit Modal Handler
@@ -1047,8 +1092,85 @@
                     }
                 });
             });
+
+            // Handle AJAX Submit for Edit Form to catch validation errors
+            $(document).on('submit', '#formEditCrossCut', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var formData = new FormData(this);
+                var btn = form.find('button[type="submit"]');
+                var originalHtml = btn.html();
+
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...').prop('disabled', true);
+                form.find('.invalid-feedback').remove();
+                form.find('.is-invalid').removeClass('is-invalid');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: "POST", // Method SPOOFING handles PUT
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#global-loader').fadeOut(); // Prevent loader from hiding the alert
+                        $('#editModal').modal('hide');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message || 'Data berhasil diperbarui.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            alert(response.message || 'Data berhasil diperbarui.');
+                            window.location.reload();
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#global-loader').fadeOut(); // Hide loader so error is visible
+                        btn.html(originalHtml).prop('disabled', false);
+                        if (xhr.status === 422) {
+                            var errors = xhr.responseJSON.errors;
+                            var errorList = '<ul class="mb-0">';
+                            for (var key in errors) {
+                                errorList += '<li>' + errors[key][0] + '</li>';
+                                var input = form.find('[name="' + key + '"]');
+                                if (input.length) {
+                                    input.addClass('is-invalid');
+                                }
+                            }
+                            errorList += '</ul>';
+                            
+                            // Tampilkan alert error di dalam modal
+                            if ($('#editModalError').length === 0) {
+                                form.prepend('<div id="editModalError" class="alert alert-danger"></div>');
+                            }
+                            $('#editModalError').html(errorList);
+                            
+                            // Scroll ke atas
+                            $('#editModal').find('.modal-body').scrollTop(0);
+                        } else {
+                            alert('Terjadi kesalahan sistem: ' + (xhr.responseJSON?.message || xhr.statusText));
+                        }
+                    }
+                });
+            });
         });
     </script>
     @php $bulkApproveRoute = route('cross_cut.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+    
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+                initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
+                initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+            }
+        });
+    </script>
 @endpush

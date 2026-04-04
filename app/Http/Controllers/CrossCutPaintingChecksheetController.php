@@ -146,9 +146,16 @@ class CrossCutPaintingChecksheetController extends Controller
     public function serveImage($id)
     {
         $checksheet = CrossCutPaintingChecksheet::findOrFail($id);
+
+        // Guard: prevent Path cannot be empty error
+        if (empty($checksheet->image_path)) {
+            abort(404, 'Image path is empty.');
+        }
+
         if (!Storage::disk('public')->exists($checksheet->image_path)) {
             abort(404);
         }
+
         return response()->file(Storage::disk('public')->path($checksheet->image_path));
     }
 
@@ -279,13 +286,20 @@ class CrossCutPaintingChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status']);
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer']);
+
+        // Default to today if no date range is provided
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            $filters['start_date'] = now()->toDateString();
+            $filters['end_date'] = now()->toDateString();
+        }
+
         $query = $this->paintingService->buildFilteredQuery($filters)->latest();
 
         if ($request->has('page')) {
             $checksheets = $query->paginate(10)->getCollection();
         } else {
-            $checksheets = $query->limit(10)->get();
+            $checksheets = $query->get();
         }
 
         $itemName = null;
@@ -306,6 +320,30 @@ class CrossCutPaintingChecksheetController extends Controller
 
         $pdf = Pdf::loadView('cross_cut_painting.pdf', $viewData);
         return $pdf->setPaper('a4', 'landscape')->stream('laporan-cross-cut-painting.pdf');
+    }
+
+    public function printView(Request $request)
+    {
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer']);
+
+        // Default to today if no date range is provided
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            $filters['start_date'] = now()->toDateString();
+            $filters['end_date'] = now()->toDateString();
+        }
+
+        $query = $this->paintingService->buildFilteredQuery($filters)->latest();
+        $checksheets = $query->get();
+
+        $itemName = null;
+        if ($request->filled('item_id')) {
+            $item = Item::find($request->item_id);
+            $itemName = $item ? $item->name : null;
+        }
+
+        $plantName = \App\Models\Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+
+        return view('cross_cut_painting.print', compact('checksheets', 'filters', 'itemName', 'plantName'));
     }
 
     public function editApproval($id)
@@ -330,7 +368,21 @@ class CrossCutPaintingChecksheetController extends Controller
 
         try {
             $this->paintingService->updateApprovalStatus($id, $validated);
-            $checksheet = CrossCutPaintingChecksheet::find($id);
+            $checksheet = \App\Models\CrossCutPaintingChecksheet::find($id);
+
+            // Jika status dirubah menjadi Rejected melalui modal admin, kirim notifikasi dan berikan remarks
+            if ($checksheet->approval_status === 'Rejected' && empty($checksheet->rejection_remarks)) {
+                $checksheet->rejection_remarks = "[Admin] Status dirubah menjadi Rejected via Edit Status - " . auth()->user()->name . " (" . now()->format('d/m/Y H:i') . ")";
+                $checksheet->save();
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->notifyRejection($checksheet, 'Cross Cut Painting', auth()->user()->name);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi rejection: ' . $ne->getMessage());
+                }
+            }
+
             \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut Painting: {$checksheet->item->name}");
             return redirect()->route('cross_cut_painting.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {

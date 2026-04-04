@@ -1,184 +1,172 @@
 <form action="{{ route('cross_cut.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST"
-    enctype="multipart/form-data">
+    enctype="multipart/form-data" id="formEditCrossCut">
     @csrf
     @method('PUT')
     <input type="hidden" name="plant" value="{{ request('plant') }}">
-    <div class="table-responsive">
-        <table class="table table-bordered" width="100%" cellspacing="0">
-            <thead>
-                <tr class="text-center">
-                    <th>Item Part</th>
-                    <th>Customer</th>
-                    <th>Part No</th>
-                    <th>Tanggal & Shift Produksi / QC</th>
-                    <th>Hasil Cross Cut</th>
-                    <th>Bak No</th>
-                    <th>Posisi Remark (Judgement / No Lot)</th>
-                    <th>Result Remark</th>
-                    <th>Inisial QC</th>
-                    <th>Keterangan</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <!-- Item Part -->
-                    <td class="align-middle" style="min-width: 200px;">
-                        <select class="form-control" id="item_id_edit" name="item_id" required>
-                            <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part
-                            </option>
-                            @foreach($items as $item)
-                                <option value="{{ $item->id }}" data-customer="{{ $item->customer ?? '' }}"
-                                    data-part-number="{{ $item->part_number ?? '' }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
-                                    {{ $item->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </td>
-                    <!-- Customer -->
-                    <td class="align-middle">
-                        <input type="text" class="form-control" id="customer_edit" name="customer"
-                            value="{{ $checksheet->item->customer ?? '' }}" readonly style="background-color: #e9ecef;">
-                    </td>
-                    <!-- Part No -->
-                    <td class="align-middle">
-                        <input type="text" class="form-control" id="part_number_edit" name="part_number"
-                            value="{{ $checksheet->item->part_number ?? '' }}" readonly
-                            style="background-color: #e9ecef;">
-                    </td>
-                    <!-- Tanggal & Shift Produksi / QC -->
-                    <td class="align-middle" style="min-width: 250px;">
-                        <div class="form-group mb-2">
-                            <label>Tgl. & Shift Produksi</label>
-                            <div class="input-group">
-                                <input type="datetime-local" class="form-control" name="production_datetime"
-                                    value="{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d\TH:i') }}"
-                                    required>
-                                <select class="form-control" name="production_shift" required>
-                                    <option value="1" {{ $checksheet->production_shift == 1 ? 'selected' : '' }}>Shift 1
-                                    </option>
-                                    <option value="2" {{ $checksheet->production_shift == 2 ? 'selected' : '' }}>Shift 2
-                                    </option>
-                                    <option value="3" {{ $checksheet->production_shift == 3 ? 'selected' : '' }}>Shift 3
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group mb-0">
-                            <label>Tgl. & Shift QC</label>
-                            <div class="input-group">
-                                <input type="datetime-local" class="form-control" name="qc_datetime"
-                                    value="{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d\TH:i') }}"
-                                    required>
-                                <select class="form-control" name="qc_shift" required>
-                                    <option value="1" {{ $checksheet->qc_shift == 1 ? 'selected' : '' }}>Shift 1</option>
-                                    <option value="2" {{ $checksheet->qc_shift == 2 ? 'selected' : '' }}>Shift 2</option>
-                                    <option value="3" {{ $checksheet->qc_shift == 3 ? 'selected' : '' }}>Shift 3</option>
-                                </select>
-                            </div>
-                        </div>
-                    </td>
-                    <!-- Hasil Cross Cut (Image) -->
-                    <td class="align-middle text-center">
-                        <label for="image_edit" class="mb-2">Ganti Gambar (Opsional)</label>
-                        <input type="file" class="form-control-file mb-2" id="image_edit" name="image" accept="image/*">
-                        <button type="button" id="previewBtn_edit" class="btn btn-info btn-sm"
-                            style="display: none;">Preview Foto Baru</button>
-                        <hr>
-                        <label>Gambar Saat Ini:</label><br>
-                        <img src="{{ route('cross_cut.image', $checksheet->id) }}" alt="Current Image"
-                            class="img-thumbnail" style="max-width: 150px;">
-                    </td>
-                    <!-- Bak No -->
-                    <td class="align-middle" style="min-width: 200px;">
-                        <div class="form-group mb-2"><label>Catalyst</label><input type="text" class="form-control"
-                                name="chemical_catalyst" value="{{ $checksheet->chemical_catalyst }}"></div>
-                        <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control"
-                                name="chemical_abu" value="{{ $checksheet->chemical_abu }}"></div>
-                    </td>
-                    <!-- Posisi Remark -->
-                    <td class="align-middle" style="min-width: 200px;">
-                        <div class="form-group mb-2">
-                            <label>Judgment</label>
-                            <select class="form-control" name="position_remark_judgment"
-                                id="position_remark_judgment_edit" required>
-                                <option value="OK" {{ $checksheet->position_remark_judgment == 'OK' ? 'selected' : '' }}>
-                                    OK</option>
-                                <option value="NG" {{ $checksheet->position_remark_judgment == 'NG' ? 'selected' : '' }}>
-                                    NG</option>
-                            </select>
-                        </div>
-                        <div class="form-group mb-0"><label>No Lot</label><input type="text" class="form-control"
-                                name="position_remark_no_lot" value="{{ $checksheet->position_remark_no_lot }}"
-                                required></div>
-                    </td>
-                    <!-- Result Remark -->
-                    <td class="align-middle"><input type="text" class="form-control" name="result_remark"
-                            value="{{ $checksheet->result_remark }}"></td>
-                    <!-- Inisial QC -->
-                    <td class="align-middle"><input type="text" class="form-control" name="operator_initials"
-                            placeholder="Inisial" value="{{ $checksheet->operator_initials }}"></td>
-                    <!-- Keterangan -->
-                    <td class="align-middle">
-                        <div id="nextProsesContainer_edit"
-                            style="display: {{ $checksheet->position_remark_judgment == 'NG' ? 'block' : 'none' }};">
-                            <div class="form-group mb-2">
-                                <label class="text-danger font-weight-bold">Next Proses</label>
-                                <select name="next_proses" id="next_proses_edit" class="form-control">
-                                    <option value="">-- Pilih Next Proses --</option>
-                                    <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
-                                    <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>
-                                        SORTIR</option>
-                                    <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
-                                    <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>
-                                        REPAIR</option>
-                                    <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
-                                        MARKING+FINISHING+PACKING</option>
-                                    @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'MARKING+FINISHING+PACKING']))
-                                        <option value="{{ $checksheet->next_proses }}" selected>
-                                            {{ $checksheet->next_proses }}
-                                        </option>
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
-                        <textarea class="form-control" name="keterangan"
-                            rows="3">{{ $checksheet->keterangan }}</textarea>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+
+    <div class="row">
+        <!-- Kolom 1: Informasi Part & Shift -->
+        <div class="col-md-4 text-left border-right">
+            <h6 class="font-weight-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-cube mr-1"></i> Informasi Part & Waktu</h6>
+            
+            <div class="form-group mb-2">
+                <label class="small font-weight-bold">Item Part</label>
+                <select class="form-control form-control-sm" id="item_id_edit" name="item_id" required>
+                    <option value="" disabled style="font-weight: bold; color: #6c757d;">Pilih Item Part</option>
+                    @foreach($items as $item)
+                        <option value="{{ $item->id }}" data-customer="{{ $item->customer ?? '' }}"
+                            data-part-number="{{ $item->part_number ?? '' }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}>
+                            {{ $item->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="row">
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">Customer</label>
+                    <input type="text" class="form-control form-control-sm" id="customer_edit" name="customer"
+                        value="{{ $checksheet->item->customer ?? '' }}" readonly style="background-color: #e9ecef;">
+                </div>
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">Part No</label>
+                    <input type="text" class="form-control form-control-sm" id="part_number_edit" name="part_number"
+                        value="{{ $checksheet->item->part_number ?? '' }}" readonly style="background-color: #e9ecef;">
+                </div>
+            </div>
+
+            <div class="form-group mb-2">
+                <label class="small font-weight-bold">Tgl. & Shift Produksi</label>
+                <div class="d-flex" style="gap: 5px;">
+                    <input type="datetime-local" class="form-control form-control-sm" id="production_datetime_edit" name="production_datetime"
+                        value="{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('Y-m-d\TH:i') }}" required>
+                    <select class="form-control form-control-sm" id="production_shift_edit" name="production_shift" style="width: 100px;" required>
+                        <option value="1" {{ $checksheet->production_shift == 1 ? 'selected' : '' }}>Shift 1</option>
+                        <option value="2" {{ $checksheet->production_shift == 2 ? 'selected' : '' }}>Shift 2</option>
+                        <option value="3" {{ $checksheet->production_shift == 3 ? 'selected' : '' }}>Shift 3</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2">
+                <label class="small font-weight-bold">Tgl. & Shift QC</label>
+                <div class="d-flex" style="gap: 5px;">
+                    <input type="datetime-local" class="form-control form-control-sm" id="qc_datetime_edit" name="qc_datetime"
+                        value="{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('Y-m-d\TH:i') }}" required>
+                    <select class="form-control form-control-sm" id="qc_shift_edit" name="qc_shift" style="width: 100px;" required>
+                        <option value="1" {{ $checksheet->qc_shift == 1 ? 'selected' : '' }}>Shift 1</option>
+                        <option value="2" {{ $checksheet->qc_shift == 2 ? 'selected' : '' }}>Shift 2</option>
+                        <option value="3" {{ $checksheet->qc_shift == 3 ? 'selected' : '' }}>Shift 3</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-6 form-group mb-0">
+                    <label class="small font-weight-bold">Inisial QC</label>
+                    <input type="text" class="form-control form-control-sm no-autoupper" id="operator_initials_edit" name="operator_initials"
+                        placeholder="Inisial" value="{{ $checksheet->operator_initials }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom 2: Hasil Pemeriksaan -->
+        <div class="col-md-4 text-left border-right">
+            <h6 class="font-weight-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-clipboard-check mr-1"></i> Pemeriksaan & Remark</h6>
+            
+            <div class="row">
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">Bak No (Catalyst)</label>
+                    <input type="text" class="form-control form-control-sm no-autoupper" name="chemical_catalyst" value="{{ $checksheet->chemical_catalyst }}">
+                </div>
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">Bak No (Abu)</label>
+                    <input type="text" class="form-control form-control-sm no-autoupper" name="chemical_abu" value="{{ $checksheet->chemical_abu }}">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">Judgment</label>
+                    <select class="form-control form-control-sm" name="position_remark_judgment" id="position_remark_judgment_edit" required>
+                        <option value="OK" {{ $checksheet->position_remark_judgment == 'OK' ? 'selected' : '' }}>OK</option>
+                        <option value="NG" {{ $checksheet->position_remark_judgment == 'NG' ? 'selected' : '' }}>NG</option>
+                    </select>
+                </div>
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">No Lot</label>
+                    <input type="text" class="form-control form-control-sm" id="position_remark_no_lot_edit" name="position_remark_no_lot" value="{{ $checksheet->position_remark_no_lot }}" required>
+                    <small id="noLotHint_edit" class="text-info d-block mt-1 d-none" style="font-size: 0.70rem; line-height: 1.1;"></small>
+                </div>
+            </div>
+
+            <div id="nextProsesContainer_edit" style="display: {{ $checksheet->position_remark_judgment == 'NG' ? 'block' : 'none' }};">
+                <div class="form-group mb-2">
+                    <label class="small font-weight-bold text-danger">Next Proses</label>
+                    <select name="next_proses" id="next_proses_edit" class="form-control form-control-sm">
+                        <option value="">-- Pilih Next Proses --</option>
+                        <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
+                        <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR</option>
+                        <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>FINISHING</option>
+                        <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR</option>
+                        <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>MARKING+FINISHING+PACKING</option>
+                        @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'MARKING+FINISHING+PACKING']))
+                            <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2">
+                <label class="small font-weight-bold">Result Remark</label>
+                <input type="text" class="form-control form-control-sm" id="result_remark_edit" name="result_remark" value="{{ $checksheet->result_remark }}">
+                <small id="remarkHint_edit" class="text-info d-block mt-1 d-none" style="font-size: 0.70rem; line-height: 1.1;"></small>
+            </div>
+            
+            <div class="form-group mb-0">
+                <label class="small font-weight-bold">Keterangan</label>
+                <textarea class="form-control form-control-sm" name="keterangan" rows="2">{{ $checksheet->keterangan }}</textarea>
+            </div>
+        </div>
+
+        <!-- Kolom 3: Dokumentasi -->
+        <div class="col-md-4 text-left">
+            <h6 class="font-weight-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-camera mr-1"></i> Dokumentasi</h6>
+            
+            <div class="form-group mb-3 text-center">
+                <label class="small font-weight-bold d-block text-left">Foto Checksheet</label>
+                <div class="mb-2 p-1 border rounded bg-light" style="display: flex; justify-content: center; align-items: center; min-height: 120px;">
+                    <img id="previewImage_edit" src="{{ route('cross_cut.image', $checksheet->id) }}" alt="Current Image" style="max-height: 110px; max-width: 100%; object-fit: contain;">
+                </div>
+                <input type="file" class="form-control-file small" id="image_edit" name="image" accept="image/*">
+                <button type="button" id="previewBtn_edit" class="btn btn-info btn-sm mt-2 shadow-sm" style="display: none;" data-toggle="modal" data-target="#imagePreviewModal_edit">Lihat Full Layar</button>
+            </div>
+        </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-            <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay_edit">
-                {{ gmdate("H:i:s", $checksheet->cycle_time ?? 0) }}
-            </h5>
-            <input type="hidden" name="cycle_time" id="cycleTimeInput_edit" value="{{ $checksheet->cycle_time ?? 0 }}">
-
-            <button type="button" class="btn btn-success mr-3" id="startTimerBtn_edit">
-                <i class="fas fa-play"></i> Start/Reset
-            </button>
-            <button type="submit" class="btn btn-primary" id="saveBtn_edit">
-                <i class="fas fa-save fa-sm"></i> Update Data
-            </button>
-        </div>
+    <!-- Modal Footer style aligned with calibration -->
+    <div class="modal-footer bg-light p-2 mt-3 mx-n3 mb-n3 d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+            <i class="fas fa-times"></i> Batal
+        </button>
+        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm" id="saveBtn_edit">
+            <i class="fas fa-save mr-1"></i> Simpan Perubahan
+        </button>
     </div>
 </form>
 
 <!-- Image Preview Modal -->
-<div class="modal fade" id="imagePreviewModal_edit" tabindex="-1" role="dialog"
-    aria-labelledby="imagePreviewModalLabel_edit" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="imagePreviewModalLabel_edit">Image Preview</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<div class="modal fade" id="imagePreviewModal_edit" tabindex="-1" role="dialog" aria-labelledby="imagePreviewModalLabel_edit" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="imagePreviewModalLabel_edit">Preview Foto</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body text-center">
-                <img id="previewImage_edit" src="" class="img-fluid" alt="Image Preview">
+            <div class="modal-body text-center p-2 bg-light">
+                <img id="previewImageLarge_edit" src="{{ route('cross_cut.image', $checksheet->id) }}" class="img-fluid" alt="Image Preview">
             </div>
         </div>
     </div>
@@ -186,8 +174,6 @@
 
 <script>
     (function () {
-        // IDs are suffixed with _edit to avoid conflicts if multiple modals were present (though usually one)
-        // Update Customer and Part No when item is selected
         $('#item_id_edit').on('change', function () {
             var selectedOption = $(this).find('option:selected');
             var customer = selectedOption.data('customer') || '';
@@ -197,68 +183,17 @@
             $('#part_number_edit').val(partNumber);
         });
 
-        // Initialize customer and part_number if needed (values are already set by blade, but events might be needed)
-        // Blade sets value via attributes, so display is correct.
-
-        // Image Preview Logic
         $('#image_edit').on('change', function (event) {
             var file = event.target.files[0];
             if (file) {
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     $('#previewImage_edit').attr('src', e.target.result);
-                    $('#previewBtn_edit').show();
+                    $('#previewImageLarge_edit').attr('src', e.target.result);
+                    $('#previewBtn_edit').fadeIn();
                 }
                 reader.readAsDataURL(file);
             }
-        });
-
-        $('#previewBtn_edit').on('click', function () {
-            // We need to make sure this modal stacking works or use just a show/hide
-            // Since we are in a modal already, opening another defaults to stacking in Bootstrap 4 if handled correctly
-            $('#imagePreviewModal_edit').modal('show');
-        });
-
-        // Timer Logic
-        var timerInterval = null;
-        var totalSeconds = parseInt(document.getElementById('cycleTimeInput_edit').value) || 0;
-        var timerRunning = false;
-        var timerDisplay = document.getElementById('timerDisplay_edit');
-        var cycleTimeInput = document.getElementById('cycleTimeInput_edit');
-        var startTimerBtn = document.getElementById('startTimerBtn_edit');
-
-        function updateTimerDisplay() {
-            var hours = Math.floor(totalSeconds / 3600);
-            var minutes = Math.floor((totalSeconds % 3600) / 60);
-            var seconds = totalSeconds % 60;
-            var text = [hours, minutes, seconds].map(v => v < 10 ? "0" + v : v).join(":");
-            timerDisplay.textContent = text;
-            cycleTimeInput.value = totalSeconds;
-        }
-
-        startTimerBtn.addEventListener('click', function () {
-            if (timerRunning) { // If running, stop and reset
-                clearInterval(timerInterval);
-                timerRunning = false;
-                totalSeconds = 0;
-                updateTimerDisplay();
-                this.innerHTML = '<i class="fas fa-play"></i> Start/Reset';
-            } else { // If not running, start
-                timerRunning = true;
-                this.innerHTML = '<i class="fas fa-undo"></i> Reset';
-
-                timerInterval = setInterval(function () {
-                    totalSeconds++;
-                    updateTimerDisplay();
-                }, 1000);
-            }
-        });
-
-        $('#saveBtn_edit').on('click', function () {
-            if (timerRunning) {
-                clearInterval(timerInterval);
-            }
-            cycleTimeInput.value = totalSeconds;
         });
 
         // Next Proses logic
@@ -276,5 +211,124 @@
         }
 
         judgmentSelect.on('change', toggleNextProses);
+
+        // --- Auto-fill Result Remark ---
+        var nextRemarkUrl_edit = "{{ route('cross_cut.next_remark') }}";
+        var itemSelect_edit    = document.getElementById('item_id_edit');
+        var remarkInput_edit   = document.getElementById('result_remark_edit');
+        var remarkHint_edit    = document.getElementById('remarkHint_edit');
+
+        function fetchNextRemark_edit() {
+            var itemId = itemSelect_edit ? itemSelect_edit.value : '';
+            var initials = initialsInput_edit ? initialsInput_edit.value : '';
+
+            if (!itemId) {
+                remarkInput_edit.readOnly = false;
+                remarkHint_edit.classList.add('d-none');
+                return;
+            }
+
+            fetch(nextRemarkUrl_edit + '?item_id=' + encodeURIComponent(itemId) + '&operator_initials=' + encodeURIComponent(initials), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.remark && data.count > 0) {
+                    remarkInput_edit.value    = data.remark;
+                    remarkInput_edit.readOnly = true;
+                    remarkInput_edit.title    = 'Klik untuk edit manual';
+                    remarkHint_edit.textContent = '\u2139 Auto: ' + data.count + ' data sebelumnya ditemukan. Klik untuk ubah.';
+                    remarkHint_edit.classList.remove('d-none');
+
+                    remarkInput_edit.onclick = function() {
+                        remarkInput_edit.readOnly = false;
+                        remarkInput_edit.title    = '';
+                        remarkHint_edit.textContent = '\u270F Mode manual aktif.';
+                    };
+                } else if (data.remark) {
+                    remarkInput_edit.value    = data.remark;
+                    remarkInput_edit.readOnly = false;
+                    remarkHint_edit.textContent = '\u2713 Pertama kali untuk item ini. Bisa diedit.';
+                    remarkHint_edit.classList.remove('d-none');
+                } else {
+                    remarkInput_edit.readOnly = false;
+                    remarkHint_edit.classList.add('d-none');
+                }
+            })
+            .catch(function() {
+                remarkInput_edit.readOnly = false;
+            });
+        }
+
+        if (itemSelect_edit) {
+            itemSelect_edit.addEventListener('change', function() {
+                fetchNextRemark_edit();
+            });
+        }
+
+        // --- Auto-fill No Lot QC ---
+        var nextNoLotUrl_edit     = "{{ route('cross_cut.next_no_lot') }}";
+        var prodDateInput_edit    = document.getElementById('production_datetime_edit');
+        var prodShiftInput_edit   = document.getElementById('production_shift_edit');
+        var qcShiftInput_edit     = document.getElementById('qc_shift_edit');
+        var initialsInput_edit    = document.getElementById('operator_initials_edit');
+        var noLotInput_edit       = document.getElementById('position_remark_no_lot_edit');
+        var noLotHint_edit        = document.getElementById('noLotHint_edit');
+
+        function fetchNextNoLot_edit() {
+            var itemId = itemSelect_edit ? itemSelect_edit.value : '';
+            var prodDateFull = prodDateInput_edit ? prodDateInput_edit.value : '';
+            // Ambil hanya tanggalnya untuk parameter (YYYY-MM-DD)
+            var prodDate = prodDateFull ? prodDateFull.split('T')[0] : '';
+            var prodShift = prodShiftInput_edit ? prodShiftInput_edit.value : '1';
+            var qcShift = qcShiftInput_edit ? qcShiftInput_edit.value : '1';
+            var initials = initialsInput_edit ? initialsInput_edit.value : '';
+
+            if (!itemId || !prodDate || !initials) {
+                noLotInput_edit.readOnly = false;
+                noLotHint_edit.classList.add('d-none');
+                return;
+            }
+
+            var queryParams = '?item_id=' + encodeURIComponent(itemId) +
+                              '&production_date=' + encodeURIComponent(prodDate) +
+                              '&production_shift=' + encodeURIComponent(prodShift) +
+                              '&qc_shift=' + encodeURIComponent(qcShift) +
+                              '&operator_initials=' + encodeURIComponent(initials);
+
+            fetch(nextNoLotUrl_edit + queryParams, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.no_lot) {
+                    noLotInput_edit.value = data.no_lot;
+                    noLotInput_edit.readOnly = false; 
+                    noLotHint_edit.textContent = '\u2139 Auto Tergenerate. Ubah manual jika perlu.';
+                    noLotHint_edit.classList.remove('d-none');
+                } else {
+                    noLotInput_edit.readOnly = false;
+                    noLotHint_edit.classList.add('d-none');
+                }
+            })
+            .catch(function(e) {
+                noLotInput_edit.readOnly = false;
+            });
+        }
+
+        if (itemSelect_edit) itemSelect_edit.addEventListener('change', fetchNextNoLot_edit);
+        if (prodDateInput_edit) prodDateInput_edit.addEventListener('change', fetchNextNoLot_edit);
+        if (prodShiftInput_edit) prodShiftInput_edit.addEventListener('change', fetchNextNoLot_edit);
+        if (qcShiftInput_edit) qcShiftInput_edit.addEventListener('change', fetchNextNoLot_edit);
+        if (initialsInput_edit) {
+            initialsInput_edit.addEventListener('input', function() {
+                clearTimeout(this.delay);
+                this.delay = setTimeout(function() {
+                    fetchNextNoLot_edit();
+                    fetchNextRemark_edit();
+                }, 500);
+            });
+        }
+
     })();
 </script>

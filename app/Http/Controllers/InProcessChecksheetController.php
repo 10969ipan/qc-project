@@ -112,18 +112,35 @@ class InProcessChecksheetController extends Controller
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
             'item_id' => $request->item_id,
+            'operator_initials' => $request->operator_initials,
             'customer' => $request->customer,
-            'part_no' => $request->part_no,
             'next_proses' => $request->next_proses,
             'id' => $request->id,
-            'search' => $request->search,
         ];
 
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
 
         $partDimensionStandards = $this->getConsolidatedStandards();
 
-        return view('in_process.index', compact('checksheets', 'partDimensionStandards'));
+        // Data for filters (Standardized with Cross-Cut)
+        // Adjust to fetch only from available data in current table (excluding those filtered out by plant if possible)
+        $plantId = \App\Models\Plant::resolveId($filters['plant']);
+        
+        $items = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('in_process_checksheets')->where('plant_id', $plantId);
+        })->orderBy('name')->get();
+
+        $customers = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('in_process_checksheets')->where('plant_id', $plantId);
+        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+
+        $initials = InProcessChecksheet::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials')
+            ->distinct()
+            ->pluck('operator_initials')
+            ->sort();
+
+        return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials'));
     }
 
     // Show form (updated to pass items)
@@ -348,17 +365,24 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
 
-        // Fetch filtered records with pagination support
+        if (empty($filters['start_date'])) {
+            $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
+            $filters['end_date'] = now()->toDateString();
+        }
+
+        // Fetch filtered records
         $query = $this->inProcessService->buildFilteredQuery($filters)->latest();
 
         if ($request->has('page')) {
             // Get records for the specific page
             $checksheets = $query->paginate(10)->getCollection();
         } else {
-            // Default to latest 10 if no page specified
-            $checksheets = $query->limit(10)->get();
+            // Default to all matches for export
+            $checksheets = $query->get();
         }
         $items = Item::orderBy('name')->get();
 
@@ -380,8 +404,8 @@ class InProcessChecksheetController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
-        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
+        $endDate = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
 
         $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request', 'partDimensionStandards', 'startDate', 'endDate', 'plantName', 'plantCode'));
         return $pdf->setPaper('a4', 'landscape')->download('Laporan_Inprocess_' . date('Y-m-d_H-i-s') . '.pdf');
@@ -409,7 +433,21 @@ class InProcessChecksheetController extends Controller
 
         try {
             $this->inProcessService->updateApprovalStatus($id, $validated);
-            $checksheet = InProcessChecksheet::find($id);
+            $checksheet = \App\Models\InProcessChecksheet::find($id);
+
+            // Jika status dirubah menjadi Rejected melalui modal admin, kirim notifikasi dan berikan remarks
+            if ($checksheet->approval_status === 'Rejected' && empty($checksheet->rejection_remarks)) {
+                $checksheet->rejection_remarks = "[Admin] Status dirubah menjadi Rejected via Edit Status - " . auth()->user()->name . " (" . now()->format('d/m/Y H:i') . ")";
+                $checksheet->save();
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->notifyRejection($checksheet, 'In Process', auth()->user()->name);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi rejection: ' . $ne->getMessage());
+                }
+            }
+
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
@@ -444,7 +482,7 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -472,8 +510,12 @@ class InProcessChecksheetController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+        // For display labels: use provided dates or default to 'Today' for the label only
+        $dispStart = ($filters['start_date'] ?? null) ?: now()->toDateString();
+        $dispEnd = ($filters['end_date'] ?? null) ?: now()->toDateString();
+
+        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
 
         return view('in_process.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

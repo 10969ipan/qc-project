@@ -49,14 +49,14 @@ class ShiftHelper
                 return 1;
             if ($hour >= 12 && $hour < 17)
                 return 2;
-            if ($hour >= 17 && $hour < 23)
-                return 3;
+            if ($hour >= 17)
+                return 3; // Allow Shift 3 to extend indefinitely past 23:00 into Sunday morning for overtime.
 
             // Before 7 AM on Saturday is technically still Friday Shift 3
             if ($hour < 7)
                 return 3;
 
-            return null; // Production ends at 23:00 Sat
+            return 3; // Failsafe fallback
         }
 
         // Normal Day Shifts (Mon-Fri and Sun if production):

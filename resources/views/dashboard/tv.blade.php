@@ -244,6 +244,9 @@
                 <div class="p-3.5 bg-slate-50/50 border-b flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Outgoing Sub-Assy</h2>
+                        <span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200 uppercase flex items-center gap-1.5 shadow-sm">
+                           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> LIVE
+                        </span>
                     </div>
                     <span class="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full border border-green-200 uppercase header-status-badge">
                        RUNNING <span class="active-count">{{ $activeLines->count() }}</span>
@@ -337,6 +340,9 @@
                 <div class="p-3 bg-slate-50/50 border-b flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">In-Process Injection</h2>
+                        <span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200 uppercase flex items-center gap-1.5 shadow-sm">
+                           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> LIVE
+                        </span>
                     </div>
                     <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-0.5 rounded-full border border-blue-200 uppercase header-status-badge">
                        RUNNING <span class="active-count">{{ $activeMachines->count() }}</span>
@@ -444,6 +450,9 @@
                 <div class="p-3.5 bg-slate-50/50 border-b flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Outgoing Sub-Assy</h2>
+                        <span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-200 uppercase flex items-center gap-1.5 shadow-sm">
+                           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> LIVE
+                        </span>
                     </div>
                     <span class="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full border border-green-200 uppercase">
                         {{ $activeLines->count() }} Meja Aktif
@@ -859,9 +868,8 @@
         async function syncData() {
             try {
                 // Fetch the HTML for workstation cards first
-                const res = await fetch('/dashboard/tv?plant=karawang', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
+                const ts = new Date().getTime();
+                const res = await fetch(`/dashboard/tv?plant=karawang&t=${ts}`);
                 const html = await res.text();
                 
                 const parser = new DOMParser();
@@ -883,7 +891,7 @@
                 });
 
                 // Fetch the JSON for chart data
-                const resData = await fetch('/dashboard/tv?plant=karawang', {
+                const resData = await fetch(`/dashboard/tv?plant=karawang&t=${ts}`, {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const jsonData = await resData.json();

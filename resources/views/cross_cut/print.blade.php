@@ -173,7 +173,8 @@
                 <th rowspan="2">No</th>
                 <th rowspan="2">Tgl. Prod</th>
                 <th rowspan="2">Tgl. QC</th>
-                <th rowspan="2">Shift (P/Q)</th>
+                <th rowspan="2">Shift Prod.</th>
+                <th rowspan="2">Shift QC</th>
                 <th rowspan="2">Jam (B)</th>
                 <th rowspan="2">Jam (A)</th>
                 <th rowspan="2">Cycle (s)</th>
@@ -188,8 +189,8 @@
                 <th rowspan="2">Inisial</th>
             </tr>
             <tr>
-                <th>C</th>
-                <th>A</th>
+                <th>Catalyst</th>
+                <th>Abu</th>
             </tr>
         </thead>
         <tbody>
@@ -198,7 +199,8 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-y') }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-y') }}</td>
-                    <td>{{ $checksheet->production_shift }} / {{ $checksheet->qc_shift }}</td>
+                    <td>{{ $checksheet->production_shift }}</td>
+                    <td>{{ $checksheet->qc_shift }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                     <td>{{ $checksheet->cycle_time ?? '-' }}</td>

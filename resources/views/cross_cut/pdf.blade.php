@@ -139,7 +139,7 @@
 
     <div style="margin-bottom: 10px; font-size: 10px;">
         <strong>Periode:</strong>
-        @if($startDate && $endDate)
+        @if($startDate && $endDate && $startDate !== 'Semua' && $endDate !== 'Semua')
             {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} -
             {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
         @else
@@ -164,7 +164,8 @@
                 <th>No</th>
                 <th>Tanggal Prod.</th>
                 <th>Tanggal QC</th>
-                <th>Shift Prod./QC</th>
+                <th>Shift Prod.</th>
+                <th>Shift QC</th>
                 <th>Jam Before</th>
                 <th>Jam After</th>
                 <th>Cycle (s)</th>
@@ -181,7 +182,8 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d/m/y') }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d/m/y') }}</td>
-                    <td>{{ $checksheet->production_shift }} / {{ $checksheet->qc_shift }}</td>
+                    <td>{{ $checksheet->production_shift }}</td>
+                    <td>{{ $checksheet->qc_shift }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
                     </td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
@@ -190,11 +192,11 @@
                     <td>
                         <table class="kimia-table">
                             <tr>
-                                <th>C</th>
+                                <th>Catalyst</th>
                                 <td>{{ $checksheet->chemical_catalyst ?? '-' }}</td>
                             </tr>
                             <tr>
-                                <th>A</th>
+                                <th>Abu</th>
                                 <td>{{ $checksheet->chemical_abu ?? '-' }}</td>
                             </tr>
                         </table>

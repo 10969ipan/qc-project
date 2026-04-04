@@ -176,7 +176,8 @@
             axisX: {
                 interval: 1,
                 labelFontFamily: "Nunito",
-                labelFontSize: 10
+                labelFontSize: 11,
+                labelAngle: -30
             },
             axisY: {
                 title: "PPM",
@@ -202,7 +203,8 @@
                 fontFamily: "Nunito",
                 verticalAlign: "bottom",
                 horizontalAlign: "center",
-                fontSize: 10
+                fontSize: 11,
+                maxWidth: 400
             }
         };
 
@@ -296,14 +298,14 @@
             var chartFreq = new CanvasJS.Chart("chartClaimFrequency", {
                 animationEnabled: true,
                 theme: "light2",
-                axisX: { interval: 1, labelFontFamily: "Nunito", labelFontSize: 10, reversed: true },
+                axisX: { interval: 1, labelFontFamily: "Nunito", labelFontSize: 11, reversed: true, labelAngle: -30 },
                 axisY: { title: "Frekuensi", titleFontFamily: "Nunito", labelFontFamily: "Nunito", includeZero: true, minimum: 0 },
                 toolTip: {
                     shared: true,
                     fontFamily: "Nunito",
                     content: "{label}<br/><span style='color:{color}'>{name}</span>: <strong>{y}</strong> claim"
                 },
-                legend: { cursor: "pointer", fontFamily: "Nunito", verticalAlign: "bottom", horizontalAlign: "center", fontSize: 10 },
+                legend: { cursor: "pointer", fontFamily: "Nunito", verticalAlign: "bottom", horizontalAlign: "center", fontSize: 11, maxWidth: 300 },
                 data: [
                     { type: "bar", name: "Jakarta",  showInLegend: true, color: "#2e59d9", dataPoints: jktFreqData },
                     { type: "bar", name: "Karawang", showInLegend: true, color: "#17a673", dataPoints: krwFreqData }
@@ -405,7 +407,7 @@
             title:  { text: "", fontFamily: "Nunito" },
             toolTip: { shared: true, fontFamily: "Nunito" },
             legend:  { cursor: "pointer", itemclick: toggleDataSeries, fontFamily: "Nunito" },
-            axisX:  { labelFontFamily: "Nunito", labelFontSize: 10 },
+            axisX:  { labelFontFamily: "Nunito", labelFontSize: 11, labelAngle: -30 },
             axisY:  { title: "NG Rate (%)", suffix: "%", titleFontFamily: "Nunito", labelFontFamily: "Nunito" },
             data: series
         });
