@@ -462,6 +462,10 @@
         </div>
 
         @push('scripts')
+            <script src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
+            <script src="{{ asset('js/vendor/fusioncharts.widgets.js') }}"></script>
+            <script src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}"></script>
+            <script src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
             <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
             @php
                 $dashboardStats = [

@@ -78,13 +78,13 @@
         // Handled = Approved + Rejected
         const handled = (stats.approved || 0) + (stats.rejected || 0);
         
-        // Late Pending = Items created > 24h ago that are still pending
-        const latePending = (stats.pending_late || 0);
+        // Pending = Total items awaiting signature
+        const pending = (stats.pending || 0);
         
-        // Total "Due" = Handled + Late Pending
-        const totalDue = handled + latePending;
+        // Total "Due" = Everything that should be handled
+        const totalDue = handled + pending;
         
-        if (totalDue === 0) return 100; // No overdue items = 100% compliance
+        if (totalDue === 0) return 0; // Return 0% if no activity
         
         // Rate = Handled / Total Due
         return Math.min(100, Math.round((handled / totalDue) * 100));
@@ -120,37 +120,37 @@
                 lowerLimit: "0",
                 upperLimit: "100",
                 showValue: "1",
+                valueFontSize: "18",
+                valueFontBold: "1",
+                valueBelowPivot: "1",
                 numberSuffix: "%",
-                theme: "gammel",
+                theme: "fusion",
                 baseFontSize: "11",
                 captionFontSize: "14",
                 subcaptionFontSize: "10",
                 gaugeFillMix: "{light-10},{light-20},{light-30}",
-                gaugeFillRatio: "40,20,40"
+                gaugeFillRatio: "40,20,40",
+                pivotRadius: "4",
+                pivotFillColor: "#333333",
+                gaugeOuterRadius: "120",
+                gaugeInnerRadius: "80",
+                showTickMarks: "1",
+                showTickValues: "1",
+                placeValuesInside: "1"
             },
             colorRange: {
                 color: [
-                    { minValue: "0",  maxValue: "50",  code: "#ef4444" },
-                    { minValue: "50", maxValue: "75",  code: "#f59e0b" },
-                    { minValue: "75", maxValue: "100", code: "#10b981" }
+                    { minValue: "0",  maxValue: "70",  code: "#ef4444" },
+                    { minValue: "70", maxValue: "90",  code: "#f59e0b" },
+                    { minValue: "90", maxValue: "100", code: "#10b981" }
                 ]
             },
             dials: {
                 dial: [{
                     value: value.toString(),
-                    tooltext: "<b>" + value + "%</b> disetujui hari ini"
-                }]
-            },
-            trendpoints: {
-                point: [{
-                    startvalue: "100",
-                    displayvalue: " ",
-                    thickness: "2",
-                    color: "#E15A26",
-                    hideValue: "1",
-                    usemarker: "1",
-                    markerbordercolor: "#E15A26",
-                    markertooltext: "Target Approval: 100%"
+                    tooltext: "<b>" + value + "%</b> progress approval",
+                    rearExtension: "5",
+                    radius: "100"
                 }]
             }
         };

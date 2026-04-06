@@ -35,8 +35,8 @@ class DashboardService extends BaseService
         // TEMPORARILY BYPASSING CACHE FOR DEBUGGING
         // return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole) {
         return (function () use ($authRole) {
-            $combinedStats = $this->calculateApprovalStats();
-            $dailyCombinedStats = $this->calculateApprovalStats(null, true);
+            $combinedStats = $this->calculateApprovalStats('all');
+            $dailyCombinedStats = $this->calculateApprovalStats('all', true);
 
             $statsJakarta = null;
             $statsKarawang = null;
@@ -118,12 +118,14 @@ class DashboardService extends BaseService
     /**
      * Calculate global approval statistics
      */
-    private function calculateApprovalStats(?string $plantOverride = null, bool $dailyOnly = false, ?string $type = null): array
+    private function calculateApprovalStats($plantOverride = null, bool $dailyOnly = false, ?string $type = null): array
     {
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        
         // Use override if provided, otherwise check request or auth user
-        $plantIdentifier = $plantOverride ?? request('plant') ?? auth()->user()->plant_id;
-        $plantId = $this->resolvePlantId($plantIdentifier);
+        // If plantOverride is 'all', we want global stats (no plant filtering)
+        $plantIdentifier = $plantOverride === 'all' ? null : ($plantOverride ?? request('plant') ?? auth()->user()->plant_id);
+        $plantId = $plantIdentifier ? $this->resolvePlantId($plantIdentifier) : null;
 
         // Determine plant code for conditional filtering
         $plantCode = null;
@@ -182,8 +184,8 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
+        // Filter data H-1 dan Hari Ini saja agar grafik reset setiap hari
         if ($dailyOnly) {
-            // "24 jam kemarin dan hari ini" = Yesterday and Today
             $query->whereDate($dateColumn, '>=', now()->subDay()->toDateString());
         }
 
@@ -196,9 +198,14 @@ class DashboardService extends BaseService
             $selects[] = "SUM(CASE WHEN ($column IS NULL OR $column = '') AND created_at < '{$lateThreshold}' THEN 1 ELSE 0 END) as {$column}_pending_late";
         }
 
+        // Add total row count to help with debugging if needed
+        $selects[] = "COUNT(*) as total_rows";
+
         $results = $query->selectRaw(implode(', ', $selects))->first();
 
-        if ($results) {
+        \Illuminate\Support\Facades\Log::info("DEBUG: Stats for {$modelClass} ({$plantId}) dailyOnly={$dailyOnly}: " . json_encode($results));
+
+        if ($results && $results->total_rows > 0) {
             foreach ($columns as $column) {
                 $stats['rejected'] += (int) ($results->{"{$column}_rejected"} ?? 0);
                 $stats['approved'] += (int) ($results->{"{$column}_approved"} ?? 0);
