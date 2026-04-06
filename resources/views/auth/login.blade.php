@@ -13,7 +13,7 @@
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
-    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
+    <link href="{{ asset('fonts/ibm-plex-sans.css') }}" rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
@@ -26,7 +26,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans', sans-serif;
             background-color: #ffffff;
             overflow-x: hidden;
             overflow-y: auto;
@@ -190,7 +190,7 @@
             font-size: 0.95rem;
             color: #2d3748;
             transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
 
         .form-control-modern::placeholder {
@@ -257,7 +257,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
-            font-family: 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
 
         .btn-login:hover {

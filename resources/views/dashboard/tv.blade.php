@@ -7,7 +7,7 @@
     <title>QC TV </title>
     
     <!-- Premium Fonts & Icons -->
-    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
+    <link href="{{ asset('fonts/ibm-plex-sans.css') }}" rel="stylesheet">
     <link href="{{ asset('fonts/material-icons.css') }}" rel="stylesheet">
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     
@@ -41,7 +41,7 @@
         body {
             background-color: #f8fafc;
             color: #1e293b;
-            font-family: 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans', sans-serif;
             margin: 0;
             height: 100vh;
             width: 100vw;

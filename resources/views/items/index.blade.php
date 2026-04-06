@@ -3,6 +3,76 @@
 @section('title', 'Master Data Item')
 
 @section('content')
+<style>
+    .table-responsive {
+        max-height: 75vh !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+    #checksheetTable {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+    
+    #checksheetTable td, #checksheetTable th {
+        border-left: none !important;
+        border-right: none !important;
+    }
+
+    #checksheetTable tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 4px 6px !important;
+    }
+
+    /* Global TH sticky setup */
+    #checksheetTable > thead > tr > th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px;
+        padding: 6px 12px !important;
+        border: none !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2;
+        white-space: nowrap !important;
+    }
+
+    /* Forced overrides for compact view */
+    #checksheetTable td.no-export {
+        min-width: 0 !important;
+        white-space: nowrap !important; 
+    }
+    #checksheetTable .btn {
+        min-width: 0 !important; /* Overrides inline style */
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
+    }
+    #checksheetTable .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+
+    /* Sticky Header */
+    #checksheetTable > thead > tr:nth-child(1) > th {
+        top: 0 !important;
+        z-index: 105 !important;
+        height: 35px !important; 
+    }
+</style>
     <div class="card shadow mb-4">
         <div class="card-body p-0">
             <table style="width:100%; border-collapse:collapse;">
@@ -102,7 +172,7 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
+                <table id="checksheetTable" class="table" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -160,9 +230,8 @@
                                 <td class="text-nowrap">{{ $item->cavity ?? 1 }}</td>
                                 <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                    <td class="text-nowrap">
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}"
-                                            style="min-width: 110px;">
+                                    <td class="no-export">
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
                                         <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
@@ -177,8 +246,7 @@
                                             <input type="hidden" name="part_number" value="{{ request('part_number') }}">
                                             <input type="hidden" name="sap_code" value="{{ request('sap_code') }}">
                                             <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                            <button type="button" class="btn btn-danger btn-sm delete-btn"
-                                                style="min-width: 110px;">
+                                            <button type="button" class="btn btn-danger btn-sm delete-btn">
                                                 <i class="fas fa-trash"></i> Hapus
                                             </button>
                                         </form>

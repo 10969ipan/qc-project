@@ -204,7 +204,7 @@
                                     <div class="form-group mb-0">
                                         <label>No Lot QC</label>
                                         <div class="position-relative">
-                                            <input type="text" class="form-control" name="position_remark_no_lot" id="noLotInput" placeholder="Auto atau ketik manual..." autocomplete="off" required>
+                                            <input type="text" class="form-control" name="position_remark_no_lot" id="noLotInput" placeholder="..." autocomplete="off" required>
                                             <small id="noLotHint" class="text-muted d-none" style="font-size:11px;"></small>
                                         </div>
                                     </div>
@@ -213,7 +213,7 @@
                                 <td class="align-middle">
                                     <div class="position-relative">
                                         <input type="text" class="form-control" name="result_remark" id="resultRemarkInput"
-                                            placeholder="Auto atau ketik manual..." autocomplete="off">
+                                            placeholder="..." autocomplete="off">
                                         <small id="remarkHint" class="text-muted d-none" style="font-size:11px;"></small>
                                     </div>
                                 </td>

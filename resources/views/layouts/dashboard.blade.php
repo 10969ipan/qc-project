@@ -64,7 +64,7 @@
         }
 
         .dashboard-container {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
             letter-spacing: -0.01em;
         }
 

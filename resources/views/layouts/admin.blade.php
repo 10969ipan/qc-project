@@ -12,7 +12,7 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
 
-    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
+    <link href="{{ asset('fonts/ibm-plex-sans.css') }}" rel="stylesheet">
     <link href="{{ asset('fonts/nunito.css') }}" rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
@@ -49,7 +49,7 @@
         td,
         th,
         li {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
         }
 
         body {
