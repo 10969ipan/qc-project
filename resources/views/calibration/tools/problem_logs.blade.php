@@ -426,7 +426,12 @@
         window.__CALIBRATION_PROBLEM_LOGS__ = {
             plantCode: "{{ $plantCode }}",
             year: "{{ $year ?? date('Y') }}",
-            csrf: "{{ csrf_token() }}"
+            csrf: "{{ csrf_token() }}",
+            routes: {
+                judgment: "{{ route('calibration.tools.update-judgment', ':id') }}",
+                update: "{{ route('calibration.tools.update-problem', ':id') }}",
+                delete: "{{ route('calibration.tools.destroy-problem', ':id') }}"
+            }
         };
     </script>
     <script src="{{ asset('js/calibration/calibration-problem-logs.js') }}"></script>
