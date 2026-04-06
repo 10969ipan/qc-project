@@ -161,17 +161,40 @@ class CrossCutChecksheetController extends Controller
         $operatorInitials = $request->input('operator_initials');
         $initials = strtoupper(trim($operatorInitials ?: auth()->user()->initials ?? ''));
 
-        if (!$itemId || !$initials) {
+        if (!$itemId) {
             return response()->json(['remark' => null, 'count' => 0, 'initials' => $initials]);
         }
 
-        // Count records for this item where result_remark starts with the user's initials
+        $latestChecksheet = CrossCutChecksheet::withoutGlobalScope('plant')
+            ->where('item_id', $itemId)
+            ->where('operator_initials', $initials)
+            ->whereNotNull('result_remark')
+            ->where('result_remark', '!=', '')
+            ->latest('id')
+            ->first();
+
         $count = CrossCutChecksheet::withoutGlobalScope('plant')
             ->where('item_id', $itemId)
-            ->where('result_remark', 'LIKE', $initials . '%')
             ->count();
 
-        $next = $initials . ($count + 1);
+        if ($latestChecksheet) {
+            $latestRemark = trim($latestChecksheet->result_remark);
+            if (preg_match('/^(.*?)(\d+)$/', $latestRemark, $matches)) {
+                $prefix = $matches[1];
+                $numberStr = $matches[2];
+                $nextNumber = (int)$numberStr + 1;
+                $paddedNumber = str_pad((string)$nextNumber, strlen($numberStr), '0', STR_PAD_LEFT);
+                $next = $prefix . $paddedNumber;
+
+                return response()->json([
+                    'remark'   => $next,
+                    'count'    => $count,
+                    'initials' => $initials,
+                ]);
+            }
+        }
+
+        $next = $initials ? $initials . '01' : null;
 
         return response()->json([
             'remark'   => $next,
