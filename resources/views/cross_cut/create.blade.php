@@ -407,20 +407,17 @@
                         remarkInput.value    = data.remark;
                         remarkInput.readOnly = true;
                         remarkInput.title    = 'Klik untuk edit manual';
-                        remarkHint.textContent = '\u2139 Auto: ' + data.count + ' data sebelumnya ditemukan. Klik untuk ubah.';
-                        remarkHint.classList.remove('d-none');
+                        remarkHint.classList.add('d-none');
 
                         remarkInput.onclick = function() {
                             remarkInput.readOnly = false;
                             remarkInput.title    = '';
-                            remarkHint.textContent = '\u270F Mode manual aktif.';
                         };
                     } else if (data.remark) {
                         // First time for this item: suggest but keep editable
                         remarkInput.value    = data.remark;
                         remarkInput.readOnly = false;
-                        remarkHint.textContent = '\u2713 Pertama kali untuk item ini. Bisa diedit.';
-                        remarkHint.classList.remove('d-none');
+                        remarkHint.classList.add('d-none');
                     } else {
                         // No initials configured: manual
                         remarkInput.value    = '';
@@ -477,8 +474,7 @@
                     if (data.no_lot) {
                         noLotInput.value = data.no_lot;
                         noLotInput.readOnly = false; // Always editable based on user preference
-                        noLotHint.textContent = '\u2139 Format otomatis diterapkan. Ubah manual jika perlu.';
-                        noLotHint.classList.remove('d-none');
+                        noLotHint.classList.add('d-none');
                     } else {
                         noLotInput.readOnly = false;
                         noLotHint.classList.add('d-none');
