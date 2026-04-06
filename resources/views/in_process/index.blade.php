@@ -81,6 +81,53 @@
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 65px !important; 
     }
+
+    /* Minimalist Dimension Table Styles - Aggressive override for global !important */
+    #checksheetTable .table-dimension-minimalist,
+    #checksheetTable td .table-dimension-minimalist,
+    #checksheetTable table.table-dimension-minimalist {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        border: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist td,
+    #checksheetTable .table-dimension-minimalist th {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 4px !important;
+        text-align: center !important;
+    }
+
+    /* Target headers switched to td for avoiding global thead th blue style */
+    #checksheetTable .table-dimension-minimalist .dim-header {
+        background-color: #f8fafc !important; /* Industrial Slate */
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.55rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        line-height: 1 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-data {
+        font-size: 0.65rem !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        color: #1e293b !important;
+        line-height: 1.2 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist tr:last-child .dim-data {
+        border-bottom: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .text-std-header { 
+        color: #64748b !important; 
+        font-weight: 600 !important; 
+        background-color: #f1f5f9 !important; 
+    }
 </style>
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
@@ -361,9 +408,9 @@
                                         $displayMaxCavity = max(5, $actualMaxCavity);
                                     @endphp
                                     @if($hasUserInputs)
-                                        <div style="max-height: 200px; overflow-y: auto; font-size: 0.7rem;">
-                                            <table class="table table-bordered table-sm m-0">
-                                                <thead class="text-center" style="font-size: 0.6rem;">
+                                        <div style="max-height: 200px; overflow-y: auto;">
+                                            <table class="table-dimension-minimalist">
+                                                <thead class="text-center">
                                                     {{-- Baris Standar --}}
                                                     @php
                                                         $hasStdData = false;
@@ -375,17 +422,17 @@
                                                         }
                                                     @endphp
                                                     @if($hasStdData)
-                                                        <tr class="bg-light" style="font-size: 0.55rem;">
-                                                            <th class="p-1">Std</th>
+                                                        <tr>
+                                                            <td class="dim-header text-std-header">Std</td>
                                                             @foreach ($activePoints as $j)
-                                                                <th class="p-1 text-muted">
+                                                                <td class="dim-header text-std-header">
                                                                     {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
-                                                                </th>
+                                                                </td>
                                                             @endforeach
                                                         </tr>
                                                     @endif
 
-                                                    {{-- Baris Min --}}
+                                                    {{-- Baris Min (Optional) --}}
                                                     @php
                                                         $hasMinData = false;
                                                         foreach ($activePoints as $j) {
@@ -396,17 +443,17 @@
                                                         }
                                                     @endphp
                                                     @if($hasMinData)
-                                                        <tr class="bg-light" style="font-size: 0.55rem;">
-                                                            <th class="p-1">Min</th>
+                                                        <tr>
+                                                            <td class="dim-header text-std-header">Min</td>
                                                             @foreach ($activePoints as $j)
-                                                                <th class="p-1 text-muted">
+                                                                <td class="dim-header text-std-header">
                                                                     {{ (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null) ? $standards[$j]['min'] : '-' }}
-                                                                </th>
+                                                                </td>
                                                             @endforeach
                                                         </tr>
                                                     @endif
 
-                                                    {{-- Baris Max --}}
+                                                    {{-- Baris Max (Optional) --}}
                                                     @php
                                                         $hasMaxData = false;
                                                         foreach ($activePoints as $j) {
@@ -417,12 +464,12 @@
                                                         }
                                                     @endphp
                                                     @if($hasMaxData)
-                                                        <tr class="bg-light" style="font-size: 0.55rem;">
-                                                            <th class="p-1">Max</th>
+                                                        <tr>
+                                                            <td class="dim-header text-std-header">Max</td>
                                                             @foreach ($activePoints as $j)
-                                                                <th class="p-1 text-muted">
+                                                                <td class="dim-header text-std-header">
                                                                     {{ (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null) ? $standards[$j]['max'] : '-' }}
-                                                                </th>
+                                                                </td>
                                                             @endforeach
                                                         </tr>
                                                     @endif
@@ -438,21 +485,21 @@
                                                         }
                                                     @endphp
                                                     @if($hasTolData)
-                                                        <tr class="bg-light" style="font-size: 0.55rem;">
-                                                            <th class="p-1">Tol</th>
+                                                        <tr>
+                                                            <td class="dim-header text-std-header">Tol</td>
                                                             @foreach ($activePoints as $j)
-                                                                <th class="p-1 text-muted">
+                                                                <td class="dim-header text-std-header">
                                                                     {{ isset($standards[$j]) ? '±' . ($standards[$j]['tolerance'] ?? '-') : '-' }}
-                                                                </th>
+                                                                </td>
                                                             @endforeach
                                                         </tr>
                                                     @endif
 
                                                     {{-- Baris Header Utama --}}
                                                     <tr>
-                                                        <th>Cav</th>
+                                                        <td class="dim-header">Cav</td>
                                                         @foreach ($activePoints as $j)
-                                                            <th>Ø{{ $j }}</th>
+                                                            <td class="dim-header">Ø{{ $j }}</td>
                                                         @endforeach
                                                     </tr>
                                                 </thead>
@@ -471,7 +518,7 @@
                                                         @endphp
                                                         @if($rowHasData)
                                                             <tr>
-                                                                <td class="font-weight-bold p-1">{{ $i }}</td>
+                                                                <td class="dim-data font-weight-bold">{{ $i }}</td>
                                                                 @foreach ($activePoints as $j)
                                                                     @php
                                                                         $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
@@ -541,8 +588,8 @@
                                                                             }
                                                                         }
                                                                     @endphp
-                                                                    <td class="p-1 {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
-                                                                    style="color: #dc3545 !important; font-weight: bold !important;" @endif>
+                                                                    <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
+                                                                    style="color: #dc3545 !important; font-weight: bold !important; background-color: #fef2f2 !important;" @endif>
                                                                         {{ $val }}
                                                                     </td>
                                                                 @endforeach
