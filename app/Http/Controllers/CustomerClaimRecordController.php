@@ -8,6 +8,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Helpers\ActivityLogger;
+use Carbon\Carbon;
 
 class CustomerClaimRecordController extends Controller
 {
@@ -35,6 +36,11 @@ class CustomerClaimRecordController extends Controller
             $query->where('tanggal_claim', '<=', $request->end_date);
         }
 
+        // Smart Search Filter
+        if ($request->filled('smart_filter')) {
+            $query->where('id', $request->smart_filter);
+        }
+
         // Global Search
         if ($request->filled('q')) {
             $searchTerm = $request->q;
@@ -59,10 +65,15 @@ class CustomerClaimRecordController extends Controller
 
         $records = $query->paginate(15)->withQueryString();
 
+        // Data for Smart Search
+        $allRecords = CustomerClaimRecord::select('id', 'nama_part', 'customer', 'problem', 'monitoring_status')
+            ->orderBy('nama_part')
+            ->get();
+
         $plants = Plant::orderBy('name')->get();
         $plantId = Plant::resolveId($request->plant) ?: (auth()->check() ? auth()->user()->plant_id : null);
 
-        return view('customer_claim_records.index', compact('records', 'plants', 'plantId'));
+        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'allRecords'));
     }
 
     /**
@@ -86,6 +97,11 @@ class CustomerClaimRecordController extends Controller
         }
         if ($request->filled('end_date')) {
             $query->whereDate('tanggal_claim', '<=', $request->end_date);
+        }
+
+        // Smart Search Filter
+        if ($request->filled('smart_filter')) {
+            $query->where('id', $request->smart_filter);
         }
 
         // Global Search
@@ -137,6 +153,63 @@ class CustomerClaimRecordController extends Controller
         $filename = 'List_Claim_Customer_' . str_replace(' ', '_', $plantName) . '_' . date('Ymd_His') . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    /**
+     * Display a minimalist view for browser printing.
+     */
+    public function printView(Request $request)
+    {
+        $query = CustomerClaimRecord::with(['plant', 'creator'])
+            ->orderBy('tanggal_claim', 'desc');
+
+        // Reuse filtering logic
+        if ($request->filled('plant')) {
+            $plantId = Plant::resolveId($request->plant);
+            if ($plantId) {
+                $query->where('plant_id', $plantId);
+            }
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('tanggal_claim', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('tanggal_claim', '<=', $request->end_date);
+        }
+
+        if ($request->filled('smart_filter')) {
+            $query->where('id', $request->smart_filter);
+        }
+
+        if ($request->filled('q')) {
+            $searchTerm = $request->q;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%');
+            });
+        }
+
+        $records = $query->get();
+
+        // Plant info for header
+        $plantName = 'ALL PLANTS';
+        $plantCode = 'karawang';
+        if ($request->filled('plant')) {
+            $plantId = Plant::resolveId($request->plant);
+            $plant = Plant::find($plantId);
+            if ($plant) {
+                $plantName = $plant->name;
+                $plantCode = strtolower($plant->code);
+            }
+        }
+
+        $startDate = $request->start_date ? Carbon::parse($request->start_date)->format('d/m/Y') : '-';
+        $endDate = $request->end_date ? Carbon::parse($request->end_date)->format('d/m/Y') : '-';
+
+        return view('customer_claim_records.print', compact('records', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
 
     /**

@@ -50,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Customer Claim Records (Detailed List)
         Route::get('customer-claim-records-export', [CustomerClaimRecordController::class, 'exportPdf'])->name('customer-claim-records.export');
+        Route::get('customer-claim-records-print', [CustomerClaimRecordController::class, 'printView'])->name('customer-claim-records.print');
         Route::delete('customer-claim-records/{id}/attachment/{index}', [CustomerClaimRecordController::class, 'deleteAttachment'])->name('customer-claim-records.attachment.destroy');
         Route::resource('customer-claim-records', CustomerClaimRecordController::class)->names('customer-claim-records');
     });
