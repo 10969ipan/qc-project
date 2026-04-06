@@ -77,7 +77,7 @@
                         filesHtml += `
                             <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
                                 <span class="text-truncate mr-2" style="max-width: 150px;">${path.split('/').pop()}</span>
-                                <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                                <button type="button" class="badge badge-info border-0 mr-1 view-pdf-btn" data-src="${viewPdfUrl}" data-toggle="modal" data-target="#pdfModal" style="cursor: pointer;">View</button>
                                 <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="${index}" style="cursor: pointer;">Hapus</button>
                             </div>`;
                     });
@@ -86,7 +86,7 @@
                     filesHtml += `
                         <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small">
                             <span class="text-truncate mr-2" style="max-width: 150px;">${item.file_path.split('/').pop()}</span>
-                            <a href="${viewPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                            <button type="button" class="badge badge-info border-0 mr-1 view-pdf-btn" data-src="${viewPdfUrl}" data-toggle="modal" data-target="#pdfModal" style="cursor: pointer;">View</button>
                             <button type="button" class="badge badge-danger border-0 btn-delete-pdf" data-id="${item.id}" data-index="0" style="cursor: pointer;">Hapus</button>
                         </div>`;
                 }
@@ -98,7 +98,7 @@
                     similarFileHtml = `
                         <div class="d-flex align-items-center mb-1 p-1 border rounded bg-light x-small text-primary font-weight-bold">
                             <span class="text-truncate mr-2" style="max-width: 150px;">${item.similar_part_file_path.split('/').pop()}</span>
-                            <a href="${viewSimilarPdfUrl}" target="_blank" class="badge badge-info mr-1">View</a>
+                            <button type="button" class="badge badge-info border-0 mr-1 view-pdf-btn" data-src="${viewSimilarPdfUrl}" data-toggle="modal" data-target="#pdfModal" style="cursor: pointer;">View</button>
                             <button type="button" class="badge badge-danger border-0 btn-delete-similar-pdf" data-id="${item.id}" style="cursor: pointer;">Hapus</button>
                         </div>`;
                 }

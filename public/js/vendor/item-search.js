@@ -36,7 +36,7 @@
             '.ips-clear:hover { color: #333; }',
             '.ips-dropdown {',
             '  position: absolute; z-index: 9999; width: 100%;',
-            '  max-height: 220px; overflow-y: auto;',
+            '  max-height: 400px; overflow-y: auto;',
             '  background: #fff; border: 1px solid #ced4da; border-radius: 4px;',
             '  box-shadow: 0 4px 12px rgba(0,0,0,.12);',
             '  display: none; margin-top: 2px;',

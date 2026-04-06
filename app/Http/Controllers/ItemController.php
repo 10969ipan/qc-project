@@ -58,7 +58,14 @@ class ItemController extends Controller
         $plantCode = $plantIdentifier;
         $allPlants = \App\Models\Plant::all();
 
-        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants'));
+        // Get all items in a lightweight format for the searchable dropdown
+        $allItemsQuery = \App\Models\Item::with('category')->select('id', 'name', 'part_number', 'sap_code', 'customer', 'category_id');
+        if ($plantId) {
+            $allItemsQuery->where('plant_id', $plantId);
+        }
+        $allItemsList = $allItemsQuery->orderBy('name')->get();
+
+        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList'));
     }
 
 

@@ -3,7 +3,22 @@
 @section('title', 'Master Data Item')
 
 @section('content')
-    <x-plant-header title="Master Data Items" :plant="$plantCode" />
+    <div class="card shadow mb-4">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:1.15rem; letter-spacing:0.3px;">
+                            MASTER DATA - PLANT {{ strtoupper($plantCode ?? ($currentPlant->name ?? '')) }}
+                        </h1>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
@@ -41,25 +56,48 @@
             @endif
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.items.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    <div class="col-md-10 col-sm-12 mb-3">
-                        <label for="search" class="font-weight-bold">Pencarian</label>
-                        <input type="text" name="search" class="form-control form-control-sm shadow-sm"
-                            value="{{ request('search') }}" placeholder="Cari...">
+            <form action="{{ route('admin.items.index') }}" method="GET"
+                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+                style="gap: 10px;" id="filterFormItems">
+                
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
+
+                <!-- Field: Part (Dropdown Item Search) -->
+                <div class="d-flex align-items-center flex-grow-1" style="max-width: 500px;">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 400px;" class="custom-filter-wrapper flex-grow-1">
+                        <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Item / Part No.</option>
+                            @foreach($allItemsList as $itm)
+                                <option value="{{ $itm->name }}" 
+                                    data-name="{{ $itm->name }}" 
+                                    data-part-number="{{ $itm->part_number }}"
+                                    data-customer="{{ $itm->customer }}"
+                                    data-sap-code="{{ $itm->sap_code }}"
+                                    data-detail="{{ optional($itm->category)->name }}"
+                                    {{ request('search') == $itm->name ? 'selected' : '' }}>
+                                    {{ $itm->name }} {{ $itm->part_number ? '- '.$itm->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    @if(request('plant'))
-                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    @endif
-                    <div class="col-md-2 col-sm-12 mb-3">
-                        <button type="submit" class="btn btn-primary btn-sm mr-1 shadow-sm">
-                            <i class="fas fa-search"></i> Cari
-                        </button>
-                        <a href="{{ route('admin.items.index', ['plant' => request('plant')]) }}"
-                            class="btn btn-secondary btn-sm shadow-sm">
-                            <i class="fas fa-undo"></i> Reset
-                        </a>
-                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                        .custom-filter-wrapper { position: relative; top: -1px; }
+                    </style>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                    <a href="{{ route('admin.items.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i>
+                    </a>
                 </div>
             </form>
 
@@ -75,7 +113,6 @@
                             <th>No Part</th>
                             <th>Cavity</th>
                             <th>Kode SAP</th>
-                            <th>Plant</th>
                             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                 <th>Aksi</th>
                             @endif
@@ -113,16 +150,7 @@
                                 <td class="text-nowrap">{{ $item->name }}</td>
                                 <td class="text-nowrap">
                                     @if($item->category)
-                                        @php
-                                            $badgeClass = match ($item->category->name) {
-                                                'Sub Assy' => 'badge-primary',
-                                                'Inprosess' => 'badge-success',
-                                                'Cross Cut Plating' => 'badge-warning',
-                                                'Cross Cut Painting' => 'badge-info',
-                                                default => 'badge-secondary'
-                                            };
-                                        @endphp
-                                        <span class="badge {{ $badgeClass }}">{{ $item->category->name }}</span>
+                                        {{ $item->category->name }}
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
@@ -131,12 +159,6 @@
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 <td class="text-nowrap">{{ $item->cavity ?? 1 }}</td>
                                 <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
-                                <td>
-                                    <span
-                                        class="badge {{ optional($item->plant)->code === 'jakarta' ? 'badge-primary' : 'badge-info' }}">
-                                        {{ strtoupper(optional($item->plant)->name ?? '-') }}
-                                    </span>
-                                </td>
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                     <td class="text-nowrap">
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}"
@@ -188,7 +210,7 @@
     </div>
 
 
-    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true" style="z-index: 1060;">
         <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -229,7 +251,7 @@
 
     <div class="modal fade" id="modalEditItem" tabindex="-1" role="dialog" aria-labelledby="modalEditItemLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title" id="modalEditItemLabel">
@@ -289,7 +311,7 @@
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
                                     <textarea name="defects" id="edit_defects" class="form-control form-control-sm"
-                                        rows="3"></textarea>
+                                        rows="18"></textarea>
                                     <small class="text-muted">Pisahkan setiap defect dengan baris baru.</small>
                                 </div>
                             </div>
@@ -371,7 +393,7 @@
     </div>
     <div class="modal fade" id="modalTambahItem" tabindex="-1" role="dialog" aria-labelledby="modalTambahItemLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="modalTambahItemLabel">
@@ -447,7 +469,7 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
-                                    <textarea name="defects" class="form-control form-control-sm" rows="3"
+                                    <textarea name="defects" class="form-control form-control-sm" rows="18"
                                         placeholder="Pisahkan setiap defect dengan baris baru"></textarea>
                                     <small class="text-muted">Biarkan kosong untuk menggunakan default defects.</small>
                                 </div>
@@ -569,6 +591,7 @@
         <script src="{{ asset('js/items/items-pdf-viewer.js') }}"></script>
         <script src="{{ asset('js/items/items-form-logic.js') }}"></script>
         <script src="{{ asset('js/items/items-actions.js') }}"></script>
+        <script src="{{ asset('js/vendor/item-search.js') }}"></script>
         
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -582,6 +605,26 @@
                         $('#modalTambahItem').modal('show');
                     @endif
                 @endif
+
+                if (typeof initItemSearch === 'function') {
+                    initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No / SAP...', maxResults: 50 });
+                }
+
+                // Auto-submit filter on dropdown change
+                var filterItem = document.getElementById('filterItem');
+                if (filterItem) {
+                    filterItem.addEventListener('change', function() {
+                        var form = document.getElementById('filterFormItems');
+                        if (form) form.submit();
+                    });
+                }
+
+                // Fix body scrolling when multiple modals are open and one is closed
+                $('.modal').on('hidden.bs.modal', function () {
+                    if ($('.modal.show').length > 0) {
+                        $('body').addClass('modal-open');
+                    }
+                });
             });
         </script>
     @endpush
