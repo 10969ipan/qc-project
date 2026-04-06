@@ -16,7 +16,7 @@
                     </td>
                     <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:1.15rem; letter-spacing:0.3px;">
-                            DAFTAR CLAIM CUSTOMER - PLANT {{ strtoupper($currentPlant->name ?? 'ALL') }}
+                            LIST CLAIM CUSTOMER - PLANT {{ strtoupper($currentPlant->name ?? 'ALL') }}
                         </h1>
                     </td>
                 </tr>
@@ -27,7 +27,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-2 d-flex justify-content-between align-items-center bg-white border-0">
             <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem; letter-spacing: 0.3px;">
-                DAFTAR CLAIM CUSTOMER
+                LIST CLAIM CUSTOMER
             </h6>
         </div>
         <div class="card-body py-3">

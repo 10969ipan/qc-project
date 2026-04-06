@@ -385,6 +385,10 @@ class CrossCutCreate {
                 });
                 if (opt.length) {
                     $('#item_id').val(opt.val()).trigger('change');
+                    const selectEl = document.getElementById('item_id');
+                    if (selectEl) {
+                        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
                     $(this).removeClass('is-invalid').addClass('is-valid');
                 } else $(this).removeClass('is-valid').addClass('is-invalid');
             } else $(this).removeClass('is-valid is-invalid');

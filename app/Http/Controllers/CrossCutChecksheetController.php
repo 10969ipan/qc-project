@@ -230,7 +230,6 @@ class CrossCutChecksheetController extends Controller
             $count = CrossCutChecksheet::withoutGlobalScope('plant')
                 ->where('item_id', $itemId)
                 ->whereDate('production_datetime', $dateObj->toDateString())
-                ->where('operator_initials', $operatorInitials)
                 ->where('production_shift', $prodShift)
                 ->count();
                 

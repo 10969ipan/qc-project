@@ -3,76 +3,97 @@
 @section('title', 'Customer Claim')
 
 @section('content')
-    <x-plant-header title="Data Claim Customer Quality" :plant="request()->get('plant')" />
+    @php
+        $currentPlant = request('plant') ? collect($plants)->firstWhere('code', request('plant')) : null;
+    @endphp
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Data Claim Customer</h6>
-            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                <div class="d-flex align-items-center">
-                    <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal"
-                        data-target="#modalTambahData">
-                        <i class="fas fa-plus"></i> Tambah Data
-                    </button>
-                </div>
-            @endif
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:1.15rem; letter-spacing:0.3px;">
+                            DATA CLAIM CUSTOMER QUALITY 
+                        </h1>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <div class="card-body">
-            <form action="{{ route('admin.customer-claims.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="plant_filter" class="small font-weight-bold">Plant</label>
-                            <select name="plant" id="plant_filter" class="form-control form-control-sm">
-                                <option value="">Semua Plant</option>
-                                @foreach($plants as $p)
-                                    <option value="{{ $p->code }}" {{ request('plant') == $p->code ? 'selected' : '' }}>
-                                        {{ strtoupper($p->name) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+    </div>
 
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="year" class="small font-weight-bold">Tahun</label>
-                            <select name="year" id="year" class="form-control form-control-sm">
-                                <option value="">Semua Tahun</option>
-                                @foreach($years as $y)
-                                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+    <div class="card shadow mb-4">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center bg-white border-0">
+            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem; letter-spacing: 0.3px;">
+                DAFTAR DATA CLAIM CUSTOMER
+            </h6>
+        </div>
+        <div class="card-body py-3">
+            <form action="{{ route('admin.customer-claims.index') }}" method="GET"
+                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+                style="gap: 10px;">
+                
+                <!-- Field: Plant -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Plant:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <select name="plant" id="plant_filter" class="form-control form-control-sm border-0" style="font-size: 0.75rem; min-width: 120px;">
+                            <option value="">Semua Plant</option>
+                            @foreach($plants as $p)
+                                <option value="{{ $p->code }}" {{ request('plant') == $p->code ? 'selected' : '' }}>
+                                    {{ strtoupper($p->name) }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
+                </div>
 
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="month" class="small font-weight-bold">Bulan</label>
-                            <select name="month" id="month" class="form-control form-control-sm">
-                                <option value="">Semua Bulan</option>
-                                <option value="0" {{ request('month') === '0' ? 'selected' : '' }}>Tahunan (Summary)</option>
-                                @for($m = 1; $m <= 12; $m++)
-                                    <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>
-                                        {{ DateTime::createFromFormat('!m', $m)->format('F') }}
-                                    </option>
-                                @endfor
-                            </select>
-                        </div>
+                <!-- Field: Tahun -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Tahun:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <select name="year" id="year" class="form-control form-control-sm border-0" style="font-size: 0.75rem; min-width: 100px;">
+                            <option value="">Semua Tahun</option>
+                            @foreach($years as $y)
+                                <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
                     </div>
+                </div>
 
-                    <div class="col-lg-2 col-md-4 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-sm mr-2">
-                                <i class="fas fa-search"></i> Cari
-                            </button>
-                            <a href="{{ route('admin.customer-claims.index', ['plant' => request('plant')]) }}"
-                                class="btn btn-secondary btn-sm">
-                                <i class="fas fa-undo"></i> Reset
-                            </a>
-                        </div>
+                <!-- Field: Bulan -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Bulan:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <select name="month" id="month" class="form-control form-control-sm border-0" style="font-size: 0.75rem; min-width: 120px;">
+                            <option value="">Semua Bulan</option>
+                            <option value="0" {{ request('month') === '0' ? 'selected' : '' }}>Tahunan (Summary)</option>
+                            @for($m = 1; $m <= 12; $m++)
+                                <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>
+                                    {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+                                </option>
+                            @endfor
+                        </select>
                     </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i>
+                    </button>
+                    <a href="{{ route('admin.customer-claims.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i>
+                    </a>
+                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal"
+                            data-target="#modalTambahData" title="Tambah Data">
+                            <i class="fas fa-plus fa-sm mr-1"></i> Tambah Data
+                        </button>
+                    @endif
                 </div>
             </form>
 
@@ -100,48 +121,101 @@
                 });
                 
                 $plantSections = [
-                    'karawang' => ['title' => 'Karawang', 'color' => 'success'],
-                    'jakarta' => ['title' => 'Jakarta', 'color' => 'info'],
-                    'total' => ['title' => 'TOTAL', 'color' => 'dark'],
+                    'karawang' => ['title' => 'Karawang'],
+                    'jakarta' => ['title' => 'Jakarta'],
+                    'total' => ['title' => 'TOTAL'],
                 ];
             @endphp
+            
+            <style>
+                .custom-table-wrapper {
+                    max-height: 75vh !important;
+                    overflow: auto !important;
+                    border: none !important;
+                    box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+                }
+                .clean-table {
+                    border-collapse: collapse !important;
+                    border-spacing: 0 !important;
+                    border: none !important;
+                    width: 100% !important;
+                }
+                .clean-table td, .clean-table th {
+                    border-left: none !important;
+                    border-right: none !important;
+                }
+                .clean-table tbody td {
+                    border-bottom: 1px solid #f1f5f9 !important;
+                    border-top: none !important;
+                    vertical-align: middle !important;
+                    color: #334155 !important;
+                    padding: 6px 8px !important;
+                }
+                .clean-table thead th {
+                    position: -webkit-sticky !important;
+                    position: sticky !important;
+                    top: 0 !important;
+                    z-index: 100 !important;
+                    background-color: #f8fafc !important; /* Industrial Slate */
+                    color: #475569 !important;
+                    font-weight: 600 !important;
+                    text-transform: uppercase;
+                    font-size: 0.65rem !important;
+                    letter-spacing: 0.2px;
+                    padding: 8px 12px !important;
+                    border: none !important;
+                    border-bottom: 2px solid #e2e8f0 !important;
+                    vertical-align: middle !important;
+                    white-space: nowrap !important;
+                }
+                .btn-xs { 
+                    padding: 0.2rem 0.4rem !important; 
+                    font-size: 0.65rem !important;
+                }
+                .plant-header {
+                    background-color: #f8fafc;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+            </style>
 
             <div class="row">
                 @foreach($plantSections as $code => $section)
                     <div class="col-lg-4 col-md-12 mb-4">
-                        <div class="card border-left-{{ $section['color'] }} shadow h-100">
-                            <div class="card-header py-3 bg-{{ $section['color'] }} text-white">
-                                <h6 class="m-0 font-weight-bold text-uppercase">{{ $section['title'] }}</h6>
+                        <div class="card shadow-sm h-100 border text-center" style="border-radius: 8px; overflow: hidden;">
+                            <div class="card-header py-2 border-0 plant-header">
+                                <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem; letter-spacing: 0.3px;">
+                                    {{ $section['title'] }}
+                                </h6>
                             </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover mb-0" style="font-size: 0.85rem;">
-                                        <thead class="bg-light text-dark">
+                            <div class="card-body p-0 bg-white">
+                                <div class="custom-table-wrapper">
+                                    <table class="table clean-table mb-0">
+                                        <thead>
                                             <tr class="text-center">
-                                                <th class="py-2">Bulan</th>
-                                                <th class="py-2">PPM</th>
-                                                <th class="py-2">Target</th>
-                                                <th class="py-2">Total</th>
-                                                <th class="py-2" width="10%">Aksi</th>
+                                                <th>Bulan</th>
+                                                <th>PPM</th>
+                                                <th>Target</th>
+                                                <th>Total</th>
+                                                <th width="10%">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse($groupedClaims[$code] ?? [] as $claim)
                                                 <tr class="text-center">
-                                                    <td class="align-middle py-2">{{ $claim->month_name }}</td>
-                                                    <td class="align-middle py-2 font-weight-bold {{ $code == 'total' ? 'text-dark' : 'text-primary' }}">
+                                                    <td class="align-middle" style="font-size: 0.8rem;">{{ $claim->month_name }}</td>
+                                                    <td class="align-middle font-weight-bold {{ $code == 'total' ? 'text-dark' : 'text-primary' }}" style="font-size: 0.8rem;">
                                                         {{ $claim->ppm_value !== null ? number_format($claim->ppm_value, 2) : '-' }}
                                                     </td>
-                                                    <td class="align-middle py-2 font-weight-bold text-danger">
+                                                    <td class="align-middle font-weight-bold text-danger" style="font-size: 0.8rem;">
                                                         {{ $claim->target_value !== null ? number_format($claim->target_value, 2) : '-' }}
                                                     </td>
-                                                    <td class="align-middle py-2 font-weight-bold text-dark">
+                                                    <td class="align-middle font-weight-bold text-dark" style="font-size: 0.8rem;">
                                                         {{ $claim->total_claims !== null ? number_format($claim->total_claims, 0) : '-' }}
                                                     </td>
-                                                    <td class="align-middle py-2">
+                                                    <td class="align-middle">
                                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                                            <div class="btn-group btn-group-sm">
-                                                                <button type="button" class="btn btn-transparent text-primary btn-edit-claim p-0 mr-2" 
+                                                            <div class="d-flex justify-content-center" style="gap: 5px;">
+                                                                <button type="button" class="btn btn-warning btn-xs py-0 btn-edit-claim" 
                                                                     data-toggle="modal"
                                                                     data-target="#modalEditData" data-id="{{ $claim->id }}"
                                                                     data-plant="{{ $claim->plant_id }}" data-plant-code="{{ $claim->plant->code }}" 
@@ -151,7 +225,7 @@
                                                                     data-total-claim-pcs="{{ $claim->total_claim_pcs }}"
                                                                     data-total-delivery="{{ $claim->total_delivery }}"
                                                                     title="Edit">
-                                                                    <i class="fas fa-edit"></i>
+                                                                    <i class="fas fa-edit fa-xs"></i>
                                                                 </button>
                                                                 <form action="{{ route('admin.customer-claims.destroy', $claim->id) }}" method="POST"
                                                                     class="d-inline">
@@ -160,12 +234,14 @@
                                                                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                                     <input type="hidden" name="year" value="{{ request('year') }}">
                                                                     <input type="hidden" name="month" value="{{ request('month') }}">
-                                                                    <button type="submit" class="btn btn-transparent text-danger p-0"
+                                                                    <button type="submit" class="btn btn-danger btn-xs py-0"
                                                                         onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus">
-                                                                        <i class="fas fa-trash"></i>
+                                                                        <i class="fas fa-trash fa-xs"></i>
                                                                     </button>
                                                                 </form>
                                                             </div>
+                                                        @else
+                                                            <span class="text-muted">-</span>
                                                         @endif
                                                     </td>
                                                 </tr>
