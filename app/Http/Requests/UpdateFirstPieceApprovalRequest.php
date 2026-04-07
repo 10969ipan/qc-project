@@ -19,8 +19,11 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
 
             foreach ($this->defect_types as $index => $type) {
                 if (!empty($type)) {
-                    $types[] = $type;
-                    $quantities[] = $this->defect_quantities[$index] ?? 1;
+                    $qty = $this->defect_quantities[$index] ?? 0;
+                    if ((int)$qty > 0) {
+                        $types[] = $type;
+                        $quantities[] = (int)$qty;
+                    }
                 }
             }
 

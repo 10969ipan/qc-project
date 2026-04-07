@@ -800,6 +800,20 @@ class InProcessCreate {
 
             if (_this.timerRunning) { clearInterval(_this.timerInterval); _this.timerRunning = false; $('#cycleTimeInput').val(_this.totalSeconds); }
 
+            // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0 (Kecuali Dimensi yang sudah dicek)
+            $('.defect-row').each(function() {
+                const typeInput = $(this).find('select[name="defect_types[]"], input[name="defect_types[]"]');
+                const qtyInput = $(this).find('input[name="defect_quantities[]"]');
+                const type = typeInput.val();
+                const text = $(this).find('option:selected').text().toLowerCase();
+                const qty = parseInt(qtyInput.val()) || 0;
+                
+                if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi') {
+                    typeInput.val('');
+                    qtyInput.val('');
+                }
+            });
+
             const saveBtn = $('#saveBtn');
             const originalHtml = saveBtn.html();
             saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');

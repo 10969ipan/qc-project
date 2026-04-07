@@ -3,6 +3,7 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
+
     <div class="card shadow mb-2">
         <div class="card-body p-0">
             <table style="width:100%; border-collapse:collapse;">
@@ -58,34 +59,18 @@
             <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Cross Cut</h6>
         </div>
         <div class="card-body">
-            <!-- Pemilih Plant untuk Admin -->
-            @if(auth()->user()->role === 'admin')
-                <form method="GET" action="{{ route('cross_cut.create') }}" class="mb-3">
-                    <div class="form-group row">
-                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
-                        <div class="col-sm-4">
-                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
-                                <option value="">-- Semua Plant --</option>
-                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
-                                </option>
-                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                            </select>
-                            <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
-                        </div>
-                    </div>
-                </form>
-            @endif
+
 
             <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
+                    <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
                                 <th>Standard</th>
                                 <th>Item Part</th>
-                                <th>Tanggal & Shift Produksi / QC</th>
+                                <th>Tanggal &amp; Shift Produksi / QC</th>
                                 <th>Hasil Cross Cut</th>
                                 <th>Bak No</th>
                                 <th>Posisi Remark (Judgement / No Lot QC)</th>
@@ -223,7 +208,7 @@
                                         placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
                                 </td>
                                 <!-- Keterangan -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 320px;">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
                                         <label for="nextProses" class="font-weight-bold text-danger">Next
                                             Proses:</label>
@@ -236,7 +221,8 @@
                                             <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                                    <textarea class="form-control" name="keterangan" rows="6"
+                                        style="min-height:140px; min-width:300px; width:100%; resize:both;"></textarea>
                                 </td>
                             </tr>
                         </tbody>

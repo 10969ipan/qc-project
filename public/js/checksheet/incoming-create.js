@@ -139,6 +139,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const saveBtn = form.find('button[type="submit"]');
         const originalHtml = saveBtn.html();
 
+        // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0
+        $('.defect-row').each(function() {
+            const typeInput = $(this).find('.defect-select');
+            const qtyInput = $(this).find('.defect-qty');
+            const type = typeInput.val();
+            const qty = parseInt(qtyInput.val()) || 0;
+            
+            if (type && qty === 0) {
+                typeInput.val('');
+                qtyInput.val('');
+            }
+        });
+
         saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
 
         $.ajax({

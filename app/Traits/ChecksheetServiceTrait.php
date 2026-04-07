@@ -20,8 +20,10 @@ trait ChecksheetServiceTrait
         if (isset($data['defect_types'])) {
             foreach ($data['defect_types'] as $index => $type) {
                 if ($type) {
-                    $qty = $data['defect_quantities'][$index] ?? 1;
-                    $defects[] = ['type' => $type, 'qty' => (int) $qty];
+                    $qty = $data['defect_quantities'][$index] ?? 0;
+                    if ((int)$qty > 0) {
+                        $defects[] = ['type' => $type, 'qty' => (int) $qty];
+                    }
                 }
             }
         }

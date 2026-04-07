@@ -54,6 +54,21 @@ class StoreDoubleTapeChecksheetRequest extends FormRequest
     }
 
     /**
+     * Prepare data before validation — pastikan judgment dan numerik punya nilai default.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'judgment'     => $this->judgment ?: 'OK',
+            'total_qty'    => $this->total_qty !== null && $this->total_qty !== '' ? $this->total_qty : 0,
+            'sampling_qty' => $this->sampling_qty !== null && $this->sampling_qty !== '' ? $this->sampling_qty : 0,
+            'total_ok'     => $this->total_ok !== null && $this->total_ok !== '' ? $this->total_ok : 0,
+            'total_ng'     => $this->total_ng !== null && $this->total_ng !== '' ? $this->total_ng : 0,
+        ]);
+
+    }
+
+    /**
      * Get custom messages for validator errors.
      *
      * @return array

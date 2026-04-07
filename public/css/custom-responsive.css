@@ -529,32 +529,27 @@ select#item_id:valid {
     margin-bottom: 1rem;
 }
 
-/* Sticky scroll bar - ALWAYS VISIBLE at bottom of viewport */
+/* Sticky scroll bar - minimalist */
 .sticky-scroll-bar {
     position: fixed;
     bottom: 0;
     left: 0;
-    /* Updated for sidebarless topbar design */
     right: 0;
-    height: 20px;
+    height: 8px;
     overflow-x: auto;
     overflow-y: hidden;
     z-index: 1040;
-    /* Above most content but below modals */
-    background: rgba(255, 255, 255, 0.98);
-    border-top: 2px solid #4e73df;
-    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    border-top: none;
+    box-shadow: none;
     display: none;
-    /* Hidden by default, shown by JS when needed */
     transition: left 0.3s ease;
 }
 
-/* When sidebar is toggled (collapsed) - Not used in topbar design but kept for safety */
 body.sidebar-toggled .sticky-scroll-bar {
     left: 0;
 }
 
-/* Mobile - full width */
 @media (max-width: 767.98px) {
     .sticky-scroll-bar {
         left: 0 !important;
@@ -563,52 +558,31 @@ body.sidebar-toggled .sticky-scroll-bar {
 
 .sticky-scroll-content {
     height: 1px;
-    /* Width will be set dynamically via JS to match table width */
 }
 
-/* Ensure scrollbars are always visible and styled */
-.table-responsive::-webkit-scrollbar,
-.sticky-scroll-bar::-webkit-scrollbar {
-    height: 14px;
-    -webkit-appearance: none;
+/* ─── Global Minimalist Scrollbar ─── */
+*::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
 }
 
-.table-responsive::-webkit-scrollbar-track,
-.sticky-scroll-bar::-webkit-scrollbar-track {
-    background-color: #f8f9fc;
-    border-radius: 10px;
+*::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.table-responsive::-webkit-scrollbar-thumb,
-.sticky-scroll-bar::-webkit-scrollbar-thumb {
-    background-color: #4e73df;
-    border-radius: 10px;
-    border: 3px solid #f8f9fc;
+*::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
 }
 
-.table-responsive::-webkit-scrollbar-thumb:hover,
-.sticky-scroll-bar::-webkit-scrollbar-thumb:hover {
-    background-color: #2e59d9;
+*::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
-/* For Firefox */
-.table-responsive,
-.sticky-scroll-bar {
+/* Firefox */
+* {
     scrollbar-width: thin;
-    scrollbar-color: #4e73df #f8f9fc;
-}
-
-/* Mobile adjustments */
-@media (max-width: 767.98px) {
-    .sticky-scroll-bar {
-        height: 16px;
-        border-top-width: 1px;
-    }
-
-    .table-responsive::-webkit-scrollbar,
-    .sticky-scroll-bar::-webkit-scrollbar {
-        height: 12px;
-    }
+    scrollbar-color: #cbd5e1 transparent;
 }
 
 /* Ensure footer doesn't overlap sticky scroll */
@@ -629,4 +603,195 @@ footer.sticky-footer {
 
 #content {
     flex: 1 0 auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INDUSTRIAL MINIMALIST TABLE — Global (semua modul create)
+   ═══════════════════════════════════════════════════════════ */
+#checksheetTable {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    border: 1px solid #e2e8f0 !important;
+    width: 100% !important;
+    table-layout: auto !important;
+}
+
+#checksheetTable td,
+#checksheetTable th {
+    border: 1px solid #e2e8f0 !important;
+}
+
+#checksheetTable > thead > tr > th {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 105 !important;
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.2px;
+    padding: 8px 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    vertical-align: middle !important;
+    line-height: 1.2;
+    white-space: nowrap !important;
+}
+
+#checksheetTable > tbody > tr > td {
+    border: 1px solid #e2e8f0 !important;
+    vertical-align: middle !important;
+    color: #334155 !important;
+    font-size: 0.8rem !important;
+    padding: 8px 10px !important;
+}
+
+#checksheetTable .form-control {
+    font-size: 0.78rem !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #ffffff !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#checksheetTable .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    background-color: #ffffff !important;
+}
+
+#checksheetTable .form-control:disabled,
+#checksheetTable .form-control[readonly],
+#checksheetTable .form-control.bg-light:disabled,
+#checksheetTable .form-control.bg-light[readonly] {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+}
+
+#checksheetTable .btn {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+/* OK / NG badge labels */
+.ok-label {
+    background-color: #16a34a !important;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px 0 0 4px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.ng-label {
+    background-color: #dc2626 !important;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px 0 0 4px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/* Judgment badge */
+#judgmentBadge {
+    font-size: 1rem !important;
+    letter-spacing: 0.5px;
+}
+
+/* Card header uniform */
+.card-header h6.text-primary {
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ─── Inner Dimension Table (FPA) ─── */
+#dimensionTable {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+#dimensionTable td,
+#dimensionTable th {
+    background-color: transparent !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 4px 6px !important;
+    text-align: center !important;
+    font-size: 0.68rem !important;
+}
+
+#dimensionTable thead th {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 0.58rem !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+#dimensionTable tbody td {
+    color: #1e293b !important;
+    font-size: 0.65rem !important;
+}
+
+#dimensionTable .dimension-input {
+    font-size: 0.68rem !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+    text-align: center;
+    padding: 2px 4px !important;
+    min-width: 55px;
+    transition: all 0.2s ease;
+}
+
+#dimensionTable .dimension-input.is-invalid {
+    border-color: #dc3545 !important;
+    background-color: #fff8f8 !important;
+    color: #dc3545 !important;
+    font-weight: 700;
+    box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.25) !important;
+    animation: shake 0.4s ease-in-out;
+}
+
+#dimensionTable .dimension-input.is-valid {
+    border-color: #28a745 !important;
+    background-color: #f8fff9 !important;
+    color: #28a745 !important;
+    font-weight: 700;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+    75% { transform: translateX(-4px); }
+    100% { transform: translateX(0); }
+}
+
+#dimensionTable .dimension-input:disabled,
+#dimensionTable .dimension-input[readonly] {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+}
+
+#dimensionTable .dimension-input:focus {
+    border-color: #6366f1 !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.1) !important;
 }

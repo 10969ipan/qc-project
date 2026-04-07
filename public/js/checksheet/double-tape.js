@@ -147,9 +147,13 @@ class DoubleTapeCreate {
                 this.formInputs.prop('disabled', false);
                 $('#checksheetForm').removeClass('inputs-locked');
 
-                // Logika readonly spesifik
+                // Logika readonly spesifik — total_ok & total_ng readonly (auto-kalkulasi)
                 $('#samplingQty').prop('readonly', this.isFullcheck);
                 $('input[name="total_ok"]').prop('readonly', true);
+                $('input[name="total_ng"]').prop('readonly', true);
+
+                // Inisialisasi nilai awal: OK = samplingQty, NG = 0
+                this.calculateTotalNG();
 
                 this.timerInterval = setInterval(() => {
                     this.totalSeconds++;
@@ -181,6 +185,8 @@ class DoubleTapeCreate {
             if (this.isFullcheck) {
                 $('.judgment-header, .judgment-cell').hide();
                 $('#samplingQtyHeader').text('Fullcheck Qty');
+                // Fullcheck = pengecekan 100%, set judgment berdasarkan NG count
+                $('#totalNG').trigger('input');
             } else {
                 $('.judgment-header, .judgment-cell').show();
                 $('#samplingQtyHeader').text('Sampling Qty');
@@ -229,6 +235,8 @@ class DoubleTapeCreate {
             } else {
                 $('#samplingQty').val(0).trigger('input');
             }
+            // Pastikan total_ok terinisialisasi setelah sampling_qty berubah
+            this.calculateTotalNG();
         });
 
         $('#totalNG, #samplingQty').on('input', () => {
@@ -251,7 +259,10 @@ class DoubleTapeCreate {
                     $('#aql_info').hide();
                 }
 
-                if (ng <= limits.acc) {
+                // Untuk fullcheck: NG > 0 = NG, NG = 0 = OK
+                const isNG = this.isFullcheck ? (ng > 0) : (ng > limits.acc);
+
+                if (!isNG) {
                     judgmentSelect.val('OK');
                     judgmentBadge.text('OK').removeClass('d-none text-danger').addClass('text-success')
                         .css({ 'border-color': '#28a745', 'background-color': '#fff' });
@@ -261,9 +272,13 @@ class DoubleTapeCreate {
                         .css({ 'border-color': '#dc3545', 'background-color': '#fff' });
                 }
             } else {
-                $('#aql_info').hide();
-                judgmentSelect.val('');
-                judgmentBadge.addClass('d-none').text('-');
+                // Default ke OK jika belum ada data
+                judgmentSelect.val('OK');
+                if (!this.isFullcheck) {
+                    $('#aql_info').hide();
+                    judgmentBadge.addClass('d-none').text('-');
+                    judgmentSelect.val('');
+                }
             }
 
             // Visibilitas Next Proses
@@ -394,6 +409,8 @@ class DoubleTapeCreate {
         $('.defect-qty').each(function () {
             totalNG += parseInt($(this).val()) || 0;
         });
+        // Set total_ng dan total_ok langsung (keduanya readonly, di-set via JS)
+        $('input[name="total_ng"]').val(totalNG);
         $('#totalNG').val(totalNG).trigger('input');
     }
 
@@ -683,7 +700,14 @@ class DoubleTapeCreate {
             const judgment = $('#judgmentSelect').val();
             const nextProses = $('#nextProses').val();
 
-            if (judgment === 'NG' && !nextProses) {
+            // Fallback: jika judgment masih kosong (misal belum ada input), default ke OK
+            if (!judgment) {
+                $('#judgmentSelect').val('OK');
+            }
+
+            // Validasi next_proses jika judgment NG
+            const finalJudgment = $('#judgmentSelect').val();
+            if (finalJudgment === 'NG' && !nextProses) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
@@ -699,6 +723,27 @@ class DoubleTapeCreate {
                 this.timerRunning = false;
                 $('#cycleTimeInput').val(this.totalSeconds);
             }
+
+            // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0
+            $('.defect-row').each(function() {
+                const type = $(this).find('.defect-select').val();
+                const qty = parseInt($(this).find('.defect-qty').val()) || 0;
+                
+                if (type && qty === 0) {
+                    $(this).find('.defect-select').val('');
+                    $(this).find('.defect-qty').val('');
+                }
+            });
+            // Hitung ulang total NG jika ada manipulasi kolom defect
+            this.calculateTotalNG();
+
+            // Normalisasi nilai numerik agar tidak kosong (server butuh integer)
+            ['total_qty', 'sampling_qty', 'total_ok', 'total_ng'].forEach(name => {
+                const input = $(`input[name="${name}"]`);
+                if (input.val() === '' || input.val() === null) {
+                    input.val(0);
+                }
+            });
 
             const saveBtn = $('#saveBtn');
             const originalHtml = saveBtn.html();
@@ -777,7 +822,15 @@ class DoubleTapeCreate {
         this.similarZoomLevel = 1.0;
 
         $('#judgmentBadge').addClass('d-none').text('-');
-        $('#judgmentSelect').removeClass('text-success text-danger');
+        $('#judgmentSelect').val('').removeClass('text-success text-danger');
+
+        // Reset nilai auto-fill
+        $('input[name="total_ok"]').val(0).prop('readonly', true);
+        $('input[name="total_ng"]').val(0).prop('readonly', true);
+        $('#totalNG').val(0);
+        $('input[name="total_qty"]').val('');
+        $('input[name="sampling_qty"]').val('');
+        $('.defect-qty').val('');
 
         $('#checkTypeSampling').prop('checked', true).trigger('change');
         $('#labelSampling').addClass('active');

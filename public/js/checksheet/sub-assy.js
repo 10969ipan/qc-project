@@ -383,6 +383,18 @@ class SubAssyCreate {
             this.timerRunning = false;
         }
 
+        // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0
+        $('.defect-row').each(function() {
+            const type = $(this).find('.defect-select').val();
+            const qty = parseInt($(this).find('.defect-qty').val()) || 0;
+            
+            if (type && qty === 0) {
+                $(this).find('.defect-select').val('');
+                $(this).find('.defect-qty').val('');
+            }
+        });
+        this.calculateTotalNG();
+
         const saveBtn = $('#saveBtn');
         const originalHtml = saveBtn.html();
         saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');

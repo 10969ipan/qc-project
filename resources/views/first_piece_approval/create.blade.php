@@ -3,6 +3,7 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
+
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
@@ -146,22 +147,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet First Piece Approval</h6>
         </div>
         <div class="card-body">
-            <!-- Pemilihan Plant untuk Admin -->
-            @if(auth()->user()->role === 'admin')
-                <form method="GET" action="{{ route('first_piece_approval.create') }}" class="mb-3">
-                    <div class="form-group row">
-                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
-                        <div class="col-sm-4">
-                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
-                                <option value="">-- Semua Plant --</option>
-                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
-                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                            </select>
-                            <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
-                        </div>
-                    </div>
-                </form>
-            @endif
+
 
             <form action="{{ route('first_piece_approval.store') }}" method="POST" id="checksheetForm">
                 @csrf
@@ -169,21 +155,24 @@
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
                 <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
-                        <tr class="text-center">
-                            <th rowspan="2" class="align-middle">Item Part</th>
-                            <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
-                            <th rowspan="2" class="align-middle">Sampling Qty</th>
-                            <th rowspan="2" class="align-middle">Check Dimensi</th>
-                            <th rowspan="2" class="align-middle col-berat-part" style="display: none; min-width: 280px;">
-                                Berat Part</th>
-                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
-                            <th rowspan="2" class="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial QC</th>
-                            <th rowspan="2" class="align-middle">Keterangan</th>
-                        </tr>
+                    <table class="table" id="checksheetTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr class="text-center">
+                                <th rowspan="2" class="align-middle">Item Part</th>
+                                <th rowspan="2" class="align-middle">Tanggal / Shift</th>
+                                <th rowspan="2" class="align-middle">Total Qty</th>
+                                <th rowspan="2" class="align-middle">Sampling Qty</th>
+                                <th rowspan="2" class="align-middle">Check Dimensi</th>
+                                <th rowspan="2" class="align-middle col-berat-part" style="display: none; min-width: 280px;">
+                                    Berat Part</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
+                                <th rowspan="2" class="align-middle">Total (OK/NG)</th>
+                                <th rowspan="2" class="align-middle">Judgment</th>
+                                <th rowspan="2" class="align-middle">Inisial QC</th>
+                                <th rowspan="2" class="align-middle">Keterangan</th>
+                            </tr>
+                            <tr></tr>
+                        </thead>
                         <tbody>
                             <tr>
 
@@ -366,25 +355,17 @@
                                 </td>
                                 <!-- Total OK / NG -->
                                 <td class="align-middle" style="min-width: 120px;">
-                                    <div class="row no-gutters mb-1">
-                                        <div
-                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
-                                            OK</div>
-                                        <div class="col-8">
-                                            <input type="number" id="total_ok"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ok" value="0" min="0" required readonly>
-                                        </div>
+                                    <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                                        <span class="ok-label">OK</span>
+                                        <input type="number" id="total_ok"
+                                            class="form-control form-control-sm text-center flex-fill"
+                                            style="border-radius:0 4px 4px 0;" name="total_ok" value="0" min="0" required readonly>
                                     </div>
-                                    <div class="row no-gutters">
-                                        <div
-                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
-                                            NG</div>
-                                        <div class="col-8">
-                                            <input type="number" id="total_ng"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ng" value="0" min="0" required readonly>
-                                        </div>
+                                    <div class="d-flex align-items-center" style="gap:4px;">
+                                        <span class="ng-label">NG</span>
+                                        <input type="number" id="total_ng"
+                                            class="form-control form-control-sm text-center flex-fill"
+                                            style="border-radius:0 4px 4px 0;" name="total_ng" value="0" min="0" required readonly>
                                     </div>
                                 </td>
 
@@ -410,7 +391,7 @@
                                 </td>
 
                                 <!-- Keterangan -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 320px;">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
                                         <label for="nextProses" class="font-weight-bold text-danger">Next
                                             Proses: <span class="text-danger">*</span></label>
@@ -428,7 +409,8 @@
                                             <option value="FINISHING + MARKING + PACKING">FINISHING + MARKING + PACKING</option>
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="remarks" rows="4"
+                                    <textarea class="form-control" name="remarks" rows="6"
+                                        style="min-height:140px; min-width:300px; width:100%; resize:both;"
                                         placeholder="Catatan tambahan..."></textarea>
                                 </td>
                             </tr>

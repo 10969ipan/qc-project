@@ -3,6 +3,132 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
+<style>
+    /* ─── Create Form Table: Minimalist Industrial (selaras dengan index.blade.php) ─── */
+    #checksheetTable {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        border: 1px solid #e2e8f0 !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+
+    #checksheetTable td, #checksheetTable th {
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    #checksheetTable > thead > tr > th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 105 !important;
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px;
+        padding: 8px 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        vertical-align: middle !important;
+        line-height: 1.2;
+        white-space: nowrap !important;
+    }
+
+    #checksheetTable > tbody > tr > td {
+        border: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.8rem !important;
+        padding: 8px 10px !important;
+    }
+
+    #checksheetTable .form-control {
+        font-size: 0.78rem !important;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background-color: #f8fafc;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    #checksheetTable .form-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        background-color: #fff;
+    }
+
+    #checksheetTable .btn {
+        font-size: 0.7rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    /* ─── Inner Dimension Table ─── */
+    #dimensionTable,
+    #checksheetTable .table-sm {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    #dimensionTable td,
+    #dimensionTable th {
+        background-color: transparent !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 4px 6px !important;
+        text-align: center !important;
+        font-size: 0.68rem !important;
+    }
+    #dimensionTable thead th {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.58rem !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    #dimensionTable tbody td {
+        color: #1e293b !important;
+        font-size: 0.65rem !important;
+    }
+    #dimensionTable .dimension-input {
+        font-size: 0.68rem !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+        background: #f8fafc !important;
+        text-align: center;
+        padding: 2px 4px !important;
+        min-width: 55px;
+    }
+    #dimensionTable .dimension-input:focus {
+        border-color: #6366f1 !important;
+        background: #fff !important;
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.1) !important;
+    }
+
+    /* ─── OK/NG Labels ─── */
+    .ok-label  { background-color: #16a34a; color: #fff; }
+    .ng-label  { background-color: #dc2626; color: #fff; }
+
+    /* ─── Judgment Badge ─── */
+    #judgmentBadge {
+        font-size: 1rem !important;
+        letter-spacing: 0.5px;
+    }
+
+    /* ─── Card header style ─── */
+    .card-header h6.text-primary {
+        font-size: 0.78rem;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #3b5bdb !important;
+    }
+
+</style>
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
@@ -146,22 +272,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Inprocess</h6>
         </div>
         <div class="card-body">
-            <!-- Pemilih Plant untuk Admin -->
-            @if(auth()->user()->role === 'admin')
-                <form method="GET" action="{{ route('in_process.create') }}" class="mb-3">
-                    <div class="form-group row">
-                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
-                        <div class="col-sm-4">
-                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
-                                <option value="">-- Semua Plant --</option>
-                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang</option>
-                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                            </select>
-                            <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
-                        </div>
-                    </div>
-                </form>
-            @endif
+
 
             <form action="{{ route('in_process.store') }}" method="POST" id="checksheetForm">
                 @csrf
@@ -172,8 +283,9 @@
                 <input type="hidden" name="quantity" id="quantityInput">
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
+                <div class="table-responsive" style="overflow-x: auto; border: none; box-shadow: inset 0 0 5px rgba(0,0,0,0.02);">
+                    <table class="table" id="checksheetTable" width="100%" cellspacing="0">
+                        <thead>
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Tanggal / Shift</th>
@@ -181,12 +293,14 @@
                             <th rowspan="2" class="align-middle">Sampling Qty</th>
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
                             <th rowspan="2" class="align-middle col-berat-part" style="display: none;">Berat Part</th>
-                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) & Detail NG</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
                             <th rowspan="2" class="align-middle">Total (OK/NG)</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial QC</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                         </tr>
+                        <tr></tr>
+                        </thead>
                         <tbody>
                             <tr>
 
@@ -379,27 +493,20 @@
                                 </td>
 
                                 <!-- Total OK / NG -->
-                                <td class="align-middle" style="min-width: 120px;">
-                                    <div class="row no-gutters mb-1">
-                                        <div
-                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
-                                            OK</div>
-                                        <div class="col-8">
-                                            <input type="number"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ok" placeholder="0" min="0" required>
-                                        </div>
+                                <td class="align-middle" style="min-width: 130px;">
+                                    <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                                        <span class="ok-label px-2 py-1 rounded-left font-weight-bold" style="font-size:0.7rem; border-radius:4px 0 0 4px;">OK</span>
+                                        <input type="number"
+                                            class="form-control form-control-sm text-center flex-fill"
+                                            style="border-radius:0 4px 4px 0; font-size:0.78rem;"
+                                            name="total_ok" placeholder="0" min="0" required>
                                     </div>
-                                    <div class="row no-gutters">
-                                        <div
-                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
-                                            NG</div>
-                                        <div class="col-8">
-                                            <input type="number"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                style="font-size: 14px;" name="total_ng" id="total_ng" placeholder="0"
-                                                min="0" required>
-                                        </div>
+                                    <div class="d-flex align-items-center" style="gap:4px;">
+                                        <span class="ng-label px-2 py-1 font-weight-bold" style="font-size:0.7rem; border-radius:4px 0 0 4px;">NG</span>
+                                        <input type="number"
+                                            class="form-control form-control-sm text-center flex-fill"
+                                            style="border-radius:0 4px 4px 0; font-size:0.78rem;"
+                                            name="total_ng" id="total_ng" placeholder="0" min="0" required>
                                     </div>
                                 </td>
 
@@ -430,7 +537,7 @@
                                 </td>
 
                                 <!-- Keterangan -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 320px;">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
                                         <label for="nextProses" class="font-weight-bold text-danger">Next
                                             Proses: <span class="text-danger">*</span></label>
@@ -449,13 +556,14 @@
                                             <option value="FINISHING + MARKING + PACKING">FINISHING + MARKING + PACKING</option>
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="remarks" rows="4"
+                                    <textarea class="form-control" name="remarks" rows="6"
+                                        style="min-height: 140px; min-width: 300px; width: 100%; resize: both;"
                                         placeholder="Catatan tambahan..."></textarea>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
+                </div><!-- .table-responsive -->
 
                 <div class="row mt-4">
                     <div class="col-md-12 text-right d-flex justify-content-end align-items-center">

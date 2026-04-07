@@ -3,6 +3,7 @@
 @section('title', 'Input Data Double Tape Checksheet')
 
 @section('content')
+
     <div class="card shadow mb-2">
         <div class="card-body p-0">
             <table style="width:100%; border-collapse:collapse;">
@@ -86,18 +87,21 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
-                        <tr class="text-center">
-                            <th rowspan="2" class="align-middle">Item Part</th>
-                            <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
-                            <th rowspan="2" class="align-middle" id="samplingQtyHeader">Sampling Qty</th>
-                            <th rowspan="2" class="align-middle" style="min-width: 280px;">Detail NG</th>
-                            <th rowspan="2" class="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" class="align-middle judgment-header">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial QC</th>
-                            <th rowspan="2" class="align-middle">Keterangan</th>
-                        </tr>
+                    <table class="table" id="checksheetTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr class="text-center">
+                                <th rowspan="2" class="align-middle">Item Part</th>
+                                <th rowspan="2" class="align-middle">Tanggal / Shift</th>
+                                <th rowspan="2" class="align-middle">Total Qty</th>
+                                <th rowspan="2" class="align-middle" id="samplingQtyHeader">Sampling Qty</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 280px;">Detail NG</th>
+                                <th rowspan="2" class="align-middle">Total (OK/NG)</th>
+                                <th rowspan="2" class="align-middle judgment-header">Judgment</th>
+                                <th rowspan="2" class="align-middle">Inisial QC</th>
+                                <th rowspan="2" class="align-middle">Keterangan</th>
+                            </tr>
+                            <tr></tr>
+                        </thead>
                         <tbody>
                             <tr>
 
@@ -188,25 +192,19 @@
 
                                 <!-- Total OK / NG -->
                                 <td class="align-middle" style="min-width: 120px;">
-                                    <div class="row no-gutters mb-1">
-                                        <div
-                                            class="col-4 text-center bg-success text-white py-1 rounded-left small font-weight-bold">
-                                            OK</div>
-                                        <div class="col-8">
-                                            <input type="number"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                name="total_ok" placeholder="0" min="0" required readonly>
-                                        </div>
+                                    <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                                        <span class="ok-label">OK</span>
+                                        <input type="number"
+                                            class="form-control form-control-sm text-center flex-fill"
+                                            style="border-radius:0 4px 4px 0; background:#f0fdf4;"
+                                            name="total_ok" value="0" min="0" required readonly>
                                     </div>
-                                    <div class="row no-gutters">
-                                        <div
-                                            class="col-4 text-center bg-danger text-white py-1 rounded-left small font-weight-bold">
-                                            NG</div>
-                                        <div class="col-8">
-                                            <input type="number"
-                                                class="form-control form-control-sm rounded-0 rounded-right text-center"
-                                                name="total_ng" id="totalNG" placeholder="0" min="0" required>
-                                        </div>
+                                    <div class="d-flex align-items-center" style="gap:4px;">
+                                        <span class="ng-label">NG</span>
+                                        <input type="number"
+                                            class="form-control form-control-sm text-center flex-fill"
+                                            style="border-radius:0 4px 4px 0; background:#fef2f2;"
+                                            name="total_ng" id="totalNG" value="0" min="0" required readonly>
                                     </div>
                                 </td>
 
@@ -232,7 +230,7 @@
                                 </td>
 
                                 <!-- Keterangan -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 320px;">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
                                         <label for="nextProses" class="font-weight-bold text-danger small">Next
                                             Proses:</label>
@@ -244,7 +242,8 @@
                                             <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="remarks" rows="4"
+                                    <textarea class="form-control" name="remarks" rows="6"
+                                        style="min-height:140px; min-width:300px; width:100%; resize:both;"
                                         placeholder="Catatan..."></textarea>
                                 </td>
                             </tr>
