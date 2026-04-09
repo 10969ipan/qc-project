@@ -26,20 +26,7 @@ class UpdateItemRequest extends FormRequest
         $itemId = $item instanceof Item ? $item->id : $item;
 
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                function ($attribute, $value, $fail) use ($itemId) {
-                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                    if (Item::where('name', $value)
-                        ->where('plant_id', $plantId)
-                        ->where('id', '!=', $itemId)
-                        ->exists()) {
-                        $fail('Nama item ini sudah terdaftar di plant ini.');
-                    }
-                },
-            ],
+            'name' => 'required|string|max:255',
             'category_id' => [
                 'required',
                 'exists:categories,id',
@@ -56,39 +43,10 @@ class UpdateItemRequest extends FormRequest
             'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
             'similar_part_file' => 'nullable|mimes:pdf|max:10240',
             'customer' => 'nullable|string',
-            'part_number' => [
-                'nullable',
-                'string',
-                function ($attribute, $value, $fail) use ($itemId) {
-                    if (!empty($value)) {
-                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                        if (Item::where('part_number', $value)
-                            ->where('plant_id', $plantId)
-                            ->where('id', '!=', $itemId)
-                            ->exists()) {
-                            $fail('Nomor Part ini sudah terdaftar di plant ini.');
-                        }
-                    }
-                },
-            ],
+            'part_number' => 'nullable|string',
             'cavity' => 'nullable|integer|min:1',
             'weight_standard' => 'nullable|string|max:100',
-            'sap_code' => [
-                'nullable',
-                'string',
-                'max:100',
-                function ($attribute, $value, $fail) use ($itemId) {
-                    if (!empty($value)) {
-                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                        if (Item::where('sap_code', $value)
-                            ->where('plant_id', $plantId)
-                            ->where('id', '!=', $itemId)
-                            ->exists()) {
-                            $fail('Kode SAP ini sudah terdaftar di plant ini.');
-                        }
-                    }
-                },
-            ],
+            'sap_code' => 'nullable|string|max:100',
             'defects' => 'nullable|string',
             'dimension_points' => 'nullable|array',
             'dimension_sizes' => 'nullable|array',
