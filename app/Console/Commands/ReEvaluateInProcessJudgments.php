@@ -77,10 +77,17 @@ class ReEvaluateInProcessJudgments extends Command
 
                 // If judgment changed, update it
                 if ($result['judgment'] !== $checksheet->judgment) {
+                    $oldJudgment = $checksheet->judgment;
                     $checksheet->judgment = $result['judgment'];
+                    
+                    // Clear next_proses if it becomes OK
+                    if ($checksheet->judgment === 'OK') {
+                        $checksheet->next_proses = null;
+                    }
+
                     $checksheet->save();
                     $updatedCount++;
-                    Log::info("Re-evaluated checksheet #{$checksheet->id}: Changed from {$data['judgment']} to {$result['judgment']}");
+                    Log::info("Re-evaluated checksheet #{$checksheet->id}: Changed from {$oldJudgment} to {$checksheet->judgment}");
                 }
 
                 $bar->advance();
