@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if ($(this).hasClass('ajax-form') || e.isDefaultPrevented()) {
+        if ($(this).hasClass('ajax-form') || $(this).hasClass('no-loader') || e.isDefaultPrevented()) {
             return;
         }
 

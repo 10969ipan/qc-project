@@ -519,4 +519,422 @@ class InProcessChecksheetController extends Controller
 
         return view('in_process.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
+
+    /**
+     * Ekspor Data Pengukuran (Actual) ke XLSX berdasarkan filter
+     */
+    public function exportMeasureData(Request $request)
+    {
+        $plantId = \App\Models\Plant::resolveId($request->get('plant') ?: auth()->user()->plant_id);
+
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant']);
+        $filters['plant'] = $plantId;
+
+        $query = $this->inProcessService->buildFilteredQuery($filters)->latest();
+        $checksheets = $query->get();
+
+        $maxPoints = 20;
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Pengukuran');
+
+        // --- Header row ---
+        $headers = ['Checksheet ID', 'Tanggal', 'Part Name', 'Part Number', 'Cavity'];
+        for ($i = 1; $i <= $maxPoints; $i++) {
+            $headers[] = "P$i";
+        }
+        $sheet->fromArray($headers, null, 'A1');
+
+        // Style header: bold + background kuning muda
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $headerRange = "A1:{$lastCol}1";
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['argb' => 'FF1E293B']],
+            'fill'      => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        // --- Data rows ---
+        $rowIndex = 2;
+        foreach ($checksheets as $c) {
+            $dims = $c->dimension_check;
+            if (is_string($dims)) {
+                $dims = json_decode($dims, true);
+                if (is_string($dims)) $dims = json_decode($dims, true);
+            }
+            $dims = is_array($dims) ? $dims : [];
+
+            $dateStr = $c->date instanceof \Carbon\Carbon
+                ? $c->date->format('Y-m-d')
+                : ($c->date ? date('Y-m-d', strtotime($c->date)) : '');
+
+            if (empty($dims)) {
+                $row = [(int)$c->id, $dateStr, $c->item->name ?? '', $c->item->part_number ?? '', 1];
+                for ($i = 1; $i <= $maxPoints; $i++) $row[] = '';
+                $sheet->fromArray($row, null, "A{$rowIndex}");
+                $rowIndex++;
+            } else {
+                foreach ($dims as $cavity => $points) {
+                    if (!is_array($points)) continue;
+                    $row = [(int)$c->id, $dateStr, $c->item->name ?? '', $c->item->part_number ?? '', (int)$cavity];
+                    for ($i = 1; $i <= $maxPoints; $i++) {
+                        $val = $points[$i] ?? $points["$i"] ?? '';
+                        $row[] = is_numeric($val) ? (float)$val : $val;
+                    }
+                    $sheet->fromArray($row, null, "A{$rowIndex}");
+                    $rowIndex++;
+                }
+            }
+        }
+
+        // --- Auto-width untuk kolom pertama sampai kelima ---
+        foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        // Kolom P1-P20 lebar pas
+        for ($i = 6; $i <= count($headers); $i++) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+            $sheet->getColumnDimension($col)->setWidth(9);
+        }
+
+        // Freeze baris header
+        $sheet->freezePane('A2');
+
+        $filename = "data_pengukuran_inprocess_" . date('Y-m-d_H-i-s') . ".xlsx";
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control'       => 'max-age=0',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Impor Data Pengukuran (Actual) dari file XLSX atau CSV
+     */
+    public function importMeasureData(Request $request)
+    {
+        // Longgarkan validasi mime karena sering bermasalah dengan pendeteksian server
+        $request->validate(['file' => 'required']);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        // --- Jalur XLSX ---
+        if ($extension === 'xlsx' || $extension === 'xls') {
+            return $this->importMeasureDataFromXlsx($file);
+        }
+
+        // --- Jalur CSV (existing logic, inlined below) ---
+
+        $raw = file_get_contents($file->getRealPath());
+        
+        // 1. BRUTE FORCE REPAIR: Hapus semua NULL bytes (memperbaiki file UTF-16 secara paksa) 
+        // dan karakter kontrol aneh lainnya
+        $clean = str_replace("\0", "", $raw);
+        
+        // 2. Hapus BOM (Byte Order Mark) yang mungkin tersisa
+        $clean = preg_replace('/^(\xEF\xBB\xBF|\xFF\xFE|\xFE\xFF)/', '', $clean);
+        
+        // 3. Normalisasi semua variasi baris baru ke \n standar
+        $clean = str_replace(["\r\n", "\r"], "\n", $clean);
+        
+        $lines = explode("\n", $clean);
+        
+        $dataById = [];
+        $totalRowsParsed = 0;
+        
+        foreach ($lines as $index => $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            
+            // ELEKSI DELIMITER: Cari hasil parsing yang memberikan kolom terbanyak
+            $bestRow = [];
+            foreach ([',', ';', "\t"] as $delim) {
+                $row = str_getcsv($line, $delim);
+                
+                // RECURSIVE UNBOXING: Menangani kasus di mana seluruh baris terbungkus kutip ganda
+                // (Sering terjadi jika file diproses oleh tools tertentu)
+                if (count($row) === 1 && !empty($row[0]) && (substr_count($row[0], $delim) > 3)) {
+                    $row = str_getcsv($row[0], $delim);
+                }
+                
+                if (count($row) > count($bestRow)) {
+                    $bestRow = $row;
+                }
+            }
+            
+            $row = $bestRow;
+            
+            // Minimal 5 kolom awal (ID sampai Cavity)
+            if (count($row) < 5) continue;
+            
+            // Validasi ID: Ambil hanya angka dari kolom pertama
+            $idRaw = trim($row[0]);
+            $id = preg_replace('/[^0-9]/', '', $idRaw);
+            
+            if (empty($id) || !is_numeric($id)) {
+                // Baris header atau data ID kosong, lewati
+                continue;
+            }
+            
+            $cavity = trim($row[4]);
+            if (!isset($dataById[$id])) $dataById[$id] = [];
+            
+            $points = [];
+            // Titik pengukuran mulai dari kolom ke-5 (P1)
+            for ($i = 5; $i < count($row); $i++) {
+                $pointIndex = $i - 4; 
+                $val = trim($row[$i], " \t\n\r\0\x0B\""); // Bersihkan kutip/spasi
+                $val = str_replace(',', '.', $val);   // Normalisasi desimal
+                
+                if ($val !== '' && $val !== '-') {
+                    $points[$pointIndex] = $val;
+                }
+            }
+            
+            $dataById[$id][$cavity] = $points;
+            $totalRowsParsed++;
+        }
+
+        if (empty($dataById)) {
+            \Log::error("Import InProcess Diagnosis: Gagal baca. Ukuran file: " . strlen($raw) . " bytes. Baris ditemukan: " . count($lines));
+            return redirect()->back()->with('warning', "Format file tidak dapat dikenali (Data terbaca: 0). Mohon pastikan file Anda mengandung kolom ID Laporan di awal.");
+        }
+
+        $updatedCount = 0;
+        $notFoundIds = [];
+        
+        \DB::beginTransaction();
+        try {
+            foreach ($dataById as $id => $measurements) {
+                // pastikan menggunakan withoutGlobalScope
+                $checksheet = InProcessChecksheet::withoutGlobalScope('plant')->find($id);
+                if ($checksheet) {
+                    $oldJudgment = $checksheet->judgment;
+                    $checksheet->dimension_check = $measurements;
+                    
+                    // Hitung base total_ng (tanpa menghitung defect "Dimensi" yang mungkin sudah ada sebelumnya)
+                    $currentDefects = $checksheet->defects;
+                    if (is_string($currentDefects)) $currentDefects = json_decode($currentDefects, true) ?? [];
+                    $baseTotalNg = 0;
+                    if (is_array($currentDefects)) {
+                        foreach ($currentDefects as $d) {
+                            $type = $d['type'] ?? '';
+                            if ($type !== 'Dimensi' && $type !== 'NG Dimensi') {
+                                $baseTotalNg += (int)($d['qty'] ?? 0);
+                            }
+                        }
+                    }
+
+                    // Hitung otomatis status judgment menggunakan base total_ng (hanya defect non-dimensi)
+                    $dataToValidate = ['dimensions' => $measurements, 'total_ng' => $baseTotalNg];
+                    $validated = $this->inProcessService->validateDimensions($dataToValidate, $checksheet->item_id);
+                    // Fallback ke judgment lama jika item tidak punya standar dimensi
+                    $newJudgment = $validated['judgment'] ?? $oldJudgment;
+                    $checksheet->judgment = $newJudgment;
+
+                    // --- Otomatis kelola defect "Dimensi" ---
+                    $checksheet = $this->syncNgDimensiDefect($checksheet, $oldJudgment, $newJudgment);
+
+                    $checksheet->save();
+                    $updatedCount++;
+                    
+                    ActivityLogger::log('updated', $checksheet, "Import BruteForce: Sukses update ID $id (Judgment: {$oldJudgment} → {$newJudgment})");
+                } else {
+                    $notFoundIds[] = $id;
+                }
+            }
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error("Import InProcess Critical Failure: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+        }
+
+        if ($updatedCount === 0) {
+            $msg = "Data terbaca, namun ID laporan tidak ditemukan di database.";
+            if (!empty($notFoundIds)) {
+                $msg .= " ID: " . implode(', ', array_slice($notFoundIds, 0, 3));
+            }
+            return redirect()->back()->with('warning', $msg);
+        }
+
+        return redirect()->back()->with('success', "Berhasil! $updatedCount data telah diperbarui secara massal.");
+    }
+
+    /**
+     * Helper: Sinkronisasi defect "Dimensi" berdasarkan perubahan judgment dari import.
+     * - Jika judgment berubah MENJADI NG: tambahkan/update defect "Dimensi"
+     * - Jika judgment berubah KEMBALI ke OK: hapus defect "Dimensi" dari list
+     * - Selalu sinkronkan total_ng dan total_ok agar konsisten
+     */
+    private function syncNgDimensiDefect($checksheet, string $oldJudgment, string $newJudgment)
+    {
+        // Ambil defects yang ada (decode jika masih JSON string)
+        $defects = $checksheet->defects;
+        if (is_string($defects)) {
+            $defects = json_decode($defects, true) ?? [];
+        }
+        if (!is_array($defects)) {
+            $defects = [];
+        }
+
+        if ($newJudgment === 'NG') {
+            // Cari apakah sudah ada entry "Dimensi" atau "NG Dimensi"
+            $found = false;
+            foreach ($defects as &$defect) {
+                if (is_array($defect) && isset($defect['type']) && ($defect['type'] === 'Dimensi' || $defect['type'] === 'NG Dimensi')) {
+                    // Normalisasi nama ke "Dimensi" jika masih menggunakan nama lama
+                    $defect['type'] = 'Dimensi';
+                    $found = true;
+                    break;
+                }
+            }
+            unset($defect);
+
+            // Jika belum ada, tambahkan
+            if (!$found) {
+                $defects[] = ['type' => 'Dimensi', 'qty' => 1];
+
+                // Update total_ng jika sebelumnya OK (judgment berubah)
+                if ($oldJudgment !== 'NG') {
+                    $checksheet->total_ng = ((int) $checksheet->total_ng) + 1;
+                    $checksheet->total_ok = max(0, ((int) $checksheet->total_ok) - 1);
+                }
+            }
+        } else {
+            // Judgment adalah OK — hapus entry "Dimensi" dan "NG Dimensi" jika ada
+            $hadNgDimensi = false;
+            $defects = array_values(array_filter($defects, function ($defect) use (&$hadNgDimensi) {
+                $type = $defect['type'] ?? '';
+                if (is_array($defect) && ($type === 'Dimensi' || $type === 'NG Dimensi')) {
+                    $hadNgDimensi = true;
+                    return false; // hapus dari list
+                }
+                return true;
+            }));
+
+            // Kembalikan hitungan jika sebelumnya NG karena dimensi
+            if ($hadNgDimensi && $oldJudgment === 'NG') {
+                $checksheet->total_ng = max(0, ((int) $checksheet->total_ng) - 1);
+                $checksheet->total_ok = ((int) $checksheet->total_ok) + 1;
+            }
+        }
+
+        $checksheet->defects = json_encode($defects);
+        return $checksheet;
+    }
+
+    /**
+     * Helper: Impor dari file XLSX menggunakan PhpSpreadsheet
+     */
+    private function importMeasureDataFromXlsx($file)
+    {
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membaca file XLSX: ' . $e->getMessage());
+        }
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows  = $sheet->toArray(null, true, true, false); // indexed array, format values
+
+        $dataById      = [];
+        $totalRowsParsed = 0;
+
+        foreach ($rows as $index => $row) {
+            // Lewati baris header (baris pertama)
+            if ($index === 0) continue;
+
+            // Minimal 5 kolom: ID, Tanggal, Part Name, Part Number, Cavity
+            if (count($row) < 5) continue;
+
+            $idRaw = trim((string)($row[0] ?? ''));
+            $id    = preg_replace('/[^0-9]/', '', $idRaw);
+
+            if (empty($id) || !is_numeric($id)) continue;
+
+            $cavity = trim((string)($row[4] ?? '1'));
+            if (!isset($dataById[$id])) $dataById[$id] = [];
+
+            $points = [];
+            // Kolom P1 mulai dari index ke-5 (index 5 = kolom ke-6)
+            for ($i = 5; $i < count($row); $i++) {
+                $pointIndex = $i - 4;
+                $val = trim(str_replace(',', '.', (string)($row[$i] ?? '')));
+                if ($val !== '' && $val !== '-') {
+                    $points[$pointIndex] = $val;
+                }
+            }
+
+            $dataById[$id][$cavity] = $points;
+            $totalRowsParsed++;
+        }
+
+        if (empty($dataById)) {
+            return redirect()->back()->with('warning', 'Format file XLSX tidak dapat dikenali. Pastikan kolom pertama berisi Checksheet ID yang valid.');
+        }
+
+        $updatedCount = 0;
+        $notFoundIds  = [];
+
+        \DB::beginTransaction();
+        try {
+            foreach ($dataById as $id => $measurements) {
+                $checksheet = InProcessChecksheet::withoutGlobalScope('plant')->find($id);
+                if ($checksheet) {
+                    $oldJudgment = $checksheet->judgment;
+                    $checksheet->dimension_check = $measurements;
+
+                    // Hitung base total_ng (tanpa menghitung defect "Dimensi" yang mungkin sudah ada sebelumnya)
+                    $currentDefects = $checksheet->defects;
+                    if (is_string($currentDefects)) $currentDefects = json_decode($currentDefects, true) ?? [];
+                    $baseTotalNg = 0;
+                    if (is_array($currentDefects)) {
+                        foreach ($currentDefects as $d) {
+                            $type = $d['type'] ?? '';
+                            if ($type !== 'Dimensi' && $type !== 'NG Dimensi') {
+                                $baseTotalNg += (int)($d['qty'] ?? 0);
+                            }
+                        }
+                    }
+
+                    $dataToValidate = ['dimensions' => $measurements, 'total_ng' => $baseTotalNg];
+                    $validated = $this->inProcessService->validateDimensions($dataToValidate, $checksheet->item_id);
+                    // Fallback ke judgment lama jika item tidak punya standar dimensi
+                    $newJudgment = $validated['judgment'] ?? $oldJudgment;
+                    $checksheet->judgment = $newJudgment;
+
+                    // --- Otomatis kelola defect "Dimensi" ---
+                    $checksheet = $this->syncNgDimensiDefect($checksheet, $oldJudgment, $newJudgment);
+
+                    $checksheet->save();
+                    $updatedCount++;
+                    ActivityLogger::log('updated', $checksheet, "Import XLSX: Sukses update ID $id (Judgment: {$oldJudgment} → {$newJudgment})");
+                } else {
+                    $notFoundIds[] = $id;
+                }
+            }
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+        }
+
+        if ($updatedCount === 0) {
+            $msg = 'Data terbaca, namun ID laporan tidak ditemukan di database.';
+            if (!empty($notFoundIds)) {
+                $msg .= ' ID: ' . implode(', ', array_slice($notFoundIds, 0, 3));
+            }
+            return redirect()->back()->with('warning', $msg);
+        }
+
+        return redirect()->back()->with('success', "Berhasil! $updatedCount data telah diperbarui secara massal (dari XLSX).");
+    }
 }

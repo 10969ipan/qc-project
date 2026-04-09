@@ -7,41 +7,64 @@
     .table-responsive {
         max-height: 75vh !important;
         overflow: auto !important;
-        border: 1px solid #dee2e6 !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
-    #checksheetTable { border-collapse: separate !important; border-spacing: 0 !important; }
+    #checksheetTable {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
     
+    #checksheetTable td, #checksheetTable th {
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
+    }
+
+    #checksheetTable tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 4px 6px !important;
+    }
+
     /* Global TH sticky setup */
     #checksheetTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
-        background-color: #4e73df !important;
-        color: white !important;
-        font-weight: bold;
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
         text-transform: uppercase;
-        font-size: 0.75rem;
-        padding: 6px 4px !important;
-        border: 1px solid #ffffff44 !important;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px;
+        padding: 6px 12px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 2px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        height: 35px !important;
+        line-height: 1.2;
+        white-space: nowrap !important;
     }
 
-    /* First row sticky at top: 0 */
+    /* Exact sticky heights */
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
+        height: 35px !important; 
     }
-
-    /* Second row sticky at top: 35px (matching height of row 1) */
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 35px !important;
+        top: 35px !important; 
         z-index: 104 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        height: 30px !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
     }
-
-    /* Rowspan cell specifically handled to fill both rows correctly */
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 70px !important;
+        height: 65px !important; 
     }
 </style>
     <div class="card shadow mb-4 border-left-primary">
@@ -61,6 +84,14 @@
                             <i class="fas fa-building mr-1"></i>
                             Plant {{ ucfirst($plantCode) }}
                         </span>
+                        @php
+                            // Resolve menu ID for permission checks
+                            $currentMenu = \App\Models\AppMenu::where('route', 'plating.index')->first();
+                            $menuId = $currentMenu ? $currentMenu->id : null;
+                            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+                            $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+                            $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+                        @endphp
                     </h1>
                 </div>
                 <div class="col-md-4 d-flex justify-content-end">
@@ -148,10 +179,12 @@
                                     class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
+                                @if($canExport)
                                 <a href="{{ route('plating.export_pdf', request()->query()) }}"
                                     class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
                                     <i class="fas fa-file-pdf"></i> Export
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -481,20 +514,24 @@
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('plating.edit', $checksheet->id) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form action="{{ route('plating.destroy', $checksheet->id) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                            @if($canEdit)
+                                                <a href="{{ route('plating.edit', $checksheet->id) }}"
+                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                     style="min-width: 110px;">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </button>
-                                            </form>
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                            @if($canDelete)
+                                                <form action="{{ route('plating.destroy', $checksheet->id) }}" method="POST"
+                                                    class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </td>
                                 @endif

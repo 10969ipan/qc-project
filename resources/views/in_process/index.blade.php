@@ -20,7 +20,7 @@
     
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
-        border-right: none !important;
+        border-right: 1px solid #f1f5f9 !important;
     }
 
     #checksheetTable tbody td {
@@ -43,7 +43,8 @@
         font-size: 0.62rem !important;
         letter-spacing: 0.2px;
         padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
-        border: none !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
         border-bottom: 2px solid #e2e8f0 !important;
         vertical-align: middle !important;
         line-height: 1.2;
@@ -133,6 +134,13 @@
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
+        
+        // Resolve menu ID for permission checks
+        $currentMenu = \App\Models\AppMenu::where('route', 'in_process.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
     @endphp
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -259,6 +267,7 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if($canExport)
                     <a href="{{ route('in_process.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
@@ -269,6 +278,18 @@
                         style="background-color: #17a589; color: white;">
                         <i class="fas fa-print fa-sm"></i>
                     </a>
+                    @endif
+                    <a href="{{ route('in_process.export_measurements', request()->query()) }}"
+                        class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 no-loader" title="Export Data Dimensi (XLSX)"
+                        style="background-color: #d97706; color: white;">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                    </a>
+                    <button type="button" 
+                        class="btn btn-info btn-sm shadow-sm rounded-pill px-3 no-loader" 
+                        data-toggle="modal" data-target="#importMeasurementsModal" 
+                        title="Import Data Dimensi (XLSX / CSV)">
+                        <i class="fas fa-file-import fa-sm"></i>
+                    </button>
                 </div>
 
             </form>
@@ -329,6 +350,7 @@
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle">
+                                    @if($canExport)
                                     <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
                                         data-qr="{{ $checksheet->qrcode }}"
                                         data-part="{{ $checksheet->part_code }}"
@@ -338,6 +360,9 @@
                                         data-sap="{{ $checksheet->sap_code ?? '-' }}">
                                         <i class="fas fa-qrcode"></i> View
                                     </button>
+                                    @else
+                                    <span class="badge badge-light text-muted small"><i class="fas fa-lock mr-1"></i> No Access</span>
+                                    @endif
                                 </td>
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
@@ -929,21 +954,25 @@
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form
-                                                action="{{ route('in_process.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                            @if($canEdit)
+                                                <a href="{{ route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
+                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                     style="min-width: 110px;">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </button>
-                                            </form>
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                            @if($canDelete)
+                                                <form
+                                                    action="{{ route('in_process.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
+                                                    method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </td>
                                 @endif
@@ -1162,6 +1191,7 @@
                 function syncExportLinks() {
                     var baseUrlPrint = "{{ route('in_process.print') }}";
                     var baseUrlPdf = "{{ route('in_process.export_pdf') }}";
+                    var baseUrlMeasurements = "{{ route('in_process.export_measurements') }}";
                     
                     var params = new URLSearchParams();
                     var formData = new FormData(form);
@@ -1173,9 +1203,11 @@
                     
                     var printBtn = form.querySelector('a[title="Print"]');
                     var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    var measurementsBtn = form.querySelector('a[title="Export Data Dimensi (XLSX)"]');
                     
                     if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
                     if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                    if (measurementsBtn) measurementsBtn.href = baseUrlMeasurements + '?' + queryString;
                 }
 
                 $(form).find('input, select').on('change', syncExportLinks);
@@ -1199,6 +1231,73 @@
             }
         });
     </script>
+
+    <!-- Modal Import Data Dimensi -->
+    <div class="modal fade" id="importMeasurementsModal" tabindex="-1" role="dialog" aria-labelledby="importMeasurementsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ route('in_process.import_measurements') }}" method="POST" enctype="multipart/form-data" id="importMeasurementsForm" class="no-loader">
+                    @csrf
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title" id="importMeasurementsModalLabel">
+                            <i class="fas fa-file-import mr-2"></i> Import Data Pengukuran Dimensi (XLSX / CSV)
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            <strong>Petunjuk:</strong><br>
+                            1. Gunakan fitur <strong>Export Data Dimensi</strong> untuk mendapatkan file template <strong>.xlsx</strong>.<br>
+                            2. Masukkan nilai hasil ukur pada kolom P1, P2, dst di Excel.<br>
+                            3. Simpan file tetap dalam format <strong>.xlsx</strong> (tidak perlu ubah ke CSV).<br>
+                            4. Unggah file di bawah ini. Sistem akan menghitung status OK/NG secara otomatis.
+                        </div>
+                        <div class="form-group">
+                            <label for="importFile" class="font-weight-bold">Pilih File XLSX / CSV:</label>
+                            <div class="custom-file">
+                                <input type="file" name="file" class="custom-file-input" id="importFile" accept=".xlsx,.xls,.csv" required>
+                                <label class="custom-file-label" for="importFile">Pilih file...</label>
+                            </div>
+                            <small class="form-text text-muted">Format didukung: <strong>.xlsx</strong> (disarankan) atau .csv</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary shadow-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary shadow-sm no-loader" id="btnSubmitImport">
+                            <i class="fas fa-upload mr-1"></i> Proses Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Custom file input label update
+        $('#importFile').on('change', function() {
+            var fileName = $(this).val().split('\\').pop();
+            $(this).next('.custom-file-label').addClass("selected").html(fileName);
+        });
+
+        $('#importMeasurementsForm').on('submit', function() {
+            // Tutup modal agar tidak menutupi layar setelah klik proses
+            $('#importMeasurementsModal').modal('hide');
+            
+            // Gunakan toast kecil atau biarkan browser menangani loading bar
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'Mengunggah & Memproses Data...',
+                showConfirmButton: false,
+                timerProgressBar: true
+            });
+        });
+    </script>
+
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 @endpush

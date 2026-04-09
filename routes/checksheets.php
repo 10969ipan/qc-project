@@ -37,6 +37,8 @@ Route::middleware(['auth'])->group(function () {
     // First Piece Approval (FPA)
     Route::get('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'create'])->name('first_piece_approval.create');
     Route::post('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'store'])->name('first_piece_approval.store');
+    Route::get('/checksheet/first-piece-approval/export-measurements', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements');
+    Route::post('/checksheet/first-piece-approval/import-measurements', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements');
 
     // Cross Cut
     Route::get('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'create'])->name('cross_cut.create');
@@ -86,9 +88,13 @@ Route::middleware(['auth'])->group(function () {
         // Export & Sync
         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
         Route::get('/report/in-process-checksheets/print', [InProcessChecksheetController::class, 'printView'])->name('in_process.print');
+        Route::get('/report/in-process-checksheets/export-measurements', [InProcessChecksheetController::class, 'exportMeasureData'])->name('in_process.export_measurements');
+        Route::post('/report/in-process-checksheets/import-measurements', [InProcessChecksheetController::class, 'importMeasureData'])->name('in_process.import_measurements');
 
         Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
         Route::get('/report/first-piece-approvals/print', [FirstPieceApprovalController::class, 'printView'])->name('first_piece_approval.print');
+        Route::get('/report/first-piece-approvals/export-measurements', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements');
+        Route::post('/report/first-piece-approvals/import-measurements', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements');
         Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::get('/report/checksheets/export-pdf', [SubAssyChecksheetController::class, 'exportPdf'])->name('admin.checksheets.export_pdf');
         Route::get('/report/checksheets/print', [SubAssyChecksheetController::class, 'printView'])->name('admin.checksheets.print');

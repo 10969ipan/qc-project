@@ -13,6 +13,11 @@
                             $plant = request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
                             $plantCode = strtolower($plantCode ?: 'karawang');
+
+                            // Resolve menu ID for permission checks
+                            $currentMenu = \App\Models\AppMenu::where('route', 'cross_cut_painting.index')->first();
+                            $menuId = $currentMenu ? $currentMenu->id : null;
+                            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
                         @endphp
                         <span class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0" style="font-size: 0.8rem; width: fit-content;">
                             <i class="fas fa-building mr-1"></i>
@@ -119,6 +124,7 @@
                                     class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
                                     <i class="fas fa-undo"></i> Reset
                                 </a>
+                                @if($canExport)
                                 <a href="{{ route('cross_cut_painting.export_pdf') }}"
                                     class="btn btn-danger btn-sm no-loader" title="Export to PDF" target="_blank">
                                     <i class="fas fa-file-pdf"></i> Export
@@ -127,6 +133,7 @@
                                     class="btn btn-success btn-sm no-loader ml-2" title="Print" target="_blank">
                                     <i class="fas fa-print"></i> Print
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>

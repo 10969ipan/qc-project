@@ -13,7 +13,9 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "chillerlan/php-qrcode": "5.0",
         "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10.1",
+        "phpoffice/phpspreadsheet": "*",
         "revolution/laravel-google-sheets": "^7.1",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6"

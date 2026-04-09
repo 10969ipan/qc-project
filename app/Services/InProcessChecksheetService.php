@@ -205,10 +205,10 @@ class InProcessChecksheetService extends BaseService
      * Validate dimensions and auto-set judgment
      * 
      * @param array $data
-     * @param int $itemId
+     * @param mixed $itemId
      * @return array Modified data with auto-set judgment
      */
-    public function validateDimensions(array $data, int $itemId): array
+    public function validateDimensions(array $data, $itemId): array
     {
         $item = Item::find($itemId);
         $allStandards = $this->getConsolidatedStandards();

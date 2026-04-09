@@ -5,6 +5,13 @@
 @section('content')
     @php
         $currentPlant = $plants->firstWhere('id', $plantId);
+        
+        // Resolve menu ID for permission checks
+        $currentMenu = \App\Models\AppMenu::where('route', 'admin.customer-claim-records.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
     @endphp
 
     <div class="card shadow mb-4">
@@ -89,6 +96,7 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if($canExport)
                     <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter'])) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
@@ -99,6 +107,7 @@
                         style="background-color: #17a589; color: white;">
                         <i class="fas fa-print fa-sm"></i>
                     </a>
+                    @endif
                     @if (!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                         <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal"
                             data-target="#modalTambahRecord">
@@ -279,19 +288,23 @@
                                 </td>
                                 <td class="text-center align-middle text-nowrap">
                                     @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                        <button type="button" class="btn btn-warning btn-xs py-0 btn-edit-record"
-                                            data-toggle="modal" data-target="#modalEditRecord" data-id="{{ $record->id }}"
-                                            data-json="{{ json_encode($record) }}">
-                                            <i class="fas fa-edit fa-xs"></i>
-                                        </button>
-                                        <form action="{{ route('admin.customer-claim-records.destroy', $record->id) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="btn btn-danger btn-xs py-0 btn-delete-record">
-                                                <i class="fas fa-trash fa-xs"></i>
+                                        @if($canEdit)
+                                            <button type="button" class="btn btn-warning btn-xs py-0 btn-edit-record"
+                                                data-toggle="modal" data-target="#modalEditRecord" data-id="{{ $record->id }}"
+                                                data-json="{{ json_encode($record) }}">
+                                                <i class="fas fa-edit fa-xs"></i>
                                             </button>
-                                        </form>
+                                        @endif
+                                        @if($canDelete)
+                                            <form action="{{ route('admin.customer-claim-records.destroy', $record->id) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn btn-danger btn-xs py-0 btn-delete-record">
+                                                    <i class="fas fa-trash fa-xs"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>

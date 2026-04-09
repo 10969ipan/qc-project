@@ -370,9 +370,9 @@
                                             <div>Modul / Sub-Modul</div>
                                             <div>View</div>
                                             <div>Input</div>
-                                            <div>Edit/Del</div>
+                                            <div>Edit/Hapus</div>
                                             <div>Approve</div>
-                                            <div>Export</div>
+                                            <div>Export (QR/PDF/Print)</div>
                                         </div>
 
                                         <!-- Recursive Permission Matrix -->

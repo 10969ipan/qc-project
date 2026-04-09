@@ -105,6 +105,14 @@
         @endif
 
         @php
+            $plant = $plantCode;
+            // Resolve menu ID for permission checks
+            $currentMenu = \App\Models\AppMenu::where('route', 'calibration.verifications.index')->first();
+            $menuId = $currentMenu ? $currentMenu->id : null;
+            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+            $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+            $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+
             /** @var \Illuminate\Support\ViewErrorBag $errors */
         @endphp
         @if(isset($errors) && method_exists($errors, 'any') && $errors->any())
@@ -176,6 +184,7 @@
                                 <i class="fas fa-sync fa-sm"></i>
                             </a>
                             
+                            @if($canExport)
                             <a id="printBtnVerif"
                                 href="{{ route('calibration.verifications.print', array_merge(request()->only(['plant','year','tool_id']), ['start_date' => request('start_date'), 'end_date' => request('end_date')])) }}"
                                 target="_blank" class="btn btn-sm shadow-sm rounded-pill px-3"
@@ -187,6 +196,7 @@
                                 target="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
                                 <i class="fas fa-file-pdf fa-sm"></i>
                             </a>
+                            @endif
                         </div>
                     </form>
                 </div>
@@ -300,27 +310,33 @@
                                 <td class="align-middle">
                                     <div class="d-flex justify-content-center" style="gap: 5px;">
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
-                                            <button type="button"
-                                                class="btn btn-sm btn-info btn-edit-verif shadow-sm d-flex align-items-center"
-                                                data-id="{{ $v->id }}">
-                                                <i class="fas fa-edit mr-1"></i> EDIT
-                                            </button>
-                                            <button type="button"
-                                                class="btn btn-sm btn-dark btn-qr-modal shadow-sm d-flex align-items-center"
-                                                data-id="{{ $v->id }}">
-                                                <i class="fas fa-qrcode mr-1"></i> QR
-                                            </button>
-                                            <form
-                                                action="{{ route('calibration.verifications.destroy', [$v->id, 'plant' => $plantCode]) }}"
-                                                method="POST" class="d-inline delete-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <input type="hidden" name="year" value="{{ $year }}">
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-danger shadow-sm d-flex align-items-center btn-delete">
-                                                    <i class="fas fa-trash mr-1"></i> HAPUS
+                                            @if($canEdit)
+                                                <button type="button"
+                                                    class="btn btn-sm btn-info btn-edit-verif shadow-sm d-flex align-items-center"
+                                                    data-id="{{ $v->id }}">
+                                                    <i class="fas fa-edit mr-1"></i> EDIT
                                                 </button>
-                                            </form>
+                                            @endif
+                                            @if($canExport)
+                                                <button type="button"
+                                                    class="btn btn-sm btn-dark btn-qr-modal shadow-sm d-flex align-items-center"
+                                                    data-id="{{ $v->id }}">
+                                                    <i class="fas fa-qrcode mr-1"></i> QR
+                                                </button>
+                                            @endif
+                                            @if($canDelete)
+                                                <form
+                                                    action="{{ route('calibration.verifications.destroy', [$v->id, 'plant' => $plantCode]) }}"
+                                                    method="POST" class="d-inline delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <input type="hidden" name="year" value="{{ $year }}">
+                                                    <button type="submit"
+                                                        class="btn btn-sm btn-danger shadow-sm d-flex align-items-center btn-delete">
+                                                        <i class="fas fa-trash mr-1"></i> HAPUS
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>

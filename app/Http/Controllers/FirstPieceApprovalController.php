@@ -181,6 +181,9 @@ class FirstPieceApprovalController extends Controller
             );
             $checksheet = $result['checksheet'] ?? null;
             if ($checksheet) {
+                // --- Otomatis kelola defect "Dimensi" (Inisialisasi) ---
+                $this->syncNgDimensiDefect($checksheet, 'OK', $checksheet->judgment, $result['ok_points_count'] ?? null, $result['ng_points_count'] ?? null);
+
                 ActivityLogger::log('created', $checksheet, "Menambahkan checksheet First Piece Approval baru: {$checksheet->item->name}");
             }
 
@@ -252,9 +255,21 @@ class FirstPieceApprovalController extends Controller
         }
         try {
             $validatedData = $request->validated();
+            $checksheet = FirstPieceApproval::findOrFail($id);
+            $oldJudgment = $checksheet->judgment;
+            
+            $result = $this->firstPieceService->updateChecksheet($id, $validatedData);
+            
+            // Refresh data setelah update di service
+            $checksheet->refresh();
+            $newJudgment = $checksheet->judgment;
 
-            $this->firstPieceService->updateChecksheet($id, $validatedData);
-            $checksheet = FirstPieceApproval::find($id);
+            // --- Otomatis kelola defect "Dimensi" (Update) ---
+            $this->syncNgDimensiDefect($checksheet, $oldJudgment, $newJudgment, $result['ok_points_count'] ?? null, $result['ng_points_count'] ?? null);
+            
+            // PENTING: Lakukan save() manual karena syncNgDimensiDefect merubah model tanpa menyimpan
+            $checksheet->save(); 
+
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet First Piece Approval: {$checksheet->item->name}");
 
             $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
@@ -467,5 +482,302 @@ class FirstPieceApprovalController extends Controller
         $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
 
         return view('first_piece_approval.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Ekspor Data Pengukuran (Actual) ke XLSX berdasarkan filter
+     */
+    public function exportMeasureData(Request $request)
+    {
+        $plantId = \App\Models\Plant::resolveId($request->get('plant') ?: auth()->user()->plant_id);
+
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant']);
+        $filters['plant'] = $plantId;
+
+        $query = $this->firstPieceService->buildFilteredQuery($filters)->latest();
+        $checksheets = $query->get();
+
+        $maxPoints = 20;
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Pengukuran FPA');
+
+        // --- Header row ---
+        $headers = ['Checksheet ID', 'Tanggal', 'Part Name', 'Part Number', 'Cavity'];
+        for ($i = 1; $i <= $maxPoints; $i++) {
+            $headers[] = "P$i";
+        }
+        $sheet->fromArray($headers, null, 'A1');
+
+        // Style header: bold + background light blue (FPA style)
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $headerRange = "A1:{$lastCol}1";
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+            'fill'      => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF4E73DF']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        // --- Data rows ---
+        $rowIndex = 2;
+        foreach ($checksheets as $c) {
+            $dims = $c->dimension_check;
+            if (is_string($dims)) {
+                $dims = json_decode($dims, true);
+                if (is_string($dims)) $dims = json_decode($dims, true);
+            }
+            $dims = is_array($dims) ? $dims : [];
+
+            $dateStr = $c->date instanceof \Carbon\Carbon
+                ? $c->date->format('Y-m-d')
+                : ($c->date ? date('Y-m-d', strtotime($c->date)) : '');
+
+            if (empty($dims)) {
+                $row = [(int)$c->id, $dateStr, $c->item->name ?? '', $c->item->part_number ?? '', 1];
+                for ($i = 1; $i <= $maxPoints; $i++) $row[] = '';
+                $sheet->fromArray($row, null, "A{$rowIndex}");
+                $rowIndex++;
+            } else {
+                foreach ($dims as $cavity => $points) {
+                    if (!is_array($points)) continue;
+                    $row = [(int)$c->id, $dateStr, $c->item->name ?? '', $c->item->part_number ?? '', (int)$cavity];
+                    for ($i = 1; $i <= $maxPoints; $i++) {
+                        $val = $points[$i] ?? $points["$i"] ?? '';
+                        $row[] = is_numeric($val) ? (float)$val : $val;
+                    }
+                    $sheet->fromArray($row, null, "A{$rowIndex}");
+                    $rowIndex++;
+                }
+            }
+        }
+
+        foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        for ($i = 6; $i <= count($headers); $i++) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+            $sheet->getColumnDimension($col)->setWidth(9);
+        }
+
+        $sheet->freezePane('A2');
+
+        $filename = "data_pengukuran_fpa_" . date('Y-m-d_H-i-s') . ".xlsx";
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control'       => 'max-age=0',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Impor Data Pengukuran (Actual) dari file XLSX atau CSV
+     */
+    public function importMeasureData(Request $request)
+    {
+        $request->validate(['file' => 'required']);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if ($extension === 'xlsx' || $extension === 'xls') {
+            return $this->importMeasureDataFromXlsx($file);
+        }
+
+        // --- Path CSV (Fallback) ---
+        $raw = file_get_contents($file->getRealPath());
+        $clean = str_replace("\0", "", $raw);
+        $clean = preg_replace('/^(\xEF\xBB\xBF|\xFF\xFE|\xFE\xFF)/', '', $clean);
+        $clean = str_replace(["\r\n", "\r"], "\n", $clean);
+        $lines = explode("\n", $clean);
+        
+        $dataById = [];
+        foreach ($lines as $index => $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            
+            $bestRow = [];
+            foreach ([',', ';', "\t"] as $delim) {
+                $row = str_getcsv($line, $delim);
+                if (count($row) === 1 && !empty($row[0]) && (substr_count($row[0], $delim) > 3)) {
+                    $row = str_getcsv($row[0], $delim);
+                }
+                if (count($row) > count($bestRow)) { $bestRow = $row; }
+            }
+            $row = $bestRow;
+            if (count($row) < 5) continue;
+            
+            $idRaw = trim($row[0]);
+            $id = preg_replace('/[^0-9]/', '', $idRaw);
+            if (empty($id) || !is_numeric($id)) continue;
+            
+            $cavity = trim($row[4]);
+            if (!isset($dataById[$id])) $dataById[$id] = [];
+            
+            $points = [];
+            for ($i = 5; $i < count($row); $i++) {
+                $pointIndex = $i - 4; 
+                $val = trim($row[$i], " \t\n\r\0\x0B\"");
+                $val = str_replace(',', '.', $val);
+                if ($val !== '' && $val !== '-') { $points[$pointIndex] = $val; }
+            }
+            $dataById[$id][$cavity] = $points;
+        }
+
+        if (empty($dataById)) {
+            return redirect()->back()->with('warning', "Format file tidak dapat dikenali. Pastikan file Anda mengandung kolom ID Laporan di awal.");
+        }
+
+        return $this->processImportedData($dataById);
+    }
+
+    private function importMeasureDataFromXlsx($file)
+    {
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membaca file XLSX: ' . $e->getMessage());
+        }
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows  = $sheet->toArray(null, true, true, false);
+
+        $dataById = [];
+        foreach ($rows as $index => $row) {
+            if ($index === 0) continue;
+            if (count($row) < 5) continue;
+
+            $idRaw = trim((string)($row[0] ?? ''));
+            $id    = preg_replace('/[^0-9]/', '', $idRaw);
+            if (empty($id) || !is_numeric($id)) continue;
+
+            $cavity = trim((string)($row[4] ?? '1'));
+            if (!isset($dataById[$id])) $dataById[$id] = [];
+
+            $points = [];
+            for ($i = 5; $i < count($row); $i++) {
+                $pointIndex = $i - 4;
+                $val = trim(str_replace(',', '.', (string)($row[$i] ?? '')));
+                if ($val !== '' && $val !== '-') { $points[$pointIndex] = $val; }
+            }
+            $dataById[$id][$cavity] = $points;
+        }
+
+        if (empty($dataById)) {
+            return redirect()->back()->with('warning', 'Format file XLSX tidak dapat dikenali.');
+        }
+
+        return $this->processImportedData($dataById);
+    }
+
+    private function processImportedData($dataById)
+    {
+        $updatedCount = 0;
+        \DB::beginTransaction();
+        try {
+            foreach ($dataById as $id => $measurements) {
+                $checksheet = FirstPieceApproval::withoutGlobalScope('plant')->find($id);
+                if ($checksheet) {
+                    $oldJudgment = $checksheet->judgment;
+                    $checksheet->dimension_check = $measurements;
+                    
+                    $currentDefects = $checksheet->defects;
+                    if (is_string($currentDefects)) $currentDefects = json_decode($currentDefects, true) ?? [];
+                    $baseTotalNg = 0;
+                    if (is_array($currentDefects)) {
+                        foreach ($currentDefects as $d) {
+                            $type = $d['type'] ?? '';
+                            if ($type !== 'Dimensi' && $type !== 'NG Dimensi') { $baseTotalNg += (int)($d['qty'] ?? 0); }
+                        }
+                    }
+
+                    $dataToValidate = ['dimensions' => $measurements, 'total_ng' => $baseTotalNg];
+                    $validated = $this->firstPieceService->validateDimensions($dataToValidate, $checksheet->item_id);
+                    $newJudgment = $validated['judgment'] ?? $oldJudgment;
+                    $checksheet->judgment = $newJudgment;
+
+                    $checksheet = $this->syncNgDimensiDefect($checksheet, $oldJudgment, $newJudgment, $validated['ok_points_count'] ?? null, $validated['ng_points_count'] ?? null);
+                    $checksheet->save();
+                    $updatedCount++;
+                    ActivityLogger::log('updated', $checksheet, "Import FPA: Sukses update ID $id (Judgment: {$oldJudgment} → {$newJudgment})");
+                }
+            }
+            \DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil! {$updatedCount} data FPA telah diperbarui secara massal."
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function syncNgDimensiDefect($checksheet, string $oldJudgment, string $newJudgment, ?int $okPoints = null, ?int $ngPoints = null)
+    {
+        $defects = $checksheet->defects;
+        if (is_string($defects)) { $defects = json_decode($defects, true) ?? []; }
+        if (!is_array($defects)) { $defects = []; }
+
+        // Hitung base total NG (tanpa Dimensi)
+        $baseTotalNg = 0;
+        foreach ($defects as $d) {
+            $type = $d['type'] ?? '';
+            if (is_array($d) && $type !== 'Dimensi' && $type !== 'NG Dimensi') {
+                $baseTotalNg += (int)($d['qty'] ?? 0);
+            }
+        }
+
+        if ($newJudgment === 'NG') {
+            $found = false;
+            foreach ($defects as &$defect) {
+                if (is_array($defect) && isset($defect['type']) && ($defect['type'] === 'Dimensi' || $defect['type'] === 'NG Dimensi')) {
+                    $defect['type'] = 'Dimensi';
+                    $found = true;
+                    break;
+                }
+            }
+            unset($defect);
+
+            $qty = 1;
+            if (!$found) {
+                $defects[] = ['type' => 'Dimensi', 'qty' => $qty];
+            } else {
+                // Update qty jika sudah ada (tetap 1 sesuai request)
+                foreach ($defects as &$d) {
+                    if (is_array($d) && ($d['type'] === 'Dimensi' || $d['type'] === 'NG Dimensi')) {
+                        $d['qty'] = $qty;
+                    }
+                }
+            }
+            $checksheet->total_ng = $baseTotalNg + $qty;
+        } else {
+            $defects = array_values(array_filter($defects, function ($defect) {
+                $type = $defect['type'] ?? '';
+                if (is_array($defect) && ($type === 'Dimensi' || $type === 'NG Dimensi')) {
+                    return false; // hapus dari list
+                }
+                return true;
+            }));
+
+            $checksheet->total_ng = $baseTotalNg; // Reset ke base (tanpa dimensi)
+        }
+
+        // Sinkronisasi OK = Sampling Qty - Total NG
+        $samplingQty = (int) ($checksheet->sampling_qty ?? 0);
+        $totalNg = (int) ($checksheet->total_ng ?? 0);
+        $checksheet->total_ok = max(0, $samplingQty - $totalNg);
+
+
+        $checksheet->defects = $defects; // Cast handled by model
+        return $checksheet;
     }
 }

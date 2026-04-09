@@ -20,7 +20,7 @@
     
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
-        border-right: none !important;
+        border-right: 1px solid #f1f5f9 !important;
     }
 
     #checksheetTable tbody td {
@@ -43,7 +43,8 @@
         font-size: 0.62rem !important;
         letter-spacing: 0.2px;
         padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
-        border: none !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
         border-bottom: 2px solid #e2e8f0 !important;
         vertical-align: middle !important;
         line-height: 1.2;
@@ -86,6 +87,13 @@
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
+
+        // Resolve menu ID for permission checks
+        $currentMenu = \App\Models\AppMenu::where('route', 'admin.checksheets.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
     @endphp
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -173,6 +181,7 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if($canExport)
                     <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
@@ -183,6 +192,7 @@
                         style="background-color: #17a589; color: white;">
                         <i class="fas fa-print fa-sm"></i>
                     </a>
+                    @endif
                 </div>
 
             </form>
@@ -554,21 +564,25 @@
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('admin.checksheets.edit', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form
-                                                action="{{ route('admin.checksheets.destroy', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                            @if($canEdit)
+                                                <a href="{{ route('admin.checksheets.edit', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                     style="min-width: 110px;">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </button>
-                                            </form>
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                            @if($canDelete)
+                                                <form
+                                                    action="{{ route('admin.checksheets.destroy', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                    method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </td>
                                 @endif

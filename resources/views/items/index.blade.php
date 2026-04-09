@@ -664,6 +664,13 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 @if(isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0)))
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Data Duplikat atau Tidak Valid',
+                        text: 'Silakan periksa kembali inputan Anda. Nama, Nomor Part, atau Kode SAP mungkin sudah terdaftar.',
+                        confirmButtonText: 'OK'
+                    });
+
                     @if(old('item_id'))
                         var itemId = "{{ old('item_id') }}";
                         var updateUrl = window.__ITEMS__.routes.update.replace(':id', itemId);

@@ -73,7 +73,11 @@ class FirstPieceApprovalService extends BaseService
                         $toFloat = function ($val) {
                             if ($val === null || $val === '')
                                 return null;
-                            $val = str_replace(',', '.', (string) $val);
+                            $val = (string)$val;
+                            // Remove ±, +, and leading spaces
+                            $val = str_replace(['±', '+'], '', $val);
+                            $val = str_replace(',', '.', $val);
+                            $val = trim($val);
                             return is_numeric($val) ? (float) $val : null;
                         };
 
@@ -202,16 +206,25 @@ class FirstPieceApprovalService extends BaseService
      * @param int $itemId
      * @return array Modified data with auto-set judgment
      */
-    public function validateDimensions(array $data, int $itemId): array
+    public function validateDimensions(array $data, $itemId): array
     {
         $item = Item::find($itemId);
         $allStandards = $this->getConsolidatedStandards();
         $partNum = $item ? $this->normalizePartNumber($item->part_number ?? '') : '';
 
+        \Log::info('Validating FPA Dimensions', [
+            'item_id' => $itemId,
+            'part_number' => $partNum,
+            'has_standards' => isset($allStandards[$partNum]),
+            'dimensions_count' => count($data['dimensions'] ?? [])
+        ]);
+
         if ($item && isset($allStandards[$partNum]) && !empty($data['dimensions'])) {
             $dimensionStandards = $allStandards[$partNum];
             $isAnyInvalid = false;
             $hasValidDimensions = false;
+            $okPointsCount = 0;
+            $ngPointsCount = 0;
 
             foreach ($data['dimensions'] as $cavity => $points) {
                 if (!is_array($points))
@@ -225,9 +238,9 @@ class FirstPieceApprovalService extends BaseService
                         $isPointNG = false;
                         $epsilon = 0.00001;
 
-                        // Helper for prefix-aware comparison
+                        // Helper for prefix-aware comparison (Aligned with In-Process logic)
                         $checkInvalid = function($val, $stdVal, $mode) use ($epsilon) {
-                            if ($stdVal === null) return false;
+                            if ($stdVal === null || $stdVal === '') return false;
                             $stdStr = $this->normalizeStandardValue($stdVal);
                             
                             if (strlen($stdStr) > 1 && (str_starts_with($stdStr, '+') || str_starts_with($stdStr, '-'))) {
@@ -286,7 +299,7 @@ class FirstPieceApprovalService extends BaseService
                                 } elseif (str_starts_with($tol, '+')) {
                                     $upperBound = $size + (float)substr($tol, 1);
                                 } elseif (str_starts_with($tol, '-')) {
-                                    $lowerBound = $size + (float)$tol; // Negative value handled by parseFloat equivalent
+                                    $lowerBound = $size + (float)$tol; 
                                 } else {
                                     $tVal = (float)$tol;
                                     $lowerBound = $size - $tVal;
@@ -301,22 +314,39 @@ class FirstPieceApprovalService extends BaseService
 
                         if ($isPointNG) {
                             $isAnyInvalid = true;
-                            break 2;
+                            $ngPointsCount++;
+                        } else {
+                            $okPointsCount++;
                         }
                     }
                 }
             }
 
             if ($hasValidDimensions) {
+                $data['ok_points_count'] = $okPointsCount;
+                $data['ng_points_count'] = $ngPointsCount;
+
                 if ($isAnyInvalid) {
                     $data['judgment'] = 'NG';
                 } else {
+                    // Jika dimensi OK, cek apakah ada defect lain (total_ng > 0)
                     if (isset($data['total_ng']) && (int)$data['total_ng'] > 0) {
                         $data['judgment'] = 'NG';
                     } else {
                         $data['judgment'] = 'OK';
                     }
                 }
+            } else {
+                // Jika tidak ada data dimensi yang valid tetapi standar ada, 
+                // pastikan judgment tetap mengikuti total_ng jika ada
+                if (isset($data['total_ng']) && (int)$data['total_ng'] > 0) {
+                    $data['judgment'] = 'NG';
+                }
+            }
+        } else {
+            // Jika standar tidak ditemukan, jangan biarkan judgment kosong
+            if (!isset($data['judgment'])) {
+                $data['judgment'] = (isset($data['total_ng']) && (int)$data['total_ng'] > 0) ? 'NG' : 'OK';
             }
         }
 
@@ -329,10 +359,10 @@ class FirstPieceApprovalService extends BaseService
      * @param array|null $dimensions
      * @return string
      */
-    private function processDimensions(?array $dimensions): string
+    private function processDimensions(?array $dimensions): array
     {
         if (empty($dimensions)) {
-            return json_encode([]);
+            return [];
         }
 
         $filteredDimensions = [];
@@ -343,7 +373,7 @@ class FirstPieceApprovalService extends BaseService
             }
         }
 
-        return json_encode($filteredDimensions);
+        return $filteredDimensions;
     }
 
     /**
@@ -358,7 +388,7 @@ class FirstPieceApprovalService extends BaseService
         DB::beginTransaction();
         try {
             // Validate dimensions and auto-set judgment
-            $data = $this->validateDimensions($data, (int) $data['item_id']);
+            $data = $this->validateDimensions($data, $data['item_id']);
 
             // Process defects
             $defects = $this->processDefects($data);
@@ -383,7 +413,7 @@ class FirstPieceApprovalService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
                 'cycle_time' => $data['cycle_time'] ?? null,
-                'defects' => json_encode($defects),
+                'defects' => $defects,
                 'next_proses' => ($data['judgment'] === 'NG') 
                     ? ($data['next_proses'] ?: 'SORTIR') 
                     : null,
@@ -421,7 +451,9 @@ class FirstPieceApprovalService extends BaseService
             return [
                 'checksheet' => $checksheet,
                 'google_sheets_success' => false,
-                'error' => null
+                'error' => null,
+                'ok_points_count' => $data['ok_points_count'] ?? null,
+                'ng_points_count' => $data['ng_points_count'] ?? null,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
@@ -448,7 +480,7 @@ class FirstPieceApprovalService extends BaseService
             $checksheet = FirstPieceApproval::findOrFail($id);
 
             // Validate dimensions and auto-set judgment
-            $data = $this->validateDimensions($data, (int) $data['item_id']);
+            $data = $this->validateDimensions($data, $data['item_id']);
 
             // Process dimensions
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
@@ -470,7 +502,7 @@ class FirstPieceApprovalService extends BaseService
                 'part_weight' => $data['part_weight'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
-                'defects' => json_encode($defects),
+                'defects' => $defects,
                 'next_proses' => ($data['judgment'] === 'NG') 
                     ? ($data['next_proses'] ?: 'SORTIR') 
                     : null,
@@ -526,7 +558,11 @@ class FirstPieceApprovalService extends BaseService
                 'plant_id' => $checksheet->plant_id
             ]);
 
-            return $checksheet;
+            return [
+                'checksheet' => $checksheet,
+                'ok_points_count' => $data['ok_points_count'] ?? null,
+                'ng_points_count' => $data['ng_points_count'] ?? null,
+            ];
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal memperbarui First Piece Approval', [

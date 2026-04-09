@@ -29,17 +29,10 @@ class StoreItemRequest extends FormRequest
                 'max:255',
                 function ($attribute, $value, $fail) {
                     $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                    $categoryId = request('category_id');
-                    $partNumber = request('part_number');
-
-                    $exists = Item::where('name', $value)
-                        ->where('part_number', $partNumber)
+                    if (Item::where('name', $value)
                         ->where('plant_id', $plantId)
-                        ->where('category_id', $categoryId)
-                        ->exists();
-
-                    if ($exists) {
-                        $fail('Item dengan nama dan part number yang sama sudah ada di kategori ini.');
+                        ->exists()) {
+                        $fail('Nama item ini sudah terdaftar di plant ini.');
                     }
                 },
             ],
@@ -59,7 +52,20 @@ class StoreItemRequest extends FormRequest
             'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
             'similar_part_file' => 'nullable|mimes:pdf|max:10240',
             'customer' => 'nullable|string',
-            'part_number' => 'nullable|string',
+            'part_number' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!empty($value)) {
+                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                        if (Item::where('part_number', $value)
+                            ->where('plant_id', $plantId)
+                            ->exists()) {
+                            $fail('Nomor Part ini sudah terdaftar di plant ini.');
+                        }
+                    }
+                },
+            ],
             'cavity' => 'nullable|integer|min:1',
             'weight_standard' => 'nullable|string|max:100',
             'sap_code' => [
@@ -69,11 +75,10 @@ class StoreItemRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     if (!empty($value)) {
                         $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                        $exists = Item::where('sap_code', $value)
+                        if (Item::where('sap_code', $value)
                             ->where('plant_id', $plantId)
-                            ->exists();
-                        if ($exists) {
-                            $fail('Kode SAP sudah digunakan oleh item lain di plant ini.');
+                            ->exists()) {
+                            $fail('Kode SAP ini sudah terdaftar di plant ini.');
                         }
                     }
                 },

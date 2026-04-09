@@ -13,6 +13,11 @@
                             $plant = request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
                             $plantCode = strtolower($plantCode ?: 'karawang');
+
+                            // Resolve menu ID for permission checks
+                            $currentMenu = \App\Models\AppMenu::where('route', 'incoming.chemicals.index')->first();
+                            $menuId = $currentMenu ? $currentMenu->id : null;
+                            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
                         @endphp
                         <span
                             class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
@@ -57,8 +62,10 @@
                         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Cari</button>
                         <a href="{{ route('incoming.chemicals.index', ['plant' => request('plant')]) }}"
                             class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Reset</a>
+                        @if($canExport)
                         <a href="{{ route('incoming.chemicals.export_pdf', request()->query()) }}"
                             class="btn btn-danger btn-sm no-loader btn-download"><i class="fas fa-file-pdf"></i> PDF</a>
+                        @endif
                     </div>
                 </div>
             </form>

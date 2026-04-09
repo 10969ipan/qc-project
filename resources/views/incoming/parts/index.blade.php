@@ -13,6 +13,13 @@
                             $plant = request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
                             $plantCode = strtolower($plantCode ?: 'karawang');
+
+                            // Resolve menu ID for permission checks
+                            $currentMenu = \App\Models\AppMenu::where('route', 'incoming.parts.index')->first();
+                            $menuId = $currentMenu ? $currentMenu->id : null;
+                            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+                            $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+                            $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
                         @endphp
                         <span class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0" style="font-size: 0.8rem; width: fit-content;">
                             <i class="fas fa-building mr-1"></i>
@@ -67,9 +74,11 @@
                         <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}" class="btn btn-secondary btn-sm mr-2">
                             <i class="fas fa-undo"></i> Reset
                         </a>
+                        @if($canExport)
                         <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm no-loader btn-download">
                             <i class="fas fa-file-pdf"></i> Export
                         </a>
+                        @endif
                     </div>
                 </div>
             </form>
@@ -160,15 +169,19 @@
                                             <button type="button" class="btn btn-success btn-xs mx-1 approve-btn" data-id="{{ $cs->id }}" data-type="kashift">
                                                 Approve
                                             </button>
-                                            <a href="{{ route('incoming.parts.edit', $cs->id) }}" class="btn btn-warning btn-sm mx-1">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('incoming.parts.destroy', $cs->id) }}" method="POST" class="d-inline">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm mx-1" onclick="return confirm('Hapus data?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            @if($canEdit)
+                                                <a href="{{ route('incoming.parts.edit', $cs->id) }}" class="btn btn-warning btn-sm mx-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endif
+                                            @if($canDelete)
+                                                <form action="{{ route('incoming.parts.destroy', $cs->id) }}" method="POST" class="d-inline">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm mx-1" onclick="return confirm('Hapus data?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>

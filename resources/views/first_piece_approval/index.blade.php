@@ -21,7 +21,7 @@
     #checksheetTable td, #checksheetTable th,
     #sortirTable td, #sortirTable th {
         border-left: none !important;
-        border-right: none !important;
+        border-right: 1px solid #f1f5f9 !important;
     }
 
     #checksheetTable tbody td,
@@ -46,7 +46,8 @@
         font-size: 0.62rem !important;
         letter-spacing: 0.2px;
         padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
-        border: none !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
         border-bottom: 2px solid #e2e8f0 !important;
         vertical-align: middle !important;
         line-height: 1.2;
@@ -142,6 +143,13 @@
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
+
+        // Resolve menu ID for permission checks
+        $currentMenu = \App\Models\AppMenu::where('route', 'first_piece_approval.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
     @endphp
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -268,6 +276,18 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if($canExport)
+                    <a href="{{ route('first_piece_approval.export_measurements', request()->query()) }}"
+                        class="btn btn-info btn-sm shadow-sm rounded-pill px-3 no-loader" title="Export Metadata Pengukuran (Excel)">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                    </a>
+                    <button type="button" 
+                        class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 no-loader" 
+                        title="Import Metadata Pengukuran"
+                        data-toggle="modal" 
+                        data-target="#importMetadataModal">
+                        <i class="fas fa-file-import fa-sm"></i>
+                    </button>
                     <a href="{{ route('first_piece_approval.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
@@ -278,6 +298,7 @@
                         style="background-color: #17a589; color: white;">
                         <i class="fas fa-print fa-sm"></i>
                     </a>
+                    @endif
                 </div>
 
             </form>
@@ -879,21 +900,25 @@
                                             </a>
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            <a href="{{ route('first_piece_approval.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form
-                                                action="{{ route('first_piece_approval.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                            @if($canEdit)
+                                                <a href="{{ route('first_piece_approval.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
+                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                     style="min-width: 110px;">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </button>
-                                            </form>
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                            @if($canDelete)
+                                                <form
+                                                    action="{{ route('first_piece_approval.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
+                                                    method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
+                                                        style="min-width: 110px;">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </td>
                                 @endif
@@ -1044,10 +1069,62 @@
         @endforeach
     @endforeach
 
+<!-- Modal Import Metadata -->
+<div class="modal fade" id="importMetadataModal" tabindex="-1" role="dialog" aria-labelledby="importMetadataModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-info text-white border-0">
+                <h5 class="modal-title font-weight-bold" id="importMetadataModalLabel">
+                    <i class="fas fa-file-import mr-2"></i> Import Data
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('first_piece_approval.import_measurements') }}" method="POST" enctype="multipart/form-data" class="no-loader" id="importMeasureForm">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 px-3 mb-4 rounded-lg" style="font-size: 0.85rem; border-left: 4px solid #3abaf4;">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Petunjuk:</strong><br>
+                        1. Gunakan fitur <strong>Export Excel</strong> untuk mendapatkan file template <strong>.xlsx</strong>.<br>
+                        2. Masukkan nilai hasil ukur pada kolom yang sesuai di Excel.<br>
+                        3. Simpan file tetap dalam format <strong>.xlsx</strong> (tidak perlu ubah ke CSV).<br>
+                        4. Unggah file di bawah ini. Sistem akan menghitung status OK/NG secara otomatis.
+                    </div>
+                    
+                    <div class="form-group mb-0">
+                        <label class="small font-weight-bold text-gray-700 mb-2">Pilih File XLSX / CSV:</label>
+                        <div class="custom-file shadow-sm">
+                            <input type="file" name="file" class="custom-file-input" id="importFile" accept=".xlsx, .xls, .csv" required>
+                            <label class="custom-file-label" for="importFile">Pilih file...</label>
+                        </div>
+                        <small class="text-muted mt-2 d-block px-1" style="font-size: 0.75rem;">
+                            Format didukung: <strong>.xlsx</strong> (disarankan) atau .csv
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-3">
+                    <button type="button" class="btn px-4 rounded-pill font-weight-bold text-gray-600 border-0 shadow-sm" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill font-weight-bold shadow-sm no-loader">
+                         <i class="fas fa-upload mr-1"></i>Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/fpa.js') }}"></script>
+    <script>
+        // Update label custom-file-input saat file dipilih
+        $(document).on('change', '.custom-file-input', function() {
+            let fileName = $(this).val().split('\\').pop();
+            $(this).next('.custom-file-label').addClass("selected").html(fileName);
+        });
+    </script>
     <script id="fpa-index-data" type="application/json">
         {
             "routeIndex": "{{ route('first_piece_approval.index') }}",
@@ -1080,6 +1157,7 @@
                 function syncExportLinks() {
                     var baseUrlPrint = "{{ route('first_piece_approval.print') }}";
                     var baseUrlPdf = "{{ route('first_piece_approval.export_pdf') }}";
+                    var baseUrlExcel = "{{ route('first_piece_approval.export_measurements') }}";
                     
                     var params = new URLSearchParams();
                     var formData = new FormData(form);
@@ -1091,9 +1169,11 @@
                     
                     var printBtn = form.querySelector('a[title="Print"]');
                     var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    var excelBtn = form.querySelector('a[title="Export Metadata Pengukuran (Excel)"]');
                     
                     if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
                     if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                    if (excelBtn) excelBtn.href = baseUrlExcel + '?' + queryString;
                 }
 
                 $(form).find('input, select').on('change', syncExportLinks);
@@ -1115,6 +1195,67 @@
                     }
                 });
             }
+
+            // AJAX Handler for Import Measure Form
+            $('#importMeasureForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                let form = $(this);
+                let formData = new FormData(this);
+                
+                // Close modal
+                $('#importMetadataModal').modal('hide');
+                
+                // Show Loading Toast
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'Sedang memproses data...',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message,
+                                confirmButtonColor: '#4e73df'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: response.message,
+                                confirmButtonColor: '#4e73df'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        let msg = 'Terjadi kesalahan saat mengunggah file.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: msg,
+                            confirmButtonColor: '#4e73df'
+                        });
+                    }
+                });
+            });
         });
     </script>
 @endpush
