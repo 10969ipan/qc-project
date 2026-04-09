@@ -890,17 +890,36 @@ class InProcessCreate {
             $(this).removeClass('is-invalid is-valid');
 
             if (standard && valStr !== '' && !isNaN(value)) {
-                let isInvalid = false;
-                const epsilon = 0.00001;
+                const stdSize = _this.normalizeStandardValue(standard.size);
+                const size = (stdSize !== null && !stdSize.startsWith('+') && !stdSize.startsWith('-')) ? parseFloat(stdSize) : null;
+
                 const checkInvalid = (v, std, mode) => {
                     if (std === null) return false;
                     const stdStr = String(std);
+
+                    // Existing logic for operator-prefixed strings (+0.2, -0.1)
                     if (stdStr.length > 1 && (stdStr.startsWith('+') || stdStr.startsWith('-'))) {
                         const op = stdStr.charAt(0);
                         const lim = parseFloat(stdStr.substring(1));
+                        
+                        if (size !== null) {
+                            const bound = (op === '+') ? size + lim : size - lim;
+                            return (op === '+') ? v > (bound + epsilon) : v < (bound - epsilon);
+                        }
+                        
+                        // Legacy fallback
                         return op === '+' ? v <= (lim + epsilon) : v >= (lim - epsilon);
                     }
-                    const stdFloat = parseFloat(std);
+
+                    const stdFloat = parseFloat(stdStr);
+                    
+                    // NEW: If we have a baseline size, treat numeric min/max as offsets
+                    if (size !== null) {
+                        if (mode === 'min') return v < (size - stdFloat - epsilon);
+                        if (mode === 'max') return v > (size + stdFloat + epsilon);
+                    }
+
+                    // Original absolute fallback
                     if (mode === 'min') return v < (stdFloat - epsilon);
                     if (mode === 'max') return v > (stdFloat + epsilon);
                     return false;

@@ -380,14 +380,31 @@
                                                         $fVal = (float)$val;
                                                         $epsilon = 0.00001;
 
-                                                        $check = function($v, $s, $m) use ($epsilon) {
+                                                        $check = function($v, $s, $m) use ($epsilon, $std) {
                                                             if ($s === null || $s === '') return false;
                                                             $sStr = (string)$s;
+
+                                                            // Resolve baseline size
+                                                            $baseSize = null;
+                                                            if (isset($std['size']) && $std['size'] !== '' && !str_starts_with((string)$std['size'], '+') && !str_starts_with((string)$std['size'], '-')) {
+                                                                $baseSize = (float)$std['size'];
+                                                            }
+
                                                             if (strlen($sStr) > 1 && (str_starts_with($sStr, '+') || str_starts_with($sStr, '-'))) {
                                                                 $op = $sStr[0]; $lim = (float)substr($sStr, 1);
+                                                                if ($baseSize !== null) {
+                                                                    $bound = ($op === '+') ? $baseSize + $lim : $baseSize - $lim;
+                                                                    return ($op === '+') ? $v > ($bound + $epsilon) : $v < ($bound - $epsilon);
+                                                                }
                                                                 return ($op === '+') ? $v < ($lim - $epsilon) : $v > ($lim + $epsilon);
                                                             }
+                                                            
                                                             $sf = (float)$s;
+                                                            if ($baseSize !== null) {
+                                                                if ($m === 'min') return $v < ($baseSize - $sf - $epsilon);
+                                                                if ($m === 'max') return $v > ($baseSize + $sf + $epsilon);
+                                                            }
+
                                                             if ($m === 'min') return $v < ($sf - $epsilon);
                                                             if ($m === 'max') return $v > ($sf + $epsilon);
                                                             return false;

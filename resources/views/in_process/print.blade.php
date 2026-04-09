@@ -268,8 +268,39 @@
                                                         $isNG = false;
                                                         if (isset($standards[$j]) && is_numeric($val)) {
                                                             $std = $standards[$j]; $fVal = (float)$val; $eps = 0.00001;
-                                                            if (($std['min'] ?? null) !== null && $fVal < ((float)$std['min'] - $eps)) $isNG = true;
-                                                            if (!$isNG && ($std['max'] ?? null) !== null && $fVal > ((float)$std['max'] + $eps)) $isNG = true;
+                                                            
+                                                            $baseSize = null;
+                                                            if (isset($std['size']) && $std['size'] !== '' && !str_starts_with((string)$std['size'], '+') && !str_starts_with((string)$std['size'], '-')) {
+                                                                $baseSize = (float)$std['size'];
+                                                            }
+
+                                                            $check = function($v, $s, $m, $baseSize) use ($eps) {
+                                                                if ($s === null || $s === '') return false;
+                                                                $sStr = (string)$s;
+                                                                if (strlen($sStr) > 1 && (str_starts_with($sStr, '+') || str_starts_with($sStr, '-'))) {
+                                                                    $op = $sStr[0]; $lim = (float)substr($sStr, 1);
+                                                                    if ($baseSize !== null) {
+                                                                        $bound = ($op === '+') ? $baseSize + $lim : $baseSize - $lim;
+                                                                        return ($op === '+') ? $v > ($bound + $eps) : $v < ($bound - $eps);
+                                                                    }
+                                                                    return ($op === '+') ? $v < ($lim - $eps) : $v > ($lim + $eps);
+                                                                }
+                                                                $sf = (float)$s;
+                                                                if ($baseSize !== null) {
+                                                                    if ($m === 'min') return $v < ($baseSize - $sf - $eps);
+                                                                    if ($m === 'max') return $v > ($baseSize + $sf + $eps);
+                                                                }
+                                                                if ($m === 'min') return $v < ($sf - $eps);
+                                                                if ($m === 'max') return $v > ($sf + $eps);
+                                                                return false;
+                                                            };
+
+                                                            if (($std['min'] ?? null) !== null && $check($fVal, $std['min'], 'min', $baseSize)) $isNG = true;
+                                                            if (!$isNG && ($std['max'] ?? null) !== null && $check($fVal, $std['max'], 'max', $baseSize)) $isNG = true;
+                                                            
+                                                            if (!$isNG && isset($std['size']) && (str_starts_with((string)$std['size'], '+') || str_starts_with((string)$std['size'], '-'))) {
+                                                                if ($check($fVal, $std['size'], 'size', $baseSize)) $isNG = true;
+                                                            }
                                                         }
                                                     @endphp
                                                     <td @if($isNG) style="color:#dc3545; font-weight:bold;" @endif>{{ $val }}</td>

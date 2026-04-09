@@ -214,39 +214,37 @@ class InProcessChecksheetService extends BaseService
         $allStandards = $this->getConsolidatedStandards();
         $partNum = $item ? $this->normalizePartNumber($item->part_number ?? '') : '';
 
-        if ($item && isset($allStandards[$partNum]) && !empty($data['dimensions'])) {
-            $dimensionStandards = $allStandards[$partNum];
-            $isAnyInvalid = false;
-            $hasValidDimensions = false;
+                        // NEW: Resolve baseline size for offset calculation
+                        $baseSizeStr = $this->normalizeStandardValue($std['size'] ?? null);
+                        $baseSize = ($baseSizeStr !== null && !str_starts_with($baseSizeStr, '+') && !str_starts_with($baseSizeStr, '-')) ? (float)$baseSizeStr : null;
 
-            foreach ($data['dimensions'] as $cavity => $points) {
-                if (!is_array($points))
-                    continue;
-
-                foreach ($points as $point => $value) {
-                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
-                        $hasValidDimensions = true;
-                        $std = $dimensionStandards[$point];
-                        $floatValue = (float) $value;
-                        $isPointNG = false;
-                        $epsilon = 0.00001;
-
-                        // Helper for prefix-aware comparison
-                        $checkInvalid = function($val, $stdVal, $mode) use ($epsilon) {
+                        $checkInvalid = function($val, $stdVal, $mode) use ($epsilon, $baseSize) {
                             if ($stdVal === null) return false;
                             $stdStr = $this->normalizeStandardValue($stdVal);
                             
                             if (strlen($stdStr) > 1 && (str_starts_with($stdStr, '+') || str_starts_with($stdStr, '-'))) {
                                 $operator = substr($stdStr, 0, 1);
                                 $limit = (float) substr($stdStr, 1);
-                                if ($operator === '+') { // Must be greater than
+                                
+                                if ($baseSize !== null) {
+                                    $bound = ($operator === '+') ? $baseSize + $limit : $baseSize - $limit;
+                                    return ($operator === '+') ? $val > ($bound + $epsilon) : $val < ($bound - $epsilon);
+                                }
+
+                                if ($operator === '+') { // Legacy absolute logic
                                     return $val <= ($limit + $epsilon);
-                                } elseif ($operator === '-') { // Must be less than
+                                } elseif ($operator === '-') { // Legacy absolute logic
                                     return $val >= ($limit - $epsilon);
                                 }
                             }
                             
                             $stdFloat = (float) $stdStr;
+
+                            if ($baseSize !== null) {
+                                if ($mode === 'min') return $val < ($baseSize - $stdFloat - $epsilon);
+                                if ($mode === 'max') return $val > ($baseSize + $stdFloat + $epsilon);
+                            }
+
                             if ($mode === 'min') return $val < ($stdFloat - $epsilon);
                             if ($mode === 'max') return $val > ($stdFloat + $epsilon);
                             return false;
