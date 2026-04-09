@@ -1240,7 +1240,7 @@
                     @csrf
                     <div class="modal-header bg-info text-white">
                         <h5 class="modal-title" id="importMeasurementsModalLabel">
-                            <i class="fas fa-file-import mr-2"></i> Import Data Pengukuran Dimensi (XLSX / CSV)
+                            <i class="fas fa-file-import mr-2"></i> Import Data 
                         </h5>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -1251,7 +1251,7 @@
                             <i class="fas fa-info-circle mr-1"></i>
                             <strong>Petunjuk:</strong><br>
                             1. Gunakan fitur <strong>Export Data Dimensi</strong> untuk mendapatkan file template <strong>.xlsx</strong>.<br>
-                            2. Masukkan nilai hasil ukur pada kolom P1, P2, dst di Excel.<br>
+                            2. Masukkan nilai hasil ukur pada kolom yang sesuai di Excel.<br>
                             3. Simpan file tetap dalam format <strong>.xlsx</strong> (tidak perlu ubah ke CSV).<br>
                             4. Unggah file di bawah ini. Sistem akan menghitung status OK/NG secara otomatis.
                         </div>
@@ -1267,7 +1267,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary shadow-sm" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary shadow-sm no-loader" id="btnSubmitImport">
-                            <i class="fas fa-upload mr-1"></i> Proses Import
+                            <i class="fas fa-upload mr-1"></i> Import
                         </button>
                     </div>
                 </form>

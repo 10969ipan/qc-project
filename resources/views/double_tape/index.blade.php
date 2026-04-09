@@ -91,6 +91,7 @@
     #sortirTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 65px !important; 
     }
+</style>
     @php
         // Resolve menu ID for permission checks
         $currentMenu = \App\Models\AppMenu::where('route', 'double_tape.index')->first();
