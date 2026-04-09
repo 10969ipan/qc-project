@@ -214,6 +214,23 @@ class InProcessChecksheetService extends BaseService
         $allStandards = $this->getConsolidatedStandards();
         $partNum = $item ? $this->normalizePartNumber($item->part_number ?? '') : '';
 
+        if ($item && isset($allStandards[$partNum]) && !empty($data['dimensions'])) {
+            $dimensionStandards = $allStandards[$partNum];
+            $isAnyInvalid = false;
+            $hasValidDimensions = false;
+
+            foreach ($data['dimensions'] as $cavity => $points) {
+                if (!is_array($points))
+                    continue;
+
+                foreach ($points as $point => $value) {
+                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
+                        $hasValidDimensions = true;
+                        $std = $dimensionStandards[$point];
+                        $floatValue = (float) $value;
+                        $isPointNG = false;
+                        $epsilon = 0.00001;
+
                         // NEW: Resolve baseline size for offset calculation
                         $baseSizeStr = $this->normalizeStandardValue($std['size'] ?? null);
                         $baseSize = ($baseSizeStr !== null && !str_starts_with($baseSizeStr, '+') && !str_starts_with($baseSizeStr, '-')) ? (float)$baseSizeStr : null;
