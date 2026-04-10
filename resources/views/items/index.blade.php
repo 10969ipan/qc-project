@@ -358,18 +358,24 @@
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="edit_name" class="form-control form-control-sm"
+                                    <input type="text" name="name" id="edit_name" class="form-control form-control-sm @error('name') is-invalid @enderror" value="{{ old('name') }}"
                                         required>
+                                    @error('name')
+                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
-                                    <select name="category_id" id="edit_category_id" class="form-control form-control-sm"
+                                    <select name="category_id" id="edit_category_id" class="form-control form-control-sm @error('category_id') is-invalid @enderror"
                                         required>
                                         <option value="">Pilih Kategori</option>
                                         @foreach($categories as $cat)
-                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                                         @endforeach
                                     </select>
+                                    @error('category_id')
+                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Customer</label>
@@ -498,12 +504,15 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label class="font-weight-bold">Pilih Plant <span class="text-danger">*</span></label>
-                                <select name="plant" class="form-control form-control-sm" required id="modal_plant_select">
+                                <select name="plant" class="form-control form-control-sm @error('plant') is-invalid @enderror" required id="modal_plant_select">
                                     <option value="">-- Pilih Plant --</option>
                                     @foreach($allPlants as $p)
-                                        <option value="{{ $p->code }}" data-uuid="{{ $p->id }}">{{ strtoupper($p->name) }}</option>
+                                        <option value="{{ $p->code }}" data-uuid="{{ $p->id }}" {{ old('plant') == $p->code ? 'selected' : '' }}>{{ strtoupper($p->name) }}</option>
                                     @endforeach
                                 </select>
+                                @error('plant')
+                                    <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                @enderror
                             </div>
                         @else
                             <input type="hidden" name="plant" value="{{ $plantCode }}">
@@ -516,19 +525,25 @@
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control form-control-sm" required
-                                        placeholder="Masukkan Nama Item...">
+                                    <input type="text" name="name" class="form-control form-control-sm @error('name') is-invalid @enderror" required
+                                        value="{{ old('name') }}" placeholder="Masukkan Nama Item...">
+                                    @error('name')
+                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
                                     <select name="category_id" id="modal_category_select"
-                                        class="form-control form-control-sm" required>
+                                        class="form-control form-control-sm @error('category_id') is-invalid @enderror" required>
                                         <option value="">Pilih Kategori</option>
                                         @foreach($categories as $cat)
-                                            <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}">{{ $cat->name }}
+                                            <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('category_id')
+                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Customer</label>
@@ -566,8 +581,14 @@
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Standard <span
                                             class="text-danger">*</span></label>
-                                    <input type="file" name="files[]" class="form-control-file form-control-sm"
+                                    <input type="file" name="files[]" class="form-control-file form-control-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
                                         accept=".pdf" multiple required>
+                                    @if($errors->has('files'))
+                                        <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files') }}</div>
+                                    @endif
+                                    @if($errors->has('files.*'))
+                                        <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files.*') }}</div>
+                                    @endif
                                     <small class="text-muted text-xs d-block">Bisa upload lebih dari satu file PDF. Max 10MB
                                         per file.</small>
                                 </div>
@@ -657,9 +678,9 @@
         </script>
         <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
         <script src="{{ asset('js/items/items-pdf-viewer.js') }}"></script>
-        <script src="{{ asset('js/items/items-form-logic.js') }}"></script>
-        <script src="{{ asset('js/items/items-actions.js') }}"></script>
-        <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+        <script src="{{ asset('js/items/items-form-logic.js') }}?v={{ time() }}"></script>
+        <script src="{{ asset('js/items/items-actions.js') }}?v={{ time() }}"></script>
+        <script src="{{ asset('js/vendor/item-search.js') }}?v={{ time() }}"></script>
         
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -698,6 +719,67 @@
                 $('.modal').on('hidden.bs.modal', function () {
                     if ($('.modal.show').length > 0) {
                         $('body').addClass('modal-open');
+                    }
+                });
+
+                // --- INLINE VALIDATION FOR MASTER ITEMS ---
+                const validateField = (form, name, label) => {
+                    const field = $(form).find(`[name="${name}"], [name="${name}[]"]`).first();
+                    if (!field.length || !field.is(':visible')) return true;
+
+                    let isEmpty = false;
+                    if (field.is('input[type="file"]')) {
+                        isEmpty = field.prop('required') && field[0].files.length === 0;
+                    } else {
+                        isEmpty = !field.val() || field.val().trim() === '';
+                    }
+
+                    if (isEmpty) {
+                        field.addClass('is-invalid');
+                        if (field.next('.invalid-feedback').length === 0) {
+                            field.after(`<div class="invalid-feedback js-inline-error">Field ${label} wajib diisi!</div>`);
+                        }
+                        return false;
+                    } else {
+                        field.removeClass('is-invalid');
+                        field.next('.js-inline-error').remove();
+                        return true;
+                    }
+                };
+
+                $(document).on('submit', '#modalTambahItem form, #formEditItem', function (e) {
+                    const form = this;
+                    let isValid = true;
+                    const mandatoryFields = [
+                        { name: 'name', label: 'Nama Item' },
+                        { name: 'category_id', label: 'Kategori' },
+                        { name: 'plant', label: 'Plant' }
+                    ];
+
+                    // For 'store' action, PDF is mandatory
+                    if ($(form).attr('action').includes('/store')) {
+                        mandatoryFields.push({ name: 'files', label: 'Upload PDF Standard' });
+                    }
+
+                    const errorLabels = [];
+                    mandatoryFields.forEach(f => {
+                        if (!validateField(form, f.name, f.label)) {
+                            isValid = false;
+                            errorLabels.push(f.label);
+                        }
+                    });
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Peringatan!',
+                            text: 'Mohon lengkapi data wajib: ' + errorLabels.join(', '),
+                            confirmButtonColor: '#3085d6'
+                        }).then(() => {
+                            $(form).find('.is-invalid').first().focus();
+                        });
+                        return false;
                     }
                 });
             });

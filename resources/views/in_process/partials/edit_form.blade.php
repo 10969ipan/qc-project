@@ -629,7 +629,15 @@
             const selectedOption = $('#item_id').find('option:selected');
             const rawPartNumber = selectedOption.data('part-number');
             const itemPartNumber = normalizePartNumber(rawPartNumber);
-            const dimensionStandards = partDimensionStandards[itemPartNumber];
+            
+            // Prioritize direct standards, fallback to global
+            let dimensionStandards = selectedOption.data('dimension-standards');
+            if (typeof dimensionStandards === 'string') {
+                try { dimensionStandards = JSON.parse(dimensionStandards); } catch(e) { dimensionStandards = null; }
+            }
+            if (!dimensionStandards) {
+                dimensionStandards = partDimensionStandards[itemPartNumber];
+            }
 
             $('.edit-dimension-input').each(function () {
                 const name = $(this).attr('name');
@@ -637,7 +645,16 @@
                 if (!match) return;
 
                 const point = match[2];
-                const standard = dimensionStandards ? dimensionStandards[point] : null;
+
+                // Robust lookup for standard
+                let standard = null;
+                if (dimensionStandards) {
+                    if (Array.isArray(dimensionStandards)) {
+                        standard = dimensionStandards.find(s => String(s.point) === String(point)) || dimensionStandards[point - 1];
+                    } else {
+                        standard = dimensionStandards[point];
+                    }
+                }
                 const valStr = $(this).val().trim();
                 const value = parseFloat(valStr.replace(',', '.'));
 
@@ -647,76 +664,53 @@
                     let isInvalid = false;
                     const epsilon = 0.00001;
 
-                    // Helper for prefix-aware comparison
-                    const checkInvalid = (val, std, mode) => {
-                        if (std === null) return false;
-                        
-                        const stdStr = String(std);
-                        if (stdStr.length > 1 && (stdStr.startsWith('+') || stdStr.startsWith('-'))) {
-                            const operator = stdStr.charAt(0);
-                            const limit = parseFloat(stdStr.substring(1));
-                            if (operator === '+') { // Must be greater than
-                                return val <= (limit + epsilon);
-                            } else if (operator === '-') { // Must be less than
-                                return val >= (limit - epsilon);
-                            }
-                        }
-                        
-                        const stdFloat = parseFloat(std);
-                        if (mode === 'min') return val < (stdFloat - epsilon);
-                        if (mode === 'max') return val > (stdFloat + epsilon);
-                        return false;
-                    };
-
-                    if (standard.min !== null && checkInvalid(value, standard.min, 'min')) {
-                        isInvalid = true;
+                    const stdSizeStr = normalizeStandardValue(standard.size);
+                    
+                    // 1. Check Absolute Min/Max
+                    if (standard.min != null && standard.min !== '') {
+                        const minBound = parseFloat(String(standard.min).replace(',', '.'));
+                        if (!isNaN(minBound) && value < (minBound - epsilon)) isInvalid = true;
                     }
-                    if (!isInvalid && standard.max !== null && checkInvalid(value, standard.max, 'max')) {
-                        isInvalid = true;
+                    if (!isInvalid && standard.max != null && standard.max !== '') {
+                        const maxBound = parseFloat(String(standard.max).replace(',', '.'));
+                        if (!isNaN(maxBound) && value > (maxBound + epsilon)) isInvalid = true;
                     }
 
-                    // Special case: if Size itself is an operator
-                    if (!isInvalid && standard.size !== null) {
-                        const stdSizeStr = String(standard.size);
-                        if (stdSizeStr.length > 1 && (stdSizeStr.startsWith('+') || stdSizeStr.startsWith('-'))) {
-                            if (checkInvalid(value, standard.size, 'size')) {
-                                isInvalid = true;
-                            }
-                        }
-                    }
-
-                    // Fallback to Size +/- Tolerance
-                    if (!isInvalid && standard.min === null && standard.max === null) {
-                        const stdSizeStr = normalizeStandardValue(standard.size);
-                        if (standard.size !== null && standard.tolerance !== null && !stdSizeStr.startsWith('+') && !stdSizeStr.startsWith('-')) {
-                            const size = parseFloat(stdSizeStr);
+                    // 2. Check Size +/- Tolerance
+                    if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== '' && standard.tolerance !== '') {
+                        if (stdSizeStr && !stdSizeStr.startsWith('+') && !stdSizeStr.startsWith('-')) {
+                            const base = parseFloat(stdSizeStr);
                             const tol = normalizeStandardValue(standard.tolerance);
-                            let lowerBound = size;
-                            let upperBound = size;
-
+                            let lb = base, ub = base;
+                            
                             if (tol.includes('/')) {
-                                const parts = tol.split('/');
-                                parts.forEach(p => {
+                                tol.split('/').forEach(p => {
                                     p = normalizeStandardValue(p);
-                                    const fVal = parseFloat(p);
-                                    if (p.startsWith('+') || fVal > 0) {
-                                        upperBound = size + Math.abs(fVal);
-                                    } else if (p.startsWith('-') || fVal < 0) {
-                                        lowerBound = size - Math.abs(fVal);
-                                    }
+                                    const fv = parseFloat(p);
+                                    if (p.startsWith('+') || fv > 0) ub = base + Math.abs(fv);
+                                    else if (p.startsWith('-') || fv < 0) lb = base - Math.abs(fv);
                                 });
                             } else if (tol.startsWith('+')) {
-                                upperBound = size + parseFloat(tol.substring(1).replace(',', '.'));
+                                ub = base + parseFloat(tol.substring(1));
                             } else if (tol.startsWith('-')) {
-                                lowerBound = size + parseFloat(tol.replace(',', '.')); // Negative value
+                                lb = base + parseFloat(tol);
                             } else {
-                                const tVal = parseFloat(tol.replace(',', '.'));
-                                lowerBound = size - tVal;
-                                upperBound = size + tVal;
+                                const tv = parseFloat(tol);
+                                lb = base - tv; ub = base + tv;
                             }
+                            
+                            if (value < (lb - epsilon) || value > (ub + epsilon)) isInvalid = true;
+                        }
+                    }
 
-                            if (value < (lowerBound - epsilon) || value > (upperBound + epsilon)) {
-                                isInvalid = true;
+                    // 3. Check Special Size (with prefix)
+                    if (!isInvalid && standard.size != null && standard.size !== '') {
+                        if (stdSizeStr && (stdSizeStr.startsWith('+') || stdSizeStr.startsWith('-'))) {
+                            const op = stdSizeStr.charAt(0);
+                            const bound = parseFloat(stdSizeStr.substring(1));
+                            if (!isNaN(bound)) {
+                                if (op === '+' && value < (bound - epsilon)) isInvalid = true;
+                                else if (op === '-' && value > (bound + epsilon)) isInvalid = true;
                             }
                         }
                     }

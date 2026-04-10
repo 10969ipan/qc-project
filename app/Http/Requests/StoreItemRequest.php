@@ -27,14 +27,6 @@ class StoreItemRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) {
-                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                    if (Item::where('name', $value)
-                        ->where('plant_id', $plantId)
-                        ->exists()) {
-                        $fail('Nama item ini sudah terdaftar di plant ini.');
-                    }
-                },
             ],
             'category_id' => [
                 'required',
@@ -58,10 +50,12 @@ class StoreItemRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     if (!empty($value)) {
                         $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                        $categoryId = request('category_id');
                         if (Item::where('part_number', $value)
                             ->where('plant_id', $plantId)
+                            ->where('category_id', $categoryId)
                             ->exists()) {
-                            $fail('Nomor Part ini sudah terdaftar di plant ini.');
+                            $fail('Nomor Part ini sudah terdaftar di kategori ini pada plant ini.');
                         }
                     }
                 },
@@ -75,10 +69,12 @@ class StoreItemRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     if (!empty($value)) {
                         $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                        $categoryId = request('category_id');
                         if (Item::where('sap_code', $value)
                             ->where('plant_id', $plantId)
+                            ->where('category_id', $categoryId)
                             ->exists()) {
-                            $fail('Kode SAP ini sudah terdaftar di plant ini.');
+                            $fail('Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
                         }
                     }
                 },

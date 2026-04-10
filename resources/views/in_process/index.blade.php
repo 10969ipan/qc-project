@@ -431,6 +431,7 @@
                                             $actualMaxCavity = max($actualMaxCavity, $cavNum);
                                         }
                                         $displayMaxCavity = max(5, $actualMaxCavity);
+                                        $anyNGInRow = false;
                                     @endphp
                                     @if($hasUserInputs)
                                         <div style="max-height: 200px; overflow-y: auto;">
@@ -548,86 +549,78 @@
                                                                     @php
                                                                         $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
                                                                         $isNG = false;
-                                                                        if (isset($standards[$j]) && is_numeric($val)) {
-                                                                            $std = $standards[$j];
+                                                                        
+                                                                        // Robust lookup for standard in PHP
+                                                                        $std = null;
+                                                                        if (!empty($standards)) {
+                                                                            if (isset($standards[$j])) {
+                                                                                $std = $standards[$j];
+                                                                            } else {
+                                                                                // Fallback for array structure
+                                                                                foreach ($standards as $itemStd) {
+                                                                                    if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
+                                                                                        $std = $itemStd;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        if ($std && is_numeric($val)) {
                                                                             $fVal = (float)$val;
                                                                             $epsilon = 0.00001;
 
-                                                                            $check = function($v, $s, $m) use ($epsilon, $std) {
-                                                                                if ($s === null || $s === '') return false;
-                                                                                $sStr = (string)$s;
-
-                                                                                // Resolve baseline size
-                                                                                $baseSize = null;
-                                                                                if (isset($std['size']) && $std['size'] !== '' && !str_starts_with((string)$std['size'], '+') && !str_starts_with((string)$std['size'], '-')) {
-                                                                                    $baseSize = (float)$std['size'];
-                                                                                }
-
-                                                                                if (strlen($sStr) > 1 && (str_starts_with($sStr, '+') || str_starts_with($sStr, '-'))) {
-                                                                                    $op = $sStr[0]; $lim = (float)substr($sStr, 1);
-                                                                                    if ($baseSize !== null) {
-                                                                                        $bound = ($op === '+') ? $baseSize + $lim : $baseSize - $lim;
-                                                                                        return ($op === '+') ? $v > ($bound + $epsilon) : $v < ($bound - $epsilon);
-                                                                                    }
-                                                                                    return ($op === '+') ? $v < ($lim - $epsilon) : $v > ($lim + $epsilon);
-                                                                                }
-                                                                                
-                                                                                $sf = (float)$s;
-                                                                                if ($baseSize !== null) {
-                                                                                    if ($m === 'min') return $v < ($baseSize - $sf - $epsilon);
-                                                                                    if ($m === 'max') return $v > ($baseSize + $sf + $epsilon);
-                                                                                }
-
-                                                                                if ($m === 'min') return $v < ($sf - $epsilon);
-                                                                                if ($m === 'max') return $v > ($sf + $epsilon);
-                                                                                return false;
-                                                                            };
-
-                                                                            if (($std['min'] ?? null) !== null && $check($fVal, $std['min'], 'min')) {
-                                                                                $isNG = true;
+                                                                            // 1. Check Absolute Min/Max
+                                                                            if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                                                                                $minBound = (float)$std['min'];
+                                                                                if ($fVal < ($minBound - $epsilon)) $isNG = true;
                                                                             }
-                                                                            if (!$isNG && ($std['max'] ?? null) !== null && $check($fVal, $std['max'], 'max')) {
-                                                                                $isNG = true;
+                                                                            if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
+                                                                                $maxBound = (float)$std['max'];
+                                                                                if ($fVal > ($maxBound + $epsilon)) $isNG = true;
                                                                             }
 
-                                                                            if (!$isNG && ($std['size'] ?? null) !== null) {
-                                                                                $sStr = (string)$std['size'];
-                                                                                if (str_starts_with($sStr, '+') || str_starts_with($sStr, '-')) {
-                                                                                    if ($check($fVal, $std['size'], 'size')) {
-                                                                                        $isNG = true;
-                                                                                    }
-                                                                                } elseif (($std['min'] ?? null) === null && ($std['max'] ?? null) === null && ($std['tolerance'] ?? null) !== null) {
-                                                                                    $size = (float)$std['size'];
+                                                                            // 2. Check Size +/- Tolerance
+                                                                            if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                                                                                $szStr = (string)$std['size'];
+                                                                                if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                                                                                    $base = (float)$szStr;
                                                                                     $tol = (string)$std['tolerance'];
-                                                                                    $lowerBound = $size;
-                                                                                    $upperBound = $size;
-
+                                                                                    $lb = $base; $ub = $base;
+                                                                                    
                                                                                     if (str_contains($tol, '/')) {
                                                                                         $parts = explode('/', $tol);
                                                                                         foreach ($parts as $p) {
                                                                                             $p = trim(str_replace(',', '.', $p));
-                                                                                            $fValTol = (float)$p;
-                                                                                            if (str_starts_with($p, '+') || $fValTol > 0) {
-                                                                                                $upperBound = $size + abs($fValTol);
-                                                                                            } elseif (str_starts_with($p, '-') || $fValTol < 0) {
-                                                                                                $lowerBound = $size - abs($fValTol);
-                                                                                            }
+                                                                                            $fv = (float)$p;
+                                                                                            if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                                                                                            elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
                                                                                         }
                                                                                     } elseif (str_starts_with($tol, '+')) {
-                                                                                        $upperBound = $size + (float)substr($tol, 1);
+                                                                                        $ub = $base + (float)substr($tol, 1);
                                                                                     } elseif (str_starts_with($tol, '-')) {
-                                                                                        $lowerBound = $size + (float)$tol;
+                                                                                        $lb = $base + (float)$tol;
                                                                                     } else {
-                                                                                        $tVal = (float)$tol;
-                                                                                        $lowerBound = $size - $tVal;
-                                                                                        $upperBound = $size + $tVal;
+                                                                                        $tv = (float)$tol;
+                                                                                        $lb = $base - $tv; $ub = $base + $tv;
                                                                                     }
-
-                                                                                    if ($fVal < ($lowerBound - $epsilon) || $fVal > ($upperBound + $epsilon)) {
-                                                                                        $isNG = true;
-                                                                                    }
+                                                                                    
+                                                                                    if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) $isNG = true;
                                                                                 }
                                                                             }
+
+                                                                            // 3. Check Special Size (prefix)
+                                                                            if (!$isNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
+                                                                                $szStr = (string)$std['size'];
+                                                                                if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                                                                                    $op = $szStr[0];
+                                                                                    $bound = (float)substr($szStr, 1);
+                                                                                    if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
+                                                                                    elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
+                                                                                }
+                                                                            }
+
+                                                                            if ($isNG) $anyNGInRow = true;
                                                                         }
                                                                     @endphp
                                                                     <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
@@ -715,9 +708,13 @@
                                 </td>
 
                                 <td class="align-middle">
-                                    <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
-                                        {{ $checksheet->judgment }}
-                                    </span>
+                                     @php
+                                         $effectiveJudgment = ($checksheet->judgment == 'NG' || ($anyNGInRow ?? false)) ? 'NG' : 'OK';
+                                     @endphp
+                                     <span class="badge badge-{{ $effectiveJudgment == 'OK' ? 'success' : 'danger' }}" 
+                                           title="{{ $checksheet->judgment != $effectiveJudgment ? 'Warning: Database judgment differs from dimension check' : '' }}">
+                                         {{ $effectiveJudgment }}
+                                     </span>
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}</td>
 

@@ -235,52 +235,53 @@ class InProcessChecksheetService extends BaseService
                         $baseSizeStr = $this->normalizeStandardValue($std['size'] ?? null);
                         $baseSize = ($baseSizeStr !== null && !str_starts_with($baseSizeStr, '+') && !str_starts_with($baseSizeStr, '-')) ? (float)$baseSizeStr : null;
 
-                        $checkInvalid = function($val, $stdVal, $mode) use ($epsilon, $baseSize) {
-                            if ($stdVal === null) return false;
-                            $stdStr = $this->normalizeStandardValue($stdVal);
-                            
-                            if (strlen($stdStr) > 1 && (str_starts_with($stdStr, '+') || str_starts_with($stdStr, '-'))) {
-                                $operator = substr($stdStr, 0, 1);
-                                $limit = (float) substr($stdStr, 1);
+                        // 1. Check Absolute Min/Max
+                        if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                            $minBound = (float)$std['min'];
+                            if ($floatValue < ($minBound - $epsilon)) $isPointNG = true;
+                        }
+                        if (!$isPointNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
+                            $maxBound = (float)$std['max'];
+                            if ($floatValue > ($maxBound + $epsilon)) $isPointNG = true;
+                        }
+
+                        // 2. Check Size +/- Tolerance
+                        if (!$isPointNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                            $szStr = $this->normalizeStandardValue($std['size']);
+                            if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                                $base = (float)$szStr;
+                                $tol = $this->normalizeStandardValue($std['tolerance']);
+                                $lb = $base; $ub = $base;
                                 
-                                if ($baseSize !== null) {
-                                    $bound = ($operator === '+') ? $baseSize + $limit : $baseSize - $limit;
-                                    return ($operator === '+') ? $val > ($bound + $epsilon) : $val < ($bound - $epsilon);
+                                if (str_contains($tol, '/')) {
+                                    $parts = explode('/', $tol);
+                                    foreach ($parts as $p) {
+                                        $p = $this->normalizeStandardValue($p);
+                                        $fv = (float)$p;
+                                        if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                                        elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
+                                    }
+                                } elseif (str_starts_with($tol, '+')) {
+                                    $ub = $base + (float)substr($tol, 1);
+                                } elseif (str_starts_with($tol, '-')) {
+                                    $lb = $base + (float)$tol;
+                                } else {
+                                    $tv = (float)$tol;
+                                    $lb = $base - $tv; $ub = $base + $tv;
                                 }
-
-                                if ($operator === '+') { // Legacy absolute logic
-                                    return $val <= ($limit + $epsilon);
-                                } elseif ($operator === '-') { // Legacy absolute logic
-                                    return $val >= ($limit - $epsilon);
-                                }
+                                
+                                if ($floatValue < ($lb - $epsilon) || $floatValue > ($ub + $epsilon)) $isPointNG = true;
                             }
-                            
-                            $stdFloat = (float) $stdStr;
-
-                            if ($baseSize !== null) {
-                                if ($mode === 'min') return $val < ($baseSize - $stdFloat - $epsilon);
-                                if ($mode === 'max') return $val > ($baseSize + $stdFloat + $epsilon);
-                            }
-
-                            if ($mode === 'min') return $val < ($stdFloat - $epsilon);
-                            if ($mode === 'max') return $val > ($stdFloat + $epsilon);
-                            return false;
-                        };
-
-                        if ($std['min'] !== null && $checkInvalid($floatValue, $std['min'], 'min')) {
-                            $isPointNG = true;
-                        }
-                        if (!$isPointNG && $std['max'] !== null && $checkInvalid($floatValue, $std['max'], 'max')) {
-                            $isPointNG = true;
                         }
 
-                        // Special case: if Size is a prefix operator (+ or -)
-                        if (!$isPointNG && ($std['size'] ?? null) !== null) {
-                            $sizeStr = $this->normalizeStandardValue($std['size']);
-                            if (strlen($sizeStr) > 1 && (str_starts_with($sizeStr, '+') || str_starts_with($sizeStr, '-'))) {
-                                if ($checkInvalid($floatValue, $sizeStr, 'size')) {
-                                    $isPointNG = true;
-                                }
+                        // 3. Check Special Size (prefix)
+                        if (!$isPointNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
+                            $szStr = $this->normalizeStandardValue($std['size']);
+                            if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                                $op = $szStr[0];
+                                $bound = (float)substr($szStr, 1);
+                                if ($op === '+' && $floatValue < ($bound - $epsilon)) $isPointNG = true;
+                                elseif ($op === '-' && $floatValue > ($bound + $epsilon)) $isPointNG = true;
                             }
                         }
 

@@ -135,10 +135,79 @@
                 if (xhr.status === 404) message = 'Item tidak ditemukan.';
                 else if (xhr.status === 403) message = 'Anda tidak memiliki akses.';
                 else if (xhr.status === 500) message = 'Kesalahan server.';
-                alert(message);
+                Swal.fire('Error', message, 'error');
                 btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
             }
         });
+    });
+
+    // Client-side validation before submission
+    const validateItemForm = (form) => {
+        let isValid = true;
+        let firstEmptyField = null;
+        const errors = [];
+
+        // Reset previous invalid states
+        $(form).find('.is-invalid').removeClass('is-invalid');
+
+        // 1. Check Name
+        const nameInput = $(form).find('input[name="name"]');
+        if (!nameInput.val() || !nameInput.val().trim()) {
+            isValid = false;
+            nameInput.addClass('is-invalid');
+            errors.push('Nama Item');
+            if (!firstEmptyField) firstEmptyField = nameInput;
+        }
+
+        // 2. Check Category
+        const categorySelect = $(form).find('select[name="category_id"]');
+        if (!categorySelect.val()) {
+            isValid = false;
+            categorySelect.addClass('is-invalid');
+            errors.push('Kategori');
+            if (!firstEmptyField) firstEmptyField = categorySelect;
+        }
+
+        // 3. Check Plant (only if it's a select prompted to user)
+        const plantSelect = $(form).find('select[name="plant"]');
+        if (plantSelect.length > 0 && plantSelect.is(':visible') && !plantSelect.val()) {
+            isValid = false;
+            plantSelect.addClass('is-invalid');
+            errors.push('Plant');
+            if (!firstEmptyField) firstEmptyField = plantSelect;
+        }
+
+        // 4. Check Files (only for Create form)
+        const isCreate = $(form).attr('action') && $(form).attr('action').includes('/store');
+        const filesInput = $(form).find('input[name="files[]"]');
+        // Optional check for files only if they are truly required by the model/business logic
+        if (isCreate && filesInput.length && filesInput[0].hasAttribute('required') && filesInput[0].files.length === 0) {
+            isValid = false;
+            filesInput.addClass('is-invalid');
+            errors.push('Upload PDF Standard');
+            if (!firstEmptyField) firstEmptyField = filesInput;
+        }
+
+        if (!isValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap',
+                text: `Mohon isi field yang wajib: ${errors.join(', ')}`,
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                if (firstEmptyField) firstEmptyField.focus();
+            });
+        }
+
+        return isValid;
+    };
+
+    // Attach validation to forms
+    $(document).on('submit', '#modalTambahItem form, #formEditItem', function (e) {
+        if (!validateItemForm(this)) {
+            e.preventDefault();
+            return false;
+        }
     });
 
 })();

@@ -26,7 +26,11 @@ class UpdateItemRequest extends FormRequest
         $itemId = $item instanceof Item ? $item->id : $item;
 
         return [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
             'category_id' => [
                 'required',
                 'exists:categories,id',
@@ -43,10 +47,43 @@ class UpdateItemRequest extends FormRequest
             'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
             'similar_part_file' => 'nullable|mimes:pdf|max:10240',
             'customer' => 'nullable|string',
-            'part_number' => 'nullable|string',
+            'part_number' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($itemId) {
+                    if (!empty($value)) {
+                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                        $categoryId = request('category_id');
+                        if (Item::where('part_number', $value)
+                            ->where('plant_id', $plantId)
+                            ->where('category_id', $categoryId)
+                            ->where('id', '!=', $itemId)
+                            ->exists()) {
+                            $fail('Nomor Part ini sudah terdaftar di kategori ini pada plant ini.');
+                        }
+                    }
+                },
+            ],
             'cavity' => 'nullable|integer|min:1',
             'weight_standard' => 'nullable|string|max:100',
-            'sap_code' => 'nullable|string|max:100',
+            'sap_code' => [
+                'nullable',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) use ($itemId) {
+                    if (!empty($value)) {
+                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                        $categoryId = request('category_id');
+                        if (Item::where('sap_code', $value)
+                            ->where('plant_id', $plantId)
+                            ->where('category_id', $categoryId)
+                            ->where('id', '!=', $itemId)
+                            ->exists()) {
+                            $fail('Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
+                        }
+                    }
+                },
+            ],
             'defects' => 'nullable|string',
             'dimension_points' => 'nullable|array',
             'dimension_sizes' => 'nullable|array',
