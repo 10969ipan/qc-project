@@ -532,7 +532,7 @@
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary"
                                                             data-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-danger">Reject</button>
+                                                        <button type="submit" class="btn btn-danger btn-confirm-reject">Reject</button>
                                                     </div>
                                                 </form>
                                             </div>

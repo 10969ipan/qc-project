@@ -79,7 +79,6 @@ class NotificationService
             // Identify by initials within the same plant
             if ($checksheet->operator_initials) {
                 $user = User::where('plant_id', $checksheet->plant_id)
-                    ->where('role', 'inspector')
                     ->whereRaw('UPPER(initials) = ?', [strtoupper(trim($checksheet->operator_initials))])
                     ->first();
 

@@ -1057,7 +1057,7 @@
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                         <i class="fas fa-times"></i> Batal
                                     </button>
-                                    <button type="submit" class="btn btn-danger">
+                                    <button type="submit" class="btn btn-danger btn-confirm-reject">
                                         <i class="fas fa-ban"></i> Tolak Checksheet
                                     </button>
                                 </div>

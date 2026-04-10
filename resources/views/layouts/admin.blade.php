@@ -1160,7 +1160,7 @@
                     sessionPingUrl: dataEl.getAttribute('data-session-ping-url'),
                     unreadRejections: unreadRejections.map(r => ({
                         ...r,
-                        markReadUrl: `/notifications/${r.id}/read`
+                        markReadUrl: `{{ url('notifications') }}/${r.id}/read`
                     }))
                 };
             }
