@@ -22,6 +22,52 @@ use Illuminate\Support\Facades\DB;
 class DashboardService extends BaseService
 {
     /**
+     * Get lightweight live data for TV real-time polling.
+     * Only returns production monitoring data (station cards) — no heavy stats.
+     */
+    public function getLiveDashboardData(): array
+    {
+        $productionMonitoring = $this->getProductionMonitoring('karawang');
+
+        // Build a compact, serializable structure for the station cards
+        $serializeStation = function ($item) {
+            if (!$item) return null;
+            return [
+                'item_name'         => optional($item->item)->name,
+                'part_number'       => optional($item->item)->part_number,
+                'judgment'          => $item->judgment,
+                'operator_initials' => $item->operator_initials,
+                'created_at'        => $item->created_at?->format('H:i'),
+            ];
+        };
+
+        $activeLines    = $productionMonitoring['activeLines']->map($serializeStation);
+        $activeMachines = $productionMonitoring['activeMachines']->map($serializeStation);
+
+        $serializeStatus = fn ($s) => $s ? ['status' => $s->status, 'description' => $s->description] : null;
+        $lineStatuses    = $productionMonitoring['lineStatuses']->map($serializeStatus);
+        $machineStatuses = $productionMonitoring['machineStatuses']->map($serializeStatus);
+
+        // Operator map (initials -> name)
+        $users = \App\Models\User::all();
+        $operatorMap = [];
+        foreach ($users as $u) {
+            if ($u->initials) {
+                $operatorMap[strtoupper($u->initials)] = $u->name;
+            }
+        }
+
+        return [
+            'timestamp'      => now()->toIso8601String(),
+            'activeLines'    => $activeLines,
+            'activeMachines' => $activeMachines,
+            'lineStatuses'   => $lineStatuses,
+            'machineStatuses'=> $machineStatuses,
+            'operatorMap'    => $operatorMap,
+        ];
+    }
+
+    /**
      * Get all dashboard data
      * 
      * @return array

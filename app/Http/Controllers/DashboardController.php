@@ -63,6 +63,21 @@ class DashboardController extends Controller
     }
 
     /**
+     * TV Dashboard: Lightweight real-time JSON polling endpoint
+     * Returns only the minimal data needed to update station cards (no full page render)
+     */
+    public function tvLiveData(Request $request)
+    {
+        if (!$request->has('plant')) {
+            $request->merge(['plant' => 'karawang']);
+        }
+
+        $data = $this->dashboardService->getLiveDashboardData();
+
+        return response()->json($data)->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    /**
      * TV Signage: NG Defect aggregation for Slide 3 panel
      */
     public function tvDefects()

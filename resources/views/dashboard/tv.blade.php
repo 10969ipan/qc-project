@@ -273,9 +273,10 @@
                                     elseif ($isStopped) $statusText = 'OFF';
                                     elseif ($isActive) $statusText = 'RUNNING';
                                 @endphp
-                                <div class="station-card flex flex-col p-3.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                <div class="station-card flex flex-col p-3.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden" data-station-type="meja" data-station-id="{{ $i }}">
                                     <div class="flex justify-between items-center mb-1.5 border-b border-slate-50 pb-1.5">
                                         <h3 class="text-xl font-extrabold text-slate-800 tracking-tighter capitalize">MEJA-{{ $i }}</h3>
+                                        <div class="status-badge-container">
                                         @if($isTrouble)
                                             <span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse">
                                                 <i class="material-icons-round text-base">warning</i> TROUBLE
@@ -293,9 +294,10 @@
                                                 <i class="fas fa-pause text-xs"></i> IDLE
                                             </span>
                                         @endif
+                                        </div>
                                     </div>
 
-                                    <div class="flex-1 flex flex-col pt-1 min-h-0">
+                                    <div class="flex-1 flex flex-col pt-1 min-h-0 card-content-area">
                                         @if($isActive)
                                             <div class="flex-1 flex flex-col justify-center space-y-1">
                                                 <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[12px] leading-tight">{{ $data->item->name }}</span></div>
@@ -360,12 +362,13 @@
                                     $isActive = ($data && !$isTrouble && !$isMaintenance && !$isStopped);
                                     $qcName = ($isActive && isset($operatorMap[$data->operator_initials])) ? $operatorMap[$data->operator_initials] : ($data->operator_initials ?? '-');
                                 @endphp
-                                <div class="station-card flex flex-col p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                <div class="station-card flex flex-col p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden" data-station-type="mesin" data-station-id="{{ $i }}">
                                     <div class="flex justify-between items-center mb-1 border-b border-slate-50 pb-1">
                                         <div>
                                             <h3 class="text-sm font-black text-slate-800 tracking-tighter leading-none uppercase">MESIN-{{ $i }}</h3>
                                             <p class="text-[8px] font-bold text-slate-400 tracking-tighter mt-0.5">({{ $tonnage }})</p>
                                         </div>
+                                        <div class="status-badge-container">
                                         @if($isTrouble)
                                             <span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse">
                                                 <i class="material-icons-round text-base">warning</i> TROUBLE
@@ -383,8 +386,9 @@
                                                 <i class="fas fa-pause text-xs"></i> IDLE
                                             </span>
                                         @endif
+                                        </div>
                                     </div>
-                                    <div class="flex-1 flex flex-col pt-1 min-h-0">
+                                    <div class="flex-1 flex flex-col pt-1 min-h-0 card-content-area">
                                         @if($isActive)
                                             <div class="flex-1 flex flex-col justify-center space-y-1">
                                                 <div class="flex justify-between text-[11px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-700 truncate ml-2 text-right text-[10px] leading-tight">{{ $data->item->name }}</span></div>
@@ -470,9 +474,10 @@
                                     $isActive = ($data && !$isTrouble && !$isMaintenance && !$isStopped);
                                     $qcName = ($isActive && isset($operatorMap[$data->operator_initials])) ? $operatorMap[$data->operator_initials] : ($data->operator_initials ?? '-');
                                 @endphp
-                                <div class="station-card flex flex-col p-3.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden">
+                                <div class="station-card flex flex-col p-3.5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden" data-station-type="meja" data-station-id="{{ $i }}">
                                     <div class="flex justify-between items-center mb-1.5 border-b border-slate-50 pb-1.5">
                                         <h3 class="text-xl font-extrabold text-slate-800 tracking-tighter capitalize">MEJA-{{ $i }}</h3>
+                                        <div class="status-badge-container">
                                         @if($isTrouble)
                                             <span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse">
                                                 <i class="material-icons-round text-base">warning</i> TROUBLE
@@ -490,8 +495,9 @@
                                                 <i class="fas fa-pause text-xs"></i> IDLE
                                             </span>
                                         @endif
+                                        </div>
                                     </div>
-                                    <div class="flex-1 flex flex-col pt-1 min-h-0">
+                                    <div class="flex-1 flex flex-col pt-1 min-h-0 card-content-area">
                                         @if($isActive)
                                             <div class="flex-1 flex flex-col justify-center space-y-1">
                                                 <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[12px] leading-tight">{{ $data->item->name }}</span></div>
@@ -526,7 +532,7 @@
 
     <script>
         const SLIDE_TIME = 10000; // 10 seconds per slide
-        const POLL_TIME = 30000;  // 30 seconds sync
+        const POLL_TIME  = 10000; // 10 seconds live data refresh
         const slidesWrapper = document.getElementById('slides-wrapper');
         const slides = document.querySelectorAll('.slide');
         const dots = document.querySelectorAll('.indicator-dot');
@@ -865,57 +871,125 @@
             });
         }
 
-        async function syncData() {
+        async function syncLive() {
             try {
-                // Fetch the HTML for workstation cards first
                 const ts = new Date().getTime();
-                const res = await fetch(`/dashboard/tv?plant=karawang&t=${ts}`);
-                const html = await res.text();
-                
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Update workstation cards but EXCLUDE chart containers to prevent re-render
-                const newCards = doc.querySelectorAll('.station-card:not(:has([id^="gauge-"])):not(:has([id^="chart-"]))');
-                const currentCards = document.querySelectorAll('.station-card:not(:has([id^="gauge-"])):not(:has([id^="chart-"]))');
-                
-                newCards.forEach((card, i) => {
-                    if(currentCards[i]) currentCards[i].innerHTML = card.innerHTML;
-                });
-
-                // Update Header counts
-                const newHeaders = doc.querySelectorAll('.header-status-badge .active-count');
-                const currHeaders = document.querySelectorAll('.header-status-badge .active-count');
-                newHeaders.forEach((h, i) => {
-                    if(currHeaders[i]) currHeaders[i].innerHTML = h.innerHTML;
-                });
-
-                // Fetch the JSON for chart data
-                const resData = await fetch(`/dashboard/tv?plant=karawang&t=${ts}`, {
+                const res = await fetch(`/dashboard/tv/live?t=${ts}`, {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                 });
-                const jsonData = await resData.json();
+                const data = await res.json();
                 
-                if (jsonData.ngRateData) {
-                    ngRateDataRaw = jsonData.ngRateData.karawang || [];
-                    ngLabelsRaw = jsonData.ngRateData.labels || [];
-                }
+                if (!data) return;
 
-                // Update activity levels & charts
-                calculateActivity();
+                const { activeLines, activeMachines, lineStatuses, machineStatuses, operatorMap } = data;
+
+                // Helper to render Status Badge HTML
+                const getStatusBadge = (status, isActive) => {
+                    if (status === 'trouble') return `<span class="text-[14px] bg-red-100 text-red-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-red-200 animate-pulse"><i class="material-icons-round text-base">warning</i> TROUBLE</span>`;
+                    if (isActive) return `<span class="text-[14px] bg-green-100 text-green-700 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-green-200"><span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span> RUNNING</span>`;
+                    if (status === 'standby' || status === 'stopped') return `<span class="text-[14px] bg-slate-100 text-slate-600 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-200"><i class="fas fa-hourglass-half text-xs"></i> STAND BY</span>`;
+                    return `<span class="text-[14px] bg-slate-50 text-slate-400 px-4 py-1 rounded-full font-black flex items-center gap-2 uppercase tracking-tighter shadow-sm border border-slate-100"><i class="fas fa-pause text-xs"></i> IDLE</span>`;
+                };
+
+                // Helper to render Content HTML
+                const getContentHtml = (type, id, item, manualStatus) => {
+                    const status = manualStatus ? manualStatus.status : null;
+                    const isActive = (item && status !== 'trouble' && status !== 'maintenance' && status !== 'stopped');
+                    
+                    if (isActive) {
+                        const qcName = operatorMap[item.operator_initials?.toUpperCase()] || item.operator_initials || '-';
+                        const judgmentColor = item.judgment === 'OK' ? 'text-green-600' : 'text-red-600';
+                        const progressColor = item.judgment === 'OK' ? 'bg-green-500' : 'bg-red-500';
+                        
+                        return `
+                            <div class="flex-1 flex flex-col justify-center space-y-1">
+                                <div class="flex justify-between text-[13px] items-center"><span class="text-slate-500 font-medium tracking-tight">Item</span><span class="font-bold text-slate-800 truncate ml-2 text-right text-[12px] leading-tight">${item.item_name}</span></div>
+                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">Part No.</span><span class="font-bold text-slate-600 truncate ml-2 text-right text-[10px]">${item.part_number}</span></div>
+                                <div class="flex justify-between text-[11px] items-center border-t border-slate-50 pt-0.5 mt-0.5"><span class="text-slate-400 font-medium tracking-tight">Jam</span><span class="font-bold text-slate-600">${item.created_at}</span></div>
+                                <div class="flex justify-between text-[11px] items-center"><span class="text-slate-400 font-medium tracking-tight">QC</span><span class="font-bold text-slate-600 uppercase truncate ml-2 max-w-[100px] text-right">${qcName}</span></div>
+                            </div>
+                            <div class="mt-1.5 border-t border-slate-50 pt-1">
+                                <div class="flex justify-between items-end">
+                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest leading-none">STATUS</span>
+                                    <span class="text-xl font-black leading-none ${judgmentColor}">${item.judgment}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
+                                    <div class="${progressColor} h-full" style="width: 100%"></div>
+                                </div>
+                            </div>`;
+                    } else if (status === 'standby' || status === 'stopped') {
+                        return `
+                            <div class="flex-1 flex flex-col items-center justify-center opacity-70 w-full text-center py-1">
+                                <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">STAND BY</h3>
+                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic line-clamp-1 px-2">${manualStatus.description || 'Waiting MP'}</p>
+                            </div>`;
+                    } else {
+                        return `
+                            <div class="flex-1 flex flex-col items-center justify-center opacity-40 w-full text-center">
+                                <h3 class="text-xl font-black text-slate-300 uppercase tracking-tighter">${type === 'meja' ? 'Meja Idle' : 'IDLE'}</h3>
+                            </div>`;
+                    }
+                };
+
+                // Update all cards
+                document.querySelectorAll('.station-card[data-station-type]').forEach(card => {
+                    const type = card.dataset.stationType;
+                    const id = card.dataset.stationId;
+                    
+                    let item, manualStatus;
+                    if (type === 'meja') {
+                        item = activeLines[id];
+                        manualStatus = lineStatuses[id];
+                    } else {
+                        item = activeMachines[id];
+                        manualStatus = machineStatuses[id];
+                    }
+
+                    const status = manualStatus ? manualStatus.status : null;
+                    const isActive = (item && status !== 'trouble' && status !== 'maintenance' && status !== 'stopped');
+
+                    // Update Badge
+                    const badgeContainer = card.querySelector('.status-badge-container');
+                    if (badgeContainer) badgeContainer.innerHTML = getStatusBadge(status, isActive);
+
+                    // Update Content
+                    const contentArea = card.querySelector('.card-content-area');
+                    if (contentArea) contentArea.innerHTML = getContentHtml(type, id, item, manualStatus);
+                });
+
+                // Update Header Counts
+                const runningLines = Object.values(activeLines).filter((l, i) => {
+                   const s = lineStatuses[Object.keys(activeLines)[i]];
+                   return s ? (s.status !== 'trouble' && s.status !== 'maintenance' && s.status !== 'stopped') : true;
+                }).length;
+
+                const runningMachines = Object.values(activeMachines).filter((m, i) => {
+                   const s = machineStatuses[Object.keys(activeMachines)[i]];
+                   return s ? (s.status !== 'trouble' && s.status !== 'maintenance' && s.status !== 'stopped') : true;
+                }).length;
+
+                const counts = document.querySelectorAll('.header-status-badge .active-count');
+                if (counts[0]) counts[0].textContent = runningLines;
+                if (counts[1]) counts[1].textContent = runningMachines;
+
+                // Sync Activity Stats for Gauges
+                activityStats.subAssy.active = runningLines;
+                activityStats.inProcess.active = runningMachines;
+
+                // Render Gauges
                 renderAllGauges();
                 
-                console.log('Data and Charts synced successfully');
+                console.log('Real-time sync completed');
 
             } catch (e) {
-                console.warn("Polling Sync failed", e);
+                console.warn("Real-time sync failed", e);
             }
         }
 
         updateClock();
         setInterval(updateClock, 1000);
         setInterval(switchSlide, SLIDE_TIME);
-        setInterval(syncData, POLL_TIME);
+        setInterval(syncLive, POLL_TIME);
 
         // Initial First Render
         FusionCharts.ready(() => {

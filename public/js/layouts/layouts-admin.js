@@ -1,6 +1,40 @@
 document.addEventListener('DOMContentLoaded', function () {
     const config = window.__LAYOUTS_ADMIN__ || {};
 
+    // Helper for Cookies
+    const setCookie = (name, value, days) => {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    };
+
+    const getCookie = (name) => {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    };
+
+    // Global AJAX Setup for CSRF and 419 handled early
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status === 419) {
+                window.location.reload();
+            }
+        }
+    });
+
     // Logout Confirmation
     $(document).on('click', '.btn-logout', function (e) {
         e.preventDefault();
@@ -41,9 +75,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Global Confirmation for Reject Buttons (usually in modals)
+    $(document).on('click', '.btn-confirm-reject', function (e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        Swal.fire({
+            title: 'Konfirmasi Penolakan',
+            text: "Apakah Anda yakin ingin menolak data checksheet ini?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Tolak!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+
     // Rejection Alerts for Inspectors
     if (config.unreadRejections && config.unreadRejections.length > 0) {
         config.unreadRejections.forEach(rejection => {
+            // "Validation Sekali Muncul": Check if already dismissed in this session/browser
+            const cookieName = `rejection_dismissed_${rejection.id}`;
+            if (getCookie(cookieName)) {
+                return; // Skip if already seen
+            }
+
             Swal.fire({
                 title: '<span class="text-danger font-weight-bold">LAPORAN DITOLAK!</span>',
                 html: `<div class="text-left mt-2"><b>${rejection.title}</b><br><p class="mt-2">${rejection.message}</p></div>`,
@@ -53,12 +114,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 cancelButtonColor: '#aaa',
                 confirmButtonText: '<i class="fas fa-eye"></i> Lihat Data',
                 cancelButtonText: 'Tutup',
-                backdrop: `rgba(220, 53, 69, 0.2)`
-            }).then((result) => {
-                // Mark as read regardless of choice (to ensure it only appears once)
-                if (rejection.markReadUrl) {
-                    $.post(rejection.markReadUrl);
+                backdrop: `rgba(220, 53, 69, 0.2)`,
+                allowOutsideClick: false, // Force user to acknowledge
+                didOpen: () => {
+                    // Mark as read immediately when shown to ensure it doesn't reappear on refresh
+                    if (rejection.markReadUrl) {
+                        $.post(rejection.markReadUrl).done(function() {
+                            // Set cookie immediately upon successfully reaching the server
+                            setCookie(cookieName, "true", 1);
+                        }).fail(function(err) {
+                            console.error("Gagal menandai notifikasi:", err);
+                        });
+                    } else {
+                        // Fallback: set cookie even if URL missing
+                        setCookie(cookieName, "true", 1);
+                    }
                 }
+            }).then((result) => {
+                // Set cookie if closed via buttons too, just in case
+                setCookie(cookieName, "true", 1);
                 
                 if (result.isConfirmed && rejection.url) {
                     window.location.href = rejection.url;
@@ -75,14 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
         this.setSelectionRange(start, end);
     });
 
-    // Global 419 Handler for jQuery AJAX
-    $.ajaxSetup({
-        error: function (jqXHR, textStatus, errorThrown) {
-            if (jqXHR.status === 419) {
-                window.location.reload();
-            }
-        }
-    });
 
     // Global 419 Handler for Fetch API
     const originalFetch = window.fetch;
@@ -168,12 +234,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 10 * 60 * 1000); // 10 minutes
     }
 
-    // Global AJAX Setup for CSRF
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
 
     $(document).ajaxError(function (event, xhr, settings) {
         if (xhr.status === 419) {

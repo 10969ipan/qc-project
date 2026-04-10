@@ -628,7 +628,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-danger">Tolak Checksheet</button>
+                                <button type="submit" class="btn btn-danger btn-confirm-reject">Tolak Checksheet</button>
                             </div>
                         </form>
                     </div>

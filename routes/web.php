@@ -23,6 +23,7 @@ Route::get('/calibration/verification/{id}/download', [\App\Http\Controllers\Cal
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/tv', [\App\Http\Controllers\DashboardController::class, 'tvIndex'])->name('dashboard.tv');
+    Route::get('/dashboard/tv/live', [\App\Http\Controllers\DashboardController::class, 'tvLiveData'])->name('dashboard.tv.live');
     Route::get('/dashboard/tv/defects', [\App\Http\Controllers\DashboardController::class, 'tvDefects'])->name('dashboard.tv.defects');
     Route::post('/machine-status/update', [MachineStatusController::class, 'update'])->name('machine-status.update');
 
@@ -30,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     require __DIR__ . '/management.php';
     require __DIR__ . '/analysis.php';
     require __DIR__ . '/calibration.php';
+    require __DIR__ . '/verification.php';
 
     // KAKOTORA
     Route::resource('kakotora', \App\Http\Controllers\KakotoraController::class);
