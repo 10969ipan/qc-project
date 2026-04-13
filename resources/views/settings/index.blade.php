@@ -21,12 +21,7 @@
                             <span class="font-weight-bold">Manajemen Pengguna</span>
                         </div>
                     </a>
-                    <a class="nav-link" id="menus-tab" data-toggle="pill" href="#menus" role="tab" aria-controls="menus" aria-selected="false">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-layer-group mr-3 text-muted"></i>
-                            <span class="font-weight-bold">Struktur & Menu</span>
-                        </div>
-                    </a>
+
                     <a class="nav-link" id="permissions-tab" data-toggle="pill" href="#permissions" role="tab" aria-controls="permissions" aria-selected="false">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-shield-alt mr-3 text-muted"></i>
@@ -55,24 +50,24 @@
                         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
                             <h6 class="m-0 font-weight-bold text-dark letter-spacing-1 font-size-sm mb-3 mb-md-0">Daftar Pengguna</h6>
                             
-                            <div class="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-end align-items-center" style="max-width: 500px;">
-                                <div class="input-group input-group-sm rounded-pill overflow-hidden border bg-white" style="box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text bg-transparent border-0 text-muted px-3" id="basic-addon2">
-                                            <i class="fas fa-search"></i>
+                            <div class="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-end align-items-center" style="max-width: 550px;">
+                                <div class="input-group rounded-pill overflow-hidden bg-white" style="border: 1px solid #e2e8f0; height: 38px;">
+                                    <div class="input-group-prepend h-100">
+                                        <span class="input-group-text bg-transparent border-0 text-muted px-3 h-100 d-flex align-items-center justify-content-center" id="basic-addon2">
+                                            <i class="fas fa-search" style="color: #94a3b8;"></i>
                                         </span>
                                     </div>
-                                    <input type="text" id="liveSearchUser" class="form-control bg-transparent border-0 font-size-sm shadow-none no-autoupper pl-0" placeholder="Cari pengguna..." aria-label="Search" aria-describedby="basic-addon2" style="height: 38px;">
+                                    <input type="text" id="liveSearchUser" class="form-control bg-transparent border-0 font-size-sm shadow-none no-autoupper pl-0 h-100 d-flex align-items-center" placeholder="Cari pengguna..." aria-label="Search" aria-describedby="basic-addon2" style="color: #475569; padding-top: 0; padding-bottom: 0;">
                                 </div>
                                 
                                 <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0 ml-sm-2 flex-wrap flex-sm-nowrap">
-                                    <button class="btn btn-outline-dark rounded-pill px-3 shadow-sm btn-sm-modern d-inline-flex align-items-center justify-content-center" data-toggle="modal" data-target="#modalImportUser" style="height: 38px; white-space: nowrap;">
-                                        <i class="fas fa-upload fa-sm text-muted mr-2"></i> <span>Upload</span>
+                                    <button class="btn bg-white rounded-pill px-3 btn-sm-modern d-inline-flex align-items-center justify-content-center" data-toggle="modal" data-target="#modalImportUser" style="height: 38px; white-space: nowrap; border: 1px solid #cbd5e1; color: #64748b; font-weight: 500;">
+                                        <i class="fas fa-upload fa-sm mr-2" style="color: #94a3b8;"></i> <span>Upload</span>
                                     </button>
-                                    <a href="{{ route('admin.settings.users.export') }}" class="btn btn-outline-secondary rounded-pill px-3 shadow-sm btn-sm-modern no-loader d-inline-flex align-items-center justify-content-center" style="height: 38px; white-space: nowrap;">
-                                        <i class="fas fa-download fa-sm text-muted mr-2"></i> <span>Ekspor</span>
+                                    <a href="{{ route('admin.settings.users.export') }}" class="btn bg-white rounded-pill px-3 btn-sm-modern no-loader d-inline-flex align-items-center justify-content-center" style="height: 38px; white-space: nowrap; border: 1px solid #cbd5e1; color: #64748b; font-weight: 500;">
+                                        <i class="fas fa-download fa-sm mr-2" style="color: #94a3b8;"></i> <span>Ekspor</span>
                                     </a>
-                                    <button class="btn btn-dark rounded-pill px-4 shadow-sm btn-sm-modern text-nowrap ml-sm-2 d-inline-flex align-items-center justify-content-center" data-toggle="modal" data-target="#modalAddUser" style="height: 38px;">
+                                    <button class="btn rounded-pill px-4 btn-sm-modern text-nowrap ml-sm-2 d-inline-flex align-items-center justify-content-center text-white" data-toggle="modal" data-target="#modalAddUser" style="height: 38px; background-color: #2d3748; border: none; font-weight: 500;">
                                         <i class="fas fa-user-plus fa-sm text-white-50 mr-2"></i> <span>Tambah Pengguna</span>
                                     </button>
                                 </div>
@@ -80,32 +75,31 @@
                         </div>
                     </div>
                     <div class="card-body pt-0">
-                        <div class="table-responsive">
-                            <table class="table table-borderless align-middle custom-table table-minimalist mb-0 w-100">
-                                <thead class="bg-white">
+                        <div class="table-responsive px-1">
+                            <table class="table table-borderless align-middle custom-table table-minimalist mb-0 w-100" id="usersTable">
+                                <thead class="bg-light rounded text-muted">
                                     <tr>
-                                        <th width="30%" class="text-dark font-weight-bold pb-3 text-center border-bottom-0">User Profile</th>
-                                        <th width="18%" class="text-dark font-weight-bold pb-3 text-center border-bottom-0">Role</th>
-                                        <th width="17%" class="text-dark font-weight-bold pb-3 text-center border-bottom-0">Area / Plant</th>
-                                        <th width="15%" class="text-dark font-weight-bold pb-3 text-center border-bottom-0">Status</th>
-                                        <th width="20%" class="text-dark font-weight-bold pb-3 text-center border-bottom-0">Actions</th>
+                                        <th width="35%" class="font-weight-bold pb-2 pt-3 text-left pl-4" style="border-radius: 10px 0 0 10px; font-size: 0.8rem; text-transform: uppercase;">Profil Pengguna</th>
+                                        <th width="30%" class="font-weight-bold pb-2 pt-3 text-left" style="font-size: 0.8rem; text-transform: uppercase;">Otorisasi & Area</th>
+                                        <th width="15%" class="font-weight-bold pb-2 pt-3 text-center" style="font-size: 0.8rem; text-transform: uppercase;">Status</th>
+                                        <th width="20%" class="font-weight-bold pb-2 pt-3 text-center" style="border-radius: 0 10px 10px 0; font-size: 0.8rem; text-transform: uppercase;">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($users as $user)
-                                    <tr class="table-row-hover">
-                                        <td class="pt-3 pb-3 {{ !$loop->first ? 'border-top' : '' }}">
+                                    <tr class="table-row-hover" style="border-bottom: 1px solid #f8f9fa;">
+                                        <td class="pt-3 pb-3 pl-4">
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-modern shadow-sm mr-3">
-                                                    {{ substr($user->initials, 0, 2) }}
+                                                    {{ strtoupper(substr(!empty($user->initials) ? $user->initials : $user->name, 0, 2)) }}
                                                 </div>
                                                 <div>
-                                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.95rem; letter-spacing: -0.2px;">{{ $user->name }}</h6>
+                                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.95rem;">{{ $user->name }}</h6>
                                                     <small class="text-muted" style="font-size: 0.8rem;">{{ $user->email }}</small>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="pt-3 pb-3 text-center {{ !$loop->first ? 'border-top' : '' }}">
+                                        <td class="pt-3 pb-3">
                                             @php
                                                 $roleColor = match(strtolower($user->role)) {
                                                     'admin' => '#4e73df',
@@ -115,46 +109,47 @@
                                                     default => '#858796'
                                                 };
                                             @endphp
-                                            <span class="font-weight-bold d-block" style="font-size: 0.75rem; letter-spacing: 0.5px; color: {{ $roleColor }}; text-transform: uppercase;">
-                                                {{ $user->role ?? 'No Role' }}
-                                            </span>
-                                        </td>
-                                        <td class="pt-3 pb-3 text-center {{ !$loop->first ? 'border-top' : '' }}">
-                                            <div class="small d-flex align-items-center justify-content-center" style="font-size: 0.75rem; color: #6e707e;">
-                                                <i class="fas fa-map-marker-alt mr-1 text-danger" style="font-size: 0.65rem;"></i>
-                                                <span class="font-weight-500">{{ ($user->plant && strtoupper($user->plant->name) !== 'TOTAL') ? str_replace(' / Head Office', '', $user->plant->name) : 'Global' }}</span>
+                                            <div class="d-flex flex-column">
+                                                <span class="font-weight-bold mb-1" style="font-size: 0.75rem; color: {{ $roleColor }}; text-transform: uppercase;">
+                                                    <i class="fas fa-user-shield mr-1"></i> {{ $user->role ?? 'No Role' }}
+                                                </span>
+                                                <div class="small text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-map-marker-alt mr-1 text-danger"></i>
+                                                    {{ ($user->plant && strtoupper($user->plant->name) !== 'TOTAL') ? str_replace(' / Head Office', '', $user->plant->name) : 'Semua Area (Global)' }}
+                                                </div>
                                             </div>
                                         </td>
-                                        <td class="text-center pt-3 pb-3 {{ !$loop->first ? 'border-top' : '' }}">
+                                        <td class="text-center pt-3 pb-3">
                                             <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
                                                 <input type="checkbox" class="custom-control-input toggle-user-status" id="status{{ $user->id }}" data-id="{{ $user->id }}" {{ $user->is_active ? 'checked' : '' }}>
                                                 <label class="custom-control-label" for="status{{ $user->id }}"></label>
                                             </div>
                                         </td>
-                                        </td>
-                                        <td class="text-center pt-3 pb-3 pr-2 {{ !$loop->first ? 'border-top' : '' }}">
-                                            <button class="btn btn-sm btn-action rounded-circle mr-1 edit-user" 
-                                                data-id="{{ $user->id }}" 
-                                                data-name="{{ $user->name }}" 
-                                                data-email="{{ $user->email }}" 
-                                                data-role="{{ $user->role }}" 
-                                                data-plant="{{ $user->plant_id }}" 
-                                                data-initials="{{ $user->initials }}"
-                                                data-toggle="tooltip" title="Edit Data">
-                                                <i class="fas fa-pen text-primary" style="font-size: 0.8rem;"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-action rounded-circle reset-password" 
-                                                data-id="{{ $user->id }}" 
-                                                data-name="{{ $user->name }}" 
-                                                data-toggle="tooltip" title="Reset Password">
-                                                <i class="fas fa-key text-warning" style="font-size: 0.8rem;"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-action rounded-circle delete-user" 
-                                                data-id="{{ $user->id }}" 
-                                                data-name="{{ $user->name }}" 
-                                                data-toggle="tooltip" title="Hapus User">
-                                                <i class="fas fa-trash text-danger" style="font-size: 0.8rem;"></i>
-                                            </button>
+                                        <td class="text-center pt-3 pb-3">
+                                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                                <button class="btn btn-sm btn-light rounded-circle shadow-sm edit-user mr-1" 
+                                                    data-id="{{ $user->id }}" 
+                                                    data-name="{{ $user->name }}" 
+                                                    data-email="{{ $user->email }}" 
+                                                    data-role="{{ $user->role }}" 
+                                                    data-plant="{{ $user->plant_id }}" 
+                                                    data-initials="{{ $user->initials }}"
+                                                    data-toggle="tooltip" title="Edit Profil">
+                                                    <i class="fas fa-pen text-primary" style="font-size: 0.75rem;"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-light rounded-circle shadow-sm reset-password mr-1" 
+                                                    data-id="{{ $user->id }}" 
+                                                    data-name="{{ $user->name }}" 
+                                                    data-toggle="tooltip" title="Reset Sandi">
+                                                    <i class="fas fa-key text-warning" style="font-size: 0.75rem;"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-light rounded-circle shadow-sm delete-user" 
+                                                    data-id="{{ $user->id }}" 
+                                                    data-name="{{ $user->name }}" 
+                                                    data-toggle="tooltip" title="Hapus Akun">
+                                                    <i class="fas fa-trash text-danger" style="font-size: 0.75rem;"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -165,135 +160,7 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Manajemen Menu & Visibilitas -->
-            <div class="tab-pane fade" id="menus" role="tabpanel" aria-labelledby="menus-tab">
-                <div class="row slide-in">
-                    <div class="col-lg-7 mb-4">
-                        <div class="card shadow border-0 rounded-lg h-100">
-                            <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between border-bottom-0">
-                                <h6 class="m-0 font-weight-bold text-dark">Susunan Menu Sidebar</h6>
-                                <button type="button" id="saveMenuOrder" class="btn btn-sm btn-outline-dark rounded-pill px-4 shadow-sm btn-sm-modern"><i class="fas fa-save mr-1"></i> Simpan Posisi</button>
-                            </div>
-                            <div class="card-body pt-0 px-2 px-md-3">
-                                <p class="small text-muted mb-3 px-2">Geser <i>(drag-and-drop)</i> untuk merubah urutan menu di sidebar.</p>
-                                
-                                <div class="list-group list-group-flush sortable-menu" data-parent-id="">
-                                    @foreach($menus as $menu)
-                                        <div class="nested-group-item mb-2" data-id="{{ $menu->id }}">
-                                            <div class="list-group-item d-flex justify-content-between align-items-center menu-item rounded shadow-sm border" data-id="{{ $menu->id }}">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="drag-handle mr-3 text-muted" style="cursor: move;"><i class="fas fa-grip-vertical"></i></div>
-                                                    <div class="icon-square bg-soft-primary text-primary mr-3"><i class="{{ $menu->icon ?? 'fas fa-circle' }}"></i></div>
-                                                    <span class="font-weight-bold text-dark">{{ $menu->name }}</span>
-                                                </div>
-                                                <span class="badge {{ $menu->is_active ? 'badge-soft-success' : 'badge-soft-danger' }} pill-badge">{{ $menu->is_active ? 'Aktif' : 'Non-aktif' }}</span>
-                                            </div>
-                                            
-                                            <div class="list-group list-group-flush sortable-menu ml-4 mt-2" data-parent-id="{{ $menu->id }}" style="border-left: 2px dashed #e3e6f0; min-height: 5px;">
-                                                @foreach($menu->children as $child)
-                                                    <div class="nested-group-item mb-1" data-id="{{ $child->id }}">
-                                                        <div class="list-group-item d-flex justify-content-between align-items-center menu-item rounded border-0 bg-light" data-id="{{ $child->id }}">
-                                                            <div class="d-flex align-items-center">
-                                                                <div class="drag-handle mr-3 text-muted" style="cursor: move;"><i class="fas fa-grip-vertical"></i></div>
-                                                                <div class="icon-square-sm bg-soft-info text-info mr-3"><i class="{{ $child->icon ?? 'fas fa-chevron-right' }}"></i></div>
-                                                                <span class="text-dark font-weight-600">{{ $child->name }}</span>
-                                                            </div>
-                                                            <span class="badge {{ $child->is_active ? 'badge-soft-success' : 'badge-soft-danger' }} pill-badge">{{ $child->is_active ? 'Aktif' : 'Non-aktif' }}</span>
-                                                        </div>
 
-                                                        <div class="list-group list-group-flush sortable-menu ml-4 mt-1" data-parent-id="{{ $child->id }}" style="border-left: 2px dotted #e3e6f0; min-height: 2px;">
-                                                            @foreach($child->children as $subChild)
-                                                                <div class="nested-group-item" data-id="{{ $subChild->id }}">
-                                                                    <div class="list-group-item d-flex justify-content-between align-items-center menu-item py-1 border-0 bg-transparent" data-id="{{ $subChild->id }}">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <div class="drag-handle mr-3 text-muted" style="cursor: move; font-size: 0.8rem;"><i class="fas fa-grip-vertical"></i></div>
-                                                                            <span class="text-dark small"><i class="{{ $subChild->icon ?? 'fas fa-minus' }} mr-2 text-muted"></i>{{ $subChild->name }}</span>
-                                                                        </div>
-                                                                        <span class="badge {{ $subChild->is_active ? 'badge-soft-success' : 'badge-soft-danger' }} pill-badge" style="font-size: 0.6rem;">{{ $subChild->is_active ? 'Aktif' : 'Non-aktif' }}</span>
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-lg-5 mb-4">
-                        <div class="card shadow border-0 rounded-lg config-card sticky-top" style="top: 80px;">
-                            <div class="card-header bg-white py-3 border-bottom-0">
-                                <h6 class="m-0 font-weight-bold text-dark d-flex align-items-center">
-                                    <i class="fas fa-sliders-h mr-2 text-primary"></i> Pengaturan Detail
-                                </h6>
-                            </div>
-                            <div class="card-body pt-0 bg-light rounded-bottom-lg px-4 pb-4 pt-3">
-                                <form id="formMenuDetail">
-                                    <input type="hidden" id="menuDetailId">
-                                    <div class="detail-input-group">
-                                        <label class="premium-label">Nama Menu Display</label>
-                                        <input type="text" id="menuDisplayName" name="name" class="form-control premium-input" placeholder="Masukkan nama display...">
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="premium-label mb-2">Status Visibilitas</label>
-                                        <div class="status-choice-group">
-                                            <label class="status-choice-item">
-                                                <input type="radio" name="menuStatus" value="active" id="statusActive">
-                                                <div class="status-card choice-active">
-                                                    <i class="fas fa-check-circle"></i>
-                                                    <span>Aktif</span>
-                                                </div>
-                                            </label>
-                                            <label class="status-choice-item">
-                                                <input type="radio" name="menuStatus" value="maintenance" id="statusMaint">
-                                                <div class="status-card choice-maint">
-                                                    <i class="fas fa-tools"></i>
-                                                    <span>Maint</span>
-                                                </div>
-                                            </label>
-                                            <label class="status-choice-item">
-                                                <input type="radio" name="menuStatus" value="hidden" id="statusHidden">
-                                                <div class="status-card choice-hidden">
-                                                    <i class="fas fa-eye-slash"></i>
-                                                    <span>Hidden</span>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="detail-input-group">
-                                        <label class="premium-label">Pesan Maintenance</label>
-                                        <textarea id="menuMaintMessage" name="maintenanceMessage" class="form-control premium-textarea" rows="2" placeholder="Tulis pesan pemeliharaan..."></textarea>
-                                    </div>
-                                    
-                                    <div class="detail-input-group mb-4">
-                                        <label class="premium-label">Akses Plant</label>
-                                        <div class="d-flex mt-2">
-                                            <div class="custom-control custom-switch custom-switch-success custom-switch-md mr-4">
-                                                <input type="checkbox" class="custom-control-input" id="plantJktCheckbox" name="plant_jkt" value="1">
-                                                <label class="custom-control-label text-dark font-weight-bold" for="plantJktCheckbox" style="font-size: 0.85rem;">Jakarta</label>
-                                            </div>
-                                            <div class="custom-control custom-switch custom-switch-success custom-switch-md">
-                                                <input type="checkbox" class="custom-control-input" id="plantKrwCheckbox" name="plant_krw" value="1">
-                                                <label class="custom-control-label text-dark font-weight-bold" for="plantKrwCheckbox" style="font-size: 0.85rem;">Karawang</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="button" id="btnUpdateMenu" class="btn btn-warning btn-block shadow-sm rounded-pill font-weight-bold py-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">
-                                        <i class="fas fa-save mr-2"></i> TERAPKAN PERUBAHAN
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Tab 3: Hak Akses Modul -->
             <div class="tab-pane fade" id="permissions" role="tabpanel" aria-labelledby="permissions-tab">
@@ -339,48 +206,78 @@
                             </button>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="permissions-split-container">
-                            <!-- Left: Module Selector -->
-                            <div class="module-sidebar">
-                                <span class="module-sidebar-label">Pilih Modul</span>
-                                <div class="module-nav-list">
-                                    @php
-                                        $parentMenus = \App\Models\AppMenu::whereNull('parent_id')->orderBy('order')->get();
-                                    @endphp
-                                    @foreach($parentMenus as $parent)
-                                        <div class="module-nav-item {{ $loop->first ? 'active' : '' }}" data-target="module-{{ $parent->id }}">
-                                            <i class="{{ $parent->icon ?? 'fas fa-th-large' }}"></i>
-                                            <span>{{ $parent->name }}</span>
-                                        </div>
-                                    @endforeach
+                    <div class="card-body p-3" id="permissionAccordion">
+                        @php
+                            $parentMenus = \App\Models\AppMenu::whereNull('parent_id')->orderBy('order')->get();
+                        @endphp
+
+                        @foreach($parentMenus as $parent)
+                        <div class="perm-module-card mb-3" data-module-id="{{ $parent->id }}">
+
+                            {{-- Card Header --}}
+                            <div class="perm-module-card-header"
+                                 data-toggle="collapse"
+                                 data-target="#perm-collapse-{{ $parent->id }}"
+                                 aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
+                                 aria-controls="perm-collapse-{{ $parent->id }}">
+
+                                <div class="d-flex align-items-center" style="min-width:0;">
+                                    {{-- Power Toggle Button --}}
+                                    <button type="button"
+                                            class="module-master-toggle mr-3"
+                                            data-menu-id="{{ $parent->id }}"
+                                            title="Nonaktifkan seluruh modul">
+                                        <i class="fas fa-power-off"></i>
+                                    </button>
+
+                                    {{-- Module Icon --}}
+                                    <div class="perm-module-icon mr-3">
+                                        <i class="{{ $parent->icon ?? 'fas fa-th-large' }}"></i>
+                                    </div>
+
+                                    {{-- Title --}}
+                                    <div style="min-width:0;">
+                                        <div class="perm-module-title">{{ $parent->name }}</div>
+                                        @if($parent->children->isNotEmpty())
+                                            <div class="perm-module-meta">
+                                                <i class="fas fa-sitemap mr-1" style="font-size:0.6rem;"></i>
+                                                {{ $parent->children->count() }} sub-modul
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <span class="perm-module-status-badge mr-3" id="status-badge-{{ $parent->id }}">Aktif</span>
+                                    <i class="fas fa-chevron-down perm-collapse-arrow {{ $loop->first ? '' : 'collapsed-arrow' }}"></i>
                                 </div>
                             </div>
-                            
-                            <!-- Right: Permission Details -->
-                            <div class="permission-detail-panel">
-                                    @foreach($parentMenus as $parent)
-                                    <div id="module-{{ $parent->id }}" class="module-content-section {{ $loop->first ? '' : 'd-none' }}">
-                                        <div class="panel-header">
-                                            <h5 class="font-weight-bold text-dark mb-1">{{ $parent->name }}</h5>
-                                            <p class="text-muted small mb-0">Konfigurasi izin untuk modul utama dan sub-modul di dalamnya.</p>
-                                        </div>
-                                        
-                                        <div class="permission-grid-header">
-                                            <div>Modul / Sub-Modul</div>
-                                            <div>View</div>
-                                            <div>Input</div>
-                                            <div>Edit/Hapus</div>
-                                            <div>Approve</div>
-                                            <div>Export (QR/PDF/Print)</div>
-                                        </div>
 
-                                        <!-- Recursive Permission Matrix -->
-                                        @include('settings.partials.permission_row', ['menu' => $parent, 'level' => 0])
+                            {{-- Card Body (Collapsible) --}}
+                            <div id="perm-collapse-{{ $parent->id }}"
+                                 class="collapse {{ $loop->first ? 'show' : '' }}">
+                                <div class="perm-module-card-body">
+
+                                    {{-- Grid Header --}}
+                                    <div class="permission-grid-header">
+                                        <div>Modul / Sub-Modul</div>
+                                        <div>View</div>
+                                        <div>Input</div>
+                                        <div>Edit/Hapus</div>
+                                        <div>Approve</div>
+                                        <div>Export</div>
                                     </div>
-                                    @endforeach
+
+                                    {{-- Permission rows (parent + children recursively) --}}
+                                    @include('settings.partials.permission_row', [
+                                        'menu'        => $parent,
+                                        'level'       => 0,
+                                        'ancestorIds' => [],
+                                    ])
+                                </div>
                             </div>
                         </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -445,7 +342,7 @@
                         <div class="form-group mb-3">
                             <label class="small font-weight-bold text-dark">Password</label>
                             <div class="password-field-wrapper">
-                                <input type="password" name="password" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" placeholder="Opsional (Default: indoplat2526)">
+                                <input type="password" name="password" autocomplete="new-password" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" placeholder="Opsional (Default: indoplat2526)">
                                 <div class="password-toggle-icon">
                                     <i class="fas fa-eye"></i>
                                 </div>
@@ -454,12 +351,23 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold text-dark">Role / Jabatan</label>
-                                    <select name="role" class="form-control rounded-pill border-0 bg-light px-3" required>
-                                        @foreach($roles as $role)
-                                        <option value="{{ $role }}">{{ $role }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="small font-weight-bold text-dark mb-0">Role / Jabatan</label>
+                                        <button type="button" class="btn btn-sm btn-link text-primary p-0 toggle-new-role" style="font-size: 0.7rem; font-weight: 600; text-decoration: none;" data-target="add"><i class="fas fa-plus mr-1"></i>Role Baru</button>
+                                    </div>
+                                    <div class="position-relative" id="role_container_add">
+                                        <select name="role" id="add_role" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                            @foreach($roles as $role)
+                                            <option value="{{ $role }}">{{ $role }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="input-group d-none" id="role_input_group_add">
+                                            <input type="text" id="role_input_add" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" placeholder="Ketik nama role baru..." style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-danger cancel-new-role" type="button" data-target="add" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem; padding-left: 1rem; padding-right: 1rem;" title="Batal Tambah Role Baru"><i class="fas fa-times"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -516,7 +424,7 @@
                         <div class="form-group mb-3">
                             <label class="small font-weight-bold text-dark">Password Baru</label>
                             <div class="password-field-wrapper">
-                                <input type="password" name="password" id="edit_password" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" placeholder="Biarkan kosong jika tidak ingin mengubah password">
+                                <input type="password" name="password" id="edit_password" autocomplete="new-password" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" placeholder="Biarkan kosong jika tidak ingin mengubah password">
                                 <div class="password-toggle-icon">
                                     <i class="fas fa-eye"></i>
                                 </div>
@@ -525,12 +433,23 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label class="small font-weight-bold text-dark">Role / Jabatan</label>
-                                    <select name="role" id="edit_role" class="form-control rounded-pill border-0 bg-light px-3" required>
-                                        @foreach($roles as $role)
-                                        <option value="{{ $role }}">{{ $role }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="small font-weight-bold text-dark mb-0">Role / Jabatan</label>
+                                        <button type="button" class="btn btn-sm btn-link text-primary p-0 toggle-new-role" style="font-size: 0.7rem; font-weight: 600; text-decoration: none;" data-target="edit"><i class="fas fa-plus mr-1"></i>Role Baru</button>
+                                    </div>
+                                    <div class="position-relative" id="role_container_edit">
+                                        <select name="role" id="edit_role" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                            @foreach($roles as $role)
+                                            <option value="{{ $role }}">{{ $role }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="input-group d-none" id="role_input_group_edit">
+                                            <input type="text" id="role_input_edit" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" placeholder="Ketik nama role baru..." style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-danger cancel-new-role" type="button" data-target="edit" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem; padding-left: 1rem; padding-right: 1rem;" title="Batal Tambah Role Baru"><i class="fas fa-times"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -845,118 +764,214 @@
         font-weight: 500;
     }
 
-    /* Split-View Matrix Design */
-    .permissions-split-container {
-        display: flex;
-        background: #fff;
-        border-radius: 16px;
-        overflow: hidden;
+    /* ============================================
+       ACCORDION MODULE CARD — Permission Layout
+       ============================================ */
+
+    /* Wrapper card for each module */
+    .perm-module-card {
         border: 1px solid #eaecf0;
-        min-height: 500px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s;
+    }
+    .perm-module-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.07);
     }
 
-    .module-sidebar {
-        width: 250px;
-        background: #fcfcfd;
-        border-right: 1px solid #eaecf0;
-        padding: 1.5rem 0.75rem;
-    }
-
-    .module-sidebar-label {
-        font-size: 0.65rem;
-        font-weight: 700;
-        color: #98a2b3;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 0 1rem 0.75rem;
-        display: block;
-    }
-
-    .module-nav-item {
+    /* Card Header (clickable to toggle collapse) */
+    .perm-module-card-header {
         display: flex;
         align-items: center;
-        padding: 0.75rem 1rem;
-        border-radius: 10px;
-        color: #475467;
-        font-weight: 600;
-        font-size: 0.85rem;
-        margin-bottom: 0.25rem;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: #fcfcfd;
+        border-bottom: 1px solid #eaecf0;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid transparent;
+        user-select: none;
+        transition: background 0.18s;
+    }
+    .perm-module-card-header:hover {
+        background: #f5f7fa;
     }
 
-    .module-nav-item:hover {
-        background: #f9fafb;
+    /* Module icon circle */
+    .perm-module-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #f0f2f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        color: #4e73df;
+        flex-shrink: 0;
+        transition: background 0.2s;
+    }
+    .module-master-toggle.is-active ~ .d-flex .perm-module-icon,
+    .perm-module-card:not(.module-is-off) .perm-module-icon {
+        background: #eef0f8;
+    }
+
+    /* Module title */
+    .perm-module-title {
+        font-size: 0.9rem;
+        font-weight: 700;
         color: #1d2939;
+        line-height: 1.2;
+    }
+    .perm-module-meta {
+        font-size: 0.7rem;
+        color: #98a2b3;
+        font-weight: 500;
+        margin-top: 2px;
     }
 
-    .module-nav-item.active {
+    /* Status badge in header */
+    .perm-module-status-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 0.25em 0.75em;
+        border-radius: 20px;
+        background: rgba(28,200,138,0.1);
+        color: #1cc88a;
+        border: 1px solid rgba(28,200,138,0.2);
+        white-space: nowrap;
+    }
+    .perm-module-status-badge.is-off {
+        background: rgba(231,74,59,0.08);
+        color: #e74a3b;
+        border-color: rgba(231,74,59,0.15);
+    }
+
+    /* Chevron rotation */
+    .perm-collapse-arrow {
+        font-size: 0.75rem;
+        color: #98a2b3;
+        transition: transform 0.25s ease;
+    }
+    .perm-module-card-header[aria-expanded="true"] .perm-collapse-arrow {
+        transform: rotate(180deg);
+    }
+
+    /* Card Body (collapsible content) */
+    .perm-module-card-body {
+        padding: 1.25rem 1.25rem 0.5rem;
         background: #fff;
-        color: #4e73df;
-        border-color: #eaecf0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
-    .module-nav-item i {
-        width: 20px;
-        font-size: 1rem;
-        margin-right: 12px;
-        transition: color 0.2s;
+    /* Module disabled visual state (power OFF) */
+    .perm-module-card.module-is-off .perm-module-card-body .permission-row-item {
+        opacity: 0.38;
+        pointer-events: none;
+    }
+    .perm-module-card.module-is-off .perm-module-card-header {
+        background: #fafafa;
+    }
+    .perm-module-card.module-is-off .perm-module-icon {
+        background: #f0f0f0;
+        color: #bbb;
+    }
+    .perm-module-card.module-is-off .perm-module-title {
+        color: #adb5bd;
     }
 
-    .module-nav-item.active i {
-        color: #4e73df;
+    /* Power toggle button */
+    .module-master-toggle {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        background: #f9fafb;
+        color: #98a2b3;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+        pointer-events: auto !important;
+    }
+    .module-master-toggle:hover {
+        border-color: #adb5bd;
+        color: #495057;
+        background: #f0f0f0;
+    }
+    /* ON state */
+    .module-master-toggle.is-active {
+        background: #e6f9f3;
+        border-color: #1cc88a;
+        color: #1cc88a;
+    }
+    /* OFF state */
+    .module-master-toggle.is-inactive {
+        background: #fff5f5;
+        border-color: #f5c6c6;
+        color: #e74a3b;
     }
 
-    .permission-detail-panel {
-        flex: 1;
-        padding: 2rem;
-        background: #fff;
-    }
-
-    .panel-header {
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px dashed #eaecf0;
-    }
-
+    /* Permission grid header */
     .permission-grid-header {
         display: grid;
         grid-template-columns: 1fr repeat(5, 80px);
-        gap: 15px;
-        padding: 1rem;
-        background: #f9fafb;
-        border-radius: 10px;
-        margin-bottom: 1rem;
+        gap: 12px;
+        padding: 0.6rem 1rem;
+        background: #f4f6fb;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #eaecf0;
     }
-
     .permission-grid-header > div {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 700;
         color: #667085;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         text-align: center;
     }
-
     .permission-grid-header > div:first-child {
         text-align: left;
     }
 
+    /* Permission row (parent and child) */
     .permission-row-item {
         display: grid;
         grid-template-columns: 1fr repeat(5, 80px);
-        gap: 15px;
-        padding: 1.25rem 1rem;
+        gap: 12px;
+        padding: 0.9rem 1rem;
         border-bottom: 1px solid #f2f4f7;
         align-items: center;
-        transition: background 0.2s;
+        transition: background 0.15s;
+    }
+    .permission-row-item:last-child {
+        border-bottom: none;
+    }
+    .permission-row-item:hover {
+        background: #fafbfc;
     }
 
-    .permission-row-item:hover {
-        background: #fafafa;
+    /* Parent row (level 0) inside card body */
+    .parent-module-row {
+        background: #f8f9fd;
+        border-bottom: 1px solid #e9ecf3 !important;
+        border-radius: 4px;
+    }
+    .parent-module-row .permission-name {
+        font-weight: 700;
+        color: #2d3a4e;
+        font-size: 0.85rem;
+    }
+
+    /* Sub-module row */
+    .sub-module-row .permission-name {
+        font-weight: 500;
+        color: #475467;
+        font-size: 0.82rem;
     }
 
     .permission-name {
@@ -964,38 +979,97 @@
         color: #344054;
         font-size: 0.9rem;
     }
-
     .permission-row-item .custom-control {
         display: inline-block;
         justify-self: center;
     }
 
-    .empty-state-permissions {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+    /* Cascade indicator badge on parent row */
+    .cascade-badge {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: #eef0f8;
+        color: #4e73df;
+        font-size: 0.6rem;
+        flex-shrink: 0;
+        cursor: default;
+    }
+
+    /* Sub-module count badge (for intermediate nodes) */
+    .sub-count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #eaecf0;
+        color: #667085;
+        font-size: 0.6rem;
+        font-weight: 700;
+        padding: 0 4px;
+    }
+
+    /* Sub-module toggle button (inside a row, for intermediate nodes) */
+    .sub-module-toggle {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        background: #f9fafb;
         color: #98a2b3;
-        text-align: center;
-        padding: 4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.18s;
+        padding: 0;
+    }
+    .sub-module-toggle:hover {
+        border-color: #adb5bd;
+        color: #495057;
+        background: #efefef;
+    }
+    .sub-module-toggle.sub-is-active {
+        background: #e6f9f3;
+        border-color: #1cc88a;
+        color: #1cc88a;
+    }
+    .sub-module-toggle.sub-is-inactive {
+        background: #fff5f5;
+        border-color: #f5c6c6;
+        color: #e74a3b;
+    }
+    /* Dim rows that belong to a sub-toggled-off group */
+    .permission-row-item.sub-group-disabled {
+        opacity: 0.38;
+        pointer-events: none;
+    }
+    /* But keep the sub-toggle itself clickable */
+    .permission-row-item.sub-group-disabled .sub-module-toggle {
+        pointer-events: auto !important;
+        opacity: 1 !important;
     }
 
-    .empty-state-permissions i {
-        font-size: 3rem;
-        margin-bottom: 1.5rem;
-        opacity: 0.5;
+    /* Accordion card entry animation */
+    @keyframes cardSlideIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0);   }
     }
-
-    /* Animations */
-    @keyframes panelSlideIn {
-        from { opacity: 0; transform: translateX(10px); }
-        to { opacity: 1; transform: translateX(0); }
+    .perm-module-card {
+        animation: cardSlideIn 0.3s ease forwards;
     }
-
-    .panel-content-animate {
-        animation: panelSlideIn 0.3s ease-out forwards;
-    }
+    .perm-module-card:nth-child(1) { animation-delay: 0.02s; }
+    .perm-module-card:nth-child(2) { animation-delay: 0.06s; }
+    .perm-module-card:nth-child(3) { animation-delay: 0.10s; }
+    .perm-module-card:nth-child(4) { animation-delay: 0.14s; }
+    .perm-module-card:nth-child(5) { animation-delay: 0.18s; }
     
     /* Icon utilities */
     .shadow-xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
@@ -1355,27 +1429,209 @@
 
         // --- DYNAMIC ROLE PERMISSIONS (Split-View Matrix) ---
         
-        // Handle module switching in Split-View
-        $('.module-nav-item').on('click', function() {
-            const targetId = $(this).data('target');
-            
-            // UI Update: Sidebar
-            $('.module-nav-item').removeClass('active');
-            $(this).addClass('active');
-            
-            // UI Update: Content Panel
-            $('.module-content-section').addClass('d-none').removeClass('panel-content-animate');
-            $(`#${targetId}`).removeClass('d-none').addClass('panel-content-animate');
+        // Bootstrap collapse arrow sync
+        $(document).on('show.bs.collapse', '.collapse', function() {
+            const headerId = '[data-target="#' + this.id + '"]';
+            $(headerId).attr('aria-expanded', 'true');
+        });
+        $(document).on('hide.bs.collapse', '.collapse', function() {
+            const headerId = '[data-target="#' + this.id + '"]';
+            $(headerId).attr('aria-expanded', 'false');
         });
 
-        // Sync parent checkbox with children (Modified for Split-View)
-        $('.parent-check').on('change', function() {
-            const parentId = $(this).data('menu-id');
-            const type = $(this).data('type');
-            const isChecked = $(this).is(':checked');
-            
-            $(`.child-check-${parentId}[data-type="${type}"]`).prop('checked', isChecked);
+        // ===========================================================
+        // CASCADE LOGIC: generalized to ALL levels via .perm-check 
+        // (See CHECKBOX MANUAL SYNC section below)
+        // ===========================================================
+
+        // ===========================================================
+        // MASTER TOGGLE: power button → disable/enable WHOLE MODULE
+        // ===========================================================
+        // Helper: update card visual state + status badge
+        function setModuleCardState(rootId, isActive) {
+            const card = $(`.perm-module-card[data-module-id="${rootId}"]`);
+            const badge = $(`#status-badge-${rootId}`);
+            const btn = card.find('.module-master-toggle');
+
+            if (isActive) {
+                card.removeClass('module-is-off');
+                badge.text('Aktif').removeClass('is-off');
+                btn.removeClass('is-inactive').addClass('is-active')
+                   .attr('title', 'Nonaktifkan seluruh modul ini');
+            } else {
+                card.addClass('module-is-off');
+                badge.text('Non-aktif').addClass('is-off');
+                btn.removeClass('is-active').addClass('is-inactive')
+                   .attr('title', 'Aktifkan seluruh modul ini');
+            }
+        }
+        // Determine initial state of each card on load
+        function refreshMasterToggles() {
+            $('.module-master-toggle').each(function() {
+                const rootId = $(this).data('menu-id');
+                const anyParent = $(`#view_${rootId}, #input_${rootId}, #edit_${rootId}, #approve_${rootId}, #export_${rootId}`)
+                    .toArray().some(cb => cb.checked);
+                const anyChild = $(`.child-check-${rootId}.perm-check`).toArray().some(cb => cb.checked);
+                setModuleCardState(rootId, anyParent || anyChild);
+            });
+        }
+
+        // Power button click → cascade OFF/ON
+        // NOTE: Uses direct binding (NOT delegated from document) so stopPropagation
+        // correctly prevents Bootstrap collapse on the card header from triggering.
+        // The inline onclick was removed from the HTML for the same reason.
+        $(document).ready(function() {
+            // Re-bind whenever permissions tab is shown (cards may have been re-rendered)
+            function bindMasterToggles() {
+                // Unbind first to avoid duplicate handlers
+                $('.module-master-toggle').off('click.masterToggle').on('click.masterToggle', function(e) {
+                    e.stopPropagation(); // Stops event from reaching .perm-module-card-header → prevents collapse
+                    const rootId        = $(this).data('menu-id');
+                    const isCurrentlyOn = $(this).hasClass('is-active');
+                    const willBeOn      = !isCurrentlyOn;
+
+                    if (!willBeOn) {
+                        // OFF: uncheck ALL checkboxes (parent + all children)
+                        $(`#view_${rootId}, #input_${rootId}, #edit_${rootId}, #approve_${rootId}, #export_${rootId}`)
+                            .prop('checked', false);
+                        $(`.child-check-${rootId}.perm-check`).prop('checked', false);
+                    }
+                    // ON: just un-dim the card; user decides which checkboxes to enable
+
+                    setModuleCardState(rootId, willBeOn);
+                });
+            }
+            bindMasterToggles();
         });
+
+        // Run initial state on page load
+        refreshMasterToggles();
+        refreshSubToggles();
+
+        // ===========================================================
+        // SUB-MODULE TOGGLE (intermediate nodes with children)
+        // ===========================================================
+
+        // Sync appearance of a sub-toggle button
+        function setSubToggleState(btn, isActive) {
+            if (isActive) {
+                btn.removeClass('sub-is-inactive').addClass('sub-is-active')
+                   .attr('title', 'Nonaktifkan sub-modul ini beserta isinya');
+            } else {
+                btn.removeClass('sub-is-active').addClass('sub-is-inactive')
+                   .attr('title', 'Aktifkan sub-modul ini');
+            }
+        }
+
+        // Determine initial state of all sub-toggles (called on load + after fetchPermissions)
+        function refreshSubToggles() {
+            $('.sub-module-toggle').each(function() {
+                const menuId = $(this).data('menu-id');
+
+                // Check own checkboxes
+                const ownChecked = $(`#view_${menuId}, #input_${menuId}, #edit_${menuId}, #approve_${menuId}, #export_${menuId}`)
+                    .toArray().some(cb => cb.checked);
+
+                // Check descendant checkboxes (empty set for leaf nodes → always false)
+                const childChecked = $(`.child-check-${menuId}.perm-check`).toArray().some(cb => cb.checked);
+
+                const isActive = ownChecked || childChecked;
+                setSubToggleState($(this), isActive);
+
+                // For intermediate nodes: dim/undim descendant rows
+                // For leaf nodes: descRows is empty, so no dimming occurs (correct behaviour)
+                const descRows = $('.permission-row-item').filter(function() {
+                    return $(this).find(`.child-check-${menuId}`).length > 0;
+                });
+                descRows.toggleClass('sub-group-disabled', !isActive);
+            });
+        }
+
+        // Sub-module toggle click handler
+        $(document).on('click', '.sub-module-toggle', function(e) {
+            e.stopPropagation();
+            const btn    = $(this);
+            const menuId = btn.data('menu-id');
+            const isOn   = btn.hasClass('sub-is-active');
+            const willBeOn = !isOn;
+
+            if (!willBeOn) {
+                // ---- OFF: uncheck own checkboxes + all descendants ----
+                $(`#view_${menuId}, #input_${menuId}, #edit_${menuId}, #approve_${menuId}, #export_${menuId}`)
+                    .prop('checked', false).trigger('change');
+                $(`.child-check-${menuId}.perm-check`).prop('checked', false).trigger('change');
+
+                // Dim descendant rows visually
+                const descRows = $('.permission-row-item').filter(function() {
+                    return $(this).find(`.child-check-${menuId}`).length > 0;
+                });
+                descRows.addClass('sub-group-disabled');
+            } else {
+                // ---- ON: un-dim rows (user picks which to enable) ----
+                const descRows = $('.permission-row-item').filter(function() {
+                    return $(this).find(`.child-check-${menuId}`).length > 0;
+                });
+                descRows.removeClass('sub-group-disabled');
+                
+                // Jika ini adalah level terakhir (leaf node, tidak punya descendants), 
+                // otomatis nyalakan kelima centang permission
+                if (descRows.length === 0) {
+                    $(`#view_${menuId}, #input_${menuId}, #edit_${menuId}, #approve_${menuId}, #export_${menuId}`)
+                        .prop('checked', true).trigger('change');
+                }
+            }
+
+            setSubToggleState(btn, willBeOn);
+
+            // NOTE: We intentionally do NOT call refreshMasterToggles() here.
+            // Each level is INDEPENDENT — turning off a sub-module should NEVER
+            // automatically turn off its parent card. The parent card state is
+            // only updated by: (1) its own power button, or (2) initial page load.
+        });
+
+        // After permissions loaded, refresh both
+        const _origFetch = fetchPermissions;
+
+        // Listen to individual checkbox changes to keep power buttons in sync
+        // AND cascade the permission type to all descendants!
+        $(document).on('change', '.perm-check', function() {
+            const menuId    = $(this).data('menu-id');
+            const type      = $(this).data('type');
+            const isChecked = $(this).is(':checked');
+
+            // Cascade to ALL descendants of THIS menu for the same type!
+            // Any descendant of this menu has class `child-check-{menuId}`
+            $(`.child-check-${menuId}[data-type="${type}"]`).prop('checked', isChecked);
+
+            // Slight delay ensures the DOM state is completely updated before sync
+            setTimeout(() => {
+                refreshMasterToggles();
+                refreshSubToggles();
+            }, 10);
+        });
+
+
+        // ===========================================================
+        // LIVE SEARCH & MINIMALIST PAGINATION (DATATABLES)
+        // ===========================================================
+        const userTable = $('#usersTable').DataTable({
+            pageLength: 10,
+            lengthChange: false,
+            info: false,
+            ordering: false, // Tetap rapi tanpa panah sorting
+            dom: 't<"mt-4 d-flex justify-content-center"p>',
+            language: {
+                paginate: {
+                    previous: "<i class='fas fa-chevron-left fa-sm'></i>",
+                    next: "<i class='fas fa-chevron-right fa-sm'></i>"
+                }
+            }
+        });
+
+        $('#liveSearchUser').on('keyup', function() {
+            userTable.search($(this).val()).draw();
+        });
+
         // Mode Switching (Role vs User)
         $('#permissionMode').on('change', function() {
             const mode = $(this).val();
@@ -1423,6 +1679,9 @@
                     $(`#approve_${menuId}`).prop('checked', !!perm.can_approve);
                     $(`#export_${menuId}`).prop('checked', !!perm.can_export);
                 });
+                // Refresh cascade state after loading permissions
+                refreshMasterToggles();
+                refreshSubToggles();
             });
         }
 
@@ -1489,7 +1748,12 @@
             });
         });
 
-        // --- USER MANAGEMENT AJAX ---
+        // --- USER MANAGEMENT AJAX & MODAL LOGIC ---
+
+        $('#modalAddUser').on('show.bs.modal', function() {
+            $('#formAddUser')[0].reset();
+            $('.cancel-new-role[data-target="add"]').trigger('click');
+        });
 
         // Edit User Button Click
         $('.edit-user').on('click', function() {
@@ -1497,10 +1761,35 @@
             $('#edit_user_id').val(btn.data('id'));
             $('#edit_name').val(btn.data('name'));
             $('#edit_email').val(btn.data('email'));
+            
+            // Revert external logic for roles
+            $('.cancel-new-role[data-target="edit"]').trigger('click');
             $('#edit_role').val(btn.data('role'));
+
             $('#edit_plant_id').val(btn.data('plant'));
             $('#edit_initials').val(btn.data('initials'));
             $('#modalEditUser').modal('show');
+        });
+
+        // TOGGLE NEW ROLE INPUT LOGIC
+        $('.toggle-new-role').on('click', function() {
+            let target = $(this).data('target'); // 'add' or 'edit'
+            let selectId = target === 'edit' ? 'edit_role' : 'add_role';
+            
+            $('#' + selectId).prop('disabled', true).addClass('d-none').removeAttr('name');
+            $('#role_input_group_' + target).removeClass('d-none');
+            $('#role_input_' + target).prop('disabled', false).attr('name', 'role').attr('required', true).focus();
+            $(this).addClass('d-none');
+        });
+
+        $('.cancel-new-role').on('click', function() {
+            let target = $(this).data('target'); 
+            let selectId = target === 'edit' ? 'edit_role' : 'add_role';
+
+            $('#role_input_group_' + target).addClass('d-none');
+            $('#role_input_' + target).prop('disabled', true).removeAttr('name').removeAttr('required').val('');
+            $('#' + selectId).prop('disabled', false).removeClass('d-none').attr('name', 'role');
+            $('.toggle-new-role[data-target="' + target + '"]').removeClass('d-none');
         });
 
         // Reset Password Button Click

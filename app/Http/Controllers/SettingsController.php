@@ -16,7 +16,7 @@ class SettingsController extends Controller
 {
     public function index(Request $request)
     {
-        $users = \App\Models\User::with('plant')->get();
+        $users = \App\Models\User::with('plant')->orderBy('name', 'asc')->get();
         $plants = \App\Models\Plant::all();
         $roles = \App\Models\User::distinct()->whereNotNull('role')->pluck('role')->toArray();
         

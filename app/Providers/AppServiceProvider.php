@@ -68,44 +68,65 @@ class AppServiceProvider extends ServiceProvider
         // Share dynamic menus with topbar based on permissions
         \Illuminate\Support\Facades\View::composer('layouts.topbar', function ($view) {
             if (auth()->check()) {
-                $role = auth()->user()->role;
+                $role   = auth()->user()->role;
                 $userId = auth()->id();
-                
+
+                // Admin bypasses all permission checks
+                if ($role === 'admin') {
+                    $menus = \App\Models\AppMenu::whereNull('parent_id')
+                        ->where('is_active', true)
+                        ->with(['children' => function($q) {
+                            $q->where('is_active', true)
+                              ->with(['children' => function($sq) {
+                                  $sq->where('is_active', true)
+                                     ->with(['children' => function($ssq) {
+                                         $ssq->where('is_active', true)->orderBy('order');
+                                     }])->orderBy('order');
+                              }])->orderBy('order');
+                        }])
+                        ->orderBy('order')
+                        ->get();
+                    $view->with('dynamicMenus', $menus);
+                    return;
+                }
+
+                // ── Permission filter closure ─────────────────────────────────
+                // A menu is visible if:
+                //  (a) User has a specific override with can_view = true, OR
+                //  (b) The role has can_view = true AND no user-level override exists for this menu
                 $permissionCheck = function($q) use ($role, $userId) {
                     $q->where(function($query) use ($role, $userId) {
-                        // User specific override (Allows)
+                        // (a) User-specific override: can_view = true
                         $query->whereHas('userPermissions', function($up) use ($userId) {
                             $up->where('user_id', $userId)->where('can_view', true);
                         })
-                        // OR Role permission (only if NO user override exists for this menu)
+                        // (b) Role permission: can_view = true, with no user-level override
                         ->orWhere(function($sub) use ($role, $userId) {
                             $sub->whereHas('permissions', function($p) use ($role) {
                                 $p->where('role', $role)->where('can_view', true);
                             })->whereDoesntHave('userPermissions', function($up) use ($userId) {
                                 $up->where('user_id', $userId);
                             });
-                        })
-                        ->orWhere('route', '/'); 
+                        });
+                        // NOTE: Removed ->orWhere('route', '/') — parent menus must also have
+                        // explicit can_view permission. They only show if a child is visible.
                     });
                 };
 
-                // Fetch menus including children up to 4 levels, filtered by user/role permissions
-                $menus = \App\Models\AppMenu::whereNull('parent_id')
+                // Load leaf menus filtered by permission
+                $visibleMenus = \App\Models\AppMenu::whereNull('parent_id')
                     ->where('is_active', true)
-                    ->where(function($q) use ($permissionCheck) {
-                        $permissionCheck($q);
-                    })
-                    ->with(['children' => function($q) use ($role, $userId, $permissionCheck) {
+                    ->with(['children' => function($q) use ($permissionCheck) {
                         $q->where('is_active', true)
                           ->where(function($sq) use ($permissionCheck) {
                               $permissionCheck($sq);
                           })
-                          ->with(['children' => function($sq) use ($role, $userId, $permissionCheck) {
+                          ->with(['children' => function($sq) use ($permissionCheck) {
                               $sq->where('is_active', true)
                                  ->where(function($ssq) use ($permissionCheck) {
                                      $permissionCheck($ssq);
                                  })
-                                 ->with(['children' => function($ssq) use ($role, $userId, $permissionCheck) {
+                                 ->with(['children' => function($ssq) use ($permissionCheck) {
                                      $ssq->where('is_active', true)
                                          ->where(function($sssq) use ($permissionCheck) {
                                              $permissionCheck($sssq);
@@ -118,9 +139,30 @@ class AppServiceProvider extends ServiceProvider
                     }])
                     ->orderBy('order')
                     ->get();
-                    
+
+                // Filter parent menus: show only if
+                //  (a) has direct can_view permission, OR
+                //  (b) has at least one visible child (container dropdown)
+                $menus = $visibleMenus->filter(function($menu) use ($permissionCheck, $role, $userId) {
+                    // Has at least one visible child?
+                    if ($menu->children->isNotEmpty()) {
+                        return true;
+                    }
+                    // No children — check its own permission
+                    $hasUserPerm = \App\Models\UserPermission::where('user_id', $userId)
+                        ->where('menu_id', $menu->id)->where('can_view', true)->exists();
+                    if ($hasUserPerm) return true;
+
+                    $hasRolePerm = \App\Models\RolePermission::where('role', $role)
+                        ->where('menu_id', $menu->id)->where('can_view', true)->exists();
+                    $hasUserOverride = \App\Models\UserPermission::where('user_id', $userId)
+                        ->where('menu_id', $menu->id)->exists();
+                    return $hasRolePerm && !$hasUserOverride;
+                })->values();
+
                 $view->with('dynamicMenus', $menus);
             }
         });
+
     }
 }
