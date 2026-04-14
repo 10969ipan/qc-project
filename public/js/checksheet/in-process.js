@@ -323,57 +323,39 @@ class InProcessCreate {
             $('#uniqueCodeInput').val(unique_code_id);
             $('#sapCodeInputHidden').val(sap_code);
 
-            $('#qr-reader-results').find('p').text('Mencari data item: ' + part_code);
+            $('#qr-reader-results').find('p').text('Memproses data...');
 
-            $.ajax({
-                url: this.config.itemSearchUrl,
-                method: 'GET',
-                data: { part_number: part_code, sap_code: sap_code },
-                success: function (response) {
-                    if (response.success && response.item) {
-                        const $select = $('#itemSelect');
-                        $select.val(response.item.id);
-                        
-                        // Fallback jika ID dari server tidak ada di dropdown (beda kategori/plant)
-                        if (!$select.val()) {
-                            let fallbackFound = false;
-                            let normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-                            let targetPart = normalize(part_code);
-                            let targetSap = normalize(sap_code);
-                            
-                            $select.find('option[value!=""]').each(function() {
-                                if (fallbackFound) return;
-                                let name = normalize($(this).data('name'));
-                                let pNum = normalize($(this).data('part-number'));
-                                let sCode = normalize($(this).data('sap-code'));
-                                
-                                if ((targetPart && name.includes(targetPart)) || 
-                                    (targetPart && pNum === targetPart) || 
-                                    (targetSap && sCode === targetSap)) {
-                                    $select.val($(this).val());
-                                    fallbackFound = true;
-                                }
-                            });
-                        }
-                        
-                        if ($select.val()) {
-                            $select[0].dispatchEvent(new Event('change', { bubbles: true }));
-                            if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
-                            if (callback) callback(true);
-                        } else {
-                            if (callback) callback(false);
-                            Swal.fire('Info', 'Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.', 'warning');
-                        }
-                    } else {
-                        Swal.fire('Error', 'Item tidak ditemukan.', 'error');
-                        if (callback) callback(false);
-                    }
-                },
-                error: function (xhr) {
-                    Swal.fire('Error', 'Gagal mencari item', 'error');
-                    if (callback) callback(false);
+            // Melakukan pemindaian lokal di dropdown yang tersedia (Lebih reliabel dan cepat)
+            let localFound = false;
+            let normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            let targetPart = normalize(part_code);
+            let targetSap = normalize(sap_code);
+            const $select = $('#itemSelect');
+
+            $select.find('option[value!=""]').each(function() {
+                if (localFound) return;
+                
+                let name = normalize($(this).attr('data-name') || $(this).data('name'));
+                let pNum = normalize($(this).attr('data-part-number') || $(this).data('part-number'));
+                let sCode = normalize($(this).attr('data-sap-code') || $(this).data('sap-code'));
+                
+                if ((targetPart && name.includes(targetPart)) || 
+                    (targetPart && pNum === targetPart) || 
+                    (targetSap && sCode === targetSap)) {
+                    $select.val($(this).val());
+                    localFound = true;
                 }
             });
+
+            if (localFound && $select.val()) {
+                $select.trigger('change');
+                $select[0].dispatchEvent(new Event('change', { bubbles: true }));
+                if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
+                if (callback) callback(true);
+            } else {
+                Swal.fire('Info', 'Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.', 'warning');
+                if (callback) callback(false);
+            }
         } catch (e) {
             Swal.fire('Error', e.message, 'error');
             if (callback) callback(false);
