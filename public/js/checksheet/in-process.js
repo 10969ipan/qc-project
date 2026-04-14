@@ -333,10 +333,37 @@ class InProcessCreate {
                     if (response.success && response.item) {
                         const $select = $('#itemSelect');
                         $select.val(response.item.id);
-                        // Trigger native event so item-search.js picks it up
-                        $select[0].dispatchEvent(new Event('change', { bubbles: true }));
-                        if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
-                        if (callback) callback(true);
+                        
+                        // Fallback jika ID dari server tidak ada di dropdown (beda kategori/plant)
+                        if (!$select.val()) {
+                            let fallbackFound = false;
+                            let normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                            let targetPart = normalize(part_code);
+                            let targetSap = normalize(sap_code);
+                            
+                            $select.find('option[value!=""]').each(function() {
+                                if (fallbackFound) return;
+                                let name = normalize($(this).data('name'));
+                                let pNum = normalize($(this).data('part-number'));
+                                let sCode = normalize($(this).data('sap-code'));
+                                
+                                if ((targetPart && name.includes(targetPart)) || 
+                                    (targetPart && pNum === targetPart) || 
+                                    (targetSap && sCode === targetSap)) {
+                                    $select.val($(this).val());
+                                    fallbackFound = true;
+                                }
+                            });
+                        }
+                        
+                        if ($select.val()) {
+                            $select[0].dispatchEvent(new Event('change', { bubbles: true }));
+                            if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
+                            if (callback) callback(true);
+                        } else {
+                            if (callback) callback(false);
+                            Swal.fire('Info', 'Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.', 'warning');
+                        }
                     } else {
                         Swal.fire('Error', 'Item tidak ditemukan.', 'error');
                         if (callback) callback(false);

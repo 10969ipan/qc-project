@@ -357,11 +357,36 @@ class SubAssyCreate {
                         if (response.success && response.item) {
                             const $select = $('#itemSelect');
                             $select.val(response.item.id);
-                            // Trigger native event so item-search.js picks it up
-                            $select[0].dispatchEvent(new Event('change', { bubbles: true }));
                             
-                            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-                            Toast.fire({ icon: 'success', title: 'Item otomatis terpilih: ' + response.item.name });
+                            // Fallback jika ID dari server tidak ada di dropdown (beda kategori/plant)
+                            if (!$select.val()) {
+                                let fallbackFound = false;
+                                let normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                                let targetPart = normalize(partCode);
+                                let targetSap = normalize(sapCode);
+                                
+                                $select.find('option[value!=""]').each(function() {
+                                    if (fallbackFound) return;
+                                    let name = normalize($(this).data('name'));
+                                    let pNum = normalize($(this).data('part-number'));
+                                    let sCode = normalize($(this).data('sap-code'));
+                                    
+                                    if ((targetPart && name.includes(targetPart)) || 
+                                        (targetPart && pNum === targetPart) || 
+                                        (targetSap && sCode === targetSap)) {
+                                        $select.val($(this).val());
+                                        fallbackFound = true;
+                                    }
+                                });
+                            }
+                            
+                            if ($select.val()) {
+                                $select[0].dispatchEvent(new Event('change', { bubbles: true }));
+                                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                                Toast.fire({ icon: 'success', title: 'Item otomatis terpilih.' });
+                            } else {
+                                $('#sapCodeInput').trigger('input');
+                            }
                         } else {
                             // Fallback ke trigger input manual
                             $('#sapCodeInput').trigger('input');
