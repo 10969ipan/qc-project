@@ -34,6 +34,16 @@ class StorePlatingChecksheetRequest extends FormRequest
                     }
                 },
             ],
+            'qrcode' => 'nullable|string',
+            'part_code' => 'nullable|string',
+            'supplier_id' => 'nullable|string',
+            'quantity' => 'nullable|string',
+            'unique_code_id' => [
+                'nullable',
+                'string',
+                \Illuminate\Validation\Rule::unique('plating_checksheets', 'unique_code_id')->whereNotNull('unique_code_id'),
+            ],
+            'sap_code' => 'nullable|string',
             'plant' => 'required',
             'date' => 'required|date',
             'shift' => 'required|string',

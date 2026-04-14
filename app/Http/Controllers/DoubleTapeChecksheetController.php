@@ -129,32 +129,44 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $result = $this->checksheetService->createChecksheet(
-            $request->validated(),
-            fn($checksheet) => $this->mapExportRow($checksheet)
-        );
+        try {
+            $result = $this->checksheetService->createChecksheet(
+                $request->validated(),
+                fn($checksheet) => $this->mapExportRow($checksheet)
+            );
 
-        if ($result['checksheet']) {
-            $checksheet = $result['checksheet'];
-            \App\Helpers\ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Double Tape baru: {$checksheet->item->name}");
-            $message = 'Data Checksheet Double Tape berhasil disimpan.';
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => $message,
-                    'index_url' => route('double_tape.index')
-                ]);
+            if ($result['checksheet']) {
+                $checksheet = $result['checksheet'];
+                \App\Helpers\ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Double Tape baru: {$checksheet->item->name}");
+                
+                $message = 'Data Checksheet Double Tape berhasil disimpan.';
+                
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => $message,
+                        'index_url' => route('double_tape.index', ['plant' => 'karawang'])
+                    ]);
+                }
+
+                return redirect()->route('double_tape.index', ['plant' => 'karawang'])
+                    ->with('success', $message);
+            } else {
+                throw new \Exception('Gagal menyimpan data checksheet.');
             }
-            return redirect()->route('double_tape.index')
-                ->with('success', $message);
-        } else {
+        } catch (\Exception $e) {
+            \Log::error('DoubleTape Store Error: ' . $e->getMessage());
+            
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menyimpan data.'
+                    'message' => 'Gagal menyimpan data: ' . $e->getMessage()
                 ], 422);
             }
-            return redirect()->back()->with('error', 'Gagal menyimpan data.');
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 

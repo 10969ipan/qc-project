@@ -14,6 +14,12 @@ class PlatingChecksheet extends Model
     protected $fillable = [
         'plant_id',
         'item_id',
+        'qrcode',
+        'part_code',
+        'supplier_id',
+        'quantity',
+        'unique_code_id',
+        'sap_code',
         'created_at',
         'date',
         'shift',

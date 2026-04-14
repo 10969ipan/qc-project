@@ -23,6 +23,12 @@ class ItemService extends BaseService
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
+        // Apply specific ID filter (Highest Priority)
+        if (!empty($filters['item_id'])) {
+            $query->where('id', $filters['item_id']);
+            return $query->paginate(10)->withQueryString();
+        }
+
         // Apply global search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -85,9 +91,9 @@ class ItemService extends BaseService
             // Process dimension standards
             $dimensionStandards = $this->processDimensionStandards($data);
 
-            // Handle similar part file upload
-            if ($file = request()->file('similar_part_file')) {
-                $data['similar_part_file_path'] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+            // Handle similar part file upload from data
+            if (isset($data['similar_part_file']) && $data['similar_part_file'] instanceof \Illuminate\Http\UploadedFile) {
+                $data['similar_part_file_path'] = $this->handleItemFileUpload($data['similar_part_file'], $data['customer'] ?? null);
             }
 
             // Create item
@@ -136,13 +142,13 @@ class ItemService extends BaseService
             $customerChanged = $item->customer !== ($data['customer'] ?? null);
             $filePaths = $item->file_paths ?? [];
 
-            // Handle similar part file upload
-            if ($file = request()->file('similar_part_file')) {
+            // Handle similar part file upload from data
+            if (isset($data['similar_part_file']) && $data['similar_part_file'] instanceof \Illuminate\Http\UploadedFile) {
                 // Delete old file if exists
                 if ($item->similar_part_file_path) {
                     $this->deleteFile($item->similar_part_file_path);
                 }
-                $data['similar_part_file_path'] = $this->handleItemFileUpload($file, $data['customer'] ?? null);
+                $data['similar_part_file_path'] = $this->handleItemFileUpload($data['similar_part_file'], $data['customer'] ?? null);
             } else {
                 $data['similar_part_file_path'] = $item->similar_part_file_path;
             }

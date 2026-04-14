@@ -11,7 +11,7 @@
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
     #checksheetTable {
-        border-collapse: collapse !important;
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
@@ -37,18 +37,20 @@
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
         font-size: 0.62rem !important;
         letter-spacing: 0.2px;
         padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
         line-height: 1.2;
         white-space: nowrap !important; /* Force all headers to be side-by-side */
+        box-shadow: inset 0 -1px 0 #e2e8f0;
     }
 
     /* Forced overrides for compact view */
@@ -71,16 +73,18 @@
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 35px !important; 
+        height: 48px !important; 
     }
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 35px !important; 
+        top: 48px !important; 
         z-index: 104 !important;
-        height: 30px !important;
+        height: 38px !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
     }
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 65px !important; 
+        top: 0 !important;
+        height: 86px !important; /* 48 + 38 */
+        z-index: 106 !important;
     }
 
     /* Minimalist Dimension Table Styles - Aggressive override for global !important */

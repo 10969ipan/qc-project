@@ -2,6 +2,18 @@
 
 @section('title', 'Input Data Checksheet')
 
+@push('styles')
+<style>
+    #checksheetTable th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f8f9fc; }
+    #checksheetTable td { font-size: 0.85rem; }
+    .ok-label { background-color: #28a745; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
+    .ng-label { background-color: #dc3545; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
+    .form-control-sm.text-center { font-weight: bold; border-color: #d1d3e2; }
+    .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
+    #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+</style>
+@endpush
+
 @section('content')
 
     @php
@@ -183,11 +195,16 @@
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <input type="hidden" name="check_type" id="checkTypeInput" value="sampling">
+                <input type="hidden" name="qrcode" id="qrcodeInput">
+                <input type="hidden" name="part_code" id="partCodeInput">
+                <input type="hidden" name="supplier_id" id="supplierIdInput">
+                <input type="hidden" name="quantity" id="quantityInput">
+                <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
                 <div class="table-responsive">
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
-                                <th rowspan="2" class="align-middle">Standard</th>
                                 <th rowspan="2" class="align-middle">Item Part</th>
                                 <th rowspan="2" class="align-middle">Tanggal / Shift</th>
                                 <th rowspan="2" class="align-middle">Total Qty</th>
@@ -202,20 +219,23 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <!-- Ilustrasi Barang -->
-                                <td class="align-middle text-center" id="imageContainer">
-                                    <div
-                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                        <i class="fas fa-image fa-2x text-gray-300"></i>
-                                    </div>
-                                </td>
-
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold">Kode SAP</label>
-                                        <input type="text" class="form-control" id="sapCodeInput"
-                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <label class="font-weight-bold small text-muted mb-1">
+                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control" id="sapCodeInput"
+                                                placeholder="Ketik Kode SAP..." autocomplete="off">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-primary" id="btnScanQR"
+                                                    title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode"></i>
+                                                    <span class="d-none d-md-inline ml-1">Scan QR</span>
+                                                </button>
+                                            </div>
+                                        </div>
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
                                     </div>
                                     <div class="form-group mb-0">
@@ -230,12 +250,15 @@
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
+                                                    data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
                                                     data-name="{{ $item->name }}"
                                                     data-part-number="{{ $item->part_number ?? '' }}"
                                                     data-customer="{{ $item->customer ?? '' }}"
                                                     data-description="{{ $item->description }}"
                                                     data-defects="{{ json_encode($item->defects) }}"
-                                                    data-sap-code="{{ $item->sap_code ?? '' }}">
+                                                    data-sap-code="{{ $item->sap_code ?? '' }}"
+                                                    data-plant-id="{{ $item->plant_id }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
                                                 </option>
@@ -281,20 +304,13 @@
                                         name="total_qty" placeholder="0" min="0" required>
                                 </td>
 
-                                <!-- Jumlah Pengecekan Sampel -->
+                                <!-- Sampling Qty -->
                                 <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
-                                        name="sampling_qty" placeholder="0" min="0" required>
+                                    <input type="number" class="form-control text-center" style="min-width: 80px;"
+                                        name="sampling_qty" placeholder="0" min="1" required readonly>
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                            id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
-                                            (Pass)</label>
-                                    </div>
-                                    <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
@@ -313,25 +329,29 @@
                                 </td>
 
                                 <!-- Total OK / NG -->
-                                <td class="align-middle" style="min-width: 120px;">
-                                    <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                                <td class="align-middle" style="min-width: 150px;">
+                                    <div class="d-flex align-items-center mb-2" style="gap:0;">
                                         <span class="ok-label">OK</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0;" name="total_ok" placeholder="0" min="0" required>
+                                            style="border-radius:0 4px 4px 0; font-size: 1.1rem; height: 38px;" name="total_ok" value="0" min="0" required readonly>
                                     </div>
-                                    <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="d-flex align-items-center" style="gap:0;">
                                         <span class="ng-label">NG</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0;" name="total_ng" placeholder="0" min="0" required>
+                                            style="border-radius:0 4px 4px 0; font-size: 1.1rem; height: 38px;" name="total_ng" value="0" min="0" required readonly>
                                     </div>
                                 </td>
 
                                 <!-- Judgment -->
-                                <td class="align-middle">
+                                <td class="align-middle text-center" style="min-width: 150px;">
+                                    <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
+                                        style="border: 2px solid transparent;">
+                                        -
+                                    </div>
                                     <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
-                                        required>
+                                        style="min-width: 100px;">
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
                                         <option value="NG" class="text-danger">NG</option>
@@ -345,9 +365,9 @@
 
                                 <!-- Inisial Operator -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                    <input type="text" class="form-control text-center" style="min-width: 60px; text-transform: uppercase;"
                                         name="operator_initials" placeholder="Inisial"
-                                        value="{{ auth()->user()->initials ?? '' }}" required>
+                                        value="{{ auth()->user()->initials ?? '' }}" oninput="this.value = this.value.toUpperCase()" required>
                                 </td>
 
                                 <!-- Keterangan -->
@@ -387,6 +407,90 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Bagian Tampilan PDF Berdampingan -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>REFERENCE STANDARD</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">STANDARD / PCCP</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard" title="Reset"><i class="fas fa-sync-alt"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            </div>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage"><i class="fas fa-chevron-left"></i></button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded border" style="height: 600px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="standardPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0 text-xs">Pilih Item untuk menampilkan Standard</p>
+                        </div>
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutSimilar" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetSimilar" title="Reset"><i class="fas fa-sync-alt"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInSimilar" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            </div>
+                            <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"><i class="fas fa-chevron-left"></i></button>
+                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="similarPdfContainer" class="rounded border" style="height: 600px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="similarPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-alt fa-3x mb-3"></i>
+                            <p class="mb-0 text-xs">Pilih Item untuk menampilkan Similar Part</p>
+                        </div>
+                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pemindai QR -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body p-0 text-center">
+                    <div id="qr-reader" style="width: 100%"></div>
+                    <div id="qr-reader-results" class="p-3 d-none">
+                         <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
+                         <p class="mt-2 mb-0">Sedang memproses data QR...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -483,8 +587,9 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
-    <script src="{{ asset('js/checksheet/sub-assy.js') }}"></script>
+    <script src="{{ asset('js/checksheet/sub-assy.js') }}?v={{ time() }}"></script>
     <script>
         $(document).ready(function () {
             window.initSubAssyCreate({

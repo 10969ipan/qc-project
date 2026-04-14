@@ -28,7 +28,8 @@ class ItemController extends Controller
 
         $filters = [
             'plant' => $request->plant,
-            'search' => $request->search,
+            'item_id' => $request->f_item_id ?? $request->item_id,
+            'search' => $request->f_search ?? $request->search,
             'name' => $request->name,
             'customer' => $request->customer,
             'part_number' => $request->part_number,
@@ -41,21 +42,43 @@ class ItemController extends Controller
         // Filter categories by plant context
         $plantIdentifier = $request->plant;
         $plantId = null;
+        $isTotalView = false;
 
         if ($plantIdentifier) {
-            $plantId = \App\Models\Plant::resolveId($plantIdentifier);
+            if ($plantIdentifier === 'total') {
+                $isTotalView = true;
+                $plantId = \App\Models\Plant::resolveId('total');
+            } else {
+                // Use exact match for plant code to avoid ambiguous matches
+                $plant = \App\Models\Plant::where('code', $plantIdentifier)
+                    ->orWhere('id', $plantIdentifier)
+                    ->first();
+                $plantId = $plant ? $plant->id : null;
+                
+                if (!$plantId) {
+                    $plantId = \App\Models\Plant::resolveId($plantIdentifier);
+                }
+            }
         } elseif (auth()->user()->plant_id) {
             $plantId = auth()->user()->plant_id;
+            $totalPlantId = \App\Models\Plant::where('code', 'total')->value('id');
+            if ($plantId === $totalPlantId) {
+                $isTotalView = true;
+            }
+        } else {
+            $isTotalView = true;
         }
 
-        $categoriesQuery = \App\Models\Category::orderBy('name');
+        $categoriesQuery = \App\Models\Category::with('plant')->orderBy('name');
 
-        if ($plantId) {
+        // STRICT FILTERING: If we are in a specific plant view, ONLY show that plant's categories.
+        // If in total view, show all.
+        if (!$isTotalView && $plantId) {
             $categoriesQuery->where('plant_id', $plantId);
         }
 
         $categories = $categoriesQuery->get();
-        $plantCode = $plantIdentifier;
+        $plantCode = $isTotalView ? null : ($plantIdentifier ?: optional(auth()->user()->plant)->code);
         $allPlants = \App\Models\Plant::all();
 
         // Get all items in a lightweight format for the searchable dropdown
@@ -81,7 +104,8 @@ class ItemController extends Controller
         $queryParams = [
             'plant' => $data['plant'],
             'page' => $request->input('page'),
-            'search' => $request->input('filter_search'),
+            'f_item_id' => $request->input('f_item_id'),
+            'f_search' => $request->input('f_search'),
             'name' => $request->input('filter_name'),
             'category' => $request->input('filter_category'),
             'customer' => $request->input('filter_customer'),
@@ -137,13 +161,14 @@ class ItemController extends Controller
         // Preserve pagination and filter parameters
         $queryParams = [
             'page' => $request->input('page', 1),
+            'f_item_id' => $request->input('f_item_id'),
+            'f_search' => $request->input('f_search'),
             'name' => $request->input('filter_name'),
             'category' => $request->input('filter_category'),
             'customer' => $request->input('filter_customer'),
             'part_number' => $request->input('filter_part_number'),
             'sap_code' => $request->input('filter_sap_code'),
-            'search' => $request->input('filter_search'),
-            'plant' => $request->input('filter_plant'), // Use filter_plant for redirection context
+            'plant' => $request->input('filter_plant'), 
         ];
 
         // Remove null values
@@ -171,12 +196,13 @@ class ItemController extends Controller
             // Preserve pagination and filter parameters
             $queryParams = [
                 'page' => $request->input('page', 1),
+                'f_item_id' => $request->input('f_item_id'),
+                'f_search' => $request->input('f_search'),
                 'name' => $request->input('name'),
                 'category' => $request->input('category'),
                 'customer' => $request->input('customer'),
                 'part_number' => $request->input('part_number'),
                 'sap_code' => $request->input('sap_code'),
-                'search' => $request->input('search'),
                 'plant' => $request->input('plant'),
             ];
 

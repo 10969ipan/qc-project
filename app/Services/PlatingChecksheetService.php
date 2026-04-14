@@ -78,6 +78,12 @@ class PlatingChecksheetService extends BaseService
             $checksheet = PlatingChecksheet::create([
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'item_id' => $data['item_id'],
+                'qrcode' => $data['qrcode'] ?? null,
+                'part_code' => $data['part_code'] ?? null,
+                'supplier_id' => $data['supplier_id'] ?? null,
+                'quantity' => $data['quantity'] ?? null,
+                'unique_code_id' => $data['unique_code_id'] ?? null,
+                'sap_code' => $data['sap_code'] ?? null,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
                 'injection_date' => $data['injection_date'],
@@ -132,6 +138,12 @@ class PlatingChecksheetService extends BaseService
 
             $updateData = [
                 'item_id' => $data['item_id'],
+                'qrcode' => $data['qrcode'] ?? $checksheet->qrcode,
+                'part_code' => $data['part_code'] ?? $checksheet->part_code,
+                'supplier_id' => $data['supplier_id'] ?? $checksheet->supplier_id,
+                'quantity' => $data['quantity'] ?? $checksheet->quantity,
+                'unique_code_id' => $data['unique_code_id'] ?? $checksheet->unique_code_id,
+                'sap_code' => $data['sap_code'] ?? $checksheet->sap_code,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
                 'injection_date' => $data['injection_date'],

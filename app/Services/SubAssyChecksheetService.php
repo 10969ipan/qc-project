@@ -66,6 +66,19 @@ class SubAssyChecksheetService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        // Operator Initials filter
+        if (!empty($filters['operator_initials'])) {
+            $query->where('operator_initials', $filters['operator_initials']);
+        }
+
+        // Customer filter
+        if (!empty($filters['customer'])) {
+            $customer = $filters['customer'];
+            $query->whereHas('item', function ($q) use ($customer) {
+                $q->where('customer', $customer);
+            });
+        }
+
         // Next Process filter
         if (!empty($filters['next_proses'])) {
             $query->where('next_proses', $filters['next_proses']);
@@ -115,6 +128,12 @@ class SubAssyChecksheetService extends BaseService
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
+                'qrcode' => !empty($data['qrcode']) ? $data['qrcode'] : null,
+                'part_code' => !empty($data['part_code']) ? $data['part_code'] : null,
+                'supplier_id' => !empty($data['supplier_id']) ? $data['supplier_id'] : null,
+                'quantity' => !empty($data['quantity']) ? $data['quantity'] : null,
+                'unique_code_id' => !empty($data['unique_code_id']) ? $data['unique_code_id'] : null,
+                'sap_code' => !empty($data['sap_code']) ? $data['sap_code'] : null,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
                 'line' => $data['line'],
@@ -204,6 +223,12 @@ class SubAssyChecksheetService extends BaseService
 
             $updateData = [
                 'item_id' => $data['item_id'],
+                'qrcode' => $data['qrcode'] ?? $checksheet->qrcode,
+                'part_code' => $data['part_code'] ?? $checksheet->part_code,
+                'supplier_id' => $data['supplier_id'] ?? $checksheet->supplier_id,
+                'quantity' => $data['quantity'] ?? $checksheet->quantity,
+                'unique_code_id' => $data['unique_code_id'] ?? $checksheet->unique_code_id,
+                'sap_code' => $data['sap_code'] ?? $checksheet->sap_code,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
                 'line' => $data['line'],

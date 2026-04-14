@@ -72,12 +72,17 @@
             <form action="{{ route('plating.store') }}" method="POST" id="checksheetForm">
                 @csrf
                 <input type="hidden" name="plant" value="karawang">
+                <input type="hidden" name="qrcode" id="qrcodeInput">
+                <input type="hidden" name="part_code" id="partCodeInput">
+                <input type="hidden" name="supplier_id" id="supplierIdInput">
+                <input type="hidden" name="quantity" id="quantityInput">
+                <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
 
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
-                                <th rowspan="2" style="vertical-align: middle;">Standard</th>
                                 <th rowspan="2" style="vertical-align: middle;">Item Part</th>
                                 <th rowspan="2" style="vertical-align: middle;">Injection<br>(Tgl / Shift)</th>
                                 <th rowspan="2" style="vertical-align: middle;">Plating<br>(Tgl / Shift / Lot)</th>
@@ -97,20 +102,22 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <!-- Ilustrasi Barang -->
-                                <td class="align-middle text-center" id="imageContainer">
-                                    <div
-                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                        <i class="fas fa-image fa-2x text-gray-300"></i>
-                                    </div>
-                                </td>
-
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold small">Kode SAP</label>
-                                        <input type="text" class="form-control form-control-sm" id="sapCodeInput"
-                                            placeholder="Kode SAP..." style="min-width: 120px;">
+                                        <label class="font-weight-bold small text-muted mb-1">
+                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control" id="sapCodeInput"
+                                                placeholder="Kode SAP..." autocomplete="off">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-primary" id="btnScanQR"
+                                                    title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold small">Item Part</label>
@@ -186,12 +193,6 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK (Pass
-                                            All)</label>
-                                    </div>
-                                    <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
@@ -215,21 +216,27 @@
                                         <span class="ok-label">OK</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0;" name="total_ok" placeholder="0" min="0" required readonly>
+                                            style="border-radius:0 4px 4px 0; background:#f0fdf4;" 
+                                            name="total_ok" value="0" min="0" required readonly>
                                     </div>
                                     <div class="d-flex align-items-center" style="gap:4px;">
                                         <span class="ng-label">NG</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0;" name="total_ng" id="totalNG" placeholder="0" min="0" required>
+                                            style="border-radius:0 4px 4px 0; background:#fef2f2;" 
+                                            name="total_ng" id="totalNG" value="0" min="0" required readonly>
                                     </div>
                                 </td>
 
                                 <!-- Judgment -->
-                                <td class="align-middle">
+                                <td class="align-middle text-center" style="min-width: 150px;">
+                                    <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
+                                        style="border: 2px solid transparent;">
+                                        -
+                                    </div>
                                     <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
-                                        style="min-width: 100px;" required>
-                                        <option value="" disabled selected>Result</option>
+                                        required>
+                                        <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
                                         <option value="NG" class="text-danger">NG</option>
                                     </select>
@@ -237,9 +244,10 @@
 
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 80px;"
+                                    <input type="text" class="form-control text-center"
+                                        style="min-width: 80px; text-transform: uppercase;"
                                         name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
-                                        placeholder="Inisial" required>
+                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
                                 </td>
 
                                 <!-- Keterangan -->
@@ -424,6 +432,25 @@
         </div>
     </div>
 
+    <!-- Modal Pemindai QR -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body p-0 text-center">
+                    <div id="qr-reader" style="width: 100%"></div>
+                    <div id="qr-reader-results" class="p-3 d-none">
+                         <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
+                         <p class="mt-2 mb-0">Sedang memproses data QR...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Gambar -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -446,13 +473,16 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
-    <script src="{{ asset('js/checksheet/plating.js') }}"></script>
+    <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('js/checksheet/plating.js') }}?v={{ time() }}"></script>
     <script>
         $(document).ready(function () {
             window.initPlatingCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfRoute: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
+            window.initItemSearch('itemSelect');
         });
     </script>
 @endpush

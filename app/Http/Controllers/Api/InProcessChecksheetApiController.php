@@ -16,16 +16,36 @@ class InProcessChecksheetApiController extends Controller
      */
     public function checkStatus($unique_code_id)
     {
-        // Cari data checksheet berdasarkan unique_code_id
-        $checksheet = InProcessChecksheet::where('unique_code_id', $unique_code_id)
-            ->with(['item']) // Load data item jika perlu rincian part
-            ->latest()
-            ->first();
+        // Daftar model yang akan dicek secara berurutan
+        $modelsToCheck = [
+            'In-Process' => \App\Models\InProcessChecksheet::class,
+            'Sub Assy' => \App\Models\SubAssyChecksheet::class,
+            'Double Tape' => \App\Models\DoubleTapeChecksheet::class,
+            'Plating' => \App\Models\PlatingChecksheet::class,
+        ];
 
-        if (!$checksheet) {
+        $foundChecksheet = null;
+        $processType = '';
+
+        foreach ($modelsToCheck as $processName => $modelClass) {
+            if (class_exists($modelClass)) {
+                $checksheet = $modelClass::where('unique_code_id', $unique_code_id)
+                    ->with(['item'])
+                    ->latest()
+                    ->first();
+                    
+                if ($checksheet) {
+                    $foundChecksheet = $checksheet;
+                    $processType = $processName;
+                    break; // Berhenti mencari jika sudah ketemu
+                }
+            }
+        }
+
+        if (!$foundChecksheet) {
             return response()->json([
                 'success' => false,
-                'message' => 'Part pada unique code ini belum di QC',
+                'message' => 'Part pada unique code ini belum melewati tahapan QC manapun.',
                 'unique_code_id' => $unique_code_id,
                 'status_qc' => 'PENDING'
             ], 404);
@@ -35,13 +55,14 @@ class InProcessChecksheetApiController extends Controller
             'success' => true,
             'message' => 'Data QC ditemukan.',
             'data' => [
-                'unique_code_id' => $checksheet->unique_code_id,
-                'part_name' => $checksheet->item ? $checksheet->item->name : 'N/A',
-                'part_code' => $checksheet->part_code,
-                'judgment' => $checksheet->judgment, 
-                'inspector_initials' => $checksheet->operator_initials,
-                'qc_date' => $checksheet->date,
-                'shift' => $checksheet->shift,
+                'unique_code_id' => $foundChecksheet->unique_code_id,
+                'process_type' => $processType,
+                'part_name' => $foundChecksheet->item ? $foundChecksheet->item->name : 'N/A',
+                'part_code' => $foundChecksheet->part_code,
+                'judgment' => $foundChecksheet->judgment, 
+                'inspector_initials' => $foundChecksheet->operator_initials,
+                'qc_date' => $foundChecksheet->date,
+                'shift' => $foundChecksheet->shift,
                 'status_qc' => 'COMPLETED'
             ]
         ], 200);

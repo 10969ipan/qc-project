@@ -11,7 +11,7 @@
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
     #checksheetTable {
-        border-collapse: collapse !important;
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
@@ -36,25 +36,32 @@
     #checksheetTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
-        background-color: #f8fafc !important;
+        background-color: #f8fafc !important; /* Solid background for opacity */
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 0.62rem !important;
+        font-size: 0.62rem !important; /* Matched to in-process */
         letter-spacing: 0.2px;
-        padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
+        padding: 6px 12px !important; /* Matched to in-process */
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
-        white-space: nowrap !important; /* Force all headers to be side-by-side */
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1;
     }
 
-    /* Forced overrides for compact view */
+    #checksheetTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
+    }
+
+    /* Forced overrides for compact view - consistency with In-Process */
     #checksheetTable td.no-export {
         min-width: 0 !important;
-        white-space: nowrap !important; 
+        white-space: nowrap !important;
     }
     #checksheetTable .btn {
         min-width: 0 !important; /* Overrides 110px inline style */
@@ -71,29 +78,47 @@
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 35px !important; 
+        height: 48px !important;
     }
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 35px !important; 
+        top: 48px !important; 
         z-index: 104 !important;
-        height: 30px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        height: 38px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
+    
+    /* Robust fix for rowspan headers to match sum of row heights */
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 65px !important; 
+        top: 0 !important;
+        height: 86px !important; /* 48 + 38 */
+        z-index: 106 !important;
+    }
+    
+    #checksheetTable .btn-qr-detail {
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        transition: transform 0.1s;
+    }
+    #checksheetTable .btn-qr-detail:hover {
+        transform: scale(1.05);
     }
 </style>
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
-
-        // Resolve menu ID for permission checks
-        $currentMenu = \App\Models\AppMenu::where('route', 'admin.checksheets.index')->first();
-        $menuId = $currentMenu ? $currentMenu->id : null;
-        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
-        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+        
+        // Resolve menu IDs for permission checks (support for duplicate plant routes)
+        $menuIds = \App\Models\AppMenu::where('route', 'admin.checksheets.index')->pluck('id');
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuIds->isNotEmpty()) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            foreach ($menuIds as $mId) {
+                if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
+                if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
+                if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
+            }
+        }
     @endphp
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -152,28 +177,67 @@
 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                <!-- Field: Cari -->
+                <!-- Field: Part -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama item, part no..."
-                        value="{{ request('search') }}">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 240px;" class="custom-filter-wrapper">
+                        <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Item / Part No.</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Field: Tanggal -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Dari:</label>
-                    <input type="date" name="start_date" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;" value="{{ request('start_date') }}">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-2 text-gray-500 small">-</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                    </div>
                 </div>
+
+                <!-- Field: Inisial -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Sampai:</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;" value="{{ request('end_date') }}">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Inisial:</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: Customer -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
+                    <div style="width: 130px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                        .custom-filter-wrapper { position: relative; top: -1px; }
+                    </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
                         <i class="fas fa-search fa-sm"></i>
                     </button>
@@ -212,6 +276,7 @@
                         @endphp
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">No</th>
+                            <th rowspan="2" class="align-middle">QR-Code</th>
                             <th rowspan="2" class="align-middle">Tanggal</th>
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
@@ -240,15 +305,26 @@
                             <th>Jenis NG</th>
                             <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
                             </th>
-                            <th style="font-size: 10px;"><x-approval-label level="supervisor" /></th>
-                            <th style="font-size: 10px;"><x-approval-label level="asst_manager" /></th>
-                            <th style="font-size: 10px;"><x-approval-label level="manager" /></th>
+                            <th style="font-size: 10px;">Supervisor QC</th>
+                            <th style="font-size: 10px;">Asst. Manager QC</th>
+                            <th style="font-size: 10px;">Manager QC</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                <td class="align-middle">
+                                    <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
+                                        data-qr="{{ $checksheet->qrcode }}"
+                                        data-part="{{ $checksheet->part_code ?? '-' }}"
+                                        data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
+                                        data-qty="{{ $checksheet->quantity ?? '-' }}"
+                                        data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
+                                        data-sap="{{ $checksheet->sap_code ?? '-' }}">
+                                        <i class="fas fa-qrcode"></i> View
+                                    </button>
+                                </td>
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
                                 </td>
@@ -714,33 +790,112 @@
         @endforeach
     @endforeach
 
+    {{-- Modal Traceability QR Code --}}
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="qrModalLabel">
+                        <i class="fas fa-qrcode mr-2"></i> Traceability QR Code
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped">
+                        <tr>
+                            <th style="width: 25%">QR Raw</th>
+                            <td id="modal-qr-raw" style="word-break: break-all; font-family: monospace;"></td>
+                        </tr>
+                        <tr>
+                            <th>Part Code</th>
+                            <td id="modal-qr-part"></td>
+                        </tr>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <td id="modal-qr-supplier"></td>
+                        </tr>
+                        <tr>
+                            <th>Qty</th>
+                            <td id="modal-qr-qty"></td>
+                        </tr>
+                        <tr>
+                            <th>Unique ID</th>
+                            <td id="modal-qr-unique"></td>
+                        </tr>
+                        <tr>
+                            <th>SAP Code</th>
+                            <td id="modal-qr-sap"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/sub-assy.js') }}"></script>
     <script>
         $(document).ready(function () {
-            window.initSubAssyIndex();
-        });
+            if (typeof window.initSubAssyIndex === 'function') {
+                window.initSubAssyIndex();
+            }
 
-        // Auto-submit filter
-        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Custom Search (Matches In-Process behavior)
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+                initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
+                initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+            }
+
             var form = document.getElementById('filterFormSubAssy');
-            if (!form) return;
+            if (form) {
+                // Link Synchronization (Sync Print/Export links with current filter selections)
+                function syncExportLinks() {
+                    var baseUrlPrint = "{{ route('admin.checksheets.print') }}";
+                    var baseUrlPdf = "{{ route('admin.checksheets.export_pdf') }}";
+                    
+                    var params = new URLSearchParams();
+                    var formData = new FormData(form);
+                    for (var pair of formData.entries()) {
+                        if (pair[1]) params.append(pair[0], pair[1]);
+                    }
+                    
+                    var queryString = params.toString();
+                    
+                    var printBtn = form.querySelector('a[title="Print"]');
+                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    
+                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
+                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                }
 
-            function debounce(fn, delay) {
-                var timer;
-                return function () { clearTimeout(timer); timer = setTimeout(fn, delay); };
+                $(form).find('input, select').on('change', syncExportLinks);
+                // Also sync on initial load
+                syncExportLinks();
+
+                $(form).on('submit', function(e) {
+                    var startDate = document.getElementById('start_date').value;
+                    var endDate = document.getElementById('end_date').value;
+
+                    if (startDate && endDate && startDate > endDate) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Rentang Tanggal Tidak Valid',
+                            text: 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir.',
+                            confirmButtonColor: '#4e73df'
+                        });
+                    }
+                });
             }
-
-            var searchInput = form.querySelector('input[name="search"]');
-            if (searchInput) {
-                searchInput.addEventListener('input', debounce(function () { form.submit(); }, 500));
-            }
-
-            form.querySelectorAll('input[type="date"]').forEach(function (el) {
-                el.addEventListener('change', function () { form.submit(); });
-            });
         });
     </script>
     @php $bulkApproveRoute = route('admin.checksheets.bulk_approve'); @endphp

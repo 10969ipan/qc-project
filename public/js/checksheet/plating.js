@@ -11,6 +11,8 @@ class PlatingIndex {
     init() {
         this.initLiveSearch();
         this.initAjaxModals();
+        this.initAjaxForms();
+        this.initQRDetail();
     }
 
     initLiveSearch() {
@@ -18,16 +20,18 @@ class PlatingIndex {
         if (!liveSearchInput) return;
         
         let searchTimeout;
-        liveSearchInput.addEventListener('keyup', () => {
+        liveSearchInput.addEventListener('input', () => {
             const searchTerm = liveSearchInput.value.trim();
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 const startDate = document.getElementById('start_date').value;
                 const endDate = document.getElementById('end_date').value;
-                const params = new URLSearchParams();
-                if (searchTerm) params.append('search', searchTerm);
-                if (startDate) params.append('start_date', startDate);
-                if (endDate) params.append('end_date', endDate);
+                const params = new URLSearchParams(window.location.search);
+                if (searchTerm) params.set('search', searchTerm);
+                else params.delete('search');
+                if (startDate) params.set('start_date', startDate);
+                if (endDate) params.set('end_date', endDate);
+                params.delete('page');
                 window.location.href = this.config.indexRoute + '?' + params.toString();
             }, 500);
         });
@@ -45,7 +49,11 @@ class PlatingIndex {
                     $('#editModalBody').html(response);
                     if (window.initPlatingEdit) window.initPlatingEdit();
                 },
-                error: () => { $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data.</div>'); }
+                error: (xhr) => { 
+                    let message = 'Gagal memuat data.';
+                    if (xhr.status === 403) message = 'Akses ditolak.';
+                    $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>'); 
+                }
             });
         });
 
@@ -61,6 +69,65 @@ class PlatingIndex {
             });
         });
     }
+
+    initAjaxForms() {
+        $(document).on('submit', '.ajax-form', function (e) {
+            const $form = $(this);
+            e.preventDefault();
+
+            const $submitBtn = $form.find('button[type="submit"]');
+            const $modalErrors = $form.find('#modal-errors');
+            const originalBtnHtml = $submitBtn.html();
+
+            $modalErrors.hide().empty();
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        window.location.reload();
+                    } else {
+                        $modalErrors.html('<div class="alert alert-danger">' + (response.message || 'Terjadi kesalahan saat menyimpan data.') + '</div>').fadeIn();
+                        $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    }
+                },
+                error: function (xhr) {
+                    $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0 small">';
+                        $.each(errors, function (field, messages) {
+                            errorHtml += '<li>' + messages[0] + '</li>';
+                            $form.find('[name="' + field + '"]').addClass('is-invalid');
+                        });
+                        errorHtml += '</ul></div>';
+                        $modalErrors.html(errorHtml).fadeIn();
+                    } else {
+                        const message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
+                        $modalErrors.html('<div class="alert alert-danger">' + message + '</div>').fadeIn();
+                    }
+                }
+            });
+        });
+    }
+
+    initQRDetail() {
+        $(document).on('click', '.btn-qr-detail', function() {
+            const data = $(this).data();
+            $('#modal-qr-raw').text(data.qr || '-');
+            $('#modal-qr-part').text(data.part || '-');
+            $('#modal-qr-supplier').text(data.supplier || '-');
+            $('#modal-qr-qty').text(data.qty || '-');
+            $('#modal-qr-unique').text(data.unique || '-');
+            $('#modal-qr-sap').text(data.sap || '-');
+            $('#qrModal').modal('show');
+        });
+    }
 }
 
 class PlatingCreate {
@@ -73,6 +140,7 @@ class PlatingCreate {
             modalDoc: null, modalPage: 1, modalScale: 1.5, currentModalType: ''
         };
         this.pdfCache = {};
+        this.html5QrCode = null;
         this.init();
     }
 
@@ -87,7 +155,11 @@ class PlatingCreate {
         this.initSapSelection();
         this.initDefectManagement();
         this.initJudgmentLogic();
+        this.initQRScanner();
         this.initFormSubmit();
+
+        // Inisialisasi awal untuk logic kalkulasi & judgment
+        this.updateJudgment();
     }
 
     lockInputs(lock) {
@@ -123,20 +195,84 @@ class PlatingCreate {
         });
     }
 
+    initQRScanner() {
+        $('#btnScanQR').on('click', () => {
+            $('#qrScannerModal').modal('show');
+            $('#qr-reader-results').addClass('d-none');
+            
+            if (!this.html5QrCode) {
+                this.html5QrCode = new Html5Qrcode("qr-reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            this.html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                (decodedText) => this.handleQRScanned(decodedText)
+            ).catch(err => {
+                console.error("Gagal menjalankan kamera:", err);
+                Swal.fire('Error', 'Gagal mengakses kamera. Pastikan izin kamera diberikan.', 'error');
+            });
+        });
+
+        $('#qrScannerModal').on('hidden.bs.modal', () => {
+            if (this.html5QrCode && this.html5QrCode.isScanning) {
+                this.html5QrCode.stop().catch(err => console.error(err));
+            }
+        });
+    }
+
+    handleQRScanned(decodedText) {
+        if (this.html5QrCode) {
+            this.html5QrCode.stop().then(() => {
+                $('#qrScannerModal').modal('hide');
+                this.parseAndFillQR(decodedText);
+            }).catch(err => {
+                console.error(err);
+                $('#qrScannerModal').modal('hide');
+                this.parseAndFillQR(decodedText);
+            });
+        }
+    }
+
+    parseAndFillQR(decodedText) {
+        $('#qrcodeInput').val(decodedText);
+        const parts = decodedText.split('|');
+        if (parts.length >= 6) {
+            const sapCode = parts[0].trim();
+            const partCode = parts[1].trim();
+            const supplierId = parts[2].trim();
+            const quantity = parts[4].trim();
+            const uniqueCode = parts[5].trim();
+
+            $('#sapCodeInput').val(sapCode);
+            $('#partCodeInput').val(partCode);
+            $('#supplierIdInput').val(supplierId);
+            $('#quantityInput').val(quantity);
+            $('#uniqueCodeInput').val(uniqueCode);
+            $('#sapCodeInputHidden').val(sapCode);
+
+            $('#sapCodeInput').trigger('input');
+            $('#totalQty').val(quantity).trigger('input');
+            
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Data QR berhasil dimuat: ' + uniqueCode
+            });
+        } else {
+            Swal.fire('Format QR Salah', 'Data QR tidak sesuai standar (' + decodedText + ')', 'warning');
+        }
+    }
+
     initItemSelection() {
         $('#itemSelect').change(() => {
             const selected = $('#itemSelect option:selected');
-            const img = selected.data('image');
-            const name = selected.data('name');
-            const desc = selected.data('description');
-            const defects = selected.data('defects');
-
-            if (img) {
-                $('#imageContainer').html(`<img src="${img}" class="img-thumbnail" style="max-width:100px; cursor:pointer;" data-toggle="modal" data-target="#imageModal" onclick="$('#modalImage').attr('src', '${img}'); $('#modalTitle').text('${name}'); $('#modalDescription').text('${desc}');">`);
-            } else {
-                $('#imageContainer').html('<div style="width:100px; height:100px; background-color:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; margin:0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
-            }
-
             const defectSelect = $('#defectSelect');
             defectSelect.html('<option value="">-- Pilih Defect --</option>');
             
@@ -394,20 +530,23 @@ class PlatingCreate {
     initJudgmentLogic() {
         $('#totalQty, #totalNG').on('input', () => this.updateJudgment());
         
-        $('#checkOK').change((e) => {
-            if ($(e.target).is(':checked')) {
-                $('#totalNG').val(0).trigger('input');
-                $('#defectContainer').find('.defect-row').not(':first').remove();
-                $('.defect-select').val('');
-                $('.defect-qty').val('');
-                $('#judgmentSelect').val('OK').trigger('change');
-            }
-        });
-
         $('#judgmentSelect').change((e) => {
             const val = $(e.target).val();
-            if (val === 'NG') $('#nextProsesContainer').show();
-            else $('#nextProsesContainer').hide();
+            const badge = $('#judgmentBadge');
+            
+            if (val === 'OK') {
+                badge.text('OK').removeClass('d-none text-danger border-danger').addClass('text-success border-success').css('background', '#f0fdf4');
+            } else if (val === 'NG') {
+                badge.text('NG').removeClass('d-none text-success border-success').addClass('text-danger border-danger').css('background', '#fef2f2');
+                $('#nextProsesContainer').show();
+            } else {
+                badge.addClass('d-none').text('-');
+                $('#nextProsesContainer').hide();
+            }
+            
+            if (val !== 'NG' && parseInt($('input[name="total_ng"]').val()) === 0) {
+                $('#nextProsesContainer').hide();
+            }
         });
     }
 
@@ -421,13 +560,8 @@ class PlatingCreate {
         if (lotSize >= 501) return 80;
         if (lotSize >= 281) return 50;
         if (lotSize >= 151) return 32;
-        if (lotSize >= 91) return 20;
-        if (lotSize >= 51) return 13;
-        if (lotSize >= 26) return 8;
-        if (lotSize >= 16) return 5;
-        if (lotSize >= 9) return 3;
-        if (lotSize >= 2) return 2;
-        return 0;
+        if (lotSize >= 20) return 20;
+        return lotSize;
     }
 
     getAqlLimits(sampleSize) {
@@ -438,6 +572,8 @@ class PlatingCreate {
         if (sampleSize >= 200) return { acc: 3, rej: 4 };
         if (sampleSize >= 125) return { acc: 2, rej: 3 };
         if (sampleSize >= 80) return { acc: 1, rej: 2 };
+        if (sampleSize >= 50) return { acc: 1, rej: 2 };
+        if (sampleSize >= 32) return { acc: 0, rej: 1 };
         if (sampleSize >= 20) return { acc: 0, rej: 1 };
         return { acc: 0, rej: 1 };
     }
@@ -487,8 +623,11 @@ class PlatingCreate {
     }
 
     initFormSubmit() {
-        $('#checksheetForm').on('submit', (e) => {
+        $(document).on('submit', '#checksheetForm', (e) => {
+            const $form = $(e.target);
             e.preventDefault();
+
+            console.log('Submitting Plating Form...');
             const judgment = $('#judgmentSelect').val();
             const nextProses = $('#nextProses').val();
 
@@ -555,6 +694,8 @@ class PlatingCreate {
         $('#itemSelect').val('').trigger('change');
         $('#aql_info').hide();
         $('#nextProsesContainer').hide();
+        $('#judgmentBadge').addClass('d-none').text('-');
+        $('#judgmentSelect').val('');
 
         $('#standardPdfCanvas, #similarPdfCanvas').hide();
         $('#standardPdfPlaceholder').show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
@@ -563,6 +704,10 @@ class PlatingCreate {
         $('.standard-nav-controls, .similar-nav-controls').hide();
         
         this.pdf = { ...this.pdf, standardDoc: null, standardPage: 1, standardFileIdx: 0, standardFiles: [], similarDoc: null, similarPage: 1 };
+
+        // Reset QR fields
+        $('#qrcodeInput, #partCodeInput, #supplierIdInput, #quantityInput, #uniqueCodeInput, #sapCodeInputHidden').val('');
+        $('#sapCodeInput').removeClass('is-valid is-invalid').val('');
     }
 }
 

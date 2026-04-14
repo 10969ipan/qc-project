@@ -131,21 +131,22 @@
                 style="gap: 10px;" id="filterFormItems">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
+                <input type="hidden" name="f_search" id="hiddenSearchInput" value="{{ request('f_search', request('search')) }}">
 
                 <!-- Field: Part (Dropdown Item Search) -->
                 <div class="d-flex align-items-center flex-grow-1" style="max-width: 500px;">
                     <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
                     <div style="width: 400px;" class="custom-filter-wrapper flex-grow-1">
-                        <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                        <select name="f_item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($allItemsList as $itm)
-                                <option value="{{ $itm->name }}" 
+                                <option value="{{ $itm->id }}" 
                                     data-name="{{ $itm->name }}" 
                                     data-part-number="{{ $itm->part_number }}"
                                     data-customer="{{ $itm->customer }}"
                                     data-sap-code="{{ $itm->sap_code }}"
                                     data-detail="{{ optional($itm->category)->name }}"
-                                    {{ request('search') == $itm->name ? 'selected' : '' }}>
+                                    {{ request('item_id') == $itm->id ? 'selected' : '' }}>
                                     {{ $itm->name }} {{ $itm->part_number ? '- '.$itm->part_number : '' }}
                                 </option>
                             @endforeach
@@ -170,6 +171,37 @@
                     </a>
                 </div>
             </form>
+
+            @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Sync the proxy input text for broad search capability
+                    setTimeout(function() {
+                        const proxyInput = document.querySelector('.custom-filter-wrapper .ips-input');
+                        const hiddenSearch = document.getElementById('hiddenSearchInput');
+                        const itemSelect = document.getElementById('filterItem');
+
+                        if (proxyInput && hiddenSearch) {
+                            // If we have a search value but no item_id, populate the proxy input for visual consistency
+                            if (hiddenSearch.value && !itemSelect.value) {
+                                proxyInput.value = hiddenSearch.value;
+                            }
+
+                            proxyInput.addEventListener('input', function() {
+                                hiddenSearch.value = this.value;
+                            });
+
+                            // Handle clear button click
+                            document.addEventListener('mousedown', function(e) {
+                                if (e.target.classList.contains('ips-clear') && e.target.closest('.custom-filter-wrapper')) {
+                                    hiddenSearch.value = '';
+                                }
+                            });
+                        }
+                    }, 500); 
+                });
+            </script>
+            @endpush
 
             <div class="table-responsive">
                 <table id="checksheetTable" class="table" width="100%" cellspacing="0">
@@ -369,9 +401,23 @@
                                     <select name="category_id" id="edit_category_id" class="form-control form-control-sm @error('category_id') is-invalid @enderror"
                                         required>
                                         <option value="">Pilih Kategori</option>
-                                        @foreach($categories as $cat)
-                                            <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                        @endforeach
+                                        @if(!$plantCode)
+                                            @foreach($categories->groupBy('plant_id') as $pId => $group)
+                                                <optgroup label="{{ strtoupper(optional($group->first()->plant)->name ?? 'N/A') }}">
+                                                    @foreach($group as $cat)
+                                                        <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                                            {{ $cat->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        @else
+                                            @foreach($categories as $cat)
+                                                <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                                    {{ $cat->name }}
+                                                </option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                     @error('category_id')
                                         <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
@@ -536,10 +582,23 @@
                                     <select name="category_id" id="modal_category_select"
                                         class="form-control form-control-sm @error('category_id') is-invalid @enderror" required>
                                         <option value="">Pilih Kategori</option>
-                                        @foreach($categories as $cat)
-                                            <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}
-                                            </option>
-                                        @endforeach
+                                        @if(!$plantCode)
+                                            @foreach($categories->groupBy('plant_id') as $pId => $group)
+                                                <optgroup label="{{ strtoupper(optional($group->first()->plant)->name ?? 'N/A') }}">
+                                                    @foreach($group as $cat)
+                                                        <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                                            {{ $cat->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        @else
+                                            @foreach($categories as $cat)
+                                                <option value="{{ $cat->id }}" data-plant="{{ $cat->plant_id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                                    {{ $cat->name }}
+                                                </option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                     @error('category_id')
                                         <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>

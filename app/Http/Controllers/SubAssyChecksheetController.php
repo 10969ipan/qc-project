@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Services\GoogleSheetService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Helpers\ActivityLogger;
+use Illuminate\Support\Facades\Log;
 
 class SubAssyChecksheetController extends Controller
 {
@@ -108,9 +109,25 @@ class SubAssyChecksheetController extends Controller
         ];
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::orderBy('name')->get();
 
-        return view('sub_assy.index', compact('checksheets', 'items'));
+        // Data for filters (Standardized with Cross-Cut)
+        $plantId = \App\Models\Plant::resolveId($filters['plant']);
+        
+        $items = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('sub_assy_checksheets')->where('plant_id', $plantId);
+        })->orderBy('name')->get();
+
+        $customers = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('sub_assy_checksheets')->where('plant_id', $plantId);
+        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+
+        $initials = SubAssyChecksheet::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials')
+            ->distinct()
+            ->pluck('operator_initials')
+            ->sort();
+
+        return view('sub_assy.index', compact('checksheets', 'items', 'customers', 'initials'));
     }
 
     // Tampilkan form (diupdate untuk mengirim data items)
@@ -139,12 +156,13 @@ class SubAssyChecksheetController extends Controller
         }
 
         $items = $query->get();
+        $plantParam = $request->query('plant') ?? $user->plant_id;
 
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift'));
+        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift', 'plantParam'));
     }
 
     // Simpan data (submission)
@@ -153,15 +171,19 @@ class SubAssyChecksheetController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action.');
         }
-        $result = $this->checksheetService->createChecksheet(
-            $request->validated(),
-            fn($checksheet) => $this->mapExportRow($checksheet)
-        );
 
-        if ($result['checksheet']) {
-            $checksheet = $result['checksheet'];
-            ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Sub Assy baru: {$checksheet->item->name}");
-            $message = 'Data Checksheet berhasil disimpan.';
+        try {
+            $result = $this->checksheetService->createChecksheet(
+                $request->validated(),
+                fn($checksheet) => $this->mapExportRow($checksheet)
+            );
+
+            if ($result['checksheet']) {
+                $checksheet = $result['checksheet'];
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Sub Assy baru: {$checksheet->item->name}");
+            }
+
+            $message = 'Data Checksheet Sub Assy berhasil disimpan.';
             $plantParam = $request->input('plant') ?? auth()->user()->plant_id;
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -172,16 +194,21 @@ class SubAssyChecksheetController extends Controller
                 ]);
             }
 
-            return redirect()->route('checksheet.sub_assy', ['plant' => $plantParam])
-                ->with('success', $message);
-        } else {
+            return redirect()->route('admin.checksheets.index', ['plant' => $plantParam])->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Error saving Sub Assy checksheet', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id()
+            ]);
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menyimpan data.'
+                    'message' => 'Gagal menyimpan data: ' . $e->getMessage()
                 ], 422);
             }
-            return redirect()->back()->with('error', 'Gagal menyimpan data.');
+            return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 

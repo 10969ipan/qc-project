@@ -63,6 +63,12 @@
                 @csrf
                 <input type="hidden" name="check_type" id="checkTypeHidden" value="sampling">
                 <input type="hidden" name="plant" value="karawang">
+                <input type="hidden" name="qrcode" id="qrcodeInput">
+                <input type="hidden" name="part_code" id="partCodeInput">
+                <input type="hidden" name="supplier_id" id="supplierIdInput">
+                <input type="hidden" name="quantity" id="quantityInput">
+                <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
 
                 <div class="alert alert-info mb-3">
                     <div class="row align-items-center">
@@ -108,9 +114,20 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold">Kode SAP</label>
-                                        <input type="text" class="form-control" id="sapCodeInput"
-                                            placeholder="Ketik Kode SAP..." style="min-width: 200px;">
+                                        <label class="font-weight-bold small text-muted mb-1">
+                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control" id="sapCodeInput"
+                                                placeholder="Ketik Kode SAP..." autocomplete="off">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-primary" id="btnScanQR"
+                                                    title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode"></i>
+                                                    <span class="d-none d-md-inline ml-1">Scan QR</span>
+                                                </button>
+                                            </div>
+                                        </div>
                                         <small class="text-muted">Auto-select item berdasarkan SAP code</small>
                                     </div>
                                     <div class="form-group mb-0">
@@ -224,9 +241,10 @@
 
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                    <input type="text" class="form-control text-center"
+                                        style="min-width: 60px; text-transform: uppercase;"
                                         name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
-                                        placeholder="Inisial" required>
+                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
                                 </td>
 
                                 <!-- Keterangan -->
@@ -378,6 +396,25 @@
         </div>
     </div>
 
+    <!-- Modal Pemindai QR -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body p-0 text-center">
+                    <div id="qr-reader" style="width: 100%"></div>
+                    <div id="qr-reader-results" class="p-3 d-none">
+                         <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
+                         <p class="mt-2 mb-0">Sedang memproses data QR...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Gambar -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
         aria-hidden="true">
@@ -470,8 +507,9 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
-    <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
+    <script src="{{ asset('js/checksheet/double-tape.js') }}?v={{ time() }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.initDoubleTapeCreate({

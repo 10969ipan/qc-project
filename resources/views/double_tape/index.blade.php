@@ -208,6 +208,7 @@
                     <thead>
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">No</th>
+                            <th rowspan="2" class="align-middle" style="width: 80px;">View</th>
                             <th rowspan="2" class="align-middle">Tanggal</th>
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
@@ -243,7 +244,18 @@
                     <tbody>
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
-                                <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                <td class="align-middle text-center">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                <td class="align-middle text-center">
+                                    <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
+                                        data-qr="{{ $checksheet->qrcode }}"
+                                        data-part="{{ $checksheet->part_code ?? '-' }}"
+                                        data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
+                                        data-qty="{{ $checksheet->quantity ?? '-' }}"
+                                        data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
+                                        data-sap="{{ $checksheet->sap_code ?? '-' }}">
+                                        <i class="fas fa-qrcode"></i> View
+                                    </button>
+                                </td>
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
                                 </td>
@@ -636,6 +648,53 @@
             </div>
         @endforeach
     @endforeach
+
+    {{-- Modal Traceability QR Code --}}
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="qrModalLabel">
+                        <i class="fas fa-qrcode mr-2"></i> Traceability QR Code
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped">
+                        <tr>
+                            <th style="width: 25%">QR Raw</th>
+                            <td id="modal-qr-raw" style="word-break: break-all; font-family: monospace;"></td>
+                        </tr>
+                        <tr>
+                            <th>Part Code</th>
+                            <td id="modal-qr-part"></td>
+                        </tr>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <td id="modal-qr-supplier"></td>
+                        </tr>
+                        <tr>
+                            <th>Qty</th>
+                            <td id="modal-qr-qty"></td>
+                        </tr>
+                        <tr>
+                            <th>Unique ID</th>
+                            <td id="modal-qr-unique"></td>
+                        </tr>
+                        <tr>
+                            <th>SAP Code</th>
+                            <td id="modal-qr-sap"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @endsection
 

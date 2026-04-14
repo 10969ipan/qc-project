@@ -15,22 +15,22 @@ class DoubleTapeIndex {
     init() {
         this.initLiveSearch();
         this.initModals();
+        this.initAjaxForms();
+        this.initQRDetail();
     }
 
     initLiveSearch() {
         const liveSearchInput = document.getElementById('liveSearch');
         if (liveSearchInput) {
             let searchTimeout;
-            liveSearchInput.addEventListener('keyup', () => {
+            liveSearchInput.addEventListener('input', () => {
                 const searchTerm = liveSearchInput.value.trim();
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     const params = new URLSearchParams(window.location.search);
-                    if (searchTerm) {
-                        params.set('search', searchTerm);
-                    } else {
-                        params.delete('search');
-                    }
+                    if (searchTerm) params.set('search', searchTerm);
+                    else params.delete('search');
+                    params.delete('page');
                     window.location.href = `${this.config.indexRoute}?${params.toString()}`;
                 }, 500);
             });
@@ -39,7 +39,7 @@ class DoubleTapeIndex {
 
     initModals() {
         // Modal Edit
-        $('.btn-edit-modal').on('click', (e) => {
+        $(document).on('click', '.btn-edit-modal', (e) => {
             e.preventDefault();
             const url = $(e.currentTarget).attr('href');
             $('#editModal').modal('show');
@@ -47,12 +47,16 @@ class DoubleTapeIndex {
             $.ajax({
                 url: url,
                 success: (response) => { $('#editModalBody').html(response); },
-                error: () => { $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data.</div>'); }
+                error: (xhr) => { 
+                    let message = 'Gagal memuat data.';
+                    if (xhr.status === 403) message = 'Akses ditolak.';
+                    $('#editModalBody').html('<div class="alert alert-danger">' + message + '</div>'); 
+                }
             });
         });
 
         // Modal Status
-        $('.btn-status-modal').on('click', (e) => {
+        $(document).on('click', '.btn-status-modal', (e) => {
             e.preventDefault();
             const url = $(e.currentTarget).attr('href');
             $('#statusModal').modal('show');
@@ -62,6 +66,65 @@ class DoubleTapeIndex {
                 success: (response) => { $('#statusModalBody').html(response); },
                 error: () => { $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data.</div>'); }
             });
+        });
+    }
+
+    initAjaxForms() {
+        $(document).on('submit', '.ajax-form', function (e) {
+            const $form = $(this);
+            e.preventDefault();
+
+            const $submitBtn = $form.find('button[type="submit"]');
+            const $modalErrors = $form.find('#modal-errors');
+            const originalBtnHtml = $submitBtn.html();
+
+            $modalErrors.hide().empty();
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        window.location.reload();
+                    } else {
+                        $modalErrors.html('<div class="alert alert-danger">' + (response.message || 'Terjadi kesalahan saat menyimpan data.') + '</div>').fadeIn();
+                        $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    }
+                },
+                error: function (xhr) {
+                    $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0 small">';
+                        $.each(errors, function (field, messages) {
+                            errorHtml += '<li>' + messages[0] + '</li>';
+                            $form.find('[name="' + field + '"]').addClass('is-invalid');
+                        });
+                        errorHtml += '</ul></div>';
+                        $modalErrors.html(errorHtml).fadeIn();
+                    } else {
+                        const message = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem.';
+                        $modalErrors.html('<div class="alert alert-danger">' + message + '</div>').fadeIn();
+                    }
+                }
+            });
+        });
+    }
+
+    initQRDetail() {
+        $(document).on('click', '.btn-qr-detail', function() {
+            const data = $(this).data();
+            $('#modal-qr-raw').text(data.qr || '-');
+            $('#modal-qr-part').text(data.part || '-');
+            $('#modal-qr-supplier').text(data.supplier || '-');
+            $('#modal-qr-qty').text(data.qty || '-');
+            $('#modal-qr-unique').text(data.unique || '-');
+            $('#modal-qr-sap').text(data.sap || '-');
+            $('#qrModal').modal('show');
         });
     }
 }
@@ -99,6 +162,9 @@ class DoubleTapeCreate {
         this.totalPdfFiles = 0;
         this.currentItemId = null;
 
+        // QR Scanner Logic
+        this.html5QrCode = null;
+
         this.init();
     }
 
@@ -114,7 +180,12 @@ class DoubleTapeCreate {
         this.initPDFSideBySide();
         this.initPDFModal();
         this.initImageZoom();
+        this.initQRScanner();
         this.initFormSubmission();
+
+        // Inisialisasi awal untuk logic kalkulasi & judgment
+        this.calculateTotalNG();
+        this.updateJudgment();
 
         // Picu jika item dipilih saat dimuat
         setTimeout(() => {
@@ -127,6 +198,81 @@ class DoubleTapeCreate {
     initPdfJS() {
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = this.config.pdfWorkerSrc;
+        }
+    }
+
+    initQRScanner() {
+        $('#btnScanQR').on('click', () => {
+            $('#qrScannerModal').modal('show');
+            $('#qr-reader-results').addClass('d-none');
+            
+            if (!this.html5QrCode) {
+                this.html5QrCode = new Html5Qrcode("qr-reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            this.html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                (decodedText) => this.handleQRScanned(decodedText)
+            ).catch(err => {
+                console.error("Gagal menjalankan kamera:", err);
+                Swal.fire('Error', 'Gagal mengakses kamera. Pastikan izin kamera diberikan.', 'error');
+            });
+        });
+
+        $('#qrScannerModal').on('hidden.bs.modal', () => {
+            if (this.html5QrCode && this.html5QrCode.isScanning) {
+                this.html5QrCode.stop().catch(err => console.error(err));
+            }
+        });
+    }
+
+    handleQRScanned(decodedText) {
+        if (this.html5QrCode) {
+            this.html5QrCode.stop().then(() => {
+                $('#qrScannerModal').modal('hide');
+                this.parseAndFillQR(decodedText);
+            }).catch(err => {
+                console.error(err);
+                $('#qrScannerModal').modal('hide');
+                this.parseAndFillQR(decodedText);
+            });
+        }
+    }
+
+    parseAndFillQR(decodedText) {
+        $('#qrcodeInput').val(decodedText);
+        const parts = decodedText.split('|');
+        if (parts.length >= 6) {
+            const sapCode = parts[0].trim();
+            const partCode = parts[1].trim();
+            const supplierId = parts[2].trim();
+            const quantity = parts[4].trim();
+            const uniqueCode = parts[5].trim();
+
+            $('#sapCodeInput').val(sapCode);
+            $('#partCodeInput').val(partCode);
+            $('#supplierIdInput').val(supplierId);
+            $('#quantityInput').val(quantity);
+            $('#uniqueCodeInput').val(uniqueCode);
+            $('#sapCodeInputHidden').val(sapCode);
+
+            $('#sapCodeInput').trigger('input');
+            $('#totalQty').val(quantity).trigger('input');
+            
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Data QR berhasil dimuat: ' + uniqueCode
+            });
+        } else {
+            Swal.fire('Format QR Salah', 'Data QR tidak sesuai standar (' + decodedText + ')', 'warning');
         }
     }
 
@@ -196,8 +342,13 @@ class DoubleTapeCreate {
                 $('#samplingQty').prop('readonly', this.isFullcheck);
             }
             $('#totalQty').trigger('input');
-            $('#totalNG').trigger('input');
+            this.calculateTotalNG();
         });
+    }
+
+    updateJudgment() {
+        // Trigger manual input untuk update judgment badge
+        $('#totalNG').trigger('input');
     }
 
     initAQLCalculations() {
@@ -223,6 +374,8 @@ class DoubleTapeCreate {
             if (sampleSize >= 200) return { acc: 3, rej: 4 };
             if (sampleSize >= 125) return { acc: 2, rej: 3 };
             if (sampleSize >= 80) return { acc: 1, rej: 2 };
+            if (sampleSize >= 50) return { acc: 1, rej: 2 };
+            if (sampleSize >= 32) return { acc: 0, rej: 1 };
             if (sampleSize >= 20) return { acc: 0, rej: 1 };
             return { acc: 0, rej: 1 };
         };
@@ -694,8 +847,11 @@ class DoubleTapeCreate {
     }
 
     initFormSubmission() {
-        $('#checksheetForm').on('submit', (e) => {
+        $(document).on('submit', '#checksheetForm', (e) => {
+            const $form = $(e.target);
             e.preventDefault();
+
+            console.log('Submitting Double Tape Form...');
 
             const judgment = $('#judgmentSelect').val();
             const nextProses = $('#nextProses').val();
@@ -833,6 +989,11 @@ class DoubleTapeCreate {
         $('.defect-qty').val('');
 
         $('#checkTypeSampling').prop('checked', true).trigger('change');
+        
+        // Reset QR fields
+        $('#qrcodeInput, #partCodeInput, #supplierIdInput, #quantityInput, #uniqueCodeInput, #sapCodeInputHidden').val('');
+        $('#sapCodeInput').removeClass('is-valid is-invalid').val('');
+
         $('#labelSampling').addClass('active');
         $('#labelFullcheck').removeClass('active');
     }

@@ -1083,6 +1083,19 @@ class InProcessCreate {
                 });
             });
         };
+
+        // Fungsi Helper untuk render canvas standard/similar saat Zoom atau Navigasi Page
+        this.renderPageOnCanvas = (pdf, canvasId, pageNum) => {
+            if (!pdf) return;
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const $canvas = $(canvas);
+            const $loading = $(canvasId === 'standardPdfCanvas' ? '#standardPdfLoading' : '#similarPdfLoading');
+            
+            $canvas.hide();
+            $loading.removeClass('d-none').addClass('d-flex');
+            this.drawPage(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId);
+        };
     }
 
     renderPdfToCanvas(url, canvasId, placeholderId, loadingId, pageNum = 1) {

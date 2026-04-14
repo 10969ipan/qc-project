@@ -3,6 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Log;
 
 class StoreSubAssyChecksheetRequest extends FormRequest
 {
@@ -12,6 +15,20 @@ class StoreSubAssyChecksheetRequest extends FormRequest
     public function authorize(): bool
     {
         return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
+            'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
+            'part_code' => !empty($this->part_code) ? $this->part_code : null,
+            'supplier_id' => !empty($this->supplier_id) ? $this->supplier_id : null,
+            'sap_code' => !empty($this->sap_code) ? $this->sap_code : null,
+        ]);
     }
 
     /**
@@ -34,6 +51,16 @@ class StoreSubAssyChecksheetRequest extends FormRequest
                     }
                 },
             ],
+            'qrcode' => 'nullable|string',
+            'part_code' => 'nullable|string',
+            'supplier_id' => 'nullable|string',
+            'quantity' => 'nullable|integer',
+            'unique_code_id' => [
+                'nullable',
+                'string',
+                \Illuminate\Validation\Rule::unique('sub_assy_checksheets', 'unique_code_id')->whereNotNull('unique_code_id')
+            ],
+            'sap_code' => 'nullable|string',
             'plant' => 'required',
             'date' => 'required|date',
             'shift' => 'required|string',
@@ -64,14 +91,38 @@ class StoreSubAssyChecksheetRequest extends FormRequest
             'item_id.exists' => 'Item yang dipilih tidak valid.',
             'date.required' => 'Tanggal wajib diisi.',
             'shift.required' => 'Shift wajib dipilih.',
-            'line.required' => 'Line wajib diisi.',
-            'total_qty.required' => 'Total Qty wajib diisi.',
-            'sampling_qty.required' => 'Sampling Qty wajib diisi.',
-            'total_ok.required' => 'Total OK wajib diisi.',
-            'total_ng.required' => 'Total NG wajib diisi.',
-            'judgment.required' => 'Judgment wajib dipilih.',
+            'line.required' => 'Meja/Line wajib diisi.',
+            'judgment.required' => 'Judgment (OK/NG) harus terisi.',
             'judgment.in' => 'Judgment harus OK atau NG.',
+            'unique_code_id.unique' => 'QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.',
             'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
+            'total_ok.required' => 'Total OK harus terisi.',
+            'total_ng.required' => 'Total NG harus terisi.',
+            'sampling_qty.required' => 'Sampling Qty harus terisi.',
+            'total_qty.required' => 'Total Qty harus terisi.',
+            'plant.required' => 'Informasi Plant tidak ditemukan. Pastikan Anda memiliki akses ke plant yang benar.',
         ];
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        if ($this->ajax() || $this->wantsJson()) {
+            Log::warning('Validation failed for Sub Assy checksheet', [
+                'user_id' => auth()->id(),
+                'errors' => $validator->errors()->toArray(),
+                'input' => $this->except(['_token', 'qrcode'])
+            ]);
+
+            throw new HttpResponseException(response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal: ' . implode(', ', $validator->errors()->all()),
+                'errors' => $validator->errors()
+            ], 422));
+        }
+
+        parent::failedValidation($validator);
     }
 }

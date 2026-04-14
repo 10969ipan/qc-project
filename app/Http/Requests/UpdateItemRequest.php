@@ -25,6 +25,11 @@ class UpdateItemRequest extends FormRequest
         $item = $this->route('item');
         $itemId = $item instanceof Item ? $item->id : $item;
 
+        // Force resolution from form data if route parameter is missing or wrong
+        if (!$itemId || !is_string($itemId)) {
+            $itemId = $this->input('item_id');
+        }
+
         return [
             'name' => [
                 'required',
@@ -35,7 +40,7 @@ class UpdateItemRequest extends FormRequest
                 'required',
                 'exists:categories,id',
                 function ($attribute, $value, $fail) {
-                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                    $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
                     $category = \App\Models\Category::find($value);
                     if ($category && $category->plant_id != $plantId) {
                         $fail('Kategori yang dipilih tidak terdaftar untuk plant ini.');
@@ -52,8 +57,8 @@ class UpdateItemRequest extends FormRequest
                 'string',
                 function ($attribute, $value, $fail) use ($itemId) {
                     if (!empty($value)) {
-                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                        $categoryId = request('category_id');
+                        $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
+                        $categoryId = $this->input('category_id');
                         if (Item::where('part_number', $value)
                             ->where('plant_id', $plantId)
                             ->where('category_id', $categoryId)
@@ -72,8 +77,8 @@ class UpdateItemRequest extends FormRequest
                 'max:100',
                 function ($attribute, $value, $fail) use ($itemId) {
                     if (!empty($value)) {
-                        $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
-                        $categoryId = request('category_id');
+                        $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
+                        $categoryId = $this->input('category_id');
                         if (Item::where('sap_code', $value)
                             ->where('plant_id', $plantId)
                             ->where('category_id', $categoryId)

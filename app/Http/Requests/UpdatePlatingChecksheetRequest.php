@@ -23,6 +23,12 @@ class UpdatePlatingChecksheetRequest extends FormRequest
     {
         return [
             'item_id' => 'required|exists:items,id',
+            'qrcode' => 'nullable|string',
+            'part_code' => 'nullable|string',
+            'supplier_id' => 'nullable|string',
+            'quantity' => 'nullable|string',
+            'unique_code_id' => 'nullable|string|unique:plating_checksheets,unique_code_id,' . ($this->route('id') ?? $this->route('checksheet')),
+            'sap_code' => 'nullable|string',
             'date' => 'required|date',
             'shift' => 'required|string',
             'injection_date' => 'required|date',
