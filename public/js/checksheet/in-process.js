@@ -331,7 +331,10 @@ class InProcessCreate {
                 data: { part_number: part_code, sap_code: sap_code },
                 success: function (response) {
                     if (response.success && response.item) {
-                        $('#itemSelect').val(response.item.id).trigger('change');
+                        const $select = $('#itemSelect');
+                        $select.val(response.item.id);
+                        // Trigger native event so item-search.js picks it up
+                        $select[0].dispatchEvent(new Event('change', { bubbles: true }));
                         if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
                         if (callback) callback(true);
                     } else {

@@ -328,7 +328,12 @@
         syncDisplay();
 
         // Sync on external change (e.g. scanner or manual trigger)
-        selectEl.addEventListener('change', syncDisplay);
+        // We use both jQuery and native listener for maximum compatibility
+        if (typeof jQuery !== 'undefined') {
+            jQuery(selectEl).on('change', syncDisplay);
+        } else {
+            selectEl.addEventListener('change', syncDisplay);
+        }
 
         /* ── Expose helper so external code can reset the search box ── */
         selectEl._ipsReset = function () {

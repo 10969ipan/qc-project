@@ -355,7 +355,11 @@ class SubAssyCreate {
                     data: { part_number: partCode, sap_code: sapCode },
                     success: (response) => {
                         if (response.success && response.item) {
-                            $('#itemSelect').val(response.item.id).trigger('change');
+                            const $select = $('#itemSelect');
+                            $select.val(response.item.id);
+                            // Trigger native event so item-search.js picks it up
+                            $select[0].dispatchEvent(new Event('change', { bubbles: true }));
+                            
                             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
                             Toast.fire({ icon: 'success', title: 'Item otomatis terpilih: ' + response.item.name });
                         } else {
