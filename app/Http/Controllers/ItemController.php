@@ -441,6 +441,18 @@ class ItemController extends Controller
         // 3. Prioritas Terakhir: Cari Berdasarkan SAP Code
         if (!$item && $sapCodeInput) {
             $item = Item::where('sap_code', $sapCodeInput)->first();
+            
+            // Fallback: Jika tidak ketemu, coba normalisasi SAP Code
+            if (!$item) {
+                $normalizedSap = $normalize($sapCodeInput);
+                $candidates = Item::where('sap_code', 'LIKE', '%' . substr($normalizedSap, 0, 3) . '%')->get();
+                foreach ($candidates as $candidate) {
+                    if ($normalize($candidate->sap_code) === $normalizedSap) {
+                        $item = $candidate;
+                        break;
+                    }
+                }
+            }
         }
 
         if (!$item) {

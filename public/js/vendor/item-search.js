@@ -310,14 +310,25 @@
         });
         observer.observe(selectEl, { attributes: true, attributeFilter: ['disabled'] });
 
-        /* ── Sync if select already has a value (e.g. after validation error) ── */
-        if (selectEl.value) {
-            var selOpt = selectEl.options[selectEl.selectedIndex];
-            if (selOpt) {
-                input.value = (selOpt.dataset.name || selOpt.text || '').replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
-                clearBtn.style.display = 'inline';
+        /* ── Sync if select already has a value (e.g. after validation error or external script update) ── */
+        var syncDisplay = function () {
+            if (selectEl.value) {
+                var selOpt = selectEl.options[selectEl.selectedIndex];
+                if (selOpt) {
+                    input.value = (selOpt.dataset.name || selOpt.text || '').replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
+                    clearBtn.style.display = 'inline';
+                }
+            } else {
+                input.value = '';
+                clearBtn.style.display = 'none';
             }
-        }
+        };
+
+        // Sync on init
+        syncDisplay();
+
+        // Sync on external change (e.g. scanner or manual trigger)
+        selectEl.addEventListener('change', syncDisplay);
 
         /* ── Expose helper so external code can reset the search box ── */
         selectEl._ipsReset = function () {
