@@ -221,13 +221,24 @@ class InProcessCreate {
         $('#btnScanQR').click(() => $('#qrScannerModal').modal('show'));
 
         $('#qrScannerModal').on('shown.bs.modal', function () {
+            // Bersihkan instance lama jika ada
+            if (_this.html5QrCode) {
+                try {
+                    _this.html5QrCode.clear();
+                } catch (e) {
+                    console.error("Gagal membersihkan scanner:", e);
+                }
+            }
             _this.html5QrCode = new Html5Qrcode("qr-reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             _this.html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
                 _this.handleQRScanned(decodedText);
             }).catch(err => {
                 console.error("Scanner error", err);
-                $('#qr-reader').html(`<div class="alert alert-warning m-3"><b>Kamera tidak dapat diakses:</b> ${err}</div>`);
+                $('#qr-reader').html(`<div class="alert alert-warning m-3">
+                    <b>Kamera tidak dapat diakses:</b> ${err}<br>
+                    <small>Pastikan Anda memberikan izin kamera dan menggunakan koneksi aman (HTTPS atau localhost).</small>
+                </div>`);
             });
         });
 

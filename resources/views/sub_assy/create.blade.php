@@ -594,7 +594,8 @@
         $(document).ready(function () {
             window.initSubAssyCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
-                pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
+                itemSearchUrl: "{{ route('items.search-by-part') }}"
             });
             window.initItemSearch('itemSelect');
         });

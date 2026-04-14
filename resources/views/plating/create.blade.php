@@ -480,7 +480,8 @@
         $(document).ready(function () {
             window.initPlatingCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
-                pdfRoute: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
+                pdfRoute: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
+                itemSearchUrl: "{{ route('items.search-by-part') }}"
             });
             window.initItemSearch('itemSelect');
         });

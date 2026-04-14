@@ -16,6 +16,14 @@ class InProcessChecksheetApiController extends Controller
      */
     public function checkStatus($unique_code_id)
     {
+        // Jika parameter yang dikirim adalah string QR lengkap, ambil unique_code_id (indeks ke-3)
+        if (strpos($unique_code_id, '|') !== false) {
+            $parts = explode('|', $unique_code_id);
+            if (count($parts) >= 4) {
+                $unique_code_id = trim($parts[3]);
+            }
+        }
+
         // Daftar model yang akan dicek secara berurutan
         $modelsToCheck = [
             'In-Process' => \App\Models\InProcessChecksheet::class,

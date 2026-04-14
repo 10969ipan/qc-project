@@ -204,11 +204,21 @@ class DoubleTapeCreate {
     initQRScanner() {
         $('#btnScanQR').on('click', () => {
             $('#qrScannerModal').modal('show');
+        });
+
+        $('#qrScannerModal').on('shown.bs.modal', () => {
             $('#qr-reader-results').addClass('d-none');
             
-            if (!this.html5QrCode) {
-                this.html5QrCode = new Html5Qrcode("qr-reader");
+            // Bersihkan instance lama jika ada
+            if (this.html5QrCode) {
+                try {
+                    this.html5QrCode.clear();
+                } catch (e) {
+                    console.error("Gagal membersihkan scanner:", e);
+                }
             }
+            
+            this.html5QrCode = new Html5Qrcode("qr-reader");
 
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             this.html5QrCode.start(
@@ -217,7 +227,10 @@ class DoubleTapeCreate {
                 (decodedText) => this.handleQRScanned(decodedText)
             ).catch(err => {
                 console.error("Gagal menjalankan kamera:", err);
-                Swal.fire('Error', 'Gagal mengakses kamera. Pastikan izin kamera diberikan.', 'error');
+                $('#qr-reader').html(`<div class="alert alert-warning m-3">
+                    <b>Kamera tidak dapat diakses:</b> ${err}<br>
+                    <small>Pastikan Anda menggunakan koneksi aman (HTTPS atau localhost).</small>
+                </div>`);
             });
         });
 
@@ -244,12 +257,12 @@ class DoubleTapeCreate {
     parseAndFillQR(decodedText) {
         $('#qrcodeInput').val(decodedText);
         const parts = decodedText.split('|');
-        if (parts.length >= 6) {
-            const sapCode = parts[0].trim();
-            const partCode = parts[1].trim();
-            const supplierId = parts[2].trim();
-            const quantity = parts[4].trim();
-            const uniqueCode = parts[5].trim();
+        if (parts.length >= 5) {
+            const partCode = parts[0].trim();
+            const supplierId = parts[1].trim();
+            const quantity = parts[2].trim();
+            const uniqueCode = parts[3].trim();
+            const sapCode = parts[4].trim();
 
             $('#sapCodeInput').val(sapCode);
             $('#partCodeInput').val(partCode);
@@ -258,19 +271,35 @@ class DoubleTapeCreate {
             $('#uniqueCodeInput').val(uniqueCode);
             $('#sapCodeInputHidden').val(sapCode);
 
-            $('#sapCodeInput').trigger('input');
+            // AJAX Lookup
+            if (this.config.itemSearchUrl) {
+                $.ajax({
+                    url: this.config.itemSearchUrl,
+                    method: 'GET',
+                    data: { part_number: partCode, sap_code: sapCode },
+                    success: (response) => {
+                        if (response.success && response.item) {
+                            $('#itemSelect').val(response.item.id).trigger('change');
+                            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                            Toast.fire({ icon: 'success', title: 'Item otomatis terpilih: ' + response.item.name });
+                        } else {
+                            $('#sapCodeInput').trigger('input');
+                        }
+                    },
+                    error: () => {
+                        $('#sapCodeInput').trigger('input');
+                    }
+                });
+            } else {
+                $('#sapCodeInput').trigger('input');
+            }
+
             $('#totalQty').val(quantity).trigger('input');
             
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000
-            });
-            Toast.fire({
-                icon: 'success',
-                title: 'Data QR berhasil dimuat: ' + uniqueCode
-            });
+            if (!this.config.itemSearchUrl) {
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                Toast.fire({ icon: 'success', title: 'Data QR dimuat: ' + uniqueCode });
+            }
         } else {
             Swal.fire('Format QR Salah', 'Data QR tidak sesuai standar (' + decodedText + ')', 'warning');
         }
