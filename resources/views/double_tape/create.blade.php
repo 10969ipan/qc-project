@@ -405,7 +405,27 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body p-0 text-center">
-                    <div id="qr-reader" style="width: 100%"></div>
+                    <div class="position-relative">
+                        <video id="qr-video" class="w-100" autoplay muted playsinline style="border-radius: 8px;"></video>
+                        <button type="button" id="toggleFlashBtn" class="btn btn-sm btn-dark position-absolute d-none" style="top: 10px; left: 10px; opacity: 0.7; z-index: 10;">
+                            <i class="fas fa-bolt text-white"></i> Flash
+                        </button>
+                        <button type="button" id="toggleMirrorBtn" class="btn btn-sm btn-dark position-absolute" style="top: 10px; right: 10px; opacity: 0.7; z-index: 10;">
+                            <i class="fas fa-arrows-alt-h text-white"></i> Flip
+                        </button>
+                    </div>
+                    <style>
+                        #qr-video.mirrored { transform: scaleX(-1) !important; }
+                        #zoomContainer { background: rgba(0,0,0,0.5); border-radius: 0 0 8px 8px; }
+                        #zoomSlider { height: 6px; cursor: pointer; }
+                    </style>
+                    <div id="zoomContainer" class="p-2 d-none">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-search-minus text-white mr-2"></i>
+                            <input type="range" id="zoomSlider" class="custom-range flex-grow-1" min="1" max="1" step="0.1" value="1">
+                            <i class="fas fa-search-plus text-white ml-2"></i>
+                        </div>
+                    </div>
                     <div id="qr-reader-results" class="p-3 d-none">
                          <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
                          <p class="mt-2 mb-0">Sedang memproses data QR...</p>
@@ -507,7 +527,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/html5-qrcode.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/qr-scanner.min.js') }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}?v={{ time() }}"></script>
     <script>
@@ -515,7 +535,8 @@
             window.initDoubleTapeCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
-                itemSearchUrl: "{{ route('items.search-by-part') }}"
+                itemSearchUrl: "{{ route('items.search-by-part') }}",
+                qrUniqueUrl: "{{ route('items.check-qr-unique') }}"
             });
             window.initItemSearch('itemSelect');
         });

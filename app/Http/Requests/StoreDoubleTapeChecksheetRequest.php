@@ -74,6 +74,11 @@ class StoreDoubleTapeChecksheetRequest extends FormRequest
             'sampling_qty' => $this->sampling_qty !== null && $this->sampling_qty !== '' ? $this->sampling_qty : 0,
             'total_ok'     => $this->total_ok !== null && $this->total_ok !== '' ? $this->total_ok : 0,
             'total_ng'     => $this->total_ng !== null && $this->total_ng !== '' ? $this->total_ng : 0,
+            'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
+            'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
+            'part_code' => !empty($this->part_code) ? $this->part_code : null,
+            'supplier_id' => !empty($this->supplier_id) ? $this->supplier_id : null,
+            'sap_code' => !empty($this->sap_code) ? $this->sap_code : null,
         ]);
 
     }

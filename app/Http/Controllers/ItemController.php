@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Plant;
+use App\Models\Category;
 use App\Services\ItemService;
 use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\UpdateItemRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ActivityLogger;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ItemController extends Controller
 {
@@ -69,7 +73,7 @@ class ItemController extends Controller
             $isTotalView = true;
         }
 
-        $categoriesQuery = \App\Models\Category::with('plant')->orderBy('name');
+        $categoriesQuery = Category::with('plant')->orderBy('name');
 
         // STRICT FILTERING: If we are in a specific plant view, ONLY show that plant's categories.
         // If in total view, show all.
@@ -79,10 +83,10 @@ class ItemController extends Controller
 
         $categories = $categoriesQuery->get();
         $plantCode = $isTotalView ? null : ($plantIdentifier ?: optional(auth()->user()->plant)->code);
-        $allPlants = \App\Models\Plant::all();
+        $allPlants = Plant::all();
 
         // Get all items in a lightweight format for the searchable dropdown
-        $allItemsQuery = \App\Models\Item::with('category')->select('id', 'name', 'part_number', 'sap_code', 'customer', 'category_id');
+        $allItemsQuery = Item::with('category')->select('id', 'name', 'part_number', 'sap_code', 'customer', 'category_id');
         if ($plantId) {
             $allItemsQuery->where('plant_id', $plantId);
         }
@@ -465,6 +469,42 @@ class ItemController extends Controller
         return response()->json([
             'success' => true,
             'item' => $item
+        ]);
+    }
+
+    /**
+     * Check if a QR code has already been used in any checksheet table.
+     */
+    public function checkQrUniqueness(Request $request)
+    {
+        $qrCode = $request->query('qrcode');
+
+        if (!$qrCode) {
+            return response()->json(['success' => false, 'message' => 'QR data is empty.'], 400);
+        }
+
+        $tables = [
+            'in_process_checksheets' => 'In-Process',
+            'sub_assy_checksheets' => 'Sub Assy',
+            'plating_checksheets' => 'Plating',
+            'double_tape_checksheets' => 'Double Tape'
+        ];
+
+        foreach ($tables as $table => $moduleName) {
+            $record = DB::table($table)->where('qrcode', $qrCode)->first();
+            if ($record) {
+                $date = Carbon::parse($record->created_at)->format('d-m-Y H:i');
+                return response()->json([
+                    'success' => true,
+                    'unique' => false,
+                    'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}."
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'unique' => true
         ]);
     }
 }

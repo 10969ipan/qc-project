@@ -11,6 +11,20 @@ class StoreInProcessChecksheetRequest extends FormRequest
         return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
     }
 
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
+            'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
+            'part_code' => !empty($this->part_code) ? $this->part_code : null,
+            'supplier_id' => !empty($this->supplier_id) ? $this->supplier_id : null,
+            'sap_code' => !empty($this->sap_code) ? $this->sap_code : null,
+        ]);
+    }
+
     public function rules(): array
     {
         return [

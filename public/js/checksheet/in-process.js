@@ -159,7 +159,7 @@ class InProcessIndex {
 class InProcessCreate {
     constructor(config) {
         this.config = config;
-        this.html5QrCode = null;
+        this.qrScanner = null;
         this.timerInterval = null;
         this.totalSeconds = 0;
         this.timerRunning = false;
@@ -218,44 +218,100 @@ class InProcessCreate {
 
     initQRScanner() {
         const _this = this;
-        $('#btnScanQR').click(() => $('#qrScannerModal').modal('show'));
+        $('#btnScanQR').click(() => {
+            // Unlock AudioContext for mobile browsers
+            this.unlockAudio();
+            $('#qrScannerModal').modal('show');
+        });
 
         $('#qrScannerModal').on('shown.bs.modal', function () {
+            const videoElem = document.getElementById('qr-video');
+            
             // Bersihkan instance lama jika ada
-            if (_this.html5QrCode) {
-                try {
-                    _this.html5QrCode.clear();
-                } catch (e) {
-                    console.error("Gagal membersihkan scanner:", e);
-                }
+            if (_this.qrScanner) {
+                _this.qrScanner.destroy();
+                _this.qrScanner = null;
             }
-            _this.html5QrCode = new Html5Qrcode("qr-reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            _this.html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-                _this.handleQRScanned(decodedText);
+
+            _this.qrScanner = new QrScanner(
+                videoElem,
+                result => _this.handleQRScanned(result.data),
+                {
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    maxScansPerSecond: 25,
+                    preferredCamera: 'environment'
+                }
+            );
+
+            // Override internal mirror logic to prevent auto-mirror
+            _this.qrScanner._setVideoMirror = function(facingMode) {
+                // Do nothing, we handle mirroring manually via CSS
+            };
+
+            // Handle manual flip button
+            $('#toggleMirrorBtn').off('click').on('click', function() {
+                $(videoElem).toggleClass('mirrored');
+            });
+
+            _this.qrScanner.start().then(() => {
+                // Check if device has flash
+                _this.qrScanner.hasFlash().then(hasFlash => {
+                    if (hasFlash) {
+                        $('#toggleFlashBtn').removeClass('d-none');
+                    }
+                });
+
+                // Handle flash button
+                $('#toggleFlashBtn').off('click').on('click', function() {
+                    _this.qrScanner.toggleFlash();
+                });
+
+                // Handle Zoom Control
+                const track = _this.qrScanner.$video.srcObject.getVideoTracks()[0];
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                
+                if (capabilities.zoom) {
+                    $('#zoomContainer').removeClass('d-none');
+                    const $slider = $('#zoomSlider');
+                    $slider.attr({
+                        min: capabilities.zoom.min,
+                        max: capabilities.zoom.max,
+                        step: capabilities.zoom.step || 0.1
+                    }).val(track.getSettings().zoom || capabilities.zoom.min);
+
+                    $slider.off('input').on('input', function() {
+                        track.applyConstraints({ advanced: [{ zoom: parseFloat($(this).val()) }] });
+                    });
+                }
             }).catch(err => {
                 console.error("Scanner error", err);
-                $('#qr-reader').html(`<div class="alert alert-warning m-3">
+                $('#qr-video').hide();
+                const errorMsg = `<div class="alert alert-warning m-3">
                     <b>Kamera tidak dapat diakses:</b> ${err}<br>
                     <small>Pastikan Anda memberikan izin kamera dan menggunakan koneksi aman (HTTPS atau localhost).</small>
-                </div>`);
+                </div>`;
+                if ($('#qr-error-msg').length === 0) {
+                    $('<div id="qr-error-msg"></div>').insertAfter('#qr-video').html(errorMsg);
+                } else {
+                    $('#qr-error-msg').html(errorMsg).show();
+                }
             });
         });
 
         $('#qr-input-file').on('change', async function (e) {
             if (e.target.files.length == 0) return;
             const imageFile = e.target.files[0];
-            $('#qr-reader').addClass('d-none');
+            $('#qr-video').addClass('d-none');
             $('#qr-reader-results').removeClass('d-none').find('p').text('Memproses QR dari file...');
+            
             try {
-                await _this.stopScanner();
-                if (!_this.html5QrCode) _this.html5QrCode = new Html5Qrcode("qr-reader");
-                const decodedText = await _this.html5QrCode.scanFile(imageFile, true);
-                _this.handleQRScanned(decodedText);
+                const result = await QrScanner.scanImage(imageFile, { returnDetailedScanResult: true });
+                _this.handleQRScanned(result.data);
             } catch (err) {
                 console.error("Error scanning file:", err);
                 $('#qr-reader-results').addClass('d-none');
-                $('#qr-reader').removeClass('d-none');
+                $('#qr-video').removeClass('d-none');
                 Swal.fire({ icon: 'error', title: 'Gagal Membaca QR', text: 'Sistem tidak menemukan QR Code pada gambar ini.' });
             } finally {
                 $(this).val('');
@@ -265,99 +321,143 @@ class InProcessCreate {
         $('#qrScannerModal').on('hidden.bs.modal', () => {
             this.stopScanner();
             $('#qr-reader-results').addClass('d-none');
-            $('#qr-reader').removeClass('d-none');
+            $('#qr-video').removeClass('d-none').show();
+            if ($('#qr-error-msg').length) $('#qr-error-msg').hide();
         });
     }
 
-    async stopScanner() {
-        if (this.html5QrCode && this.html5QrCode.isScanning) {
-            try {
-                await this.html5QrCode.stop();
-            } catch (err) {
-                console.error("Failed to stop scanner", err);
+    stopScanner() {
+        if (this.qrScanner) {
+            this.qrScanner.stop();
+        }
+    }
+
+    unlockAudio() {
+        if (!this.audioContext) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) this.audioContext = new AudioContext();
+        }
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+    }
+
+    playSuccessFeedback() {
+        try {
+            if (navigator.vibrate) navigator.vibrate(100);
+            
+            this.unlockAudio();
+            if (this.audioContext) {
+                const oscillator = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+                gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.2, this.audioContext.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                oscillator.connect(gain);
+                gain.connect(this.audioContext.destination);
+                oscillator.start();
+                oscillator.stop(this.audioContext.currentTime + 0.3);
             }
+        } catch (e) {
+            console.warn("Feedback error:", e);
         }
     }
 
     handleQRScanned(decodedText) {
+        this.playSuccessFeedback();
         this.stopScanner();
-        $('#qr-reader').addClass('d-none');
-        $('#qr-reader-results').removeClass('d-none').find('p').text('QR Ditemukan! Mengolah data...');
-
-        const safetyTimeout = setTimeout(() => {
-            if ($('#qrScannerModal').hasClass('show') && !$('#qr-reader-results').hasClass('d-none')) {
-                $('#qr-reader-results').addClass('d-none');
-                $('#qr-reader').removeClass('d-none');
-                Swal.fire('Timeout', 'Proses terlalu lama.', 'warning');
-            }
-        }, 15000);
-
-        this.parseAndFillQR(decodedText, (success) => {
-            clearTimeout(safetyTimeout);
-            if (success) {
-                $('#qrScannerModal').modal('hide');
-                Swal.fire({ icon: 'success', title: 'QR Berhasil Discan', text: 'Data item terisi.', timer: 2000, showConfirmButton: false });
-            } else {
-                $('#qr-reader-results').addClass('d-none');
-                $('#qr-reader').removeClass('d-none');
-            }
-        });
+        $('#qrScannerModal').modal('hide');
+        this.parseAndFillQR(decodedText);
     }
 
     parseAndFillQR(qrString, callback) {
-        const _this = this;
+        const parts = qrString.split('|');
+
+        if (parts.length < 5) {
+            Swal.fire('Format QR Salah', 'Data QR tidak sesuai standar (' + qrString + ')', 'warning');
+            if (callback) callback(false);
+            return;
+        }
+
         try {
-            const parts = qrString.split('|');
-            if (parts.length < 5) throw new Error("Format QR tidak valid");
-
-            const part_code = parts[0].trim();
-            const supplier_id = parts[1].trim();
-            const quantity = parts[2].trim();
-            const unique_code_id = parts[3].trim();
-            const sap_code = parts[4].trim();
-
-            $('#qrcodeInput').val(qrString);
-            $('#partCodeInput').val(part_code);
-            $('#supplierIdInput').val(supplier_id);
-            $('#quantityInput').val(quantity);
-            $('#uniqueCodeInput').val(unique_code_id);
-            $('#sapCodeInputHidden').val(sap_code);
-
-            $('#qr-reader-results').find('p').text('Memproses data...');
-
-            // Melakukan pemindaian lokal di dropdown yang tersedia (Lebih reliabel dan cepat)
-            let localFound = false;
-            let normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-            let targetPart = normalize(part_code);
-            let targetSap = normalize(sap_code);
-            const $select = $('#itemSelect');
-
-            $select.find('option[value!=""]').each(function() {
-                if (localFound) return;
-                
-                let name = normalize($(this).attr('data-name') || $(this).data('name'));
-                let pNum = normalize($(this).attr('data-part-number') || $(this).data('part-number'));
-                let sCode = normalize($(this).attr('data-sap-code') || $(this).data('sap-code'));
-                
-                if ((targetPart && name.includes(targetPart)) || 
-                    (targetPart && pNum === targetPart) || 
-                    (targetSap && sCode === targetSap)) {
-                    $select.val($(this).val());
-                    localFound = true;
-                }
-            });
-
-            if (localFound && $select.val()) {
-                $select.trigger('change');
-                $select[0].dispatchEvent(new Event('change', { bubbles: true }));
-                if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
-                if (callback) callback(true);
+            // 1. Validasi QR Duplikat via AJAX
+            if (this.config.qrUniqueUrl) {
+                $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
+                    if (res.success && !res.unique) {
+                        Swal.fire('QR Sudah Digunakan', res.message, 'error');
+                        if (callback) callback(false);
+                    } else {
+                        this.processFillQR(qrString, parts, callback);
+                    }
+                }).fail(() => {
+                    // Jika API gagal, tetap lanjut ke pemrosesan lokal sebagai fallback
+                    this.processFillQR(qrString, parts, callback);
+                });
             } else {
-                Swal.fire('Info', 'Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.', 'warning');
-                if (callback) callback(false);
+                this.processFillQR(qrString, parts, callback);
             }
         } catch (e) {
-            Swal.fire('Error', e.message, 'error');
+            console.error("Parse QR Error:", e);
+            Swal.fire('Error', 'Gagal memproses data QR: ' + e.message, 'error');
+            if (callback) callback(false);
+        }
+    }
+
+    processFillQR(qrString, parts, callback) {
+        const part_code = parts[0].trim();
+        const supplier_id = parts[1].trim();
+        const quantity = parts[2].trim();
+        const unique_code_id = parts[3].trim();
+        const sap_code = parts[4].trim();
+
+        $('#qrcodeInput').val(qrString);
+        $('#partCodeInput').val(part_code);
+        $('#supplierIdInput').val(supplier_id);
+        $('#quantityInput').val(quantity);
+        $('#uniqueCodeInput').val(unique_code_id);
+        $('#sapCodeInputHidden').val(sap_code);
+
+        // Melakukan pemindaian lokal di dropdown yang tersedia
+        let localFound = false;
+        let normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        let targetPart = normalize(part_code);
+        let targetSap = normalize(sap_code);
+        const $select = $('#itemSelect');
+
+        $select.find('option[value!=""]').each(function() {
+            if (localFound) return;
+            
+            let name = normalize($(this).attr('data-name') || $(this).data('name'));
+            let pNum = normalize($(this).attr('data-part-number') || $(this).data('part-number'));
+            // Fix: Gunakan data-sap_code untuk In-Process
+            let sCode = normalize($(this).attr('data-sap_code') || $(this).data('sap_code'));
+            
+            if ((targetPart && name.includes(targetPart)) || 
+                (targetPart && pNum === targetPart) || 
+                (targetSap && sCode === targetSap)) {
+                $select.val($(this).val());
+                localFound = true;
+            }
+        });
+
+        if (localFound && $select.val()) {
+            $select.trigger('change');
+            $select[0].dispatchEvent(new Event('change', { bubbles: true }));
+            if (quantity) $('input[name="total_qty"]').val(quantity).trigger('input');
+            
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'QR Berhasil Discan', 
+                text: 'Item otomatis terpilih.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            if (callback) callback(true);
+        } else {
+            Swal.fire('Info', 'Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.', 'warning');
             if (callback) callback(false);
         }
     }
