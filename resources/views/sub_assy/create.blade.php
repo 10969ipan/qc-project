@@ -419,7 +419,7 @@
             <div class="row">
                 <div class="col-md-6 border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">STANDARD / PCCP</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP</h6>
                         <div class="d-flex align-items-center">
                             <div class="btn-group mr-2">
                                 <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard" title="Zoom Out"><i class="fas fa-search-minus"></i></button>

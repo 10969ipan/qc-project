@@ -208,6 +208,7 @@ class SubAssyCreate {
         this.refStandardPageNum = 1;
         this.refSimilarPageNum = 1;
         this.refStandardFiles = [];
+        this.refStandardFileIndex = 0;
 
         // QR Scanner Logic
         this.qrScanner = null;
@@ -706,6 +707,17 @@ class SubAssyCreate {
                     "standardPdfCanvas",
                     this.refStandardPageNum,
                 );
+            } else if (this.refStandardFileIndex > 0) {
+                // Jump to previous file at its last page
+                this.refStandardFileIndex--;
+                const itemId = $("#itemSelect").val();
+                const prevUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+                pdfjsLib.getDocument(prevUrl).promise.then(pdf => {
+                    this.refStandardPageNum = pdf.numPages;
+                    this.renderPdfToCanvas(prevUrl, "standardPdfCanvas", "standardPdfPlaceholder", "standardPdfLoading", pdf.numPages);
+                });
             }
         });
         $("#nextStandardPage").click(() => {
@@ -719,6 +731,15 @@ class SubAssyCreate {
                     "standardPdfCanvas",
                     this.refStandardPageNum,
                 );
+            } else if (this.refStandardFiles && this.refStandardFileIndex < this.refStandardFiles.length - 1) {
+                // Jump to next file at page 1
+                this.refStandardFileIndex++;
+                const itemId = $("#itemSelect").val();
+                const nextUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+                this.refStandardPageNum = 1;
+                this.renderPdfToCanvas(nextUrl, "standardPdfCanvas", "standardPdfPlaceholder", "standardPdfLoading", 1);
             }
         });
 
@@ -1040,7 +1061,8 @@ class SubAssyCreate {
                 $canvas.removeClass("d-none").show();
                 if (canvasId === "standardPdfCanvas") {
                     _this.refStandardPdfDoc = pdf;
-                    $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}`);
+                    const fileInfo = _this.refStandardFiles.length > 1 ? ` (${_this.refStandardFileIndex + 1}/${_this.refStandardFiles.length})` : '';
+                    $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}${fileInfo}`);
                     _this.refStandardPageNum = pageNum;
                 } else if (canvasId === "similarPdfCanvas") {
                     _this.refSimilarPdfDoc = pdf;
@@ -1082,6 +1104,8 @@ class SubAssyCreate {
             .removeClass("d-none")
             .addClass("d-flex");
         this.refStandardFiles = files || [];
+        this.refStandardFileIndex = 0;
+        this.refStandardPageNum = 1;
 
         // Handle Standard / PCCP
         if (standardUrl) {

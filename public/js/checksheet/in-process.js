@@ -1589,6 +1589,24 @@ class InProcessCreate {
                     "standardPdfCanvas",
                     this.refStandardPageNum,
                 );
+            } else if (this.refStandardFileIndex > 0) {
+                // Switch to previous file and go to its last page
+                this.refStandardFileIndex--;
+                const itemId = $("#itemSelect").val();
+                const prevFileUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+                
+                pdfjsLib.getDocument(prevFileUrl).promise.then(pdf => {
+                    this.refStandardPageNum = pdf.numPages;
+                    this.renderPdfToCanvas(
+                        prevFileUrl,
+                        "standardPdfCanvas",
+                        "standardPdfPlaceholder",
+                        "standardPdfLoading",
+                        this.refStandardPageNum
+                    );
+                });
             }
         });
         $("#nextStandardPage").click(() => {
@@ -1601,6 +1619,22 @@ class InProcessCreate {
                     this.refStandardPdfDoc,
                     "standardPdfCanvas",
                     this.refStandardPageNum,
+                );
+            } else if (this.refStandardFiles && this.refStandardFileIndex < this.refStandardFiles.length - 1) {
+                // Switch to next file and go to original page 1
+                this.refStandardFileIndex++;
+                const itemId = $("#itemSelect").val();
+                const nextFileUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+                
+                this.refStandardPageNum = 1;
+                this.renderPdfToCanvas(
+                    nextFileUrl,
+                    "standardPdfCanvas",
+                    "standardPdfPlaceholder",
+                    "standardPdfLoading",
+                    1
                 );
             }
         });
@@ -1936,7 +1970,8 @@ class InProcessCreate {
                 $canvas.removeClass("d-none").show();
                 if (canvasId === "standardPdfCanvas") {
                     _this.refStandardPdfDoc = pdf;
-                    $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}`);
+                    const fileInfo = _this.refStandardFiles.length > 1 ? ` (${_this.refStandardFileIndex + 1}/${_this.refStandardFiles.length})` : '';
+                    $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}${fileInfo}`);
                     _this.refStandardPageNum = pageNum;
                 } else if (canvasId === "similarPdfCanvas") {
                     _this.refSimilarPdfDoc = pdf;

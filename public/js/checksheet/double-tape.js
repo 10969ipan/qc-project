@@ -189,6 +189,8 @@ class DoubleTapeCreate {
         this.refStandardPageNum = 1;
         this.refSimilarPdfDoc = null;
         this.refSimilarPageNum = 1;
+        this.refStandardFiles = [];
+        this.refStandardFileIndex = 0;
 
         // State Modal PDF
         this.pdfDoc = null;
@@ -816,6 +818,12 @@ class DoubleTapeCreate {
             let defects = selectedOption.data("defects");
 
             // Perbarui pratinjau Berdampingan
+            let parsedFiles = files;
+            if (typeof parsedFiles === 'string') { try { parsedFiles = JSON.parse(parsedFiles); } catch(e) { parsedFiles = []; } }
+            this.refStandardFiles = Array.isArray(parsedFiles) ? parsedFiles : [];
+            this.refStandardFileIndex = 0;
+            this.refStandardPageNum = 1;
+
             if (standardPdf) {
                 this.renderPdfToCanvas(
                     standardPdf,
@@ -1030,7 +1038,7 @@ class DoubleTapeCreate {
         });
 
         $("#prevStandardPage").on("click", () => {
-            if (this.refStandardPageNum > 1)
+            if (this.refStandardPageNum > 1) {
                 this.renderPdfToCanvas(
                     null,
                     "standardPdfCanvas",
@@ -1038,12 +1046,24 @@ class DoubleTapeCreate {
                     "standardPdfLoading",
                     this.refStandardPageNum - 1,
                 );
+            } else if (this.refStandardFileIndex > 0) {
+                // Jump to previous file at its last page
+                this.refStandardFileIndex--;
+                const itemId = $("#itemSelect").val();
+                const prevUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+                pdfjsLib.getDocument(prevUrl).promise.then(pdf => {
+                    this.refStandardPageNum = pdf.numPages;
+                    this.renderPdfToCanvas(prevUrl, "standardPdfCanvas", "standardPdfPlaceholder", "standardPdfLoading", pdf.numPages);
+                });
+            }
         });
         $("#nextStandardPage").on("click", () => {
             if (
                 this.refStandardPdfDoc &&
                 this.refStandardPageNum < this.refStandardPdfDoc.numPages
-            )
+            ) {
                 this.renderPdfToCanvas(
                     null,
                     "standardPdfCanvas",
@@ -1051,6 +1071,16 @@ class DoubleTapeCreate {
                     "standardPdfLoading",
                     this.refStandardPageNum + 1,
                 );
+            } else if (this.refStandardFiles && this.refStandardFileIndex < this.refStandardFiles.length - 1) {
+                // Jump to next file at page 1
+                this.refStandardFileIndex++;
+                const itemId = $("#itemSelect").val();
+                const nextUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+                this.refStandardPageNum = 1;
+                this.renderPdfToCanvas(nextUrl, "standardPdfCanvas", "standardPdfPlaceholder", "standardPdfLoading", 1);
+            }
         });
         $("#prevSimilarPage").on("click", () => {
             if (this.refSimilarPageNum > 1)
@@ -1179,8 +1209,9 @@ class DoubleTapeCreate {
                 if (canvasId === "standardPdfCanvas") {
                     this.refStandardPdfDoc = pdf;
                     this.refStandardPageNum = pageNum;
+                    const fileInfo = this.refStandardFiles.length > 1 ? ` (${this.refStandardFileIndex + 1}/${this.refStandardFiles.length})` : '';
                     $("#standardPageInfo").text(
-                        "P " + pageNum + "/" + pdf.numPages,
+                        "P " + pageNum + "/" + pdf.numPages + fileInfo,
                     );
                     $(".standard-nav-controls").attr(
                         "style",
