@@ -469,10 +469,15 @@
                                 </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
-                            style="display:none;">
-                            <i class="fas fa-expand"></i> Full
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download PCCP PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
                     </div>
                     <div id="standardPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
@@ -504,10 +509,15 @@
                                 </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
-                            style="display:none;">
-                            <i class="fas fa-expand"></i> Full
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn mr-1" id="fullSimilarBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Dimensi Part PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
                     </div>
                     <div id="similarPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
@@ -623,7 +633,7 @@
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/fpa.js') }}?v={{ time() }}"></script>
     {{-- Hidden JSON data to resolve IDE lint errors --}}
-    <script id="fpa-create-data" type="application/json" 
+    <script id="fpa-create-data" type="application/json"
         data-pdf-worker-src="{{ asset('js/vendor/pdf.worker.min.js') }}"
         data-pdf-route-pattern="{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
         data-current-plant="{{ request('plant') ?? auth()->user()->plant_id }}">
@@ -635,7 +645,7 @@
             if (!dataEl) return;
 
             const partDimensionStandards = JSON.parse(dataEl.textContent);
-            
+
             window.initFpaCreate({
                 pdfWorkerSrc: dataEl.getAttribute('data-pdf-worker-src'),
                 pdfRoutePattern: dataEl.getAttribute('data-pdf-route-pattern'),

@@ -432,6 +432,9 @@
                                 <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage"><i class="fas fa-chevron-right"></i></button>
                             </div>
                         </div>
+                        <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download PCCP PDF" style="display:none;">
+                            <i class="fas fa-download"></i>
+                        </a>
                     </div>
                     <div id="standardPdfContainer" class="rounded border" style="height: 600px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="standardPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
@@ -459,6 +462,9 @@
                                 <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage"><i class="fas fa-chevron-right"></i></button>
                             </div>
                         </div>
+                        <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Similar Part PDF" style="display:none;">
+                            <i class="fas fa-download"></i>
+                        </a>
                     </div>
                     <div id="similarPdfContainer" class="rounded border" style="height: 600px; position: relative; background-color: #eee; overflow: auto;">
                         <div id="similarPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">

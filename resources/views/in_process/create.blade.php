@@ -620,10 +620,15 @@
                                 </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn" id="fullStandardBtn"
-                            style="display:none;">
-                            <i class="fas fa-expand"></i> Full
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download PCCP PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
                     </div>
                     <div id="standardPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
@@ -670,10 +675,15 @@
                                 </button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn" id="fullSimilarBtn"
-                            style="display:none;">
-                            <i class="fas fa-expand"></i> Full
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn mr-1" id="fullSimilarBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Dimensi Part PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
                     </div>
                     <div id="similarPdfContainer" class="rounded border"
                         style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
