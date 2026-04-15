@@ -541,23 +541,74 @@
                                                                     @php
                                                                         $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
                                                                         $isNG = false;
-                                                                        if (isset($standards[$j]) && is_numeric($val)) {
-                                                                            $std = $standards[$j];
-
-                                                                            if ($std['min'] !== null && $val < $std['min']) {
-                                                                                $isNG = true;
-                                                                            }
-                                                                            if ($std['max'] !== null && $val > $std['max']) {
-                                                                                $isNG = true;
-                                                                            }
-
-                                                                            if (!$isNG && $std['min'] === null && $std['max'] === null) {
-                                                                                if ($std['size'] !== null && $std['tolerance'] !== null) {
-                                                                                    $min = $std['size'] - $std['tolerance'];
-                                                                                    $max = $std['size'] + $std['tolerance'];
-                                                                                    if ($val < $min || $val > $max) {
-                                                                                        $isNG = true;
+                                                                        
+                                                                        // Robust lookup for standard in PHP
+                                                                        $std = null;
+                                                                        if (!empty($standards)) {
+                                                                            if (isset($standards[$j])) {
+                                                                                $std = $standards[$j];
+                                                                            } else {
+                                                                                // Fallback for array structure if needed
+                                                                                foreach ($standards as $itemStd) {
+                                                                                    if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
+                                                                                        $std = $itemStd;
+                                                                                        break;
                                                                                     }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        if ($std && is_numeric($val)) {
+                                                                            $fVal = (float)$val;
+                                                                            $epsilon = 0.00001;
+
+                                                                            // 1. Check Absolute Min/Max
+                                                                            if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                                                                                $minBound = (float)$std['min'];
+                                                                                if ($fVal < ($minBound - $epsilon)) $isNG = true;
+                                                                            }
+                                                                            if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
+                                                                                $maxBound = (float)$std['max'];
+                                                                                if ($fVal > ($maxBound + $epsilon)) $isNG = true;
+                                                                            }
+
+                                                                            // 2. Check Size +/- Tolerance
+                                                                            if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                                                                                $szStr = (string)$std['size'];
+                                                                                if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                                                                                    $base = (float)$szStr;
+                                                                                    $tol = (string)$std['tolerance'];
+                                                                                    $lb = $base; $ub = $base;
+                                                                                    
+                                                                                    if (str_contains($tol, '/')) {
+                                                                                        $parts = explode('/', $tol);
+                                                                                        foreach ($parts as $p) {
+                                                                                            $p = trim(str_replace(',', '.', $p));
+                                                                                            $fv = (float)$p;
+                                                                                            if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                                                                                            elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
+                                                                                        }
+                                                                                    } elseif (str_starts_with($tol, '+')) {
+                                                                                        $ub = $base + (float)substr($tol, 1);
+                                                                                    } elseif (str_starts_with($tol, '-')) {
+                                                                                        $lb = $base + (float)$tol;
+                                                                                    } else {
+                                                                                        $tv = (float)$tol;
+                                                                                        $lb = $base - $tv; $ub = $base + $tv;
+                                                                                    }
+                                                                                    
+                                                                                    if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) $isNG = true;
+                                                                                }
+                                                                            }
+
+                                                                            // 3. Check Special Size (prefix)
+                                                                            if (!$isNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
+                                                                                $szStr = (string)$std['size'];
+                                                                                if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                                                                                    $op = $szStr[0];
+                                                                                    $bound = (float)substr($szStr, 1);
+                                                                                    if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
+                                                                                    elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
                                                                                 }
                                                                             }
                                                                         }
