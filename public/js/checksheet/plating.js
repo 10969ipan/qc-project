@@ -565,7 +565,7 @@ class PlatingCreate {
             const defectSelect = $("#defectSelect");
             defectSelect.html('<option value="">-- Pilih Defect --</option>');
 
-            let defectList = defects;
+            let defectList = selected.data("defects") || selected.attr("data-defects");
             if (typeof defectList === "string") {
                 try {
                     defectList = JSON.parse(defectList);
