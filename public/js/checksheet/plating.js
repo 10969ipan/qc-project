@@ -858,8 +858,10 @@ class PlatingCreate {
             }
             $("#downloadStandardBtn").attr("href", standardUrl).show();
         } else {
-            $("#standardPdfCanvas").hide();
+            $("#standardPdfCanvas").addClass("d-none").hide();
             $("#standardPdfPlaceholder")
+                .removeClass("d-none")
+                .addClass("d-flex")
                 .show()
                 .find("p")
                 .text("Standard PDF tidak tersedia");
@@ -875,8 +877,10 @@ class PlatingCreate {
             $("#similarStatusText").text("");
             $("#downloadSimilarBtn").attr("href", similarUrl).show();
         } else {
-            $("#similarPdfCanvas").hide();
+            $("#similarPdfCanvas").addClass("d-none").hide();
             $("#similarPdfPlaceholder")
+                .removeClass("d-none")
+                .addClass("d-flex")
                 .show()
                 .find("p")
                 .text("Similar Part tidak tersedia");
@@ -887,21 +891,34 @@ class PlatingCreate {
     }
 
     loadPdf(url, type) {
+        const placeholderId =
+            type === "standard"
+                ? "standardPdfPlaceholder"
+                : "similarPdfPlaceholder";
+        const loadingId =
+            type === "standard" ? "standardPdfLoading" : "similarPdfLoading";
+        const canvasId =
+            type === "standard" ? "standardPdfCanvas" : "similarPdfCanvas";
+
         if (this.pdfCache[url]) {
             if (type === "standard") this.pdf.standardDoc = this.pdfCache[url];
             else this.pdf.similarDoc = this.pdfCache[url];
             this.renderPdfToCanvas(
                 this.pdfCache[url],
-                type === "standard" ? "standardPdfCanvas" : "similarPdfCanvas",
-                type === "standard"
-                    ? "standardPdfPlaceholder"
-                    : "similarPdfPlaceholder",
-                type === "standard"
-                    ? "standardPdfLoading"
-                    : "similarPdfLoading",
+                canvasId,
+                placeholderId,
+                loadingId,
                 1,
             );
         } else {
+            const $placeholder = $("#" + placeholderId);
+            const $loading = $("#" + loadingId);
+            const $canvas = $("#" + canvasId);
+
+            $placeholder.removeClass("d-flex").addClass("d-none");
+            $canvas.addClass("d-none").hide();
+            $loading.removeClass("d-none").addClass("d-flex");
+
             pdfjsLib
                 .getDocument(url)
                 .promise.then((pdf) => {
@@ -910,24 +927,17 @@ class PlatingCreate {
                     else this.pdf.similarDoc = pdf;
                     this.renderPdfToCanvas(
                         pdf,
-                        type === "standard"
-                            ? "standardPdfCanvas"
-                            : "similarPdfCanvas",
-                        type === "standard"
-                            ? "standardPdfPlaceholder"
-                            : "similarPdfPlaceholder",
-                        type === "standard"
-                            ? "standardPdfLoading"
-                            : "similarPdfLoading",
+                        canvasId,
+                        placeholderId,
+                        loadingId,
                         1,
                     );
                 })
                 .catch((err) => {
-                    const placeholder =
-                        type === "standard"
-                            ? "standardPdfPlaceholder"
-                            : "similarPdfPlaceholder";
-                    $(`#${placeholder}`)
+                    $loading.removeClass("d-flex").addClass("d-none");
+                    $placeholder
+                        .removeClass("d-none")
+                        .addClass("d-flex")
                         .show()
                         .find("p")
                         .text("Gagal memuat PDF");
@@ -943,9 +953,9 @@ class PlatingCreate {
         const $loading = $("#" + loadingId);
         const $canvas = $(canvas);
 
-        $placeholder.hide();
-        $canvas.hide();
-        $loading.show();
+        $placeholder.removeClass("d-flex").addClass("d-none");
+        $canvas.addClass("d-none").hide();
+        $loading.removeClass("d-none").addClass("d-flex");
 
         pdf.getPage(pageNum).then((page) => {
             const containerWidth = $canvas.parent().width() || 500;
@@ -961,8 +971,8 @@ class PlatingCreate {
                 canvasContext: ctx,
                 viewport: scaledViewport,
             }).promise.then(() => {
-                $loading.hide();
-                $canvas.show();
+                $loading.removeClass("d-flex").addClass("d-none");
+                $canvas.removeClass("d-none").show();
                 if (canvasId === "standardPdfCanvas") {
                     $("#standardPageInfo").text(
                         "P " + pageNum + "/" + pdf.numPages,
