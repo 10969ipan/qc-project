@@ -535,6 +535,10 @@ class PlatingCreate {
                     new Event("change", { bubbles: true }),
                 );
 
+                if (quantity) {
+                    $('input[name="total_qty"]').val(quantity).trigger("input");
+                }
+
                 Swal.fire({
                     icon: "success",
                     title: "QR Berhasil Discan",
@@ -549,8 +553,6 @@ class PlatingCreate {
                     "warning",
                 );
             }
-
-            $('input[name="total_qty"]').val(quantity).trigger("input");
         } catch (e) {
             console.error("Fill QR Error:", e);
             Swal.fire("Error", "Gagal mengisi data QR: " + e.message, "error");
@@ -594,18 +596,25 @@ class PlatingCreate {
         $("#sapCodeInput").on("input", (e) => {
             const sapCode = $(e.target).val().trim();
             if (sapCode.length >= 1) {
+                let normalize = (str) =>
+                    (str || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                let targetSap = normalize(sapCode);
+
                 const matchedOption = $("#itemSelect option").filter(
                     function () {
-                        const itemSapCode = $(this).data("sap-code");
-                        return (
-                            itemSapCode &&
-                            itemSapCode.toString().toLowerCase() ===
-                                sapCode.toLowerCase()
+                        const sCode = normalize(
+                            $(this).attr("data-sap-code") ||
+                                $(this).data("sap-code"),
                         );
+                        return sCode === targetSap;
                     },
                 );
+
                 if (matchedOption.length > 0) {
                     $("#itemSelect").val(matchedOption.val()).trigger("change");
+                    $("#itemSelect")[0].dispatchEvent(
+                        new Event("change", { bubbles: true }),
+                    );
                     $("#sapCodeInput")
                         .removeClass("is-invalid")
                         .addClass("is-valid");

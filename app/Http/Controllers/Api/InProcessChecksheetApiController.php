@@ -59,6 +59,17 @@ class InProcessChecksheetApiController extends Controller
             ], 404);
         }
 
+        // Tambahan Trigger: Hanya izinkan jika Judgment OK
+        if (strtoupper($foundChecksheet->judgment) !== 'OK') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Part ini memiliki judgment NG atau Belum OK. Tidak dapat diproses lebih lanjut.',
+                'unique_code_id' => $unique_code_id,
+                'status_qc' => 'REJECTED',
+                'judgment' => $foundChecksheet->judgment
+            ], 400);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Data QC ditemukan.',

@@ -273,19 +273,27 @@ class SubAssyCreate {
         $("#itemSelect").change((e) => this.handleItemChange(e));
 
         $("#sapCodeInput").on("input", function () {
-            const sapCode = $(this).val().trim().toLowerCase();
+            const sapCode = $(this).val().trim();
             if (sapCode.length >= 1) {
+                let normalize = (str) =>
+                    (str || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                let targetSap = normalize(sapCode);
+
                 const matchedOption = $("#itemSelect option").filter(
                     function () {
-                        const itemSapCode = String(
-                            $(this).data("sap-code"),
-                        ).toLowerCase();
-                        return itemSapCode === sapCode;
+                        const sCode = normalize(
+                            $(this).attr("data-sap-code") ||
+                                $(this).data("sap-code"),
+                        );
+                        return sCode === targetSap;
                     },
                 );
 
                 if (matchedOption.length > 0) {
                     $("#itemSelect").val(matchedOption.val()).trigger("change");
+                    $("#itemSelect")[0].dispatchEvent(
+                        new Event("change", { bubbles: true }),
+                    );
                     $(this).removeClass("is-invalid").addClass("is-valid");
                 } else {
                     $(this).removeClass("is-valid").addClass("is-invalid");
@@ -658,6 +666,10 @@ class SubAssyCreate {
                     new Event("change", { bubbles: true }),
                 );
 
+                if (quantity) {
+                    $('input[name="total_qty"]').val(quantity).trigger("input");
+                }
+
                 Swal.fire({
                     icon: "success",
                     title: "QR Berhasil Discan",
@@ -666,8 +678,6 @@ class SubAssyCreate {
                     showConfirmButton: false,
                 });
 
-                if (quantity)
-                    $('input[name="total_qty"]').val(quantity).trigger("input");
                 if (callback) callback(true);
             } else {
                 Swal.fire(
@@ -677,6 +687,12 @@ class SubAssyCreate {
                 );
                 if (callback) callback(false);
             }
+        } catch (e) {
+            console.error("Fill QR Error:", e);
+            Swal.fire("Error", "Gagal mengisi data QR: " + e.message, "error");
+            if (callback) callback(false);
+        }
+    }
 
             if (!this.config.itemSearchUrl) {
                 const Toast = Swal.mixin({
