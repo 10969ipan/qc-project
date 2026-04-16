@@ -229,11 +229,14 @@ class SubAssyCreate {
     }
 
     setupUI() {
-        this.formInputs = $(
-            '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
-        );
+        const form = $("#checksheetForm");
+        this.formInputs = form
+            .find("input, select, textarea, button")
+            .not("#startTimerBtn")
+            .not('[type="hidden"]');
         this.formInputs.prop("disabled", true);
-        $("#checksheetForm").addClass("inputs-locked");
+        form.addClass("inputs-locked");
+
         if (!$("#lockStyle").length) {
             $(
                 '<style id="lockStyle">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>',
@@ -694,24 +697,6 @@ class SubAssyCreate {
         }
     }
 
-            if (!this.config.itemSearchUrl) {
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: "top-end",
-                    showConfirmButton: false,
-                    timer: 2000,
-                });
-                Toast.fire({
-                    icon: "success",
-                    title: "Data QR dimuat: " + uniqueCode,
-                });
-            }
-        } catch (e) {
-            console.error("Fill QR Error:", e);
-            Swal.fire("Error", "Gagal mengisi data QR: " + e.message, "error");
-            if (callback) callback(false);
-        }
-    }
 
     initPDFReference() {
         // Navigasi PCCP / Standard
