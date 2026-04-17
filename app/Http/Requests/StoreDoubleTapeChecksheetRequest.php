@@ -41,7 +41,9 @@ class StoreDoubleTapeChecksheetRequest extends FormRequest
             'unique_code_id' => [
                 'nullable',
                 'string',
-                \Illuminate\Validation\Rule::unique('double_tape_checksheets', 'unique_code_id')->whereNotNull('unique_code_id'),
+                \Illuminate\Validation\Rule::unique('double_tape_checksheets', 'unique_code_id')
+                    ->where('part_code', $this->part_code)
+                    ->whereNotNull('unique_code_id'),
             ],
             'sap_code' => 'nullable|string',
             'plant' => 'required',
