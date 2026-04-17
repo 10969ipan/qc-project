@@ -500,11 +500,12 @@ class ItemController extends Controller
         ];
 
         foreach ($tables as $table => $moduleName) {
-            $query = DB::table($table)->where('qrcode', $qrCode);
-            
-            // Juga cek berdasarkan unique_code_id jika tersedia di dalam potongan QR tersebut
             if ($uniqueCodeId) {
-                $query->orWhere('unique_code_id', $uniqueCodeId);
+                // Patokan utama adalah ID Unik (sesuai permintaan user)
+                $query = DB::table($table)->where('unique_code_id', $uniqueCodeId);
+            } else {
+                // Fallback ke teks QR lengkap jika ID tidak dapat di-parse
+                $query = DB::table($table)->where('qrcode', $qrCode);
             }
 
             $record = $query->latest()->first();
