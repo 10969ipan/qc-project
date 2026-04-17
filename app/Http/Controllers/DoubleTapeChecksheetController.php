@@ -180,11 +180,16 @@ class DoubleTapeChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $users = \App\Models\User::where('is_active', true)
+            ->whereIn('role', ['admin', 'inspector', 'supervisor', 'kashift'])
+            ->orderBy('name')
+            ->get();
+
         if (request()->ajax()) {
-            return view('double_tape.partials.edit_form', compact('checksheet', 'items'));
+            return view('double_tape.partials.edit_form', compact('checksheet', 'items', 'users'));
         }
 
-        return view('double_tape.edit', compact('checksheet', 'items'));
+        return view('double_tape.edit', compact('checksheet', 'items', 'users'));
     }
 
     public function update(UpdateDoubleTapeChecksheetRequest $request, $id)

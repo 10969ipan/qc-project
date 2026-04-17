@@ -490,14 +490,43 @@ class ItemController extends Controller
             'double_tape_checksheets' => 'Double Tape'
         ];
 
+        // Parse unique_code_id from QR (Standard Format: part|supplier|qty|unique_id|sap)
+        $uniqueCodeId = null;
+        if (strpos($qrCode, '|') !== false) {
+            $parts = explode('|', $qrCode);
+            if (count($parts) >= 4) {
+                $uniqueCodeId = trim($parts[3]);
+            }
+        }
+
+        $tables = [
+            'in_process_checksheets' => 'In-Process',
+            'sub_assy_checksheets' => 'Sub Assy',
+            'plating_checksheets' => 'Plating',
+            'double_tape_checksheets' => 'Double Tape'
+        ];
+
         foreach ($tables as $table => $moduleName) {
-            $record = DB::table($table)->where('qrcode', $qrCode)->first();
+            if ($uniqueCodeId) {
+                // Patokan utama adalah ID Unik (sesuai permintaan user agar 011 vs 012 dianggap berbeda)
+                $query = DB::table($table)->where('unique_code_id', $uniqueCodeId);
+            } else {
+                // Fallback ke teks QR lengkap jika ID tidak dapat di-parse
+                $query = DB::table($table)->where('qrcode', $qrCode);
+            }
+
+            $record = $query->latest()->first();
+
             if ($record) {
                 $date = Carbon::parse($record->created_at)->format('d-m-Y H:i');
+                
+                // Tentukan field mana yang bikin duplikat untuk pesan error yang lebih jelas
+                $reason = ($record->qrcode === $qrCode) ? "Teks QR sama" : "ID Unik ({$uniqueCodeId}) sudah terdaftar";
+                
                 return response()->json([
                     'success' => true,
                     'unique' => false,
-                    'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}."
+                    'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}. ({$reason})"
                 ]);
             }
         }
