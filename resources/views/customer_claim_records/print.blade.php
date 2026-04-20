@@ -118,7 +118,8 @@
 
     <div class="sub-header">
         <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
-        <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        <strong>Plant:</strong> {{ strtoupper($plantName) }}<br>
+        <strong>Customer:</strong> {{ request('customer') ?: 'SEMUA' }}
     </div>
 
     <table class="table">

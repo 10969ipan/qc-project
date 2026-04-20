@@ -58,6 +58,17 @@
                     </div>
                 </div>
 
+                <!-- Field: Customer -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Customer:</label>
+                    <select name="customer" class="form-control form-control-sm border-0 shadow-sm" style="width: 140px; font-size: 0.75rem;">
+                        <option value="">SEMUA</option>
+                        @foreach($customers as $cust)
+                            <option value="{{ $cust }}" {{ request('customer') == $cust ? 'selected' : '' }}>{{ $cust }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 @php
                     $selectedId = request('smart_filter');
                 @endphp
@@ -97,11 +108,11 @@
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
                     @if($canExport)
-                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter'])) }}"
+                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer'])) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
                     </a>
-                    <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter'])) }}"
+                    <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer'])) }}"
                         target="_blank"
                         class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print" title="Print"
                         style="background-color: #17a589; color: white;">

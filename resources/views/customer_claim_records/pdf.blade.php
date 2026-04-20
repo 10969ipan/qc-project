@@ -152,7 +152,8 @@
         {{ $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua' }} -
         {{ $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua' }}
         <br>
-        <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        <strong>Plant:</strong> {{ strtoupper($plantName) }}<br>
+        <strong>Customer:</strong> {{ request('customer') ?: 'SEMUA' }}
     </div>
 
     <table class="table">

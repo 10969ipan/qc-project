@@ -28,6 +28,11 @@ class CustomerClaimRecordController extends Controller
             }
         }
 
+        // Filter by customer
+        if ($request->filled('customer')) {
+            $query->where('customer', $request->customer);
+        }
+
         // Filter by date range
         if ($request->filled('start_date')) {
             $query->where('tanggal_claim', '>=', $request->start_date);
@@ -71,9 +76,10 @@ class CustomerClaimRecordController extends Controller
             ->get();
 
         $plants = Plant::orderBy('name')->get();
+        $customers = CustomerClaimRecord::distinct()->orderBy('customer')->pluck('customer');
         $plantId = Plant::resolveId($request->plant) ?: (auth()->check() ? auth()->user()->plant_id : null);
 
-        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'allRecords'));
+        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'allRecords', 'customers'));
     }
 
     /**
@@ -90,6 +96,10 @@ class CustomerClaimRecordController extends Controller
             if ($plantId) {
                 $query->where('plant_id', $plantId);
             }
+        }
+
+        if ($request->filled('customer')) {
+            $query->where('customer', $request->customer);
         }
 
         if ($request->filled('start_date')) {
@@ -169,6 +179,10 @@ class CustomerClaimRecordController extends Controller
             if ($plantId) {
                 $query->where('plant_id', $plantId);
             }
+        }
+
+        if ($request->filled('customer')) {
+            $query->where('customer', $request->customer);
         }
 
         if ($request->filled('start_date')) {
