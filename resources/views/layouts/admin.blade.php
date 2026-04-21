@@ -992,9 +992,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(12px) saturate(180%);
-            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            background: transparent;
             z-index: 10000;
             align-items: center;
             justify-content: center;
@@ -1002,13 +1000,9 @@
         }
 
         .loader-card {
-            background: rgba(255, 255, 255, 0.85);
-            padding: 2.5rem 3.5rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            background: transparent;
+            padding: 2rem;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
             animation: loaderPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
