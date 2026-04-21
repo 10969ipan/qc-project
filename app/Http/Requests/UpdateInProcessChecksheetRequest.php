@@ -43,7 +43,13 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',
             'quantity' => 'nullable|integer',
-            'unique_code_id' => 'nullable|string|unique:in_process_checksheets,unique_code_id,' . $this->route('id'),
+            'unique_code_id' => [
+                'nullable',
+                'string',
+                \Illuminate\Validation\Rule::unique('in_process_checksheets', 'unique_code_id')
+                    ->where('part_code', $this->part_code)
+                    ->ignore($this->route('id')),
+            ],
             'sap_code' => 'nullable|string',
             'date' => 'required|date',
             'shift' => 'required|string',

@@ -27,7 +27,13 @@ class UpdateDoubleTapeChecksheetRequest extends FormRequest
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',
             'quantity' => 'nullable|string',
-            'unique_code_id' => 'nullable|string|unique:double_tape_checksheets,unique_code_id,' . ($this->route('id') ?? $this->route('checksheet')),
+            'unique_code_id' => [
+                'nullable',
+                'string',
+                \Illuminate\Validation\Rule::unique('double_tape_checksheets', 'unique_code_id')
+                    ->where('part_code', $this->part_code)
+                    ->ignore($this->route('id') ?? $this->route('checksheet')),
+            ],
             'sap_code' => 'nullable|string',
             'date' => 'required|date',
             'shift' => 'required|string',

@@ -483,11 +483,13 @@ class ItemController extends Controller
             return response()->json(['success' => false, 'message' => 'QR data is empty.'], 400);
         }
 
-        // Parse unique_code_id from QR (Standard Format: part|supplier|qty|unique_id|sap)
+        // Parse part_code and unique_code_id from QR (Standard Format: part|supplier|qty|unique_id|sap)
         $uniqueCodeId = null;
+        $partCodeFromQr = null;
         if (strpos($qrCode, '|') !== false) {
             $parts = explode('|', $qrCode);
             if (count($parts) >= 4) {
+                $partCodeFromQr = trim($parts[0]);
                 $uniqueCodeId = trim($parts[3]);
             }
         }
@@ -500,9 +502,11 @@ class ItemController extends Controller
         ];
 
         foreach ($tables as $table => $moduleName) {
-            if ($uniqueCodeId) {
-                // Patokan utama adalah ID Unik (sesuai permintaan user)
-                $query = DB::table($table)->where('unique_code_id', $uniqueCodeId);
+            if ($uniqueCodeId && $partCodeFromQr) {
+                // Patokan utama adalah kombinasi Part Code + ID Unik (permintaan user)
+                $query = DB::table($table)
+                    ->where('part_code', $partCodeFromQr)
+                    ->where('unique_code_id', $uniqueCodeId);
             } else {
                 // Fallback ke teks QR lengkap jika ID tidak dapat di-parse
                 $query = DB::table($table)->where('qrcode', $qrCode);
@@ -514,12 +518,12 @@ class ItemController extends Controller
                 $date = Carbon::parse($record->created_at)->format('d-m-Y H:i');
                 
                 // Tentukan field mana yang bikin duplikat untuk pesan error yang lebih jelas
-                $reason = ($record->qrcode === $qrCode) ? "Teks QR sama" : "ID Unik ({$uniqueCodeId}) sudah terdaftar";
+                $reason = ($record->qrcode === $qrCode) ? "Teks QR sama" : "Kombinasi Part ({$partCodeFromQr}) & ID ({$uniqueCodeId}) sudah terdaftar";
                 
                 return response()->json([
                     'success' => true,
                     'unique' => false,
-                    'message' => "QR tidak dapat digunakan: {$reason}. Tercatat pada {$date} di modul {$moduleName}."
+                    'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}. ({$reason})"
                 ]);
             }
         }
