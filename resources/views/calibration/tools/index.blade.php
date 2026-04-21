@@ -194,8 +194,22 @@
                                 <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Alat
                             </button>
                         @endif
+                        <div class="dropdown ml-2">
+                            <button class="btn btn-sm btn-info dropdown-toggle shadow-sm" type="button" id="dropdownExport"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-download fa-sm text-white-50"></i> Export / Print
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownExport">
+                                <a class="dropdown-item" href="{{ route('calibration.tools.print', request()->all()) }}" target="_blank">
+                                    <i class="fas fa-print fa-sm fa-fw mr-2 text-gray-400"></i> Print View
+                                </a>
+                                <a class="dropdown-item" href="{{ route('calibration.tools.pdf', request()->all()) }}">
+                                    <i class="fas fa-file-pdf fa-sm fa-fw mr-2 text-gray-400"></i> Export PDF
+                                </a>
+                            </div>
+                        </div>
                         <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode]) }}"
-                            class="btn btn-sm btn-info shadow-sm ml-2">
+                            class="btn btn-sm btn-secondary shadow-sm ml-2">
                             <i class="fas fa-history fa-sm text-white-50"></i> Laporan Problem Alat
                         </a>
                     </div>

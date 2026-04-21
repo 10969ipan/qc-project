@@ -158,6 +158,42 @@ class CalibrationController extends Controller
         $availableYears = array_unique($availableYears);
         sort($availableYears);
 
+        $query = $this->getToolsQuery($request, $plant, $year);
+        $tools = $query->get();
+
+        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears'));
+    }
+
+    public function toolsPdf(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        $year = $request->input('year', 'all');
+
+        $query = $this->getToolsQuery($request, $plant, $year);
+        $tools = $query->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.tools.pdf', compact('tools', 'plantCode', 'year', 'plant', 'request'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'Master_Data_Alat_Ukur_' . date('Ymd_His') . '.pdf';
+        return $pdf->stream($filename);
+    }
+
+    public function toolsPrint(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        $year = $request->input('year', 'all');
+
+        $query = $this->getToolsQuery($request, $plant, $year);
+        $tools = $query->get();
+
+        return view('calibration.tools.print', compact('tools', 'plantCode', 'year', 'plant', 'request'));
+    }
+
+    private function getToolsQuery(Request $request, $plant, $year)
+    {
         $query = CalibrationTool::where('plant_id', $plant->id)
             ->withCount('verifications as all_verifications_count')
             ->with([
@@ -186,14 +222,14 @@ class CalibrationController extends Controller
                     $q->where('id', $request->tool_id);
                 }
 
-                $q->orWhere(function($subQ) use ($year) {
+                $q->orWhere(function ($subQ) use ($year) {
                     $subQ->whereHas('verifications', function ($q2) use ($year) {
                         $q2->whereYear('tanggal_verifikasi', $year);
                     })
-                    ->orWhereHas('schedules', function ($q2) use ($year) {
-                        $q2->whereYear('schedule_date', $year);
-                    })
-                    ->orWhereYear('schedule_planning', $year);
+                        ->orWhereHas('schedules', function ($q2) use ($year) {
+                            $q2->whereYear('schedule_date', $year);
+                        })
+                        ->orWhereYear('schedule_planning', $year);
                 });
             });
         }
@@ -248,15 +284,12 @@ class CalibrationController extends Controller
                         $q2->where('pr_number', 'LIKE', "%{$search}%");
                     });
 
-                // Special handling for date searching if needed, 
-                // but usually simple LIKE is enough for parts of date strings
+                // Special handling for date searching if needed
                 $q->orWhere('tanggal_beli', 'LIKE', "%{$search}%");
             });
         }
 
-        $tools = $query->get();
-
-        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears'));
+        return $query;
     }
 
 
