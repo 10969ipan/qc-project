@@ -179,14 +179,27 @@
         <div class="col-12 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div></div>
-                <form action="{{ route('dashboard') }}" method="GET" class="form-inline">
+                <form action="{{ route('dashboard') }}" method="GET" class="form-inline gap-2">
+                    @php
+                        $months = [
+                            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
+                            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                        ];
+                        $selectedMonth = $selectedMonth ?? date('n');
+                        $selectedYear = $selectedYear ?? date('Y');
+                    @endphp
+                    
+                    <select name="month" class="form-control form-control-sm" onchange="this.form.submit()">
+                        @foreach($months as $num => $name)
+                            <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+
                     <select name="year" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="combined" {{ ($claimData['year'] ?? '') == 'combined' ? 'selected' : '' }}>All</option>
-                        <option value="all" {{ ($claimData['year'] ?? '') == 'all' ? 'selected' : '' }}>Tren Tahunan (Summary)
-                        </option>
+                        <option value="combined" {{ ($claimData['year'] ?? '') == 'combined' ? 'selected' : '' }}>All Claims</option>
                         @php $currentY = date('Y'); @endphp
                         @for($y = $currentY; $y >= 2022; $y--)
-                            <option value="{{ $y }}" {{ ($claimData['year'] ?? $currentY) == $y && !in_array($claimData['year'], ['all', 'combined']) ? 'selected' : '' }}>{{ $y }}</option>
+                            <option value="{{ $y }}" {{ ($selectedYear == $y) ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
                 </form>
@@ -274,7 +287,7 @@
                                         <i class="fas fa-check-circle" style="font-size: 1.1rem;"></i>
                                     </div>
                                     <div>
-                                        <h6 class="modern-card-title mb-0">Approval Jakarta</h6>
+                                        <h6 class="modern-card-title mb-0">Approval Jakarta - {{ $months[$selectedMonth] }} {{ $selectedYear }}</h6>
                                         <div class="text-xs font-weight-bold text-slate-400 mt-1">Status Verifikasi & Validasi</div>
                                     </div>
                                 </div>
@@ -316,7 +329,7 @@
                                         <i class="fas fa-check-double" style="font-size: 1.1rem;"></i>
                                     </div>
                                     <div>
-                                        <h6 class="modern-card-title mb-0">Approval Karawang</h6>
+                                        <h6 class="modern-card-title mb-0">Approval Karawang - {{ $months[$selectedMonth] }} {{ $selectedYear }}</h6>
                                         <div class="text-xs font-weight-bold text-slate-400 mt-1">Status Verifikasi & Validasi</div>
                                     </div>
                                 </div>
@@ -404,7 +417,7 @@
                                             @php
                                                 $currentPlantName = Auth::user()->plant->name ?? 'Total';
                                             @endphp
-                                            <h6 class="modern-card-title">{{ strtoupper($currentPlantName) }} APPROVAL</h6>
+                                            <h6 class="modern-card-title">{{ strtoupper($currentPlantName) }} APPROVAL - {{ strtoupper($months[$selectedMonth]) }} {{ $selectedYear }}</h6>
                                             <div class="small text-muted">Statistik {{ $currentPlantName }}</div>
                                         </div>
                                     </div>

@@ -24,12 +24,17 @@ class DashboardController extends Controller
             $request->merge(['plant' => $user->plant_id]);
         }
 
-        $data = $this->dashboardService->getDashboardData();
+        $month = $request->get('month', date('n'));
+        $year = $request->get('year', date('Y'));
+
+        $data = $this->dashboardService->getDashboardData($month, $year);
 
         // Customer Claim Data
         $claimYear = $request->get('year', 'combined');
         $claimData = $this->dashboardService->getCustomerClaimData($claimYear);
         $data['claimData'] = $claimData;
+        $data['selectedMonth'] = (int) $month;
+        $data['selectedYear'] = $year;
 
         return view('layouts.dashboard', $data);
     }

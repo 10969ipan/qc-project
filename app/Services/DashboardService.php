@@ -72,16 +72,19 @@ class DashboardService extends BaseService
      * 
      * @return array
      */
-    public function getDashboardData(): array
+    public function getDashboardData($month = null, $year = null): array
     {
+        $month = is_numeric($month) ? (int)$month : date('n');
+        $year = is_numeric($year) ? (int)$year : date('Y');
+
         $authRole = auth()->user()->role;
         $plantId = auth()->user()->plant_id;
-        $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant');
+        $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant') . "_{$year}_{$month}";
 
         // TEMPORARILY BYPASSING CACHE FOR DEBUGGING
-        // return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole) {
-        return (function () use ($authRole) {
-            $combinedStats = $this->calculateApprovalStats('all');
+        // return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole, $month, $year) {
+        return (function () use ($authRole, $month, $year) {
+            $combinedStats = $this->calculateApprovalStats('all', false, null, $month, $year);
             $dailyCombinedStats = $this->calculateApprovalStats('all', true);
 
             $statsJakarta = null;
@@ -98,8 +101,8 @@ class DashboardService extends BaseService
             $dailyStatsInProcess = null;
 
             if (in_array($authRole, $dualViewRoles)) {
-                $statsJakarta = $this->calculateApprovalStats('jakarta');
-                $statsKarawang = $this->calculateApprovalStats('karawang');
+                $statsJakarta = $this->calculateApprovalStats('jakarta', false, null, $month, $year);
+                $statsKarawang = $this->calculateApprovalStats('karawang', false, null, $month, $year);
                 
                 $dailyStatsJakarta = $this->calculateApprovalStats('jakarta', true);
                 $dailyStatsKarawang = $this->calculateApprovalStats('karawang', true);
@@ -164,7 +167,7 @@ class DashboardService extends BaseService
     /**
      * Calculate global approval statistics
      */
-    private function calculateApprovalStats($plantOverride = null, bool $dailyOnly = false, ?string $type = null): array
+    private function calculateApprovalStats($plantOverride = null, bool $dailyOnly = false, ?string $type = null, $month = null, $year = null): array
     {
         $stats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
         
@@ -180,26 +183,26 @@ class DashboardService extends BaseService
         }
 
         if (!$type || $type === 'sub_assy') {
-            $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly);
+            $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
         }
 
         if (!$type || $type === 'in_process') {
-            $this->processModelStats(InProcessChecksheet::class, $stats, $plantId, $dailyOnly);
-            $this->processModelStats(FirstPieceApproval::class, $stats, $plantId, $dailyOnly);
+            $this->processModelStats(InProcessChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
+            $this->processModelStats(FirstPieceApproval::class, $stats, $plantId, $dailyOnly, $month, $year);
         }
 
         if (!$type) {
             // Jakarta only shows Sub Assy and In Process per user request
             if ($plantCode !== 'jakarta') {
-                $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly);
-                $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly);
+                $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
+                $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
             }
         }
 
         return $stats;
     }
 
-    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false): void
+    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false, $month = null, $year = null): void
     {
         $table = (new $modelClass)->getTable();
         
@@ -233,6 +236,10 @@ class DashboardService extends BaseService
         // Filter data H-1 dan Hari Ini saja agar grafik reset setiap hari
         if ($dailyOnly) {
             $query->whereDate($dateColumn, '>=', now()->subDay()->toDateString());
+        } elseif ($month && $year) {
+            // Apply Month and Year filtering for main statistics
+            $query->whereMonth($dateColumn, $month)
+                  ->whereYear($dateColumn, $year);
         }
 
         // Build a single aggregated query for all columns to ensure atomicity and performance
