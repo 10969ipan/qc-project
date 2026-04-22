@@ -17,16 +17,17 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            table-layout: fixed;
+            table-layout: auto; /* Changed from fixed for auto-layout */
         }
 
         .table th,
         .table td {
             border: 1px solid #000;
-            padding: 4px;
+            padding: 2px 3px;
             text-align: center;
             vertical-align: middle;
             word-wrap: break-word;
+            overflow-wrap: break-word; /* Ensure compatibility */
         }
 
         .table thead th {
@@ -236,7 +237,7 @@
                         </span>
                     </td>
                     <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
-                    <td>{{ $checksheet->remarks ?? '-' }}</td>
+                    <td style="text-align: left; font-size: 7px; min-width: 60px;">{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>

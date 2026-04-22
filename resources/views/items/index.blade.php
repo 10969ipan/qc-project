@@ -134,9 +134,9 @@
                 <input type="hidden" name="f_search" id="hiddenSearchInput" value="{{ request('f_search', request('search')) }}">
 
                 <!-- Field: Part (Dropdown Item Search) -->
-                <div class="d-flex align-items-center flex-grow-1" style="max-width: 500px;">
+                <div class="d-flex align-items-center" style="min-width: 280px; max-width: 400px;">
                     <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 400px;" class="custom-filter-wrapper flex-grow-1">
+                    <div class="custom-filter-wrapper flex-grow-1">
                         <select name="f_item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($allItemsList as $itm)
@@ -146,12 +146,38 @@
                                     data-customer="{{ $itm->customer }}"
                                     data-sap-code="{{ $itm->sap_code }}"
                                     data-detail="{{ optional($itm->category)->name }}"
-                                    {{ request('item_id') == $itm->id ? 'selected' : '' }}>
+                                    {{ request('f_item_id') == $itm->id ? 'selected' : '' }}>
                                     {{ $itm->name }} {{ $itm->part_number ? '- '.$itm->part_number : '' }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
+                </div>
+
+                <!-- Field: Category -->
+                <div class="d-flex align-items-center" style="min-width: 180px;">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Kategori:</label>
+                    <select name="category" id="filterCategory" class="form-control form-control-sm border-0 shadow-sm select2-standard" style="width: 150px;">
+                        <option value="">Semua Kategori</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
+                                {{ $cat->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Field: Customer -->
+                <div class="d-flex align-items-center" style="min-width: 200px;">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
+                    <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm select2-standard" style="width: 180px;">
+                        <option value="">Semua Customer</option>
+                        @foreach($customers as $cust)
+                            <option value="{{ $cust }}" {{ request('customer') == $cust ? 'selected' : '' }}>
+                                {{ $cust }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Tombol Aksi -->
@@ -766,13 +792,16 @@
                 }
 
                 // Auto-submit filter on dropdown change
-                var filterItem = document.getElementById('filterItem');
-                if (filterItem) {
-                    filterItem.addEventListener('change', function() {
-                        var form = document.getElementById('filterFormItems');
-                        if (form) form.submit();
-                    });
-                }
+                const filters = ['filterItem', 'filterCategory', 'filterCustomer'];
+                filters.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        $(el).on('change', function() {
+                            var form = document.getElementById('filterFormItems');
+                            if (form) form.submit();
+                        });
+                    }
+                });
 
                 // Fix body scrolling when multiple modals are open and one is closed
                 $('.modal').on('hidden.bs.modal', function () {

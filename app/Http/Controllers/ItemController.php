@@ -92,7 +92,14 @@ class ItemController extends Controller
         }
         $allItemsList = $allItemsQuery->orderBy('name')->get();
 
-        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList'));
+        // Get unique customers for filter dropdown
+        $customersQuery = Item::distinct();
+        if ($plantId) {
+            $customersQuery->where('plant_id', $plantId);
+        }
+        $customers = $customersQuery->orderBy('customer')->pluck('customer')->filter()->values();
+
+        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers'));
     }
 
 

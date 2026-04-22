@@ -85,17 +85,12 @@
 
         .table td {
             border: 1px solid #000;
-            padding: 3px 4px;
+            padding: 2px 4px; /* Reduced vertical padding */
             text-align: center;
             vertical-align: middle;
             font-size: 7.5px;
             word-wrap: break-word;
-        }
-
-        /* Hindari baris terpotong di tengah halaman */
-        tbody tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
+            overflow-wrap: break-word;
         }
 
         /* ===== KOLOM TERSEMBUNYI ===== */
@@ -249,7 +244,7 @@
                         </span>
                     </td>
                     <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
-                    <td style="text-align:left; font-size:6.5px;">{{ $checksheet->remarks ?? '-' }}</td>
+                    <td style="text-align:left; font-size:7px; min-width:80px; word-break: break-word;">{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>

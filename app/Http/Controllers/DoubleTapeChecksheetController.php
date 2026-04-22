@@ -215,6 +215,9 @@ class DoubleTapeChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $this->restrictToKarawang();
 
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
