@@ -671,10 +671,12 @@
                                             if (is_array($d) && isset($d['type'])) {
                                                 $qty = $d['qty'] ?? 1;
                                                 $pcsLines[] = $qty;
-                                                $nameLines[] = $d['type'];
+                                                $typeStr = strtolower($d['type']) === 'dimension' ? 'Dimensi' : $d['type'];
+                                                $nameLines[] = $typeStr;
                                             } elseif (is_string($d)) {
                                                 $pcsLines[] = 1;
-                                                $nameLines[] = $d;
+                                                $typeStr = strtolower($d) === 'dimension' ? 'Dimensi' : $d;
+                                                $nameLines[] = $typeStr;
                                             }
                                         }
                                     }

@@ -491,7 +491,7 @@
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
                                             style="border-radius:0 4px 4px 0; font-size:0.78rem;"
-                                            name="total_ok" placeholder="0" min="0" required>
+                                            name="total_ok" id="total_ok" placeholder="0" min="0" required>
                                     </div>
                                     <div class="d-flex align-items-center" style="gap:4px;">
                                         <span class="ng-label px-2 py-1 font-weight-bold" style="font-size:0.7rem; border-radius:4px 0 0 4px;">NG</span>

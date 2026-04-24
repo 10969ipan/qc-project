@@ -1,4 +1,4 @@
-﻿class FpaIndex {
+class FpaIndex {
     constructor(config) {
         this.config = config;
         this.init();
@@ -1283,38 +1283,12 @@ class FpaCreate {
     }
 
     checkMandatoryDimensions() {
-        const selectedOption  = $("#itemSelect").find("option:selected");
-        const itemPartNumber  = this.normalizePartNumber(selectedOption.data("part-number"));
-        const dimensionStandards = (this.config.partDimensionStandards || {})[itemPartNumber];
-
-        if (!dimensionStandards ||
-            this.config.plantContext === 'jakarta' ||
-            this.config.plantContext === 'karawang') return true;
-
-        let allFilled = true, firstEmpty = null;
-        $(".dimension-input").each(function () {
-            const match = $(this).attr("name").match(/\[(\d+)\]\[(\d+)\]/);
-            if (match && dimensionStandards[match[2]] && $(this).val().trim() === '') {
-                allFilled = false;
-                $(this).addClass("is-invalid");
-                if (!firstEmpty) firstEmpty = $(this);
-            }
-        });
-
-        if (!allFilled) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Data Dimensi Belum Lengkap',
-                text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
-            });
-            if (firstEmpty) {
-                $("html, body").animate({ scrollTop: firstEmpty.offset().top - 200 }, 500);
-                firstEmpty.focus();
-            }
-            return false;
-        }
+        // FPA: field dimensi tidak mandatory — boleh dikosongkan (seperti in-process).
+        // Validasi visual (is-invalid/is-valid) tetap berjalan via validateDimensions(),
+        // namun tidak memblokir submit.
         return true;
     }
+
 
     initFormValidation() {
         const _this = this;
@@ -1323,7 +1297,34 @@ class FpaCreate {
 
             const judgment   = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
+            const codeMachine = $("#code_machine").val();
+            const itemId      = $("#itemSelect").val();
 
+            // 1. Validasi: Item harus dipilih
+            if (!itemId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Item Belum Dipilih',
+                    text: 'Silakan pilih item terlebih dahulu!',
+                });
+                $("#itemSelect").addClass("is-invalid").focus();
+                setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 2. Validasi: Mesin harus dipilih
+            if (!codeMachine) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Mesin Belum Dipilih',
+                    text: 'Silakan pilih No. Mesin terlebih dahulu!',
+                });
+                $("#code_machine").addClass("is-invalid").focus();
+                setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 3. Validasi: NG harus pilih Next Proses
             if (judgment === 'NG' && !nextProses) {
                 Swal.fire({
                     icon: 'warning',
@@ -1336,6 +1337,7 @@ class FpaCreate {
             }
 
             if (!_this.checkMandatoryDimensions()) return false;
+
 
             let dimensionDefectSelected = false, dimensionQtyEmpty = false;
             $(".defect-select").each(function () {
@@ -1804,8 +1806,9 @@ class FpaEdit {
 
             if (Array.isArray(defectsData) && defectsData.length > 0) {
                 $.each(defectsData, (_, value) => {
+                    const displayValue = value.toLowerCase() === 'dimension' ? 'Dimensi' : value;
                     $select.append(
-                        `<option value="${value}">${value}</option>`,
+                        `<option value="${displayValue}">${displayValue}</option>`,
                     );
                 });
             } else {
@@ -1815,7 +1818,10 @@ class FpaEdit {
                     );
                 });
             }
-            if (currentVal) $select.val(currentVal);
+            if (currentVal) {
+                const normalizedVal = currentVal.toLowerCase() === 'dimension' ? 'Dimensi' : currentVal;
+                $select.val(normalizedVal);
+            }
         });
     }
 

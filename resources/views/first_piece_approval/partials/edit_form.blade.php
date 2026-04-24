@@ -195,10 +195,13 @@
                         </div>
                         <div id="editDefectContainer" class="bg-light p-2 rounded border-dashed" style="min-height: 50px;">
                             @forelse($defectsArr as $idx => $def)
+                                @php
+                                    $defType = isset($def['type']) && strtolower($def['type']) === 'dimension' ? 'Dimensi' : ($def['type'] ?? '');
+                                @endphp
                                 <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
                                     <div class="col-8 pr-1">
                                         <select name="defect_types[]" class="form-control form-control-sm defect-select font-weight-bold">
-                                            <option value="{{ $def['type'] }}" selected>{{ $def['type'] }}</option>
+                                            <option value="{{ $defType }}" selected>{{ $defType }}</option>
                                         </select>
                                     </div>
                                     <div class="col-3 pr-1">
@@ -424,10 +427,14 @@
             
             // Auto-defect Dimension
             let hasDimDef = false;
-            $('.defect-select').each(function(){ if($(this).find('option:selected').text().toLowerCase() === 'dimensi') hasDimDef = true; });
+            $('.defect-select').each(function(){ 
+                const text = $(this).find('option:selected').text().toLowerCase();
+                const val = $(this).val().toLowerCase();
+                if(text === 'dimensi' || val === 'dimension') hasDimDef = true; 
+            });
             
             if(isDimInvalid && !hasDimDef) {
-                const dimDefName = ($('#item_id option:selected').data('defects') || []).find(d => d.toLowerCase() === 'dimensi') || 'Dimensi';
+                const dimDefName = ($('#item_id option:selected').data('defects') || []).find(d => d.toLowerCase() === 'dimensi' || d.toLowerCase() === 'dimension') || 'Dimensi';
                 $('#noDefectMsg').remove();
                 $('#editDefectContainer').prepend(`
                     <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
@@ -440,7 +447,9 @@
             } else if (!isDimInvalid && hasDimDef) {
                 // Remove Dimensi defect if it exists and dimensions are OK
                 $('.defect-select').each(function() {
-                    if($(this).find('option:selected').text().toLowerCase() === 'dimensi') {
+                    const text = $(this).find('option:selected').text().toLowerCase();
+                    const val = $(this).val().toLowerCase();
+                    if(text === 'dimensi' || val === 'dimension') {
                         $(this).closest('.defect-row').remove();
                     }
                 });
