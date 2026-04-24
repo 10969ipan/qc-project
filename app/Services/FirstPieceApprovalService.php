@@ -305,11 +305,11 @@ class FirstPieceApprovalService extends BaseService
                                 $operator = substr($stdStr, 0, 1);
                                 $limit = (float) substr($stdStr, 1);
                                 if ($operator === "+") {
-                                    // Must be at least
-                                    return $val < $limit - $epsilon;
+                                    // Must be greater than
+                                    return $val <= $limit + $epsilon;
                                 } elseif ($operator === "-") {
-                                    // Must be at most
-                                    return $val > $limit + $epsilon;
+                                    // Must be less than
+                                    return $val >= $limit - $epsilon;
                                 }
                             }
 
@@ -337,63 +337,7 @@ class FirstPieceApprovalService extends BaseService
                             $isPointNG = true;
                         }
 
-                        // 2. Check Size +/- Tolerance (even if min/max are present)
-                        if (
-                            !$isPointNG &&
-                            ($std["size"] ?? null) !== null &&
-                            ($std["tolerance"] ?? null) !== null &&
-                            $std["size"] !== "" &&
-                            $std["tolerance"] !== ""
-                        ) {
-                            $szStr = $this->normalizeStandardValue($std["size"]);
-                            if (
-                                !str_starts_with($szStr, "+") &&
-                                !str_starts_with($szStr, "-")
-                            ) {
-                                $base = (float) $szStr;
-                                $tol = $this->normalizeStandardValue(
-                                    $std["tolerance"],
-                                );
-                                $lb = $base;
-                                $ub = $base;
-
-                                if (str_contains($tol, "/")) {
-                                    $parts = explode("/", $tol);
-                                    foreach ($parts as $p) {
-                                        $p = $this->normalizeStandardValue($p);
-                                        $fv = (float) $p;
-                                        if (
-                                            str_starts_with($p, "+") ||
-                                            $fv > 0
-                                        ) {
-                                            $ub = $base + abs($fv);
-                                        } elseif (
-                                            str_starts_with($p, "-") ||
-                                            $fv < 0
-                                        ) {
-                                            $lb = $base - abs($fv);
-                                        }
-                                    }
-                                } elseif (str_starts_with($tol, "+")) {
-                                    $ub = $base + (float) substr($tol, 1);
-                                } elseif (str_starts_with($tol, "-")) {
-                                    $lb = $base + (float) $tol;
-                                } else {
-                                    $tv = (float) $tol;
-                                    $lb = $base - $tv;
-                                    $ub = $base + $tv;
-                                }
-
-                                if (
-                                    $floatValue < $lb - $epsilon ||
-                                    $floatValue > $ub + $epsilon
-                                ) {
-                                    $isPointNG = true;
-                                }
-                            }
-                        }
-
-                        // 3. Special case: if Size is a prefix operator (+ or -)
+                        // Special case: if Size is a prefix operator (+ or -)
                         if (!$isPointNG && ($std["size"] ?? null) !== null) {
                             $sizeStr = $this->normalizeStandardValue(
                                 $std["size"],
@@ -411,7 +355,7 @@ class FirstPieceApprovalService extends BaseService
                             }
                         }
 
-                        // 4. Fallback to Size +/- Tolerance (Historical consistency)
+                        // Fallback to Size +/- Tolerance
                         if (
                             !$isPointNG &&
                             ($std["min"] ?? null) === null &&

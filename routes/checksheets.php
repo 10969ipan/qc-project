@@ -161,6 +161,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/sortir-checksheets/bulk-approve', [SortirChecksheetController::class, 'bulkApprove'])->name('sortir.bulk_approve');
         Route::post('/plating-checksheets/bulk-approve', [PlatingChecksheetController::class, 'bulkApprove'])->name('plating.bulk_approve');
         Route::post('/double-tape-checksheets/bulk-approve', [DoubleTapeChecksheetController::class, 'bulkApprove'])->name('double_tape.bulk_approve');
+        Route::post('/first-piece-approvals/bulk-approve', [FirstPieceApprovalController::class, 'bulkApprove'])->name('first_piece_approval.bulk_approve');
 
         // --- Incoming Routes (Approval) ---
         Route::post('/incoming-part/{id}/approve/{type}', [IncomingPartController::class, 'approve'])->name('incoming.parts.approve');

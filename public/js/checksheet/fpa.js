@@ -1,4 +1,4 @@
-class FpaIndex {
+﻿class FpaIndex {
     constructor(config) {
         this.config = config;
         this.init();
@@ -8,6 +8,7 @@ class FpaIndex {
         this.initCharCounters();
         this.initModalHandlers();
         this.initAjaxForms();
+        this.initQRDetail();
     }
 
     initCharCounters() {
@@ -190,6 +191,24 @@ class FpaIndex {
 
     showModalError($container, html) {
         $container.html(html).fadeIn();
+    }
+
+    initQRDetail() {
+        $(document).on('click', '.btn-qr-detail', function () {
+            const data = $(this).data();
+            let sapCode = data.sap || '-';
+            if ((sapCode === '-' || !sapCode) && data.qr) {
+                const parts = data.qr.split('|');
+                if (parts.length >= 5) sapCode = parts[4].trim();
+            }
+            $('#modal-qr-raw').text(data.qr || '-');
+            $('#modal-qr-part').text(data.part || '-');
+            $('#modal-qr-supplier').text(data.supplier || '-');
+            $('#modal-qr-qty').text(data.qty || '-');
+            $('#modal-qr-unique').text(data.unique || '-');
+            $('#modal-qr-sap').text(sapCode);
+            $('#qrModal').modal('show');
+        });
     }
 }
 
@@ -655,30 +674,35 @@ class FpaCreate {
     }
 
     initSapSelection() {
+        // Fix: gunakan data-sap_code (underscore) sesuai attribute di blade template
+        const normalize = (str) => (str || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
         $("#sapCodeInput").on("input", (e) => {
-            const sapCode = $(e.currentTarget).val().trim().toLowerCase();
+            const sapCode = $(e.currentTarget).val().trim();
             const $hiddenInput = $("#sapCodeInputHidden");
 
             if (sapCode.length >= 1) {
-                const matchedOption = $("#itemSelect option").filter(
-                    function () {
-                        return (
-                            String($(this).data("sap-code")).toLowerCase() ===
-                            sapCode
-                        );
-                    },
-                );
+                const targetSap = normalize(sapCode);
+                const matchedOption = $("#itemSelect option").filter(function () {
+                    // Support both attribute formats
+                    const itemSap = normalize(
+                        $(this).attr('data-sap_code') || $(this).data('sap_code') ||
+                        $(this).attr('data-sap-code') || $(this).data('sap-code')
+                    );
+                    return itemSap && itemSap === targetSap;
+                });
 
                 if (matchedOption.length > 0) {
                     $("#itemSelect").val(matchedOption.val()).trigger("change");
-                    $(e.currentTarget)
-                        .removeClass("is-invalid")
-                        .addClass("is-valid");
-                    $hiddenInput.val(matchedOption.data("sap-code"));
+                    $(e.currentTarget).removeClass("is-invalid").addClass("is-valid");
+                    $hiddenInput.val(
+                        matchedOption.attr('data-sap_code') ||
+                        matchedOption.data('sap_code') ||
+                        matchedOption.attr('data-sap-code') ||
+                        matchedOption.data('sap-code') || ''
+                    );
                 } else {
-                    $(e.currentTarget)
-                        .removeClass("is-valid")
-                        .addClass("is-invalid");
+                    $(e.currentTarget).removeClass("is-valid").addClass("is-invalid");
                     $hiddenInput.val("");
                 }
             } else {
@@ -693,8 +717,10 @@ class FpaCreate {
 
             this.handleItemChange($opt);
 
-            // Sync SAP code inputs
-            const sapCode = $opt.data("sap-code") || "";
+            // Sync SAP code inputs (support both attribute formats)
+            const sapCode =
+                $opt.attr('data-sap_code') || $opt.data('sap_code') ||
+                $opt.attr('data-sap-code') || $opt.data('sap-code') || '';
             $("#sapCodeInput")
                 .val(sapCode)
                 .removeClass("is-invalid")
@@ -705,171 +731,218 @@ class FpaCreate {
 
     handleItemChange($opt) {
         let files = $opt.data("files");
-        // Ensure files is an array
         if (typeof files === "string") {
-            try {
-                files = JSON.parse(files);
-            } catch (e) {
-                files = [];
-            }
+            try { files = JSON.parse(files); } catch (e) { files = []; }
         }
         files = files || [];
 
-        const similar = $opt.data("similar");
-        const weightStd = $opt.data("weight-standard");
-        const dimStds = $opt.data("dimension-standards");
-        const rawPartNumber = $opt.data("part-number");
-        const itemId = $opt.val();
+        const similar    = $opt.data("similar");
+        const weightStd  = $opt.data("weight-standard");
+        const customer   = $opt.data("customer") || '';
+        const cavityData = $opt.data("cavity");
+        const rawPartNum = $opt.data("part-number");
+        const itemId     = $opt.val();
 
-        console.log(
-            `Item changed: ID=${itemId}, PN=${rawPartNumber}, Files=${files.length}`,
-        );
-
-        this.config.itemPartNumber = this.normalizePartNumber(rawPartNumber);
-        this.pdf.standard.files = files;
+        this.config.itemPartNumber = this.normalizePartNumber(rawPartNum);
+        this.pdf.standard.files    = files;
         this.pdf.standard.currentIndex = 0;
 
+        // ── PDF Standard ──────────────────────────────────────────────────────
         if (files.length > 0) {
             $("#standardFileInfo").text(`1/${files.length}`);
-            const url = this.getPdfUrl(itemId, 0);
-            this.loadPdf("standard", url);
+            this.loadPdf("standard", this.getPdfUrl(itemId, 0));
         } else {
             $("#standardPdfCanvas").addClass("d-none");
-            $("#standardPdfPlaceholder")
-                .removeClass("d-none")
-                .addClass("d-flex")
-                .find("p")
-                .first()
-                .text("Item ini tidak memiliki file Standard (PCCP).");
-            $(".standard-nav-controls, #fullStandardBtn").hide();
-            $("#downloadStandardBtn").hide();
+            $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex")
+                .find("p").first().text("Item ini tidak memiliki file Standard (PCCP).");
+            $(".standard-nav-controls, #fullStandardBtn, #downloadStandardBtn").hide();
         }
 
+        // ── PDF Similar ───────────────────────────────────────────────────────
         if (similar) {
             this.loadPdf("similar", similar);
             $("#similarStatusText").text("");
         } else {
             $("#similarPdfCanvas").addClass("d-none");
-            $("#similarPdfPlaceholder")
-                .removeClass("d-none")
-                .addClass("d-flex")
-                .find("p")
-                .first()
-                .text("Item ini tidak memiliki file Dimensi Part.");
-            $("#similarStatusText").text(""); // Clear the second P tag to avoid repetition
-            $(".similar-nav-controls, #fullSimilarBtn").hide();
-            $("#downloadSimilarBtn").hide();
+            $("#similarPdfPlaceholder").removeClass("d-none").addClass("d-flex")
+                .find("p").first().text("Item ini tidak memiliki file Dimensi Part.");
+            $("#similarStatusText").text("");
+            $(".similar-nav-controls, #fullSimilarBtn, #downloadSimilarBtn").hide();
         }
 
-        if (weightStd) {
-            $(".col-berat-part").show();
-            $("#weightStandardDisplay").text(weightStd);
-            $("#weightStandardBadge").show();
-            this.updateWeightCavs();
+        // ── Berat Part – hanya untuk AHM / PT Takagi (sesuai in-process.js) ──
+        const cu = customer.toUpperCase();
+        const showWeight = cu.includes('ASTRA HONDA MOTOR') ||
+                           cu.includes('AHM') ||
+                           cu.includes('PT. TAKAGI SARI MULTI UTAMA');
+        if (showWeight) {
+            $(".col-berat-part").attr("style", "display: table-cell !important;");
+            const itemCavity = parseInt(cavityData) || 1;
+            this.initWeightCavities(Math.min(itemCavity, 8));
+            if (weightStd) {
+                $("#weightStandardDisplay").text(weightStd);
+                $("#weightStandardBadge").show();
+            } else {
+                $("#weightStandardBadge").hide();
+            }
         } else {
-            $(".col-berat-part").hide();
+            $(".col-berat-part").attr("style", "display: none !important;");
+            this.initWeightCavities(1);
             $("#weightStandardBadge").hide();
-            $("#weightCavContainer").empty();
         }
 
+        // ── Dimension Standards ───────────────────────────────────────────────
+        let dimStds = $opt.data("dimension-standards");
+        if (typeof dimStds === 'string') {
+            try { dimStds = JSON.parse(dimStds); } catch (e) { dimStds = null; }
+        }
+        // Hitung jumlah points dari standards
+        let pointCount = 5;
+        if (dimStds) {
+            if (Array.isArray(dimStds)) pointCount = dimStds.length;
+            else if (typeof dimStds === 'object') {
+                const keys = Object.keys(dimStds).map(k => parseInt(k));
+                if (keys.length > 0) pointCount = Math.max(...keys);
+            }
+        }
+
+        // Update cavity rows dinamis jika plantContext === 'karawang'
+        if (this.config.plantContext === 'karawang') {
+            this.updateCavityRows(cavityData || 1, pointCount);
+            $('#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn').hide();
+        }
+
+        // Store standards for validation
         this.config.currentDimensionStandards =
-            this.config.partDimensionStandards[this.config.itemPartNumber] ||
-            {};
+            this.config.partDimensionStandards[this.config.itemPartNumber] || {};
+
+        // ── Defect List ───────────────────────────────────────────────────────
         this.updateDefectList($opt.data("defects"));
         this.validateDimensions();
+        this.calculateTotalNG();
     }
 
-    updateDefectList(defects) {
+    updateDefectList(defectsData) {
+        // Reset container dengan 1 row kosong
+        $("#defectContainer").html(
+            '<div class="input-group mb-2 defect-row"><select class="form-control defect-select" name="defect_types[]" id="defectSelect"><option value="">-- Pilih Defect --</option></select><input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;"></div>'
+        );
         const $select = $("#defectSelect");
-        $select.empty().append('<option value="">-- Pilih Defect --</option>');
-        if (defects && typeof defects === "object") {
-            $.each(defects, (key, value) => {
-                $select.append(`<option value="${value}">${value}</option>`);
-            });
-            $("#addDefectBtn").show();
+
+        if (typeof defectsData === 'string') {
+            try { defectsData = JSON.parse(defectsData); } catch (e) { defectsData = []; }
+        }
+
+        if (Array.isArray(defectsData) && defectsData.length > 0) {
+            $.each(defectsData, (i, v) =>
+                $select.append(`<option value="${v}">${v}</option>`)
+            );
         } else {
-            $("#addDefectBtn").hide();
+            // Default defects (sesuai in-process.js)
+            const defaultDefects = [
+                { v: 'scratch',    t: 'BARET' },
+                { v: 'silver',     t: 'SILVER' },
+                { v: 'flow',       t: 'FLOW' },
+                { v: 'flash',      t: 'FLASH' },
+                { v: 'shoot_mold', t: 'SHOOT MOLD' },
+                { v: 'bending',    t: 'BENDING' },
+                { v: 'sinkmark',   t: 'SINKMARK' },
+                { v: 'dimension',  t: 'Dimensi' },
+            ];
+            $.each(defaultDefects, (i, d) =>
+                $select.append(`<option value="${d.v}">${d.t}</option>`)
+            );
+        }
+
+        // Pastikan opsi Dimensi selalu ada
+        if (!$select.find('option[value="dimension"]').length &&
+            !$select.find('option:contains("Dimensi")').length) {
+            $select.append('<option value="dimension">Dimensi</option>');
         }
     }
 
     normalizeStandardValue(val) {
-        if (val === null || val === undefined || val === "") return null;
-        return val
-            .toString()
-            .replace(",", ".")
-            .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
+        if (val === null || val === undefined || val === '') return null;
+        return val.toString()
+            .replace(',', '.')
+            .replace(/[\u2012\u2013\u2014\u2212]/g, '-')
             .trim();
     }
 
     validateDimensions() {
-        if (!this.config.currentDimensionStandards) return;
-        const dimensionStandards = this.config.currentDimensionStandards;
-        const _this = this;
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const itemPartNumber = this.normalizePartNumber(selectedOption.data("part-number"));
 
-        $(".dimension-input").each(function() {
-            const $input = $(this);
-            const nameMatch = $input.attr("name").match(/\[\d+\]\[(\d+)\]/);
-            if (!nameMatch) return;
+        // Prioritize standards dari option, fallback ke global config
+        let dimensionStandards = selectedOption.data("dimension-standards");
+        if (typeof dimensionStandards === 'string') {
+            try { dimensionStandards = JSON.parse(dimensionStandards); }
+            catch (e) { dimensionStandards = null; }
+        }
+        if (!dimensionStandards) {
+            dimensionStandards = (this.config.partDimensionStandards || {})[itemPartNumber];
+        }
 
-            const point = nameMatch[1];
-            const standard = dimensionStandards[point];
+        let anyNG = false;
+
+        $('input[name^="dimensions"]').each((_, input) => {
+            const $input = $(input);
+            const name   = $input.attr('name');
+            const match  = name.match(/\[(\d+)\]\[(\d+)\]/);
+            if (!match) return;
+
+            const point = match[2];
+
+            // Robust lookup — support array or object format
+            let standard = null;
+            if (dimensionStandards) {
+                if (Array.isArray(dimensionStandards)) {
+                    standard = dimensionStandards.find(s => String(s.point) === String(point))
+                             || dimensionStandards[point - 1];
+                } else {
+                    standard = dimensionStandards[point];
+                }
+            }
+
             const valStr = $input.val().trim();
-            const value = parseFloat(valStr.replace(",", "."));
+            const value  = parseFloat(valStr.replace(',', '.'));
 
-            $input.removeClass("is-invalid is-valid text-danger font-weight-bold");
+            $input.removeClass('is-invalid is-valid text-danger font-weight-bold');
 
-            if (standard && valStr !== "" && !isNaN(value)) {
+            if (standard && valStr !== '' && !isNaN(value)) {
                 let isInvalid = false;
                 const epsilon = 0.00001;
 
-                // 1. Check Absolute Min/Max
-                if (standard.min != null && standard.min !== "") {
-                    const minStr = String(standard.min);
-                    if (minStr.length > 1 && (minStr.startsWith("+") || minStr.startsWith("-"))) {
-                        const op = minStr.charAt(0);
-                        const limit = parseFloat(minStr.substring(1));
-                        if (!isNaN(limit)) {
-                            if (op === "+" && value < limit - epsilon) isInvalid = true;
-                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
-                        }
-                    } else {
-                        const minBound = parseFloat(minStr.replace(",", "."));
-                        if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
-                    }
+                // 1. Min / Max absolut
+                if (standard.min != null && standard.min !== '') {
+                    const minBound = parseFloat(String(standard.min).replace(',', '.'));
+                    if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
                 }
-                if (!isInvalid && standard.max != null && standard.max !== "") {
-                    const maxStr = String(standard.max);
-                    if (maxStr.length > 1 && (maxStr.startsWith("+") || maxStr.startsWith("-"))) {
-                        const op = maxStr.charAt(0);
-                        const limit = parseFloat(maxStr.substring(1));
-                        if (!isNaN(limit)) {
-                            if (op === "+" && value < limit - epsilon) isInvalid = true;
-                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
-                        }
-                    } else {
-                        const maxBound = parseFloat(maxStr.replace(",", "."));
-                        if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
-                    }
+                if (!isInvalid && standard.max != null && standard.max !== '') {
+                    const maxBound = parseFloat(String(standard.max).replace(',', '.'));
+                    if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
                 }
 
-                // 2. Check Size +/- Tolerance
-                if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== "" && standard.tolerance !== "") {
-                    const stdSzStr = _this.normalizeStandardValue(standard.size);
-                    if (!stdSzStr.startsWith("+") && !stdSzStr.startsWith("-")) {
+                // 2. Size ± Tolerance (dengan split "/" untuk toleransi asimetris)
+                if (!isInvalid &&
+                    standard.size != null && standard.tolerance != null &&
+                    standard.size !== '' && standard.tolerance !== '') {
+                    const stdSzStr = this.normalizeStandardValue(standard.size);
+                    if (!stdSzStr.startsWith('+') && !stdSzStr.startsWith('-')) {
                         const base = parseFloat(stdSzStr);
-                        const tol = _this.normalizeStandardValue(standard.tolerance);
+                        const tol  = this.normalizeStandardValue(standard.tolerance);
                         let lb = base, ub = base;
 
-                        if (tol.includes("/")) {
-                            tol.split("/").forEach(p => {
-                                p = _this.normalizeStandardValue(p);
+                        if (tol.includes('/')) {
+                            tol.split('/').forEach(p => {
+                                p = this.normalizeStandardValue(p);
                                 const fv = parseFloat(p);
-                                if (p.startsWith("+") || fv > 0) ub = base + Math.abs(fv);
-                                else if (p.startsWith("-") || fv < 0) lb = base - Math.abs(fv);
+                                if (p.startsWith('+') || fv > 0) ub = base + Math.abs(fv);
+                                else if (p.startsWith('-') || fv < 0) lb = base - Math.abs(fv);
                             });
-                        } else if (tol.startsWith("+")) {
+                        } else if (tol.startsWith('+')) {
                             ub = base + parseFloat(tol.substring(1));
-                        } else if (tol.startsWith("-")) {
+                        } else if (tol.startsWith('-')) {
                             lb = base + parseFloat(tol);
                         } else {
                             const tv = parseFloat(tol);
@@ -881,28 +954,69 @@ class FpaCreate {
                     }
                 }
 
-                // 3. Check Special Size (with prefix)
-                if (!isInvalid && standard.size != null && standard.size !== "") {
+                // 3. Size dengan prefix +/- (tanpa tolerance)
+                if (!isInvalid && standard.size != null && standard.size !== '') {
                     const sz = String(standard.size);
-                    if (sz.startsWith("+") || sz.startsWith("-")) {
-                        const op = sz.charAt(0);
+                    if (sz.startsWith('+') || sz.startsWith('-')) {
+                        const op    = sz.charAt(0);
                         const bound = parseFloat(sz.substring(1));
                         if (!isNaN(bound)) {
-                            if (op === "+" && value < bound - epsilon) isInvalid = true;
-                            else if (op === "-" && value > bound + epsilon) isInvalid = true;
+                            if (op === '+' && value < bound - epsilon) isInvalid = true;
+                            else if (op === '-' && value > bound + epsilon) isInvalid = true;
                         }
                     }
                 }
 
                 if (isInvalid) {
-                    $input.addClass("is-invalid text-danger font-weight-bold");
+                    $input.addClass('is-invalid text-danger font-weight-bold');
+                    anyNG = true;
                 } else {
-                    $input.addClass("is-valid");
+                    $input.addClass('is-valid');
                 }
             }
         });
 
+        this.config.dimensionNG = anyNG;
         this.updateJudgment();
+    }
+
+    updateCavityRows(cavityCount, pointCount = 5) {
+        const tbody    = $("#dimensionBody");
+        const theadRow = $("#dimensionHeadRow");
+        tbody.empty();
+
+        let headerHtml = '<th style="min-width:100px;position:sticky;left:0;z-index:2;background:#f8f9fa;">Cavity</th>';
+        for (let j = 1; j <= pointCount; j++)
+            headerHtml += `<th class="point-header">Point ${j}</th>`;
+        theadRow.html(headerHtml);
+
+        for (let i = 1; i <= cavityCount; i++) {
+            let rowHtml = `<tr class="cavity-row" data-cavity="${i}"><td class="text-center font-weight-bold bg-light" style="position:sticky;left:0;z-index:1;">Cav ${i}</td>`;
+            for (let j = 1; j <= pointCount; j++) {
+                rowHtml += `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width:60px;" name="dimensions[${i}][${j}]" placeholder="P${j}"></td>`;
+            }
+            rowHtml += '</tr>';
+            tbody.append(rowHtml);
+        }
+    }
+
+    initWeightCavities(count) {
+        count = Math.min(Math.max(1, parseInt(count) || 1), 8);
+        const container = $("#weightCavContainer");
+        container.empty();
+        for (let i = 1; i <= count; i++) {
+            container.append(
+                `<div class="weight-cav-row" style="display:flex;align-items:center;margin-bottom:6px;gap:8px;">
+                    <span style="font-size:0.85rem;font-weight:600;color:#444;white-space:nowrap;min-width:45px;">CAV ${i}</span>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm text-center" name="part_weight[]" placeholder="0.00" style="width:100px;flex:none;">
+                    <span style="font-size:0.85rem;color:#666;">gr</span>
+                </div>`
+            );
+        }
+        // Update badge buttons
+        const cnt = $("#weightCavContainer .weight-cav-row").length;
+        $("#addWeightCavBtn").prop('disabled', cnt >= 8);
+        $("#removeWeightCavBtn").prop('disabled', cnt <= 1);
     }
 
     initAqlLogic() {
@@ -974,11 +1088,9 @@ class FpaCreate {
     }
 
     updateJudgment() {
-        if (this.isUpdatingJudgment) return;
-        this.isUpdatingJudgment = true;
-
-        const ngDimCount = $(".dimension-input.is-invalid").length;
-        const isDimensiInvalid = ngDimCount > 0;
+        const sampling = parseInt($("#sampling_qty").val()) || 0;
+        const ng = parseInt($("#total_ng").val()) || 0;
+        const isDimensiInvalid = $(".dimension-input.is-invalid").length > 0;
 
         let hasDimensiDefect = false;
         $(".defect-select").each(function () {
@@ -990,29 +1102,13 @@ class FpaCreate {
         });
 
         if (isDimensiInvalid && !hasDimensiDefect) {
-            this.autoAddDimensionDefect(ngDimCount);
-        } else if (isDimensiInvalid && hasDimensiDefect) {
-            // Update existing Dimensi defect qty to match current NG count
-            $(".defect-select").each(function () {
-                const text = $(this)
-                    .find("option:selected")
-                    .text()
-                    .toLowerCase();
-                if (text === "dimensi" || $(this).val() === "dimension") {
-                    $(this)
-                        .closest(".defect-row")
-                        .find(".defect-qty")
-                        .val(ngDimCount)
-                        .trigger("input");
-                    return false;
-                }
-            });
+            this.autoAddDimensionDefect();
+            return;
         } else if (!isDimensiInvalid && hasDimensiDefect) {
             this.autoRemoveDimensionDefect();
+            return;
         }
 
-        const sampling = parseInt($("#sampling_qty").val()) || 0;
-        const ng = parseInt($("#total_ng").val()) || 0;
         const aql = this.getAqlLimits(sampling);
         $("#acc_val").text(aql.acc);
         $("#rej_val").text(aql.rej);
@@ -1069,10 +1165,9 @@ class FpaCreate {
         else $("#nextProses").removeAttr("required").val("");
 
         $("#saveBtn").prop("disabled", !res);
-        this.isUpdatingJudgment = false;
     }
 
-    autoAddDimensionDefect(qty = 1) {
+    autoAddDimensionDefect() {
         let foundRow = null;
         $(".defect-select").each(function () {
             const val = $(this).val();
@@ -1085,7 +1180,9 @@ class FpaCreate {
 
         if (foundRow) {
             const qtyInput = foundRow.find(".defect-qty");
-            qtyInput.val(qty).trigger("input");
+            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                qtyInput.val(1).trigger("input");
+            }
             return;
         }
 
@@ -1123,7 +1220,7 @@ class FpaCreate {
             targetSelect
                 .closest(".defect-row")
                 .find(".defect-qty")
-                .val(qty)
+                .val(1)
                 .trigger("input");
             this.calculateTotalNG();
         }
@@ -1185,65 +1282,162 @@ class FpaCreate {
         $("#total_ng").val(total).trigger("input");
     }
 
-    initFormValidation() {
-        $("#checksheetForm").on("submit", (e) => {
-            const sampling =
-                parseInt($('input[name="sampling_qty"]').val()) || 0;
-            const total = parseInt($('input[name="total_qty"]').val()) || 0;
-            const required = this.getSampleSize(total);
+    checkMandatoryDimensions() {
+        const selectedOption  = $("#itemSelect").find("option:selected");
+        const itemPartNumber  = this.normalizePartNumber(selectedOption.data("part-number"));
+        const dimensionStandards = (this.config.partDimensionStandards || {})[itemPartNumber];
 
-            if (sampling < required) {
-                if (
-                    !confirm(
-                        `Jumlah sampling (${sampling}) kurang dari standar AQL (${required}). Tetap simpan?`,
-                    )
-                ) {
-                    e.preventDefault();
-                    return false;
-                }
+        if (!dimensionStandards ||
+            this.config.plantContext === 'jakarta' ||
+            this.config.plantContext === 'karawang') return true;
+
+        let allFilled = true, firstEmpty = null;
+        $(".dimension-input").each(function () {
+            const match = $(this).attr("name").match(/\[(\d+)\]\[(\d+)\]/);
+            if (match && dimensionStandards[match[2]] && $(this).val().trim() === '') {
+                allFilled = false;
+                $(this).addClass("is-invalid");
+                if (!firstEmpty) firstEmpty = $(this);
             }
+        });
 
-            const isNG = $("#judgmentSelect").val() === "NG";
-            if (isNG && !$("#nextProses").val()) {
-                Swal.fire(
-                    "Error",
-                    "Silakan pilih Next Proses untuk judgment NG.",
-                    "error",
-                );
-                e.preventDefault();
+        if (!allFilled) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Dimensi Belum Lengkap',
+                text: 'Mohon isi semua kolom dimensi yang memiliki standar!',
+            });
+            if (firstEmpty) {
+                $("html, body").animate({ scrollTop: firstEmpty.offset().top - 200 }, 500);
+                firstEmpty.focus();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    initFormValidation() {
+        const _this = this;
+        $("#checksheetForm").on("submit", function (e) {
+            e.preventDefault();
+
+            const judgment   = $("#judgmentSelect").val();
+            const nextProses = $("#nextProses").val();
+
+            if (judgment === 'NG' && !nextProses) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Next Proses Wajib Dipilih',
+                    text: 'Untuk hasil NG, silakan pilih Next Proses!',
+                });
+                $("#nextProses").addClass("is-invalid").focus();
+                setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
                 return false;
             }
 
-            // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0 (Kecuali Dimensi yang sudah dicek)
-            $(".defect-row").each(function () {
-                const typeInput = $(this).find(
-                    'select[name="defect_types[]"], input[name="defect_types[]"]',
-                );
-                const qtyInput = $(this).find(
-                    'input[name="defect_quantities[]"]',
-                );
-                const type = typeInput.val();
-                const text = $(this)
-                    .find("option:selected")
-                    .text()
-                    .toLowerCase();
-                const qty = parseInt(qtyInput.val()) || 0;
+            if (!_this.checkMandatoryDimensions()) return false;
 
-                if (
-                    type &&
-                    qty === 0 &&
-                    type !== "dimension" &&
-                    text !== "dimensi"
-                ) {
-                    typeInput.val("");
-                    qtyInput.val("");
+            let dimensionDefectSelected = false, dimensionQtyEmpty = false;
+            $(".defect-select").each(function () {
+                const text = $(this).find("option:selected").text().toLowerCase();
+                if ($(this).val() === 'dimension' || text === 'dimensi') {
+                    dimensionDefectSelected = true;
+                    const qtyInput = $(this).closest(".defect-row").find(".defect-qty");
+                    if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                        dimensionQtyEmpty = true;
+                        qtyInput.addClass("is-invalid");
+                    } else qtyInput.removeClass("is-invalid");
+                }
+            });
+            if (dimensionDefectSelected && dimensionQtyEmpty) {
+                Swal.fire({ icon: 'warning', title: 'Qty Defect Dimensi Wajib Diisi' });
+                return false;
+            }
+
+            if (_this.timer && _this.timer.isRunning) {
+                clearInterval(_this.timer.interval);
+                _this.timer.isRunning = false;
+                $("#cycleTimeInput").val(_this.timer.elapsed);
+            }
+
+            $(".defect-row").each(function () {
+                const typeInput = $(this).find('select[name="defect_types[]"], input[name="defect_types[]"]');
+                const qtyInput  = $(this).find('input[name="defect_quantities[]"]');
+                const type = typeInput.val();
+                const text = $(this).find("option:selected").text().toLowerCase();
+                const qty  = parseInt(qtyInput.val()) || 0;
+                if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi') {
+                    typeInput.val('');
+                    qtyInput.val('');
                 }
             });
 
-            $("#saveBtn")
-                .prop("disabled", true)
-                .html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+            const $saveBtn     = $("#saveBtn");
+            const originalHtml = $saveBtn.html();
+            $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+            const formData = new FormData(this);
+            $.ajax({
+                url:         $(this).attr("action"),
+                method:      'POST',
+                data:        formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Data Berhasil Disimpan',
+                            showCancelButton: true,
+                            confirmButtonText: 'Lihat Data',
+                        }).then((result) => {
+                            if (result.isConfirmed)
+                                window.location.href = response.index_url;
+                            else _this.resetForm();
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    const errorMsg = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message : 'Gagal menyimpan data.';
+                    Swal.fire({ icon: 'error', title: 'Error', text: errorMsg });
+                    $saveBtn.prop('disabled', false).html(originalHtml);
+                },
+            });
         });
+    }
+
+    resetForm() {
+        $("#checksheetForm")[0].reset();
+
+        if (this.timer) {
+            clearInterval(this.timer.interval);
+            this.timer.isRunning = false;
+            this.timer.elapsed   = 0;
+            this.updateTimerDisplay();
+        }
+
+        $("#startTimerBtn")
+            .removeClass("btn-secondary").addClass("btn-success")
+            .removeAttr("disabled")
+            .html('<i class="fas fa-play"></i> Start');
+
+        this.lockInputs();
+        $("#saveBtn").prop('disabled', true);
+        $("#addDefectBtn").hide();
+        $(".defect-row").not(":first").remove();
+
+        $("#standardPdfCanvas, #similarPdfCanvas").addClass('d-none').hide();
+        $("#standardPdfPlaceholder").show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
+        $("#similarPdfPlaceholder").show().find('p').text('Pilih Item untuk menampilkan Dimensi Part');
+        $(".standard-nav-controls, .similar-nav-controls, #fullStandardBtn, #fullSimilarBtn").hide();
+
+        $("#judgmentBadge").addClass("d-none").text("-");
+        $("#judgmentSelect").val("").removeClass("text-success text-danger");
+        $("#itemSelect").val("");
+        $("#sapCodeInput").val("").removeClass("is-valid is-invalid");
+        $("#sapCodeInputHidden").val("");
     }
 }
 
@@ -1354,11 +1548,10 @@ class FpaEdit {
     }
 
     updateJudgment() {
-        if (this.isUpdatingJudgment) return;
-        this.isUpdatingJudgment = true;
-
-        const ngDimCount = $(".edit-dimension-input.is-invalid").length;
-        const isDimensiInvalid = ngDimCount > 0;
+        const sampling = parseInt($("#sampling_qty").val()) || 0;
+        const ng = parseInt($("#total_ng").val()) || 0;
+        const isDimensiInvalid =
+            $(".edit-dimension-input.is-invalid").length > 0;
 
         let hasDimensiDefect = false;
         $(".defect-select").each(function () {
@@ -1370,30 +1563,13 @@ class FpaEdit {
         });
 
         if (isDimensiInvalid && !hasDimensiDefect) {
-            this.autoAddDimensionDefect(ngDimCount);
-        } else if (isDimensiInvalid && hasDimensiDefect) {
-            // Update existing Dimensi defect qty to match current NG count
-            $(".defect-select").each(function () {
-                const text = $(this)
-                    .find("option:selected")
-                    .text()
-                    .toLowerCase();
-                if (text === "dimensi" || $(this).val() === "dimension") {
-                    $(this)
-                        .closest(".defect-row")
-                        .find(".defect-qty")
-                        .val(ngDimCount)
-                        .trigger("input");
-                    return false;
-                }
-            });
+            this.autoAddDimensionDefect();
+            return;
         } else if (!isDimensiInvalid && hasDimensiDefect) {
             this.autoRemoveDimensionDefect();
+            return;
         }
 
-        const sampling = parseInt($("#sampling_qty").val()) || 0;
-        const ng = parseInt($("#total_ng").val()) || 0;
-        
         if (sampling >= ng) {
             $("#total_ok").val(sampling - ng);
         } else {
@@ -1441,10 +1617,9 @@ class FpaEdit {
             judgmentBadge.addClass("d-none").text("-");
         }
         this.toggleNextProses();
-        this.isUpdatingJudgment = false;
     }
 
-    autoAddDimensionDefect(qty = 1) {
+    autoAddDimensionDefect() {
         let foundRow = null;
         $(".defect-select").each(function () {
             const val = $(this).val();
@@ -1457,7 +1632,9 @@ class FpaEdit {
 
         if (foundRow) {
             const qtyInput = foundRow.find(".defect-qty");
-            qtyInput.val(qty).trigger("input");
+            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                qtyInput.val(1).trigger("input");
+            }
             return;
         }
 
@@ -1539,115 +1716,44 @@ class FpaEdit {
             .toUpperCase();
     }
 
-    normalizeStandardValue(val) {
-        if (val === null || val === undefined || val === "") return null;
-        return val
-            .toString()
-            .replace(",", ".")
-            .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
-            .trim();
-    }
-
     validateDimensions() {
         const selectedOption = $("#item_id").find("option:selected");
         const rawPartNumber = selectedOption.data("part-number");
         const itemPartNumber = this.normalizePartNumber(rawPartNumber);
-        const dimensionStandards = this.config.partDimensionStandards[itemPartNumber];
-        const _this = this;
+        const dimensionStandards =
+            this.config.partDimensionStandards[itemPartNumber];
 
-        $(".edit-dimension-input").each(function() {
-            const $input = $(this);
+        $(".edit-dimension-input").each((_, input) => {
+            const $input = $(input);
             const name = $input.attr("name");
             const match = name.match(/\[(\d+)\]\[(\d+)\]/);
             if (!match) return;
 
             const point = match[2];
-            const standard = dimensionStandards ? dimensionStandards[point] : null;
+            const standard = dimensionStandards
+                ? dimensionStandards[point]
+                : null;
             const valStr = $input.val().trim();
             const value = parseFloat(valStr.replace(",", "."));
 
-            $input.removeClass("is-invalid is-valid text-danger font-weight-bold");
-
             if (standard && valStr !== "" && !isNaN(value)) {
                 let isInvalid = false;
-                const epsilon = 0.00001;
-
-                // 1. Check Absolute Min/Max
-                if (standard.min != null && standard.min !== "") {
-                    const minStr = String(standard.min);
-                    if (minStr.length > 1 && (minStr.startsWith("+") || minStr.startsWith("-"))) {
-                        const op = minStr.charAt(0);
-                        const limit = parseFloat(minStr.substring(1));
-                        if (!isNaN(limit)) {
-                            if (op === "+" && value < limit - epsilon) isInvalid = true;
-                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
-                        }
-                    } else {
-                        const minBound = parseFloat(minStr.replace(",", "."));
-                        if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
+                if (standard.min !== null && value < standard.min)
+                    isInvalid = true;
+                if (standard.max !== null && value > standard.max)
+                    isInvalid = true;
+                if (standard.min === null && standard.max === null) {
+                    if (standard.size !== null && standard.tolerance !== null) {
+                        const lowerBound = standard.size - standard.tolerance;
+                        const upperBound = standard.size + standard.tolerance;
+                        if (value < lowerBound || value > upperBound)
+                            isInvalid = true;
                     }
                 }
-                if (!isInvalid && standard.max != null && standard.max !== "") {
-                    const maxStr = String(standard.max);
-                    if (maxStr.length > 1 && (maxStr.startsWith("+") || maxStr.startsWith("-"))) {
-                        const op = maxStr.charAt(0);
-                        const limit = parseFloat(maxStr.substring(1));
-                        if (!isNaN(limit)) {
-                            if (op === "+" && value < limit - epsilon) isInvalid = true;
-                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
-                        }
-                    } else {
-                        const maxBound = parseFloat(maxStr.replace(",", "."));
-                        if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
-                    }
-                }
-
-                // 2. Check Size +/- Tolerance
-                if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== "" && standard.tolerance !== "") {
-                    const stdSzStr = _this.normalizeStandardValue(standard.size);
-                    if (!stdSzStr.startsWith("+") && !stdSzStr.startsWith("-")) {
-                        const base = parseFloat(stdSzStr);
-                        const tol = _this.normalizeStandardValue(standard.tolerance);
-                        let lb = base, ub = base;
-
-                        if (tol.includes("/")) {
-                            tol.split("/").forEach(p => {
-                                p = _this.normalizeStandardValue(p);
-                                const fv = parseFloat(p);
-                                if (p.startsWith("+") || fv > 0) ub = base + Math.abs(fv);
-                                else if (p.startsWith("-") || fv < 0) lb = base - Math.abs(fv);
-                            });
-                        } else if (tol.startsWith("+")) {
-                            ub = base + parseFloat(tol.substring(1));
-                        } else if (tol.startsWith("-")) {
-                            lb = base + parseFloat(tol);
-                        } else {
-                            const tv = parseFloat(tol);
-                            lb = base - tv;
-                            ub = base + tv;
-                        }
-
-                        if (value < lb - epsilon || value > ub + epsilon) isInvalid = true;
-                    }
-                }
-
-                // 3. Check Special Size (with prefix)
-                if (!isInvalid && standard.size != null && standard.size !== "") {
-                    const sz = String(standard.size);
-                    if (sz.startsWith("+") || sz.startsWith("-")) {
-                        const op = sz.charAt(0);
-                        const bound = parseFloat(sz.substring(1));
-                        if (!isNaN(bound)) {
-                            if (op === "+" && value < bound - epsilon) isInvalid = true;
-                            else if (op === "-" && value > bound + epsilon) isInvalid = true;
-                        }
-                    }
-                }
-
                 if (isInvalid) {
-                    $input.addClass("is-invalid text-danger font-weight-bold");
+                    $input.addClass("is-invalid").removeClass("is-valid");
                 } else {
-                    $input.addClass("is-valid");
+                    $input.addClass("is-valid").removeClass("is-invalid");
                 }
             } else {
                 $input.removeClass("is-invalid is-valid");

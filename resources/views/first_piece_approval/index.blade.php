@@ -144,12 +144,17 @@
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
 
-        // Resolve menu ID for permission checks
-        $currentMenu = \App\Models\AppMenu::where('route', 'first_piece_approval.index')->first();
-        $menuId = $currentMenu ? $currentMenu->id : null;
-        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
-        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+        // Resolve menu IDs for permission checks (support for duplicate plant routes)
+        $menuIds = \App\Models\AppMenu::where('route', 'first_piece_approval.index')->pluck('id');
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuIds->isNotEmpty()) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            foreach ($menuIds as $mId) {
+                if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
+                if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
+                if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
+            }
+        }
     @endphp
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -376,7 +381,6 @@
                                 {{-- Dimension Check Detail --}}
                                 <td class="align-middle p-0">
                                     @php
-                                        $anyNGInRow = false;
                                         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
                                         $dimensions = $dimensions ?: [];
 
@@ -425,6 +429,7 @@
                                             $actualMaxCavity = max($actualMaxCavity, $cavNum);
                                         }
                                         $displayMaxCavity = max(5, $actualMaxCavity);
+                                        $anyNGInRow = false;
                                     @endphp
                                     @if($hasUserInputs)
                                         <div style="max-height: 200px; overflow-y: auto;">
@@ -565,29 +570,12 @@
 
                                                                             // 1. Check Absolute Min/Max
                                                                             if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                                                                                $minStr = (string)$std['min'];
-                                                                                // Prefix support for min/max (aligned with FpaService)
-                                                                                if (strlen($minStr) > 1 && (str_starts_with($minStr, '+') || str_starts_with($minStr, '-'))) {
-                                                                                    $op = $minStr[0];
-                                                                                    $l = (float)substr($minStr, 1);
-                                                                                    if ($op === '+' && $fVal < ($l - $epsilon)) $isNG = true;
-                                                                                    elseif ($op === '-' && $fVal > ($l + $epsilon)) $isNG = true;
-                                                                                } else {
-                                                                                    $minBound = (float)$minStr;
-                                                                                    if ($fVal < ($minBound - $epsilon)) $isNG = true;
-                                                                                }
+                                                                                $minBound = (float)$std['min'];
+                                                                                if ($fVal < ($minBound - $epsilon)) $isNG = true;
                                                                             }
                                                                             if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                                                                                $maxStr = (string)$std['max'];
-                                                                                if (strlen($maxStr) > 1 && (str_starts_with($maxStr, '+') || str_starts_with($maxStr, '-'))) {
-                                                                                    $op = $maxStr[0];
-                                                                                    $l = (float)substr($maxStr, 1);
-                                                                                    if ($op === '+' && $fVal < ($l - $epsilon)) $isNG = true;
-                                                                                    elseif ($op === '-' && $fVal > ($l + $epsilon)) $isNG = true;
-                                                                                } else {
-                                                                                    $maxBound = (float)$maxStr;
-                                                                                    if ($fVal > ($maxBound + $epsilon)) $isNG = true;
-                                                                                }
+                                                                                $maxBound = (float)$std['max'];
+                                                                                if ($fVal > ($maxBound + $epsilon)) $isNG = true;
                                                                             }
 
                                                                             // 2. Check Size +/- Tolerance
@@ -629,8 +617,6 @@
                                                                                     elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
                                                                                 }
                                                                             }
-
-                                                                            if ($isNG) $anyNGInRow = true;
                                                                         }
                                                                     @endphp
                                                                     <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
@@ -717,13 +703,14 @@
                                     @endif
                                 </td>
 
-                                 <td class="align-middle">
-                                    @php
-                                        $effectiveJudgment = ($checksheet->judgment == 'NG' || ($anyNGInRow ?? false)) ? 'NG' : 'OK';
-                                    @endphp
-                                    <span class="badge badge-{{ $effectiveJudgment == 'OK' ? 'success' : 'danger' }}">
-                                        {{ $effectiveJudgment }}
-                                    </span>
+                                <td class="align-middle">
+                                     @php
+                                         $effectiveJudgment = ($checksheet->judgment == 'NG' || ($anyNGInRow ?? false)) ? 'NG' : 'OK';
+                                     @endphp
+                                     <span class="badge badge-{{ $effectiveJudgment == 'OK' ? 'success' : 'danger' }}" 
+                                           title="{{ $checksheet->judgment != $effectiveJudgment ? 'Warning: Database judgment differs from dimension check' : '' }}">
+                                         {{ $effectiveJudgment }}
+                                     </span>
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
@@ -851,6 +838,9 @@
 
                                 @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
+                                        @endif
                                         {{-- Action Buttons for Approvals --}}
                                         @php
                                             $user = auth()->user();
@@ -1332,4 +1322,7 @@
             });
         });
     </script>
+
+    @php $bulkApproveRoute = route('first_piece_approval.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endpush

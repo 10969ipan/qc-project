@@ -245,18 +245,7 @@
                         <select class="form-control form-control-sm border-danger font-weight-bold" id="next_proses" name="next_proses">
                             <option value="">-- Pilih --</option>
                             @php
-                                $opts = [
-                                    'CRUSHING', 
-                                    'SORTIR', 
-                                    'FINISHING', 
-                                    'REPAIR', 
-                                    'SORTIR + FINISHING', 
-                                    'FINISHING + PASANG SUB PART', 
-                                    'FINISHING + PACKING', 
-                                    'REBUS + FINISHING + PACKING', 
-                                    'SORTIR + CRUSHING', 
-                                    'FINISHING + MARKING + PACKING'
-                                ];
+                                $opts = ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'REBUS', 'PASANG SUB PART', 'PACKING', 'MARKING'];
                             @endphp
                             @foreach($opts as $o)
                                 <option value="{{ $o }}" {{ $checksheet->next_proses == $o ? 'selected' : '' }}>{{ $o }}</option>
@@ -423,24 +412,15 @@
             if (l >= 151) return 32; if (l >= 20) return 20; return l;
         }
 
-        let isCalculatingNG = false;
         function calculateTotalNG() {
-            if (isCalculatingNG) return;
-            isCalculatingNG = true;
             let t = 0; $('.defect-qty').each(function(){ t += parseInt($(this).val()) || 0; });
             $('#total_ng').val(t).trigger('change');
-            isCalculatingNG = false;
         }
 
-        let isUpdatingJudgment = false;
         function updateJudgment() {
-            if (isUpdatingJudgment) return;
-            isUpdatingJudgment = true;
-
             const sampling = parseInt($('#sampling_qty').val()) || 0;
-            let ng = parseInt($('#total_ng').val()) || 0;
-            const ngDimCount = $('.edit-dimension-input.is-invalid').length;
-            const isDimInvalid = ngDimCount > 0;
+            const ng = parseInt($('#total_ng').val()) || 0;
+            const isDimInvalid = $('.edit-dimension-input.is-invalid').length > 0;
             
             // Auto-defect Dimension
             let hasDimDef = false;
@@ -452,19 +432,11 @@
                 $('#editDefectContainer').prepend(`
                     <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
                         <div class="col-8 pr-1"><select name="defect_types[]" class="form-control form-control-sm defect-select font-weight-bold"><option value="${dimDefName}" selected>${dimDefName}</option></select></div>
-                        <div class="col-3 pr-1"><input type="number" name="defect_quantities[]" class="form-control form-control-sm defect-qty text-center font-weight-bold" value="${ngDimCount}" min="1"></div>
+                        <div class="col-3 pr-1"><input type="number" name="defect_quantities[]" class="form-control form-control-sm defect-qty text-center font-weight-bold" value="1" min="1"></div>
                         <div class="col-1 text-center"><button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button></div>
                     </div>
                 `);
-                calculateTotalNG(); 
-            } else if (isDimInvalid && hasDimDef) {
-                // Update existing Dimensi defect qty to match current NG count
-                $('.defect-select').each(function() {
-                    if($(this).find('option:selected').text().toLowerCase() === 'dimensi') {
-                        $(this).closest('.defect-row').find('.defect-qty').val(ngDimCount);
-                    }
-                });
-                calculateTotalNG();
+                return calculateTotalNG(); 
             } else if (!isDimInvalid && hasDimDef) {
                 // Remove Dimensi defect if it exists and dimensions are OK
                 $('.defect-select').each(function() {
@@ -475,11 +447,9 @@
                 if($('.defect-row').length === 0) {
                     $('#editDefectContainer').append('<div class="text-center py-2 text-muted small" id="noDefectMsg"><i class="fas fa-check-circle mr-1 text-success"></i> Tidak ada data defect tercatat.</div>');
                 }
-                calculateTotalNG();
+                return calculateTotalNG();
             }
 
-            // RE-READ NG value after possible updates from calculateTotalNG
-            ng = parseInt($('#total_ng').val()) || 0;
             const currentOk = Math.max(0, sampling - ng);
             $('#total_ok').val(currentOk);
 
@@ -495,8 +465,6 @@
 
             if(j === 'NG') $('#next_proses_container').slideDown();
             else $('#next_proses_container').slideUp();
-
-            isUpdatingJudgment = false;
         }
 
         // Validation Logic
@@ -506,100 +474,45 @@
         function validateDimensions() {
             const sel = $('#item_id option:selected');
             const pn = normalizePN(sel.data('part-number'));
-            const dimensionStandards = partDimensionStandards[pn];
+            const stads = partDimensionStandards[pn];
 
             $('.edit-dimension-input').each(function() {
-                const $input = $(this);
-                const name = $input.attr('name');
+                const name = $(this).attr('name');
                 const m = name.match(/\[\d+\]\[(\d+)\]/); if(!m) return;
-                const point = m[1];
-                const standard = dimensionStandards ? dimensionStandards[point] : null;
-                const valStr = $input.val().trim();
-                const value = parseFloat(valStr.replace(',', '.'));
+                const p = m[1]; const valStr = $(this).val().trim().replace(',', '.');
+                const val = parseFloat(valStr); const std = stads ? stads[p] : null;
 
-                $input.removeClass('is-invalid is-valid bg-danger text-white');
-
-                if (standard && valStr !== '' && !isNaN(value)) {
-                    let isInvalid = false;
-                    const epsilon = 0.00001;
-
-                    // 1. Check Absolute Min/Max
-                    if (standard.min != null && standard.min !== "") {
-                        const minStr = String(standard.min);
-                        if (minStr.length > 1 && (minStr.startsWith("+") || minStr.startsWith("-"))) {
-                            const op = minStr.charAt(0);
-                            const limit = parseFloat(minStr.substring(1));
-                            if (!isNaN(limit)) {
-                                if (op === "+" && value < limit - epsilon) isInvalid = true;
-                                else if (op === "-" && value > limit + epsilon) isInvalid = true;
-                            }
-                        } else {
-                            const minBound = parseFloat(minStr.replace(",", "."));
-                            if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
+                $(this).removeClass('is-invalid is-valid bg-danger text-white');
+                if(std && valStr !== '' && !isNaN(val)) {
+                    let isNG = false; const eps = 0.00001;
+                    const check = (v, sVal, mode) => {
+                        if(!sVal) return false; let sStr = normalizeStd(sVal);
+                        if(sStr.length > 1 && (sStr.startsWith('+') || sStr.startsWith('-'))) {
+                            let op = sStr[0]; let l = parseFloat(sStr.substring(1));
+                            if(op === '+') return v <= (l+eps); if(op === '-') return v >= (l-eps);
                         }
+                        let sF = parseFloat(sStr);
+                        if(mode === 'min') return v < (sF-eps); if(mode === 'max') return v > (sF+eps);
+                        return false;
+                    };
+                    if(std.min && check(val, std.min, 'min')) isNG = true;
+                    if(!isNG && std.max && check(val, std.max, 'max')) isNG = true;
+                    if(!isNG && std.size && String(std.size).match(/^[+-]/) && check(val, std.size, 'size')) isNG = true;
+                    if(!isNG && !std.min && !std.max && std.size && std.tolerance) {
+                        let sz = parseFloat(normalizeStd(std.size)); let tl = normalizeStd(std.tolerance);
+                        let lb = sz, ub = sz;
+                        if(tl.includes('/')) {
+                            tl.split('/').forEach(part => {
+                                let ps = normalizeStd(part); let fv = parseFloat(ps);
+                                if(ps.startsWith('+') || fv > 0) ub = sz + Math.abs(fv);
+                                else if(ps.startsWith('-') || fv < 0) lb = sz - Math.abs(fv);
+                            });
+                        } else if(tl.startsWith('+')) ub = sz + parseFloat(tl.substring(1));
+                        else if(tl.startsWith('-')) lb = sz + parseFloat(tl);
+                        else { let tv = parseFloat(tl); lb = sz-tv; ub = sz+tv; }
+                        if(val < (lb-eps) || val > (ub+eps)) isNG = true;
                     }
-                    if (!isInvalid && standard.max != null && standard.max !== "") {
-                        const maxStr = String(standard.max);
-                        if (maxStr.length > 1 && (maxStr.startsWith("+") || maxStr.startsWith("-"))) {
-                            const op = maxStr.charAt(0);
-                            const limit = parseFloat(maxStr.substring(1));
-                            if (!isNaN(limit)) {
-                                if (op === "+" && value < limit - epsilon) isInvalid = true;
-                                else if (op === "-" && value > limit + epsilon) isInvalid = true;
-                            }
-                        } else {
-                            const maxBound = parseFloat(maxStr.replace(",", "."));
-                            if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
-                        }
-                    }
-
-                    // 2. Check Size +/- Tolerance
-                    if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== "" && standard.tolerance !== "") {
-                        const stdSzStr = normalizeStd(standard.size);
-                        if (!stdSzStr.startsWith("+") && !stdSzStr.startsWith("-")) {
-                            const base = parseFloat(stdSzStr);
-                            const tol = normalizeStd(standard.tolerance);
-                            let lb = base, ub = base;
-
-                            if (tol.includes("/")) {
-                                tol.split("/").forEach(p => {
-                                    p = normalizeStd(p);
-                                    const fv = parseFloat(p);
-                                    if (p.startsWith("+") || fv > 0) ub = base + Math.abs(fv);
-                                    else if (p.startsWith("-") || fv < 0) lb = base - Math.abs(fv);
-                                });
-                            } else if (tol.startsWith("+")) {
-                                ub = base + parseFloat(tol.substring(1));
-                            } else if (tol.startsWith("-")) {
-                                lb = base + parseFloat(tol);
-                            } else {
-                                const tv = parseFloat(tol);
-                                lb = base - tv;
-                                ub = base + tv;
-                            }
-
-                            if (value < lb - epsilon || value > ub + epsilon) isInvalid = true;
-                        }
-                    }
-
-                    // 3. Check Special Size (with prefix)
-                    if (!isInvalid && standard.size != null && standard.size !== "") {
-                        const sz = String(standard.size);
-                        if (sz.startsWith("+") || sz.startsWith("-")) {
-                            const op = sz.charAt(0);
-                            const bound = parseFloat(sz.substring(1));
-                            if (!isNaN(bound)) {
-                                if (op === "+" && value < bound - epsilon) isInvalid = true;
-                                else if (op === "-" && value > bound + epsilon) isInvalid = true;
-                            }
-                        }
-                    }
-
-                    if (isInvalid) {
-                        $input.addClass('is-invalid bg-danger text-white');
-                    } else {
-                        $input.addClass('is-valid');
-                    }
+                    if(isNG) $(this).addClass('is-invalid bg-danger text-white'); else $(this).addClass('is-valid');
                 }
             });
             updateJudgment();
