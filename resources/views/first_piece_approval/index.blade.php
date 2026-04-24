@@ -376,6 +376,7 @@
                                 {{-- Dimension Check Detail --}}
                                 <td class="align-middle p-0">
                                     @php
+                                        $anyNGInRow = false;
                                         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
                                         $dimensions = $dimensions ?: [];
 
@@ -564,12 +565,29 @@
 
                                                                             // 1. Check Absolute Min/Max
                                                                             if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                                                                                $minBound = (float)$std['min'];
-                                                                                if ($fVal < ($minBound - $epsilon)) $isNG = true;
+                                                                                $minStr = (string)$std['min'];
+                                                                                // Prefix support for min/max (aligned with FpaService)
+                                                                                if (strlen($minStr) > 1 && (str_starts_with($minStr, '+') || str_starts_with($minStr, '-'))) {
+                                                                                    $op = $minStr[0];
+                                                                                    $l = (float)substr($minStr, 1);
+                                                                                    if ($op === '+' && $fVal < ($l - $epsilon)) $isNG = true;
+                                                                                    elseif ($op === '-' && $fVal > ($l + $epsilon)) $isNG = true;
+                                                                                } else {
+                                                                                    $minBound = (float)$minStr;
+                                                                                    if ($fVal < ($minBound - $epsilon)) $isNG = true;
+                                                                                }
                                                                             }
                                                                             if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                                                                                $maxBound = (float)$std['max'];
-                                                                                if ($fVal > ($maxBound + $epsilon)) $isNG = true;
+                                                                                $maxStr = (string)$std['max'];
+                                                                                if (strlen($maxStr) > 1 && (str_starts_with($maxStr, '+') || str_starts_with($maxStr, '-'))) {
+                                                                                    $op = $maxStr[0];
+                                                                                    $l = (float)substr($maxStr, 1);
+                                                                                    if ($op === '+' && $fVal < ($l - $epsilon)) $isNG = true;
+                                                                                    elseif ($op === '-' && $fVal > ($l + $epsilon)) $isNG = true;
+                                                                                } else {
+                                                                                    $maxBound = (float)$maxStr;
+                                                                                    if ($fVal > ($maxBound + $epsilon)) $isNG = true;
+                                                                                }
                                                                             }
 
                                                                             // 2. Check Size +/- Tolerance
@@ -611,6 +629,8 @@
                                                                                     elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
                                                                                 }
                                                                             }
+
+                                                                            if ($isNG) $anyNGInRow = true;
                                                                         }
                                                                     @endphp
                                                                     <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
@@ -697,9 +717,12 @@
                                     @endif
                                 </td>
 
-                                <td class="align-middle">
-                                    <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
-                                        {{ $checksheet->judgment }}
+                                 <td class="align-middle">
+                                    @php
+                                        $effectiveJudgment = ($checksheet->judgment == 'NG' || ($anyNGInRow ?? false)) ? 'NG' : 'OK';
+                                    @endphp
+                                    <span class="badge badge-{{ $effectiveJudgment == 'OK' ? 'success' : 'danger' }}">
+                                        {{ $effectiveJudgment }}
                                     </span>
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>

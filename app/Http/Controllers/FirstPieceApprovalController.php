@@ -736,7 +736,8 @@ class FirstPieceApprovalController extends Controller
             }
         }
 
-        if ($newJudgment === 'NG') {
+        // Hanya tambahkan/update defect Dimensi jika judgment NG DAN ada point NG dimensi
+        if ($newJudgment === 'NG' && $ngPoints > 0) {
             $found = false;
             foreach ($defects as &$defect) {
                 if (is_array($defect) && isset($defect['type']) && ($defect['type'] === 'Dimensi' || $defect['type'] === 'NG Dimensi')) {
@@ -747,7 +748,7 @@ class FirstPieceApprovalController extends Controller
             }
             unset($defect);
 
-            $qty = 1;
+            $qty = $ngPoints ?: 1;
             if (!$found) {
                 $defects[] = ['type' => 'Dimensi', 'qty' => $qty];
             } else {
@@ -760,6 +761,7 @@ class FirstPieceApprovalController extends Controller
             }
             $checksheet->total_ng = $baseTotalNg + $qty;
         } else {
+            // Jika judgment OK, atau judgment NG tapi ngPoints adalah 0, hapus defect Dimensi
             $defects = array_values(array_filter($defects, function ($defect) {
                 $type = $defect['type'] ?? '';
                 if (is_array($defect) && ($type === 'Dimensi' || $type === 'NG Dimensi')) {

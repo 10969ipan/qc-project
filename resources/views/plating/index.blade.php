@@ -110,6 +110,20 @@
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
+    @php
+        // Resolve menu IDs for permission checks (support for duplicate plant routes if any)
+        $menuIds = \App\Models\AppMenu::where('route', 'plating.index')->pluck('id');
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuIds->isNotEmpty()) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            foreach ($menuIds as $mId) {
+                if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
+                if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
+                if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
+            }
+        }
+    @endphp
+
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Data Masuk Plating</h6>

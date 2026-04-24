@@ -792,56 +792,116 @@ class FpaCreate {
         }
     }
 
+    normalizeStandardValue(val) {
+        if (val === null || val === undefined || val === "") return null;
+        return val
+            .toString()
+            .replace(",", ".")
+            .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
+            .trim();
+    }
+
     validateDimensions() {
         if (!this.config.currentDimensionStandards) return;
-        const stds = this.config.currentDimensionStandards;
-        let anyNG = false;
+        const dimensionStandards = this.config.currentDimensionStandards;
+        const _this = this;
 
-        $(".dimension-input").each((_, input) => {
-            const $input = $(input);
+        $(".dimension-input").each(function() {
+            const $input = $(this);
             const nameMatch = $input.attr("name").match(/\[\d+\]\[(\d+)\]/);
             if (!nameMatch) return;
 
-            const pIdx = nameMatch[1];
-            const std = stds[pIdx];
-            const valStr = $input.val().trim().replace(",", ".");
-            const val = parseFloat(valStr);
+            const point = nameMatch[1];
+            const standard = dimensionStandards[point];
+            const valStr = $input.val().trim();
+            const value = parseFloat(valStr.replace(",", "."));
 
-            $input.removeClass(
-                "is-invalid is-valid text-danger font-weight-bold",
-            );
+            $input.removeClass("is-invalid is-valid text-danger font-weight-bold");
 
-            if (valStr !== "" && !isNaN(val) && std) {
-                let isNG = false;
-                // Use min/max if both are set, otherwise fallback to size +/- tolerance
-                if (std.min !== null && val < parseFloat(std.min)) isNG = true;
-                if (std.max !== null && val > parseFloat(std.max)) isNG = true;
+            if (standard && valStr !== "" && !isNaN(value)) {
+                let isInvalid = false;
+                const epsilon = 0.00001;
 
-                // Fallback to size +/- tolerance if no Min/Max is set
-                if (
-                    !isNG &&
-                    std.min === null &&
-                    std.max === null &&
-                    std.size !== null &&
-                    std.tolerance !== null
-                ) {
-                    const min =
-                        parseFloat(std.size) - parseFloat(std.tolerance);
-                    const max =
-                        parseFloat(std.size) + parseFloat(std.tolerance);
-                    if (val < min || val > max) isNG = true;
+                // 1. Check Absolute Min/Max
+                if (standard.min != null && standard.min !== "") {
+                    const minStr = String(standard.min);
+                    if (minStr.length > 1 && (minStr.startsWith("+") || minStr.startsWith("-"))) {
+                        const op = minStr.charAt(0);
+                        const limit = parseFloat(minStr.substring(1));
+                        if (!isNaN(limit)) {
+                            if (op === "+" && value < limit - epsilon) isInvalid = true;
+                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
+                        }
+                    } else {
+                        const minBound = parseFloat(minStr.replace(",", "."));
+                        if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
+                    }
+                }
+                if (!isInvalid && standard.max != null && standard.max !== "") {
+                    const maxStr = String(standard.max);
+                    if (maxStr.length > 1 && (maxStr.startsWith("+") || maxStr.startsWith("-"))) {
+                        const op = maxStr.charAt(0);
+                        const limit = parseFloat(maxStr.substring(1));
+                        if (!isNaN(limit)) {
+                            if (op === "+" && value < limit - epsilon) isInvalid = true;
+                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
+                        }
+                    } else {
+                        const maxBound = parseFloat(maxStr.replace(",", "."));
+                        if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
+                    }
                 }
 
-                if (isNG) {
+                // 2. Check Size +/- Tolerance
+                if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== "" && standard.tolerance !== "") {
+                    const stdSzStr = _this.normalizeStandardValue(standard.size);
+                    if (!stdSzStr.startsWith("+") && !stdSzStr.startsWith("-")) {
+                        const base = parseFloat(stdSzStr);
+                        const tol = _this.normalizeStandardValue(standard.tolerance);
+                        let lb = base, ub = base;
+
+                        if (tol.includes("/")) {
+                            tol.split("/").forEach(p => {
+                                p = _this.normalizeStandardValue(p);
+                                const fv = parseFloat(p);
+                                if (p.startsWith("+") || fv > 0) ub = base + Math.abs(fv);
+                                else if (p.startsWith("-") || fv < 0) lb = base - Math.abs(fv);
+                            });
+                        } else if (tol.startsWith("+")) {
+                            ub = base + parseFloat(tol.substring(1));
+                        } else if (tol.startsWith("-")) {
+                            lb = base + parseFloat(tol);
+                        } else {
+                            const tv = parseFloat(tol);
+                            lb = base - tv;
+                            ub = base + tv;
+                        }
+
+                        if (value < lb - epsilon || value > ub + epsilon) isInvalid = true;
+                    }
+                }
+
+                // 3. Check Special Size (with prefix)
+                if (!isInvalid && standard.size != null && standard.size !== "") {
+                    const sz = String(standard.size);
+                    if (sz.startsWith("+") || sz.startsWith("-")) {
+                        const op = sz.charAt(0);
+                        const bound = parseFloat(sz.substring(1));
+                        if (!isNaN(bound)) {
+                            if (op === "+" && value < bound - epsilon) isInvalid = true;
+                            else if (op === "-" && value > bound + epsilon) isInvalid = true;
+                        }
+                    }
+                }
+
+                if (isInvalid) {
                     $input.addClass("is-invalid text-danger font-weight-bold");
-                    anyNG = true;
                 } else {
                     $input.addClass("is-valid");
                 }
             }
         });
 
-        this.config.dimensionNG = anyNG;
         this.updateJudgment();
     }
 
@@ -914,9 +974,11 @@ class FpaCreate {
     }
 
     updateJudgment() {
-        const sampling = parseInt($("#sampling_qty").val()) || 0;
-        const ng = parseInt($("#total_ng").val()) || 0;
-        const isDimensiInvalid = $(".dimension-input.is-invalid").length > 0;
+        if (this.isUpdatingJudgment) return;
+        this.isUpdatingJudgment = true;
+
+        const ngDimCount = $(".dimension-input.is-invalid").length;
+        const isDimensiInvalid = ngDimCount > 0;
 
         let hasDimensiDefect = false;
         $(".defect-select").each(function () {
@@ -928,13 +990,29 @@ class FpaCreate {
         });
 
         if (isDimensiInvalid && !hasDimensiDefect) {
-            this.autoAddDimensionDefect();
-            return;
+            this.autoAddDimensionDefect(ngDimCount);
+        } else if (isDimensiInvalid && hasDimensiDefect) {
+            // Update existing Dimensi defect qty to match current NG count
+            $(".defect-select").each(function () {
+                const text = $(this)
+                    .find("option:selected")
+                    .text()
+                    .toLowerCase();
+                if (text === "dimensi" || $(this).val() === "dimension") {
+                    $(this)
+                        .closest(".defect-row")
+                        .find(".defect-qty")
+                        .val(ngDimCount)
+                        .trigger("input");
+                    return false;
+                }
+            });
         } else if (!isDimensiInvalid && hasDimensiDefect) {
             this.autoRemoveDimensionDefect();
-            return;
         }
 
+        const sampling = parseInt($("#sampling_qty").val()) || 0;
+        const ng = parseInt($("#total_ng").val()) || 0;
         const aql = this.getAqlLimits(sampling);
         $("#acc_val").text(aql.acc);
         $("#rej_val").text(aql.rej);
@@ -991,9 +1069,10 @@ class FpaCreate {
         else $("#nextProses").removeAttr("required").val("");
 
         $("#saveBtn").prop("disabled", !res);
+        this.isUpdatingJudgment = false;
     }
 
-    autoAddDimensionDefect() {
+    autoAddDimensionDefect(qty = 1) {
         let foundRow = null;
         $(".defect-select").each(function () {
             const val = $(this).val();
@@ -1006,9 +1085,7 @@ class FpaCreate {
 
         if (foundRow) {
             const qtyInput = foundRow.find(".defect-qty");
-            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                qtyInput.val(1).trigger("input");
-            }
+            qtyInput.val(qty).trigger("input");
             return;
         }
 
@@ -1046,7 +1123,7 @@ class FpaCreate {
             targetSelect
                 .closest(".defect-row")
                 .find(".defect-qty")
-                .val(1)
+                .val(qty)
                 .trigger("input");
             this.calculateTotalNG();
         }
@@ -1277,10 +1354,11 @@ class FpaEdit {
     }
 
     updateJudgment() {
-        const sampling = parseInt($("#sampling_qty").val()) || 0;
-        const ng = parseInt($("#total_ng").val()) || 0;
-        const isDimensiInvalid =
-            $(".edit-dimension-input.is-invalid").length > 0;
+        if (this.isUpdatingJudgment) return;
+        this.isUpdatingJudgment = true;
+
+        const ngDimCount = $(".edit-dimension-input.is-invalid").length;
+        const isDimensiInvalid = ngDimCount > 0;
 
         let hasDimensiDefect = false;
         $(".defect-select").each(function () {
@@ -1292,13 +1370,30 @@ class FpaEdit {
         });
 
         if (isDimensiInvalid && !hasDimensiDefect) {
-            this.autoAddDimensionDefect();
-            return;
+            this.autoAddDimensionDefect(ngDimCount);
+        } else if (isDimensiInvalid && hasDimensiDefect) {
+            // Update existing Dimensi defect qty to match current NG count
+            $(".defect-select").each(function () {
+                const text = $(this)
+                    .find("option:selected")
+                    .text()
+                    .toLowerCase();
+                if (text === "dimensi" || $(this).val() === "dimension") {
+                    $(this)
+                        .closest(".defect-row")
+                        .find(".defect-qty")
+                        .val(ngDimCount)
+                        .trigger("input");
+                    return false;
+                }
+            });
         } else if (!isDimensiInvalid && hasDimensiDefect) {
             this.autoRemoveDimensionDefect();
-            return;
         }
 
+        const sampling = parseInt($("#sampling_qty").val()) || 0;
+        const ng = parseInt($("#total_ng").val()) || 0;
+        
         if (sampling >= ng) {
             $("#total_ok").val(sampling - ng);
         } else {
@@ -1346,9 +1441,10 @@ class FpaEdit {
             judgmentBadge.addClass("d-none").text("-");
         }
         this.toggleNextProses();
+        this.isUpdatingJudgment = false;
     }
 
-    autoAddDimensionDefect() {
+    autoAddDimensionDefect(qty = 1) {
         let foundRow = null;
         $(".defect-select").each(function () {
             const val = $(this).val();
@@ -1361,9 +1457,7 @@ class FpaEdit {
 
         if (foundRow) {
             const qtyInput = foundRow.find(".defect-qty");
-            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                qtyInput.val(1).trigger("input");
-            }
+            qtyInput.val(qty).trigger("input");
             return;
         }
 
@@ -1445,44 +1539,115 @@ class FpaEdit {
             .toUpperCase();
     }
 
+    normalizeStandardValue(val) {
+        if (val === null || val === undefined || val === "") return null;
+        return val
+            .toString()
+            .replace(",", ".")
+            .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
+            .trim();
+    }
+
     validateDimensions() {
         const selectedOption = $("#item_id").find("option:selected");
         const rawPartNumber = selectedOption.data("part-number");
         const itemPartNumber = this.normalizePartNumber(rawPartNumber);
-        const dimensionStandards =
-            this.config.partDimensionStandards[itemPartNumber];
+        const dimensionStandards = this.config.partDimensionStandards[itemPartNumber];
+        const _this = this;
 
-        $(".edit-dimension-input").each((_, input) => {
-            const $input = $(input);
+        $(".edit-dimension-input").each(function() {
+            const $input = $(this);
             const name = $input.attr("name");
             const match = name.match(/\[(\d+)\]\[(\d+)\]/);
             if (!match) return;
 
             const point = match[2];
-            const standard = dimensionStandards
-                ? dimensionStandards[point]
-                : null;
+            const standard = dimensionStandards ? dimensionStandards[point] : null;
             const valStr = $input.val().trim();
             const value = parseFloat(valStr.replace(",", "."));
 
+            $input.removeClass("is-invalid is-valid text-danger font-weight-bold");
+
             if (standard && valStr !== "" && !isNaN(value)) {
                 let isInvalid = false;
-                if (standard.min !== null && value < standard.min)
-                    isInvalid = true;
-                if (standard.max !== null && value > standard.max)
-                    isInvalid = true;
-                if (standard.min === null && standard.max === null) {
-                    if (standard.size !== null && standard.tolerance !== null) {
-                        const lowerBound = standard.size - standard.tolerance;
-                        const upperBound = standard.size + standard.tolerance;
-                        if (value < lowerBound || value > upperBound)
-                            isInvalid = true;
+                const epsilon = 0.00001;
+
+                // 1. Check Absolute Min/Max
+                if (standard.min != null && standard.min !== "") {
+                    const minStr = String(standard.min);
+                    if (minStr.length > 1 && (minStr.startsWith("+") || minStr.startsWith("-"))) {
+                        const op = minStr.charAt(0);
+                        const limit = parseFloat(minStr.substring(1));
+                        if (!isNaN(limit)) {
+                            if (op === "+" && value < limit - epsilon) isInvalid = true;
+                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
+                        }
+                    } else {
+                        const minBound = parseFloat(minStr.replace(",", "."));
+                        if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
                     }
                 }
+                if (!isInvalid && standard.max != null && standard.max !== "") {
+                    const maxStr = String(standard.max);
+                    if (maxStr.length > 1 && (maxStr.startsWith("+") || maxStr.startsWith("-"))) {
+                        const op = maxStr.charAt(0);
+                        const limit = parseFloat(maxStr.substring(1));
+                        if (!isNaN(limit)) {
+                            if (op === "+" && value < limit - epsilon) isInvalid = true;
+                            else if (op === "-" && value > limit + epsilon) isInvalid = true;
+                        }
+                    } else {
+                        const maxBound = parseFloat(maxStr.replace(",", "."));
+                        if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
+                    }
+                }
+
+                // 2. Check Size +/- Tolerance
+                if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== "" && standard.tolerance !== "") {
+                    const stdSzStr = _this.normalizeStandardValue(standard.size);
+                    if (!stdSzStr.startsWith("+") && !stdSzStr.startsWith("-")) {
+                        const base = parseFloat(stdSzStr);
+                        const tol = _this.normalizeStandardValue(standard.tolerance);
+                        let lb = base, ub = base;
+
+                        if (tol.includes("/")) {
+                            tol.split("/").forEach(p => {
+                                p = _this.normalizeStandardValue(p);
+                                const fv = parseFloat(p);
+                                if (p.startsWith("+") || fv > 0) ub = base + Math.abs(fv);
+                                else if (p.startsWith("-") || fv < 0) lb = base - Math.abs(fv);
+                            });
+                        } else if (tol.startsWith("+")) {
+                            ub = base + parseFloat(tol.substring(1));
+                        } else if (tol.startsWith("-")) {
+                            lb = base + parseFloat(tol);
+                        } else {
+                            const tv = parseFloat(tol);
+                            lb = base - tv;
+                            ub = base + tv;
+                        }
+
+                        if (value < lb - epsilon || value > ub + epsilon) isInvalid = true;
+                    }
+                }
+
+                // 3. Check Special Size (with prefix)
+                if (!isInvalid && standard.size != null && standard.size !== "") {
+                    const sz = String(standard.size);
+                    if (sz.startsWith("+") || sz.startsWith("-")) {
+                        const op = sz.charAt(0);
+                        const bound = parseFloat(sz.substring(1));
+                        if (!isNaN(bound)) {
+                            if (op === "+" && value < bound - epsilon) isInvalid = true;
+                            else if (op === "-" && value > bound + epsilon) isInvalid = true;
+                        }
+                    }
+                }
+
                 if (isInvalid) {
-                    $input.addClass("is-invalid").removeClass("is-valid");
+                    $input.addClass("is-invalid text-danger font-weight-bold");
                 } else {
-                    $input.addClass("is-valid").removeClass("is-invalid");
+                    $input.addClass("is-valid");
                 }
             } else {
                 $input.removeClass("is-invalid is-valid");
