@@ -481,6 +481,8 @@ class ItemController extends Controller
 
     /**
      * Check if a QR code has already been used in any checksheet table.
+     * Validasi menggunakan composite 5-field dari seluruh segmen raw barcode:
+     * part_code | supplier_id | quantity | unique_code_id | sap_code
      */
     public function checkQrUniqueness(Request $request)
     {
@@ -490,54 +492,63 @@ class ItemController extends Controller
             return response()->json(['success' => false, 'message' => 'QR data is empty.'], 400);
         }
 
-        // Parse part_code and unique_code_id from QR (Standard Format: part|supplier|qty|unique_id|sap)
-        $uniqueCodeId = null;
-        $partCodeFromQr = null;
-        if (strpos($qrCode, '|') !== false) {
-            $parts = explode('|', $qrCode);
-            if (count($parts) >= 4) {
-                $partCodeFromQr = trim($parts[0]);
-                $uniqueCodeId = trim($parts[3]);
-            }
+        // Validasi format: harus 5 segmen dipisah '|'
+        if (strpos($qrCode, '|') === false) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format QR tidak valid. Harus berformat: part|supplier|qty|unique_id|sap'
+            ], 400);
         }
 
+        $parts = explode('|', $qrCode);
+
+        if (count($parts) < 5) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format QR tidak lengkap. Diperlukan 5 segmen: part|supplier|qty|unique_id|sap'
+            ], 400);
+        }
+
+        // Ekstrak seluruh 5 segmen dari raw barcode
+        $partCode    = trim($parts[0]);
+        $supplierId  = trim($parts[1]);
+        $quantity    = trim($parts[2]);
+        $uniqueCodeId = trim($parts[3]);
+        $sapCode     = trim($parts[4]);
+
         $tables = [
-            'in_process_checksheets' => 'In-Process',
-            'sub_assy_checksheets' => 'Sub Assy',
-            'plating_checksheets' => 'Plating',
-            'double_tape_checksheets' => 'Double Tape'
+            'in_process_checksheets'  => 'In-Process',
+            'sub_assy_checksheets'    => 'Sub Assy',
+            'plating_checksheets'     => 'Plating',
+            'double_tape_checksheets' => 'Double Tape',
         ];
 
         foreach ($tables as $table => $moduleName) {
-            if ($uniqueCodeId && $partCodeFromQr) {
-                // Patokan utama adalah kombinasi Part Code + ID Unik (permintaan user)
-                $query = DB::table($table)
-                    ->where('part_code', $partCodeFromQr)
-                    ->where('unique_code_id', $uniqueCodeId);
-            } else {
-                // Fallback ke teks QR lengkap jika ID tidak dapat di-parse
-                $query = DB::table($table)->where('qrcode', $qrCode);
-            }
-
-            $record = $query->latest()->first();
+            // Pengecekan composite 5-field: seluruh segmen raw barcode harus unik
+            $record = DB::table($table)
+                ->where('part_code',     $partCode)
+                ->where('supplier_id',   $supplierId)
+                ->where('quantity',      $quantity)
+                ->where('unique_code_id', $uniqueCodeId)
+                ->where('sap_code',      $sapCode)
+                ->latest()
+                ->first();
 
             if ($record) {
                 $date = Carbon::parse($record->created_at)->format('d-m-Y H:i');
-                
-                // Tentukan field mana yang bikin duplikat untuk pesan error yang lebih jelas
-                $reason = ($record->qrcode === $qrCode) ? "Teks QR sama" : "Kombinasi Part ({$partCodeFromQr}) & ID ({$uniqueCodeId}) sudah terdaftar";
-                
+
                 return response()->json([
                     'success' => true,
-                    'unique' => false,
-                    'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}. ({$reason})"
+                    'unique'  => false,
+                    'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}. "
+                        . "(Part: {$partCode} | Supplier: {$supplierId} | Qty: {$quantity} | ID: {$uniqueCodeId} | SAP: {$sapCode})"
                 ]);
             }
         }
 
         return response()->json([
             'success' => true,
-            'unique' => true
+            'unique'  => true,
         ]);
     }
 }
