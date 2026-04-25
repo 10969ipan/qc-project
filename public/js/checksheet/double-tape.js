@@ -1412,14 +1412,49 @@ class DoubleTapeCreate {
 
             const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
+            const itemId = $("#itemSelect").val();
+            const totalQty = $('input[name="total_qty"]').val();
+            const samplingQty = $('input[name="sampling_qty"]').val();
+            const operatorInitials = $('input[name="operator_initials"]').val();
 
-            // Fallback: jika judgment masih kosong (misal belum ada input), default ke OK
-            if (!judgment) {
-                $("#judgmentSelect").val("OK");
+            // 1. Validasi: Item harus dipilih
+            if (!itemId) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Item Belum Dipilih",
+                    text: "Silakan pilih item terlebih dahulu!",
+                });
+                $("#itemSelect").addClass("is-invalid").focus();
+                setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
+                return false;
             }
 
-            // Validasi next_proses jika judgment NG
-            const finalJudgment = $("#judgmentSelect").val();
+            // 2. Validasi: Total Qty
+            if (!totalQty || totalQty <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Total Qty Belum Diisi",
+                    text: "Silakan isi Total Qty produksi terlebih dahulu!",
+                });
+                $('input[name="total_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 3. Validasi: Sampling Qty
+            if (!samplingQty || samplingQty <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Sampling Qty Belum Diisi",
+                    text: "Silakan isi Sampling Qty terlebih dahulu!",
+                });
+                $('input[name="sampling_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="sampling_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 4. Validasi: NG harus pilih Next Proses
+            const finalJudgment = $("#judgmentSelect").val() || judgment;
             if (finalJudgment === "NG" && !nextProses) {
                 Swal.fire({
                     icon: "warning",
@@ -1427,7 +1462,20 @@ class DoubleTapeCreate {
                     text: "Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!",
                     confirmButtonColor: "#3085d6",
                 });
-                $("#nextProses").focus();
+                $("#nextProses").addClass("is-invalid").focus();
+                setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 5. Validasi: Inisial QC
+            if (!operatorInitials) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Inisial Belum Diisi",
+                    text: "Silakan isi Inisial QC terlebih dahulu!",
+                });
+                $('input[name="operator_initials"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
                 return false;
             }
 

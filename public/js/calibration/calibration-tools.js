@@ -153,7 +153,10 @@ $(document).ready(function () {
         var modal = $(this);
         modal.find('#pdfModalLabel').text(title);
         modal.find('#pdfFrame').attr('src', url);
-        modal.find('#downloadPdf').attr('href', url);
+        
+        // Append download parameter
+        var downloadUrl = url + (url.indexOf('?') !== -1 ? '&' : '?') + 'download=1';
+        modal.find('#downloadPdf').attr('href', downloadUrl);
     });
 
     $('#pdfModal').on('hidden.bs.modal', function () {

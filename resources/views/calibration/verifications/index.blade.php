@@ -234,7 +234,7 @@
                                 <td class="text-center align-middle">
                                     @if($v->certification_path)
                                         <button type="button" class="btn btn-sm btn-primary view-pdf" data-toggle="modal"
-                                            data-target="#pdfModal" data-url="{{ asset('storage/' . $v->certification_path) }}"
+                                            data-target="#pdfModal" data-url="{{ route('calibration.verifications.serve-pdf', $v->id) }}"
                                             data-title="Sertifikat - {{ $v->name_alat }}">
                                             <i class="fas fa-file-pdf"></i>
                                         </button>

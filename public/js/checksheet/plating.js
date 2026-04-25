@@ -1155,14 +1155,68 @@ class PlatingCreate {
             console.log("Submitting Plating Form...");
             const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
+            const itemId = $("#itemSelect").val();
+            const line = $('select[name="line"]').val();
+            const totalQty = $('input[name="total_qty"]').val();
+            const operatorInitials = $('input[name="operator_initials"]').val();
 
+            // 1. Validasi: Item harus dipilih
+            if (!itemId) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Item Belum Dipilih",
+                    text: "Silakan pilih item terlebih dahulu!",
+                });
+                $("#itemSelect").addClass("is-invalid").focus();
+                setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 2. Validasi: Meja harus dipilih
+            if (!line) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Meja Belum Dipilih",
+                    text: "Silakan pilih Meja terlebih dahulu!",
+                });
+                $('select[name="line"]').addClass("is-invalid").focus();
+                setTimeout(() => $('select[name="line"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 3. Validasi: Total Qty
+            if (!totalQty || totalQty <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Total Qty Belum Diisi",
+                    text: "Silakan isi Total Qty produksi terlebih dahulu!",
+                });
+                $('input[name="total_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 4. Validasi: NG harus pilih Next Proses
             if (judgment === "NG" && !nextProses) {
                 Swal.fire({
                     icon: "warning",
                     title: "Next Proses Wajib Dipilih",
                     text: "Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!",
                 });
-                $("#nextProses").focus();
+                $("#nextProses").addClass("is-invalid").focus();
+                setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 5. Validasi: Inisial QC
+            if (!operatorInitials) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Inisial Belum Diisi",
+                    text: "Silakan isi Inisial QC terlebih dahulu!",
+                });
+                $('input[name="operator_initials"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
                 return false;
             }
 

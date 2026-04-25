@@ -394,7 +394,8 @@ class CalibrationController extends Controller
 
             return response()->json([
                 'tool' => $tool,
-                'plantCode' => $plantCode
+                'plantCode' => $plantCode,
+                'certification_url' => $tool->certification_path ? route('calibration.tools.serve-pdf', $tool->id) : null
             ]);
         }
         return view('calibration.tools.edit', compact('tool', 'plantCode'));
@@ -1267,7 +1268,8 @@ class CalibrationController extends Controller
             return response()->json([
                 'verification' => $verification,
                 'tools' => $tools,
-                'plantCode' => $plantCode
+                'plantCode' => $plantCode,
+                'certification_url' => $verification->certification_path ? route('calibration.verifications.serve-pdf', $verification->id) : null
             ]);
         }
 
@@ -1459,5 +1461,59 @@ class CalibrationController extends Controller
                 throw ValidationException::withMessages([$key => $message]);
             }
         }
+    }
+
+    /**
+     * Serve master tool certificate PDF
+     */
+    public function serveToolPdf($id, Request $request)
+    {
+        $tool = CalibrationTool::findOrFail($id);
+        if (!$tool->certification_path) {
+            abort(404, 'Sertifikat tidak ditemukan.');
+        }
+
+        $path = storage_path('app/public/' . $tool->certification_path);
+        if (!file_exists($path)) {
+            abort(404, 'File sertifikat tidak ditemukan di server.');
+        }
+
+        $safeFilename = str_replace([' ', '/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $tool->name_alat) . '_Sertifikat.pdf';
+
+        if ($request->query('download')) {
+            return response()->download($path, $safeFilename);
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $safeFilename . '"'
+        ]);
+    }
+
+    /**
+     * Serve verification certificate PDF
+     */
+    public function serveVerificationPdf($id, Request $request)
+    {
+        $verification = CalibrationVerification::findOrFail($id);
+        if (!$verification->certification_path) {
+            abort(404, 'Sertifikat tidak ditemukan.');
+        }
+
+        $path = storage_path('app/public/' . $verification->certification_path);
+        if (!file_exists($path)) {
+            abort(404, 'File sertifikat tidak ditemukan di server.');
+        }
+
+        $safeFilename = str_replace([' ', '/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $verification->name_alat) . '_Sertifikat_Verifikasi.pdf';
+
+        if ($request->query('download')) {
+            return response()->download($path, $safeFilename);
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $safeFilename . '"'
+        ]);
     }
 }

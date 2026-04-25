@@ -191,7 +191,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('checksheet.store') }}" method="POST" id="checksheetForm">
+            <form action="{{ route('checksheet.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <input type="hidden" name="check_type" id="checkTypeInput" value="sampling">

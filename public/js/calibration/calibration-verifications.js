@@ -34,7 +34,10 @@ $(document).ready(function () {
         var modal = $(this);
         modal.find('#pdfModalLabel').text(title);
         modal.find('#pdfFrame').attr('src', url);
-        modal.find('#downloadPdf').attr('href', url);
+        
+        // Append download parameter
+        var downloadUrl = url + (url.indexOf('?') !== -1 ? '&' : '?') + 'download=1';
+        modal.find('#downloadPdf').attr('href', downloadUrl);
     });
 
     $('#pdfModal').on('hidden.bs.modal', function () {
@@ -150,7 +153,8 @@ $(document).ready(function () {
                 $('#edit_acuan_toleransi').val(v.acuan_toleransi);
 
                 if (v.certification_path) {
-                    $('#edit_existing_pdf').html(`<a href="/storage/${v.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>`);
+                    var certUrl = response.certification_url || `/storage/${v.certification_path}`;
+                    $('#edit_existing_pdf').html(`<a href="${certUrl}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>`);
                 } else {
                     $('#edit_existing_pdf').html('');
                 }

@@ -95,6 +95,11 @@
 
     $(document).on('click', '.view-pdf-btn', function () {
         let url = $(this).data('src');
+        
+        // Update download button
+        const downloadUrl = url + (url.indexOf('?') !== -1 ? '&' : '?') + 'download=1';
+        $('#downloadPdfBtn').attr('href', downloadUrl);
+
         const separator = url.indexOf('?') !== -1 ? '&' : '?';
         url = url + separator + '_nocache=' + Date.now();
 

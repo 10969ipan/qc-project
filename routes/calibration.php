@@ -20,6 +20,7 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
     Route::put('tools/problem-log/{id}', [CalibrationController::class, 'updateProblemLog'])->name('tools.update-problem');
     Route::delete('tools/problem-log/{id}', [CalibrationController::class, 'destroyProblemLog'])->name('tools.destroy-problem');
     Route::get('tools/problem-logs', [CalibrationController::class, 'problemLogs'])->name('tools.problem-logs');
+    Route::get('tools/{id}/pdf', [CalibrationController::class, 'serveToolPdf'])->name('tools.serve-pdf');
     Route::delete('tools/{id}', [CalibrationController::class, 'toolsDestroy'])->name('tools.destroy');
 
     // Verifications
@@ -29,6 +30,7 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
     Route::put('verifications/{id}', [CalibrationController::class, 'verificationsUpdate'])->name('verifications.update');
     Route::get('verifications/export-pdf', [CalibrationController::class, 'verificationsPdf'])->name('verifications.pdf');
     Route::get('verifications/print', [CalibrationController::class, 'verificationsPrint'])->name('verifications.print');
+    Route::get('verifications/{id}/pdf', [CalibrationController::class, 'serveVerificationPdf'])->name('verifications.serve-pdf');
 
     Route::get('verifications/{id}/qr-pdf', [CalibrationController::class, 'verificationsQrPdf'])->name('verifications.qr-pdf');
     Route::get('verifications/{id}/qr-data', [CalibrationController::class, 'verificationsQrData'])

@@ -357,6 +357,11 @@ class ItemController extends Controller
             // Sanitize filename for Content-Disposition header (remove quotes to prevent breaking header)
             $safeFilename = str_replace('"', '', basename($filePath));
 
+            // Check if download is requested
+            if (request()->has('download')) {
+                return response()->download($filePath, $safeFilename);
+            }
+
             return response()->file($filePath, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="' . $safeFilename . '"',

@@ -274,7 +274,7 @@
         <div class="card-body">
 
 
-            <form action="{{ route('first_piece_approval.store') }}" method="POST" id="checksheetForm">
+            <form action="{{ route('first_piece_approval.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
                 <input type="hidden" name="qrcode" id="qrcodeInput">

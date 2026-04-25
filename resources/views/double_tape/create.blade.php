@@ -59,7 +59,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Input Data Double Tape</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('double_tape.store') }}" method="POST" id="checksheetForm">
+            <form action="{{ route('double_tape.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="check_type" id="checkTypeHidden" value="sampling">
                 <input type="hidden" name="plant" value="karawang">

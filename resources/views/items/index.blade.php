@@ -354,16 +354,19 @@
                         <button type="button" class="btn btn-secondary btn-sm mr-2" id="nextPage">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <div class="border-left pl-2 ml-2">
+                        <div class="border-left pl-2 ml-2 d-flex align-items-center">
                             <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomIn">
                                 <i class="fas fa-search-plus"></i> Zoom In
                             </button>
                             <button type="button" class="btn btn-secondary btn-sm mr-2" id="zoomReset">
                                 <i class="fas fa-sync-alt"></i> Reset
                             </button>
-                            <button type="button" class="btn btn-primary btn-sm" id="zoomOut">
+                            <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomOut">
                                 <i class="fas fa-search-minus"></i> Zoom Out
                             </button>
+                            <a id="downloadPdfBtn" href="#" class="btn btn-success btn-sm ml-1" download>
+                                <i class="fas fa-download"></i> Download PDF
+                            </a>
                         </div>
                     </div>
                     <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">

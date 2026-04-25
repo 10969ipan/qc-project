@@ -1324,7 +1324,33 @@ class FpaCreate {
                 return false;
             }
 
-            // 3. Validasi: NG harus pilih Next Proses
+            // 3. Validasi: Total Qty
+            const totalQty = $("#total_qty").val();
+            if (!totalQty || totalQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Total Qty Belum Diisi',
+                    text: 'Silakan isi Total Qty produksi terlebih dahulu!',
+                });
+                $("#total_qty").addClass("is-invalid").focus();
+                setTimeout(() => $("#total_qty").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 4. Validasi: Sampling Qty
+            const samplingQty = $("#sampling_qty").val();
+            if (!samplingQty || samplingQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sampling Qty Belum Diisi',
+                    text: 'Silakan isi Sampling Qty terlebih dahulu!',
+                });
+                $("#sampling_qty").addClass("is-invalid").focus();
+                setTimeout(() => $("#sampling_qty").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 5. Validasi: NG harus pilih Next Proses
             if (judgment === 'NG' && !nextProses) {
                 Swal.fire({
                     icon: 'warning',
@@ -1333,6 +1359,19 @@ class FpaCreate {
                 });
                 $("#nextProses").addClass("is-invalid").focus();
                 setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 6. Validasi: Inisial Operator
+            const operatorInitials = $('input[name="operator_initials"]').val();
+            if (!operatorInitials) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Inisial Belum Diisi',
+                    text: 'Silakan isi Inisial QC terlebih dahulu!',
+                });
+                $('input[name="operator_initials"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
                 return false;
             }
 

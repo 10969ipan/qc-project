@@ -490,7 +490,7 @@
                                                             @if($tool->certification_path)
                                                                 <button type="button" class="btn btn-sm btn-primary view-pdf shadow-sm" data-toggle="modal"
                                                                     data-target="#pdfModal"
-                                                                    data-url="{{ asset('storage/' . $tool->certification_path) }}"
+                                                                    data-url="{{ route('calibration.tools.serve-pdf', $tool->id) }}"
                                                                     data-title="Check Sertifikat - {{ $tool->name_alat }}" title="Check Sertifikat">
                                                                     <i class="fas fa-file-pdf"></i>
                                                                 </button>
@@ -533,7 +533,7 @@
                                                             {{-- Manager can only view PDF --}}
                                                             <button type="button" class="btn btn-sm btn-primary view-pdf shadow-sm" data-toggle="modal"
                                                                 data-target="#pdfModal"
-                                                                data-url="{{ asset('storage/' . $tool->certification_path) }}"
+                                                                data-url="{{ route('calibration.tools.serve-pdf', $tool->id) }}"
                                                                 data-title="Check Sertifikat - {{ $tool->name_alat }}" title="Check Sertifikat">
                                                                 <i class="fas fa-file-pdf"></i>
                                                             </button>
@@ -1253,7 +1253,7 @@
                 $('#edit_riwayat_kalibrasi').val(tool.riwayat_kalibrasi);
 
                 $('#edit_existing_cert').html(tool.certification_path 
-                    ? `<a href="/storage/${tool.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>` 
+                    ? `<a href="${response.certification_url || '/storage/' + tool.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>` 
                     : '');
 
                 let schHtml = '';

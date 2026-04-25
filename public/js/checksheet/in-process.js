@@ -1184,6 +1184,61 @@ class InProcessCreate {
             e.preventDefault();
             const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
+            const itemId = $("#itemSelect").val();
+            const codeMachine = $("#code_machine").val();
+            const totalQty = $('input[name="total_qty"]').val();
+            const samplingQty = $('input[name="sampling_qty"]').val();
+            const operatorInitials = $('input[name="operator_initials"]').val();
+
+            // 1. Validasi: Item harus dipilih
+            if (!itemId) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Item Belum Dipilih",
+                    text: "Silakan pilih item terlebih dahulu!",
+                });
+                $("#itemSelect").addClass("is-invalid").focus();
+                setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 2. Validasi: Mesin harus dipilih
+            if (!codeMachine) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Mesin Belum Dipilih",
+                    text: "Silakan pilih No. Mesin terlebih dahulu!",
+                });
+                $("#code_machine").addClass("is-invalid").focus();
+                setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 3. Validasi: Total Qty
+            if (!totalQty || totalQty <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Total Qty Belum Diisi",
+                    text: "Silakan isi Total Qty produksi terlebih dahulu!",
+                });
+                $('input[name="total_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 4. Validasi: Sampling Qty
+            if (!samplingQty || samplingQty <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Sampling Qty Belum Diisi",
+                    text: "Silakan isi Sampling Qty terlebih dahulu!",
+                });
+                $('input[name="sampling_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="sampling_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 5. Validasi: NG harus pilih Next Proses
             if (judgment === "NG" && !nextProses) {
                 Swal.fire({
                     icon: "warning",
@@ -1195,6 +1250,18 @@ class InProcessCreate {
                     () => $("#nextProses").removeClass("is-invalid"),
                     3000,
                 );
+                return false;
+            }
+
+            // 6. Validasi: Inisial QC
+            if (!operatorInitials) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Inisial Belum Diisi",
+                    text: "Silakan isi Inisial QC terlebih dahulu!",
+                });
+                $('input[name="operator_initials"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
                 return false;
             }
 
