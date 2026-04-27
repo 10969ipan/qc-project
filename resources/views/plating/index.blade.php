@@ -146,12 +146,12 @@
                 <!-- Filter QR Raw -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
-                    <div class="input-group input-group-sm shadow-sm rounded overflow-hidden" style="width: 160px;">
+                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 200px;">
                         <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
                             placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code">
-                                <i class="fas fa-qrcode"></i>
+                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
+                                <i class="fas fa-qrcode" style="pointer-events: none;"></i>
                             </button>
                         </div>
                     </div>
