@@ -64,8 +64,18 @@ class CalibrationTool extends Model
     /**
      * Get calibration status
      */
-    public function getStatusAttribute()
+    public function getStatusKalibrasiAttribute()
     {
+        // 0. Check if manually set to BROKEN
+        if (($this->attributes['status'] ?? '') === 'BROKEN') {
+            return 'broken';
+        }
+
+        // 0.1 Check if has pending problem reports
+        if ($this->pendingLogs()->exists()) {
+            return 'problem';
+        }
+
         $today = now()->startOfDay();
 
         // 1. Check if the latest verification is still valid (covers TODAY)
@@ -73,51 +83,38 @@ class CalibrationTool extends Model
         if ($latest && $latest->next_kalibrasi && $latest->tanggal_verifikasi) {
             $vDate = \Carbon\Carbon::parse((string) $latest->tanggal_verifikasi)->startOfDay();
             $nVDate = \Carbon\Carbon::parse((string) $latest->next_kalibrasi)->startOfDay();
+            
+            // If we are past the next calibration date, it's overdue regardless of the current "calibrated" status
+            if ($today->gte($nVDate)) {
+                return 'overdue';
+            }
+
             if ($vDate->lte($today) && $nVDate->gt($today)) {
+                // Check if approaching next calibration (within 30 days)
+                if ($today->diffInDays($nVDate, false) <= 30) {
+                    return 'due_soon';
+                }
                 return 'calibrated';
             }
         }
 
-        // Get the next upcoming schedule date from the new schedules table
+        // 2. Fallback to schedules
         $nextSchedule = $this->schedules()
             ->where('schedule_date', '>=', $today)
             ->orderBy('schedule_date', 'asc')
             ->first();
 
-        // Fallback to legacy field if no upcoming schedule is found in the new table
-        // This is to maintain compatibility while migrating
         $nextDate = $nextSchedule ? $nextSchedule->schedule_date : $this->schedule_planning;
 
-        // If even the legacy field is empty and no schedules exist at all, check if there's any past schedule
         if (!$nextDate) {
             $lastPastSchedule = $this->schedules()->orderBy('schedule_date', 'desc')->first();
             if ($lastPastSchedule) {
-                // If we only have past schedules, it's definitely overdue
                 return 'overdue';
             }
             return 'unknown';
         }
 
         $next = \Carbon\Carbon::parse((string) $nextDate)->startOfDay();
-
-        // Check if there is a verification that covers the next schedule
-        $verifications = $this->verifications()->orderBy('tanggal_verifikasi', 'desc')->get();
-        foreach ($verifications as $v) {
-            if (!$v->tanggal_verifikasi || !$v->next_kalibrasi)
-                continue;
-            $vDate = \Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->startOfDay();
-            $nextV = \Carbon\Carbon::parse((string) $v->next_kalibrasi)->startOfDay();
-
-            // If verification covers the next schedule date
-            if ($vDate->lte($next) && \Carbon\Carbon::parse((string) $v->next_kalibrasi)->startOfDay()->gt($next)) {
-                return 'calibrated';
-            }
-
-            // Also accept same month as fallback/legacy
-            if (\Carbon\Carbon::parse((string) $v->tanggal_verifikasi)->format('Y-m') === $next->format('Y-m')) {
-                return 'calibrated';
-            }
-        }
 
         if ($today->gt($next)) {
             return 'overdue';

@@ -132,6 +132,113 @@ class CalibrationController extends Controller
         return view('calibration.schedule.index', compact('tools', 'plantCode', 'year'));
     }
 
+    public function schedulePdf(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        $year = $request->input('year', date('Y'));
+
+        $tools = $this->getScheduleData($request, $plant, $year);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.schedule.pdf', compact('tools', 'plantCode', 'year', 'plant'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Schedule_Kalibrasi_' . $year . '_' . $plantCode . '.pdf');
+    }
+
+    public function schedulePrint(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        $year = $request->input('year', date('Y'));
+
+        $tools = $this->getScheduleData($request, $plant, $year);
+
+        return view('calibration.schedule.print', compact('tools', 'plantCode', 'year', 'plant'));
+    }
+
+    private function getScheduleData(Request $request, $plant, $year)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = CalibrationTool::where('plant_id', $plant->id);
+
+        $query->with([
+            'verifications' => function ($q) use ($year, $startDate, $endDate) {
+                if ($year !== 'all') $q->whereYear('tanggal_verifikasi', $year);
+                if ($startDate) $q->whereDate('tanggal_verifikasi', '>=', $startDate);
+                if ($endDate) $q->whereDate('tanggal_verifikasi', '<=', $endDate);
+            },
+            'schedules' => function ($q) use ($year, $startDate, $endDate) {
+                if ($year !== 'all') $q->whereYear('schedule_date', $year);
+                if ($startDate) $q->whereDate('schedule_date', '>=', $startDate);
+                if ($endDate) $q->whereDate('schedule_date', '<=', $endDate);
+            },
+            'latestVerification'
+        ]);
+
+        if ($request->filled('tool_id')) {
+            $query->where('id', $request->tool_id);
+        } else {
+            $query->where('status', '!=', 'BROKEN')->whereDoesntHave('pendingLogs');
+            
+            if ($year !== 'all') {
+                $query->where(function ($q) use ($year) {
+                    $q->whereHas('schedules', function ($sq) use ($year) {
+                        $sq->whereYear('schedule_date', $year);
+                    })
+                    ->orWhereHas('verifications', function ($vq) use ($year) {
+                        $vq->whereYear('tanggal_verifikasi', $year);
+                    })
+                    ->orWhereYear('schedule_planning', $year);
+                });
+            }
+
+            if ($startDate || $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereHas('schedules', function ($sq) use ($startDate, $endDate) {
+                        if ($startDate) $sq->whereDate('schedule_date', '>=', $startDate);
+                        if ($endDate) $sq->whereDate('schedule_date', '<=', $endDate);
+                    })
+                    ->orWhere(function ($lq) use ($startDate, $endDate) {
+                        if ($startDate) $lq->whereDate('schedule_planning', '>=', $startDate);
+                        if ($endDate) $lq->whereDate('schedule_planning', '<=', $endDate);
+                    });
+                });
+            }
+
+            if ($request->filled('frequency')) {
+                if ($request->frequency === '1_year') {
+                    $query->where('frekuensi_kalibrasi', 'LIKE', '%1 TAHUN%')->orWhere('frekuensi_kalibrasi', 'LIKE', '%1 YEAR%');
+                } elseif ($request->frequency === 'more_than_1_year') {
+                    $query->where(function ($q) {
+                        $q->where('frekuensi_kalibrasi', 'REGEXP', '[2-9] TAHUN|[2-9] YEAR|TAHUN|YEAR')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 TAHUN%')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%1 YEAR%')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%BULAN%')
+                            ->where('frekuensi_kalibrasi', 'NOT LIKE', '%MONTH%');
+                    });
+                }
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('bagian', 'LIKE', "%{$search}%")
+                        ->orWhere('name_alat', 'LIKE', "%{$search}%")
+                        ->orWhere('serial_number', 'LIKE', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('jenis_kalibrasi')) {
+                $query->where('jenis_kalibrasi', $request->jenis_kalibrasi);
+            }
+        }
+
+        return $query->get();
+    }
+
     public function toolsIndex(Request $request)
     {
         $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
@@ -161,7 +268,20 @@ class CalibrationController extends Controller
         $query = $this->getToolsQuery($request, $plant, $year);
         $tools = $query->get();
 
-        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears'));
+        // Apply Status Filter via Collection for 100% consistency with Model logic
+        if ($request->filled('status_kalibrasi')) {
+            $statusFilter = $request->status_kalibrasi;
+            $tools = $tools->filter(function($t) use ($statusFilter) {
+                if ($statusFilter === 'calibrated') return in_array($t->status_kalibrasi, ['calibrated', 'due_soon']);
+                return $t->status_kalibrasi === $statusFilter;
+            });
+        }
+
+        // Fetch unique names and sections for filters
+        $uniqueNames = CalibrationTool::where('plant_id', $plant->id)->distinct()->orderBy('name_alat')->pluck('name_alat');
+        $uniqueBagian = CalibrationTool::where('plant_id', $plant->id)->distinct()->orderBy('bagian')->pluck('bagian');
+
+        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears', 'uniqueNames', 'uniqueBagian'));
     }
 
     public function toolsPdf(Request $request)
@@ -172,6 +292,15 @@ class CalibrationController extends Controller
 
         $query = $this->getToolsQuery($request, $plant, $year);
         $tools = $query->get();
+
+        // Apply Status Filter via Collection
+        if ($request->filled('status_kalibrasi')) {
+            $statusFilter = $request->status_kalibrasi;
+            $tools = $tools->filter(function($t) use ($statusFilter) {
+                if ($statusFilter === 'calibrated') return in_array($t->status_kalibrasi, ['calibrated', 'due_soon']);
+                return $t->status_kalibrasi === $statusFilter;
+            });
+        }
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calibration.tools.pdf', compact('tools', 'plantCode', 'year', 'plant', 'request'))
             ->setPaper('a4', 'landscape');
@@ -188,6 +317,15 @@ class CalibrationController extends Controller
 
         $query = $this->getToolsQuery($request, $plant, $year);
         $tools = $query->get();
+
+        // Apply Status Filter via Collection
+        if ($request->filled('status_kalibrasi')) {
+            $statusFilter = $request->status_kalibrasi;
+            $tools = $tools->filter(function($t) use ($statusFilter) {
+                if ($statusFilter === 'calibrated') return in_array($t->status_kalibrasi, ['calibrated', 'due_soon']);
+                return $t->status_kalibrasi === $statusFilter;
+            });
+        }
 
         return view('calibration.tools.print', compact('tools', 'plantCode', 'year', 'plant', 'request'));
     }
@@ -237,6 +375,16 @@ class CalibrationController extends Controller
         // Filter Tool ID (Click-to-filter dari Chart)
         if ($request->filled('tool_id')) {
             $query->where('id', $request->tool_id);
+        }
+
+        // Filter Nama Alat (Explicit)
+        if ($request->filled('name_alat')) {
+            $query->where('name_alat', 'LIKE', '%' . $request->name_alat . '%');
+        }
+
+        // Filter Bagian (Explicit)
+        if ($request->filled('bagian')) {
+            $query->where('bagian', $request->bagian);
         }
 
         // Filter Tanggal Schedule Planning

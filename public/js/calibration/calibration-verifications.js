@@ -125,7 +125,7 @@ $(document).ready(function () {
     }
 
     // --- Edit Logic ---
-    $('.btn-edit-verif').on('click', function () {
+    $(document).on('click', '.btn-edit-verif', function () {
         var id = $(this).data('id');
         var btn = $(this);
         btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
@@ -186,7 +186,14 @@ $(document).ready(function () {
                 $('#formEditVerif').attr('action', updateUrl);
 
                 $('#modalEditVerifikasi').modal('show');
-                btn.prop('disabled', false).html('<i class="fas fa-edit mr-1"></i> EDIT');
+                btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                
+                // Trigger calculation for all rows after modal is fully shown
+                setTimeout(() => {
+                    $('#edit-modal-verification-body tr').each(function() {
+                        calcHasilVerifikasi($(this));
+                    });
+                }, 200);
             },
             error: function (xhr) {
                 var errorMsg = 'Gagal mengambil data verifikasi.';
@@ -231,6 +238,11 @@ $(document).ready(function () {
         }
     }
 
+    // Reset file input labels when modals are hidden
+    $('.modal').on('hidden.bs.modal', function () {
+        $(this).find('.custom-file-label').html('Pilih file PDF...');
+    });
+
     function calcHasilVerifikasi(row) {
         var tds = row.find('td');
         var koreksiInput = tds.eq(1).find('input');
@@ -258,11 +270,12 @@ $(document).ready(function () {
         }
     });
 
-    // QR Code Modal - move modal to body to avoid overflow container conflicts
-    var $qrModal = $('#modalQrCode');
-    if ($qrModal.length && $qrModal.parent()[0] !== document.body) {
-        $qrModal.appendTo('body');
-    }
+    // Move modals to body to avoid overflow/z-index issues
+    $('.modal').each(function() {
+        if ($(this).parent()[0] !== document.body) {
+            $(this).appendTo('body');
+        }
+    });
 
     $(document).on('click', '.btn-qr-modal', function () {
         var btn = $(this);

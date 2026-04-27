@@ -50,39 +50,97 @@
         </div>
 
         <style>
-            /* Sesuai dengan implementasi SCHEDULE KALIBRASI ALAT UKUR */
             .table-responsive {
                 max-height: 75vh !important;
                 overflow: auto !important;
-                border: 1px solid #dee2e6 !important;
+                border: none !important;
+                box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
             }
-
-            #dataTable {
+            #dataTable, table.dataTable {
                 border-collapse: separate !important;
                 border-spacing: 0 !important;
+                border: none !important;
+                border-top: none !important;
+                width: 100% !important;
+            }
+            
+            #dataTable td, #dataTable th {
+                border-left: none !important;
+                border-right: 1px solid #f1f5f9 !important;
             }
 
-            #dataTable thead th {
+            #dataTable tbody td {
+                border-bottom: 1px solid #f1f5f9 !important;
+                border-top: none !important;
+                vertical-align: middle !important;
+                color: #334155 !important;
+                font-size: 0.68rem !important;
+                padding: 4px 6px !important;
+            }
+
+            #dataTable > thead > tr > th {
                 position: -webkit-sticky !important;
                 position: sticky !important;
-                top: 0 !important;
-                z-index: 100 !important;
-                background-color: #4e73df !important;
-                color: white !important;
-                font-weight: bold;
+                background-color: #f8fafc !important;
+                background-clip: padding-box !important;
+                color: #475569 !important;
+                font-weight: 700 !important;
                 text-transform: uppercase;
-                font-size: 0.8rem;
-                padding: 10px 5px !important;
-                border: 1px solid #ffffff44 !important;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                font-size: 0.62rem !important;
+                letter-spacing: 0.2px;
+                padding: 6px 12px !important;
+                border-top: 1px solid #e2e8f0 !important;
+                border-left: none !important;
+                border-right: 1px solid #e2e8f0 !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                vertical-align: middle !important;
+                line-height: 1.2;
+                white-space: nowrap !important;
+                box-shadow: inset 0 -1px 0 #e2e8f0;
+                top: 0 !important;
+                z-index: 105 !important;
             }
 
-            #dataTable tbody tr:hover {
-                background-color: rgba(78, 115, 223, 0.08) !important;
+            /* Remove DataTables default sorting icons and background */
+            #dataTable.dataTable thead .sorting:before,
+            #dataTable.dataTable thead .sorting:after,
+            #dataTable.dataTable thead .sorting_asc:before,
+            #dataTable.dataTable thead .sorting_asc:after,
+            #dataTable.dataTable thead .sorting_desc:before,
+            #dataTable.dataTable thead .sorting_desc:after {
+                display: none !important;
+            }
+            #dataTable.dataTable thead th,
+            #dataTable.dataTable thead .sorting,
+            #dataTable.dataTable thead .sorting_asc,
+            #dataTable.dataTable thead .sorting_desc {
+                background-image: none !important;
+                background-color: #f8fafc !important;
             }
 
-            #dataTable tbody tr:hover td {
-                background-color: rgba(78, 115, 223, 0.08) !important;
+            #dataTable .btn {
+                min-width: 0 !important;
+                padding: 0.2rem 0.4rem !important;
+                font-size: 0.6rem !important;
+                margin: 1px !important;
+            }
+            #dataTable .badge {
+                font-size: 0.6rem !important;
+                padding: 0.2rem 0.4rem !important;
+            }
+            
+            /* Measurement Cell Styling */
+            .meas-cell-row {
+                height: 52px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                text-align: center;
+                overflow: hidden;
+            }
+            .meas-cell-row:not(:last-child) {
+                border-bottom: 1px solid #f1f5f9;
             }
         </style>
 
@@ -137,96 +195,104 @@
 
         <div class="card shadow mb-4">
             <div class="card-body">
-                <div class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 15px;">
-                    <form id="filterFormVerif" action="{{ route('calibration.verifications.index') }}" method="GET" class="d-flex flex-wrap align-items-center w-100" style="gap: 10px;">
-                        <input type="hidden" name="plant" value="{{ $plantCode }}">
-                        
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
-                            <input type="text" name="search" id="searchVerif"
-                                class="form-control form-control-sm border-0 shadow-sm" 
-                                style="width: 250px; border-radius: 0.35rem;" 
-                                placeholder="Nama Alat / No. Seri" 
-                                value="{{ request('search') }}" autocomplete="off">
-                        </div>
-
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tahun:</label>
-                            <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm" style="width: 85px; border-radius: 0.35rem;">
+                <!-- Filter Bar Minimalis -->
+                <form id="filterFormVerif" action="{{ route('calibration.verifications.index') }}" method="GET" 
+                    class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" 
+                    style="gap: 12px; overflow-x: auto; white-space: nowrap;">
+                    
+                    <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    
+                    <div class="d-flex align-items-center">
+                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
+                        <div style="width: 85px;">
+                            <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
                                 @foreach($availableYears as $ay)
                                     <option value="{{ $ay }}" {{ $year == $ay ? 'selected' : '' }}>{{ $ay }}</option>
                                 @endforeach
                             </select>
                         </div>
+                    </div>
 
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Periode:</label>
-                            <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                                <input type="date" name="start_date" id="startDateVerif" 
-                                    class="form-control form-control-sm border-0" 
-                                    style="width: 130px; font-size: 0.75rem;" 
-                                    value="{{ request('start_date') }}">
-                                <span class="px-2 text-gray-500 small">-</span>
-                                <input type="date" name="end_date" id="endDateVerif" 
-                                    class="form-control form-control-sm border-0" 
-                                    style="width: 130px; font-size: 0.75rem;" 
-                                    value="{{ request('end_date') }}">
-                            </div>
+                    <div class="d-flex align-items-center">
+                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Periode:</label>
+                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                            <input type="date" name="start_date" id="startDateVerif" 
+                                class="form-control form-control-sm border-0" 
+                                style="width: 130px; font-size: 0.75rem;" 
+                                value="{{ request('start_date') }}">
+                            <span class="px-2 text-gray-500 small">-</span>
+                            <input type="date" name="end_date" id="endDateVerif" 
+                                class="form-control form-control-sm border-0" 
+                                style="width: 130px; font-size: 0.75rem;" 
+                                value="{{ request('end_date') }}">
                         </div>
+                    </div>
 
-                        <div class="ml-auto d-flex align-items-center" style="gap: 8px;">
-                            <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari">
-                                <i class="fas fa-search fa-sm"></i>
-                            </button>
-                            
-                            <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'year' => $year]) }}"
-                                class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset">
-                                <i class="fas fa-sync fa-sm"></i>
-                            </a>
-                            
-                            @if($canExport)
-                            <a id="printBtnVerif"
-                                href="{{ route('calibration.verifications.print', array_merge(request()->only(['plant','year','tool_id']), ['start_date' => request('start_date'), 'end_date' => request('end_date')])) }}"
-                                target="_blank" class="btn btn-sm shadow-sm rounded-pill px-3"
-                                style="background:#0d9488; color:#fff;" title="Print">
-                                <i class="fas fa-print fa-sm"></i>
-                            </a>
-                            
-                            <a href="{{ route('calibration.verifications.pdf', array_merge(request()->all(), ['plant' => $plantCode])) }}"
-                                target="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
-                                <i class="fas fa-file-pdf fa-sm"></i>
-                            </a>
-                            @endif
-                        </div>
-                    </form>
-                </div>
+                    <div class="d-flex align-items-center">
+                        <input type="text" name="search" id="searchVerif"
+                            class="form-control form-control-sm border-0 shadow-sm" 
+                            style="width: 200px; font-size: 0.75rem;" 
+                            placeholder="Cari Nama / No. Seri..." 
+                            value="{{ request('search') }}" autocomplete="off">
+                    </div>
+
+                    <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+                        <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
+                            <i class="fas fa-search fa-sm"></i>
+                        </button>
+                        
+                        <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'year' => $year]) }}"
+                            class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
+                            <i class="fas fa-undo fa-sm"></i>
+                        </a>
+                        
+                        @if($canExport)
+                        <a id="printBtnVerif"
+                            href="{{ route('calibration.verifications.print', array_merge(request()->only(['plant','year','tool_id']), ['start_date' => request('start_date'), 'end_date' => request('end_date')])) }}"
+                            target="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3"
+                            style="background-color: #17a589; border-color: #17a589; color: white;" title="Print">
+                            <i class="fas fa-print fa-sm"></i>
+                        </a>
+                        
+                        <a href="{{ route('calibration.verifications.pdf', array_merge(request()->all(), ['plant' => $plantCode])) }}"
+                            target="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
+                            <i class="fas fa-file-pdf fa-sm"></i>
+                        </a>
+                        @endif
+                        
+                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalVerifikasiBaru" title="Input Baru">
+                            <i class="fas fa-plus fa-sm"></i>
+                        </button>
+                    </div>
+                </form>
 
                 <hr class="my-4 border-light">
 
-                <table class="table table-bordered text-center align-middle" id="dataTable" width="100%" cellspacing="0">
-                    <thead class="bg-light text-dark">
-                        <tr>
-                            <th class="align-middle">NO.</th>
-                            <th class="align-middle">SERTIFIKASI</th>
-                            <th class="align-middle">NAMA ALAT</th>
-                            <th class="align-middle">MERK</th>
-                            <th class="align-middle">NO. SERI</th>
-                            <th class="align-middle">RENTANG UKUR</th>
-                            <th class="align-middle">RESOLUSI</th>
-                            <th class="align-middle">FREKUENSI KALIBRASI</th>
-                            <th class="align-middle">TANGGAL KALIBRASI</th>
-                            <th class="align-middle">TANGGAL VERIFIKASI</th>
-                            <th class="align-middle">NEXT KALIBRASI</th>
-                            <th class="align-middle">NILAI ALAT</th>
-                            <th class="align-middle">NILAI KOREKSI</th>
-                            <th class="align-middle">NILAI KETIDAKPASTIAN</th>
-                            <th class="align-middle">HASIL VERIFIKASI</th>
-                            <th class="align-middle">JUDGEMENT</th>
-                            <th class="align-middle">STD. TOLERANSI</th>
-                            <th class="align-middle">ACUAN TOLERANSI</th>
-                            <th class="align-middle">AKSI</th>
-                        </tr>
-                    </thead>
+                <div class="table-responsive">
+                    <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th class="align-middle">NO.</th>
+                                <th class="align-middle">SERTIFIKASI</th>
+                                <th class="align-middle">NAMA ALAT</th>
+                                <th class="align-middle">MERK</th>
+                                <th class="align-middle">NO. SERI</th>
+                                <th class="align-middle">RENTANG UKUR</th>
+                                <th class="align-middle">RESOLUSI</th>
+                                <th class="align-middle">FREKUENSI KALIBRASI</th>
+                                <th class="align-middle">TANGGAL KALIBRASI</th>
+                                <th class="align-middle">TANGGAL VERIFIKASI</th>
+                                <th class="align-middle">NEXT KALIBRASI</th>
+                                <th class="align-middle">NILAI ALAT</th>
+                                <th class="align-middle">NILAI KOREKSI</th>
+                                <th class="align-middle">NILAI KETIDAKPASTIAN</th>
+                                <th class="align-middle">HASIL VERIFIKASI</th>
+                                <th class="align-middle">JUDGEMENT</th>
+                                <th class="align-middle">STD. TOLERANSI</th>
+                                <th class="align-middle">ACUAN TOLERANSI</th>
+                                <th class="align-middle">AKSI</th>
+                            </tr>
+                        </thead>
                     <tbody>
                         @forelse($verifications as $index => $v)
                             <tr>
@@ -266,32 +332,28 @@
                                 @endphp
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                        <div class="meas-cell-row">
                                             {{ $arrAlat[$i] ?? '' }}
                                         </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                        <div class="meas-cell-row">
                                             {{ $arrKoreksi[$i] ?? '' }}
                                         </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                        <div class="meas-cell-row">
                                             {{ $arrKetidakpastian[$i] ?? '' }}
                                         </div>
                                     @endfor
                                 </td>
                                 <td class="align-middle p-0">
                                     @for($i = 0; $i < $maxRows; $i++)
-                                        <div
-                                            style="height: 52px; display: flex; align-items: center; justify-content: center; padding: 0 4px; text-align: center; overflow: hidden;{{ $i < $maxRows - 1 ? ' border-bottom: 1px solid #dee2e6;' : '' }}">
+                                        <div class="meas-cell-row">
                                             {{ $arrHasil[$i] ?? '' }}
                                         </div>
                                     @endfor
@@ -307,21 +369,21 @@
                                 </td>
                                 <td class="align-middle">{{ $v->std_toleransi }}</td>
                                 <td class="align-middle">{{ $v->acuan_toleransi }}</td>
-                                <td class="align-middle">
+                                <td class="align-middle no-export">
                                     <div class="d-flex justify-content-center" style="gap: 5px;">
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
                                             @if($canEdit)
                                                 <button type="button"
-                                                    class="btn btn-sm btn-info btn-edit-verif shadow-sm d-flex align-items-center"
-                                                    data-id="{{ $v->id }}">
-                                                    <i class="fas fa-edit mr-1"></i> EDIT
+                                                    class="btn btn-sm btn-info btn-edit-verif shadow-sm"
+                                                    data-id="{{ $v->id }}" title="Edit">
+                                                    <i class="fas fa-edit"></i>
                                                 </button>
                                             @endif
                                             @if($canExport)
                                                 <button type="button"
-                                                    class="btn btn-sm btn-dark btn-qr-modal shadow-sm d-flex align-items-center"
-                                                    data-id="{{ $v->id }}">
-                                                    <i class="fas fa-qrcode mr-1"></i> QR
+                                                    class="btn btn-sm btn-dark btn-qr-modal shadow-sm"
+                                                    data-id="{{ $v->id }}" title="QR Code">
+                                                    <i class="fas fa-qrcode"></i>
                                                 </button>
                                             @endif
                                             @if($canDelete)
@@ -331,9 +393,9 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <input type="hidden" name="year" value="{{ $year }}">
-                                                    <button type="submit"
-                                                        class="btn btn-sm btn-danger shadow-sm d-flex align-items-center btn-delete">
-                                                        <i class="fas fa-trash mr-1"></i> HAPUS
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-danger shadow-sm btn-delete" title="Hapus">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
                                             @endif

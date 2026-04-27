@@ -62,133 +62,145 @@
 
 
         <style>
-            .schedule-table {
-                table-layout: fixed;
-                border-collapse: separate !important;
-                border-spacing: 0;
-                width: 1650px;
-                min-width: 1650px;
-                background-color: white;
-            }
-
-            .schedule-table th,
-            .schedule-table td {
-                box-sizing: border-box;
-                font-size: 10px;
-                text-align: center;
-                vertical-align: middle !important;
-                border: 1px solid #dee2e6;
-                padding: 0 !important;
-            }
-
-            /* Sticky Columns positioning */
-            .tool-name-col { width: 180px; min-width: 180px; left: 0; position: sticky; z-index: 10; background-color: white !important; }
-            .serial-col { width: 120px; min-width: 120px; left: 180px; position: sticky; z-index: 10; background-color: white !important; }
-            .jenis-col { width: 100px; min-width: 100px; left: 300px; position: sticky; z-index: 10; background-color: white !important; }
-            .status-col { width: 90px; min-width: 90px; left: 400px; position: sticky; z-index: 10; background-color: #f8f9fc !important; border-right: 2px solid #5a5c69 !important; }
-
-            /* Sticky Header Positioning & Backgrounds */
-            thead th {
-                background-color: #4e73df !important;
-                color: white !important;
-                font-weight: bold;
-                text-transform: uppercase;
-                font-size: 0.8rem;
-                position: sticky;
-                top: 0;
-                z-index: 100;
-                border: 1px solid #ffffff33 !important;
-            }
-
-            /* Row Hover Highlighting */
-            .schedule-table tbody tr:hover td {
-                background-color: #eef2ff !important; /* Soft indigo/blue highlight */
-                transition: background-color 0.15s ease;
-            }
-            
-            /* Maintain marker visibility on hover with slight color shift */
-            .schedule-table tbody tr:hover td.marker-p { background-color: #15b377 !important; }
-            .schedule-table tbody tr:hover td.marker-a { background-color: #2fa7b9 !important; }
-
-            /* Ensure header columns that are also sticky stay on top */
-            thead th.tool-name-col, 
-            thead th.serial-col, 
-            thead th.jenis-col, 
-            thead th.status-col {
-                z-index: 110 !important;
-                background-color: #4e73df !important;
-            }
-
-            /* Vertical alignment adjustments for multi-row headers */
-            .month-header {
-                height: 42px;
-                top: 0;
-            }
-
-            .week-header {
-                height: 25px;
-                top: 42px; /* month-header height */
-                z-index: 100;
-                background-color: #f8f9fc !important;
-                color: #5a5c69 !important;
-            }
-
-            thead th[rowspan="2"] {
-                height: 67px; /* 42 + 25 */
-                z-index: 110;
-            }
-
-            /* Body sticky cells */
-            tbody td.tool-name-col,
-            tbody td.serial-col,
-            tbody td.jenis-col {
-                z-index: 10;
-                background-color: white !important;
-                white-space: normal;
-                padding: 4px !important;
-            }
-
-            tbody td.status-col {
-                z-index: 10;
-                background-color: #f8f9fc !important;
-            }
-
-            .schedule-table td:not(.tool-name-col):not(.serial-col):not(.status-col) {
-                width: 25px;
-                height: 25px;
-            }
-
-            .marker-p { background-color: #1cc88a !important; }
-            .marker-a { background-color: #36b9cc !important; }
-
-            .marker-link {
-                display: block;
-                width: 100%;
-                height: 100%;
-                min-height: 20px;
-            }
-
-            .table-responsive {
+            /* Force Light Theme for Calibration Schedule - High Specificity */
+            #content-wrapper .calibration-schedule-grid-wrapper {
                 overflow: auto;
                 max-height: 75vh;
-                border: 1px solid #dee2e6;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                background-color: #fff !important;
+            }
+
+            body #content-wrapper .calibration-schedule-grid {
+                table-layout: fixed !important;
+                border-collapse: separate !important;
+                border-spacing: 0 !important;
+                width: 1650px !important;
+                min-width: 1650px !important;
+                background-color: #fff !important;
+                border: none !important;
+                margin-bottom: 0 !important;
+            }
+
+            /* Header Specificity */
+            body #content-wrapper .calibration-schedule-grid thead th {
+                background-color: #f8fafc !important;
+                background-image: none !important;
+                color: #475569 !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                font-size: 0.62rem !important;
+                letter-spacing: 0.3px !important;
+                padding: 8px 4px !important;
+                border: 1px solid #e2e8f0 !important;
+                vertical-align: middle !important;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 100 !important;
+                box-shadow: none !important;
+            }
+
+            /* Month & Week Headers */
+            body #content-wrapper .calibration-schedule-grid thead th.month-header {
+                height: 38px !important;
+                background-color: #f1f5f9 !important;
+                color: #334155 !important;
+            }
+
+            body #content-wrapper .calibration-schedule-grid thead th.week-header {
+                height: 24px !important;
+                top: 38px !important;
+                background-color: #f8fafc !important;
+                color: #64748b !important;
+                font-size: 0.58rem !important;
+                font-weight: 600 !important;
+            }
+
+            /* Sticky Columns - Header Level */
+            body #content-wrapper .calibration-schedule-grid thead th.tool-name-col, 
+            body #content-wrapper .calibration-schedule-grid thead th.serial-col, 
+            body #content-wrapper .calibration-schedule-grid thead th.jenis-col, 
+            body #content-wrapper .calibration-schedule-grid thead th.status-col {
+                z-index: 110 !important;
+                background-color: #f1f5f9 !important;
+            }
+
+            /* Sticky Columns - Positioning */
+            body #content-wrapper .calibration-schedule-grid .tool-name-col { width: 220px !important; min-width: 220px !important; left: 0 !important; position: sticky !important; z-index: 10 !important; }
+            body #content-wrapper .calibration-schedule-grid .serial-col { width: 140px !important; min-width: 140px !important; left: 220px !important; position: sticky !important; z-index: 10 !important; }
+            body #content-wrapper .calibration-schedule-grid .jenis-col { width: 100px !important; min-width: 100px !important; left: 360px !important; position: sticky !important; z-index: 10 !important; }
+            body #content-wrapper .calibration-schedule-grid .status-col { width: 65px !important; min-width: 65px !important; left: 460px !important; position: sticky !important; z-index: 10 !important; border-right: 2px solid #cbd5e1 !important; }
+
+            /* Sticky Columns - Body Level */
+            body #content-wrapper .calibration-schedule-grid tbody td.tool-name-col,
+            body #content-wrapper .calibration-schedule-grid tbody td.serial-col,
+            body #content-wrapper .calibration-schedule-grid tbody td.jenis-col {
+                background-color: #fff !important;
+                z-index: 10 !important;
+                color: #334155 !important;
+                font-size: 0.65rem !important;
+                padding: 6px 10px !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                line-height: 1.3 !important;
+            }
+
+            body #content-wrapper .calibration-schedule-grid tbody td.status-col {
+                background-color: #f8fafc !important;
+                font-weight: 800 !important;
+                color: #475569 !important;
+                font-size: 0.65rem !important;
+                z-index: 10 !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+            }
+
+            /* Table Cell Styling */
+            body #content-wrapper .calibration-schedule-grid td {
+                border: 1px solid #f1f5f9 !important;
+                height: 30px !important;
+                padding: 0 !important;
+                vertical-align: middle !important;
+                background-color: #fff;
+            }
+
+            /* Plan & Actual Markers */
+            body #content-wrapper .calibration-schedule-grid .marker-p { background-color: #10b981 !important; position: relative !important; }
+            body #content-wrapper .calibration-schedule-grid .marker-a { background-color: #06b6d4 !important; position: relative !important; }
+            
+            body #content-wrapper .calibration-schedule-grid .marker-link {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                min-height: 30px !important;
+                text-decoration: none !important;
+            }
+
+            /* Row Highlighting */
+            body #content-wrapper .calibration-schedule-grid tbody tr:hover td:not(.marker-p):not(.marker-a) {
+                background-color: #f8fafc !important;
+            }
+
+            .badge-legend {
+                padding: 2px 6px;
+                font-size: 0.65rem;
+                border-radius: 4px;
+                font-weight: 700;
             }
         </style>
 
         <div class="card shadow mb-4">
             <div class="card-body">
-                <div class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 15px;">
-                    <form action="{{ route('calibration.schedule.index') }}" method="GET" class="d-flex flex-wrap align-items-center w-100" style="gap: 10px;">
-                        <input type="hidden" name="plant" value="{{ $plantCode }}">
-                        
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
-                            <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" style="width: 180px; border-radius: 0.35rem;" placeholder="Nama / No. Seri" value="{{ request('search') }}">
-                        </div>
-
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tahun:</label>
-                            <select name="year" class="form-control form-control-sm border-0 shadow-sm" style="width: 85px; border-radius: 0.35rem;">
+                <!-- Filter Bar Minimalis -->
+                <form action="{{ route('calibration.schedule.index') }}" method="GET" 
+                    class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" 
+                    style="gap: 12px; overflow-x: auto; white-space: nowrap;">
+                    
+                    <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    
+                    <div class="d-flex align-items-center">
+                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
+                        <div style="width: 85px;">
+                            <select name="year" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
                                 @php
                                     $currentYear = date('Y');
                                     $selectedYear = $year ?? $currentYear;
@@ -198,61 +210,77 @@
                                 @endfor
                             </select>
                         </div>
+                    </div>
 
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Jenis:</label>
-                            <select name="jenis_kalibrasi" class="form-control form-control-sm border-0 shadow-sm" style="width: 110px; border-radius: 0.35rem;">
+                    <div class="d-flex align-items-center">
+                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Jenis:</label>
+                        <div style="width: 100px;">
+                            <select name="jenis_kalibrasi" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
                                 <option value="">Semua</option>
                                 <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
                                 <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
                             </select>
                         </div>
+                    </div>
 
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Plan:</label>
-                            <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                                <input type="date" name="start_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                                <span class="px-2 text-gray-500 small">-</span>
-                                <input type="date" name="end_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
-                            </div>
+                    <div class="d-flex align-items-center">
+                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Plan:</label>
+                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                            <input type="date" name="start_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                            <span class="px-2 text-gray-500 small">-</span>
+                            <input type="date" name="end_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                         </div>
+                    </div>
 
-                        <div class="d-flex align-items-center">
-                            <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Freq:</label>
-                            <select name="frequency" class="form-control form-control-sm border-0 shadow-sm" style="width: 90px; border-radius: 0.35rem;">
-                                <option value="">Semua</option>
-                                <option value="1_year" {{ request('frequency') === '1_year' ? 'selected' : '' }}>1 Thn</option>
-                                <option value="more_than_1_year" {{ request('frequency') === 'more_than_1_year' ? 'selected' : '' }}>> 1 Thn</option>
-                            </select>
-                        </div>
+                    <div class="d-flex align-items-center">
+                        <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
+                            style="width: 180px; font-size: 0.75rem;" 
+                            placeholder="Nama / No. Seri..." value="{{ request('search') }}">
+                    </div>
 
-                        <div class="ml-auto d-flex align-items-center" style="gap: 8px;">
-                            <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3">
-                                <i class="fas fa-search fa-sm"></i>
-                            </button>
-                            <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode, 'year' => date('Y')]) }}"
-                                class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3">
-                                <i class="fas fa-undo fa-sm"></i>
+                    <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+                        <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
+                            <i class="fas fa-search fa-sm"></i>
+                        </button>
+                        <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode, 'year' => date('Y')]) }}"
+                            class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
+                            <i class="fas fa-undo fa-sm"></i>
+                        </a>
+                        <div class="d-flex align-items-center px-2" style="gap: 5px; border-left: 1px solid #e2e8f0;">
+                            <a href="{{ route('calibration.schedule.pdf', request()->all()) }}" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Export PDF">
+                                <i class="fas fa-file-pdf fa-sm"></i>
                             </a>
-                            <div class="d-flex align-items-center" style="gap: 5px; border-left: 1px solid #dee2e6; padding-left: 10px; white-space: nowrap;">
-                                <span class="badge" style="background-color: #1cc88a; color: white; font-size: 0.7rem;">P</span><span class="small text-muted">Plan</span>
-                                <span class="badge" style="background-color: #36b9cc; color: white; font-size: 0.7rem;">A</span><span class="small text-muted">Actual</span>
-                                <span class="badge bg-white border shadow-sm" style="padding: 2px 5px; font-size: 0.7rem;"><i class="fas fa-hourglass-half text-primary"></i></span><span class="small text-muted">PR Out</span>
+                            <a href="{{ route('calibration.schedule.print', request()->all()) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
+                                <i class="fas fa-print fa-sm"></i>
+                            </a>
+                        </div>
+                        <div class="d-flex align-items-center" style="gap: 8px; border-left: 1px solid #e2e8f0; padding-left: 10px;">
+                            <div class="d-flex align-items-center" style="gap: 3px;">
+                                <span class="badge-legend" style="background-color: #10b981; color: white;">P</span>
+                                <span class="small text-muted font-weight-bold" style="font-size: 0.6rem;">PLAN</span>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 3px;">
+                                <span class="badge-legend" style="background-color: #06b6d4; color: white;">A</span>
+                                <span class="small text-muted font-weight-bold" style="font-size: 0.6rem;">ACT</span>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 3px;">
+                                <span class="badge bg-white border shadow-xs" style="padding: 2px 4px; font-size: 0.65rem;"><i class="fas fa-hourglass-half text-primary"></i></span>
+                                <span class="small text-muted font-weight-bold" style="font-size: 0.6rem;">PR</span>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
 
                 <hr class="my-4 border-light">
 
-                <div class="table-responsive">
-                    <table class="table table-bordered schedule-table mb-0">
+                <div class="calibration-schedule-grid-wrapper">
+                    <table class="table table-bordered calibration-schedule-grid mb-0">
                         <thead>
                             <tr>
                                 <th rowspan="2" class="align-middle tool-name-col text-center">NAMA ALAT</th>
                                 <th rowspan="2" class="align-middle serial-col text-center">NO. SERI</th>
                                 <th rowspan="2" class="align-middle jenis-col text-center">JENIS KALIBRASI</th>
-                                <th rowspan="2" class="align-middle status-col text-center">PLANING/<br>AKTUAL</th>
+                                <th rowspan="2" class="align-middle status-col text-center">PLANING /<br>AKTUAL</th>
                                 @foreach(['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agust', 'Sept', 'Okt', 'Nov', 'Des'] as $m)
                                     <th colspan="4" class="month-header">{{ $m }}</th>
                                 @endforeach
@@ -318,19 +346,15 @@
                                 @endphp
                                 <!-- Plan Row -->
                                 <tr>
-                                    <td rowspan="2" class="tool-name-col align-middle"
-                                        title="{{ $tool->name_alat }}" style="border-bottom: 2px solid #dee2e6;">
-                                        <div class="font-weight-bold">{{ $tool->name_alat }}</div>
+                                    <td rowspan="2" class="tool-name-col align-middle text-left font-weight-bold">
+                                        {{ $tool->name_alat }}
                                     </td>
-                                    <td rowspan="2" class="serial-col align-middle"
-                                        title="{{ $tool->serial_number }}" style="border-bottom: 2px solid #dee2e6;">
-                                        <div class="small text-muted">{{ $tool->serial_number }}</div>
+                                    <td rowspan="2" class="serial-col align-middle text-center text-muted">
+                                        {{ $tool->serial_number }}
                                     </td>
-                                    <td rowspan="2" class="jenis-col align-middle"
-                                        style="border-bottom: 2px solid #dee2e6;">
-                                        <div class="small">{{ Str::title($tool->jenis_kalibrasi) }}</div>
+                                    <td rowspan="2" class="jenis-col align-middle text-center">
+                                        {{ Str::title($tool->jenis_kalibrasi) }}
                                     </td>
-                                    {{-- Status column removed as per request --}}
                                     <td class="status-col text-center">P</td>
                                     @for($m = 1; $m <= 12; $m++)
                                         @for($w = 1; $w <= 4; $w++)
@@ -341,14 +365,13 @@
                                                         class="marker-link"
                                                         title="Klik untuk lihat daftar alat: {{ $tool->name_alat }}"></a>
                                                 @endif
-
                                             </td>
                                         @endfor
                                     @endfor
                                 </tr>
                                 <!-- Actual Row -->
                                 <tr>
-                                    <td class="status-col text-center" style="border-bottom: 2px solid #dee2e6;">A</td>
+                                    <td class="status-col text-center">A</td>
                                     @for($m = 1; $m <= 12; $m++)
                                         @for($w = 1; $w <= 4; $w++)
                                             @php 

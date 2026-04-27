@@ -129,6 +129,7 @@
                 <th style="width: 60px;">RESOLUSI</th>
                 <th style="width: 65px;">TGL BELI</th>
                 <th class="col-freq">FREKUENSI</th>
+                <th style="width: 50px;">RIWAYAT</th>
                 <th class="col-jenis">JENIS</th>
                 <th class="col-sch">SCHEDULE</th>
                 <th style="width: 80px;">PR NUMBER</th>
@@ -152,6 +153,7 @@
                     <td>{{ $tool->resolusi }}</td>
                     <td>{{ $tool->tanggal_beli ? \Carbon\Carbon::parse($tool->tanggal_beli)->format('d/m/Y') : '-' }}</td>
                     <td>{{ $tool->frekuensi_kalibrasi }}</td>
+                    <td>{{ $tool->all_verifications_count }} Kali</td>
                     <td>{{ ucfirst(strtolower($tool->jenis_kalibrasi)) }}</td>
                     <td>
                         @php

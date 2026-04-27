@@ -98,12 +98,11 @@ $(document).ready(function () {
     // Initialize DataTable if it exists
     if ($.fn.DataTable) {
         var table = $('#dataTable').DataTable({
-            dom: "<'row px-2 mb-2 align-items-center'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end align-items-center'<'year-filter-container mr-3'>f>>" +
-                "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+            dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
                 "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            searching: false,
+            lengthChange: false,
             language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data",
                 info: "Showing _START_ to _END_ of _TOTAL_ entries",
                 infoEmpty: "Showing 0 to 0 of 0 entries",
                 infoFiltered: "(difilter dari _MAX_ total data)",
@@ -113,33 +112,6 @@ $(document).ready(function () {
                     next: "Next",
                     previous: "Previous"
                 }
-            },
-            initComplete: function() {
-                var selectedYear = window.__CALIBRATION_TOOLS__.year;
-                var availableYears = window.__CALIBRATION_TOOLS__.availableYears;
-                var plantCode = window.__CALIBRATION_TOOLS__.plantCode;
-                var indexRoute = window.__CALIBRATION_TOOLS__.routes.index;
-
-                var yearHtml = '<div class="d-flex align-items-center mr-3">' +
-                    '<label class="mb-0 mr-2" style="font-weight: normal; color: #858796;">Tahun:</label>' +
-                    '<select id="customYearFilter" class="form-control form-control-sm" style="width: 85px; border-radius: 0.35rem;">';
-                
-                var allSelected = (selectedYear == 'all') ? 'selected' : '';
-                yearHtml += '<option value="all" ' + allSelected + '>All</option>';
-
-                availableYears.forEach(function(y) {
-                    var selected = (y == selectedYear && selectedYear != 'all') ? 'selected' : '';
-                    yearHtml += '<option value="' + y + '" ' + selected + '>' + y + '</option>';
-                });
-                
-                yearHtml += '</select></div>';
-                
-                $('.year-filter-container').html(yearHtml);
-                
-                $('#customYearFilter').on('change', function() {
-                    var val = $(this).val();
-                    window.location.href = indexRoute + "?plant=" + plantCode + "&year=" + val;
-                });
             }
         });
     }
@@ -272,8 +244,8 @@ $(document).ready(function () {
 
     // Report Problem Logic
     $(document).on('click', '.btn-report-problem', function() {
-        var toolId = $(this).data('tool-id');
-        var toolName = $(this).data('tool-name');
+        var toolId = $(this).data('id');
+        var toolName = $(this).data('name');
 
         $('#problem_tool_id').val(toolId);
         $('#problem_tool_name').val(toolName);
@@ -283,6 +255,8 @@ $(document).ready(function () {
         $('#action_taken').prop('required', false);
         $('#action_taken').val('');
         $('#rusak_info').hide();
+        
+        $('#modalReportProblem').modal('show');
     });
 
     $('#problem_type').on('change', function() {

@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('calibration')->name('calibration.')->group(function () {
     // Schedule
     Route::get('schedule', [CalibrationController::class, 'scheduleIndex'])->name('schedule.index');
+    Route::get('schedule/export-pdf', [CalibrationController::class, 'schedulePdf'])->name('schedule.pdf');
+    Route::get('schedule/print', [CalibrationController::class, 'schedulePrint'])->name('schedule.print');
 
     // Master Tools
     Route::get('tools', [CalibrationController::class, 'toolsIndex'])->name('tools.index');
