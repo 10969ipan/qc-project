@@ -9,6 +9,7 @@
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+        margin-bottom: 0 !important;
     }
     #dataTable, table.dataTable {
         border-collapse: separate !important;
@@ -95,6 +96,34 @@
     .year-filter-container {
         display: none !important;
     }
+
+    /* Fixed Pagination at the bottom of card */
+    .dataTables_wrapper > .row:last-child {
+        position: sticky !important;
+        bottom: 0 !important; 
+        background-color: #ffffff !important;
+        z-index: 106 !important;
+        padding: 10px 0 !important;
+        margin: 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+        border-bottom-left-radius: 0.35rem !important;
+        border-bottom-right-radius: 0.35rem !important;
+    }
+    
+    /* Ensure info and pagination look clean */
+    .dataTables_info {
+        font-size: 0.7rem !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        padding-top: 5px !important;
+    }
+    .dataTables_paginate .pagination {
+        margin: 0 !important;
+    }
+    .page-link {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.7rem !important;
+    }
 </style>
 
 @php
@@ -170,7 +199,7 @@
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Alat:</label>
                 <div style="width: 180px;" class="custom-filter-wrapper">
-                    <select name="name_alat" class="form-control form-control-sm border-0 shadow-sm select2-filter d-none">
+                    <select name="name_alat" id="filterAlat" class="form-control form-control-sm border-0 shadow-sm d-none">
                         <option value="">Semua Alat</option>
                         @foreach($uniqueNames as $name)
                             <option value="{{ $name }}" {{ request('name_alat') == $name ? 'selected' : '' }}>{{ $name }}</option>
@@ -183,7 +212,7 @@
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Bagian:</label>
                 <div style="width: 130px;" class="custom-filter-wrapper">
-                    <select name="bagian" class="form-control form-control-sm border-0 shadow-sm select2-filter d-none">
+                    <select name="bagian" id="filterBagian" class="form-control form-control-sm border-0 shadow-sm d-none">
                         <option value="">Semua</option>
                         @foreach($uniqueBagian as $b)
                             <option value="{{ $b }}" {{ request('bagian') == $b ? 'selected' : '' }}>{{ $b }}</option>
@@ -207,8 +236,9 @@
 
             <!-- Cari Cepat -->
             <div class="d-flex align-items-center">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
                 <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
-                    placeholder="Cari No. Seri, Merk..." value="{{ request('search') }}" style="width: 160px; font-size: 0.75rem;">
+                    placeholder="No. Seri, Merk..." value="{{ request('search') }}" style="width: 160px; font-size: 0.75rem;">
             </div>
 
             <!-- Tombol Aksi -->
@@ -236,7 +266,7 @@
             </div>
         </form>
 
-        <div class="table-responsive">
+        <!-- Table Container -->
             <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
@@ -352,7 +382,7 @@
                     @endforeach
                 </tbody>
             </table>
-        </div>
+        <!-- End Table -->
     </div>
 </div>
 
@@ -455,15 +485,15 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/calibration/calibration-tools.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('js/vendor/item-search.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        // Initialize Select2 like in In-Process
-        if (typeof window.initCustomItemSearch === 'function') {
-            window.initCustomItemSearch('#filterForm select.select2-filter');
-        }
-    });
+    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
+    <script src="{{ asset('js/calibration/calibration-tools.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('filterAlat', { placeholder: 'Cari Nama Alat...', maxResults: 50 });
+                initItemSearch('filterBagian', { placeholder: 'Cari Bagian...', maxResults: 30 });
+            }
+        });
 
     // PDF Modal Handler
     $('#pdfModal').on('show.bs.modal', function (event) {
