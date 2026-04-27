@@ -1209,7 +1209,7 @@
 
 @endsection
 @push('scripts')
-    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.2"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/in-process.js') }}"></script>
     <script>

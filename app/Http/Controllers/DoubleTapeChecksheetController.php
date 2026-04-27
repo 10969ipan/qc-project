@@ -101,11 +101,24 @@ class DoubleTapeChecksheetController extends Controller
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::whereHas('plant', function ($q) {
-            $q->where('code', 'karawang');
+        
+        $plantId = \App\Models\Plant::resolveId('karawang');
+        
+        $items = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('double_tape_checksheets')->where('plant_id', $plantId);
         })->orderBy('name')->get();
 
-        return view('double_tape.index', compact('checksheets', 'items'));
+        $customers = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('double_tape_checksheets')->where('plant_id', $plantId);
+        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+
+        $initials = DoubleTapeChecksheet::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials')
+            ->distinct()
+            ->pluck('operator_initials')
+            ->sort();
+
+        return view('double_tape.index', compact('checksheets', 'items', 'customers', 'initials'));
     }
 
     public function create(Request $request)

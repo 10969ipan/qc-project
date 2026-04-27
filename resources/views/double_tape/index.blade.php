@@ -150,11 +150,45 @@
                 style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormDoubleTape">
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
+                <!-- Field: Part -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" id="liveSearch" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        style="width: 160px; border-radius: 0.35rem;" placeholder="Nama / Part..."
-                        value="{{ request('search') }}">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 200px;" class="custom-filter-wrapper">
+                        <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Item / Part No.</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: Inisial -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inisial:</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: Customer -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cust:</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center bg-white shadow-sm rounded px-2 py-1" style="gap: 8px;">
@@ -217,6 +251,21 @@
                     @endif
                 </div>
             </form>
+
+            <style>
+                .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                .custom-filter-wrapper .ips-input { 
+                    padding: 4px 20px 4px 8px; 
+                    font-size: 0.75rem; 
+                    border: none !important; 
+                    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important; 
+                    height: calc(1.5em + 0.5rem + 2px); 
+                    border-radius: 0.35rem;
+                }
+                .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                .custom-filter-wrapper { position: relative; top: -1px; }
+                #filterFormDoubleTape label { white-space: nowrap; }
+            </style>
 
             <div class="table-responsive">
                 <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
@@ -714,6 +763,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.2"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
@@ -726,9 +776,15 @@
                 inputQrId: '#filterQrRaw'
             });
 
+            // Initialize Custom Search (Standardized across modules)
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+                initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
+                initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+            }
 
             // Auto-submit filter form
-            const filterForm = document.querySelector('form[action="{{ route('double_tape.index') }}"]');
+            const filterForm = document.getElementById('filterFormDoubleTape');
             if (!filterForm) return;
 
             // Debounce helper

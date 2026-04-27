@@ -109,11 +109,24 @@ class PlatingChecksheetController extends Controller
         $filters['plant'] = 'karawang'; // Enforce Karawang for this specific checksheet
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::whereHas('plant', function ($q) {
-            $q->where('code', 'karawang');
+        
+        $plantId = \App\Models\Plant::resolveId('karawang');
+        
+        $items = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('plating_checksheets')->where('plant_id', $plantId);
         })->orderBy('name')->get();
 
-        return view('plating.index', compact('checksheets', 'items'));
+        $customers = Item::whereIn('id', function($query) use ($plantId) {
+            $query->select('item_id')->from('plating_checksheets')->where('plant_id', $plantId);
+        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+
+        $initials = PlatingChecksheet::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials')
+            ->distinct()
+            ->pluck('operator_initials')
+            ->sort();
+
+        return view('plating.index', compact('checksheets', 'items', 'customers', 'initials'));
     }
 
     public function create(Request $request)

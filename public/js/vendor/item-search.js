@@ -35,7 +35,7 @@
             '}',
             '.ips-clear:hover { color: #333; }',
             '.ips-dropdown {',
-            '  position: absolute; z-index: 9999; width: 100%;',
+            '  position: absolute; z-index: 9999; box-sizing: border-box;',
             '  max-height: 400px; overflow-y: auto;',
             '  background: #fff; border: 1px solid #ced4da; border-radius: 4px;',
             '  box-shadow: 0 4px 12px rgba(0,0,0,.12);',
@@ -118,7 +118,7 @@
 
         wrapper.appendChild(input);
         wrapper.appendChild(clearBtn);
-        wrapper.appendChild(dropdown);
+        document.body.appendChild(dropdown);
 
         selectEl.parentNode.insertBefore(wrapper, selectEl);
 
@@ -158,6 +158,7 @@
                 empty.textContent = 'Tidak ada item ditemukan';
                 dropdown.appendChild(empty);
                 dropdown.style.display = 'block';
+                updateDropdownPosition();
                 return;
             }
 
@@ -202,7 +203,25 @@
             }
 
             dropdown.style.display = 'block';
+            updateDropdownPosition();
         }
+
+        function updateDropdownPosition() {
+            var rect = input.getBoundingClientRect();
+            var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+            
+            dropdown.style.setProperty('position', 'absolute', 'important');
+            dropdown.style.setProperty('top', (rect.bottom + scrollY) + 'px', 'important');
+            dropdown.style.setProperty('left', (rect.left + scrollX) + 'px', 'important');
+            dropdown.style.setProperty('width', rect.width + 'px', 'important');
+            dropdown.style.setProperty('margin', '0', 'important');
+            dropdown.style.setProperty('z-index', '999999', 'important');
+            dropdown.style.setProperty('display', 'block', 'important');
+        }
+
+        // Only close on resize, no need to close on scroll anymore as it scrolls with the page
+        window.addEventListener('resize', closeDropdown);
 
         function selectOption(opt) {
             selectEl.value = opt.value;
