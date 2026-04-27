@@ -225,8 +225,10 @@
 
         function selectOption(opt) {
             selectEl.value = opt.value;
-            // Display name in search box
-            input.value = (opt.dataset.name || opt.text || '').replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
+            // Display part number in search box if available, otherwise name
+            var partNo = opt.dataset.partNumber || opt.dataset.part_number;
+            var name = opt.dataset.name || opt.text || '';
+            input.value = (partNo || name).replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
             clearBtn.style.display = 'inline';
             // Trigger change so existing JS listeners fire
             var ev = new Event('change', { bubbles: true });
@@ -334,7 +336,9 @@
             if (selectEl.value) {
                 var selOpt = selectEl.options[selectEl.selectedIndex];
                 if (selOpt) {
-                    input.value = (selOpt.dataset.name || selOpt.text || '').replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
+                    var pNo = selOpt.dataset.partNumber || selOpt.dataset.part_number;
+                    var nme = selOpt.dataset.name || selOpt.text || '';
+                    input.value = (pNo || nme).replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
                     clearBtn.style.display = 'inline';
                 }
             } else {

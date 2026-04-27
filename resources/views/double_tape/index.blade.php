@@ -763,7 +763,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.2"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
