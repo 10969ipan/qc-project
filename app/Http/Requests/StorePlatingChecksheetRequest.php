@@ -57,6 +57,7 @@ class StorePlatingChecksheetRequest extends FormRequest
                 'string',
                 \Illuminate\Validation\Rule::unique('plating_checksheets', 'unique_code_id')
                     ->where('part_code', $this->part_code)
+                    ->where('quantity', $this->quantity)
                     ->whereNotNull('unique_code_id'),
             ],
             'sap_code' => 'nullable|string',

@@ -48,6 +48,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
                 'string',
                 \Illuminate\Validation\Rule::unique('in_process_checksheets', 'unique_code_id')
                     ->where('part_code', $this->part_code)
+                    ->where('quantity', $this->quantity)
                     ->ignore($this->route('id')),
             ],
             'sap_code' => 'nullable|string',
