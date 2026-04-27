@@ -169,7 +169,8 @@ class PlatingIndex {
 
     initQRScanner() {
         const _this = this;
-        $(this.config.btnScanId).click(() => {
+        $(document).on("click", this.config.btnScanId, (e) => {
+            e.preventDefault();
             this.unlockAudio();
             $(this.config.qrScannerModalId).modal("show");
         });
@@ -277,12 +278,16 @@ class PlatingIndex {
     }
 
     unlockAudio() {
-        if (!this.audioContext) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) this.audioContext = new AudioContext();
-        }
-        if (this.audioContext && this.audioContext.state === "suspended") {
-            this.audioContext.resume();
+        try {
+            if (!this.audioContext) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) this.audioContext = new AudioContext();
+            }
+            if (this.audioContext && this.audioContext.state === "suspended") {
+                this.audioContext.resume();
+            }
+        } catch (e) {
+            console.warn("AudioContext unlock failed", e);
         }
     }
 
