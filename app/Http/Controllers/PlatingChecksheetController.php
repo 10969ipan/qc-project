@@ -105,7 +105,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
         $filters['plant'] = 'karawang'; // Enforce Karawang for this specific checksheet
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
@@ -220,7 +220,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();

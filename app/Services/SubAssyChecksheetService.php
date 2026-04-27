@@ -101,6 +101,11 @@ class SubAssyChecksheetService extends BaseService
             $query->where('id', $filters['id']);
         }
 
+        // QR Raw filter
+        if (!empty($filters['qr_raw'])) {
+            $query->where('sub_assy_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+        }
+
         return $query;
     }
 

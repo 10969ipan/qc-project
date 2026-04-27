@@ -203,15 +203,15 @@
     <div class="card shadow mb-4">
         <div class="card-body">
             <form action="{{ route('in_process.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 10px;" id="filterFormInProcess">
+                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormInProcess">
 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
                 <!-- Field: Part -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 240px;" class="custom-filter-wrapper">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 200px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($items as $item)
@@ -225,20 +225,20 @@
 
                 <!-- Field: Tanggal -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
                     <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
                         <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-2 text-gray-500 small">-</span>
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-1 text-gray-500 small">-</span>
                         <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                     </div>
                 </div>
 
                 <!-- Field: Inisial -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Inisial:</label>
-                    <div style="width: 120px;" class="custom-filter-wrapper">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inisial:</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
                         <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Inisial</option>
                             @foreach($initials as $initial)
@@ -250,14 +250,28 @@
 
                 <!-- Field: Customer -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
-                    <div style="width: 130px;" class="custom-filter-wrapper">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cust:</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Customer</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
                             @endforeach
                         </select>
+                    </div>
+                </div>
+
+                <!-- Field: QR Raw -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
+                    <div class="input-group input-group-sm shadow-sm rounded overflow-hidden" style="width: 160px;">
+                        <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1196,10 +1210,15 @@
 @endsection
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/in-process.js') }}"></script>
     <script>
         $(document).ready(function () {
-            window.initInProcessIndex();
+            window.initInProcessIndex({
+                qrScannerModalId: '#qrScannerModal',
+                btnScanId: '#btnScanQRIndex',
+                inputQrId: '#filterQrRaw'
+            });
 
             // Initialize Custom Search
             if (typeof initItemSearch === 'function') {
@@ -1320,6 +1339,8 @@
             });
         });
     </script>
+
+    @include('partials.qr_scanner_modal')
 
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')

@@ -15,6 +15,9 @@ class InProcessIndex {
         this.initStatusModal();
         this.initAjaxForms();
         this.initQRDetail();
+        if (this.config && this.config.btnScanId) {
+            this.initQRScanner();
+        }
     }
 
     initCharacterCounter() {
@@ -208,6 +211,156 @@ class InProcessIndex {
             $("#modal-qr-sap").text(sapCode);
             $("#qrModal").modal("show");
         });
+    }
+
+    initQRScanner() {
+        const _this = this;
+        $(this.config.btnScanId).click(() => {
+            this.unlockAudio();
+            $(this.config.qrScannerModalId).modal("show");
+        });
+
+        $(this.config.qrScannerModalId).on("shown.bs.modal", function () {
+            const videoElem = document.getElementById("qr-video");
+
+            if (_this.qrScanner) {
+                _this.qrScanner.destroy();
+                _this.qrScanner = null;
+            }
+
+            _this.qrScanner = new QrScanner(
+                videoElem,
+                (result) => _this.handleQRScanned(result.data),
+                {
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    maxScansPerSecond: 25,
+                    preferredCamera: "environment",
+                },
+            );
+
+            _this.qrScanner._setVideoMirror = function (facingMode) {};
+
+            $("#toggleMirrorBtn")
+                .off("click")
+                .on("click", function () {
+                    $(videoElem).toggleClass("mirrored");
+                });
+
+            _this.qrScanner
+                .start()
+                .then(() => {
+                    _this.qrScanner.hasFlash().then((hasFlash) => {
+                        if (hasFlash) $("#toggleFlashBtn").removeClass("d-none");
+                    });
+
+                    $("#toggleFlashBtn")
+                        .off("click")
+                        .on("click", function () {
+                            _this.qrScanner.toggleFlash();
+                        });
+
+                    const track = _this.qrScanner.$video.srcObject.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+                    if (capabilities.zoom) {
+                        $("#zoomContainer").removeClass("d-none");
+                        const $slider = $("#zoomSlider");
+                        $slider
+                            .attr({
+                                min: capabilities.zoom.min,
+                                max: capabilities.zoom.max,
+                                step: capabilities.zoom.step || 0.1,
+                            })
+                            .val(track.getSettings().zoom || capabilities.zoom.min);
+
+                        $slider.off("input").on("input", function () {
+                            track.applyConstraints({
+                                advanced: [{ zoom: parseFloat($(this).val()) }],
+                            });
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.error("Scanner error", err);
+                });
+        });
+
+        $("#qr-input-file").on("change", async function (e) {
+            if (e.target.files.length == 0) return;
+            const imageFile = e.target.files[0];
+            $("#qr-video").addClass("d-none");
+            $("#qr-reader-results").removeClass("d-none");
+
+            try {
+                const result = await QrScanner.scanImage(imageFile, {
+                    returnDetailedScanResult: true,
+                });
+                _this.handleQRScanned(result.data);
+            } catch (err) {
+                console.error("Error scanning file:", err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal Membaca QR",
+                    text: "Sistem tidak menemukan QR Code pada gambar ini.",
+                });
+            } finally {
+                $(this).val("");
+                $("#qr-reader-results").addClass("d-none");
+                $("#qr-video").removeClass("d-none");
+            }
+        });
+
+        $(this.config.qrScannerModalId).on("hidden.bs.modal", () => {
+            this.stopScanner();
+        });
+    }
+
+    stopScanner() {
+        if (this.qrScanner) {
+            this.qrScanner.stop();
+        }
+    }
+
+    unlockAudio() {
+        if (!this.audioContext) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) this.audioContext = new AudioContext();
+        }
+        if (this.audioContext && this.audioContext.state === "suspended") {
+            this.audioContext.resume();
+        }
+    }
+
+    playSuccessFeedback() {
+        try {
+            if (navigator.vibrate) navigator.vibrate(100);
+            this.unlockAudio();
+            if (this.audioContext) {
+                const oscillator = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+                gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.2, this.audioContext.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                oscillator.connect(gain);
+                gain.connect(this.audioContext.destination);
+                oscillator.start();
+                oscillator.stop(this.audioContext.currentTime + 0.3);
+            }
+        } catch (e) {}
+    }
+
+    handleQRScanned(decodedText) {
+        this.playSuccessFeedback();
+        this.stopScanner();
+        $(this.config.qrScannerModalId).modal("hide");
+        if (this.config.inputQrId) {
+            $(this.config.inputQrId).val(decodedText);
+            // Auto submit form
+            $(this.config.inputQrId).closest("form").submit();
+        }
     }
 }
 

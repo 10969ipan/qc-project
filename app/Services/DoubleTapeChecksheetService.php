@@ -65,6 +65,10 @@ class DoubleTapeChecksheetService extends BaseService
             $query->whereIn('check_type', $filters['check_type']);
         }
 
+        if (!empty($filters['qr_raw'])) {
+            $query->where('double_tape_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+        }
+
         return $query;
     }
 

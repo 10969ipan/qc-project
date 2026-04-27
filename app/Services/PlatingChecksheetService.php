@@ -61,6 +61,10 @@ class PlatingChecksheetService extends BaseService
             });
         }
 
+        if (!empty($filters['qr_raw'])) {
+            $query->where('plating_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+        }
+
         return $query;
     }
 

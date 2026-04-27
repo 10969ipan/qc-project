@@ -145,17 +145,19 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('double_tape.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 10px;">
+            <form action="{{ route('double_tape.index') }}" method="GET"
+                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormDoubleTape">
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
                     <input type="text" id="liveSearch" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        style="width: 180px; border-radius: 0.35rem;" placeholder="Nama Item / Part No."
+                        style="width: 160px; border-radius: 0.35rem;" placeholder="Nama / Part..."
                         value="{{ request('search') }}">
                 </div>
 
-                <div class="d-flex align-items-center bg-white shadow-sm rounded px-2 py-1" style="gap: 10px;">
+                <div class="d-flex align-items-center bg-white shadow-sm rounded px-2 py-1" style="gap: 8px;">
                     <span class="small font-weight-bold text-gray-700 mr-1">Tipe:</span>
                     <div class="form-check form-check-inline mb-0">
                         <input class="form-check-input" type="checkbox" name="check_type[]" id="filterSampling" value="sampling"
@@ -170,13 +172,26 @@
                 </div>
 
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
+                    <div class="input-group input-group-sm shadow-sm rounded overflow-hidden" style="width: 160px;">
+                        <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-primary btn-sm border-0" id="btnScanQRIndex" title="Scan QR Code">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
                     <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
                         <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-2 text-gray-500 small">-</span>
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-1 text-gray-500 small">-</span>
                         <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                     </div>
                 </div>
 
@@ -700,11 +715,15 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.initDoubleTapeIndex({
-                indexRoute: "{{ route('double_tape.index') }}"
+                indexRoute: "{{ route('double_tape.index') }}",
+                qrScannerModalId: '#qrScannerModal',
+                btnScanId: '#btnScanQRIndex',
+                inputQrId: '#filterQrRaw'
             });
 
 
@@ -744,6 +763,8 @@
             });
         });
     </script>
+    @include('partials.qr_scanner_modal')
+
     @php $bulkApproveRoute = route('double_tape.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 @endpush

@@ -97,7 +97,7 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
@@ -220,7 +220,7 @@ class DoubleTapeChecksheetController extends Controller
 
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
@@ -240,7 +240,7 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw']);
         $filters['plant'] = 'karawang';
 
         // Default ke hari ini jika tidak ada filter tanggal

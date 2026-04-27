@@ -116,6 +116,7 @@ class InProcessChecksheetController extends Controller
             'customer' => $request->customer,
             'next_proses' => $request->next_proses,
             'id' => $request->id,
+            'qr_raw' => $request->qr_raw,
         ];
 
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);

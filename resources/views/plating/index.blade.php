@@ -115,63 +115,63 @@
             <h6 class="m-0 font-weight-bold text-primary">Data Masuk Plating</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('plating.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    @if(request('plant'))
-                        <input type="hidden" name="plant" value="{{ request('plant') }}">
+            <form action="{{ route('plating.index') }}" method="GET" 
+                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-4 shadow-sm"
+                style="gap: 8px; overflow-x: auto; white-space: nowrap;">
+                @if(request('plant'))
+                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                @endif
+
+                <!-- Pencarian Langsung -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 180px;">
+                        <input type="text" id="liveSearch" class="form-control border-0" name="search" placeholder="Cari..."
+                            value="{{ request('search') }}">
+                    </div>
+                </div>
+
+                <!-- Filter Tanggal -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-1 text-gray-500 small">-</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                    </div>
+                </div>
+
+                <!-- Filter QR Raw -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
+                    <div class="input-group input-group-sm shadow-sm rounded overflow-hidden" style="width: 160px;">
+                        <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                    <a href="{{ route('plating.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i>
+                    </a>
+                    @if($canExport)
+                    <a href="{{ route('plating.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm"></i>
+                    </a>
                     @endif
-
-                    <!-- Pencarian Langsung -->
-                    <div class="col-lg-3 col-md-12 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="search" class="small font-weight-bold">Pencarian</label>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="liveSearch" class="form-control" name="search" placeholder="Cari..."
-                                    value="{{ request('search') }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filter Tanggal -->
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="start_date" class="small font-weight-bold">Dari Tanggal</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm"
-                                value="{{ request('start_date') }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
-                        <div class="form-group mb-0">
-                            <label for="end_date" class="small font-weight-bold">Sampai Tanggal</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm"
-                                value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-
-                    <!-- Tombol: Cari, Reset, Ekspor -->
-                    <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold d-block">&nbsp;</label>
-                            <div class="d-flex">
-                                <button type="submit" class="btn btn-primary btn-sm mr-2" title="Cari Data">
-                                    <i class="fas fa-search"></i> Cari
-                                </button>
-                                <a href="{{ route('plating.index', ['plant' => request('plant')]) }}"
-                                    class="btn btn-secondary btn-sm mr-2 no-loader" title="Reset Filter">
-                                    <i class="fas fa-undo"></i> Reset
-                                </a>
-                                @if($canExport)
-                                <a href="{{ route('plating.export_pdf', request()->query()) }}"
-                                    class="btn btn-danger btn-sm no-loader btn-download" title="Export to PDF">
-                                    <i class="fas fa-file-pdf"></i> Export
-                                </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </form>
 
@@ -677,14 +677,20 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/plating.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.initPlatingIndex({
-                indexRoute: "{{ route('plating.index') }}"
+                indexRoute: "{{ route('plating.index') }}",
+                qrScannerModalId: '#qrScannerModal',
+                btnScanId: '#btnScanQRIndex',
+                inputQrId: '#filterQrRaw'
             });
         });
     </script>
+    @include('partials.qr_scanner_modal')
+
     @php $bulkApproveRoute = route('plating.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 @endpush
