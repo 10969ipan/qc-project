@@ -196,6 +196,7 @@ class DashboardService extends BaseService
             if ($plantCode !== 'jakarta') {
                 $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
                 $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
+                $this->processModelStats(DoubleTapeChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
             }
         }
 
@@ -206,8 +207,10 @@ class DashboardService extends BaseService
     {
         $table = (new $modelClass)->getTable();
         
-        // Define all possible signature columns across different models
-        $potentialColumns = ['kashift_qc', 'supervisor_qc', 'karu_qc', 'asst_manager_qc', 'manager_qc'];
+        // Define possible signature columns. For daily stats, we only record Karu and Kashift per user request.
+        $potentialColumns = $dailyOnly 
+            ? ['kashift_qc', 'karu_qc'] 
+            : ['kashift_qc', 'supervisor_qc', 'karu_qc', 'asst_manager_qc', 'manager_qc'];
         $columns = [];
         foreach ($potentialColumns as $col) {
             if (Schema::hasColumn($table, $col)) {
