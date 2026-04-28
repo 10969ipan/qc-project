@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <title>Master Data Alat Ukur - {{ strtoupper($plantCode) }}</title>
     <style>
-        @page { size: A4 landscape; margin: 0; }
+        @page { size: A4 landscape; margin: 10mm; }
         * { box-sizing: border-box; }
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
             color: #333;
             margin: 0;
-            padding: 10mm 10mm 5mm 10mm;
+            padding: 0;
         }
 
         /* ─── Document Header ─── */
@@ -153,7 +153,7 @@
                     <td>{{ $tool->resolusi }}</td>
                     <td>{{ $tool->tanggal_beli ? \Carbon\Carbon::parse($tool->tanggal_beli)->format('d/m/Y') : '-' }}</td>
                     <td>{{ $tool->frekuensi_kalibrasi }}</td>
-                    <td>{{ $tool->all_verifications_count }} Kali</td>
+                    <td>{{ $tool->riwayat_kalibrasi }}</td>
                     <td>{{ ucfirst(strtolower($tool->jenis_kalibrasi)) }}</td>
                     <td>
                         @php

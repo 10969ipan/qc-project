@@ -298,7 +298,7 @@
                             <td>{{ $tool->resolusi }}</td>
                             <td>{{ $tool->tanggal_beli ? $tool->tanggal_beli->format('d/m/Y') : '-' }}</td>
                             <td>{{ $tool->frekuensi_kalibrasi }}</td>
-                            <td>{{ $tool->all_verifications_count }} Kali</td>
+                            <td>{{ $tool->riwayat_kalibrasi }}</td>
                             <td>{{ Str::title($tool->jenis_kalibrasi) }}</td>
                             <td>
                                 @if(strtoupper($tool->jenis_kalibrasi) === 'EKSTERNAL')

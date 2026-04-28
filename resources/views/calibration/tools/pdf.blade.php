@@ -146,7 +146,7 @@
                     <td>{{ $tool->resolusi }}</td>
                     <td>{{ $tool->tanggal_beli ? \Carbon\Carbon::parse($tool->tanggal_beli)->format('d/m/Y') : '-' }}</td>
                     <td>{{ $tool->frekuensi_kalibrasi }}</td>
-                    <td>{{ $tool->all_verifications_count }} Kali</td>
+                    <td>{{ $tool->riwayat_kalibrasi }}</td>
                     <td>{{ ucfirst(strtolower($tool->jenis_kalibrasi)) }}</td>
                     <td>
                         @php
