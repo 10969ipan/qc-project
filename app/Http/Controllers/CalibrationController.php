@@ -931,22 +931,43 @@ class CalibrationController extends Controller
             rsort($availableYears);
         }
 
+        // Get unique values for filters from this plant's verifications
+        $uniqueNames = CalibrationVerification::where('plant_id', $plant->id)->distinct()->pluck('name_alat')->sort();
+        $uniqueMerks = CalibrationVerification::where('plant_id', $plant->id)->whereNotNull('merk')->distinct()->pluck('merk')->sort();
+        $uniqueSerials = CalibrationVerification::where('plant_id', $plant->id)->whereNotNull('serial_number')->distinct()->pluck('serial_number')->sort();
+
         $query = CalibrationVerification::where('plant_id', $plant->id)
             ->with('tool')
             ->where(function ($q) use ($year, $request) {
                 if ($request->filled('tool_id')) {
                     $q->where('tool_id', $request->tool_id);
-                } elseif ($year !== 'all') {
+                } elseif ($year !== 'all' && $year !== '') {
                     $q->whereYear('tanggal_verifikasi', $year);
                 }
             });
 
-        // Filter Search (Alat / Serial)
+        // Filter Nama Alat
+        if ($request->filled('name_alat')) {
+            $query->where('name_alat', $request->name_alat);
+        }
+
+        // Filter Merk
+        if ($request->filled('merk')) {
+            $query->where('merk', $request->merk);
+        }
+
+        // Filter Serial Number
+        if ($request->filled('serial_number')) {
+            $query->where('serial_number', $request->serial_number);
+        }
+
+        // Filter Search (General)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name_alat', 'LIKE', "%{$search}%")
-                    ->orWhere('serial_number', 'LIKE', "%{$search}%");
+                    ->orWhere('serial_number', 'LIKE', "%{$search}%")
+                    ->orWhere('merk', 'LIKE', "%{$search}%");
             });
         }
 
@@ -972,7 +993,16 @@ class CalibrationController extends Controller
 
         $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->orderBy('name_alat')->get();
 
-        return view('calibration.verifications.index', compact('verifications', 'plantCode', 'tools', 'year', 'availableYears'));
+        return view('calibration.verifications.index', compact(
+            'verifications', 
+            'plantCode', 
+            'tools', 
+            'year', 
+            'availableYears', 
+            'uniqueNames', 
+            'uniqueMerks', 
+            'uniqueSerials'
+        ));
     }
 
     public function verificationsPdf(Request $request)
@@ -996,12 +1026,28 @@ class CalibrationController extends Controller
             ->with('tool')
             ->whereYear('tanggal_verifikasi', $year);
 
-        // Filter Search
+        // Filter Nama Alat
+        if ($request->filled('name_alat')) {
+            $query->where('name_alat', $request->name_alat);
+        }
+
+        // Filter Merk
+        if ($request->filled('merk')) {
+            $query->where('merk', $request->merk);
+        }
+
+        // Filter Serial Number
+        if ($request->filled('serial_number')) {
+            $query->where('serial_number', $request->serial_number);
+        }
+
+        // Filter Search (General)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name_alat', 'LIKE', "%{$search}%")
-                    ->orWhere('serial_number', 'LIKE', "%{$search}%");
+                    ->orWhere('serial_number', 'LIKE', "%{$search}%")
+                    ->orWhere('merk', 'LIKE', "%{$search}%");
             });
         }
 
@@ -1065,9 +1111,36 @@ class CalibrationController extends Controller
             ->with('tool')
             ->whereYear('tanggal_verifikasi', $year);
 
-        if ($request->filled('start_date') || $request->filled('end_date')) {
-            $query->whereDate('tanggal_verifikasi', '>=', $startDate)
-                  ->whereDate('tanggal_verifikasi', '<=', $endDate);
+        // Filter Nama Alat
+        if ($request->filled('name_alat')) {
+            $query->where('name_alat', $request->name_alat);
+        }
+
+        // Filter Merk
+        if ($request->filled('merk')) {
+            $query->where('merk', $request->merk);
+        }
+
+        // Filter Serial Number
+        if ($request->filled('serial_number')) {
+            $query->where('serial_number', $request->serial_number);
+        }
+
+        // Filter Search (General)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name_alat', 'LIKE', "%{$search}%")
+                    ->orWhere('serial_number', 'LIKE', "%{$search}%")
+                    ->orWhere('merk', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('tanggal_verifikasi', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('tanggal_verifikasi', '<=', $request->end_date);
         }
 
         // Filter Judgment

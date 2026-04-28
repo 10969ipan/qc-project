@@ -1755,8 +1755,8 @@
             $('.cancel-new-role[data-target="add"]').trigger('click');
         });
 
-        // Edit User Button Click
-        $('.edit-user').on('click', function() {
+        // Edit User Button Click (Using delegation for DataTables compatibility)
+        $(document).on('click', '.edit-user', function() {
             const btn = $(this);
             $('#edit_user_id').val(btn.data('id'));
             $('#edit_name').val(btn.data('name'));
@@ -1792,9 +1792,9 @@
             $('.toggle-new-role[data-target="' + target + '"]').removeClass('d-none');
         });
 
-        // Reset Password Button Click
+        // Reset Password Button Click (Using delegation)
         let resetUserId = null;
-        $('.reset-password').on('click', function() {
+        $(document).on('click', '.reset-password', function() {
             const btn = $(this);
             resetUserId = btn.data('id');
             $('#reset_user_name').text(btn.data('name'));
@@ -1904,7 +1904,7 @@
             });
         });
 
-        $('.delete-user').on('click', function() {
+        $(document).on('click', '.delete-user', function() {
             const btn = $(this);
             const userId = btn.data('id');
             const userName = btn.data('name');
@@ -1948,8 +1948,8 @@
             });
         });
 
-        // Toggle User Status AJAX
-        $('.toggle-user-status').on('change', function() {
+        // Toggle User Status AJAX (Using delegation)
+        $(document).on('change', '.toggle-user-status', function() {
             const checkbox = $(this);
             const userId = checkbox.data('id');
             const isActive = checkbox.is(':checked') ? 1 : 0;

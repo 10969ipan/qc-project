@@ -142,6 +142,46 @@
             .meas-cell-row:not(:last-child) {
                 border-bottom: 1px solid #f1f5f9;
             }
+
+            .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+            .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+            .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+            .custom-filter-wrapper { position: relative; top: -1px; }
+
+            /* Force hide DataTables default elements (failsafe for caching) */
+            .dataTables_length, 
+            .dataTables_filter, 
+            .year-filter-container {
+                display: none !important;
+            }
+
+            /* Fixed Pagination at the bottom of card */
+            .dataTables_wrapper > .row:last-child {
+                position: sticky !important;
+                bottom: 0 !important; 
+                background-color: #ffffff !important;
+                z-index: 106 !important;
+                padding: 10px 0 !important;
+                margin: 0 !important;
+                border-top: 1px solid #e2e8f0 !important;
+                border-bottom-left-radius: 0.35rem !important;
+                border-bottom-right-radius: 0.35rem !important;
+            }
+            
+            /* Ensure info and pagination look clean */
+            .dataTables_info {
+                font-size: 0.7rem !important;
+                color: #475569 !important;
+                font-weight: 600 !important;
+                padding-top: 5px !important;
+            }
+            .dataTables_paginate .pagination {
+                margin: 0 !important;
+            }
+            .page-link {
+                padding: 0.3rem 0.6rem !important;
+                font-size: 0.7rem !important;
+            }
         </style>
 
         @if(session('success'))
@@ -164,12 +204,22 @@
 
         @php
             $plant = $plantCode;
-            // Resolve menu ID for permission checks
-            $currentMenu = \App\Models\AppMenu::where('route', 'calibration.verifications.index')->first();
-            $menuId = $currentMenu ? $currentMenu->id : null;
-            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-            $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
-            $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+            // Resolve menu ID for permission checks (there might be multiple menus for different plants)
+            $menuIds = \App\Models\AppMenu::where('route', 'calibration.verifications.index')->pluck('id')->toArray();
+            
+            $isAdmin = auth()->user()->role === 'admin';
+            
+            $canExport = $isAdmin;
+            $canEdit = $isAdmin;
+            $canDelete = $isAdmin;
+
+            if (!$isAdmin) {
+                foreach ($menuIds as $mId) {
+                    if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
+                    if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
+                    if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
+                }
+            }
 
             /** @var \Illuminate\Support\ViewErrorBag $errors */
         @endphp
@@ -228,11 +278,13 @@
                         </div>
                     </div>
 
+                    <!-- Cari Umum -->
                     <div class="d-flex align-items-center">
+                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
                         <input type="text" name="search" id="searchVerif"
                             class="form-control form-control-sm border-0 shadow-sm" 
-                            style="width: 200px; font-size: 0.75rem;" 
-                            placeholder="Cari Nama / No. Seri..." 
+                            style="width: 250px; font-size: 0.75rem;" 
+                            placeholder="Cari Alat, Merk, No. Seri..." 
                             value="{{ request('search') }}" autocomplete="off">
                     </div>
 
@@ -248,7 +300,7 @@
                         
                         @if($canExport)
                         <a id="printBtnVerif"
-                            href="{{ route('calibration.verifications.print', array_merge(request()->only(['plant','year','tool_id']), ['start_date' => request('start_date'), 'end_date' => request('end_date')])) }}"
+                            href="{{ route('calibration.verifications.print', array_merge(request()->all(), ['plant' => $plantCode])) }}"
                             target="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3"
                             style="background-color: #17a589; border-color: #17a589; color: white;" title="Print">
                             <i class="fas fa-print fa-sm"></i>
@@ -266,151 +318,147 @@
                     </div>
                 </form>
 
-                <hr class="my-4 border-light">
-
-                <div class="table-responsive">
-                    <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th class="align-middle">NO.</th>
-                                <th class="align-middle">SERTIFIKASI</th>
-                                <th class="align-middle">NAMA ALAT</th>
-                                <th class="align-middle">MERK</th>
-                                <th class="align-middle">NO. SERI</th>
-                                <th class="align-middle">RENTANG UKUR</th>
-                                <th class="align-middle">RESOLUSI</th>
-                                <th class="align-middle">FREKUENSI KALIBRASI</th>
-                                <th class="align-middle">TANGGAL KALIBRASI</th>
-                                <th class="align-middle">TANGGAL VERIFIKASI</th>
-                                <th class="align-middle">NEXT KALIBRASI</th>
-                                <th class="align-middle">NILAI ALAT</th>
-                                <th class="align-middle">NILAI KOREKSI</th>
-                                <th class="align-middle">NILAI KETIDAKPASTIAN</th>
-                                <th class="align-middle">HASIL VERIFIKASI</th>
-                                <th class="align-middle">JUDGEMENT</th>
-                                <th class="align-middle">STD. TOLERANSI</th>
-                                <th class="align-middle">ACUAN TOLERANSI</th>
-                                <th class="align-middle">AKSI</th>
-                            </tr>
-                        </thead>
-                    <tbody>
-                        @forelse($verifications as $index => $v)
-                            <tr>
-                                <td class="align-middle">{{ $index + 1 }}</td>
-                                <td class="text-center align-middle">
-                                    @if($v->certification_path)
-                                        <button type="button" class="btn btn-sm btn-primary view-pdf" data-toggle="modal"
-                                            data-target="#pdfModal" data-url="{{ route('calibration.verifications.serve-pdf', $v->id) }}"
-                                            data-title="Sertifikat - {{ $v->name_alat }}">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </button>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="align-middle">{{ $v->name_alat }}</td>
-                                <td class="align-middle">{{ $v->merk }}</td>
-                                <td class="align-middle">{{ $v->serial_number }}</td>
-                                <td class="align-middle">{{ $v->rentang_ukur }}</td>
-                                <td class="align-middle">{{ $v->resolusi }}</td>
-                                <td class="align-middle">{{ $v->frekuensi_kalibrasi }}</td>
-                                <td class="align-middle">
-                                    {{ $v->tanggal_kalibrasi ? \Carbon\Carbon::parse($v->tanggal_kalibrasi)->format('d/m/Y') : '-' }}
-                                </td>
-                                <td class="align-middle">
-                                    {{ $v->tanggal_verifikasi ? \Carbon\Carbon::parse($v->tanggal_verifikasi)->format('d/m/Y') : '-' }}
-                                </td>
-                                <td class="align-middle">
-                                    {{ $v->next_kalibrasi ? \Carbon\Carbon::parse($v->next_kalibrasi)->format('d/m/Y') : '-' }}
-                                </td>
-                                @php
-                                    $arrAlat = is_array($v->nilai_alat) ? $v->nilai_alat : [$v->nilai_alat];
-                                    $arrKoreksi = is_array($v->nilai_koreksi) ? $v->nilai_koreksi : [$v->nilai_koreksi];
-                                    $arrKetidakpastian = is_array($v->nilai_ketidakpastian) ? $v->nilai_ketidakpastian : [$v->nilai_ketidakpastian];
-                                    $arrHasil = is_array($v->hasil_verifikasi) ? $v->hasil_verifikasi : [$v->hasil_verifikasi];
-                                    $maxRows = max(count($arrAlat), count($arrKoreksi), count($arrKetidakpastian), count($arrHasil));
-                                @endphp
-                                <td class="align-middle p-0">
-                                    @for($i = 0; $i < $maxRows; $i++)
-                                        <div class="meas-cell-row">
-                                            {{ $arrAlat[$i] ?? '' }}
-                                        </div>
-                                    @endfor
-                                </td>
-                                <td class="align-middle p-0">
-                                    @for($i = 0; $i < $maxRows; $i++)
-                                        <div class="meas-cell-row">
-                                            {{ $arrKoreksi[$i] ?? '' }}
-                                        </div>
-                                    @endfor
-                                </td>
-                                <td class="align-middle p-0">
-                                    @for($i = 0; $i < $maxRows; $i++)
-                                        <div class="meas-cell-row">
-                                            {{ $arrKetidakpastian[$i] ?? '' }}
-                                        </div>
-                                    @endfor
-                                </td>
-                                <td class="align-middle p-0">
-                                    @for($i = 0; $i < $maxRows; $i++)
-                                        <div class="meas-cell-row">
-                                            {{ $arrHasil[$i] ?? '' }}
-                                        </div>
-                                    @endfor
-                                </td>
-                                <td class="align-middle">
-                                    @if($v->judgment === 'OK')
-                                        <span class="badge badge-success">OK</span>
-                                    @elseif($v->judgment === 'NG')
-                                        <span class="badge badge-danger">NG</span>
-                                    @else
-                                        {{ $v->judgment ?: '-' }}
-                                    @endif
-                                </td>
-                                <td class="align-middle">{{ $v->std_toleransi }}</td>
-                                <td class="align-middle">{{ $v->acuan_toleransi }}</td>
-                                <td class="align-middle no-export">
-                                    <div class="d-flex justify-content-center" style="gap: 5px;">
-                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
-                                            @if($canEdit)
-                                                <button type="button"
-                                                    class="btn btn-sm btn-info btn-edit-verif shadow-sm"
-                                                    data-id="{{ $v->id }}" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                            @endif
-                                            @if($canExport)
-                                                <button type="button"
-                                                    class="btn btn-sm btn-dark btn-qr-modal shadow-sm"
-                                                    data-id="{{ $v->id }}" title="QR Code">
-                                                    <i class="fas fa-qrcode"></i>
-                                                </button>
-                                            @endif
-                                            @if($canDelete)
-                                                <form
-                                                    action="{{ route('calibration.verifications.destroy', [$v->id, 'plant' => $plantCode]) }}"
-                                                    method="POST" class="d-inline delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <input type="hidden" name="year" value="{{ $year }}">
-                                                    <button type="button"
-                                                        class="btn btn-sm btn-danger shadow-sm btn-delete" title="Hapus">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th class="align-middle">NO.</th>
+                            <th class="align-middle">SERTIFIKASI</th>
+                            <th class="align-middle">NAMA ALAT</th>
+                            <th class="align-middle">MERK</th>
+                            <th class="align-middle">NO. SERI</th>
+                            <th class="align-middle">RENTANG UKUR</th>
+                            <th class="align-middle">RESOLUSI</th>
+                            <th class="align-middle">FREKUENSI KALIBRASI</th>
+                            <th class="align-middle">TANGGAL KALIBRASI</th>
+                            <th class="align-middle">TANGGAL VERIFIKASI</th>
+                            <th class="align-middle">NEXT KALIBRASI</th>
+                            <th class="align-middle">NILAI ALAT</th>
+                            <th class="align-middle">NILAI KOREKSI</th>
+                            <th class="align-middle">NILAI KETIDAKPASTIAN</th>
+                            <th class="align-middle">HASIL VERIFIKASI</th>
+                            <th class="align-middle">JUDGEMENT</th>
+                            <th class="align-middle">STD. TOLERANSI</th>
+                            <th class="align-middle">ACUAN TOLERANSI</th>
+                            <th class="align-middle">AKSI</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                    @forelse($verifications as $index => $v)
+                        <tr>
+                            <td class="align-middle">{{ $index + 1 }}</td>
+                            <td class="text-center align-middle">
+                                @if($v->certification_path)
+                                    <button type="button" class="btn btn-sm btn-primary view-pdf" data-toggle="modal"
+                                        data-target="#pdfModal" data-url="{{ route('calibration.verifications.serve-pdf', $v->id) }}"
+                                        data-title="Sertifikat - {{ $v->name_alat }}">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </button>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="align-middle">{{ $v->name_alat }}</td>
+                            <td class="align-middle">{{ $v->merk }}</td>
+                            <td class="align-middle">{{ $v->serial_number }}</td>
+                            <td class="align-middle">{{ $v->rentang_ukur }}</td>
+                            <td class="align-middle">{{ $v->resolusi }}</td>
+                            <td class="align-middle">{{ $v->frekuensi_kalibrasi }}</td>
+                            <td class="align-middle">
+                                {{ $v->tanggal_kalibrasi ? \Carbon\Carbon::parse($v->tanggal_kalibrasi)->format('d/m/Y') : '-' }}
+                            </td>
+                            <td class="align-middle">
+                                {{ $v->tanggal_verifikasi ? \Carbon\Carbon::parse($v->tanggal_verifikasi)->format('d/m/Y') : '-' }}
+                            </td>
+                            <td class="align-middle">
+                                {{ $v->next_kalibrasi ? \Carbon\Carbon::parse($v->next_kalibrasi)->format('d/m/Y') : '-' }}
+                            </td>
+                            @php
+                                $arrAlat = is_array($v->nilai_alat) ? $v->nilai_alat : [$v->nilai_alat];
+                                $arrKoreksi = is_array($v->nilai_koreksi) ? $v->nilai_koreksi : [$v->nilai_koreksi];
+                                $arrKetidakpastian = is_array($v->nilai_ketidakpastian) ? $v->nilai_ketidakpastian : [$v->nilai_ketidakpastian];
+                                $arrHasil = is_array($v->hasil_verifikasi) ? $v->hasil_verifikasi : [$v->hasil_verifikasi];
+                                $maxRows = max(count($arrAlat), count($arrKoreksi), count($arrKetidakpastian), count($arrHasil));
+                            @endphp
+                            <td class="align-middle p-0">
+                                @for($i = 0; $i < $maxRows; $i++)
+                                    <div class="meas-cell-row">
+                                        {{ $arrAlat[$i] ?? '' }}
                                     </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="19" class="text-center">Tidak ada data hasil verifikasi.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                @endfor
+                            </td>
+                            <td class="align-middle p-0">
+                                @for($i = 0; $i < $maxRows; $i++)
+                                    <div class="meas-cell-row">
+                                        {{ $arrKoreksi[$i] ?? '' }}
+                                    </div>
+                                @endfor
+                            </td>
+                            <td class="align-middle p-0">
+                                @for($i = 0; $i < $maxRows; $i++)
+                                    <div class="meas-cell-row">
+                                        {{ $arrKetidakpastian[$i] ?? '' }}
+                                    </div>
+                                @endfor
+                            </td>
+                            <td class="align-middle p-0">
+                                @for($i = 0; $i < $maxRows; $i++)
+                                    <div class="meas-cell-row">
+                                        {{ $arrHasil[$i] ?? '' }}
+                                    </div>
+                                @endfor
+                            </td>
+                            <td class="align-middle">
+                                @if($v->judgment === 'OK')
+                                    <span class="badge badge-success">OK</span>
+                                @elseif($v->judgment === 'NG')
+                                    <span class="badge badge-danger">NG</span>
+                                @else
+                                    {{ $v->judgment ?: '-' }}
+                                @endif
+                            </td>
+                            <td class="align-middle">{{ $v->std_toleransi }}</td>
+                            <td class="align-middle">{{ $v->acuan_toleransi }}</td>
+                            <td class="align-middle no-export">
+                                <div class="d-flex justify-content-center" style="gap: 5px;">
+                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
+                                        @if($canEdit)
+                                            <button type="button"
+                                                class="btn btn-sm btn-info btn-edit-verif shadow-sm"
+                                                data-id="{{ $v->id }}" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @endif
+                                        @if($canExport)
+                                            <button type="button"
+                                                class="btn btn-sm btn-dark btn-qr-modal shadow-sm"
+                                                data-id="{{ $v->id }}" title="QR Code">
+                                                <i class="fas fa-qrcode"></i>
+                                            </button>
+                                        @endif
+                                        @if($canDelete)
+                                            <form
+                                                action="{{ route('calibration.verifications.destroy', [$v->id, 'plant' => $plantCode]) }}"
+                                                method="POST" class="d-inline delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="year" value="{{ $year }}">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-danger shadow-sm btn-delete" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="19" class="text-center">Tidak ada data hasil verifikasi.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
