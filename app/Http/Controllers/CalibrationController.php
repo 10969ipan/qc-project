@@ -1364,6 +1364,10 @@ class CalibrationController extends Controller
             // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
             if ($tool) {
+                // Extract current number from riwayat_kalibrasi and increment
+                $currentCount = (int) filter_var($tool->riwayat_kalibrasi, FILTER_SANITIZE_NUMBER_INT);
+                $newRiwayat = ($currentCount + 1) . ' Kali';
+
                 $tool->update([
                     'name_alat' => $request->name_alat,
                     'merk' => $request->merk,
@@ -1372,7 +1376,7 @@ class CalibrationController extends Controller
                     'resolusi' => $request->resolusi,
                     'frekuensi_kalibrasi' => $request->frekuensi_kalibrasi,
                     'schedule_planning' => $request->next_kalibrasi,
-                    'riwayat_kalibrasi' => \Carbon\Carbon::parse($request->tanggal_verifikasi)->format('d/m/Y')
+                    'riwayat_kalibrasi' => $newRiwayat
                 ]);
 
                 // Sync next_kalibrasi to schedules table if it doesn't exist
