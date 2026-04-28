@@ -254,12 +254,12 @@
                     class="btn btn-warning btn-sm shadow-sm rounded-pill px-3" title="Problem Logs">
                     <i class="fas fa-exclamation-circle fa-sm mr-1"></i> <span class="small font-weight-bold">Log</span>
                 </a>
-                <a href="{{ route('calibration.tools.pdf', request()->query()) }}" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Export PDF">
+                <button type="submit" formaction="{{ route('calibration.tools.pdf') }}" formtarget="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
                     <i class="fas fa-file-pdf fa-sm"></i>
-                </a>
-                <a href="{{ route('calibration.tools.print', request()->query()) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
+                </button>
+                <button type="submit" formaction="{{ route('calibration.tools.print') }}" formtarget="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
                     <i class="fas fa-print fa-sm"></i>
-                </a>
+                </button>
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahAlat" title="Tambah Alat">
                     <i class="fas fa-plus fa-sm"></i>
                 </button>

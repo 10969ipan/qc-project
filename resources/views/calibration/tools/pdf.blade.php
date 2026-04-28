@@ -174,34 +174,20 @@
                     </td>
                     <td>
                         @php
-                            $hasVerification = $tool->all_verifications_count > 0;
-                            $hasPendingLog = $tool->pendingLogs->count() > 0;
-                            
-                            $nextUnverifiedSchedule = null;
-                            $isOverdue = false;
-                            if (!empty($scheduledStatuses)) {
-                                foreach ($scheduledStatuses as $sch) {
-                                    if (!$sch->is_ok) {
-                                        $nextUnverifiedSchedule = $sch;
-                                        break;
-                                    }
-                                }
-                                if ($nextUnverifiedSchedule) {
-                                    $isOverdue = \Carbon\Carbon::parse((string)$nextUnverifiedSchedule->schedule_date)->startOfDay()->isPast();
-                                }
-                            }
+                            $status = $tool->status_kalibrasi;
                         @endphp
-
-                        @if($hasPendingLog)
-                            PROBLEM
-                        @elseif($isOverdue)
-                            OVERDUE
-                        @elseif($hasVerification)
+                        @if($status === 'calibrated')
                             OK
-                        @elseif($existingPr)
-                            PR OUT
+                        @elseif($status === 'due_soon')
+                            DUE SOON
+                        @elseif($status === 'overdue')
+                            OVERDUE
+                        @elseif($status === 'problem')
+                            PROBLEM
+                        @elseif($status === 'broken')
+                            BROKEN
                         @else
-                            PLAN
+                            UNKNOWN
                         @endif
                     </td>
                 </tr>
