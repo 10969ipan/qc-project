@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Services\DashboardService;
+use App\Models\GeneralSetting;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckDailyApprovalRate
@@ -28,6 +29,12 @@ class CheckDailyApprovalRate
         // 1. Only applies to Inspectors
         if ($user && $user->role === 'inspector') {
             
+            // Check if the security gate is enabled in general settings
+            $isGateEnabled = GeneralSetting::getValue('daily_approval_gate_enabled', '1');
+            if ($isGateEnabled === '0' || $isGateEnabled === false) {
+                return $next($request);
+            }
+
             $now = now();
             $hour = $now->hour;
             $plantId = $user->plant_id;

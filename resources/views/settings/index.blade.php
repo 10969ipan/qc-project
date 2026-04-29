@@ -15,7 +15,13 @@
         <div class="card shadow-none border-0 bg-transparent">
             <div class="card-body p-0">
                 <div class="nav flex-column nav-pills custom-nav-pills-minimal" id="settings-tabs" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link active" id="users-tab" data-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="true">
+                    <a class="nav-link active" id="general-tab" data-toggle="pill" href="#general" role="tab" aria-controls="general" aria-selected="true">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-cogs mr-3 text-muted"></i>
+                            <span class="font-weight-bold">Umum</span>
+                        </div>
+                    </a>
+                    <a class="nav-link" id="users-tab" data-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-users-cog mr-3 text-muted"></i>
                             <span class="font-weight-bold">Manajemen Pengguna</span>
@@ -43,8 +49,64 @@
     <div class="col-xl-9 col-lg-8">
         <div class="tab-content" id="settings-tabContent">
             
+            <!-- Tab 0: Pengaturan Umum -->
+            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <div class="card shadow border-0 rounded-lg mb-4 slide-in">
+                    <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-bottom-0 px-4">
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark mb-1" style="font-size: 1.1rem; letter-spacing: -0.3px;">Konfigurasi Umum</h6>
+                            <p class="text-muted small mb-0">Kostumisasi fitur dan parameter global sistem</p>
+                        </div>
+                        <button type="button" id="saveGeneralSettings" class="btn btn-primary rounded-pill px-4 shadow-sm btn-sm-modern h-100 py-2">
+                            <i class="fas fa-save mr-2"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                    <div class="card-body px-4 pt-0">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h6 class="font-weight-bold text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-shield-alt mr-2"></i> Keamanan & Kontrol Akses
+                                </h6>
+                                
+                                <div class="premium-setting-item d-flex align-items-center justify-content-between p-3 rounded-xl mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-box-modern bg-soft-info text-info mr-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 font-weight-bold text-dark">Pengamanan Daily Approval</h6>
+                                            <small class="text-muted">Kunci input data jika rate approval < 90% setelah jam 12:00 siang</small>
+                                        </div>
+                                    </div>
+                                    <div class="custom-control custom-switch custom-switch-success custom-switch-md">
+                                        <input type="checkbox" class="custom-control-input" id="dailyApprovalGate" 
+                                            {{ ($generalSettings['daily_approval_gate_enabled']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="dailyApprovalGate"></label>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-light border small text-muted rounded-lg">
+                                    <i class="fas fa-info-circle mr-1 text-info"></i>
+                                    Fitur ini dirancang untuk memastikan Karu/Kashift melakukan pengecekan data secara real-time. Jika dinonaktifkan, Inspector dapat menginput data kapan saja tanpa batasan persentase approval.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Placeholder for future customizations --}}
+                        <div class="row mt-4 opacity-50">
+                            <div class="col-lg-12">
+                                <h6 class="font-weight-bold text-muted mb-3 border-bottom pb-2">
+                                    <i class="fas fa-palette mr-2"></i> Kustomisasi Tampilan (Segera Hadir)
+                                </h6>
+                                <p class="small italic text-muted">Fitur kustomisasi tema dan layout sedang dikembangkan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab 1: Manajemen Akun -->
-            <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+            <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
                 <div class="card shadow border-0 rounded-lg mb-4 slide-in">
                     <div class="card-header bg-white py-3 border-bottom-0">
                         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
@@ -2201,6 +2263,53 @@
             const page = $(this).data('page');
             if (page) fetchActivityLogs(page);
         });
-    });
-</script>
+
+        // Handle General Settings Save
+        $('#saveGeneralSettings').on('click', function() {
+            var btn = $(this);
+            var originalHtml = btn.html();
+            
+            var settings = {
+                'daily_approval_gate_enabled': $('#dailyApprovalGate').is(':checked') ? '1' : '0'
+            };
+
+            btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...').prop('disabled', true);
+
+            $.ajax({
+                url: "{{ route('admin.settings.general.update') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    settings: settings
+                },
+                success: function(response) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menyimpan konfigurasi.';
+                    alert('Error: ' + msg);
+                },
+                complete: function() {
+                    btn.html(originalHtml).prop('disabled', false);
+                }
+            });
+        });
+
+        // Initial active tab handling from URL hash if exists
+        var hash = window.location.hash;
+        if (hash) {
+            $('.nav-link[href="' + hash + '"]').tab('show');
+        }
+        });
+    </script>
 @endpush

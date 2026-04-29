@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ActivityLogger;
+use App\Models\GeneralSetting;
 
 class SettingsController extends Controller
 {
@@ -35,7 +36,13 @@ class SettingsController extends Controller
         $permissions = \App\Models\RolePermission::where('role', $selectedRole)->get()
             ->keyBy('menu_id');
 
-        return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole'));
+        // Fetch general settings
+        $generalSettings = \App\Models\GeneralSetting::where('category', 'security')
+            ->orWhere('key', 'daily_approval_gate_enabled')
+            ->get()
+            ->keyBy('key');
+
+        return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings'));
     }
 
     /**
@@ -442,6 +449,38 @@ class SettingsController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menyimpan izin: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update general settings
+     */
+    public function updateGeneralSettings(Request $request)
+    {
+        $settings = $request->input('settings', []);
+        
+        DB::beginTransaction();
+        try {
+            foreach ($settings as $key => $value) {
+                GeneralSetting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value]
+                );
+            }
+            DB::commit();
+            
+            ActivityLogger::log('updated', null, "Memperbarui konfigurasi sistem umum");
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Konfigurasi umum berhasil disimpan.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menyimpan konfigurasi: ' . $e->getMessage()
             ], 500);
         }
     }

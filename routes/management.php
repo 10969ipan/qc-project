@@ -20,6 +20,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Settings UI Prototype
         Route::get('settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('settings/general', [\App\Http\Controllers\SettingsController::class, 'updateGeneralSettings'])->name('settings.general.update');
         Route::get('settings/permissions', [\App\Http\Controllers\SettingsController::class, 'getPermissions'])->name('settings.permissions');
         
         // User Management CRUD
