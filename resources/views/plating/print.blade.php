@@ -163,16 +163,13 @@
                 <tr>
                     <td class="col-compact">{{ $loop->iteration }}</td>
                     <td class="col-compact">
-                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }}<br>
-                        <small>{{ $checksheet->injection_shift ?? '-' }}</small>
+                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }}
                     </td>
                     <td class="col-compact">
-                        {{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }}<br>
-                        <small>{{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}</small>
+                        {{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
                     </td>
                     <td class="col-compact">
-                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }}<br>
-                        <small>{{ $checksheet->shift }}</small>
+                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }}
                     </td>
                     <td class="col-compact">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td class="col-compact">{{ $checksheet->created_at->format('H:i') }}</td>

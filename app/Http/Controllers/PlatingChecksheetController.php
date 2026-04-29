@@ -233,21 +233,51 @@ class PlatingChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $users = \App\Models\User::where('plant_id', $checksheet->plant_id)
+            ->orderBy('name')
+            ->get();
+
         if (request()->ajax()) {
-            return view('plating.partials.edit_form', compact('checksheet', 'items'));
+            return view('plating.partials.edit_form', compact('checksheet', 'items', 'users'));
         }
 
-        return view('plating.edit', compact('checksheet', 'items'));
+        return view('plating.edit', compact('checksheet', 'items', 'users'));
     }
 
     public function update(UpdatePlatingChecksheetRequest $request, $id)
     {
         $this->restrictToKarawang();
 
-        $this->checksheetService->updateChecksheet($id, $request->validated());
-        $checksheet = \App\Models\PlatingChecksheet::find($id);
-        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Plating: {$checksheet->item->name}");
-        return redirect()->route('plating.index')->with('success', 'Checksheet Plating berhasil diperbarui.');
+        try {
+            $this->checksheetService->updateChecksheet($id, $request->validated());
+            $checksheet = \App\Models\PlatingChecksheet::find($id);
+            \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Plating: {$checksheet->item->name}");
+
+            $message = 'Checksheet Plating berhasil diperbarui.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('plating.index')
+                ]);
+            }
+
+            return redirect()->route('plating.index')->with('success', $message);
+        } catch (\Exception $e) {
+            \Log::error('Plating Update Error: ' . $e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui data: ' . $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)

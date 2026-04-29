@@ -190,12 +190,8 @@
             @foreach($checksheets as $checksheet)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} /
-                        {{ $checksheet->injection_shift ?? '-' }}
-                    </td>
-                    <td>{{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }} /
-                        {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
-                    </td>
+                    <td>{{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }}</td>
+                    <td>{{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }}</td>
                     <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td>{{ $checksheet->created_at->format('H:i') }}</td>

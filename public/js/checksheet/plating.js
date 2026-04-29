@@ -108,7 +108,19 @@ class PlatingIndex {
                 dataType: "json",
                 success: function (response) {
                     if (response.success) {
-                        window.location.reload();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message || 'Data berhasil disimpan.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            window.location.reload();
+                        }
                     } else {
                         $modalErrors
                             .html(

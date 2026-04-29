@@ -122,8 +122,8 @@
             </tr>
             <tr>
                 <td>QC Staff</td>
+                <td>Spv QC</td>
                 <td>Asst. Manager</td>
-                <td>Manager</td>
             </tr>
         </table>
     </div>

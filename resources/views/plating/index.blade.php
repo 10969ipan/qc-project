@@ -308,16 +308,13 @@
                                     @endif
                                 </td>
                                 <td class="align-middle text-nowrap">
-                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }}<br>
-                                    <small>{{ $checksheet->injection_shift ?? '-' }}</small>
+                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }}
                                 </td>
                                 <td class="align-middle text-nowrap">
-                                    {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }}<br>
-                                    <small>{{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}</small>
+                                    {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
                                 </td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}<br>
-                                    <small>{{ $checksheet->shift }}</small>
+                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
                                 </td>
                                 <td class="align-middle">
                                     {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}

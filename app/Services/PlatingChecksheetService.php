@@ -104,6 +104,7 @@ class PlatingChecksheetService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'next_proses' => $data['next_proses'] ?? null,
                 'cycle_time' => $data['cycle_time'] ?? null,
+                'no_lot' => $data['no_lot'] ?? null,
                 'defects' => $defects,
             ]);
 
@@ -164,6 +165,7 @@ class PlatingChecksheetService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'next_proses' => $data['next_proses'] ?? null,
                 'cycle_time' => $data['cycle_time'] ?? null,
+                'no_lot' => $data['no_lot'] ?? $checksheet->no_lot,
             ];
 
             $checksheet->update($updateData);

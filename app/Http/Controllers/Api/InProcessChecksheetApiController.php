@@ -59,7 +59,6 @@ class InProcessChecksheetApiController extends Controller
             ], 404);
         }
 
-        // Tambahan Trigger: Hanya izinkan jika Judgment OK
         if (strtoupper($foundChecksheet->judgment) !== 'OK') {
             return response()->json([
                 'success' => false,

@@ -64,8 +64,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Special routes for FPA that are not direct input
-    Route::get('/checksheet/first-piece-approval/export-measurements', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements');
-    Route::post('/checksheet/first-piece-approval/import-measurements', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements');
+    Route::get('/checksheet/first-piece-approval/export-measurements-template', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements_template');
+    Route::post('/checksheet/first-piece-approval/import-measurements-template', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements_template');
 
     // Special routes for Cross Cut
     Route::get('/checksheet/cross-cut/{id}', [CrossCutChecksheetController::class, 'show'])->name('cross_cut.show');

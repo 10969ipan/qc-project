@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'check_status' => \App\Http\Middleware\CheckUserStatus::class,
             'check_maintenance' => \App\Http\Middleware\CheckMenuMaintenance::class,
+            'check_approval_rate' => \App\Http\Middleware\CheckDailyApprovalRate::class,
         ]);
 
         // Append to web group to ensure it runs for all web requests

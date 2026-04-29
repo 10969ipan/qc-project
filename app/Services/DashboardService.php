@@ -165,6 +165,21 @@ class DashboardService extends BaseService
     }
 
     /**
+     * Get the numeric approval rate (%) for a specific plant
+     * Based on Karu & Kashift approval on H-1 and Today's data
+     */
+    public function getDailyApprovalRate($plantId): float
+    {
+        // Using existing calculation logic but specifically for daily stats
+        $stats = $this->calculateApprovalStats($plantId, true);
+        
+        $total = $stats['approved'] + $stats['rejected'] + $stats['pending'];
+        if ($total === 0) return 100.0; // If no data, consider it 100% (not blocking)
+        
+        return round((($stats['approved'] + $stats['rejected']) / $total) * 100, 2);
+    }
+
+    /**
      * Calculate global approval statistics
      */
     private function calculateApprovalStats($plantOverride = null, bool $dailyOnly = false, ?string $type = null, $month = null, $year = null): array
