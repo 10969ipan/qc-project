@@ -106,7 +106,7 @@ class PlatingChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
-        $filters['plant'] = 'karawang'; // Enforce Karawang for this specific checksheet
+        $filters['plant'] = 'karawang'; 
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         
@@ -126,7 +126,39 @@ class PlatingChecksheetController extends Controller
             ->pluck('operator_initials')
             ->sort();
 
-        return view('plating.index', compact('checksheets', 'items', 'customers', 'initials'));
+        $canExport = \App\Helpers\AppMenu::checkPermission('plating.index', 'export');
+        $canEdit = \App\Helpers\AppMenu::checkPermission('plating.index', 'edit');
+        $canDelete = \App\Helpers\AppMenu::checkPermission('plating.index', 'delete');
+
+        return view('plating.index', compact('checksheets', 'items', 'customers', 'initials', 'canExport', 'canEdit', 'canDelete'));
+    }
+
+    public function printView(Request $request)
+    {
+        $this->restrictToKarawang();
+
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
+        $filters['plant'] = 'karawang';
+
+        if (empty($filters['start_date'])) {
+            $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
+            $filters['end_date'] = now()->toDateString();
+        }
+
+        $checksheets = $this->checksheetService->buildFilteredQuery($filters)->latest()->get();
+
+        $plantName = 'Karawang';
+        $plantCode = 'karawang';
+
+        $dispStart = $filters['start_date'];
+        $dispEnd = $filters['end_date'];
+
+        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
+
+        return view('plating.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
 
     public function create(Request $request)

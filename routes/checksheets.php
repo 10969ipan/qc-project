@@ -16,61 +16,68 @@ use App\Http\Controllers\PlatingChecksheetController;
 use App\Http\Controllers\DoubleTapeChecksheetController;
 
 Route::middleware(['auth'])->group(function () {
-    // --- Input Routes ---
+    // --- Input Routes (Protected by Approval Rate after 12:00 PM) ---
+    Route::middleware(['check_approval_rate'])->group(function () {
+        // Sub Assy
+        Route::get('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'create'])->name('checksheet.sub_assy');
+        Route::post('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'store'])->name('checksheet.store');
 
-    // Sub Assy
-    Route::get('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'create'])->name('checksheet.sub_assy');
-    Route::post('/checksheet/sub-assy', [SubAssyChecksheetController::class, 'store'])->name('checksheet.store');
+        // Plating
+        Route::get('/checksheet/plating', [PlatingChecksheetController::class, 'create'])->name('plating.create');
+        Route::post('/checksheet/plating', [PlatingChecksheetController::class, 'store'])->name('plating.store');
 
-    // Plating
-    Route::get('/checksheet/plating', [PlatingChecksheetController::class, 'create'])->name('plating.create');
-    Route::post('/checksheet/plating', [PlatingChecksheetController::class, 'store'])->name('plating.store');
+        // Double Tape
+        Route::get('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'create'])->name('double_tape.create');
+        Route::post('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'store'])->name('double_tape.store');
 
-    // Double Tape
-    Route::get('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'create'])->name('double_tape.create');
-    Route::post('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'store'])->name('double_tape.store');
+        // In-Process
+        Route::get('/checksheet/in-process', [InProcessChecksheetController::class, 'create'])->name('in_process.create');
+        Route::post('/checksheet/in-process', [InProcessChecksheetController::class, 'store'])->name('in_process.store');
 
-    // In-Process
-    Route::get('/checksheet/in-process', [InProcessChecksheetController::class, 'create'])->name('in_process.create');
-    Route::post('/checksheet/in-process', [InProcessChecksheetController::class, 'store'])->name('in_process.store');
+        // First Piece Approval (FPA)
+        Route::get('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'create'])->name('first_piece_approval.create');
+        Route::post('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'store'])->name('first_piece_approval.store');
 
-    // First Piece Approval (FPA)
-    Route::get('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'create'])->name('first_piece_approval.create');
-    Route::post('/checksheet/first-piece-approval', [FirstPieceApprovalController::class, 'store'])->name('first_piece_approval.store');
+        // Cross Cut
+        Route::get('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'create'])->name('cross_cut.create');
+        Route::post('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'store'])->name('cross_cut.store');
+
+        // Cross Cut Painting
+        Route::get('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'create'])->name('cross_cut_painting.create');
+        Route::post('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'store'])->name('cross_cut_painting.store');
+
+        // Sortir
+        Route::get('/checksheet/sortir', [SortirChecksheetController::class, 'create'])->name('sortir.create');
+        Route::post('/checksheet/sortir', [SortirChecksheetController::class, 'store'])->name('sortir.store');
+
+        // --- Incoming Routes (Input) ---
+        Route::get('/checksheet/incoming-part', [IncomingPartController::class, 'create'])->name('incoming.parts.create');
+        Route::post('/checksheet/incoming-part', [IncomingPartController::class, 'store'])->name('incoming.parts.store');
+        Route::get('/checksheet/incoming-material', [IncomingMaterialController::class, 'create'])->name('incoming.materials.create');
+        Route::post('/checksheet/incoming-material', [IncomingMaterialController::class, 'store'])->name('incoming.materials.store');
+        Route::get('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'create'])->name('incoming.sub_parts.create');
+        Route::post('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'store'])->name('incoming.sub_parts.store');
+        Route::get('/checksheet/incoming-export', [IncomingExportController::class, 'create'])->name('incoming.exports.create');
+        Route::post('/checksheet/incoming-export', [IncomingExportController::class, 'store'])->name('incoming.exports.store');
+        Route::get('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'create'])->name('incoming.chemicals.create');
+        Route::post('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'store'])->name('incoming.chemicals.store');
+    });
+
+    // Special routes for FPA that are not direct input
     Route::get('/checksheet/first-piece-approval/export-measurements', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements');
     Route::post('/checksheet/first-piece-approval/import-measurements', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements');
 
-    // Cross Cut
-    Route::get('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'create'])->name('cross_cut.create');
-    Route::post('/checksheet/cross-cut', [CrossCutChecksheetController::class, 'store'])->name('cross_cut.store');
+    // Special routes for Cross Cut
     Route::get('/checksheet/cross-cut/{id}', [CrossCutChecksheetController::class, 'show'])->name('cross_cut.show');
     Route::get('/checksheet/cross-cut/{id}/image', [CrossCutChecksheetController::class, 'serveImage'])->name('cross_cut.image');
     Route::get('/cross_cut/{id}/data', [CrossCutChecksheetController::class, 'getData'])->name('cross_cut.data');
     Route::get('/api/cross-cut/next-remark', [CrossCutChecksheetController::class, 'getNextResultRemark'])->name('cross_cut.next_remark');
     Route::get('/api/cross-cut/next-no-lot', [CrossCutChecksheetController::class, 'getAutoNoLot'])->name('cross_cut.next_no_lot');
 
-    // Cross Cut Painting
-    Route::get('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'create'])->name('cross_cut_painting.create');
-    Route::post('/checksheet/cross-cut-painting', [CrossCutPaintingChecksheetController::class, 'store'])->name('cross_cut_painting.store');
+    // Special routes for Cross Cut Painting
     Route::get('/checksheet/cross-cut-painting/{id}', [CrossCutPaintingChecksheetController::class, 'show'])->name('cross_cut_painting.show');
     Route::get('/checksheet/cross-cut-painting/{id}/image', [CrossCutPaintingChecksheetController::class, 'serveImage'])->name('cross_cut_painting.image');
     Route::get('/cross_cut-painting/{id}/data', [CrossCutPaintingChecksheetController::class, 'getData'])->name('cross_cut_painting.data');
-
-    // Sortir
-    Route::get('/checksheet/sortir', [SortirChecksheetController::class, 'create'])->name('sortir.create');
-    Route::post('/checksheet/sortir', [SortirChecksheetController::class, 'store'])->name('sortir.store');
-
-    // --- Incoming Routes (Input) ---
-    Route::get('/checksheet/incoming-part', [IncomingPartController::class, 'create'])->name('incoming.parts.create');
-    Route::post('/checksheet/incoming-part', [IncomingPartController::class, 'store'])->name('incoming.parts.store');
-    Route::get('/checksheet/incoming-material', [IncomingMaterialController::class, 'create'])->name('incoming.materials.create');
-    Route::post('/checksheet/incoming-material', [IncomingMaterialController::class, 'store'])->name('incoming.materials.store');
-    Route::get('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'create'])->name('incoming.sub_parts.create');
-    Route::post('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'store'])->name('incoming.sub_parts.store');
-    Route::get('/checksheet/incoming-export', [IncomingExportController::class, 'create'])->name('incoming.exports.create');
-    Route::post('/checksheet/incoming-export', [IncomingExportController::class, 'store'])->name('incoming.exports.store');
-    Route::get('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'create'])->name('incoming.chemicals.create');
-    Route::post('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'store'])->name('incoming.chemicals.store');
 
     // --- Report & Action Routes ---
 
@@ -101,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/report/checksheets/sync', [SubAssyChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
         Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
+        Route::get('/report/plating-checksheets/print', [PlatingChecksheetController::class, 'printView'])->name('plating.print');
         Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');
         Route::get('/report/double-tape-checksheets/print', [DoubleTapeChecksheetController::class, 'printView'])->name('double_tape.print');
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');

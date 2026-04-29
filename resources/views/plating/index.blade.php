@@ -66,6 +66,18 @@
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 65px !important; 
     }
+
+    /* Compact UI Overrides */
+    #checksheetTable .btn {
+        min-width: 0 !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
+    }
+    #checksheetTable .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
 </style>
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -199,10 +211,15 @@
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
                     @if($canExport)
-                    <a href="{{ route('plating.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
-                    </a>
+                        <a href="{{ route('plating.print', request()->query()) }}" target="_blank"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview"
+                            style="background-color: #17a589; color: white;">
+                            <i class="fas fa-print fa-sm"></i>
+                        </a>
+                        <a href="{{ route('plating.export_pdf', request()->query()) }}"
+                            class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
+                            <i class="fas fa-file-pdf fa-sm"></i>
+                        </a>
                     @endif
                 </div>
             </form>
@@ -236,8 +253,8 @@
                             }
                         @endphp
                         <tr class="text-center">
-                            <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle" style="width: 80px;">View</th>
+                            <th rowspan="2" class="align-middle" style="width: 50px;">No</th>
+                            <th rowspan="2" class="align-middle">QR-Code</th>
                             <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift)</th>
                             <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
                             <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
@@ -276,6 +293,7 @@
                             <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle">
+                                    @if($canExport)
                                     <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
                                         data-qr="{{ $checksheet->qrcode }}"
                                         data-part="{{ $checksheet->part_code ?? '-' }}"
@@ -285,6 +303,9 @@
                                         data-sap="{{ $checksheet->sap_code ?? '-' }}">
                                         <i class="fas fa-qrcode"></i> View
                                     </button>
+                                    @else
+                                    <span class="badge badge-light text-muted small"><i class="fas fa-lock mr-1"></i> No Access</span>
+                                    @endif
                                 </td>
                                 <td class="align-middle text-nowrap">
                                     {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }}<br>
@@ -363,16 +384,16 @@
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
                                     @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -385,16 +406,16 @@
                                 {{-- Supervisor QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
                                     @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -407,16 +428,16 @@
                                 {{-- Asst Manager QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
                                     @elseif($checksheet->asst_manager_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -429,16 +450,16 @@
                                 {{-- Manager QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
                                     @elseif($checksheet->manager_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
                                         <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
@@ -483,8 +504,8 @@
 
                                         @if($canApproveKashift)
                                             <form
-                                                action="{{ route('plating.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}"
-                                                method="POST" class="d-inline">
+                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}"
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
@@ -500,8 +521,8 @@
 
                                         @if($canApproveSupervisor)
                                             <form
-                                                action="{{ route('plating.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}"
-                                                method="POST" class="d-inline">
+                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}"
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
                                                     style="min-width: 110px;">
@@ -517,8 +538,8 @@
 
                                         @if($canApproveAsst)
                                             <form
-                                                action="{{ route('plating.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}"
-                                                method="POST" class="d-inline">
+                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}"
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
                                                     style="min-width: 110px;">
@@ -534,8 +555,8 @@
 
                                         @if($canApproveManager)
                                             <form
-                                                action="{{ route('plating.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}"
-                                                method="POST" class="d-inline">
+                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}"
+                                                method="POST" class="d-inline ajax-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
                                                     style="min-width: 110px;">
@@ -550,7 +571,7 @@
                                         @endif
 
                                         @if($isAdmin)
-                                            <a href="{{ route('plating.edit_approval', ['id' => $checksheet->id]) }}"
+                                            <a href="{{ route('plating.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) }}"
                                                 class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
@@ -558,15 +579,15 @@
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             @if($canEdit)
-                                                <a href="{{ route('plating.edit', $checksheet->id) }}"
+                                                <a href="{{ route('plating.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
                                                     class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-edit"></i> Edit
                                                 </a>
                                             @endif
                                             @if($canDelete)
-                                                <form action="{{ route('plating.destroy', $checksheet->id) }}" method="POST"
-                                                    class="d-inline">
+                                                <form action="{{ route('plating.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}" method="POST"
+                                                    class="d-inline ajax-form">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
@@ -580,7 +601,6 @@
                                 @endif
                             </tr>
                         @endforeach
-                    </tbody>
                 </table>
             </div>
             <div class="mt-4">

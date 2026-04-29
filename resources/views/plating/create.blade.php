@@ -79,7 +79,7 @@
             <h6 class="m-0 font-weight-bold text-primary">INPUT DATA OUTGOING PLATING</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('plating.store') }}" method="POST" id="checksheetForm" novalidate>
+            <form action="{{ route('plating.store') }}" method="POST" id="checksheetForm" class="ajax-form" novalidate>
                 @csrf
                 <input type="hidden" name="plant" value="karawang">
                 <input type="hidden" name="qrcode" id="qrcodeInput">
