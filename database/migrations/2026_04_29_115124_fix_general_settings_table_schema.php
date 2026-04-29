@@ -23,20 +23,29 @@ return new class extends Migration
                 $table->timestamps();
             });
         } else {
-            // Add missing columns if table exists
-            Schema::table('general_settings', function (Blueprint $table) {
-                if (!Schema::hasColumn('general_settings', 'category')) {
-                    $table->string('category')->nullable()->after('plant_code');
-                }
-                
-                if (!Schema::hasColumn('general_settings', 'plant_code')) {
+            // Add missing columns if table exists - Do them one by one to avoid position errors
+            if (!Schema::hasColumn('general_settings', 'plant_code')) {
+                Schema::table('general_settings', function (Blueprint $table) {
                     $table->string('plant_code')->nullable()->after('key');
-                }
+                });
+            }
+            
+            if (!Schema::hasColumn('general_settings', 'category')) {
+                Schema::table('general_settings', function (Blueprint $table) {
+                    // Only use after if plant_code exists, otherwise just add
+                    if (Schema::hasColumn('general_settings', 'plant_code')) {
+                        $table->string('category')->nullable()->after('plant_code');
+                    } else {
+                        $table->string('category')->nullable();
+                    }
+                });
+            }
 
-                if (!Schema::hasColumn('general_settings', 'description')) {
-                    $table->text('description')->nullable()->after('value');
-                }
-            });
+            if (!Schema::hasColumn('general_settings', 'description')) {
+                Schema::table('general_settings', function (Blueprint $table) {
+                    $table->text('description')->nullable();
+                });
+            }
         }
     }
 
