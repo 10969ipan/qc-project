@@ -23,21 +23,28 @@ return new class extends Migration
                 $table->timestamps();
             });
         } else {
-            // Add missing columns if table exists - Do them one by one to avoid position errors
+            // Add missing columns if table exists - No 'after' clauses to avoid position errors
+            if (!Schema::hasColumn('general_settings', 'key')) {
+                Schema::table('general_settings', function (Blueprint $table) {
+                    $table->string('key')->nullable();
+                });
+            }
+
             if (!Schema::hasColumn('general_settings', 'plant_code')) {
                 Schema::table('general_settings', function (Blueprint $table) {
-                    $table->string('plant_code')->nullable()->after('key');
+                    $table->string('plant_code')->nullable();
                 });
             }
             
             if (!Schema::hasColumn('general_settings', 'category')) {
                 Schema::table('general_settings', function (Blueprint $table) {
-                    // Only use after if plant_code exists, otherwise just add
-                    if (Schema::hasColumn('general_settings', 'plant_code')) {
-                        $table->string('category')->nullable()->after('plant_code');
-                    } else {
-                        $table->string('category')->nullable();
-                    }
+                    $table->string('category')->nullable();
+                });
+            }
+
+            if (!Schema::hasColumn('general_settings', 'value')) {
+                Schema::table('general_settings', function (Blueprint $table) {
+                    $table->text('value')->nullable();
                 });
             }
 
