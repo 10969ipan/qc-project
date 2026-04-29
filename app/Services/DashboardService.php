@@ -251,9 +251,9 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        // Filter data H-1 dan Hari Ini saja agar grafik reset setiap hari
+        // Filter data H-1 saja (Hari ini tidak termasuk) per user request
         if ($dailyOnly) {
-            $query->whereDate($dateColumn, '>=', now()->subDay()->toDateString());
+            $query->whereDate($dateColumn, '=', now()->subDay()->toDateString());
         } elseif ($month && $year) {
             // Apply Month and Year filtering for main statistics
             $query->whereMonth($dateColumn, $month)
