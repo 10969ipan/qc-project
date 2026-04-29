@@ -36,11 +36,14 @@ class SettingsController extends Controller
         $permissions = \App\Models\RolePermission::where('role', $selectedRole)->get()
             ->keyBy('menu_id');
 
-        // Fetch general settings
-        $generalSettings = \App\Models\GeneralSetting::where('category', 'security')
-            ->orWhere('key', 'daily_approval_gate_enabled')
-            ->get()
-            ->keyBy('key');
+        // Fetch general settings - use resilient query in case migration hasn't been run
+        $query = \App\Models\GeneralSetting::query();
+        if (\Illuminate\Support\Facades\Schema::hasColumn('general_settings', 'category')) {
+            $query->where('category', 'security')->orWhere('key', 'daily_approval_gate_enabled');
+        } else {
+            $query->where('key', 'daily_approval_gate_enabled');
+        }
+        $generalSettings = $query->get()->keyBy('key');
 
         return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings'));
     }
