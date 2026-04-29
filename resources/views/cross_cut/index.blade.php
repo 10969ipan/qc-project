@@ -515,10 +515,15 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kepala Regu)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -554,10 +559,15 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Quality)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -578,10 +588,15 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Plating)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -602,10 +617,15 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -626,10 +646,15 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1"
                                                     title="Approve (Manager Plating)" style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -774,6 +799,16 @@
                                 action="{{ route('cross_cut.reject', ['id' => $cs->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
                                 method="POST">
                                 @csrf
+                                <input type="hidden" name="page" value="{{ request('page') }}">
+                                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                 <div class="modal-body">
                                     <div class="alert alert-warning">
                                         <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
@@ -836,10 +871,15 @@
                             method="POST">
                             @csrf
                             <input type="hidden" name="page" value="{{ request('page') }}">
+                            <input type="hidden" name="plant" value="{{ request('plant') }}">
                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                             <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                             <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                            <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                            <input type="hidden" name="customer" value="{{ request('customer') }}">
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                            <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                             <div class="modal-body">
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i> Anda akan menyetujui checksheet ini sebagai

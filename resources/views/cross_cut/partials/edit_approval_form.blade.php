@@ -1,6 +1,16 @@
 <form action="{{ route('admin.cross_cut.update_approval', $checksheet->id) }}" method="POST">
     @csrf
     @method('PUT')
+    <input type="hidden" name="page" value="{{ request('page') }}">
+    <input type="hidden" name="plant" value="{{ request('plant') }}">
+    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+    <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+    <input type="hidden" name="customer" value="{{ request('customer') }}">
+    <input type="hidden" name="search" value="{{ request('search') }}">
+    <input type="hidden" name="check_type" value="{{ request('check_type') }}">
 
     <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center justify-content-between">
         <div>

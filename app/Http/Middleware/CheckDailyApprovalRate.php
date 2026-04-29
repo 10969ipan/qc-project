@@ -30,10 +30,14 @@ class CheckDailyApprovalRate
             
             $now = now();
             $hour = $now->hour;
+            $plantId = $user->plant_id;
 
-            // Time Window Check: Only enforce between 12:00 and 15:00 (End of Shift 1)
-            // This ensures Shift 2 and 3 are not blocked by Shift 1's unapproved data.
-            if ($hour >= 12 && $hour < 15) {
+            // Jakarta ID: 36d54522-c4f4-48b7-acb1-b7eb2dbc44ae
+            // Jakarta end hour: 17 (5 PM), Others: 15 (3 PM)
+            $endHour = ($plantId === '36d54522-c4f4-48b7-acb1-b7eb2dbc44ae') ? 17 : 15;
+
+            // Time Window Check
+            if ($hour >= 12 && $hour < $endHour) {
                 
                 $plantId = $user->plant_id;
                 $rate = $this->dashboardService->getDailyApprovalRate($plantId);

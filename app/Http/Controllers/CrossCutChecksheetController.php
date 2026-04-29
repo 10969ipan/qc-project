@@ -15,7 +15,9 @@ use App\Helpers\ActivityLogger;
 
 class CrossCutChecksheetController extends Controller
 {
-    use \App\Traits\HasChecksheetApproval;
+    use \App\Traits\HasChecksheetApproval {
+        reject as traitReject;
+    }
 
     protected $crossCutService;
 
@@ -351,7 +353,8 @@ class CrossCutChecksheetController extends Controller
                 return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui.']);
             }
             
-            return redirect()->route('cross_cut.index')->with('success', 'Data berhasil diperbarui.');
+            return redirect()->route('cross_cut.index', $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']))
+                ->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Gagal memperbarui data: ' . $e->getMessage()], 500);
@@ -371,11 +374,8 @@ class CrossCutChecksheetController extends Controller
             $this->crossCutService->deleteChecksheet($id);
             ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut: {$itemName}");
 
-            // Preserve plant parameter when redirecting back
-            $redirectParams = [];
-            if ($request->has('plant')) {
-                $redirectParams['plant'] = $request->input('plant');
-            }
+            // Preserve all filters when redirecting back
+            $redirectParams = $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']);
 
             return redirect()->route('cross_cut.index', $redirectParams)
                 ->with('success', 'Data Cross Cut berhasil dihapus.');
@@ -405,12 +405,37 @@ class CrossCutChecksheetController extends Controller
             $label = $mapping['label'] ?? $type;
             ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$label}) pada checksheet Cross Cut: {$checksheet->item->name}");
 
-            return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Checksheet approved successfully.');
+            return redirect()->route('cross_cut.index', $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']))
+                ->with('success', 'Cross Cut Checksheet approved successfully.');
         } catch (\Exception $e) {
             $code = $e->getCode();
             if ($code == 403)
                 abort(403);
-            return redirect()->route('cross_cut.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', $e->getMessage());
+            return redirect()->route('cross_cut.index', $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']))
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function reject(Request $request, $id, $type)
+    {
+        try {
+            $this->traitReject($request, $id, $type);
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cross Cut Checksheet rejected successfully.'
+                ]);
+            }
+
+            return redirect()->route('cross_cut.index', $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']))
+                ->with('success', 'Cross Cut Checksheet rejected successfully.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->route('cross_cut.index', $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']))
+                ->with('error', $e->getMessage());
         }
     }
 
@@ -520,7 +545,8 @@ class CrossCutChecksheetController extends Controller
             }
 
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut: {$checksheet->item->name}");
-            return redirect()->route('cross_cut.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+            return redirect()->route('cross_cut.index', $request->only(['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'search', 'check_type']))
+                ->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }
