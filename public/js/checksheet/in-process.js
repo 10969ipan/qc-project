@@ -1017,6 +1017,18 @@ class InProcessCreate {
                 if (buffer.length > 5 && buffer.includes("|")) {
                     e.preventDefault();
 
+                    // Validation: Timer must be running
+                    if (!this.timerRunning) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Tombol Start Belum Diklik",
+                            text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
+                            confirmButtonColor: "#3085d6",
+                        });
+                        buffer = "";
+                        return;
+                    }
+
                     // Clear focused input to prevent QR string "leakage" into the field
                     if (
                         document.activeElement &&
