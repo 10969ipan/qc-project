@@ -3,6 +3,18 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
+{{-- ========================================================
+     SCANNER DEBUG BAR - Remove after fixing Winson scanner
+     ======================================================== --}}
+<div id="scannerDebugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#1e1e1e; color:#39ff14; font-family:monospace; font-size:12px; padding:6px 12px; display:flex; gap:20px; align-items:center; border-top:2px solid #39ff14;">
+    <span style="color:#ffd700; font-weight:bold;">🔍 SCANNER DEBUG</span>
+    <span>Tombol terakhir: <strong id="dbgLastKey" style="color:#fff;">-</strong></span>
+    <span>Buffer: <strong id="dbgBuffer" style="color:#0ff;">-</strong></span>
+    <span>Input field: <strong id="dbgActiveField" style="color:#f90;">-</strong></span>
+    <span>Status: <strong id="dbgStatus" style="color:#f44;">Menunggu input scanner...</strong></span>
+    <button onclick="document.getElementById('scannerDebugBar').remove()" style="margin-left:auto; background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer; border-radius:3px;">✕ Tutup</button>
+</div>
+
 <style>
     /* ─── Create Form Table: Minimalist Industrial (selaras dengan index.blade.php) ─── */
     #checksheetTable {

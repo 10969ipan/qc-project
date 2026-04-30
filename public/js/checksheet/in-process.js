@@ -1003,55 +1003,103 @@ class InProcessCreate {
         let lastTime = Date.now();
         let scanTimeout;
 
+        // Debug bar helper
+        const dbg = (key, buf, status) => {
+            const active = document.activeElement;
+            const fieldName = active ? (active.id || active.name || active.tagName) : "-";
+            const $k = $("#dbgLastKey");
+            const $b = $("#dbgBuffer");
+            const $f = $("#dbgActiveField");
+            const $s = $("#dbgStatus");
+            if ($k.length) $k.text(key || "-");
+            if ($b.length) $b.text(buf ? buf.substring(0, 40) + (buf.length > 40 ? "..." : "") : "-");
+            if ($f.length) $f.text(fieldName);
+            if ($s.length) {
+                $s.text(status || "Menerima input...");
+                $s.css("color", status && status.includes("✅") ? "#39ff14" : status && status.includes("❌") ? "#f44" : "#ffd700");
+            }
+        };
+
         // 1. Create a "Ghost Input" to catch scans when NO field is focused (Crucial for Handheld PDAs)
         if (!$("#pdaScanGhostInput").length) {
             $("<input>")
                 .attr({
                     type: "text",
                     id: "pdaScanGhostInput",
-                    style: "position:fixed; top:-100px; left:-100px; opacity:0; width:1px; height:1px; z-index:-1;",
+                    autocomplete: "off",
+                    style: "position:fixed; top:50%; left:50%; opacity:0.01; width:1px; height:1px; z-index:1; border:none; outline:none;",
                 })
                 .appendTo("body");
         }
         const $ghost = $("#pdaScanGhostInput");
+        // Focus ghost on page load so PDA scanner data goes there by default
+        setTimeout(() => $ghost.trigger("focus"), 500);
 
         const processScan = (raw) => {
             console.log("Hardware Scan Detected:", raw);
-            if (raw.length > 5 && raw.includes("|")) {
-                // Validation: Timer must be running
-                if (!this.timerRunning) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Tombol Start Belum Diklik",
-                        text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
-                        confirmButtonColor: "#3085d6",
-                    });
-                    buffer = "";
-                    $ghost.val("");
-                    return;
-                }
+            dbg("-", raw, "⏳ Memproses...");
 
-                // Clear focused input to prevent QR string "leakage" into the field
-                if (
-                    document.activeElement &&
-                    (document.activeElement.tagName === "INPUT" ||
-                        document.activeElement.tagName === "TEXTAREA")
-                ) {
-                    $(document.activeElement).val("");
-                }
-
-                $("#scanMethodInput").val("hardware");
-                this.parseAndFillQR(raw);
+            if (!raw.includes("|")) {
+                dbg("-", raw, `❌ Pola QR salah - tidak ada simbol | ditemukan. Data: "${raw}"`);
                 buffer = "";
                 $ghost.val("");
+                return;
             }
+
+            if (raw.length <= 5) {
+                dbg("-", raw, `❌ Data terlalu pendek: ${raw.length} karakter`);
+                buffer = "";
+                $ghost.val("");
+                return;
+            }
+
+            // Validation: Timer must be running
+            if (!this.timerRunning) {
+                dbg("-", raw, "⚠️ Tombol Start belum diklik!");
+                Swal.fire({
+                    icon: "warning",
+                    title: "Tombol Start Belum Diklik",
+                    text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
+                    confirmButtonColor: "#3085d6",
+                });
+                buffer = "";
+                $ghost.val("");
+                return;
+            }
+
+            // Clear focused input to prevent QR string "leakage" into the field
+            if (
+                document.activeElement &&
+                (document.activeElement.tagName === "INPUT" ||
+                    document.activeElement.tagName === "TEXTAREA") &&
+                document.activeElement.id !== "pdaScanGhostInput"
+            ) {
+                $(document.activeElement).val("");
+            }
+
+            dbg("-", raw, "✅ Scan berhasil diproses!");
+            $("#scanMethodInput").val("hardware");
+            this.parseAndFillQR(raw);
+            buffer = "";
+            $ghost.val("");
+            // Re-focus ghost after scan
+            setTimeout(() => $ghost.trigger("focus"), 300);
         };
 
-        // A. Listen for input on the Ghost Field (Catches PDA bursts)
-        $ghost.on("input", function () {
-            const val = $(this).val();
-            if (val.length > 10 && val.includes("|")) {
+        // A. Listen for input on the Ghost Field (Catches PDA bursts into focused ghost)
+        $ghost.on("input", () => {
+            const val = $ghost.val();
+            dbg("(ghost input)", val, `Ghost menerima ${val.length} karakter`);
+            if (val.length > 5) {
                 processScan(val);
+            }
+        });
+
+        // Keep ghost focused when clicking outside interactive elements
+        $(document).on("click", (e) => {
+            const tag = e.target.tagName;
+            if (tag !== "INPUT" && tag !== "SELECT" && tag !== "TEXTAREA" && tag !== "BUTTON" && tag !== "A") {
+                setTimeout(() => $ghost.trigger("focus"), 50);
             }
         });
 
@@ -1066,33 +1114,25 @@ class InProcessCreate {
                     e.key === "Tab" ||
                     e.keyCode === 9;
 
-                // Redirect focus to ghost if user types/scans while NOT in an input field
-                const active = document.activeElement;
-                const isUserInInput =
-                    active.tagName === "INPUT" ||
-                    active.tagName === "SELECT" ||
-                    active.tagName === "TEXTAREA" ||
-                    active.isContentEditable;
-
-                if (!isUserInInput && !e.ctrlKey && !e.altKey && e.key.length === 1) {
-                    $ghost.focus();
-                }
-
                 if (currentTime - lastTime > 1000) {
                     buffer = "";
                 }
 
-                if (isTerminator) {
-                    if (buffer.length > 5) {
-                        e.preventDefault();
-                        processScan(buffer);
-                    }
-                } else {
+                if (!isTerminator) {
                     let char = e.key;
                     if (char && char.length === 1) {
                         buffer += char;
                     } else if (e.keyCode >= 32 && e.keyCode <= 126) {
                         buffer += String.fromCharCode(e.keyCode);
+                    }
+                    dbg(e.key, buffer, `Mengetahui ${buffer.length} karakter...`);
+                }
+
+                if (isTerminator) {
+                    if (buffer.length > 5) {
+                        e.preventDefault();
+                        dbg("ENTER/TAB", buffer, "⏳ Terminator diterima, memproses...");
+                        processScan(buffer);
                     }
                 }
 
@@ -1103,6 +1143,7 @@ class InProcessCreate {
                     if (buffer.length > 10 && buffer.includes("|")) {
                         const parts = buffer.split("|");
                         if (parts.length >= 5) {
+                            dbg("(timeout)", buffer, "⏳ Auto-process timeout 500ms...");
                             processScan(buffer);
                         }
                     }
@@ -1117,7 +1158,8 @@ class InProcessCreate {
             if ($el.attr("id") === "pdaScanGhostInput") return;
 
             const val = $el.val() || "";
-            if (val.length > 10 && val.includes("|")) {
+            dbg("(field input)", val, `Perubahan di field: ${$el.attr("id") || $el.attr("name")}`);
+            if (val.length > 5 && val.includes("|")) {
                 const parts = val.split("|");
                 if (parts.length >= 5) {
                     $el.val("");
