@@ -315,7 +315,7 @@
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Ketik Kode SAP..." autocomplete="off">
+                                                placeholder="📡 Tap di sini untuk scan / Ketik Kode SAP..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
@@ -324,7 +324,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <small class="text-muted">Auto-select item berdasarkan SAP code</small>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Tap field ini lalu scan QR (PDA) atau ketik Kode SAP manual</small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold">Item Part</label>

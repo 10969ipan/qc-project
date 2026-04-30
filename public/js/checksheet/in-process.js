@@ -418,7 +418,7 @@ class InProcessCreate {
 
     lockInputs() {
         this.formInputs = $(
-            '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
+            '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn):not(#sapCodeInput), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
         );
         this.formInputs.prop("disabled", true);
         $("#checksheetForm").addClass("inputs-locked");
@@ -433,6 +433,8 @@ class InProcessCreate {
         this.formInputs.prop("disabled", false);
         $("#checksheetForm").removeClass("inputs-locked");
         $("#saveBtn").prop("disabled", false);
+        // sapCodeInput is always unlocked - reset placeholder after unlock
+        $("#sapCodeInput").prop("disabled", false);
     }
 
     initQRScanner() {
