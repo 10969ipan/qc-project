@@ -133,6 +133,24 @@
         font-weight: 600 !important; 
         background-color: #f1f5f9 !important; 
     }
+
+    /* Sticky Pagination */
+    .pagination-container {
+        position: sticky !important;
+        bottom: 0 !important;
+        background-color: #ffffff !important;
+        z-index: 106 !important;
+        padding: 12px 20px !important;
+        margin: 0 -20px -20px -20px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        border-bottom-left-radius: 0.35rem;
+        border-bottom-right-radius: 0.35rem;
+    }
+    
+    .pagination-container .pagination {
+        margin-bottom: 0 !important;
+    }
 </style>
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
@@ -658,8 +676,9 @@
                                             </table>
                                         </div>
                                     @else
-                                        <span class="text-dark font-weight-bold" style="font-size: 0.8rem;">TIDAK ADA PENGUKURAN
-                                            DIMENSI</span>
+                                        <span class="text-dark font-weight-bold" style="font-size: 0.8rem;">
+                                            {{ $checksheet->scan_method === 'hardware' ? 'VERIFIKASI QUALITY IN PROCESS' : 'TIDAK ADA PENGUKURAN DIMENSI' }}
+                                        </span>
                                     @endif
                                 </td>
 
@@ -1018,7 +1037,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4">
+            <div class="mt-4 pagination-container">
                 {{ $checksheets->withQueryString()->links() }}
             </div>
         </div>

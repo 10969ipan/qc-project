@@ -410,6 +410,8 @@ class InProcessCreate {
         this.initFormValidation();
         this.initZoomLogic();
         this.initPDFReference();
+        this.initHardwareScanner();
+        this.initMachinePersistence();
         this.lockInputs();
         this.checkUrlParams();
     }
@@ -624,6 +626,7 @@ class InProcessCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
+        $("#scanMethodInput").val("manual");
         this.parseAndFillQR(decodedText);
     }
 
@@ -681,6 +684,10 @@ class InProcessCreate {
         $("#quantityInput").val(quantity);
         $("#uniqueCodeInput").val(unique_code_id);
         $("#sapCodeInputHidden").val(sap_code);
+
+        if ($("#scanMethodInput").val() === "hardware") {
+            this.fillDimensionsWithDash();
+        }
 
         // Melakukan pemindaian lokal di dropdown yang tersedia
         let localFound = false;
@@ -988,6 +995,59 @@ class InProcessCreate {
             if ($(this).val() === "OK") _this.autoRemoveDimensionDefect();
             else if ($(this).val() === "NG") _this.autoAddDimensionDefect();
             _this.toggleNextProsesDropdown();
+        });
+    }
+
+    initHardwareScanner() {
+        let buffer = "";
+        let lastTime = Date.now();
+
+        $(document).on("keypress", (e) => {
+            const currentTime = Date.now();
+
+            // Industrial scanners are very fast (intervals < 50ms)
+            if (currentTime - lastTime > 50) {
+                buffer = "";
+            }
+
+            if (e.which === 13) {
+                // Enter key
+                if (buffer.length > 5 && buffer.includes("|")) {
+                    e.preventDefault();
+                    $("#scanMethodInput").val("hardware");
+                    this.parseAndFillQR(buffer);
+                    buffer = "";
+                }
+            } else {
+                if (e.which >= 32) {
+                    buffer += String.fromCharCode(e.which);
+                }
+            }
+
+            lastTime = currentTime;
+        });
+    }
+
+    fillDimensionsWithDash() {
+        $(".dimension-input").val("-");
+    }
+
+    initMachinePersistence() {
+        const $machineSelect = $("#code_machine");
+        if (!$machineSelect.length) return;
+
+        // Load from localStorage if exists and no value is currently selected
+        const lastMachine = localStorage.getItem("last_machine_selection");
+        if (lastMachine && !$machineSelect.val()) {
+            $machineSelect.val(lastMachine);
+        }
+
+        // Save on change
+        $machineSelect.on("change", function () {
+            const val = $(this).val();
+            if (val) {
+                localStorage.setItem("last_machine_selection", val);
+            }
         });
     }
 

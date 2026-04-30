@@ -70,6 +70,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
             'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'scan_method' => 'nullable|string|in:manual,hardware',
         ];
     }
 

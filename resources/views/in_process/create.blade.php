@@ -283,6 +283,7 @@
                 <input type="hidden" name="quantity" id="quantityInput">
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
                 <div class="table-responsive" style="overflow-x: auto; border: none; box-shadow: inset 0 0 5px rgba(0,0,0,0.02);">
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>

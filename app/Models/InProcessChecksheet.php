@@ -21,6 +21,7 @@ class InProcessChecksheet extends Model
         'quantity',
         'unique_code_id',
         'sap_code',
+        'scan_method',
         'created_at',
         'date',
         'shift',

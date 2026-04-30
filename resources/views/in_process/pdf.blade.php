@@ -203,6 +203,11 @@
     <div style="margin-bottom: 5px; font-size: 10px;">
         <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }} |
         <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        @if(request('item_id')) | <strong>Part:</strong> {{ \App\Models\Item::find(request('item_id'))->name ?? request('item_id') }} @endif
+        @if(request('customer')) | <strong>Cust:</strong> {{ request('customer') }} @endif
+        @if(request('operator_initials')) | <strong>Inisial:</strong> {{ request('operator_initials') }} @endif
+        @if(request('search')) | <strong>Search:</strong> "{{ request('search') }}" @endif
+        | <strong>Total:</strong> {{ $checksheets->count() }} baris
     </div>
 
     <table class="table">

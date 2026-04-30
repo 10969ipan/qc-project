@@ -419,6 +419,7 @@ class InProcessChecksheetService extends BaseService
                 'quantity' => $data['quantity'] ?? null,
                 'unique_code_id' => $data['unique_code_id'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
+                'scan_method' => $data['scan_method'] ?? 'manual',
                 'next_proses' => ($data['judgment'] === 'NG') 
                     ? ($data['next_proses'] ?: 'SORTIR') 
                     : null,
@@ -530,6 +531,7 @@ class InProcessChecksheetService extends BaseService
                 'quantity' => $data['quantity'] ?? null,
                 'unique_code_id' => $data['unique_code_id'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
+                'scan_method' => $data['scan_method'] ?? $checksheet->scan_method,
             ];
 
             // Allow manual correction of inspector if provided

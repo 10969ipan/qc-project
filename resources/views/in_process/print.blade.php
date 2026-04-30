@@ -122,8 +122,27 @@
     </table>
 
     <div class="sub-header">
-        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
+        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
         <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        @if(request('item_id'))
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>Part:</strong> {{ \App\Models\Item::find(request('item_id'))->name ?? request('item_id') }}
+        @endif
+        @if(request('customer'))
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>Cust:</strong> {{ request('customer') }}
+        @endif
+        @if(request('operator_initials'))
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>Inisial:</strong> {{ request('operator_initials') }}
+        @endif
+        @if(request('search'))
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>Search:</strong> "{{ request('search') }}"
+        @endif
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Total Data:</strong> {{ $checksheets->count() }} baris
     </div>
 
     <table class="table">
