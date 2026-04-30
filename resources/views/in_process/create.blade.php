@@ -311,11 +311,11 @@
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold small text-muted mb-1">
-                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                            <i class="fas fa-barcode mr-1"></i>Hardware Scanner (PDA)
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="📡 Tap di sini untuk scan / Ketik Kode SAP..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                                placeholder="📡 Tap field ini, lalu scan barcode..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
@@ -324,7 +324,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Tap field ini lalu scan QR (PDA) atau ketik Kode SAP manual</small>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Arahkan kursor ke sini sebelum menembak QR</small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold">Item Part</label>

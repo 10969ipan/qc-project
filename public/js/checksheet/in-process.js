@@ -1481,6 +1481,15 @@ class InProcessCreate {
 
     initFormValidation() {
         const _this = this;
+
+        // Mencegah form tersubmit otomatis saat PDA scanner mengirimkan tombol "Enter"
+        $("#checksheetForm").on("keydown", "input", function(e) {
+            if (e.key === "Enter" || e.keyCode === 13) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
         $("#checksheetForm").on("submit", function (e) {
             e.preventDefault();
             const judgment = $("#judgmentSelect").val();
