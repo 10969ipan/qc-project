@@ -1545,6 +1545,13 @@ class InProcessCreate {
 
             // 1. Validasi: Item harus dipilih
             if (!itemId) {
+                // JIKA ini adalah submit "siluman" dari scanner (bukan klik tombol Save), 
+                // abaikan saja tanpa memunculkan alert agar tidak mengganggu proses scan.
+                if (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0)) {
+                    console.warn("Submit tanpa Item ID diabaikan (Scanner premature submit).");
+                    return false;
+                }
+
                 Swal.fire({
                     icon: "warning",
                     title: "Item Belum Dipilih",
