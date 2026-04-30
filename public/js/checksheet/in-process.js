@@ -1060,18 +1060,35 @@ class InProcessCreate {
             buffer = "";
         };
 
-        // ─── Method A: Monitor ALL visible inputs for scan pattern (Android Keyboard Wedge) ───
-        // When PDA scanner fires, it fills whatever input is focused.
-        // We intercept it here and process it as a QR scan.
-        $(document).on("input", "input:not([type='hidden']), textarea:not([type='hidden'])", function () {
+        // ─── Method A: Dedicated input handler for PDA Keyboard Wedge ───
+        // Catch the Enter key sent by PDA at the end of the scan
+        $("#sapCodeInput").on("keydown", function (e) {
+            if (e.key === "Enter" || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const val = ($(this).val() || "").trim();
+                if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                    $(this).val(""); // Clear field
+                    processScan(val);
+                }
+                return false;
+            }
+        });
+
+        // Fallback for PDA scanners that only send input events without Enter
+        let sapInputTimeout;
+        $("#sapCodeInput").on("input", function () {
             const val = ($(this).val() || "").trim();
             if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
-                clearTimeout(scanTimeout);
-                scanTimeout = setTimeout(() => {
+                clearTimeout(sapInputTimeout);
+                sapInputTimeout = setTimeout(() => {
                     const finalVal = ($(this).val() || "").trim();
-                    $(this).val(""); // Clear the field immediately
-                    processScan(finalVal);
-                }, 100);
+                    if (finalVal && finalVal === val) { // Ensure typing has stopped
+                        $(this).val("");
+                        processScan(finalVal);
+                    }
+                }, 400); // Wait 400ms to ensure the full SAP code is typed
             }
         });
 
