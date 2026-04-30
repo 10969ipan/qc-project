@@ -1496,10 +1496,10 @@ class InProcessCreate {
         $("#checksheetForm").on("submit", function (e) {
             e.preventDefault();
 
-            // Mencegah submit premature dari tombol Enter PDA jika kursor di field scanner
-            // (Membiarkan fungsi debounce 100ms scanner bekerja mengambil data QR penuh)
-            if (document.activeElement && document.activeElement.id === 'sapCodeInput') {
-                console.log("Submit dicegah karena sedang di field scanner (menunggu debounce PDA)");
+            // Mencegah submit premature dari tombol Enter PDA Scanner 
+            // Form hanya boleh disubmit secara eksplisit melalui tombol "Save"
+            if (e.originalEvent && (!e.originalEvent.submitter || e.originalEvent.submitter.id !== 'saveBtn')) {
+                console.log("Submit form dicegah: Harus menggunakan tombol Save. (Bypass PDA Enter)");
                 return false;
             }
 
