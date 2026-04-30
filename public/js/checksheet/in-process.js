@@ -1003,8 +1003,9 @@ class InProcessCreate {
         let lastTime = Date.now();
         let scanTimeout;
 
-        const processScan = () => {
-            if (buffer.length > 5 && buffer.includes("|")) {
+        const processScan = (raw) => {
+            console.log("Hardware Scan Detected:", raw);
+            if (raw.length > 5 && raw.includes("|")) {
                 // Validation: Timer must be running
                 if (!this.timerRunning) {
                     Swal.fire({
@@ -1027,53 +1028,94 @@ class InProcessCreate {
                 }
 
                 $("#scanMethodInput").val("hardware");
-                this.parseAndFillQR(buffer);
+                this.parseAndFillQR(raw);
                 buffer = "";
             }
         };
 
-        $(document).on("keydown", (e) => {
-            const currentTime = Date.now();
-            // Support Enter or Tab as terminators (common in many scanner configurations)
-            const isTerminator =
-                e.key === "Enter" ||
-                e.keyCode === 13 ||
-                e.key === "Tab" ||
-                e.keyCode === 9;
+        // Use window for broader event capturing
+        window.addEventListener(
+            "keydown",
+            (e) => {
+                const currentTime = Date.now();
+                const isTerminator =
+                    e.key === "Enter" ||
+                    e.keyCode === 13 ||
+                    e.key === "Tab" ||
+                    e.keyCode === 9;
 
-            // Increased latency tolerance to 500ms for slow wireless devices
-            if (currentTime - lastTime > 500) {
-                buffer = "";
-            }
-
-            if (isTerminator) {
-                if (buffer.length > 5 && buffer.includes("|")) {
-                    e.preventDefault();
-                    processScan();
+                // Debug: Log keys in console if someone is investigating
+                if (buffer.length > 0) {
+                    console.debug(`Key: ${e.key}, Code: ${e.keyCode}, Delta: ${currentTime - lastTime}ms`);
                 }
-            } else {
-                // Capture printable characters
-                let char = e.key;
-                if (char && char.length === 1) {
-                    buffer += char;
-                } else if (e.keyCode >= 32 && e.keyCode <= 126) {
-                    buffer += String.fromCharCode(e.keyCode);
+
+                // If delay is too long, it's probably manual typing (increased to 1000ms for debug)
+                if (currentTime - lastTime > 1000) {
+                    buffer = "";
                 }
-            }
 
-            lastTime = currentTime;
-
-            // Auto-process if buffer contains a full valid QR pattern and no activity for 300ms
-            // Useful for scanners that don't send a terminator (Enter/Tab)
-            clearTimeout(scanTimeout);
-            scanTimeout = setTimeout(() => {
-                if (buffer.length > 10 && buffer.includes("|")) {
-                    const parts = buffer.split("|");
-                    if (parts.length >= 5) {
-                        processScan();
+                if (isTerminator) {
+                    if (buffer.length > 5) {
+                        e.preventDefault();
+                        processScan(buffer);
+                    }
+                } else {
+                    // Capture printable characters
+                    let char = e.key;
+                    if (char && char.length === 1) {
+                        buffer += char;
+                    } else if (e.keyCode >= 32 && e.keyCode <= 126) {
+                        // Fallback for some Android/Handheld devices
+                        buffer += String.fromCharCode(e.keyCode);
                     }
                 }
-            }, 300);
+
+                lastTime = currentTime;
+
+                // Auto-process if buffer looks like a valid QR and no activity for 500ms
+                clearTimeout(scanTimeout);
+                scanTimeout = setTimeout(() => {
+                    if (buffer.length > 10 && buffer.includes("|")) {
+                        const parts = buffer.split("|");
+                        if (parts.length >= 5) {
+                            processScan(buffer);
+                        }
+                    }
+                }, 500);
+            },
+            true,
+        );
+
+        // 3. Monitor ALL inputs for a sudden "Scan" pattern (Crucial for Android PDA Handhelds)
+        // Android PDAs often fill the focused field in one burst without individual keydowns
+        $(document).on("input", "input:not([type='hidden'])", (e) => {
+            const $el = $(e.target);
+            const val = $el.val() || "";
+
+            // If a field suddenly contains the QR pattern PN|SUP|QTY|ID|SAP
+            if (val.length > 10 && val.includes("|")) {
+                const parts = val.split("|");
+                if (parts.length >= 5) {
+                    console.log("PDA Input Scan Detected in field:", $el.attr("id"));
+
+                    // Validation: Timer must be running
+                    if (!this.timerRunning) {
+                        $el.val(""); // Clear the "leaked" data
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Tombol Start Belum Diklik",
+                            text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
+                            confirmButtonColor: "#3085d6",
+                        });
+                        return;
+                    }
+
+                    // Clear the field and process as hardware scan
+                    $el.val("");
+                    $("#scanMethodInput").val("hardware");
+                    this.parseAndFillQR(val);
+                }
+            }
         });
     }
 
