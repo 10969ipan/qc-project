@@ -34,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
     require __DIR__ . '/verification.php';
 
     // KAKOTORA
+    Route::get('kakotora/print', [\App\Http\Controllers\KakotoraController::class, 'print'])->name('kakotora.print');
     Route::resource('kakotora', \App\Http\Controllers\KakotoraController::class);
 
     // Notifications

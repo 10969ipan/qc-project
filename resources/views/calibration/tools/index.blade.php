@@ -551,6 +551,7 @@
                 $('#edit_resolusi').val(tool.resolusi);
                 $('#edit_tanggal_beli').val(tool.tanggal_beli_formatted || '');
                 $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
+                $('#edit_riwayat_kalibrasi').val(tool.riwayat_kalibrasi || '');
                 $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);
                 
                 $('#edit_existing_cert').html(tool.certification_path 

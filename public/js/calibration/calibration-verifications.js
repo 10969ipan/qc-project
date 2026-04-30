@@ -145,9 +145,9 @@ $(document).ready(function () {
                 $('#edit_resolusi').val(v.resolusi);
                 $('#edit_rentang_ukur').val(v.rentang_ukur);
                 $('#edit_frekuensi_kalibrasi').val(v.frekuensi_kalibrasi);
-                $('#edit_tanggal_kalibrasi').val(v.tanggal_kalibrasi ? v.tanggal_kalibrasi.substring(0, 10) : '');
-                $('#edit_tanggal_verifikasi').val(v.tanggal_verifikasi ? v.tanggal_verifikasi.substring(0, 10) : '');
-                $('#edit_next_kalibrasi').val(v.next_kalibrasi ? v.next_kalibrasi.substring(0, 10) : '');
+                $('#edit_tanggal_kalibrasi').val(v.tanggal_kalibrasi_formatted || '');
+                $('#edit_tanggal_verifikasi').val(v.tanggal_verifikasi_formatted || '');
+                $('#edit_next_kalibrasi').val(v.next_kalibrasi_formatted || '');
                 $('#edit_judgment').val(v.judgment);
                 $('#edit_std_toleransi').val(v.std_toleransi);
                 $('#edit_acuan_toleransi').val(v.acuan_toleransi);

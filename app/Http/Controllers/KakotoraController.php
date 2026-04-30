@@ -11,15 +11,85 @@ class KakotoraController extends Controller
 {
     public function index(Request $request)
     {
-        $plant = $request->query('plant');
+        $plant = $request->query('plant') ?: 'jakarta';
         $query = Kakotora::query();
 
         if ($plant) {
             $query->where('plant', $plant);
         }
 
+        // Unified Search: Part Name, Part No, Model, No Reg
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('part_name', 'like', "%{$search}%")
+                  ->orWhere('part_number', 'like', "%{$search}%")
+                  ->orWhere('model', 'like', "%{$search}%")
+                  ->orWhere('no_reg', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter Claim
+        if ($request->filled('category_claim')) {
+            $query->where('category_claim', $request->category_claim);
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter Date Range
+        if ($request->filled('start_date')) {
+            $query->whereDate('date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('date', '<=', $request->end_date);
+        }
+
         $kakotoras = $query->orderBy('date', 'desc')->get();
-        return view('kakotora.index', compact('kakotoras', 'plant'));
+        
+        // Get unique claims and statuses for dropdown filters
+        $claims = Kakotora::where('plant', $plant)->whereNotNull('category_claim')->where('category_claim', '!=', '')->distinct()->pluck('category_claim');
+        $statuses = Kakotora::where('plant', $plant)->whereNotNull('status')->where('status', '!=', '')->distinct()->pluck('status');
+
+        return view('kakotora.index', compact('kakotoras', 'plant', 'claims', 'statuses'));
+    }
+
+    public function print(Request $request)
+    {
+        $plant = $request->query('plant') ?: 'jakarta';
+        $query = Kakotora::query();
+        $query->where('plant', $plant);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('part_name', 'like', "%{$search}%")
+                  ->orWhere('part_number', 'like', "%{$search}%")
+                  ->orWhere('model', 'like', "%{$search}%")
+                  ->orWhere('no_reg', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('category_claim')) {
+            $query->where('category_claim', $request->category_claim);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('date', '<=', $request->end_date);
+        }
+
+        $kakotoras = $query->orderBy('date', 'desc')->get();
+        
+        return view('kakotora.print', compact('kakotoras', 'plant'));
     }
 
     public function create(Request $request)

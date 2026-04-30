@@ -3,102 +3,260 @@
 @section('title', 'Data Kakotora')
 
 @section('content')
-    <div class="container-fluid ">
-        <div class="card shadow mb-4 border-left-primary">
-            <div class="card-body py-3">
-                <div class="row align-items-start">
-                    <div class="col-md-8 border-right">
-                        <div class="d-flex align-items-center mb-3">
-                            <h1 class="h4 mb-0 text-gray-800 font-weight-bold mr-3">
-                                Database KAKOTORA
-                            </h1>
-                            <span class="badge badge-{{ strtolower($plant) === 'jakarta' ? 'info' : 'primary' }}"
-                                style="font-size: 0.8rem;">
-                                <i class="fas fa-building mr-1"></i>
-                                Plant {{ ucfirst($plant) }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-4 d-flex justify-content-end">
-                        <div class="col p-0" style="max-width: 280px;">
-                            <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800">No. Dokumen</div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">:
-                                    {{ strtoupper($plant) === 'JAKARTA' ? 'ENG-JKT-F-037' : 'ENG-KRW-F-037' }}
-                                </div>
-                            </div>
-                            <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800">Tgl. Terbit</div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">: 17-06-2020</div>
-                            </div>
-                            <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800">Revisi Ke</div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">: 1</div>
-                            </div>
-                            <div class="row mb-1">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800">Tgl. Revisi</div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">: 06-04-2023</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5 text-xs font-weight-bold text-gray-800">Hlm</div>
-                                <div class="col-7 text-xs font-weight-bold text-gray-800">: ... / ...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<style>
+    .table-responsive {
+        max-height: 75vh !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+    
+    #dataTableKakotora {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+    
+    #dataTableKakotora td, #dataTableKakotora th {
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
+    }
 
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+    #dataTableKakotora tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 4px 6px !important;
+    }
+
+    /* Global TH sticky setup - Forced override for admin.blade.php blue headers */
+    #dataTableKakotora > thead > tr > th,
+    #dataTableKakotora thead th,
+    .table#dataTableKakotora thead th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #f8fafc !important;
+        background-clip: padding-box !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px !important;
+        padding: 6px 12px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #e2e8f0 !important;
+        top: 0 !important;
+        z-index: 105 !important;
+    }
+
+    /* Forced overrides for DataTables elements */
+    #dataTableKakotora.dataTable thead .sorting:before,
+    #dataTableKakotora.dataTable thead .sorting:after,
+    #dataTableKakotora.dataTable thead .sorting_asc:before,
+    #dataTableKakotora.dataTable thead .sorting_asc:after,
+    #dataTableKakotora.dataTable thead .sorting_desc:before,
+    #dataTableKakotora.dataTable thead .sorting_desc:after {
+        display: none !important;
+    }
+    
+    #dataTableKakotora.dataTable thead th,
+    #dataTableKakotora.dataTable thead .sorting,
+    #dataTableKakotora.dataTable thead .sorting_asc,
+    #dataTableKakotora.dataTable thead .sorting_desc {
+        background-image: none !important;
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+    }
+
+    #dataTableKakotora .btn {
+        min-width: 0 !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
+    }
+    #dataTableKakotora .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+
+    /* Pagination & Info bottom area */
+    .dataTables_wrapper > .row:last-child {
+        background-color: #ffffff !important;
+        padding: 10px 0 !important;
+        margin: 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+    }
+    
+    .dataTables_info {
+        font-size: 0.7rem !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        padding-top: 5px !important;
+    }
+    
+    .dataTables_paginate .pagination {
+        margin: 0 !important;
+    }
+    
+    .page-link {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    td.details-control {
+        cursor: pointer;
+        text-align: center;
+        vertical-align: middle !important;
+    }
+
+    /* Fix for footer positioning */
+    .clearfix::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+</style>
+
+@php
+    $plantCode = strtolower($plant ?: 'jakarta');
+@endphp
+
+<div class="card shadow mb-2">
+    <div class="card-body p-0">
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                    <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                </td>
+                <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                    <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                        DATABASE KAKOTORA - {{ strtoupper($plantCode) }}
+                    </h1>
+                </td>
+                <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                    <table style="border-collapse:collapse; font-size:0.68rem;">
+                        <tr>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                            <td style="padding:1px 2px;">:</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
+                                {{ strtoupper($plantCode) === 'JAKARTA' ? 'ENG-JKT-F-037' : 'ENG-KRW-F-037' }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                            <td style="padding:1px 2px;">:</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">17-06-2020</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                            <td style="padding:1px 2px;">:</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 06-04-2023</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                            <td style="padding:1px 2px;">:</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <!-- Action Bar Sleek with Filters -->
+        <form action="{{ route('kakotora.index') }}" method="GET" class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormKakotora">
+            <input type="hidden" name="plant" value="{{ $plant }}">
+            
+            <!-- Unified Search: Part Name, Part No, Model -->
+            <div class="d-flex align-items-center mr-2">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0" 
+                    placeholder="Part Name / No / Model..." value="{{ request('search') }}" style="width: 200px; font-size: 0.75rem;">
+            </div>
+
+            <!-- Filter Claim -->
+            <div class="d-flex align-items-center mr-2">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Claim:</label>
+                <select name="category_claim" class="form-control form-control-sm shadow-sm border-0" style="width: 130px; font-size: 0.75rem;">
+                    <option value="">Semua Claim</option>
+                    @foreach($claims as $c)
+                        <option value="{{ $c }}" {{ request('category_claim') == $c ? 'selected' : '' }}>{{ $c }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Filter Status -->
+            <div class="d-flex align-items-center mr-2">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Status:</label>
+                <select name="status" class="form-control form-control-sm shadow-sm border-0" style="width: 120px; font-size: 0.75rem;">
+                    <option value="">Semua Status</option>
+                    @foreach($statuses as $s)
+                        <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>{{ $s }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter Data">
+                    <i class="fas fa-search fa-sm"></i>
+                </button>
+                <a href="{{ route('kakotora.index', ['plant' => $plant]) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                    <i class="fas fa-undo fa-sm"></i>
+                </a>
+                <a href="{{ route('kakotora.print', request()->all()) }}" target="_blank" class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview" style="background-color: #17a589; color: white;">
+                    <i class="fas fa-print fa-sm"></i>
+                </a>
+                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahKakotora">
+                    <i class="fas fa-plus fa-sm mr-1"></i> <span class="font-weight-bold small">Tambah</span>
                 </button>
             </div>
-        @endif
+        </form>
 
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Data KAKOTORA</h6>
-                <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
-                    data-target="#modalTambahKakotora">
-                    <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Data
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTableKakotora" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-info-circle" title="View Details"></i></th>
-                                <th>No</th>
-                                <th>Tanggal Entry</th>
-                                <th>No Registrasi</th>
-                                <th>Issue Date</th>
-                                <th>No. Revmodel</th>
-                                <th>Family</th>
-                                <th>Category (NM / MP)</th>
-                                <th>Claim Category</th>
-                                <th>Model</th>
-                                <th>Part Name</th>
-                                <th>Part No.</th>
-                                <th>Mould</th>
-                                <th>Owner Mould</th>
-                                <th class="col-similar-part">Similar Part</th>
-                                <th>Section</th>
-                                <th>Problem</th>
-                                <th>Proses</th>
-                                <th>Cause</th>
-                                <th class="col-countermeasure">Countermeasure</th>
-                                <th>PIC</th>
-                                <th>Supplier</th>
-                                <th>Defect Category</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+        <div class="table-responsive">
+            <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th width="30"></th>
+                        <th width="40">NO</th>
+                        <th>TANGGAL ENTRY</th>
+                        <th>NO REGISTRASI</th>
+                        <th>ISSUE DATE</th>
+                        <th>NO. REVMODEL</th>
+                        <th>FAMILY</th>
+                        <th>CATEGORY</th>
+                        <th>CLAIM</th>
+                        <th>MODEL</th>
+                        <th>PART NAME</th>
+                        <th>PART NO.</th>
+                        <th>MOULD</th>
+                        <th>OWNER</th>
+                        <th class="d-none">SIMILAR PART</th>
+                        <th>SECTION</th>
+                        <th class="d-none">PROBLEM</th>
+                        <th>PROSES</th>
+                        <th class="d-none">CAUSE</th>
+                        <th class="d-none">COUNTERMEASURE</th>
+                        <th>PIC</th>
+                        <th>SUPPLIER</th>
+                        <th>DEFECT</th>
+                        <th>STATUS</th>
+                        <th width="100">AKSI</th>
+                    </tr>
+                </thead>
+                <tbody>
                             @foreach ($kakotoras as $item)
                                 <tr>
                                     <td class="details-control"><i class="fas fa-plus-circle text-primary fa-lg"></i></td>
@@ -173,7 +331,6 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>
             </div>
         </div>
     </div>
@@ -183,8 +340,10 @@
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalTambahKakotoraLabel">Tambah Data Kakotora</h5>
+                <div class="modal-header bg-primary text-white py-2">
+                    <h5 class="modal-title font-weight-bold" id="modalTambahKakotoraLabel" style="font-size: 0.9rem;">
+                        <i class="fas fa-plus-circle mr-2"></i> Tambah Data Kakotora
+                    </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -346,8 +505,10 @@
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="modalEditKakotoraLabel">Edit Data Kakotora</h5>
+                <div class="modal-header bg-info text-white py-2">
+                    <h5 class="modal-title font-weight-bold" id="modalEditKakotoraLabel" style="font-size: 0.9rem;">
+                        <i class="fas fa-edit mr-2"></i> Edit Data Kakotora
+                    </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -504,76 +665,9 @@
             </div>
         </div>
     </div>
+    <div class="clearfix"></div>
 @endsection
 
-@push('styles')
-    <link href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
-    <style>
-        #dataTableKakotora {
-            table-layout: fixed !important;
-            width: auto !important;
-            min-width: 100% !important;
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
-            margin-bottom: 0 !important;
-        }
-
-        /* Fix for DataTables scrollX header gap */
-        .dataTables_scrollHead {
-            border-radius: 4px 4px 0 0 !important;
-        }
-
-        #dataTableKakotora thead th {
-            font-size: 0.75rem;
-            vertical-align: middle;
-            text-align: center;
-            background-color: #4e73df !important;
-            color: white !important;
-            white-space: nowrap;
-            padding: 8px 10px !important;
-            border: 1px solid #ffffff33 !important;
-        }
-
-        #dataTableKakotora td {
-            font-size: 0.8rem;
-            vertical-align: middle;
-            border: 1px solid #e3e6f0 !important;
-        }
-
-        #dataTableKakotora tbody tr:hover {
-            background-color: rgba(78, 115, 223, 0.08) !important;
-        }
-
-        #dataTableKakotora tbody tr:hover td {
-            background-color: rgba(78, 115, 223, 0.08) !important;
-        }
-
-        td.details-control {
-            cursor: pointer;
-            text-align: center;
-            vertical-align: middle !important;
-        }
-
-        .col-expandable {
-            width: 400px !important;
-        }
-
-        .col-similar-part,
-        .col-countermeasure {
-            width: 1000px !important;
-        }
-
-        .text-wrap-logic {
-            white-space: pre-wrap !important;
-            word-wrap: break-word;
-            word-break: break-word;
-        }
-
-        .modal-body label {
-            margin-bottom: 2px;
-        }
-    </style>
-@endpush
 
 @push('scripts')
     <script src="{{ asset('vendor/datatables/jquery.dataTables.min.js') }}"></script>
@@ -581,7 +675,7 @@
     <script>
         $(document).ready(function () {
             var formatChildRow = function (d) {
-                return '<div class="p-3" style="background-color: #f8f9fc; border-left: 4px solid #4e73df;">' +
+                return '<div class="p-3" style="background-color: #f8f9fc;">' +
                     '<table class="table table-sm table-borderless mb-0">' +
                     '<tr>' +
                     '<td style="width: 15%; font-weight: bold; padding: 0.5rem;">Similar Part</td>' +
@@ -604,13 +698,25 @@
             };
 
             var table = $('#dataTableKakotora').DataTable({
+                dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+                     "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 "order": [[2, "desc"]],
                 "autoWidth": false,
-                "scrollX": true,
                 "columnDefs": [
                     { "orderable": false, "targets": 0 },
                     { "visible": false, "targets": [14, 16, 18, 19] }
-                ]
+                ],
+                language: {
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total records)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
             });
 
             // Add event listener for opening and closing details

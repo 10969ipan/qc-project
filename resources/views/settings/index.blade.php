@@ -64,14 +64,13 @@
                     <div class="card-body px-4 pt-0">
                         <div class="row">
                             <div class="col-lg-12">
-                                <h6 class="font-weight-bold text-primary mb-3 border-bottom pb-2">
-                                    <i class="fas fa-shield-alt mr-2"></i> Keamanan & Kontrol Akses
+                                <h6 class="font-weight-bold text-dark mb-3">
+                                    Keamanan & Kontrol Akses
                                 </h6>
                                 
                                 <div class="premium-setting-item d-flex align-items-center justify-content-between p-3 rounded-xl mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
                                     <div class="d-flex align-items-center">
                                         <div class="icon-box-modern bg-soft-info text-info mr-3">
-                                            <i class="fas fa-lock"></i>
                                         </div>
                                         <div>
                                             <h6 class="mb-0 font-weight-bold text-dark">Pengamanan Daily Approval</h6>
@@ -84,21 +83,6 @@
                                         <label class="custom-control-label" for="dailyApprovalGate"></label>
                                     </div>
                                 </div>
-
-                                <div class="alert alert-light border small text-muted rounded-lg">
-                                    <i class="fas fa-info-circle mr-1 text-info"></i>
-                                    Fitur ini dirancang untuk memastikan Karu/Kashift melakukan pengecekan data secara real-time. Jika dinonaktifkan, Inspector dapat menginput data kapan saja tanpa batasan persentase approval.
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {{-- Placeholder for future customizations --}}
-                        <div class="row mt-4 opacity-50">
-                            <div class="col-lg-12">
-                                <h6 class="font-weight-bold text-muted mb-3 border-bottom pb-2">
-                                    <i class="fas fa-palette mr-2"></i> Kustomisasi Tampilan (Segera Hadir)
-                                </h6>
-                                <p class="small italic text-muted">Fitur kustomisasi tema dan layout sedang dikembangkan.</p>
                             </div>
                         </div>
                     </div>

@@ -1437,10 +1437,10 @@ class CalibrationController extends Controller
             // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
             if ($tool) {
-                // Extract current number from riwayat_kalibrasi and increment
-                $currentCount = (int) filter_var($tool->riwayat_kalibrasi, FILTER_SANITIZE_NUMBER_INT);
-                $newRiwayat = ($currentCount + 1) . ' Kali';
-
+                // Sync riwayat_kalibrasi based on actual count of verifications
+                $verifCount = $tool->verifications()->count();
+                $newRiwayat = $verifCount . ' Kali';
+                
                 $tool->update([
                     'name_alat' => $request->name_alat,
                     'merk' => $request->merk,
@@ -1490,6 +1490,11 @@ class CalibrationController extends Controller
         $tools = CalibrationTool::where('plant_id', $plant->id)->with('schedules')->get();
 
         if ($request->ajax()) {
+            // Format dates to prevent timezone shifts in JS serialization
+            $verification->tanggal_kalibrasi_formatted = $verification->tanggal_kalibrasi ? \Carbon\Carbon::parse($verification->tanggal_kalibrasi)->format('Y-m-d') : null;
+            $verification->tanggal_verifikasi_formatted = $verification->tanggal_verifikasi ? \Carbon\Carbon::parse($verification->tanggal_verifikasi)->format('Y-m-d') : null;
+            $verification->next_kalibrasi_formatted = $verification->next_kalibrasi ? \Carbon\Carbon::parse($verification->next_kalibrasi)->format('Y-m-d') : null;
+
             return response()->json([
                 'verification' => $verification,
                 'tools' => $tools,
@@ -1549,6 +1554,9 @@ class CalibrationController extends Controller
             }
 
             $verification = CalibrationVerification::findOrFail($id);
+            $oldToolId = $verification->tool_id;
+            $newToolId = $request->tool_id;
+            
             $data = $request->except(['certification', 'plant', '_token', '_method']);
 
             if ($request->hasFile('certification')) {
@@ -1588,6 +1596,17 @@ class CalibrationController extends Controller
                 if (!$exists) {
                     $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
                 }
+
+                // If tool changed, update old tool's riwayat_kalibrasi
+                if ($oldToolId != $newToolId) {
+                    $oldTool = CalibrationTool::find($oldToolId);
+                    if ($oldTool) {
+                        $oldTool->update(['riwayat_kalibrasi' => $oldTool->verifications()->count() . ' Kali']);
+                    }
+                }
+                
+                // Update new tool's riwayat_kalibrasi
+                $tool->update(['riwayat_kalibrasi' => $tool->verifications()->count() . ' Kali']);
             }
 
             return redirect()->route('calibration.verifications.index', [
@@ -1621,9 +1640,16 @@ class CalibrationController extends Controller
             Storage::disk('public')->delete($verification->certification_path);
         }
 
+        $tool = $verification->tool;
         $toolName = $verification->name_alat;
         $verification->delete();
         ActivityLogger::log('deleted', null, "Menghapus data verifikasi alat kalibrasi: {$toolName}");
+
+        // Update riwayat_kalibrasi count after deletion
+        if ($tool) {
+            $verifCount = $tool->verifications()->count();
+            $tool->update(['riwayat_kalibrasi' => $verifCount . ' Kali']);
+        }
 
         return redirect()->route('calibration.verifications.index', [
             'plant' => $request->input('plant', 'jakarta'),
