@@ -1058,22 +1058,33 @@ class InProcessCreate {
         if ($scanInput.length) {
             $scanInput
                 .on("focus", () => setStatus("⚡ Aktif – scan sekarang!", "#39ff14"))
-                .on("blur",  () => setStatus("Tap untuk aktifkan", "#f90"))
                 .on("input", function () {
-                    const val = $(this).val();
-                    // Android IME delivers entire barcode at once via input event
-                    if (val.includes("|")) {
+                    const val = $(this).val(); // Capture value at INPUT time (not inside timeout)
+                    if (val.length > 5 && val.includes("|")) {
                         clearTimeout(scanTimeout);
-                        // Short delay to let Android finish delivering all chars
-                        scanTimeout = setTimeout(() => processScan($(this).val()), 100);
+                        // 80ms to allow Android to finish delivering all IME characters
+                        scanTimeout = setTimeout(() => processScan(val), 80);
+                    } else if (val.length > 0) {
+                        setStatus(`⌨️ Menerima ${val.length} karakter...`, "#aaa");
                     }
                 })
                 .on("keydown", function (e) {
-                    // PC/wired scanner sends Enter after barcode
+                    // Enter key from scanner
                     if (e.key === "Enter" || e.keyCode === 13) {
                         e.preventDefault();
+                        clearTimeout(scanTimeout); // Cancel pending timeout
                         const val = $(this).val().trim();
                         if (val.length > 5) processScan(val);
+                    }
+                })
+                .on("blur", function () {
+                    // Process if field has data when focus leaves (e.g. scanner auto-moves focus)
+                    const val = $(this).val().trim();
+                    if (val.length > 5 && val.includes("|")) {
+                        clearTimeout(scanTimeout);
+                        processScan(val);
+                    } else {
+                        setStatus("Tap untuk aktifkan", "#f90");
                     }
                 });
 
