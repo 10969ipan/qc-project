@@ -1003,100 +1003,80 @@ class InProcessCreate {
         let lastTime = Date.now();
         let scanTimeout;
 
-        const $scanInput  = $("#hardwareScanInput");
-        const $scanStatus = $("#hwScanStatus");
-
-        const setStatus = (msg, color) => {
-            $scanStatus.text(msg).css("color", color || "#f90");
+        // Toast notification for scan feedback (no dedicated field needed)
+        const showToast = (msg, color) => {
+            let $toast = $("#scanToast");
+            if (!$toast.length) {
+                $toast = $('<div id="scanToast"></div>').css({
+                    position: "fixed", bottom: "20px", left: "50%",
+                    transform: "translateX(-50%)",
+                    background: "#1e293b", color: "#fff",
+                    padding: "8px 20px", borderRadius: "20px",
+                    fontSize: "0.85rem", fontWeight: "600",
+                    zIndex: 9999, pointerEvents: "none",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    transition: "opacity 0.3s",
+                }).appendTo("body");
+            }
+            $toast.text(msg).css({ color, opacity: 1 }).stop(true);
+            clearTimeout($toast.data("hideTimer"));
+            $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
         };
 
         const processScan = (raw) => {
-            raw = raw.trim();
+            raw = (raw || "").trim();
             console.log("Hardware Scan:", raw);
 
             if (!raw.includes("|")) {
-                setStatus("❌ Format QR salah", "#f44");
-                $scanInput.val("");
+                showToast("❌ Format QR salah (tidak ada |)", "#f87171");
                 buffer = "";
                 return;
             }
 
             const parts = raw.split("|");
             if (parts.length < 5) {
-                setStatus(`❌ Hanya ${parts.length} bagian (butuh 5)`, "#f44");
-                $scanInput.val("");
+                showToast(`❌ QR tidak lengkap: ${parts.length}/5 bagian`, "#f87171");
                 buffer = "";
                 return;
             }
 
             if (!this.timerRunning) {
-                setStatus("⚠️ Klik Start dulu!", "#f90");
                 Swal.fire({
                     icon: "warning",
                     title: "Tombol Start Belum Diklik",
                     text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
                     confirmButtonColor: "#3085d6",
+                    confirmButtonText: "OK, mengerti",
                 });
-                $scanInput.val("");
                 buffer = "";
                 return;
             }
 
-            setStatus("✅ Scan berhasil!", "#39ff14");
+            showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
             this.parseAndFillQR(raw);
-            $scanInput.val("");
             buffer = "";
-
-            // Re-activate scan area after processing
-            setTimeout(() => {
-                setStatus("⚡ Siap scan berikutnya", "#0ff");
-            }, 1500);
         };
 
-        // ─── Method A: Visible scan input (Primary – Android Keyboard Wedge IME) ───
-        // Use event delegation so the listener works even if element is added late to DOM
-        $(document)
-            .on("focus click", "#hardwareScanInput", () => {
-                setStatus("⚡ Aktif – scan sekarang!", "#39ff14");
-            })
-            .on("input", "#hardwareScanInput", function () {
-                const val = $(this).val(); // Capture at input time
-                setStatus(`⌨️ Menerima ${val.length} karakter...`, "#aaa");
-                if (val.length > 5 && val.includes("|")) {
-                    clearTimeout(scanTimeout);
-                    scanTimeout = setTimeout(() => processScan(val), 80);
-                }
-            })
-            .on("keydown", "#hardwareScanInput", function (e) {
-                if (e.key === "Enter" || e.keyCode === 13) {
-                    e.preventDefault();
-                    clearTimeout(scanTimeout);
-                    const val = $(this).val().trim();
-                    if (val.length > 5) processScan(val);
-                }
-            })
-            .on("blur", "#hardwareScanInput", function () {
-                const val = $(this).val().trim();
-                if (val.length > 5 && val.includes("|")) {
-                    clearTimeout(scanTimeout);
-                    processScan(val);
-                } else {
-                    setStatus("Tap untuk aktifkan", "#f90");
-                }
-            });
+        // ─── Method A: Monitor ALL visible inputs for scan pattern (Android Keyboard Wedge) ───
+        // When PDA scanner fires, it fills whatever input is focused.
+        // We intercept it here and process it as a QR scan.
+        $(document).on("input", "input:not([type='hidden']), textarea:not([type='hidden'])", function () {
+            const val = ($(this).val() || "").trim();
+            if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                $(this).val(""); // Clear the field immediately
+                clearTimeout(scanTimeout);
+                processScan(val);
+            }
+        });
 
-        // Set initial status after DOM is ready
-        setTimeout(() => setStatus("Tap untuk aktifkan", "#f90"), 300);
-
-        // ─── Method B: Global keydown (PC wired/wireless scanners – NOT Android IME) ───
+        // ─── Method B: Global keydown buffer (PC wired/wireless scanners) ───
         window.addEventListener("keydown", (e) => {
-            // Skip if user is inside hardwareScanInput (handled above)
-            if (document.activeElement && document.activeElement.id === "hardwareScanInput") return;
-
             const currentTime = Date.now();
-            const isTerminator = e.key === "Enter" || e.keyCode === 13 || e.key === "Tab" || e.keyCode === 9;
+            const isTerminator = e.key === "Enter" || e.keyCode === 13 ||
+                                 e.key === "Tab"   || e.keyCode === 9;
 
+            // Reset buffer if gap is too long (human typing)
             if (currentTime - lastTime > 1000) {
                 buffer = "";
             }
@@ -1108,16 +1088,16 @@ class InProcessCreate {
                 } else if (e.keyCode >= 32 && e.keyCode <= 126) {
                     buffer += String.fromCharCode(e.keyCode);
                 }
-            }
-
-            if (isTerminator && buffer.length > 5 && buffer.includes("|")) {
+            } else if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
                 e.preventDefault();
+                clearTimeout(scanTimeout);
                 processScan(buffer);
                 buffer = "";
             }
 
             lastTime = currentTime;
 
+            // Auto-process on timeout for scanners without Enter terminator
             clearTimeout(scanTimeout);
             scanTimeout = setTimeout(() => {
                 if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
@@ -1126,16 +1106,6 @@ class InProcessCreate {
                 }
             }, 500);
         }, true);
-
-        // ─── Method C: Catch scans that land in OTHER visible fields ───
-        $(document).on("input", "input:not([type='hidden']):not(#hardwareScanInput)", (e) => {
-            const $el = $(e.target);
-            const val = $el.val() || "";
-            if (val.length > 5 && val.includes("|") && val.split("|").length >= 5) {
-                $el.val("");
-                processScan(val);
-            }
-        });
     }
 
 
