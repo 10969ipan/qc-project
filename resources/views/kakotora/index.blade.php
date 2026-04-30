@@ -95,6 +95,10 @@
         padding: 10px 0 !important;
         margin: 0 !important;
         border-top: 1px solid #e2e8f0 !important;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
     
     .dataTables_info {
@@ -225,8 +229,7 @@
             </div>
         </form>
 
-        <div class="table-responsive">
-            <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
+        <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th width="30"></th>
@@ -331,7 +334,6 @@
                             @endforeach
                         </tbody>
                     </table>
-            </div>
         </div>
     </div>
 
