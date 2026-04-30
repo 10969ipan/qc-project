@@ -1513,10 +1513,14 @@ class InProcessCreate {
         $("#checksheetForm").on("submit", function (e) {
             e.preventDefault();
 
-            // Mencegah submit premature dari tombol Enter PDA Scanner 
-            // Form hanya boleh disubmit secara eksplisit melalui tombol "Save"
-            if (e.originalEvent && (!e.originalEvent.submitter || e.originalEvent.submitter.id !== 'saveBtn')) {
-                console.log("Submit form dicegah: Harus menggunakan tombol Save. (Bypass PDA Enter)");
+            // Deteksi submitter (tombol yang diklik)
+            // Menggunakan e.originalEvent.submitter (Chrome modern) atau document.activeElement (fallback)
+            const submitter = (e.originalEvent && e.originalEvent.submitter) || document.activeElement;
+            
+            // JIKA submit BUKAN dipicu oleh tombol Save (#saveBtn), maka abaikan.
+            // Ini sangat penting untuk memblokir aksi "Enter" atau "Go" otomatis dari PDA Scanner.
+            if (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0)) {
+                console.warn("Submit diblokir karena tidak berasal dari tombol Save.");
                 return false;
             }
 
