@@ -1168,21 +1168,31 @@ class InProcessCreate {
     }
 
     initMachinePersistence() {
-        const $machineSelect = $("#code_machine");
-        if (!$machineSelect.length) return;
+        const _this = this;
+        const fields = [
+            { id: "code_machine", key: "last_machine_selection" },
+            { id: "shiftSelect", key: "last_shift_selection", name: "shift" },
+            { id: "operatorInput", key: "last_operator_initials", name: "operator_initials" }
+        ];
 
-        // Load from localStorage if exists and no value is currently selected
-        const lastMachine = localStorage.getItem("last_machine_selection");
-        if (lastMachine && !$machineSelect.val()) {
-            $machineSelect.val(lastMachine);
-        }
+        fields.forEach(field => {
+            const $el = field.id ? $("#" + field.id) : $(`input[name="${field.name}"], select[name="${field.name}"]`);
+            if (!$el.length) return;
 
-        // Save on change
-        $machineSelect.on("change", function () {
-            const val = $(this).val();
-            if (val) {
-                localStorage.setItem("last_machine_selection", val);
+            // Load from localStorage
+            const savedVal = localStorage.getItem(field.key);
+            if (savedVal && (!$el.val() || $el.val() === "")) {
+                console.log(`[Persistence] Restoring ${field.key}: ${savedVal}`);
+                $el.val(savedVal).trigger("change");
             }
+
+            // Save on change/input
+            $el.on("change input", function () {
+                const val = $(this).val();
+                if (val) {
+                    localStorage.setItem(field.key, val);
+                }
+            });
         });
     }
 
@@ -1560,7 +1570,18 @@ class InProcessCreate {
             const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
             const itemId = $("#itemSelect").val();
-            const codeMachine = $("#code_machine").val();
+            let codeMachine = $("#code_machine").val();
+            
+            // FALLBACK: Jika Mesin kosong (karena page reload), coba ambil dari localStorage
+            if (!codeMachine) {
+                const savedMachine = localStorage.getItem("last_machine_selection");
+                if (savedMachine) {
+                    console.log("[Persistence] Auto-filling machine from localStorage fallback...");
+                    $("#code_machine").val(savedMachine).trigger("change");
+                    codeMachine = savedMachine;
+                }
+            }
+
             const totalQty = $('input[name="total_qty"]').val();
             const samplingQty = $('input[name="sampling_qty"]').val();
             const operatorInitials = $('input[name="operator_initials"]').val();
