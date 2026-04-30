@@ -1001,50 +1001,58 @@ class InProcessCreate {
     initHardwareScanner() {
         let buffer = "";
         let lastTime = Date.now();
+        let scanTimeout;
+
+        const processScan = () => {
+            if (buffer.length > 5 && buffer.includes("|")) {
+                // Validation: Timer must be running
+                if (!this.timerRunning) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Tombol Start Belum Diklik",
+                        text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
+                        confirmButtonColor: "#3085d6",
+                    });
+                    buffer = "";
+                    return;
+                }
+
+                // Clear focused input to prevent QR string "leakage" into the field
+                if (
+                    document.activeElement &&
+                    (document.activeElement.tagName === "INPUT" ||
+                        document.activeElement.tagName === "TEXTAREA")
+                ) {
+                    $(document.activeElement).val("");
+                }
+
+                $("#scanMethodInput").val("hardware");
+                this.parseAndFillQR(buffer);
+                buffer = "";
+            }
+        };
 
         $(document).on("keydown", (e) => {
             const currentTime = Date.now();
-            const isEnter = e.key === "Enter" || e.keyCode === 13;
+            // Support Enter or Tab as terminators (common in many scanner configurations)
+            const isTerminator =
+                e.key === "Enter" ||
+                e.keyCode === 13 ||
+                e.key === "Tab" ||
+                e.keyCode === 9;
 
-            // Handheld scanners (Honeywell/Zebra) are extremely fast but can have jitter
-            // 200ms is safe for most wireless and handheld devices
-            if (currentTime - lastTime > 200) {
+            // Increased latency tolerance to 500ms for slow wireless devices
+            if (currentTime - lastTime > 500) {
                 buffer = "";
             }
 
-            if (isEnter) {
-                // If buffer contains a valid-looking QR with | separator
+            if (isTerminator) {
                 if (buffer.length > 5 && buffer.includes("|")) {
                     e.preventDefault();
-
-                    // Validation: Timer must be running
-                    if (!this.timerRunning) {
-                        Swal.fire({
-                            icon: "warning",
-                            title: "Tombol Start Belum Diklik",
-                            text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
-                            confirmButtonColor: "#3085d6",
-                        });
-                        buffer = "";
-                        return;
-                    }
-
-                    // Clear focused input to prevent QR string "leakage" into the field
-                    if (
-                        document.activeElement &&
-                        (document.activeElement.tagName === "INPUT" ||
-                            document.activeElement.tagName === "TEXTAREA")
-                    ) {
-                        $(document.activeElement).val("");
-                    }
-
-                    $("#scanMethodInput").val("hardware");
-                    this.parseAndFillQR(buffer);
-                    buffer = "";
+                    processScan();
                 }
             } else {
-                // Only capture printable characters
-                // Some Android handhelds return 'Unidentified' for key, so we fallback to String.fromCharCode
+                // Capture printable characters
                 let char = e.key;
                 if (char && char.length === 1) {
                     buffer += char;
@@ -1054,6 +1062,18 @@ class InProcessCreate {
             }
 
             lastTime = currentTime;
+
+            // Auto-process if buffer contains a full valid QR pattern and no activity for 300ms
+            // Useful for scanners that don't send a terminator (Enter/Tab)
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => {
+                if (buffer.length > 10 && buffer.includes("|")) {
+                    const parts = buffer.split("|");
+                    if (parts.length >= 5) {
+                        processScan();
+                    }
+                }
+            }, 300);
         });
     }
 
