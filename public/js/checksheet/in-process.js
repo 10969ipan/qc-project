@@ -1002,16 +1002,16 @@ class InProcessCreate {
         let buffer = "";
         let lastTime = Date.now();
 
-        $(document).on("keypress", (e) => {
+        $(document).on("keydown", (e) => {
             const currentTime = Date.now();
 
-            // Industrial scanners are very fast (intervals < 50ms)
-            if (currentTime - lastTime > 50) {
+            // Wireless scanners often have slightly higher latency between characters (increased to 200ms)
+            if (currentTime - lastTime > 200) {
                 buffer = "";
             }
 
-            if (e.which === 13) {
-                // Enter key
+            if (e.key === "Enter") {
+                // If buffer contains a valid-looking QR with | separator
                 if (buffer.length > 5 && buffer.includes("|")) {
                     e.preventDefault();
                     $("#scanMethodInput").val("hardware");
@@ -1019,8 +1019,9 @@ class InProcessCreate {
                     buffer = "";
                 }
             } else {
-                if (e.which >= 32) {
-                    buffer += String.fromCharCode(e.which);
+                // Only capture printable characters (single characters)
+                if (e.key.length === 1) {
+                    buffer += e.key;
                 }
             }
 
