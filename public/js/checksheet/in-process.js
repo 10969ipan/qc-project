@@ -1003,171 +1003,132 @@ class InProcessCreate {
         let lastTime = Date.now();
         let scanTimeout;
 
-        // Debug bar helper
-        const dbg = (key, buf, status) => {
-            const active = document.activeElement;
-            const fieldName = active ? (active.id || active.name || active.tagName) : "-";
-            const $k = $("#dbgLastKey");
-            const $b = $("#dbgBuffer");
-            const $f = $("#dbgActiveField");
-            const $s = $("#dbgStatus");
-            if ($k.length) $k.text(key || "-");
-            if ($b.length) $b.text(buf ? buf.substring(0, 40) + (buf.length > 40 ? "..." : "") : "-");
-            if ($f.length) $f.text(fieldName);
-            if ($s.length) {
-                $s.text(status || "Menerima input...");
-                $s.css("color", status && status.includes("✅") ? "#39ff14" : status && status.includes("❌") ? "#f44" : "#ffd700");
-            }
+        const $scanInput  = $("#hardwareScanInput");
+        const $scanStatus = $("#hwScanStatus");
+
+        const setStatus = (msg, color) => {
+            $scanStatus.text(msg).css("color", color || "#f90");
         };
 
-        // 1. Create a "Ghost Input" to catch scans when NO field is focused (Crucial for Handheld PDAs)
-        if (!$("#pdaScanGhostInput").length) {
-            $("<input>")
-                .attr({
-                    type: "text",
-                    id: "pdaScanGhostInput",
-                    autocomplete: "off",
-                    style: "position:fixed; top:50%; left:50%; opacity:0.01; width:1px; height:1px; z-index:1; border:none; outline:none;",
-                })
-                .appendTo("body");
-        }
-        const $ghost = $("#pdaScanGhostInput");
-        // Focus ghost on page load so PDA scanner data goes there by default
-        setTimeout(() => $ghost.trigger("focus"), 500);
-
         const processScan = (raw) => {
-            console.log("Hardware Scan Detected:", raw);
-            dbg("-", raw, "⏳ Memproses...");
+            raw = raw.trim();
+            console.log("Hardware Scan:", raw);
 
             if (!raw.includes("|")) {
-                dbg("-", raw, `❌ Pola QR salah - tidak ada simbol | ditemukan. Data: "${raw}"`);
+                setStatus("❌ Format QR salah", "#f44");
+                $scanInput.val("");
                 buffer = "";
-                $ghost.val("");
                 return;
             }
 
-            if (raw.length <= 5) {
-                dbg("-", raw, `❌ Data terlalu pendek: ${raw.length} karakter`);
+            const parts = raw.split("|");
+            if (parts.length < 5) {
+                setStatus(`❌ Hanya ${parts.length} bagian (butuh 5)`, "#f44");
+                $scanInput.val("");
                 buffer = "";
-                $ghost.val("");
                 return;
             }
 
-            // Validation: Timer must be running
             if (!this.timerRunning) {
-                dbg("-", raw, "⚠️ Tombol Start belum diklik!");
+                setStatus("⚠️ Klik Start dulu!", "#f90");
                 Swal.fire({
                     icon: "warning",
                     title: "Tombol Start Belum Diklik",
                     text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
                     confirmButtonColor: "#3085d6",
                 });
+                $scanInput.val("");
                 buffer = "";
-                $ghost.val("");
                 return;
             }
 
-            // Clear focused input to prevent QR string "leakage" into the field
-            if (
-                document.activeElement &&
-                (document.activeElement.tagName === "INPUT" ||
-                    document.activeElement.tagName === "TEXTAREA") &&
-                document.activeElement.id !== "pdaScanGhostInput"
-            ) {
-                $(document.activeElement).val("");
-            }
-
-            dbg("-", raw, "✅ Scan berhasil diproses!");
+            setStatus("✅ Scan berhasil!", "#39ff14");
             $("#scanMethodInput").val("hardware");
             this.parseAndFillQR(raw);
+            $scanInput.val("");
             buffer = "";
-            $ghost.val("");
-            // Re-focus ghost after scan
-            setTimeout(() => $ghost.trigger("focus"), 300);
+
+            // Re-activate scan area after processing
+            setTimeout(() => {
+                setStatus("⚡ Siap scan berikutnya", "#0ff");
+            }, 1500);
         };
 
-        // A. Listen for input on the Ghost Field (Catches PDA bursts into focused ghost)
-        $ghost.on("input", () => {
-            const val = $ghost.val();
-            dbg("(ghost input)", val, `Ghost menerima ${val.length} karakter`);
-            if (val.length > 5) {
+        // ─── Method A: Visible scan input (Primary – Android Keyboard Wedge IME) ───
+        if ($scanInput.length) {
+            $scanInput
+                .on("focus", () => setStatus("⚡ Aktif – scan sekarang!", "#39ff14"))
+                .on("blur",  () => setStatus("Tap untuk aktifkan", "#f90"))
+                .on("input", function () {
+                    const val = $(this).val();
+                    // Android IME delivers entire barcode at once via input event
+                    if (val.includes("|")) {
+                        clearTimeout(scanTimeout);
+                        // Short delay to let Android finish delivering all chars
+                        scanTimeout = setTimeout(() => processScan($(this).val()), 100);
+                    }
+                })
+                .on("keydown", function (e) {
+                    // PC/wired scanner sends Enter after barcode
+                    if (e.key === "Enter" || e.keyCode === 13) {
+                        e.preventDefault();
+                        const val = $(this).val().trim();
+                        if (val.length > 5) processScan(val);
+                    }
+                });
+
+            setStatus("Tap untuk aktifkan", "#f90");
+        }
+
+        // ─── Method B: Global keydown (PC wired/wireless scanners – NOT Android IME) ───
+        window.addEventListener("keydown", (e) => {
+            // Skip if user is inside hardwareScanInput (handled above)
+            if (document.activeElement && document.activeElement.id === "hardwareScanInput") return;
+
+            const currentTime = Date.now();
+            const isTerminator = e.key === "Enter" || e.keyCode === 13 || e.key === "Tab" || e.keyCode === 9;
+
+            if (currentTime - lastTime > 1000) {
+                buffer = "";
+            }
+
+            if (!isTerminator) {
+                const char = e.key;
+                if (char && char.length === 1) {
+                    buffer += char;
+                } else if (e.keyCode >= 32 && e.keyCode <= 126) {
+                    buffer += String.fromCharCode(e.keyCode);
+                }
+            }
+
+            if (isTerminator && buffer.length > 5 && buffer.includes("|")) {
+                e.preventDefault();
+                processScan(buffer);
+                buffer = "";
+            }
+
+            lastTime = currentTime;
+
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => {
+                if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+                    processScan(buffer);
+                    buffer = "";
+                }
+            }, 500);
+        }, true);
+
+        // ─── Method C: Catch scans that land in OTHER visible fields ───
+        $(document).on("input", "input:not([type='hidden']):not(#hardwareScanInput)", (e) => {
+            const $el = $(e.target);
+            const val = $el.val() || "";
+            if (val.length > 5 && val.includes("|") && val.split("|").length >= 5) {
+                $el.val("");
                 processScan(val);
             }
         });
-
-        // Keep ghost focused when clicking outside interactive elements
-        $(document).on("click", (e) => {
-            const tag = e.target.tagName;
-            if (tag !== "INPUT" && tag !== "SELECT" && tag !== "TEXTAREA" && tag !== "BUTTON" && tag !== "A") {
-                setTimeout(() => $ghost.trigger("focus"), 50);
-            }
-        });
-
-        // B. Listen for keydown globally (Catches character-by-character wired/wireless)
-        window.addEventListener(
-            "keydown",
-            (e) => {
-                const currentTime = Date.now();
-                const isTerminator =
-                    e.key === "Enter" ||
-                    e.keyCode === 13 ||
-                    e.key === "Tab" ||
-                    e.keyCode === 9;
-
-                if (currentTime - lastTime > 1000) {
-                    buffer = "";
-                }
-
-                if (!isTerminator) {
-                    let char = e.key;
-                    if (char && char.length === 1) {
-                        buffer += char;
-                    } else if (e.keyCode >= 32 && e.keyCode <= 126) {
-                        buffer += String.fromCharCode(e.keyCode);
-                    }
-                    dbg(e.key, buffer, `Mengetahui ${buffer.length} karakter...`);
-                }
-
-                if (isTerminator) {
-                    if (buffer.length > 5) {
-                        e.preventDefault();
-                        dbg("ENTER/TAB", buffer, "⏳ Terminator diterima, memproses...");
-                        processScan(buffer);
-                    }
-                }
-
-                lastTime = currentTime;
-
-                clearTimeout(scanTimeout);
-                scanTimeout = setTimeout(() => {
-                    if (buffer.length > 10 && buffer.includes("|")) {
-                        const parts = buffer.split("|");
-                        if (parts.length >= 5) {
-                            dbg("(timeout)", buffer, "⏳ Auto-process timeout 500ms...");
-                            processScan(buffer);
-                        }
-                    }
-                }, 500);
-            },
-            true,
-        );
-
-        // C. Monitor ALL visible inputs for scan patterns (Catches PDA bursts into focused fields)
-        $(document).on("input", "input:not([type='hidden'])", (e) => {
-            const $el = $(e.target);
-            if ($el.attr("id") === "pdaScanGhostInput") return;
-
-            const val = $el.val() || "";
-            dbg("(field input)", val, `Perubahan di field: ${$el.attr("id") || $el.attr("name")}`);
-            if (val.length > 5 && val.includes("|")) {
-                const parts = val.split("|");
-                if (parts.length >= 5) {
-                    $el.val("");
-                    processScan(val);
-                }
-            }
-        });
     }
+
 
     fillDimensionsWithDash() {
         $(".dimension-input").val("-");

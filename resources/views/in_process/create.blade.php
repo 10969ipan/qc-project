@@ -3,16 +3,25 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
-{{-- ========================================================
-     SCANNER DEBUG BAR - Remove after fixing Winson scanner
-     ======================================================== --}}
-<div id="scannerDebugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#1e1e1e; color:#39ff14; font-family:monospace; font-size:12px; padding:6px 12px; display:flex; gap:20px; align-items:center; border-top:2px solid #39ff14;">
-    <span style="color:#ffd700; font-weight:bold;">🔍 SCANNER DEBUG</span>
-    <span>Tombol terakhir: <strong id="dbgLastKey" style="color:#fff;">-</strong></span>
-    <span>Buffer: <strong id="dbgBuffer" style="color:#0ff;">-</strong></span>
-    <span>Input field: <strong id="dbgActiveField" style="color:#f90;">-</strong></span>
-    <span>Status: <strong id="dbgStatus" style="color:#f44;">Menunggu input scanner...</strong></span>
-    <button onclick="document.getElementById('scannerDebugBar').remove()" style="margin-left:auto; background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer; border-radius:3px;">✕ Tutup</button>
+{{-- Hardware Scan Area for Handheld PDA (Keyboard Wedge Mode) --}}
+<div id="hardwareScanArea" style="position:sticky; top:0; z-index:200; background:linear-gradient(135deg,#1a1a2e,#16213e); border-bottom:3px solid #0f3460; padding:8px 16px; display:flex; align-items:center; gap:12px; box-shadow:0 2px 12px rgba(0,0,0,0.4);">
+    <div style="display:flex; align-items:center; gap:8px; flex:1;">
+        <span style="font-size:1.4rem;">📡</span>
+        <div style="flex:1;">
+            <div style="color:#e94560; font-size:0.65rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px;">Hardware Scanner (Handheld PDA)</div>
+            <input
+                type="text"
+                id="hardwareScanInput"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="👆 Tap di sini, lalu scan QR Code..."
+                style="width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(233,69,96,0.4); border-radius:6px; color:#fff; padding:6px 12px; font-size:0.85rem; outline:none;"
+            >
+        </div>
+    </div>
+    <div id="hwScanStatus" style="color:#f90; font-size:0.72rem; white-space:nowrap; min-width:120px; text-align:right;">Belum aktif</div>
 </div>
 
 <style>
