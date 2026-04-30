@@ -1066,9 +1066,12 @@ class InProcessCreate {
         $(document).on("input", "input:not([type='hidden']), textarea:not([type='hidden'])", function () {
             const val = ($(this).val() || "").trim();
             if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
-                $(this).val(""); // Clear the field immediately
                 clearTimeout(scanTimeout);
-                processScan(val);
+                scanTimeout = setTimeout(() => {
+                    const finalVal = ($(this).val() || "").trim();
+                    $(this).val(""); // Clear the field immediately
+                    processScan(finalVal);
+                }, 100);
             }
         });
 
