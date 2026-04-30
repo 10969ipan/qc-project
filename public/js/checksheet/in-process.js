@@ -1056,7 +1056,17 @@ class InProcessCreate {
 
             showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
-            this.parseAndFillQR(raw);
+            
+            // Panggil parseAndFillQR dengan callback untuk auto-submit
+            this.parseAndFillQR(raw, (success) => {
+                if (success) {
+                    // Beri jeda sebentar agar user bisa melihat feedback, lalu simpan otomatis
+                    setTimeout(() => {
+                        console.log("Auto-submitting form after successful hardware scan...");
+                        $("#checksheetForm").trigger("submit");
+                    }, 800);
+                }
+            });
             buffer = "";
         };
 
@@ -1514,12 +1524,13 @@ class InProcessCreate {
             e.preventDefault();
 
             // Deteksi submitter (tombol yang diklik)
-            // Menggunakan e.originalEvent.submitter (Chrome modern) atau document.activeElement (fallback)
             const submitter = (e.originalEvent && e.originalEvent.submitter) || document.activeElement;
             
-            // JIKA submit BUKAN dipicu oleh tombol Save (#saveBtn), maka abaikan.
-            // Ini sangat penting untuk memblokir aksi "Enter" atau "Go" otomatis dari PDA Scanner.
-            if (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0)) {
+            // JIKA submit BUKAN dipicu oleh tombol Save (#saveBtn), 
+            // KECUALI jika ini adalah auto-submit dari Hardware Scanner (PDA)
+            const isHardwareScan = $("#scanMethodInput").val() === "hardware";
+
+            if (!isHardwareScan && (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0))) {
                 console.warn("Submit diblokir karena tidak berasal dari tombol Save.");
                 return false;
             }
