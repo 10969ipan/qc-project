@@ -1495,6 +1495,14 @@ class InProcessCreate {
 
         $("#checksheetForm").on("submit", function (e) {
             e.preventDefault();
+
+            // Mencegah submit premature dari tombol Enter PDA jika kursor di field scanner
+            // (Membiarkan fungsi debounce 100ms scanner bekerja mengambil data QR penuh)
+            if (document.activeElement && document.activeElement.id === 'sapCodeInput') {
+                console.log("Submit dicegah karena sedang di field scanner (menunggu debounce PDA)");
+                return false;
+            }
+
             const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
             const itemId = $("#itemSelect").val();
