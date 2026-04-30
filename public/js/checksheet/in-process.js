@@ -1003,6 +1003,18 @@ class InProcessCreate {
         let lastTime = Date.now();
         let scanTimeout;
 
+        // 1. Create a "Ghost Input" to catch scans when NO field is focused (Crucial for Handheld PDAs)
+        if (!$("#pdaScanGhostInput").length) {
+            $("<input>")
+                .attr({
+                    type: "text",
+                    id: "pdaScanGhostInput",
+                    style: "position:fixed; top:-100px; left:-100px; opacity:0; width:1px; height:1px; z-index:-1;",
+                })
+                .appendTo("body");
+        }
+        const $ghost = $("#pdaScanGhostInput");
+
         const processScan = (raw) => {
             console.log("Hardware Scan Detected:", raw);
             if (raw.length > 5 && raw.includes("|")) {
@@ -1015,6 +1027,7 @@ class InProcessCreate {
                         confirmButtonColor: "#3085d6",
                     });
                     buffer = "";
+                    $ghost.val("");
                     return;
                 }
 
@@ -1030,10 +1043,19 @@ class InProcessCreate {
                 $("#scanMethodInput").val("hardware");
                 this.parseAndFillQR(raw);
                 buffer = "";
+                $ghost.val("");
             }
         };
 
-        // Use window for broader event capturing
+        // A. Listen for input on the Ghost Field (Catches PDA bursts)
+        $ghost.on("input", function () {
+            const val = $(this).val();
+            if (val.length > 10 && val.includes("|")) {
+                processScan(val);
+            }
+        });
+
+        // B. Listen for keydown globally (Catches character-by-character wired/wireless)
         window.addEventListener(
             "keydown",
             (e) => {
@@ -1044,12 +1066,18 @@ class InProcessCreate {
                     e.key === "Tab" ||
                     e.keyCode === 9;
 
-                // Debug: Log keys in console if someone is investigating
-                if (buffer.length > 0) {
-                    console.debug(`Key: ${e.key}, Code: ${e.keyCode}, Delta: ${currentTime - lastTime}ms`);
+                // Redirect focus to ghost if user types/scans while NOT in an input field
+                const active = document.activeElement;
+                const isUserInInput =
+                    active.tagName === "INPUT" ||
+                    active.tagName === "SELECT" ||
+                    active.tagName === "TEXTAREA" ||
+                    active.isContentEditable;
+
+                if (!isUserInInput && !e.ctrlKey && !e.altKey && e.key.length === 1) {
+                    $ghost.focus();
                 }
 
-                // If delay is too long, it's probably manual typing (increased to 1000ms for debug)
                 if (currentTime - lastTime > 1000) {
                     buffer = "";
                 }
@@ -1060,19 +1088,16 @@ class InProcessCreate {
                         processScan(buffer);
                     }
                 } else {
-                    // Capture printable characters
                     let char = e.key;
                     if (char && char.length === 1) {
                         buffer += char;
                     } else if (e.keyCode >= 32 && e.keyCode <= 126) {
-                        // Fallback for some Android/Handheld devices
                         buffer += String.fromCharCode(e.keyCode);
                     }
                 }
 
                 lastTime = currentTime;
 
-                // Auto-process if buffer looks like a valid QR and no activity for 500ms
                 clearTimeout(scanTimeout);
                 scanTimeout = setTimeout(() => {
                     if (buffer.length > 10 && buffer.includes("|")) {
@@ -1086,34 +1111,17 @@ class InProcessCreate {
             true,
         );
 
-        // 3. Monitor ALL inputs for a sudden "Scan" pattern (Crucial for Android PDA Handhelds)
-        // Android PDAs often fill the focused field in one burst without individual keydowns
+        // C. Monitor ALL visible inputs for scan patterns (Catches PDA bursts into focused fields)
         $(document).on("input", "input:not([type='hidden'])", (e) => {
             const $el = $(e.target);
-            const val = $el.val() || "";
+            if ($el.attr("id") === "pdaScanGhostInput") return;
 
-            // If a field suddenly contains the QR pattern PN|SUP|QTY|ID|SAP
+            const val = $el.val() || "";
             if (val.length > 10 && val.includes("|")) {
                 const parts = val.split("|");
                 if (parts.length >= 5) {
-                    console.log("PDA Input Scan Detected in field:", $el.attr("id"));
-
-                    // Validation: Timer must be running
-                    if (!this.timerRunning) {
-                        $el.val(""); // Clear the "leaked" data
-                        Swal.fire({
-                            icon: "warning",
-                            title: "Tombol Start Belum Diklik",
-                            text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
-                            confirmButtonColor: "#3085d6",
-                        });
-                        return;
-                    }
-
-                    // Clear the field and process as hardware scan
                     $el.val("");
-                    $("#scanMethodInput").val("hardware");
-                    this.parseAndFillQR(val);
+                    processScan(val);
                 }
             }
         });
