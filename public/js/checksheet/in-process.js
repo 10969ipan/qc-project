@@ -1004,24 +1004,40 @@ class InProcessCreate {
 
         $(document).on("keydown", (e) => {
             const currentTime = Date.now();
+            const isEnter = e.key === "Enter" || e.keyCode === 13;
 
-            // Wireless scanners often have slightly higher latency between characters (increased to 200ms)
+            // Handheld scanners (Honeywell/Zebra) are extremely fast but can have jitter
+            // 200ms is safe for most wireless and handheld devices
             if (currentTime - lastTime > 200) {
                 buffer = "";
             }
 
-            if (e.key === "Enter") {
+            if (isEnter) {
                 // If buffer contains a valid-looking QR with | separator
                 if (buffer.length > 5 && buffer.includes("|")) {
                     e.preventDefault();
+
+                    // Clear focused input to prevent QR string "leakage" into the field
+                    if (
+                        document.activeElement &&
+                        (document.activeElement.tagName === "INPUT" ||
+                            document.activeElement.tagName === "TEXTAREA")
+                    ) {
+                        $(document.activeElement).val("");
+                    }
+
                     $("#scanMethodInput").val("hardware");
                     this.parseAndFillQR(buffer);
                     buffer = "";
                 }
             } else {
-                // Only capture printable characters (single characters)
-                if (e.key.length === 1) {
-                    buffer += e.key;
+                // Only capture printable characters
+                // Some Android handhelds return 'Unidentified' for key, so we fallback to String.fromCharCode
+                let char = e.key;
+                if (char && char.length === 1) {
+                    buffer += char;
+                } else if (e.keyCode >= 32 && e.keyCode <= 126) {
+                    buffer += String.fromCharCode(e.keyCode);
                 }
             }
 
