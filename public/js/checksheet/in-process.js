@@ -397,6 +397,9 @@ class InProcessCreate {
         // Berat cavity maksimal
         this.MAX_WEIGHT_CAV = 8;
 
+        this.isProcessingScan = false;
+        this.scanLockTimeout = null;
+
         this.init();
     }
 
@@ -1027,10 +1030,15 @@ class InProcessCreate {
 
         const processScan = (raw) => {
             raw = (raw || "").trim();
-            console.log("Hardware Scan:", raw);
+            console.log("Hardware Scan Triggered:", raw);
+
+            // Aktifkan lock agar submit form diblokir sementara
+            this.isProcessingScan = true;
+            clearTimeout(this.scanLockTimeout);
 
             if (!raw.includes("|")) {
                 showToast("❌ Format QR salah (tidak ada |)", "#f87171");
+                this.isProcessingScan = false;
                 buffer = "";
                 return;
             }
@@ -1050,6 +1058,7 @@ class InProcessCreate {
                     confirmButtonColor: "#3085d6",
                     confirmButtonText: "OK, mengerti",
                 });
+                this.isProcessingScan = false;
                 buffer = "";
                 return;
             }
@@ -1060,15 +1069,28 @@ class InProcessCreate {
             // Panggil parseAndFillQR dengan callback untuk auto-submit
             this.parseAndFillQR(raw, (success) => {
                 if (success) {
-                    // Beri jeda sebentar agar user bisa melihat feedback, lalu simpan otomatis
                     setTimeout(() => {
                         console.log("Auto-submitting form after successful hardware scan...");
                         $("#checksheetForm").trigger("submit");
+                        // Lock akan dilepas setelah submit atau timeout
+                        this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
                     }, 800);
+                } else {
+                    this.isProcessingScan = false;
                 }
             });
             buffer = "";
         };
+
+        // ─── Method PDA: Global Capturing Listener ───
+        // Menangkap tombol Enter di fase Capturing untuk memblokir submit browser secepat mungkin
+        window.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.keyCode === 13) && document.activeElement && document.activeElement.id === 'sapCodeInput') {
+                console.log("Enter key captured and blocked (PDA Mode)");
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
 
         // ─── Method A: Dedicated input handler for PDA Keyboard Wedge ───
         // Catch the Enter key sent by PDA at the end of the scan
@@ -1545,10 +1567,12 @@ class InProcessCreate {
 
             // 1. Validasi: Item harus dipilih
             if (!itemId) {
-                // JIKA ini adalah submit "siluman" dari scanner (bukan klik tombol Save), 
-                // abaikan saja tanpa memunculkan alert agar tidak mengganggu proses scan.
-                if (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0)) {
-                    console.warn("Submit tanpa Item ID diabaikan (Scanner premature submit).");
+                // JIKA sedang dalam proses scan (isProcessingScan) atau bukan klik tombol Save,
+                // maka abaikan submit ini. Ini adalah kunci untuk memblokir alert "Item Belum Dipilih".
+                const isManualClick = submitter && (submitter.id === 'saveBtn' || $(submitter).closest('#saveBtn').length > 0);
+
+                if (this.isProcessingScan || !isManualClick) {
+                    console.warn("Submit diblokir: Sedang memproses scan atau bukan klik manual.");
                     return false;
                 }
 
