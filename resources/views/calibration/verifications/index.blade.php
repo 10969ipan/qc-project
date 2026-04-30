@@ -561,11 +561,23 @@
                                                 class="form-control form-control-sm border-0 bg-light shadow-none" 
                                                 style="border-radius: 8px;" required>
                                         </div>
-                                        <div class="form-group mb-0">
-                                            <label class="small font-weight-bold text-gray-700">Freq. Kalibrasi</label>
-                                            <input type="text" name="frekuensi_kalibrasi" id="edit_frekuensi_kalibrasi"
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                        <div class="row px-0">
+                                            <div class="col-6">
+                                                <div class="form-group mb-0">
+                                                    <label class="small font-weight-bold text-gray-700">Freq. Kalibrasi</label>
+                                                    <input type="text" name="frekuensi_kalibrasi" id="edit_frekuensi_kalibrasi"
+                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
+                                                        style="border-radius: 8px;" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-group mb-0">
+                                                    <label class="small font-weight-bold text-gray-700">Riwayat Kalibrasi</label>
+                                                    <input type="text" name="riwayat_kalibrasi" id="edit_riwayat_kalibrasi"
+                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
+                                                        style="border-radius: 8px;" readonly>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -745,6 +757,7 @@
                                                         data-serial="{{ $tool->serial_number }}" data-range="{{ $tool->range }}"
                                                         data-resolusi="{{ $tool->resolusi }}"
                                                         data-frekuensi="{{ $tool->frekuensi_kalibrasi }}"
+                                                        data-riwayat="{{ $tool->riwayat_kalibrasi }}"
                                                         data-schedules="{{ json_encode($tool->schedules->pluck('schedule_date')->map(fn($d) => $d->format('Y-m-d'))) }}">
                                                         {{ $tool->name_alat }} ({{ $tool->serial_number }})
                                                     </option>
@@ -826,11 +839,23 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="form-group mb-3">
-                                            <label class="small font-weight-bold text-gray-700">Frekuensi Kalibrasi</label>
-                                            <input type="text" name="frekuensi_kalibrasi" id="modal_frekuensi_kalibrasi"
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                        <div class="row px-0">
+                                            <div class="col-6">
+                                                <div class="form-group mb-3">
+                                                    <label class="small font-weight-bold text-gray-700">Frekuensi Kalibrasi</label>
+                                                    <input type="text" name="frekuensi_kalibrasi" id="modal_frekuensi_kalibrasi"
+                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
+                                                        style="border-radius: 8px;" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-group mb-3">
+                                                    <label class="small font-weight-bold text-gray-700">Riwayat Kalibrasi</label>
+                                                    <input type="text" name="riwayat_kalibrasi" id="modal_riwayat_kalibrasi"
+                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
+                                                        style="border-radius: 8px;" readonly>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="row px-0">

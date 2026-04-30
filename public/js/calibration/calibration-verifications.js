@@ -58,6 +58,11 @@ $(document).ready(function () {
             $('#modal_rentang_ukur').val(selected.data('range'));
             $('#modal_resolusi').val(selected.data('resolusi'));
             $('#modal_frekuensi_kalibrasi').val(selected.data('frekuensi'));
+            
+            // Riwayat Kalibrasi: Increment by 1 for new verification
+            var currentRiwayat = selected.data('riwayat') || '0';
+            var currentCount = parseInt(currentRiwayat.replace(/[^0-9]/g, '')) || 0;
+            $('#modal_riwayat_kalibrasi').val((currentCount + 1) + ' Kali');
 
             $('input[name="merk"]').val('');
             $('input[name="std_toleransi"]').val('');
@@ -151,6 +156,11 @@ $(document).ready(function () {
                 $('#edit_judgment').val(v.judgment);
                 $('#edit_std_toleransi').val(v.std_toleransi);
                 $('#edit_acuan_toleransi').val(v.acuan_toleransi);
+                
+                // Show current riwayat from tool master
+                if (v.tool) {
+                    $('#edit_riwayat_kalibrasi').val(v.tool.riwayat_kalibrasi || '-');
+                }
 
                 if (v.certification_path) {
                     var certUrl = response.certification_url || `/storage/${v.certification_path}`;

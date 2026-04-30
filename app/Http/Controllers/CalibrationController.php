@@ -1437,9 +1437,10 @@ class CalibrationController extends Controller
             // Update tool's schedule planning and sync master data
             $tool = CalibrationTool::find($request->tool_id);
             if ($tool) {
-                // Sync riwayat_kalibrasi based on actual count of verifications
-                $verifCount = $tool->verifications()->count();
-                $newRiwayat = $verifCount . ' Kali';
+                // Increment riwayat_kalibrasi based on previous value
+                $currentRiwayat = $tool->riwayat_kalibrasi;
+                $currentCount = (int) preg_replace('/[^0-9]/', '', $currentRiwayat ?? '0');
+                $newRiwayat = ($currentCount + 1) . ' Kali';
                 
                 $tool->update([
                     'name_alat' => $request->name_alat,
@@ -1597,16 +1598,19 @@ class CalibrationController extends Controller
                     $tool->schedules()->create(['schedule_date' => $request->next_kalibrasi]);
                 }
 
-                // If tool changed, update old tool's riwayat_kalibrasi
+                // If tool changed, adjust both tools' riwayat_kalibrasi
                 if ($oldToolId != $newToolId) {
                     $oldTool = CalibrationTool::find($oldToolId);
                     if ($oldTool) {
-                        $oldTool->update(['riwayat_kalibrasi' => $oldTool->verifications()->count() . ' Kali']);
+                        $oldC = (int) preg_replace('/[^0-9]/', '', $oldTool->riwayat_kalibrasi ?? '1');
+                        $oldTool->update(['riwayat_kalibrasi' => max(0, $oldC - 1) . ' Kali']);
                     }
+                    
+                    $newC = (int) preg_replace('/[^0-9]/', '', $tool->riwayat_kalibrasi ?? '0');
+                    $tool->update(['riwayat_kalibrasi' => ($newC + 1) . ' Kali']);
                 }
-                
-                // Update new tool's riwayat_kalibrasi
-                $tool->update(['riwayat_kalibrasi' => $tool->verifications()->count() . ' Kali']);
+                // If it's the same tool, we don't update riwayat_kalibrasi during an edit
+                // to preserve manual offsets or lifetime counters.
             }
 
             return redirect()->route('calibration.verifications.index', [
@@ -1645,10 +1649,10 @@ class CalibrationController extends Controller
         $verification->delete();
         ActivityLogger::log('deleted', null, "Menghapus data verifikasi alat kalibrasi: {$toolName}");
 
-        // Update riwayat_kalibrasi count after deletion
+        // Update riwayat_kalibrasi count after deletion (Decrementing existing value)
         if ($tool) {
-            $verifCount = $tool->verifications()->count();
-            $tool->update(['riwayat_kalibrasi' => $verifCount . ' Kali']);
+            $currentC = (int) preg_replace('/[^0-9]/', '', $tool->riwayat_kalibrasi ?? '1');
+            $tool->update(['riwayat_kalibrasi' => max(0, $currentC - 1) . ' Kali']);
         }
 
         return redirect()->route('calibration.verifications.index', [
