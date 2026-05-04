@@ -103,7 +103,7 @@ class CalibrationTool extends Model
 
             if ($nVDate) {
                 // If today is past the next calibration date, it's overdue
-                if ($today->gte($nVDate)) {
+                if ($today->gt($nVDate)) {
                     return 'overdue';
                 }
 
