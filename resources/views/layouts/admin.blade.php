@@ -94,42 +94,42 @@
         table thead td,
         .table thead th,
         .table thead td {
-            background-color: #4e73df !important;
-            color: #ffffff !important;
-            font-weight: 600 !important;
-            border-color: #3a5bc7 !important;
-            padding: 0.75rem !important;
-            vertical-align: middle !important;
+            background-color: #4e73df;
+            color: #ffffff;
+            font-weight: 600;
+            border-color: #3a5bc7;
+            padding: 0.75rem;
+            vertical-align: middle;
         }
 
         table tr:first-child th,
         .table tr:first-child th,
         table>tr:first-child th,
         .table>tr:first-child th {
-            background-color: #4e73df !important;
-            color: #ffffff !important;
-            font-weight: 600 !important;
-            border-color: #3a5bc7 !important;
-            padding: 0.75rem !important;
-            vertical-align: middle !important;
+            background-color: #4e73df;
+            color: #ffffff;
+            font-weight: 600;
+            border-color: #3a5bc7;
+            padding: 0.75rem;
+            vertical-align: middle;
         }
 
         table tbody tr:first-child th,
         .table tbody tr:first-child th {
-            background-color: #4e73df !important;
-            color: #ffffff !important;
-            font-weight: 600 !important;
-            border-color: #3a5bc7 !important;
-            padding: 0.75rem !important;
-            vertical-align: middle !important;
+            background-color: #4e73df;
+            color: #ffffff;
+            font-weight: 600;
+            border-color: #3a5bc7;
+            padding: 0.75rem;
+            vertical-align: middle;
         }
 
         table th:not(table table th):not(td table th):not(.table .table th),
         .table th:not(table table th):not(td table th):not(.table .table th) {
-            background-color: #4e73df !important;
-            color: #ffffff !important;
-            font-weight: 600 !important;
-            border-color: #3a5bc7 !important;
+            background-color: #4e73df;
+            color: #ffffff;
+            font-weight: 600;
+            border-color: #3a5bc7;
         }
 
         td table th,
@@ -803,6 +803,28 @@
         .top-brand-row {
             padding: 0.35rem 1.5rem !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        td table th,
+        td table tbody th,
+        td table thead th,
+        td .table th,
+        td .table tbody th,
+        td .table thead th,
+        .kimia-col table th,
+        .kimia-col .table th,
+        .kimia-col table tbody th,
+        .kimia-col table thead th,
+        table table th,
+        table table tbody th,
+        table table thead th,
+        .table .table th,
+        .table .table tbody th,
+        .table .table thead th {
+            background-color: #4e73df;
+            color: #ffffff;
+            font-weight: 600;
+            border-color: #3a5bc7;
         }
 
         .main-nav>li>a {

@@ -5,16 +5,14 @@ class SubAssyIndex {
     }
 
     initEventListeners() {
-        $(document).ready(() => {
-            this.initCharacterCounter();
-            this.initLiveSearch();
-            this.initModalHandlers();
-            this.initAjaxForms();
-            this.initQRDetail();
-            if (this.config && this.config.btnScanId) {
-                this.initQRScanner();
-            }
-        });
+        this.initCharacterCounter();
+        this.initLiveSearch();
+        this.initModalHandlers();
+        this.initAjaxForms();
+        this.initQRDetail();
+        if (this.config && this.config.btnScanId) {
+            this.initQRScanner();
+        }
     }
 
     initCharacterCounter() {
@@ -122,11 +120,28 @@ class SubAssyIndex {
             $.ajax({
                 url: $form.attr("action"),
                 method: $form.attr("method"),
-                data: $form.serialize(),
+                data: new FormData($form[0]),
+                processData: false,
+                contentType: false,
                 dataType: "json",
                 success: function (response) {
                     if (response.success) {
-                        window.location.reload();
+                        const swalInstance = window.Swal || (typeof Swal !== 'undefined' ? Swal : null);
+                        if (swalInstance && typeof swalInstance.fire === 'function') {
+                            swalInstance.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message || 'Data berhasil diperbarui.',
+                                showConfirmButton: true,
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#4e73df'
+                            }).then((result) => {
+                                window.location.reload();
+                            });
+                        } else {
+                            alert(response.message || 'Data berhasil diperbarui.');
+                            window.location.reload();
+                        }
                     } else {
                         $modalErrors
                             .html(
@@ -1780,5 +1795,5 @@ class SubAssyCreate {
     }
 }
 
-window.initSubAssyIndex = () => new SubAssyIndex();
+window.initSubAssyIndex = (config) => new SubAssyIndex(config);
 window.initSubAssyCreate = (config) => new SubAssyCreate(config);

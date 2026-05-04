@@ -856,7 +856,7 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/checksheet/sub-assy.js') }}"></script>
+    <script src="{{ asset('js/checksheet/sub-assy.js') }}?v={{ time() }}"></script>
     <script>
         $(document).ready(function () {
             if (typeof window.initSubAssyIndex === 'function') {

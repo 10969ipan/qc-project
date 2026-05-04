@@ -7,17 +7,24 @@ $(document).ready(function() {
     }
 
     function calculatePPM(pcs, delivery) {
-        if (pcs && delivery && delivery > 0) {
-            return ((pcs / delivery) * 1000000).toFixed(2);
+        let p = isNaN(pcs) ? 0 : pcs;
+        let d = isNaN(delivery) ? 0 : delivery;
+
+        if (d > 0) {
+            return ((p / d) * 1000000).toFixed(2);
         }
-        return '';
+        return '0.00';
     }
 
-    $(document).on('input', '.calc-input-summary, [class*="calc-input-"]', function() {
+    $(document).on('input', '.calc-input-summary, [class*="calc-input-"], .calc-input-edit', function() {
         let month = $(this).data('month');
         let pcsInput, deliveryInput, ppmInput;
 
-        if (month === 'summary') {
+        if ($(this).hasClass('calc-input-edit')) {
+            pcsInput = $('#edit_total_claim_pcs');
+            deliveryInput = $('#edit_total_delivery');
+            ppmInput = $('#edit_ppm_value');
+        } else if (month === 'summary') {
             pcsInput = $('input[name="total_claim_pcs"]');
             deliveryInput = $('input[name="total_delivery"]');
             ppmInput = $('#ppm_value_summary');
@@ -27,16 +34,21 @@ $(document).ready(function() {
             ppmInput = $(`#ppm_value_${month}`);
         }
 
-        let pcs = parseFloat(pcsInput.val());
-        let delivery = parseFloat(deliveryInput.val());
+        let pcsVal = pcsInput.val();
+        let deliveryVal = deliveryInput.val();
+        
+        let pcs = pcsVal === '' ? NaN : parseFloat(pcsVal);
+        let delivery = deliveryVal === '' ? NaN : parseFloat(deliveryVal);
 
         ppmInput.val(calculatePPM(pcs, delivery));
     });
 
-    $(document).on('input', '.calc-input-edit', function() {
-        let pcs = parseFloat($('#edit_total_claim_pcs').val());
-        let delivery = parseFloat($('#edit_total_delivery').val());
-        $('#edit_ppm_value').val(calculatePPM(pcs, delivery));
+    function updateAllPPM(container) {
+        $(container).find('.calc-input-summary, [class*="calc-input-"], .calc-input-edit').trigger('input');
+    }
+
+    $('#modalTambahData, #modalEditData').on('shown.bs.modal', function() {
+        updateAllPPM(this);
     });
 
     $('#modal_plant_id').on('change', function() {

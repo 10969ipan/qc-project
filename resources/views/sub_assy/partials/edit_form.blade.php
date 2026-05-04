@@ -46,6 +46,7 @@
     <input type="hidden" name="quantity" value="{{ $checksheet->quantity }}">
     <input type="hidden" name="unique_code_id" value="{{ $checksheet->unique_code_id }}">
     <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
+    <input type="hidden" name="cycle_time" value="{{ $checksheet->cycle_time }}">
 
     <div class="row">
         <!-- 2. Kolom Kiri: Informasi Produksi -->
@@ -89,6 +90,30 @@
                                     <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Jam Before</label>
+                                <input type="time" name="jam_before" id="jam_before_edit" class="form-control form-control-sm"
+                                    value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Jam After</label>
+                                <input type="time" name="jam_after" id="jam_after_edit" class="form-control form-control-sm"
+                                    value="{{ $checksheet->created_at->format('H:i') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12 text-right">
+                            <small class="text-muted font-weight-bold">
+                                Recalculated Cycle Time: <span id="recalculated_cycle_time_display">{{ $checksheet->cycle_time ?? 0 }}</span> seconds
+                            </small>
                         </div>
                     </div>
 
@@ -379,6 +404,32 @@
             $('#item_id_edit').change(function() {
                 updateDefectOptions();
             });
+
+            // Cycle Time Calculation Logic
+            function calculateRecalculatedCycleTime() {
+                const jamBefore = $('#jam_before_edit').val();
+                const jamAfter = $('#jam_after_edit').val();
+                
+                if (jamBefore && jamAfter) {
+                    const today = new Date().toISOString().split('T')[0];
+                    let before = new Date(`${today}T${jamBefore}`);
+                    let after = new Date(`${today}T${jamAfter}`);
+                    
+                    if (after < before) {
+                        after.setDate(after.getDate() + 1);
+                    }
+                    
+                    const diffSeconds = Math.floor((after - before) / 1000);
+                    
+                    // Optional: show feedback or update hidden cycle_time
+                    // For now, just update the hidden input to be sure
+                    $('input[name="cycle_time"]').val(diffSeconds);
+                    $('#recalculated_cycle_time_display').text(diffSeconds);
+                    console.log('Recalculated cycle time:', diffSeconds);
+                }
+            }
+
+            $('#jam_before_edit, #jam_after_edit').on('change input', calculateRecalculatedCycleTime);
 
             // Initial UI state
             updateJudgment();

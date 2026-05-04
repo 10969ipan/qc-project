@@ -308,6 +308,13 @@ class SubAssyChecksheetController extends Controller
         $checksheet = SubAssyChecksheet::find($id);
         \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Sub Assy: {$checksheet->item->name}");
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status approval berhasil diperbarui.',
+                'index_url' => route('admin.checksheets.index', $request->query())
+            ]);
+        }
         return redirect()->route('admin.checksheets.index', $request->query())->with('success', 'Status approval berhasil diperbarui oleh Admin.');
     }
 

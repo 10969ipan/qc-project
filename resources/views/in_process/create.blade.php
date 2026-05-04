@@ -310,17 +310,17 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold small text-muted mb-1">
-                                            <i class="fas fa-barcode mr-1"></i>Hardware Scanner (PDA)
+                                        <label class="font-weight-bold small font-weight-bold mb-1">
+                                            <i class="fas fa-barcode mr-1"></i>Scan Verifikasi Quantity
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="📡 Tap field ini, lalu scan barcode..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                                placeholder="Tap kolom ini, lalu scan barcode label" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
                                                     <i class="fas fa-qrcode"></i>
-                                                    <span class="d-none d-md-inline ml-1">Scan QR</span>
+                                                    <span class="d-none d-md-inline ml-1"></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -577,7 +577,7 @@
                             <i class="fas fa-play"></i> Start
                         </button>
                         <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
-                            <i class="fas fa-save fa-sm"></i> Simpan Data
+                            <i class="fas fa-save fa-sm"></i> Simpan
                         </button>
                     </div>
                 </div>

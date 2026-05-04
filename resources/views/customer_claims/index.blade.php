@@ -135,36 +135,33 @@
                     box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
                 }
                 .clean-table {
-                    border-collapse: collapse !important;
+                    border-collapse: separate !important;
                     border-spacing: 0 !important;
-                    border: none !important;
+                    border: 1px solid #e2e8f0 !important;
                     width: 100% !important;
                 }
                 .clean-table td, .clean-table th {
-                    border-left: none !important;
-                    border-right: none !important;
+                    border: 1px solid #e2e8f0 !important;
                 }
                 .clean-table tbody td {
-                    border-bottom: 1px solid #f1f5f9 !important;
-                    border-top: none !important;
                     vertical-align: middle !important;
                     color: #334155 !important;
                     padding: 6px 8px !important;
                 }
-                .clean-table thead th {
+                .custom-table-wrapper .clean-table thead th,
+                .custom-table-wrapper table.clean-table thead th {
                     position: -webkit-sticky !important;
                     position: sticky !important;
                     top: 0 !important;
                     z-index: 100 !important;
-                    background-color: #f8fafc !important; /* Industrial Slate */
+                    background-color: #f8fafc !important; 
                     color: #475569 !important;
-                    font-weight: 600 !important;
+                    font-weight: 700 !important;
                     text-transform: uppercase;
                     font-size: 0.65rem !important;
-                    letter-spacing: 0.2px;
-                    padding: 8px 12px !important;
-                    border: none !important;
-                    border-bottom: 2px solid #e2e8f0 !important;
+                    letter-spacing: 0.5px;
+                    padding: 10px 8px !important;
+                    border: 1px solid #e2e8f0 !important;
                     vertical-align: middle !important;
                     white-space: nowrap !important;
                 }
@@ -173,7 +170,7 @@
                     font-size: 0.65rem !important;
                 }
                 .plant-header {
-                    background-color: #f8fafc;
+                    background-color: #f8fafc !important;
                     border-bottom: 1px solid #e2e8f0;
                 }
             </style>
@@ -204,13 +201,13 @@
                                                 <tr class="text-center">
                                                     <td class="align-middle" style="font-size: 0.8rem;">{{ $claim->month_name }}</td>
                                                     <td class="align-middle font-weight-bold {{ $code == 'total' ? 'text-dark' : 'text-primary' }}" style="font-size: 0.8rem;">
-                                                        {{ $claim->ppm_value !== null ? number_format($claim->ppm_value, 2) : '-' }}
+                                                        {{ number_format($claim->ppm_value ?? 0, 2) }}
                                                     </td>
                                                     <td class="align-middle font-weight-bold text-danger" style="font-size: 0.8rem;">
-                                                        {{ $claim->target_value !== null ? number_format($claim->target_value, 2) : '-' }}
+                                                        {{ number_format($claim->target_value ?? 0, 2) }}
                                                     </td>
                                                     <td class="align-middle font-weight-bold text-dark" style="font-size: 0.8rem;">
-                                                        {{ $claim->total_claims !== null ? number_format($claim->total_claims, 0) : '-' }}
+                                                        {{ number_format($claim->total_claims ?? 0, 0) }}
                                                     </td>
                                                     <td class="align-middle">
                                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
@@ -333,9 +330,9 @@
                                                 class="form-control form-control-sm calc-input-summary" data-month="summary" placeholder="0">
                                         </td>
                                         <td class="modal-ppm-fields">
-                                            <input type="number" step="0.01" name="ppm_value" id="ppm_value_summary"
-                                                class="form-control form-control-sm bg-light" placeholder="0.00" readonly>
-                                        </td>
+                                             <input type="number" step="0.01" name="ppm_value" id="ppm_value_summary"
+                                                 class="form-control form-control-sm bg-light" value="0.00" placeholder="0.00" readonly>
+                                         </td>
                                         <td class="modal-ppm-fields">
                                             <input type="number" step="0.01" name="target_value"
                                                 class="form-control form-control-sm" placeholder="0.00">
@@ -357,9 +354,9 @@
                                                     class="form-control form-control-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
                                             </td>
                                             <td class="modal-ppm-fields">
-                                                <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]" id="ppm_value_{{ $num }}"
-                                                    class="form-control form-control-sm bg-light" placeholder="0.00" readonly>
-                                            </td>
+                                                 <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]" id="ppm_value_{{ $num }}"
+                                                     class="form-control form-control-sm bg-light" value="0.00" placeholder="0.00" readonly>
+                                             </td>
                                             <td class="modal-ppm-fields">
                                                 <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
                                                     class="form-control form-control-sm" placeholder="0.00">
@@ -448,7 +445,7 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control bg-light" readonly>
+                                    <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control bg-light" value="0.00" readonly>
                                 </div>
                             </div>
                             <div class="col-md-6">

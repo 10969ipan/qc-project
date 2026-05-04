@@ -261,29 +261,25 @@ class SubAssyChecksheetService extends BaseService
             $defects = $this->processDefects($data);
             $updateData['defects'] = $defects;
 
-            // Update created_at and cycle_time if user has authority (not inspector)
-            if (auth()->user()->role !== 'inspector') {
-                $currentDate = $checksheet->created_at->format('Y-m-d');
+            // Update created_at and cycle_time (Restriction removed as per user request)
+            $currentDate = $checksheet->created_at->format('Y-m-d');
 
-                if (!empty($data['jam_after'])) {
-                    $updateData['created_at'] = \Carbon\Carbon::parse($currentDate . ' ' . $data['jam_after']);
+            if (!empty($data['jam_after'])) {
+                $updateData['created_at'] = \Carbon\Carbon::parse($currentDate . ' ' . $data['jam_after']);
+            }
+
+            if (!empty($data['jam_before']) && !empty($data['jam_after'])) {
+                $before = \Carbon\Carbon::parse($currentDate . ' ' . $data['jam_before']);
+                $after = \Carbon\Carbon::parse($currentDate . ' ' . $data['jam_after']);
+
+                // Handle day transition (crossing midnight)
+                if ($after->lessThan($before)) {
+                    $after->addDay();
                 }
 
-                if (!empty($data['jam_before']) && !empty($data['jam_after'])) {
-                    $before = \Carbon\Carbon::parse($currentDate . ' ' . $data['jam_before']);
-                    $after = \Carbon\Carbon::parse($currentDate . ' ' . $data['jam_after']);
-
-                    // Handle day transition (crossing midnight)
-                    if ($after->lessThan($before)) {
-                        $after->addDay();
-                    }
-
-                    $updateData['cycle_time'] = $before->diffInSeconds($after);
-                } else {
-                    $updateData['cycle_time'] = $data['cycle_time'] ?? null;
-                }
+                $updateData['cycle_time'] = $before->diffInSeconds($after);
             } else {
-                $updateData['cycle_time'] = $data['cycle_time'] ?? null;
+                $updateData['cycle_time'] = $data['cycle_time'] ?? $checksheet->cycle_time;
             }
 
             $checksheet->update($updateData);

@@ -115,16 +115,16 @@
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold small text-muted mb-1">
-                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                            Kode SAP
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Ketik Kode SAP..." autocomplete="off">
+                                                placeholder="Cari Kode SAP..." autocomplete="off">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
                                                     <i class="fas fa-qrcode"></i>
-                                                    <span class="d-none d-md-inline ml-1">Scan QR</span>
+                                                    <span class="d-none d-md-inline ml-1">Scan QR Label Internal</span>
                                                 </button>
                                             </div>
                                         </div>
