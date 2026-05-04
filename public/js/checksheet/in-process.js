@@ -631,8 +631,34 @@ class InProcessCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
+
+        // Match Hardware Scanner logic: Check timer first
+        if (!this.timerRunning) {
+            Swal.fire({
+                icon: "warning",
+                title: "Tombol Start Belum Diklik",
+                text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "OK, mengerti",
+            });
+            return;
+        }
+
+        this.isProcessingScan = true;
         $("#scanMethodInput").val("manual");
-        this.parseAndFillQR(decodedText);
+        
+        // Match PDA behavior: auto-submit on success
+        this.parseAndFillQR(decodedText, (success) => {
+            if (success) {
+                setTimeout(() => {
+                    console.log("Auto-submitting form after successful camera scan...");
+                    $("#checksheetForm").trigger("submit");
+                    this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
+                }, 800);
+            } else {
+                this.isProcessingScan = false;
+            }
+        });
     }
 
     parseAndFillQR(qrString, callback) {
