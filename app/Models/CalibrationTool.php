@@ -62,6 +62,54 @@ class CalibrationTool extends Model
     }
 
     /**
+     * Get the next/target calibration date
+     */
+    public function getNextCalibrationDateAttribute()
+    {
+        $latest = $this->latestVerification;
+
+        // 1. Try to get from latest verification record
+        if ($latest && $latest->tanggal_verifikasi) {
+            if ($latest->next_kalibrasi) {
+                return \Carbon\Carbon::parse((string) $latest->next_kalibrasi)->startOfDay();
+            } elseif ($this->frekuensi_kalibrasi) {
+                $vDate = \Carbon\Carbon::parse((string) $latest->tanggal_verifikasi)->startOfDay();
+                $freq = strtolower($this->frekuensi_kalibrasi);
+                $nVDate = clone $vDate;
+                if (strpos($freq, 'bulan') !== false) {
+                    $val = (int) filter_var($freq, FILTER_SANITIZE_NUMBER_INT);
+                    $nVDate->addMonths($val ?: 6);
+                } elseif (strpos($freq, 'tahun') !== false) {
+                    $val = (int) filter_var($freq, FILTER_SANITIZE_NUMBER_INT);
+                    $nVDate->addYears($val ?: 1);
+                } else {
+                    $nVDate->addMonths(12); // Default 1 year
+                }
+                return $nVDate;
+            }
+        }
+
+        // 2. Fallback to schedules
+        $today = now()->startOfDay();
+        $nextSchedule = $this->schedules()
+            ->where('schedule_date', '>=', $today)
+            ->orderBy('schedule_date', 'asc')
+            ->first();
+
+        if ($nextSchedule) {
+            return \Carbon\Carbon::parse((string) $nextSchedule->schedule_date)->startOfDay();
+        }
+
+        // 3. Fallback to past schedules if all are past
+        $lastPastSchedule = $this->schedules()->orderBy('schedule_date', 'desc')->first();
+        if ($lastPastSchedule) {
+            return \Carbon\Carbon::parse((string) $lastPastSchedule->schedule_date)->startOfDay();
+        }
+
+        return $this->schedule_planning ? \Carbon\Carbon::parse((string) $this->schedule_planning)->startOfDay() : null;
+    }
+
+    /**
      * Get calibration status
      */
     public function getStatusKalibrasiAttribute()
@@ -77,77 +125,16 @@ class CalibrationTool extends Model
         }
 
         $today = now()->startOfDay();
-        $latest = $this->latestVerification;
+        $next = $this->next_calibration_date;
 
-        // 1. Check if the latest verification is still valid (covers TODAY)
-        if ($latest && $latest->tanggal_verifikasi) {
-            $vDate = \Carbon\Carbon::parse((string) $latest->tanggal_verifikasi)->startOfDay();
-            
-            // Determine next calibration date (either from record or estimate from frequency)
-            $nVDate = null;
-            if ($latest->next_kalibrasi) {
-                $nVDate = \Carbon\Carbon::parse((string) $latest->next_kalibrasi)->startOfDay();
-            } elseif ($this->frekuensi_kalibrasi) {
-                $freq = strtolower($this->frekuensi_kalibrasi);
-                $nVDate = clone $vDate;
-                if (strpos($freq, 'bulan') !== false) {
-                    $val = (int) filter_var($freq, FILTER_SANITIZE_NUMBER_INT);
-                    $nVDate->addMonths($val ?: 6);
-                } elseif (strpos($freq, 'tahun') !== false) {
-                    $val = (int) filter_var($freq, FILTER_SANITIZE_NUMBER_INT);
-                    $nVDate->addYears($val ?: 1);
-                } else {
-                    $nVDate->addMonths(12); // Default 1 year
-                }
-            }
-
-            if ($nVDate) {
-                // If today is past the next calibration date, it's overdue
-                if ($today->gt($nVDate)) {
-                    return 'overdue';
-                }
-
-                // Check if approaching next calibration (within 30 days)
-                if ($today->diffInDays($nVDate, false) <= 30) {
-                    return 'due_soon';
-                }
-                return 'calibrated';
-            }
-            
-            // If no next date can be determined but it was verified recently (within last 30 days), assume calibrated
-            if ($vDate->diffInDays($today, false) <= 30) {
-                return 'calibrated';
-            }
-        }
-
-        // 2. Fallback to schedules
-        $nextSchedule = $this->schedules()
-            ->where('schedule_date', '>=', $today)
-            ->orderBy('schedule_date', 'asc')
-            ->first();
-
-        $nextDate = $nextSchedule ? $nextSchedule->schedule_date : $this->schedule_planning;
-
-        if (!$nextDate) {
-            $lastPastSchedule = $this->schedules()->orderBy('schedule_date', 'desc')->first();
-            if ($lastPastSchedule) {
-                // Check if this last past schedule was actually verified
-                $wasVerified = $this->verifications()
-                    ->whereYear('tanggal_verifikasi', \Carbon\Carbon::parse($lastPastSchedule->schedule_date)->year)
-                    ->whereMonth('tanggal_verifikasi', \Carbon\Carbon::parse($lastPastSchedule->schedule_date)->month)
-                    ->exists();
-                
-                if ($wasVerified) return 'calibrated';
-                return 'overdue';
-            }
+        if (!$next) {
             return 'unknown';
         }
 
-        $next = \Carbon\Carbon::parse((string) $nextDate)->startOfDay();
-
+        // If today is past the next calibration date, it's overdue
         if ($today->gt($next)) {
-            // Check if there is a verification that "covers" this past planning date
-            // A verification is considered to cover it if it happened in the same month or after it
+            // Check if there is a verification that "covers" this date
+            // (e.g. happened in same month or after it)
             $hasValidVerif = $this->verifications()
                 ->where('tanggal_verifikasi', '>=', $next->copy()->startOfMonth())
                 ->exists();
@@ -158,6 +145,7 @@ class CalibrationTool extends Model
             return 'overdue';
         }
 
+        // Check if approaching next calibration (within 30 days)
         if ($today->diffInDays($next, false) <= 30) {
             return 'due_soon';
         }

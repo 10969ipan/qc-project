@@ -330,8 +330,12 @@
                                 @endphp
                                 <div class="d-flex flex-column align-items-center">
                                     {!! $icon !!}
-                                    @if($lastVerif && $lastVerif->tanggal_verifikasi)
-                                        <span class="small font-weight-bold text-gray-600 mt-1" style="font-size: 0.65rem;">
+                                    @if($status === 'overdue' && $tool->next_calibration_date)
+                                        <span class="small font-weight-bold text-danger mt-1" style="font-size: 0.65rem;" title="Target Kalibrasi (Overdue)">
+                                            {{ $tool->next_calibration_date->format('d/m/y') }}
+                                        </span>
+                                    @elseif($lastVerif && $lastVerif->tanggal_verifikasi)
+                                        <span class="small font-weight-bold text-gray-600 mt-1" style="font-size: 0.65rem;" title="Terakhir Verifikasi">
                                             {{ \Carbon\Carbon::parse($lastVerif->tanggal_verifikasi)->format('d/m/y') }}
                                         </span>
                                     @endif

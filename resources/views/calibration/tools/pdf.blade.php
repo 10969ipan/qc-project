@@ -182,6 +182,11 @@
                             DUE SOON
                         @elseif($status === 'overdue')
                             OVERDUE
+                            @if($tool->next_calibration_date)
+                                <div style="font-size: 6pt; color: #dc3545; font-weight: bold;">
+                                    ({{ $tool->next_calibration_date->format('d/m/y') }})
+                                </div>
+                            @endif
                         @elseif($status === 'problem')
                             PROBLEM
                         @elseif($status === 'broken')
