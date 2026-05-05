@@ -430,6 +430,57 @@ class SortirCreate {
 
             var judgment = $('#judgmentSelect').val();
             var nextProses = $('#nextProses').val();
+            var itemId = $('#ngItemSelect').val();
+            var totalQty = $('input[name="total_qty"]').val();
+            var samplingQty = $('input[name="sampling_qty"]').val();
+            var operatorInitials = $('input[name="operator_initials"]').val();
+
+            // 1. Validasi: Item harus dipilih
+            if (!itemId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Item Belum Dipilih',
+                    text: 'Silakan pilih Item Part NG terlebih dahulu!'
+                });
+                $('#ngItemSelect').addClass('is-invalid').focus();
+                setTimeout(() => $('#ngItemSelect').removeClass('is-invalid'), 3000);
+                return false;
+            }
+
+            // 2. Validasi: Total Qty
+            if (!totalQty || totalQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Total Qty Belum Diisi',
+                    text: 'Silakan isi Total Qty terlebih dahulu!'
+                });
+                $('input[name="total_qty"]').addClass('is-invalid').focus();
+                setTimeout(() => $('input[name="total_qty"]').removeClass('is-invalid'), 3000);
+                return false;
+            }
+
+            // 3. Validasi: Sampling Qty
+            if (!samplingQty || samplingQty <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sampling Qty Belum Diisi',
+                    text: 'Silakan isi Sampling Qty terlebih dahulu!'
+                });
+                $('input[name="sampling_qty"]').addClass('is-invalid').focus();
+                setTimeout(() => $('input[name="sampling_qty"]').removeClass('is-invalid'), 3000);
+                return false;
+            }
+
+            // 4. Validasi: Inisial QC
+            if (!operatorInitials) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Inisial QC Wajib Diisi'
+                });
+                $('input[name="operator_initials"]').addClass('is-invalid').focus();
+                setTimeout(() => $('input[name="operator_initials"]').removeClass('is-invalid'), 3000);
+                return false;
+            }
 
             if (judgment === 'NG' && !nextProses) {
                 Swal.fire({
@@ -440,6 +491,73 @@ class SortirCreate {
                 });
                 $('#nextProses').focus();
                 return false;
+            }
+
+            // 7. Validasi: Pilihan Defect (NG)
+            const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+            const hasAnyNgInput = $('input[name="defect_quantities[]"]').toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+
+            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
+                let defectMissing = false;
+                let hasAtLeastOneValidDefect = false;
+
+                $(".defect-row").each(function () {
+                    const typeInput = $(this).find('input[name="defect_types[]"]');
+                    const qtyInput = $(this).find('input[name="defect_quantities[]"]');
+                    const type = typeInput.val() ? typeInput.val().trim() : "";
+                    const qty = parseInt(qtyInput.val()) || 0;
+
+                    if (qty > 0) {
+                        if (!type) {
+                            defectMissing = true;
+                            typeInput.addClass("is-invalid");
+                        } else {
+                            hasAtLeastOneValidDefect = true;
+                        }
+                    }
+                });
+
+                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Defect Belum Diisi",
+                        text: "Silakan isi jenis defect pada list defect!",
+                    });
+                    return false;
+                }
+
+                if (defectMissing) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Jenis Defect Belum Diisi",
+                        text: "Terdapat kuantitas defect tanpa keterangan jenis defect!",
+                    });
+                    return false;
+                }
+
+                // 8. Validasi: Qty Defect Dimensi Wajib Diisi (jika terpilih)
+                let dimensionDefectSelected = false;
+                let dimensionQtyEmpty = false;
+                $(".defect-row").each(function () {
+                    const typeInput = $(this).find('input[name="defect_types[]"], select[name="defect_types[]"]');
+                    const text = (typeInput.val() || "").toLowerCase();
+                    if (text.includes("dimensi") || text.includes("dimension")) {
+                        dimensionDefectSelected = true;
+                        const qtyInput = $(this).closest(".defect-row").find('input[name="defect_quantities[]"]');
+                        if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                            dimensionQtyEmpty = true;
+                            qtyInput.addClass("is-invalid");
+                        } else qtyInput.removeClass("is-invalid");
+                    }
+                });
+
+                if (dimensionDefectSelected && dimensionQtyEmpty) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Qty Defect Dimensi Wajib Diisi",
+                    });
+                    return false;
+                }
             }
 
             if (this.timerRunning) {

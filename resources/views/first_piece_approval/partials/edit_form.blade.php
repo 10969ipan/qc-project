@@ -33,7 +33,7 @@
                 <div class="card-body py-3">
                     <div class="form-group mb-3">
                         <label class="small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
-                        <select name="item_id" id="item_id" class="form-control form-control-sm select2-standard" required>
+                        <select name="item_id" id="item_id" class="form-control form-control-sm select2-standard">
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
                                     data-part-number="{{ $item->part_number }}"
@@ -51,13 +51,13 @@
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Tanggal <span class="text-danger">*</span></label>
                                 <input type="date" name="date" id="date" class="form-control form-control-sm"
-                                    value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
+                                    value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
-                                <select name="shift" id="shift" class="form-control form-control-sm" required>
+                                <select name="shift" id="shift" class="form-control form-control-sm">
                                     <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
                                     <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
                                     <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
@@ -70,7 +70,7 @@
                         <div class="col-md-5">
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">No Mesin <span class="text-danger">*</span></label>
-                                <select name="code_machine" id="code_machine" class="form-control form-control-sm" required>
+                                <select name="code_machine" id="code_machine" class="form-control form-control-sm">
                                     <option value="">-- Pilih --</option>
                                     @php
                                         $plantCode = strtolower($checksheet->plant->code ?? 'karawang');
@@ -177,12 +177,12 @@
                         <div class="col-6">
                             <label class="small font-weight-bold text-gray-700">Total Produksi (Qty)</label>
                             <input type="number" name="total_qty" id="total_qty" class="form-control form-control-sm font-weight-bold"
-                                value="{{ $checksheet->total_qty }}" min="0" required>
+                                value="{{ $checksheet->total_qty }}" min="0">
                         </div>
                         <div class="col-6">
                             <label class="small font-weight-bold text-gray-700 text-info">Sampling Qty</label>
                             <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm font-weight-bold border-info"
-                                value="{{ $checksheet->sampling_qty }}" min="0" required>
+                                value="{{ $checksheet->sampling_qty }}" min="0">
                         </div>
                     </div>
 
@@ -233,10 +233,7 @@
                         </div>
                         <div class="col-4">
                              <label class="small font-weight-bold text-uppercase">Judgment</label>
-                             <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold d-none" required>
-                                <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
-                                <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
-                            </select>
+                             <input type="hidden" name="judgment" id="judgment" value="{{ $checksheet->judgment }}">
                             <div id="judgmentDisplay" class="alert mb-0 p-1 text-center font-weight-bold border {{ $checksheet->judgment == 'OK' ? 'alert-success border-success text-success' : 'alert-danger border-danger text-danger' }}" style="height: 31px; line-height: 20px;">
                                 {{ $checksheet->judgment }}
                             </div>

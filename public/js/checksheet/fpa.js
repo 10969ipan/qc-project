@@ -132,7 +132,7 @@ class FpaIndex {
                         this.showModalError(
                             $modalErrors,
                             response.message ||
-                                "Terjadi kesalahan saat menyimpan data.",
+                            "Terjadi kesalahan saat menyimpan data.",
                         );
                         $submitBtn
                             .prop("disabled", false)
@@ -736,15 +736,15 @@ class FpaCreate {
         }
         files = files || [];
 
-        const similar    = $opt.data("similar");
-        const weightStd  = $opt.data("weight-standard");
-        const customer   = $opt.data("customer") || '';
+        const similar = $opt.data("similar");
+        const weightStd = $opt.data("weight-standard");
+        const customer = $opt.data("customer") || '';
         const cavityData = $opt.data("cavity");
         const rawPartNum = $opt.data("part-number");
-        const itemId     = $opt.val();
+        const itemId = $opt.val();
 
         this.config.itemPartNumber = this.normalizePartNumber(rawPartNum);
-        this.pdf.standard.files    = files;
+        this.pdf.standard.files = files;
         this.pdf.standard.currentIndex = 0;
 
         // ── PDF Standard ──────────────────────────────────────────────────────
@@ -773,8 +773,8 @@ class FpaCreate {
         // ── Berat Part – hanya untuk AHM / PT Takagi (sesuai in-process.js) ──
         const cu = customer.toUpperCase();
         const showWeight = cu.includes('ASTRA HONDA MOTOR') ||
-                           cu.includes('AHM') ||
-                           cu.includes('PT. TAKAGI SARI MULTI UTAMA');
+            cu.includes('AHM') ||
+            cu.includes('PT. TAKAGI SARI MULTI UTAMA');
         if (showWeight) {
             $(".col-berat-part").attr("style", "display: table-cell !important;");
             const itemCavity = parseInt(cavityData) || 1;
@@ -840,14 +840,14 @@ class FpaCreate {
         } else {
             // Default defects (sesuai in-process.js)
             const defaultDefects = [
-                { v: 'scratch',    t: 'BARET' },
-                { v: 'silver',     t: 'SILVER' },
-                { v: 'flow',       t: 'FLOW' },
-                { v: 'flash',      t: 'FLASH' },
+                { v: 'scratch', t: 'BARET' },
+                { v: 'silver', t: 'SILVER' },
+                { v: 'flow', t: 'FLOW' },
+                { v: 'flash', t: 'FLASH' },
                 { v: 'shoot_mold', t: 'SHOOT MOLD' },
-                { v: 'bending',    t: 'BENDING' },
-                { v: 'sinkmark',   t: 'SINKMARK' },
-                { v: 'dimension',  t: 'Dimensi' },
+                { v: 'bending', t: 'BENDING' },
+                { v: 'sinkmark', t: 'SINKMARK' },
+                { v: 'dimension', t: 'Dimensi' },
             ];
             $.each(defaultDefects, (i, d) =>
                 $select.append(`<option value="${d.v}">${d.t}</option>`)
@@ -887,8 +887,8 @@ class FpaCreate {
 
         $('input[name^="dimensions"]').each((_, input) => {
             const $input = $(input);
-            const name   = $input.attr('name');
-            const match  = name.match(/\[(\d+)\]\[(\d+)\]/);
+            const name = $input.attr('name');
+            const match = name.match(/\[(\d+)\]\[(\d+)\]/);
             if (!match) return;
 
             const point = match[2];
@@ -898,14 +898,14 @@ class FpaCreate {
             if (dimensionStandards) {
                 if (Array.isArray(dimensionStandards)) {
                     standard = dimensionStandards.find(s => String(s.point) === String(point))
-                             || dimensionStandards[point - 1];
+                        || dimensionStandards[point - 1];
                 } else {
                     standard = dimensionStandards[point];
                 }
             }
 
             const valStr = $input.val().trim();
-            const value  = parseFloat(valStr.replace(',', '.'));
+            const value = parseFloat(valStr.replace(',', '.'));
 
             $input.removeClass('is-invalid is-valid text-danger font-weight-bold');
 
@@ -930,7 +930,7 @@ class FpaCreate {
                     const stdSzStr = this.normalizeStandardValue(standard.size);
                     if (!stdSzStr.startsWith('+') && !stdSzStr.startsWith('-')) {
                         const base = parseFloat(stdSzStr);
-                        const tol  = this.normalizeStandardValue(standard.tolerance);
+                        const tol = this.normalizeStandardValue(standard.tolerance);
                         let lb = base, ub = base;
 
                         if (tol.includes('/')) {
@@ -958,7 +958,7 @@ class FpaCreate {
                 if (!isInvalid && standard.size != null && standard.size !== '') {
                     const sz = String(standard.size);
                     if (sz.startsWith('+') || sz.startsWith('-')) {
-                        const op    = sz.charAt(0);
+                        const op = sz.charAt(0);
                         const bound = parseFloat(sz.substring(1));
                         if (!isNaN(bound)) {
                             if (op === '+' && value < bound - epsilon) isInvalid = true;
@@ -981,7 +981,7 @@ class FpaCreate {
     }
 
     updateCavityRows(cavityCount, pointCount = 5) {
-        const tbody    = $("#dimensionBody");
+        const tbody = $("#dimensionBody");
         const theadRow = $("#dimensionHeadRow");
         tbody.empty();
 
@@ -1130,11 +1130,8 @@ class FpaCreate {
         }
 
         if (res) {
-            judgmentSelect
-                .val(res)
-                .removeClass("d-none text-success text-danger");
+            judgmentSelect.val(res);
             if (res === "OK") {
-                judgmentSelect.addClass("text-success");
                 judgmentBadge
                     .text("OK")
                     .removeClass("d-none text-danger")
@@ -1144,7 +1141,6 @@ class FpaCreate {
                         "background-color": "#fff",
                     });
             } else {
-                judgmentSelect.addClass("text-danger");
                 judgmentBadge
                     .text("NG")
                     .removeClass("d-none text-success")
@@ -1155,14 +1151,18 @@ class FpaCreate {
                     });
             }
         } else {
-            judgmentSelect.val("").removeClass("text-success text-danger");
+            judgmentSelect.val("");
             judgmentBadge.addClass("d-none").text("-");
         }
 
         const isNG = res === "NG";
-        $("#nextProsesContainer").toggle(isNG);
-        if (isNG) $("#nextProses").attr("required", true);
-        else $("#nextProses").removeAttr("required").val("");
+        const nextProsesCont = $("#nextProsesContainer, #next_proses_container");
+        nextProsesCont.toggle(isNG);
+        if (isNG) {
+            $("#nextProses, #next_proses").removeAttr("required");
+        } else {
+            $("#nextProses, #next_proses").val("");
+        }
 
         $("#saveBtn").prop("disabled", !res);
     }
@@ -1295,17 +1295,16 @@ class FpaCreate {
         $("#checksheetForm").on("submit", function (e) {
             e.preventDefault();
 
-            const judgment   = $("#judgmentSelect").val();
+            const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
             const codeMachine = $("#code_machine").val();
-            const itemId      = $("#itemSelect").val();
+            const itemId = $("#itemSelect").val();
 
             // 1. Validasi: Item harus dipilih
             if (!itemId) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Item Belum Dipilih',
-                    text: 'Silakan pilih item terlebih dahulu!',
                 });
                 $("#itemSelect").addClass("is-invalid").focus();
                 setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
@@ -1317,7 +1316,6 @@ class FpaCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Mesin Belum Dipilih',
-                    text: 'Silakan pilih No. Mesin terlebih dahulu!',
                 });
                 $("#code_machine").addClass("is-invalid").focus();
                 setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
@@ -1330,7 +1328,6 @@ class FpaCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Total Qty Belum Diisi',
-                    text: 'Silakan isi Total Qty produksi terlebih dahulu!',
                 });
                 $("#total_qty").addClass("is-invalid").focus();
                 setTimeout(() => $("#total_qty").removeClass("is-invalid"), 3000);
@@ -1343,7 +1340,6 @@ class FpaCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Sampling Qty Belum Diisi',
-                    text: 'Silakan isi Sampling Qty terlebih dahulu!',
                 });
                 $("#sampling_qty").addClass("is-invalid").focus();
                 setTimeout(() => $("#sampling_qty").removeClass("is-invalid"), 3000);
@@ -1355,7 +1351,6 @@ class FpaCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
-                    text: 'Untuk hasil NG, silakan pilih Next Proses!',
                 });
                 $("#nextProses").addClass("is-invalid").focus();
                 setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
@@ -1368,11 +1363,49 @@ class FpaCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Inisial Belum Diisi',
-                    text: 'Silakan isi Inisial QC terlebih dahulu!',
                 });
                 $('input[name="operator_initials"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
                 return false;
+            }
+
+            // 7. Validasi: Pilihan Defect (NG)
+            const ngCount = parseInt($("#total_ng").val()) || 0;
+            const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+
+            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
+                let defectMissing = false;
+                let hasAtLeastOneValidDefect = false;
+
+                $(".defect-row").each(function () {
+                    const type = $(this).find(".defect-select").val();
+                    const qty = parseInt($(this).find(".defect-qty").val()) || 0;
+
+                    if (qty > 0) {
+                        if (!type) {
+                            defectMissing = true;
+                            $(this).find(".defect-select").addClass("is-invalid");
+                        } else {
+                            hasAtLeastOneValidDefect = true;
+                        }
+                    }
+                });
+
+                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Defect Belum Dipilih",
+                    });
+                    return false;
+                }
+
+                if (defectMissing) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Jenis Defect Belum Dipilih",
+                    });
+                    return false;
+                }
             }
 
             if (!_this.checkMandatoryDimensions()) return false;
@@ -1403,25 +1436,25 @@ class FpaCreate {
 
             $(".defect-row").each(function () {
                 const typeInput = $(this).find('select[name="defect_types[]"], input[name="defect_types[]"]');
-                const qtyInput  = $(this).find('input[name="defect_quantities[]"]');
+                const qtyInput = $(this).find('input[name="defect_quantities[]"]');
                 const type = typeInput.val();
                 const text = $(this).find("option:selected").text().toLowerCase();
-                const qty  = parseInt(qtyInput.val()) || 0;
+                const qty = parseInt(qtyInput.val()) || 0;
                 if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi') {
                     typeInput.val('');
                     qtyInput.val('');
                 }
             });
 
-            const $saveBtn     = $("#saveBtn");
+            const $saveBtn = $("#saveBtn");
             const originalHtml = $saveBtn.html();
             $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
 
             const formData = new FormData(this);
             $.ajax({
-                url:         $(this).attr("action"),
-                method:      'POST',
-                data:        formData,
+                url: $(this).attr("action"),
+                method: 'POST',
+                data: formData,
                 processData: false,
                 contentType: false,
                 success: function (response) {
@@ -1455,7 +1488,7 @@ class FpaCreate {
         if (this.timer) {
             clearInterval(this.timer.interval);
             this.timer.isRunning = false;
-            this.timer.elapsed   = 0;
+            this.timer.elapsed = 0;
             this.updateTimerDisplay();
         }
 
@@ -1622,15 +1655,11 @@ class FpaEdit {
         $("#rej_val").text(limits.rej);
         $("#aql_info").show();
 
-        const judgmentSelect = $("#judgmentSelect");
-        const judgmentBadge = $("#judgmentBadge");
+        const judgmentVal = $("#judgmentSelect, #judgment");
 
         if (ng > 0 || sampling > 0 || isDimensiInvalid) {
             if (isDimensiInvalid || ng >= limits.rej) {
-                judgmentSelect
-                    .val("NG")
-                    .removeClass("text-success")
-                    .addClass("text-danger");
+                judgmentVal.val("NG");
                 judgmentBadge
                     .text("NG")
                     .removeClass("d-none text-success")
@@ -1640,10 +1669,7 @@ class FpaEdit {
                         "background-color": "#fff",
                     });
             } else {
-                judgmentSelect
-                    .val("OK")
-                    .removeClass("text-danger")
-                    .addClass("text-success");
+                judgmentVal.val("OK");
                 judgmentBadge
                     .text("OK")
                     .removeClass("d-none text-danger")
@@ -1654,7 +1680,7 @@ class FpaEdit {
                     });
             }
         } else {
-            judgmentSelect.val("").removeClass("text-success text-danger");
+            judgmentVal.val("");
             judgmentBadge.addClass("d-none").text("-");
         }
         this.toggleNextProses();
@@ -1738,9 +1764,9 @@ class FpaEdit {
     }
 
     toggleNextProses() {
-        const judgment = $("#judgmentSelect").val();
+        const judgment = $("#judgmentSelect").val() || $("#judgment").val();
         const ngCount = parseInt($("#total_ng").val()) || 0;
-        const container = $("#nextProsesContainer");
+        const container = $("#nextProsesContainer, #next_proses_container");
         if (judgment === "NG" || ngCount > 0) {
             container.show();
         } else {
@@ -1985,10 +2011,64 @@ class FpaEdit {
     }
 
     initFormValidation() {
-        $("#editChecksheetForm").on("submit", (e) => {
-            const judgment = $("#judgment").val();
-            const nextProses = $("#next_proses").val();
+        $("#checksheetForm, #editChecksheetForm").on("submit", (e) => {
+            const judgment = $("#judgmentSelect").val() || $("#judgment").val();
+            const nextProses = $("#nextProses").val() || $("#next_proses").val();
+            const itemId = $("#itemSelect").val();
+            const codeMachine = $("#code_machine").val();
+            const totalQty = $('input[name="total_qty"]').val();
+            const samplingQty = $('input[name="sampling_qty"]').val();
+            const operatorInitials = $('input[name="operator_initials"]').val();
 
+            // 1. Validasi: Item harus dipilih
+            if (!itemId) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "warning",
+                    title: "Item Belum Dipilih",
+                });
+                $("#itemSelect").addClass("is-invalid").focus();
+                setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 2. Validasi: Mesin harus dipilih
+            if (!codeMachine) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "warning",
+                    title: "Mesin Belum Dipilih",
+                });
+                $("#code_machine").addClass("is-invalid").focus();
+                setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 3. Validasi: Total Qty
+            if (!totalQty || totalQty <= 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "warning",
+                    title: "Total Qty Belum Diisi",
+                });
+                $('input[name="total_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 4. Validasi: Sampling Qty
+            if (!samplingQty || samplingQty <= 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "warning",
+                    title: "Sampling Qty Belum Diisi",
+                });
+                $('input[name="sampling_qty"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="sampling_qty"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 5. Validasi: NG harus pilih Next Proses
             if (judgment === "NG" && !nextProses) {
                 e.preventDefault();
                 Swal.fire({
@@ -1997,10 +2077,61 @@ class FpaEdit {
                     text: "Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!",
                     confirmButtonColor: "#3085d6",
                 });
-                const $nextProses = $("#next_proses");
+                const $nextProses = $("#nextProses").length ? $("#nextProses") : $("#next_proses");
                 $nextProses.addClass("is-invalid").focus();
                 setTimeout(() => $nextProses.removeClass("is-invalid"), 3000);
                 return false;
+            }
+
+            // 6. Validasi: Inisial QC
+            if (!operatorInitials) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "warning",
+                    title: "Inisial QC Wajib Diisi",
+                });
+                $('input[name="operator_initials"]').addClass("is-invalid").focus();
+                setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 7. Validasi: Pilihan Defect (NG)
+            const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+            const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+
+            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
+                let defectMissing = false;
+                let hasAtLeastOneValidDefect = false;
+
+                $(".defect-row").each(function () {
+                    const type = $(this).find(".defect-select").val();
+                    const qty = parseInt($(this).find(".defect-qty").val()) || 0;
+
+                    if (qty > 0) {
+                        if (!type) {
+                            defectMissing = true;
+                            $(this).find(".defect-select").addClass("is-invalid");
+                        } else {
+                            hasAtLeastOneValidDefect = true;
+                        }
+                    }
+                });
+
+                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Defect Belum Dipilih",
+                    });
+                    return false;
+                }
+
+                if (defectMissing) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Jenis Defect Belum Dipilih",
+                    });
+                    return false;
+                }
             }
 
             $("#editChecksheetForm")

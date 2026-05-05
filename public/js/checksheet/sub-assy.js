@@ -146,9 +146,9 @@ class SubAssyIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    (response.message ||
-                                        "Terjadi kesalahan saat menyimpan data.") +
-                                    "</div>",
+                                (response.message ||
+                                    "Terjadi kesalahan saat menyimpan data.") +
+                                "</div>",
                             )
                             .fadeIn();
                         $submitBtn
@@ -177,8 +177,8 @@ class SubAssyIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    message +
-                                    "</div>",
+                                message +
+                                "</div>",
                             )
                             .fadeIn();
                     }
@@ -227,7 +227,7 @@ class SubAssyIndex {
                 },
             );
 
-            _this.qrScanner._setVideoMirror = function (facingMode) {};
+            _this.qrScanner._setVideoMirror = function (facingMode) { };
 
             $("#toggleMirrorBtn")
                 .off("click")
@@ -341,7 +341,7 @@ class SubAssyIndex {
                 oscillator.start();
                 oscillator.stop(this.audioContext.currentTime + 0.3);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     handleQRScanned(decodedText) {
@@ -459,7 +459,7 @@ class SubAssyCreate {
                     function () {
                         const sCode = normalize(
                             $(this).attr("data-sap-code") ||
-                                $(this).data("sap-code"),
+                            $(this).data("sap-code"),
                         );
                         return sCode === targetSap;
                     },
@@ -613,7 +613,7 @@ class SubAssyCreate {
                             })
                             .val(
                                 track.getSettings().zoom ||
-                                    capabilities.zoom.min,
+                                capabilities.zoom.min,
                             );
 
                         $slider.off("input").on("input", function () {
@@ -820,7 +820,7 @@ class SubAssyCreate {
                 );
                 let pNum = normalize(
                     $(this).attr("data-part-number") ||
-                        $(this).data("part-number"),
+                    $(this).data("part-number"),
                 );
                 let sCode = normalize(
                     $(this).attr("data-sap-code") || $(this).data("sap-code"),
@@ -1500,7 +1500,6 @@ class SubAssyCreate {
             Swal.fire({
                 icon: "warning",
                 title: "Item Belum Dipilih",
-                text: "Silakan pilih item terlebih dahulu!",
             });
             $("#itemSelect").addClass("is-invalid").focus();
             setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
@@ -1512,7 +1511,6 @@ class SubAssyCreate {
             Swal.fire({
                 icon: "warning",
                 title: "Meja Belum Dipilih",
-                text: "Silakan pilih No. Meja terlebih dahulu!",
             });
             $("#line").addClass("is-invalid").focus();
             setTimeout(() => $("#line").removeClass("is-invalid"), 3000);
@@ -1524,7 +1522,6 @@ class SubAssyCreate {
             Swal.fire({
                 icon: "warning",
                 title: "Total Qty Belum Diisi",
-                text: "Silakan isi Total Qty produksi terlebih dahulu!",
             });
             $('input[name="total_qty"]').addClass("is-invalid").focus();
             setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
@@ -1536,7 +1533,6 @@ class SubAssyCreate {
             Swal.fire({
                 icon: "warning",
                 title: "Sampling Qty Belum Diisi",
-                text: "Silakan isi Sampling Qty terlebih dahulu!",
             });
             $('input[name="sampling_qty"]').addClass("is-invalid").focus();
             setTimeout(() => $('input[name="sampling_qty"]').removeClass("is-invalid"), 3000);
@@ -1548,7 +1544,6 @@ class SubAssyCreate {
             Swal.fire({
                 icon: "warning",
                 title: "Next Proses Wajib Dipilih",
-                text: "Untuk hasil NG, silakan pilih Next Proses!",
             });
             $("#nextProses").addClass("is-invalid").focus();
             setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
@@ -1559,12 +1554,69 @@ class SubAssyCreate {
         if (!operatorInitials) {
             Swal.fire({
                 icon: "warning",
-                title: "Inisial Belum Diisi",
-                text: "Silakan isi Inisial QC terlebih dahulu!",
+                title: "Inisial QC Wajib Diisi",
             });
             $('input[name="operator_initials"]').addClass("is-invalid").focus();
             setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
             return false;
+        }
+
+        // 7. Validasi: Integritas Baris Defect (NG) & Cleanup
+        const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+        const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+
+        if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
+            let defectMissing = false;
+            let hasAtLeastOneValidDefect = false;
+            let dimensionQtyEmpty = false;
+
+            $(".defect-row").each(function () {
+                const typeInput = $(this).find(".defect-select");
+                const qtyInput = $(this).find(".defect-qty");
+                const type = typeInput.val();
+                const text = typeInput.find("option:selected").text().toLowerCase();
+                const qty = parseInt(qtyInput.val()) || 0;
+
+                // Case A: Qty ada tapi Type kosong
+                if (qty > 0 && !type) {
+                    defectMissing = true;
+                    typeInput.addClass("is-invalid");
+                } else {
+                    typeInput.removeClass("is-invalid");
+                    if (qty > 0) hasAtLeastOneValidDefect = true;
+                }
+
+                // Case B: Type Dimensi tapi Qty kosong
+                if (type === 'dimension' || text === 'dimensi') {
+                    if (qty <= 0) {
+                        dimensionQtyEmpty = true;
+                        qtyInput.addClass("is-invalid");
+                    } else {
+                        qtyInput.removeClass("is-invalid");
+                    }
+                }
+
+                // Case C: Cleanup baris "sampah"
+                if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi') {
+                    typeInput.val('');
+                    qtyInput.val('');
+                }
+            });
+
+            if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
+                Swal.fire({ icon: "warning", title: "Defect Belum Dipilih" });
+                return false;
+            }
+
+            if (defectMissing) {
+                Swal.fire({ icon: "warning", title: "Jenis Defect Belum Dipilih" });
+                return false;
+            }
+
+            if (dimensionQtyEmpty) {
+                Swal.fire({ icon: 'warning', title: 'Qty Defect Dimensi Wajib Diisi' });
+                return false;
+            }
         }
 
         if (this.timerRunning) {
@@ -1572,21 +1624,6 @@ class SubAssyCreate {
             this.timerRunning = false;
             $("#cycleTimeInput").val(this.totalSeconds);
         }
-
-        // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0
-        $(".defect-row").each(function () {
-            const typeInput = $(this).find(
-                'select[name="defect_types[]"], input[name="defect_types[]"]',
-            );
-            const qtyInput = $(this).find('input[name="defect_quantities[]"]');
-            const type = typeInput.val();
-            const qty = parseInt(qtyInput.val()) || 0;
-
-            if (type && qty === 0) {
-                typeInput.val("");
-                qtyInput.val("");
-            }
-        });
 
         const saveBtn = $("#saveBtn");
         const originalHtml = saveBtn.html();

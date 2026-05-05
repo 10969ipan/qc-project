@@ -146,14 +146,14 @@
     <div class="card shadow mb-4">
         <div class="card-body">
             <form action="{{ route('double_tape.index') }}" method="GET"
-                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormDoubleTape">
+                class="d-flex flex-wrap align-items-center bg-light p-1 rounded mb-3 shadow-sm"
+                style="gap: 6px 8px;" id="filterFormDoubleTape">
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
                 <!-- Field: Part -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 200px;" class="custom-filter-wrapper">
+                    <div style="width: 150px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($items as $item)
@@ -167,10 +167,10 @@
 
                 <!-- Field: Inisial -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inisial:</label>
-                    <div style="width: 110px;" class="custom-filter-wrapper">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inis:</label>
+                    <div style="width: 80px;" class="custom-filter-wrapper">
                         <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Inisial</option>
+                            <option value="">Semua</option>
                             @foreach($initials as $initial)
                                 <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
                             @endforeach
@@ -181,9 +181,9 @@
                 <!-- Field: Customer -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cust:</label>
-                    <div style="width: 110px;" class="custom-filter-wrapper">
+                    <div style="width: 80px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Customer</option>
+                            <option value="">Semua</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
                             @endforeach
@@ -191,27 +191,27 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center bg-white shadow-sm rounded px-2 py-1" style="gap: 8px;">
-                    <span class="small font-weight-bold text-gray-700 mr-1">Tipe:</span>
-                    <div class="form-check form-check-inline mb-0">
+                <div class="d-flex align-items-center px-1" style="gap: 5px;">
+                    <span class="small font-weight-bold text-gray-700">Tipe:</span>
+                    <div class="form-check form-check-inline mb-0 mr-0">
                         <input class="form-check-input" type="checkbox" name="check_type[]" id="filterSampling" value="sampling"
                             {{ in_array('sampling', (array) request('check_type', [])) ? 'checked' : '' }}>
-                        <label class="form-check-label small font-weight-bold" for="filterSampling" style="color: #4e73df;">Sampling</label>
+                        <label class="form-check-label small font-weight-bold" for="filterSampling" style="color: #4e73df;">Smpl</label>
                     </div>
-                    <div class="form-check form-check-inline mb-0">
+                    <div class="form-check form-check-inline mb-0 mr-0">
                         <input class="form-check-input" type="checkbox" name="check_type[]" id="filterFullcheck" value="fullcheck"
                             {{ in_array('fullcheck', (array) request('check_type', [])) ? 'checked' : '' }}>
-                        <label class="form-check-label small font-weight-bold" for="filterFullcheck" style="color: #1cc88a;">Full Check</label>
+                        <label class="form-check-label small font-weight-bold" for="filterFullcheck" style="color: #1cc88a;">Full</label>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
-                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 200px;">
+                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 140px;">
                         <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
-                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                            placeholder="QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-primary btn-sm border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
+                            <button type="button" class="btn btn-primary btn-sm border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 32px; touch-action: manipulation;">
                                 <i class="fas fa-qrcode" style="pointer-events: none;"></i>
                             </button>
                         </div>
@@ -222,14 +222,14 @@
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
                     <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
                         <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                            style="width: 105px; font-size: 0.75rem;" value="{{ request('start_date') }}">
                         <span class="px-1 text-gray-500 small">-</span>
                         <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                            style="width: 105px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                     </div>
                 </div>
 
-                <div class="ml-auto d-flex" style="gap: 5px;">
+                <div class="ml-auto d-flex" style="gap: 4px;">
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
                         <i class="fas fa-search fa-sm"></i>
                     </button>

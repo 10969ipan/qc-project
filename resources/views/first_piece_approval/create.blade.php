@@ -318,7 +318,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold">Item Part</label>
-                                        <select class="form-control" name="item_id" id="itemSelect" required
+                                        <select class="form-control" name="item_id" id="itemSelect"
                                             style="min-width: 300px;">
                                             <option value="" disabled selected style="font-weight: bold; color: #6c757d;">
                                                 Pilih
@@ -350,11 +350,11 @@
                                     <div class="form-group mb-2">
                                         <label class="sr-only">Tanggal</label>
                                         <input type="date" class="form-control" style="min-width: 110px;" name="date"
-                                            value="{{ $defaultDate }}" required>
+                                            value="{{ $defaultDate }}">
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="sr-only">Shift</label>
-                                        <select class="form-control" style="min-width: 80px;" name="shift" required>
+                                        <select class="form-control" style="min-width: 80px;" name="shift">
                                             <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
                                             </option>
                                             <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
@@ -366,7 +366,7 @@
                                     <div class="form-group mt-2">
                                         <label class="sr-only">No Mesin</label>
                                         <select name="code_machine" id="code_machine" class="form-control"
-                                            style="min-width: 80px;" required>
+                                            style="min-width: 80px;">
                                             <option value="">Pilih Mesin</option>
                                             @foreach($machineNumbers as $num)
                                                 <option value="{{ $num }}">Mesin {{ $num }}</option>
@@ -378,13 +378,13 @@
                                 <!-- Total Kualitas (Total Kuantitas diproduksi) -->
                                 <td class="align-middle">
                                     <input type="number" id="total_qty" class="form-control text-center" style="min-width: 60px;"
-                                        name="total_qty" placeholder="0" min="0" required>
+                                        name="total_qty" placeholder="0" min="0">
                                 </td>
 
                                 <!-- Sampling Qty -->
                                 <td class="align-middle">
                                     <input type="number" id="sampling_qty" class="form-control text-center" style="min-width: 60px;"
-                                        name="sampling_qty" placeholder="0" min="0" required>
+                                        name="sampling_qty" placeholder="0" min="0">
                                 </td>
 
                                 <!-- Check Dimensi (Cavity & Points) -->
@@ -498,7 +498,7 @@
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
                                             style="border-radius:0 4px 4px 0; font-size:0.78rem;"
-                                            name="total_ng" id="total_ng" placeholder="0" min="0" required>
+                                            name="total_ng" id="total_ng" placeholder="0" min="0">
                                     </div>
                                 </td>
 
@@ -508,12 +508,7 @@
                                         style="border: 2px solid transparent;">
                                         -
                                     </div>
-                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
-                                        required>
-                                        <option value="" disabled selected>-- Result --</option>
-                                        <option value="OK" class="text-success">OK</option>
-                                        <option value="NG" class="text-danger">NG</option>
-                                    </select>
+                                    <input type="hidden" name="judgment" id="judgmentSelect">
                                     <div id="aql_info" class="small mt-1 font-weight-bold text-center"
                                         style="display:none;">
                                         <span class="text-success">Acc: <span id="acc_val">-</span></span> |
@@ -525,7 +520,7 @@
                                 <td class="align-middle">
                                     <input type="text" class="form-control text-center" style="min-width: 60px;"
                                         name="operator_initials" placeholder="Inisial"
-                                        value="{{ auth()->user()->initials ?? '' }}" required>
+                                        value="{{ auth()->user()->initials ?? '' }}">
                                 </td>
 
                                 <!-- Keterangan -->
