@@ -128,7 +128,7 @@ class InProcessIndex {
                         $modalErrors
                             .html(
                                 response.message ||
-                                    "Terjadi kesalahan saat menyimpan data.",
+                                "Terjadi kesalahan saat menyimpan data.",
                             )
                             .fadeIn();
                         $submitBtn
@@ -155,8 +155,8 @@ class InProcessIndex {
                                     ) {
                                         $input.after(
                                             '<div class="invalid-feedback">' +
-                                                messages[0] +
-                                                "</div>",
+                                            messages[0] +
+                                            "</div>",
                                         );
                                     }
                                 }
@@ -177,8 +177,8 @@ class InProcessIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    message +
-                                    "</div>",
+                                message +
+                                "</div>",
                             )
                             .fadeIn();
                     }
@@ -240,7 +240,7 @@ class InProcessIndex {
                 },
             );
 
-            _this.qrScanner._setVideoMirror = function (facingMode) {};
+            _this.qrScanner._setVideoMirror = function (facingMode) { };
 
             $("#toggleMirrorBtn")
                 .off("click")
@@ -354,7 +354,7 @@ class InProcessIndex {
                 oscillator.start();
                 oscillator.stop(this.audioContext.currentTime + 0.3);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     handleQRScanned(decodedText) {
@@ -515,7 +515,7 @@ class InProcessCreate {
                             })
                             .val(
                                 track.getSettings().zoom ||
-                                    capabilities.zoom.min,
+                                capabilities.zoom.min,
                             );
 
                         $slider.off("input").on("input", function () {
@@ -631,34 +631,8 @@ class InProcessCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
-
-        // Match Hardware Scanner logic: Check timer first
-        if (!this.timerRunning) {
-            Swal.fire({
-                icon: "warning",
-                title: "Tombol Start Belum Diklik",
-                text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
-                confirmButtonColor: "#3085d6",
-                confirmButtonText: "OK, mengerti",
-            });
-            return;
-        }
-
-        this.isProcessingScan = true;
         $("#scanMethodInput").val("manual");
-        
-        // Match PDA behavior: auto-submit on success
-        this.parseAndFillQR(decodedText, (success) => {
-            if (success) {
-                setTimeout(() => {
-                    console.log("Auto-submitting form after successful camera scan...");
-                    $("#checksheetForm").trigger("submit");
-                    this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
-                }, 800);
-            } else {
-                this.isProcessingScan = false;
-            }
-        });
+        this.parseAndFillQR(decodedText);
     }
 
     parseAndFillQR(qrString, callback) {
@@ -1001,7 +975,7 @@ class InProcessCreate {
                         return (
                             itemSapCode &&
                             itemSapCode.toString().toLowerCase() ===
-                                sapCode.toLowerCase()
+                            sapCode.toLowerCase()
                         );
                     },
                 );
@@ -1091,7 +1065,7 @@ class InProcessCreate {
 
             showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
-            
+
             // Panggil parseAndFillQR dengan callback untuk auto-submit
             this.parseAndFillQR(raw, (success) => {
                 if (success) {
@@ -1124,7 +1098,7 @@ class InProcessCreate {
             if (e.key === "Enter" || e.keyCode === 13) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const val = ($(this).val() || "").trim();
                 if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
                     $(this).val(""); // Clear field
@@ -1154,7 +1128,7 @@ class InProcessCreate {
         window.addEventListener("keydown", (e) => {
             const currentTime = Date.now();
             const isTerminator = e.key === "Enter" || e.keyCode === 13 ||
-                                 e.key === "Tab"   || e.keyCode === 9;
+                e.key === "Tab" || e.keyCode === 9;
 
             // Reset buffer if gap is too long (human typing)
             if (currentTime - lastTime > 1000) {
@@ -1571,7 +1545,7 @@ class InProcessCreate {
         const _this = this;
 
         // Mencegah form tersubmit otomatis saat PDA scanner mengirimkan tombol "Enter"
-        $("#checksheetForm").on("keydown", "input", function(e) {
+        $("#checksheetForm").on("keydown", "input", function (e) {
             if (e.key === "Enter" || e.keyCode === 13) {
                 e.preventDefault();
                 return false;
@@ -1581,11 +1555,8 @@ class InProcessCreate {
         $("#checksheetForm").on("submit", function (e) {
             e.preventDefault();
 
-            // Deteksi submitter (tombol yang diklik)
             const submitter = (e.originalEvent && e.originalEvent.submitter) || document.activeElement;
-            
-            // JIKA submit BUKAN dipicu oleh tombol Save (#saveBtn), 
-            // KECUALI jika ini adalah auto-submit dari Hardware Scanner (PDA)
+
             const isHardwareScan = $("#scanMethodInput").val() === "hardware";
 
             if (!isHardwareScan && (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0))) {
@@ -1597,7 +1568,7 @@ class InProcessCreate {
             const nextProses = $("#nextProses").val();
             const itemId = $("#itemSelect").val();
             let codeMachine = $("#code_machine").val();
-            
+
             // FALLBACK: Jika Mesin kosong (karena page reload), coba ambil dari localStorage
             if (!codeMachine) {
                 const savedMachine = localStorage.getItem("last_machine_selection");
@@ -1626,7 +1597,6 @@ class InProcessCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Item Belum Dipilih",
-                    text: "Silakan pilih item terlebih dahulu!",
                 });
                 $("#itemSelect").addClass("is-invalid").focus();
                 setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
@@ -1638,7 +1608,6 @@ class InProcessCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Mesin Belum Dipilih",
-                    text: "Silakan pilih No. Mesin terlebih dahulu!",
                 });
                 $("#code_machine").addClass("is-invalid").focus();
                 setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
@@ -1650,7 +1619,6 @@ class InProcessCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Total Qty Belum Diisi",
-                    text: "Silakan isi Total Qty produksi terlebih dahulu!",
                 });
                 $('input[name="total_qty"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
@@ -1662,7 +1630,6 @@ class InProcessCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Sampling Qty Belum Diisi",
-                    text: "Silakan isi Sampling Qty terlebih dahulu!",
                 });
                 $('input[name="sampling_qty"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="sampling_qty"]').removeClass("is-invalid"), 3000);
@@ -1674,7 +1641,6 @@ class InProcessCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Next Proses Wajib Dipilih",
-                    text: "Untuk hasil NG, silakan pilih Next Proses!",
                 });
                 $("#nextProses").addClass("is-invalid").focus();
                 setTimeout(
@@ -1688,12 +1654,50 @@ class InProcessCreate {
             if (!operatorInitials) {
                 Swal.fire({
                     icon: "warning",
-                    title: "Inisial Belum Diisi",
-                    text: "Silakan isi Inisial QC terlebih dahulu!",
+                    title: "Inisial QC Wajib Diisi",
                 });
                 $('input[name="operator_initials"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);
                 return false;
+            }
+
+            // 7. Validasi: Pilihan Defect (NG)
+            const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
+            const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+
+            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
+                let defectMissing = false;
+                let hasAtLeastOneValidDefect = false;
+
+                $(".defect-row").each(function () {
+                    const type = $(this).find(".defect-select").val();
+                    const qty = parseInt($(this).find(".defect-qty").val()) || 0;
+
+                    if (qty > 0) {
+                        if (!type) {
+                            defectMissing = true;
+                            $(this).find(".defect-select").addClass("is-invalid");
+                        } else {
+                            hasAtLeastOneValidDefect = true;
+                        }
+                    }
+                });
+
+                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Defect Belum Dipilih",
+                    });
+                    return false;
+                }
+
+                if (defectMissing) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Jenis Defect Belum Dipilih",
+                    });
+                    return false;
+                }
             }
 
             if (!_this.checkMandatoryDimensions()) return false;
@@ -2094,7 +2098,7 @@ class InProcessCreate {
                 const prevFileUrl = this.config.pdfUrlPattern
                     .replace("ID_PLACEHOLDER", itemId)
                     .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
-                
+
                 pdfjsLib.getDocument(prevFileUrl).promise.then(pdf => {
                     this.refStandardPageNum = pdf.numPages;
                     this.renderPdfToCanvas(
@@ -2125,7 +2129,7 @@ class InProcessCreate {
                 const nextFileUrl = this.config.pdfUrlPattern
                     .replace("ID_PLACEHOLDER", itemId)
                     .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
-                
+
                 this.refStandardPageNum = 1;
                 this.renderPdfToCanvas(
                     nextFileUrl,
