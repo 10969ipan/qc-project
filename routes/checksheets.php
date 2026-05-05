@@ -79,6 +79,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet/cross-cut-painting/{id}/image', [CrossCutPaintingChecksheetController::class, 'serveImage'])->name('cross_cut_painting.image');
     Route::get('/cross_cut-painting/{id}/data', [CrossCutPaintingChecksheetController::class, 'getData'])->name('cross_cut_painting.data');
 
+    // Special routes for Plating
+    Route::get('/api/plating/next-no-lot', [PlatingChecksheetController::class, 'getAutoNoLot'])->name('plating.next_no_lot');
+    Route::get('/api/plating/last-data', [PlatingChecksheetController::class, 'getLastData'])->name('plating.last_data');
+
     // --- Report & Action Routes ---
 
     Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating,oshef'])->group(function () {

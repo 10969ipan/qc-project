@@ -125,9 +125,9 @@ class PlatingIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    (response.message ||
-                                        "Terjadi kesalahan saat menyimpan data.") +
-                                    "</div>",
+                                (response.message ||
+                                    "Terjadi kesalahan saat menyimpan data.") +
+                                "</div>",
                             )
                             .fadeIn();
                         $submitBtn
@@ -156,8 +156,8 @@ class PlatingIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    message +
-                                    "</div>",
+                                message +
+                                "</div>",
                             )
                             .fadeIn();
                     }
@@ -206,7 +206,7 @@ class PlatingIndex {
                 },
             );
 
-            _this.qrScanner._setVideoMirror = function (facingMode) {};
+            _this.qrScanner._setVideoMirror = function (facingMode) { };
 
             $("#toggleMirrorBtn")
                 .off("click")
@@ -320,7 +320,7 @@ class PlatingIndex {
                 oscillator.start();
                 oscillator.stop(this.audioContext.currentTime + 0.3);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     handleQRScanned(decodedText) {
@@ -490,7 +490,7 @@ class PlatingCreate {
                             })
                             .val(
                                 track.getSettings().zoom ||
-                                    capabilities.zoom.min,
+                                capabilities.zoom.min,
                             );
 
                         $slider.off("input").on("input", function () {
@@ -683,7 +683,7 @@ class PlatingCreate {
                 );
                 let pNum = normalize(
                     $(this).attr("data-part-number") ||
-                        $(this).data("part-number"),
+                    $(this).data("part-number"),
                 );
                 let sCode = normalize(
                     $(this).attr("data-sap-code") || $(this).data("sap-code"),
@@ -774,7 +774,7 @@ class PlatingCreate {
                     function () {
                         const sCode = normalize(
                             $(this).attr("data-sap-code") ||
-                                $(this).data("sap-code"),
+                            $(this).data("sap-code"),
                         );
                         return sCode === targetSap;
                     },
@@ -839,9 +839,9 @@ class PlatingCreate {
                 this.loadPdf(url, "standard");
                 $("#standardFileInfo").text(
                     this.pdf.standardFileIdx +
-                        1 +
-                        "/" +
-                        this.pdf.standardFiles.length,
+                    1 +
+                    "/" +
+                    this.pdf.standardFiles.length,
                 );
                 $("#downloadStandardBtn").attr("href", url);
             }
@@ -857,9 +857,9 @@ class PlatingCreate {
                 this.loadPdf(url, "standard");
                 $("#standardFileInfo").text(
                     this.pdf.standardFileIdx +
-                        1 +
-                        "/" +
-                        this.pdf.standardFiles.length,
+                    1 +
+                    "/" +
+                    this.pdf.standardFiles.length,
                 );
                 $("#downloadStandardBtn").attr("href", url);
             }
@@ -916,9 +916,9 @@ class PlatingCreate {
                     $("#prevPdf, #nextPdf").show();
                     $("#pdfInfo").text(
                         "File " +
-                            (this.pdf.standardFileIdx + 1) +
-                            " of " +
-                            this.pdf.standardFiles.length,
+                        (this.pdf.standardFileIdx + 1) +
+                        " of " +
+                        this.pdf.standardFiles.length,
                     );
                 } else {
                     $("#prevPdf, #nextPdf").hide();
@@ -973,9 +973,9 @@ class PlatingCreate {
                     this.pdf.modalPage = 1;
                     $("#pdfInfo").text(
                         "File " +
-                            (this.pdf.standardFileIdx + 1) +
-                            " of " +
-                            this.pdf.standardFiles.length,
+                        (this.pdf.standardFileIdx + 1) +
+                        " of " +
+                        this.pdf.standardFiles.length,
                     );
                     this.renderModalPage(1);
                 }, 500);
@@ -992,9 +992,9 @@ class PlatingCreate {
                     this.pdf.modalPage = 1;
                     $("#pdfInfo").text(
                         "File " +
-                            (this.pdf.standardFileIdx + 1) +
-                            " of " +
-                            this.pdf.standardFiles.length,
+                        (this.pdf.standardFileIdx + 1) +
+                        " of " +
+                        this.pdf.standardFiles.length,
                     );
                     this.renderModalPage(1);
                 }, 500);
@@ -1008,7 +1008,7 @@ class PlatingCreate {
         try {
             this.pdf.standardFiles =
                 typeof files === "string" ? JSON.parse(files) : files || [];
-        } catch (e) {}
+        } catch (e) { }
 
         const standardUrl = selected.data("standard");
         const similarUrl = selected.data("similar");
@@ -1182,12 +1182,12 @@ class PlatingCreate {
             const firstSelect = $("#defectSelect");
             const clone = $(
                 '<div class="input-group mb-2 defect-row">' +
-                    '<select class="form-control defect-select" name="defect_types[]">' +
-                    firstSelect.html() +
-                    "</select>" +
-                    '<input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1">' +
-                    '<div class="input-group-append"><button type="button" class="btn btn-danger btn-sm btn-remove-row"><i class="fas fa-minus"></i></button></div>' +
-                    "</div>",
+                '<select class="form-control defect-select" name="defect_types[]">' +
+                firstSelect.html() +
+                "</select>" +
+                '<input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                '<div class="input-group-append"><button type="button" class="btn btn-danger btn-sm btn-remove-row"><i class="fas fa-minus"></i></button></div>' +
+                "</div>",
             );
             $("#defectContainer").append(clone);
         });
@@ -1306,14 +1306,53 @@ class PlatingCreate {
         const ok = Math.max(0, totalQty - ng);
         $('input[name="total_ok"]').val(ok);
 
+        const isScanned = $("#isScannedInput").val() === "1";
+
+        // Toggle whole column visibility
+        $(".judgment-column").toggle(isScanned);
+
+        // Judgment hidden always as per request
+        $("#judgmentSelect").addClass("d-none");
+        $("#judgmentBadge").toggleClass("d-none", !isScanned);
+
         if (totalQty > 0) {
-            if (ng >= limits.rej) {
-                $("#judgmentSelect").val("NG").trigger("change");
+            const result = ng > 0 ? "NG" : "OK";
+            $("#judgmentSelect").val(result).trigger("change");
+            
+            // Update Badge Style (for Scan mode)
+            $("#judgmentBadge").text(result).removeClass('badge-success badge-danger');
+            if (result === "NG") {
+                $("#judgmentBadge").css({
+                    "background-color": "#e74a3b",
+                    "color": "white",
+                    "border-color": "#e74a3b"
+                });
             } else {
-                $("#judgmentSelect").val("OK").trigger("change");
+                $("#judgmentBadge").css({
+                    "background-color": "#1cc88a",
+                    "color": "white",
+                    "border-color": "#1cc88a"
+                });
             }
         } else {
             $("#judgmentSelect").val("");
+            $("#judgmentBadge").text("-").css({
+                "background-color": "#f8f9fc",
+                "color": "#5a5c69",
+                "border-color": "#dddfeb"
+            });
+        }
+
+        // Next Proses visibility/validation logic
+        if (isScanned) {
+            // No additional logic needed here, validation happens on submit
+        } else {
+            // Manual selection: Judgment is auto-calculated but Next Proses remains optional
+            if ($("#judgmentSelect").val() === "NG" || ng > 0) {
+                $("#nextProsesContainer").show();
+            } else {
+                $("#nextProsesContainer").hide();
+            }
         }
     }
 
@@ -1335,7 +1374,7 @@ class PlatingCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Item Belum Dipilih",
-                    text: "Silakan pilih item terlebih dahulu!",
+
                 });
                 $("#itemSelect").addClass("is-invalid").focus();
                 setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
@@ -1347,7 +1386,6 @@ class PlatingCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Meja Belum Dipilih",
-                    text: "Silakan pilih Meja terlebih dahulu!",
                 });
                 $('select[name="line"]').addClass("is-invalid").focus();
                 setTimeout(() => $('select[name="line"]').removeClass("is-invalid"), 3000);
@@ -1359,7 +1397,6 @@ class PlatingCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Total Qty Belum Diisi",
-                    text: "Silakan isi Total Qty produksi terlebih dahulu!",
                 });
                 $('input[name="total_qty"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
@@ -1439,8 +1476,9 @@ class PlatingCreate {
                 }
             }
 
-            // 4. Validasi: NG harus pilih Next Proses
-            if (judgment === "NG" && !nextProses) {
+            // 4. Validasi: NG harus pilih Next Proses (Hanya jika Scanned)
+            const isScanned = $("#isScannedInput").val() === "1";
+            if (isScanned && judgment === "NG" && !nextProses) {
                 Swal.fire({
                     icon: "warning",
                     title: "Next Proses Wajib Dipilih",
@@ -1456,7 +1494,6 @@ class PlatingCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Inisial Belum Diisi",
-                    text: "Silakan isi Inisial QC terlebih dahulu!",
                 });
                 $('input[name="operator_initials"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);

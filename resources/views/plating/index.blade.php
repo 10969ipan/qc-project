@@ -175,6 +175,18 @@
                     </div>
                 </div>
 
+                <!-- Field: Method -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tipe:</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="entry_method" id="filterMethod" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua</option>
+                            <option value="verification" {{ request('entry_method') == 'verification' ? 'selected' : '' }}>Verification</option>
+                            <option value="regular" {{ request('entry_method') == 'regular' ? 'selected' : '' }}>Regular</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Filter Tanggal -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
@@ -372,9 +384,14 @@
                                 </td>
 
                                 <td class="align-middle">
-                                    <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
-                                        {{ $checksheet->judgment }}
-                                    </span>
+                                    @if($checksheet->qrcode)
+                                        <span class="badge badge-pill px-3 py-1 font-weight-bold" 
+                                            style="background-color: {{ $checksheet->judgment == 'OK' ? '#1cc88a' : '#e74a3b' }}; color: white; font-size: 0.7rem;">
+                                            {{ $checksheet->judgment }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted font-weight-bold">-</span>
+                                    @endif
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
@@ -758,6 +775,7 @@
                 initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
                 initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
                 initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+                initItemSearch('filterMethod', { placeholder: 'Ketik Tipe...', maxResults: 5 });
             }
         });
     </script>

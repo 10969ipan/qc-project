@@ -65,6 +65,14 @@ class PlatingChecksheetService extends BaseService
             $query->where('plating_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
         }
 
+        if (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'verification') {
+                $query->whereNotNull('plating_checksheets.qrcode');
+            } elseif ($filters['entry_method'] === 'regular') {
+                $query->whereNull('plating_checksheets.qrcode');
+            }
+        }
+
         return $query;
     }
 

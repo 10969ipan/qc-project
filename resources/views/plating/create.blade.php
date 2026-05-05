@@ -88,6 +88,7 @@
                 <input type="hidden" name="quantity" id="quantityInput">
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="is_scanned" id="isScannedInput" value="0">
 
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
@@ -98,10 +99,10 @@
                                 <th rowspan="2" style="vertical-align: middle;">Plating<br>(Tgl / Shift / Lot)</th>
                                 <th colspan="2" style="vertical-align: middle;">Quality</th>
                                 <th rowspan="2" style="vertical-align: middle;">Total Qty (Lot)</th>
-                                <th rowspan="2" style="vertical-align: middle; min-width: 250px;">Jenis (OK/NG) &amp; Detail NG
+                                <th rowspan="2" style="vertical-align: middle; min-width: 150px;">Jenis (OK/NG) &amp; Detail NG
                                 </th>
                                 <th rowspan="2" style="vertical-align: middle;">Total (OK/NG)</th>
-                                <th rowspan="2" style="vertical-align: middle;">Judgment</th>
+                                <th rowspan="2" class="judgment-column" style="vertical-align: middle;">Judgment</th>
                                 <th rowspan="2" style="vertical-align: middle;">Inisial QC</th>
                                 <th rowspan="2" style="vertical-align: middle;">Keterangan</th>
                             </tr>
@@ -113,18 +114,18 @@
                         <tbody>
                             <tr>
                                 <!-- Pilihan Barang -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 450px;">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold small text-muted mb-1">
-                                            <i class="fas fa-barcode mr-1"></i>Kode SAP
+                                        <label class="font-weight-bold small mb-1">
+                                            Kode SAP & Verifikasi Quality
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Kode SAP..." autocomplete="off">
+                                                placeholder="Masukkan Kode SAP" autocomplete="off" value="">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
-                                                    <i class="fas fa-qrcode"></i>
+                                                    <i class="fas fa-qrcode mr-1"></i> Scan QR Internal
                                                 </button>
                                             </div>
                                         </div>
@@ -132,7 +133,7 @@
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold small">Item Part</label>
                                         <select class="form-control form-control-sm" name="item_id" id="itemSelect" required
-                                            style="min-width: 200px;">
+                                            style="min-width: 400px;">
                                             <option value="" disabled selected>Pilih Item Part</option>
                                             @foreach($items as $item)
                                                 <option value="{{ $item->id }}"
@@ -157,8 +158,8 @@
                                 <!-- Injection -->
                                 <td class="align-middle">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
-                                        name="injection_date" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm" name="injection_shift" required>
+                                        name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" required>
+                                    <select class="form-control form-control-sm" name="injection_shift" id="injectionShiftInput" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
@@ -166,16 +167,16 @@
                                 </td>
 
                                 <!-- Plating -->
-                                <td class="align-middle">
+                                 <td class="align-middle">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
-                                        name="plating_date" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm mb-1" name="plating_shift" required>
+                                        name="plating_date" id="platingDateInput" value="{{ $defaultDate }}" required>
+                                    <select class="form-control form-control-sm mb-1" name="plating_shift" id="platingShiftInput" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
-                                    <input type="text" class="form-control form-control-sm" name="no_lot"
-                                        placeholder="No Lot...">
+                                    <input type="text" class="form-control form-control-sm" name="no_lot" id="noLotInput"
+                                        placeholder="No Lot..." autocomplete="off">
                                 </td>
 
                                 <!-- Kualitas (Tanggal/Shift/Meja yang Ada) -->
@@ -189,7 +190,7 @@
                                     </select>
                                 </td>
                                 <td class="align-middle">
-                                    <select name="line" class="form-control form-control-sm" style="min-width: 85px;"
+                                    <select name="line" id="lineSelect" class="form-control form-control-sm" style="min-width: 85px;"
                                         required>
                                         <option value="">Meja</option>
                                         @foreach (range(1, 15) as $i)
@@ -204,15 +205,15 @@
                                         name="total_qty" id="totalQty" placeholder="0" min="0" required>
                                 </td>
 
-                                <td class="align-middle" style="min-width: 280px;">
+                                <td class="align-middle" style="min-width: 200px;">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 180px;"
+                                            <select class="form-control defect-select" style="min-width: 120px;"
                                                 name="defect_types[]" id="defectSelect">
                                                 <option value="">-- Pilih Defect --</option>
                                             </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
+                                            <input type="number" class="form-control defect-qty" style="min-width: 60px;"
                                                 name="defect_quantities[]" placeholder="Qty" min="1">
                                         </div>
                                     </div>
@@ -241,7 +242,7 @@
                                 </td>
 
                                 <!-- Judgment -->
-                                <td class="align-middle text-center" style="min-width: 150px;">
+                                <td class="align-middle text-center judgment-column" style="min-width: 150px;">
                                     <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
                                         style="border: 2px solid transparent;">
                                         -
@@ -256,7 +257,7 @@
 
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center"
+                                    <input type="text" class="form-control text-center" id="operatorInitialsInput"
                                         style="min-width: 80px; text-transform: uppercase;"
                                         name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
                                         oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
@@ -527,6 +528,101 @@
                 qrUniqueUrl: "{{ route('items.check-qr-unique') }}"
             });
             window.initItemSearch('itemSelect');
+
+            // --- Auto-fill Logic ---
+            const nextNoLotUrl = "{{ route('plating.next_no_lot') }}";
+            const lastDataUrl = "{{ route('plating.last_data') }}";
+
+            const itemSelect = document.getElementById('itemSelect');
+            const initialsInput = document.getElementById('operatorInitialsInput');
+            const platingDateInput = document.getElementById('platingDateInput');
+            const platingShiftInput = document.getElementById('platingShiftInput');
+            const noLotInput = document.getElementById('noLotInput');
+
+            const injectionDateInput = document.getElementById('injectionDateInput');
+            const injectionShiftInput = document.getElementById('injectionShiftInput');
+            const lineSelect = document.getElementById('lineSelect');
+
+            function debounce(func, wait) {
+                let timeout;
+                return function() {
+                    const context = this,
+                        args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        func.apply(context, args);
+                    }, wait);
+                };
+            }
+
+            function fetchNextNoLot() {
+                const itemId = itemSelect ? itemSelect.value : '';
+                const platingDate = platingDateInput ? platingDateInput.value : '';
+                const platingShift = platingShiftInput ? platingShiftInput.value : '1';
+                const initials = initialsInput ? initialsInput.value : '';
+
+                if (!itemId || !platingDate || !initials) return;
+
+                const params = new URLSearchParams({
+                    item_id: itemId,
+                    plating_date: platingDate,
+                    plating_shift: platingShift,
+                    operator_initials: initials
+                });
+
+                fetch(nextNoLotUrl + '?' + params.toString())
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.no_lot) noLotInput.value = data.no_lot;
+                    })
+                    .catch(e => console.error('Error fetching no lot:', e));
+            }
+
+            function fetchLastData() {
+                const itemId = itemSelect ? itemSelect.value : '';
+                const initials = initialsInput ? initialsInput.value : '';
+
+                if (!itemId || !initials) return;
+
+                const params = new URLSearchParams({
+                    item_id: itemId,
+                    operator_initials: initials
+                });
+
+                fetch(lastDataUrl + '?' + params.toString())
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.injection_date) injectionDateInput.value = data.injection_date;
+                            if (data.injection_shift) injectionShiftInput.value = data.injection_shift;
+                            if (data.line) lineSelect.value = data.line;
+                        }
+                    })
+                    .catch(e => console.error('Error fetching last data:', e));
+            }
+
+            const debouncedFetch = debounce(() => {
+                fetchNextNoLot();
+                fetchLastData();
+            }, 500);
+
+            if (itemSelect) {
+                $(itemSelect).on('change', () => {
+                    fetchNextNoLot();
+                    fetchLastData();
+                });
+            }
+            if (initialsInput) initialsInput.addEventListener('input', debouncedFetch);
+            if (platingDateInput) platingDateInput.addEventListener('change', fetchNextNoLot);
+            if (platingShiftInput) platingShiftInput.addEventListener('change', fetchNextNoLot);
+
+            // Initial trigger
+            setTimeout(() => {
+                if (itemSelect && itemSelect.value) {
+                    fetchNextNoLot();
+                    fetchLastData();
+                }
+            }, 500);
         });
     </script>
 @endpush

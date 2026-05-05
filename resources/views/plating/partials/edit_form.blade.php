@@ -47,6 +47,7 @@
     <input type="hidden" name="quantity" value="{{ $checksheet->quantity }}">
     <input type="hidden" name="unique_code_id" value="{{ $checksheet->unique_code_id }}">
     <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
+    <input type="hidden" name="is_scanned" value="{{ !empty($checksheet->qrcode) ? 1 : 0 }}">
 
     <div class="row">
         <!-- 2. Kolom Kiri: Informasi Produksi -->

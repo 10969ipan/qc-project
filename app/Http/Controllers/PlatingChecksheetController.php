@@ -11,6 +11,7 @@ use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class PlatingChecksheetController extends Controller
 {
@@ -105,7 +106,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method']);
         $filters['plant'] = 'karawang'; 
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
@@ -137,7 +138,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method']);
         $filters['plant'] = 'karawang';
 
         if (empty($filters['start_date'])) {
@@ -333,5 +334,72 @@ class PlatingChecksheetController extends Controller
         $checksheet = \App\Models\PlatingChecksheet::find($id);
         \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Plating: {$checksheet->item->name}");
         return redirect()->route('plating.index')->with('success', 'Status approval Plating berhasil diperbarui.');
+    }
+
+    /**
+     * API: Get auto-generated No Lot based on format A07AE26A.
+     */
+    public function getAutoNoLot(Request $request)
+    {
+        $itemId = $request->input('item_id');
+        $platingDate = $request->input('plating_date');
+        $platingShift = (int) $request->input('plating_shift', 1);
+        $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
+
+        if (!$itemId || !$platingDate || !$operatorInitials) {
+            return response()->json(['no_lot' => null]);
+        }
+
+        try {
+            $dateObj = Carbon::parse($platingDate);
+            $monthChar = chr(64 + $dateObj->month);
+            $day = $dateObj->format('d');
+            $year2 = $dateObj->format('y');
+
+            $count = PlatingChecksheet::withoutGlobalScope('plant')
+                ->where('item_id', $itemId)
+                ->whereDate('plating_date', $dateObj->toDateString())
+                ->where('plating_shift', $platingShift)
+                ->count();
+
+            $seqChar = chr(65 + ($count % 26));
+            $suffix = str_repeat($seqChar, max(1, $platingShift));
+
+            $noLot = "{$monthChar}{$day}{$operatorInitials}{$year2}{$suffix}";
+
+            return response()->json(['no_lot' => $noLot]);
+        } catch (\Exception $e) {
+            return response()->json(['no_lot' => null, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * API: Get last data (injection date/shift and line) for a given item + operator.
+     */
+    public function getLastData(Request $request)
+    {
+        $itemId = $request->input('item_id');
+        $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
+
+        if (!$itemId || !$operatorInitials) {
+            return response()->json(['success' => false]);
+        }
+
+        $last = PlatingChecksheet::withoutGlobalScope('plant')
+            ->where('item_id', $itemId)
+            ->where('operator_initials', $operatorInitials)
+            ->latest('id')
+            ->first();
+
+        if ($last) {
+            return response()->json([
+                'success' => true,
+                'injection_date' => $last->injection_date ? $last->injection_date->toDateString() : null,
+                'injection_shift' => $last->injection_shift,
+                'line' => $last->line
+            ]);
+        }
+
+        return response()->json(['success' => false]);
     }
 }

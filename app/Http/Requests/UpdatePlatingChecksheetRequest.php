@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePlatingChecksheetRequest extends FormRequest
 {
@@ -52,7 +53,14 @@ class UpdatePlatingChecksheetRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
-            'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'next_proses' => [
+                Rule::requiredIf(function () {
+                    return $this->judgment === 'NG' && $this->is_scanned == 1;
+                }),
+                'nullable',
+                'string'
+            ],
+            'is_scanned' => 'nullable|boolean',
             'jam_before' => 'nullable|string',
             'jam_after' => 'nullable|string',
         ];

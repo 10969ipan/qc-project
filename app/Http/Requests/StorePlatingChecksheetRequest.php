@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePlatingChecksheetRequest extends FormRequest
 {
@@ -80,7 +81,14 @@ class StorePlatingChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'next_proses' => [
+                Rule::requiredIf(function () {
+                    return $this->judgment === 'NG' && $this->is_scanned == 1;
+                }),
+                'nullable',
+                'string'
+            ],
+            'is_scanned' => 'nullable|boolean',
         ];
     }
 
