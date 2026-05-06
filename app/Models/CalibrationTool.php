@@ -144,7 +144,11 @@ class CalibrationTool extends Model
         $isOverdue = $today->gt($next);
         $isDueSoon = $today->diffInDays($next, false) <= 30;
 
-        if ($isOverdue || $isDueSoon) {
+        if ($isOverdue) {
+            return 'overdue';
+        }
+
+        if ($isDueSoon) {
             if (strtoupper($this->jenis_kalibrasi) === 'EKSTERNAL') {
                 // For external, status depends on PR existence in the matching schedule
                 $schedule = $this->schedules()->whereDate('schedule_date', $next)->first();
