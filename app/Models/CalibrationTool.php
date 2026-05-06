@@ -146,12 +146,18 @@ class CalibrationTool extends Model
         $isDueSoon = $daysToNext <= 30;
 
         if ($isOverdue) {
+            if (strtoupper($this->jenis_kalibrasi) === 'EKSTERNAL') {
+                // If overdue but PR is already entered, show PR Out (Grey date)
+                $schedule = $this->schedules()->whereDate('schedule_date', $next)->first();
+                if ($schedule && !empty($schedule->pr_number)) {
+                    return 'pr_out';
+                }
+            }
             return 'overdue';
         }
 
         if ($isDueSoon) {
             if (strtoupper($this->jenis_kalibrasi) === 'EKSTERNAL') {
-                // For external, status depends on PR existence in the matching schedule
                 $schedule = $this->schedules()->whereDate('schedule_date', $next)->first();
                 if ($schedule && !empty($schedule->pr_number)) {
                     return 'pr_out';
