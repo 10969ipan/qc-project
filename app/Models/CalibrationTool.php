@@ -141,8 +141,9 @@ class CalibrationTool extends Model
             return 'calibrated';
         }
 
+        $daysToNext = $today->diffInDays($next, false);
         $isOverdue = $today->gt($next);
-        $isDueSoon = $today->diffInDays($next, false) <= 30;
+        $isDueSoon = $daysToNext <= 30;
 
         if ($isOverdue) {
             return 'overdue';
@@ -157,7 +158,10 @@ class CalibrationTool extends Model
                 }
                 return 'no_pr';
             } else {
-                // For internal, status is "Waiting Internal"
+                // For internal: < 7 days is 'due_soon' (warning), otherwise 'waiting_internal' (info)
+                if ($daysToNext < 7) {
+                    return 'due_soon';
+                }
                 return 'waiting_internal';
             }
         }
