@@ -682,10 +682,11 @@ class InProcessChecksheetService extends BaseService
             ->select(
                 'item_id',
                 'shift',
-                DB::raw('SUM(total_qty) as total_qty'),
-                DB::raw('SUM(total_ok) as total_ok'),
-                DB::raw('SUM(total_ng) as total_ng'),
-                DB::raw('COUNT(*) as total_entries')
+                DB::raw('MIN(total_qty) as packing_size'),
+                DB::raw('COUNT(*) as total_packing'),
+                DB::raw('SUM(total_qty) as total_qty_sum'),
+                DB::raw('SUM(total_qty - total_ng) as total_ok_sum'),
+                DB::raw('SUM(total_ng) as total_ng_sum')
             )
             ->groupBy('item_id', 'shift');
 

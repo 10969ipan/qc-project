@@ -131,23 +131,31 @@ class CalibrationTool extends Model
             return 'unknown';
         }
 
-        // If today is past the next calibration date, it's overdue
-        if ($today->gt($next)) {
-            // Check if there is a verification that "covers" this date
-            // (e.g. happened in same month or after it)
-            $hasValidVerif = $this->verifications()
-                ->where('tanggal_verifikasi', '>=', $next->copy()->startOfMonth())
-                ->exists();
-            
-            if ($hasValidVerif) {
-                return 'calibrated';
-            }
-            return 'overdue';
+        // Check if already verified for this 'next' cycle
+        // (e.g. happened in same month or after it)
+        $hasValidVerif = $this->verifications()
+            ->where('tanggal_verifikasi', '>=', $next->copy()->startOfMonth())
+            ->exists();
+        
+        if ($hasValidVerif) {
+            return 'calibrated';
         }
 
-        // Check if approaching next calibration (within 30 days)
-        if ($today->diffInDays($next, false) <= 30) {
-            return 'due_soon';
+        $isOverdue = $today->gt($next);
+        $isDueSoon = $today->diffInDays($next, false) <= 30;
+
+        if ($isOverdue || $isDueSoon) {
+            if (strtoupper($this->jenis_kalibrasi) === 'EKSTERNAL') {
+                // For external, status depends on PR existence in the matching schedule
+                $schedule = $this->schedules()->whereDate('schedule_date', $next)->first();
+                if ($schedule && !empty($schedule->pr_number)) {
+                    return 'pr_out';
+                }
+                return 'no_pr';
+            } else {
+                // For internal, status is "Waiting Internal"
+                return 'waiting_internal';
+            }
         }
 
         return 'calibrated';

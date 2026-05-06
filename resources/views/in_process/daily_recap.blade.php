@@ -236,7 +236,8 @@
                             <th>Part Number</th>
                             <th>Customer</th>
                             <th class="text-center">Shift</th>
-                            <th class="text-center">Total Qty</th>
+                            <th class="text-center">Packing</th>
+                            <th class="text-center">Total Packing</th>
                             <th class="text-center text-success">Total OK</th>
                             <th class="text-center text-danger">Total NG</th>
                         </tr>
@@ -246,12 +247,14 @@
                             $totalOkAll = 0; 
                             $totalNgAll = 0; 
                             $totalQtyAll = 0;
+                            $totalPackingAll = 0;
                         @endphp
                         @forelse($recap as $index => $row)
                             @php
-                                $totalOkAll += $row->total_ok;
-                                $totalNgAll += $row->total_ng;
-                                $totalQtyAll += $row->total_qty;
+                                $totalOkAll += $row->total_ok_sum;
+                                $totalNgAll += $row->total_ng_sum;
+                                $totalQtyAll += $row->total_qty_sum;
+                                $totalPackingAll += $row->total_packing;
                             @endphp
                             <tr>
                                 <td class="text-center font-weight-bold text-muted small">{{ $index + 1 }}</td>
@@ -261,13 +264,14 @@
                                 <td class="text-center">
                                     <span class="badge badge-light border rounded-pill px-3 shadow-sm">Shift {{ $row->shift }}</span>
                                 </td>
-                                <td class="text-center font-weight-bold text-primary">{{ number_format($row->total_qty) }}</td>
-                                <td class="text-center text-success font-weight-bold">{{ number_format($row->total_ok) }}</td>
-                                <td class="text-center text-danger font-weight-bold">{{ number_format($row->total_ng) }}</td>
+                                <td class="text-center font-weight-bold text-gray-700">{{ number_format($row->packing_size) }}</td>
+                                <td class="text-center font-weight-bold text-info">{{ number_format($row->total_packing) }}</td>
+                                <td class="text-center text-success font-weight-bold">{{ number_format($row->total_ok_sum) }}</td>
+                                <td class="text-center text-danger font-weight-bold">{{ number_format($row->total_ng_sum) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="py-5">
                                         <i class="fas fa-folder-open fa-3x text-gray-300 mb-3"></i>
                                         <p class="text-muted">Tidak ada data verification pada kriteria ini.</p>
@@ -279,8 +283,9 @@
                     @if($recap->count() > 0)
                     <tfoot>
                         <tr>
-                            <td colspan="5" class="text-right py-3 text-uppercase small letter-spacing-1">Total Qty</td>
-                            <td class="text-center py-3 text-primary">{{ number_format($totalQtyAll) }}</td>
+                            <td colspan="5" class="text-right py-3 text-uppercase small letter-spacing-1">Grand Total</td>
+                            <td class="text-center py-3 text-gray-700">-</td>
+                            <td class="text-center py-3 text-info">{{ number_format($totalPackingAll) }}</td>
                             <td class="text-center py-3 text-success">{{ number_format($totalOkAll) }}</td>
                             <td class="text-center py-3 text-danger">{{ number_format($totalNgAll) }}</td>
                         </tr>

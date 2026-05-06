@@ -303,9 +303,21 @@
                             <td>
                                 @if(strtoupper($tool->jenis_kalibrasi) === 'EKSTERNAL')
                                     @php
-                                        $existingPr = null;
-                                        foreach ($tool->schedules as $sch) {
-                                            if ($sch->pr_number) { $existingPr = $sch->pr_number; break; }
+                                        // Cari PR yang sesuai dengan jadwal berikutnya (next_calibration_date)
+                                        $nextDate = $tool->next_calibration_date;
+                                        $targetSch = $tool->schedules->first(function($s) use ($nextDate) {
+                                            return $nextDate && $s->schedule_date && $s->schedule_date->format('Y-m-d') === $nextDate->format('Y-m-d');
+                                        });
+                                        
+                                        // Jika tidak ketemu yang pas tanggalnya, ambil PR pertama yang tersedia di tahun ini (fallback)
+                                        $existingPr = $targetSch ? $targetSch->pr_number : null;
+                                        if (!$existingPr) {
+                                            foreach ($tool->schedules as $sch) {
+                                                if ($sch->pr_number && $sch->schedule_date && $sch->schedule_date->format('Y') == date('Y')) { 
+                                                    $existingPr = $sch->pr_number; 
+                                                    break; 
+                                                }
+                                            }
                                         }
                                     @endphp
                                     <input type="text" class="form-control form-control-sm pr-input text-center no-autoupper"
@@ -319,9 +331,12 @@
                                  @php
                                     $status = $tool->status_kalibrasi;
                                     $icon = '';
-                                    if ($status === 'calibrated') $icon = '<i class="fas fa-check-circle text-success" style="font-size: 1rem;" title="OK"></i>';
-                                    elseif ($status === 'due_soon') $icon = '<i class="fas fa-calendar-check text-warning" style="font-size: 1rem;" title="Mendekati Jadwal"></i>';
-                                    elseif ($status === 'overdue') $icon = '<i class="fas fa-exclamation-circle text-danger" style="font-size: 1rem;" title="Overdue"></i>';
+                                    if ($status === 'calibrated') $icon = '<i class="fas fa-check-circle text-success" style="font-size: 1rem;" title="Sudah Verifikasi"></i>';
+                                    elseif ($status === 'pr_out') $icon = '<i class="fas fa-hourglass-half text-primary" style="font-size: 1rem;" title="PR Out - Menunggu Verifikasi"></i>';
+                                    elseif ($status === 'waiting_internal') $icon = '<i class="fas fa-calendar-check text-info" style="font-size: 1rem;" title="Alat Internal - Menunggu Verifikasi"></i>';
+                                    elseif ($status === 'no_pr') $icon = '<i class="fas fa-calendar-times text-secondary" style="font-size: 1rem;" title="Alat Eksternal - Belum Ada PR"></i>';
+                                    elseif ($status === 'overdue') $icon = '<i class="fas fa-exclamation-circle text-danger" style="font-size: 1rem;" title="Melewati Jadwal Planning"></i>';
+                                    elseif ($status === 'due_soon') $icon = '<i class="fas fa-calendar-alt text-warning" style="font-size: 1rem;" title="Mendekati Jadwal Verifikasi"></i>';
                                     elseif ($status === 'problem') $icon = '<i class="fas fa-wrench text-warning" style="font-size: 1rem;" title="Bermasalah"></i>';
                                     elseif ($status === 'broken') $icon = '<i class="fas fa-times-circle text-secondary" style="font-size: 1rem;" title="Rusak"></i>';
                                     else $icon = '<i class="fas fa-question-circle text-muted" style="font-size: 1rem;" title="Unknown"></i>';
@@ -330,8 +345,8 @@
                                 @endphp
                                 <div class="d-flex flex-column align-items-center">
                                     {!! $icon !!}
-                                    @if($status === 'overdue' && $tool->next_calibration_date)
-                                        <span class="small font-weight-bold text-danger mt-1" style="font-size: 0.65rem;" title="Target Kalibrasi (Overdue)">
+                                    @if(in_array($status, ['overdue', 'no_pr', 'waiting_internal', 'pr_out']) && $tool->next_calibration_date)
+                                        <span class="small font-weight-bold {{ $status === 'calibrated' ? 'text-success' : 'text-danger' }} mt-1" style="font-size: 0.65rem;" title="Target Kalibrasi">
                                             {{ $tool->next_calibration_date->format('d/m/y') }}
                                         </span>
                                     @elseif($lastVerif && $lastVerif->tanggal_verifikasi)
