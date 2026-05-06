@@ -185,6 +185,14 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
         }
 
+        if (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'verification') {
+                $query->whereNotNull('in_process_checksheets.qrcode');
+            } elseif ($filters['entry_method'] === 'regular') {
+                $query->whereNull('in_process_checksheets.qrcode');
+            }
+        }
+
         return $query;
     }
 

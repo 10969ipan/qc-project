@@ -117,6 +117,7 @@ class InProcessChecksheetController extends Controller
             'next_proses' => $request->next_proses,
             'id' => $request->id,
             'qr_raw' => $request->qr_raw,
+            'entry_method' => $request->entry_method,
         ];
 
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
@@ -366,12 +367,13 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method']);
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['part_no']) && 
+            empty($filters['search']) && empty($filters['entry_method'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -405,8 +407,8 @@ class InProcessChecksheetController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
-        $endDate = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate = !empty($filters['end_date']) ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y') : 'Semua';
 
         $pdf = Pdf::loadView('in_process.pdf', compact('checksheets', 'items', 'request', 'partDimensionStandards', 'startDate', 'endDate', 'plantName', 'plantCode'));
         return $pdf->setPaper('a4', 'landscape')->download('Laporan_Inprocess_' . date('Y-m-d_H-i-s') . '.pdf');
@@ -483,12 +485,13 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method']);
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['part_no']) && 
+            empty($filters['search']) && empty($filters['entry_method'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -511,12 +514,9 @@ class InProcessChecksheetController extends Controller
             $plantName = $user->plant->name;
         }
 
-        // For display labels: use provided dates or default to 'Today' for the label only
-        $dispStart = ($filters['start_date'] ?? null) ?: now()->toDateString();
-        $dispEnd = ($filters['end_date'] ?? null) ?: now()->toDateString();
-
-        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
+        // For display labels: use provided dates or show 'Semua'
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
         return view('in_process.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

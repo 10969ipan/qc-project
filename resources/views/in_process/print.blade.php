@@ -137,10 +137,8 @@
             &nbsp;&nbsp;|&nbsp;&nbsp;
             <strong>Inisial:</strong> {{ request('operator_initials') }}
         @endif
-        @if(request('search'))
-            &nbsp;&nbsp;|&nbsp;&nbsp;
-            <strong>Search:</strong> "{{ request('search') }}"
-        @endif
+        @if(request('search')) &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Search:</strong> "{{ request('search') }}" @endif
+        @if(request('entry_method')) &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Tipe:</strong> {{ request('entry_method') === 'verification' ? 'Verification' : 'Regular' }} @endif
         &nbsp;&nbsp;|&nbsp;&nbsp;
         <strong>Total Data:</strong> {{ $checksheets->count() }} baris
     </div>

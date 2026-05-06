@@ -440,7 +440,7 @@ class SortirCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Item Belum Dipilih',
-                    text: 'Silakan pilih Item Part NG terlebih dahulu!'
+                    
                 });
                 $('#ngItemSelect').addClass('is-invalid').focus();
                 setTimeout(() => $('#ngItemSelect').removeClass('is-invalid'), 3000);
@@ -452,7 +452,7 @@ class SortirCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Total Qty Belum Diisi',
-                    text: 'Silakan isi Total Qty terlebih dahulu!'
+                    
                 });
                 $('input[name="total_qty"]').addClass('is-invalid').focus();
                 setTimeout(() => $('input[name="total_qty"]').removeClass('is-invalid'), 3000);
@@ -464,7 +464,7 @@ class SortirCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Sampling Qty Belum Diisi',
-                    text: 'Silakan isi Sampling Qty terlebih dahulu!'
+                    
                 });
                 $('input[name="sampling_qty"]').addClass('is-invalid').focus();
                 setTimeout(() => $('input[name="sampling_qty"]').removeClass('is-invalid'), 3000);
@@ -486,7 +486,7 @@ class SortirCreate {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
-                    text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                    
                     confirmButtonColor: '#3085d6'
                 });
                 $('#nextProses').focus();
@@ -521,7 +521,7 @@ class SortirCreate {
                     Swal.fire({
                         icon: "warning",
                         title: "Defect Belum Diisi",
-                        text: "Silakan isi jenis defect pada list defect!",
+                        
                     });
                     return false;
                 }
@@ -530,7 +530,7 @@ class SortirCreate {
                     Swal.fire({
                         icon: "warning",
                         title: "Jenis Defect Belum Diisi",
-                        text: "Terdapat kuantitas defect tanpa keterangan jenis defect!",
+                        
                     });
                     return false;
                 }

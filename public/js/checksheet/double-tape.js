@@ -1580,7 +1580,7 @@ class DoubleTapeCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Item Belum Dipilih",
-                    text: "Silakan pilih item terlebih dahulu!",
+                    
                 });
                 $("#itemSelect").addClass("is-invalid").focus();
                 setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);
@@ -1592,7 +1592,6 @@ class DoubleTapeCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Total Qty Belum Diisi",
-                    text: "Silakan isi Total Qty produksi terlebih dahulu!",
                 });
                 $('input[name="total_qty"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="total_qty"]').removeClass("is-invalid"), 3000);
@@ -1604,7 +1603,6 @@ class DoubleTapeCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Sampling Qty Belum Diisi",
-                    text: "Silakan isi Sampling Qty terlebih dahulu!",
                 });
                 $('input[name="sampling_qty"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="sampling_qty"]').removeClass("is-invalid"), 3000);
@@ -1679,7 +1677,6 @@ class DoubleTapeCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Next Proses Wajib Dipilih",
-                    text: "Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!",
                     confirmButtonColor: "#3085d6",
                 });
                 $("#nextProses").addClass("is-invalid").focus();
@@ -1692,7 +1689,6 @@ class DoubleTapeCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Inisial Belum Diisi",
-                    text: "Silakan isi Inisial QC terlebih dahulu!",
                 });
                 $('input[name="operator_initials"]').addClass("is-invalid").focus();
                 setTimeout(() => $('input[name="operator_initials"]').removeClass("is-invalid"), 3000);

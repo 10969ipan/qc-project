@@ -183,7 +183,7 @@
                                 <td class="align-middle">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 110px;"
                                         name="date" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm" name="shift" required>
+                                    <select class="form-control form-control-sm" name="shift" id="shiftInput" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
@@ -537,6 +537,7 @@
             const initialsInput = document.getElementById('operatorInitialsInput');
             const platingDateInput = document.getElementById('platingDateInput');
             const platingShiftInput = document.getElementById('platingShiftInput');
+            const shiftInput = document.getElementById('shiftInput');
             const noLotInput = document.getElementById('noLotInput');
 
             const injectionDateInput = document.getElementById('injectionDateInput');
@@ -567,6 +568,7 @@
                     item_id: itemId,
                     plating_date: platingDate,
                     plating_shift: platingShift,
+                    shift: shiftInput ? shiftInput.value : '1',
                     operator_initials: initials
                 });
 
@@ -615,6 +617,7 @@
             if (initialsInput) initialsInput.addEventListener('input', debouncedFetch);
             if (platingDateInput) platingDateInput.addEventListener('change', fetchNextNoLot);
             if (platingShiftInput) platingShiftInput.addEventListener('change', fetchNextNoLot);
+            if (shiftInput) shiftInput.addEventListener('change', fetchNextNoLot);
 
             // Initial trigger
             setTimeout(() => {

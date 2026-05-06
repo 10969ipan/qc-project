@@ -344,17 +344,20 @@ class PlatingChecksheetController extends Controller
         $itemId = $request->input('item_id');
         $platingDate = $request->input('plating_date');
         $platingShift = (int) $request->input('plating_shift', 1);
+        $qcShift = (int) $request->input('shift', 1);
         $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
 
         if (!$itemId || !$platingDate || !$operatorInitials) {
-            return response()->json(['no_lot' => null]);
+            return response()->json(['no_lot' => null, 'count' => 0]);
         }
 
         try {
             $dateObj = Carbon::parse($platingDate);
-            $monthChar = chr(64 + $dateObj->month);
-            $day = $dateObj->format('d');
-            $year2 = $dateObj->format('y');
+            $month = $dateObj->month; // 1-12
+            $day = $dateObj->format('d'); // 01-31
+            $year2 = $dateObj->format('y'); // 26
+            
+            $monthChar = chr(64 + $month); // 1->A, 2->B, etc.
 
             $count = PlatingChecksheet::withoutGlobalScope('plant')
                 ->where('item_id', $itemId)
@@ -363,11 +366,14 @@ class PlatingChecksheetController extends Controller
                 ->count();
 
             $seqChar = chr(65 + ($count % 26));
-            $suffix = str_repeat($seqChar, max(1, $platingShift));
+            $suffix = str_repeat($seqChar, max(1, $qcShift));
 
             $noLot = "{$monthChar}{$day}{$operatorInitials}{$year2}{$suffix}";
 
-            return response()->json(['no_lot' => $noLot]);
+            return response()->json([
+                'no_lot' => $noLot,
+                'count' => $count
+            ]);
         } catch (\Exception $e) {
             return response()->json(['no_lot' => null, 'error' => $e->getMessage()]);
         }

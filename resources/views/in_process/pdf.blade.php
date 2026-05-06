@@ -207,6 +207,7 @@
         @if(request('customer')) | <strong>Cust:</strong> {{ request('customer') }} @endif
         @if(request('operator_initials')) | <strong>Inisial:</strong> {{ request('operator_initials') }} @endif
         @if(request('search')) | <strong>Search:</strong> "{{ request('search') }}" @endif
+        @if(request('entry_method')) | <strong>Tipe:</strong> {{ request('entry_method') === 'verification' ? 'Verification' : 'Regular' }} @endif
         | <strong>Total:</strong> {{ $checksheets->count() }} baris
     </div>
 
