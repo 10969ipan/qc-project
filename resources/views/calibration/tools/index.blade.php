@@ -345,8 +345,8 @@
                                 @endphp
                                 <div class="d-flex flex-column align-items-center">
                                     {!! $icon !!}
-                                    @if(in_array($status, ['overdue', 'no_pr', 'waiting_internal', 'pr_out']) && $tool->next_calibration_date)
-                                        <span class="small font-weight-bold {{ $status === 'calibrated' ? 'text-success' : 'text-danger' }} mt-1" style="font-size: 0.65rem;" title="Target Kalibrasi">
+                                    @if(in_array($status, ['overdue', 'no_pr', 'waiting_internal', 'pr_out', 'due_soon']) && $tool->next_calibration_date)
+                                        <span class="small font-weight-bold {{ $status === 'overdue' ? 'text-danger' : 'text-gray-600' }} mt-1" style="font-size: 0.65rem;" title="Target Kalibrasi">
                                             {{ $tool->next_calibration_date->format('d/m/y') }}
                                         </span>
                                     @elseif($lastVerif && $lastVerif->tanggal_verifikasi)
