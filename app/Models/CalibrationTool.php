@@ -172,7 +172,16 @@ class CalibrationTool extends Model
             }
         }
 
-        return 'calibrated';
+        // Default for unverified tools is now their respective 'waiting' status
+        if (strtoupper($this->jenis_kalibrasi) === 'EKSTERNAL') {
+            $schedule = $this->schedules()->whereDate('schedule_date', $next)->first();
+            if ($schedule && !empty($schedule->pr_number)) {
+                return 'pr_out';
+            }
+            return 'no_pr';
+        } else {
+            return 'waiting_internal';
+        }
     }
 
     /**
