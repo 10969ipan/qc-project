@@ -343,6 +343,12 @@
                         title="Import Data Dimensi (XLSX / CSV)">
                         <i class="fas fa-file-import fa-sm"></i>
                     </button>
+                    <a href="{{ route('in_process.daily_recap', ['start_date' => request('start_date') ?: now()->toDateString(), 'plant' => request('plant')]) }}"
+                        id="btnDailyRecap"
+                        target="_blank"
+                        class="btn btn-dark btn-sm shadow-sm rounded-pill px-3 no-loader" title="Daily Recap Verification">
+                        <i class="fas fa-list-alt fa-sm"></i>
+                    </a>
                 </div>
 
             </form>
@@ -1267,6 +1273,8 @@
                     var baseUrlPdf = "{{ route('in_process.export_pdf') }}";
                     var baseUrlMeasurements = "{{ route('in_process.export_measurements') }}";
                     
+                    var baseUrlRecap = "{{ route('in_process.daily_recap') }}";
+                    
                     var params = new URLSearchParams();
                     var formData = new FormData(form);
                     for (var pair of formData.entries()) {
@@ -1278,10 +1286,12 @@
                     var printBtn = form.querySelector('a[title="Print"]');
                     var pdfBtn = form.querySelector('a[title="Export to PDF"]');
                     var measurementsBtn = form.querySelector('a[title="Export Data Dimensi (XLSX)"]');
+                    var recapBtn = document.getElementById('btnDailyRecap');
                     
                     if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
                     if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
                     if (measurementsBtn) measurementsBtn.href = baseUrlMeasurements + '?' + queryString;
+                    if (recapBtn) recapBtn.href = baseUrlRecap + '?' + queryString;
                 }
 
                 $(form).find('input, select').on('change', syncExportLinks);

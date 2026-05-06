@@ -522,6 +522,30 @@ class InProcessChecksheetController extends Controller
     }
 
     /**
+     * Report Harian: Rekap data Verification per Item & Shift
+     */
+    public function dailyRecap(Request $request)
+    {
+        $date = $request->get('start_date') ?: ($request->get('date') ?: now()->toDateString());
+        $plant = $request->get('plant') ?: auth()->user()->plant_id;
+        $shift = $request->get('shift');
+
+        $filters = [
+            'date' => $date,
+            'plant' => $plant,
+            'shift' => $shift
+        ];
+
+        $recap = $this->inProcessService->getDailyRecap($filters);
+        
+        $plantModel = \App\Models\Plant::where('code', $plant)->orWhere('id', $plant)->first();
+        $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
+        $plantName = $plantModel ? $plantModel->name : 'Karawang';
+
+        return view('in_process.daily_recap', compact('recap', 'date', 'plantName', 'plantCode'));
+    }
+
+    /**
      * Ekspor Data Pengukuran (Actual) ke XLSX berdasarkan filter
      */
     public function exportMeasureData(Request $request)

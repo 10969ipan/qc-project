@@ -417,6 +417,32 @@ class InProcessCreate {
         this.initMachinePersistence();
         this.lockInputs();
         this.checkUrlParams();
+
+        // Auto focus on scan field on load (Tablet optimized)
+        this.applyAutoFocus();
+        
+        // Click to refocus helper for tablet users
+        $(document).on("click", ".card-body", (e) => {
+            if ($(e.target).closest("input, select, textarea, button").length === 0) {
+                this.applyAutoFocus();
+            }
+        });
+    }
+
+    applyAutoFocus() {
+        setTimeout(() => {
+            const $input = $("#sapCodeInput");
+            if ($input.length && !this.isProcessingScan) {
+                // Prevent virtual keyboard on tablets/phones during auto-focus
+                $input.attr('inputmode', 'none');
+                $input.focus();
+                
+                // If user actually taps the input, allow keyboard
+                $input.one('mousedown touchstart', function() {
+                    $(this).attr('inputmode', 'text');
+                });
+            }
+        }, 600);
     }
 
     lockInputs() {
@@ -631,8 +657,19 @@ class InProcessCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
-        $("#scanMethodInput").val("manual");
-        this.parseAndFillQR(decodedText);
+        
+        // Set to hardware method to trigger auto-fill dash and allow auto-submit
+        $("#scanMethodInput").val("hardware"); 
+        this.startTimer(); 
+        
+        this.parseAndFillQR(decodedText, (success) => {
+            if (success) {
+                // Auto-submit after a short delay to ensure UI is updated
+                setTimeout(() => {
+                    $("#checksheetForm").trigger("submit");
+                }, 500);
+            }
+        });
     }
 
     parseAndFillQR(qrString, callback) {
@@ -763,20 +800,24 @@ class InProcessCreate {
     initTimer() {
         const _this = this;
         $("#startTimerBtn").click(function () {
-            if (!_this.timerRunning) {
-                _this.timerRunning = true;
-                $(this)
-                    .removeClass("btn-success")
-                    .addClass("btn-secondary")
-                    .attr("disabled", true)
-                    .html('<i class="fas fa-clock"></i> Running...');
-                _this.unlockInputs();
-                _this.timerInterval = setInterval(() => {
-                    _this.totalSeconds++;
-                    _this.updateTimerDisplay();
-                }, 1000);
-            }
+            _this.startTimer();
         });
+    }
+
+    startTimer() {
+        if (!this.timerRunning) {
+            this.timerRunning = true;
+            $("#startTimerBtn")
+                .removeClass("btn-success")
+                .addClass("btn-secondary")
+                .attr("disabled", true)
+                .html('<i class="fas fa-clock"></i> Running...');
+            this.unlockInputs();
+            this.timerInterval = setInterval(() => {
+                this.totalSeconds++;
+                this.updateTimerDisplay();
+            }, 1000);
+        }
     }
 
     updateTimerDisplay() {
@@ -1050,17 +1091,9 @@ class InProcessCreate {
                 return;
             }
 
+            // Auto start timer if scan occurs
             if (!this.timerRunning) {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Tombol Start Belum Diklik",
-                    text: 'Silakan klik tombol "Start" terlebih dahulu sebelum melakukan scanning!',
-                    confirmButtonColor: "#3085d6",
-                    confirmButtonText: "OK, mengerti",
-                });
-                this.isProcessingScan = false;
-                buffer = "";
-                return;
+                this.startTimer();
             }
 
             showToast("✅ Scan berhasil diproses!", "#4ade80");
@@ -1074,7 +1107,7 @@ class InProcessCreate {
                         $("#checksheetForm").trigger("submit");
                         // Lock akan dilepas setelah submit atau timeout
                         this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
-                    }, 800);
+                    }, 500);
                 } else {
                     this.isProcessingScan = false;
                 }
@@ -1780,10 +1813,12 @@ class InProcessCreate {
                             icon: "success",
                             title: "Berhasil",
                             text: "Data Berhasil Disimpan",
-                            showCancelButton: true,
-                            confirmButtonText: "Lihat Data",
+                            showCancelButton: !isHardwareScan,
+                            confirmButtonText: isHardwareScan ? "OK" : "Lihat Data",
+                            timer: isHardwareScan ? 1200 : null,
+                            timerProgressBar: isHardwareScan,
                         }).then((result) => {
-                            if (result.isConfirmed)
+                            if (result.isConfirmed && !isHardwareScan)
                                 window.location.href = response.index_url;
                             else _this.resetForm();
                         });
@@ -1837,6 +1872,7 @@ class InProcessCreate {
         ).hide();
         $("#judgmentBadge").addClass("d-none").text("-");
         $("#itemSelect").val("").trigger("change");
+        this.applyAutoFocus();
     }
 
     normalizePartNumber(pn) {

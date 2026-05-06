@@ -670,6 +670,43 @@ class InProcessChecksheetService extends BaseService
 
 
     /**
+     * Get daily recap for verification data
+     *
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDailyRecap(array $filters)
+    {
+        $query = InProcessChecksheet::with('item')
+            ->whereNotNull('qrcode') // Verification only
+            ->select(
+                'item_id',
+                'shift',
+                DB::raw('SUM(total_qty) as total_qty'),
+                DB::raw('SUM(total_ok) as total_ok'),
+                DB::raw('SUM(total_ng) as total_ng'),
+                DB::raw('COUNT(*) as total_entries')
+            )
+            ->groupBy('item_id', 'shift');
+
+        if (isset($filters['plant'])) {
+            $query->where('plant_id', $this->resolvePlantId($filters['plant']));
+        }
+
+        if (!empty($filters['date'])) {
+            $query->whereDate('date', $filters['date']);
+        } else {
+            $query->whereDate('date', now()->toDateString());
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
+        return $query->get();
+    }
+
+    /**
      * Normalize part number for consistent internal matching
      * Removes ALL spaces and unifies EN/EM dashes to hyphen
      */

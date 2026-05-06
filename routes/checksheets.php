@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/sortir-checksheets', [SortirChecksheetController::class, 'index'])->name('sortir.index');
 
         // Export & Sync
+        Route::get('/report/in-process-checksheets/daily-recap', [InProcessChecksheetController::class, 'dailyRecap'])->name('in_process.daily_recap');
         Route::get('/report/in-process-checksheets/export-pdf', [InProcessChecksheetController::class, 'exportPdf'])->name('in_process.export_pdf');
         Route::get('/report/in-process-checksheets/print', [InProcessChecksheetController::class, 'printView'])->name('in_process.print');
         Route::get('/report/in-process-checksheets/export-measurements', [InProcessChecksheetController::class, 'exportMeasureData'])->name('in_process.export_measurements');
