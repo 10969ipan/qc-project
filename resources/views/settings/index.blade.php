@@ -103,6 +103,7 @@
                                              id="heading{{ $moduleKey }}" 
                                              data-toggle="collapse" 
                                              data-target="#collapse{{ $moduleKey }}" 
+                                             aria-expanded="false"
                                              style="cursor: pointer;">
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar avatar-sm bg-light text-dark mr-3" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
@@ -115,7 +116,7 @@
                                             </div>
                                             <i class="fas fa-chevron-down text-muted transition-arrow"></i>
                                         </div>
-                                        <div id="collapse{{ $moduleKey }}" class="collapse {{ $loop->first ? 'show' : '' }}" aria-labelledby="heading{{ $moduleKey }}" data-parent="#nextProcessAccordion">
+                                        <div id="collapse{{ $moduleKey }}" class="collapse" aria-labelledby="heading{{ $moduleKey }}" data-parent="#nextProcessAccordion">
                                             <div class="card-body p-0 border-top">
                                                 <div class="table-responsive">
                                                     <table class="table table-borderless align-middle custom-table table-minimalist mb-0 w-100">
@@ -368,7 +369,7 @@
                             <div class="perm-module-card-header"
                                  data-toggle="collapse"
                                  data-target="#perm-collapse-{{ $parent->id }}"
-                                 aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
+                                 aria-expanded="false"
                                  aria-controls="perm-collapse-{{ $parent->id }}">
 
                                 <div class="d-flex align-items-center" style="min-width:0;">
@@ -399,13 +400,13 @@
 
                                 <div class="d-flex align-items-center">
                                     <span class="perm-module-status-badge mr-3" id="status-badge-{{ $parent->id }}">Aktif</span>
-                                    <i class="fas fa-chevron-down perm-collapse-arrow {{ $loop->first ? '' : 'collapsed-arrow' }}"></i>
+                                    <i class="fas fa-chevron-down perm-collapse-arrow collapsed-arrow"></i>
                                 </div>
                             </div>
 
                             {{-- Card Body (Collapsible) --}}
                             <div id="perm-collapse-{{ $parent->id }}"
-                                 class="collapse {{ $loop->first ? 'show' : '' }}">
+                                 class="collapse">
                                 <div class="perm-module-card-body">
 
                                     {{-- Grid Header --}}
