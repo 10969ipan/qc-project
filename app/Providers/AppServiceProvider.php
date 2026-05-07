@@ -164,5 +164,9 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
+        // Share dynamic Next Process options with all views
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            $view->with('nextProcessesGlobal', \App\Models\NextProcess::where('is_active', true)->orderBy('plant_id')->orderBy('order')->get());
+        });
     }
 }

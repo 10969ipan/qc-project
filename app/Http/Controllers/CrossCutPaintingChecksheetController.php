@@ -102,7 +102,14 @@ class CrossCutPaintingChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('cross_cut_painting.create', compact('items', 'defaultDate', 'defaultShift'));
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'cross_cut_painting')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('cross_cut_painting.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
     /**
@@ -208,11 +215,17 @@ class CrossCutPaintingChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'cross_cut_painting')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('cross_cut_painting.partials.edit_form', compact('checksheet', 'items'));
+            return view('cross_cut_painting.partials.edit_form', compact('checksheet', 'items', 'nextProcesses'));
         }
 
-        return view('cross_cut_painting.edit', compact('checksheet', 'items'));
+        return view('cross_cut_painting.edit', compact('checksheet', 'items', 'nextProcesses'));
     }
 
     public function update(UpdateCrossCutPaintingChecksheetRequest $request, $id)

@@ -135,7 +135,14 @@ class DoubleTapeChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('double_tape.create', compact('items', 'defaultDate', 'defaultShift'));
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'double_tape')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('double_tape.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
     public function store(StoreDoubleTapeChecksheetRequest $request)
@@ -198,11 +205,17 @@ class DoubleTapeChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'double_tape')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('double_tape.partials.edit_form', compact('checksheet', 'items', 'users'));
+            return view('double_tape.partials.edit_form', compact('checksheet', 'items', 'users', 'nextProcesses'));
         }
 
-        return view('double_tape.edit', compact('checksheet', 'items', 'users'));
+        return view('double_tape.edit', compact('checksheet', 'items', 'users', 'nextProcesses'));
     }
 
     public function update(UpdateDoubleTapeChecksheetRequest $request, $id)

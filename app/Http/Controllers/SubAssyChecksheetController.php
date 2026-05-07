@@ -157,13 +157,19 @@ class SubAssyChecksheetController extends Controller
         }
 
         $items = $query->get();
-        $plantParam = $request->query('plant') ?? $user->plant_id;
 
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift', 'plantParam'));
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'sub_assy')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
     // Simpan data (submission)
@@ -235,11 +241,17 @@ class SubAssyChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'sub_assy')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('sub_assy.partials.edit_form', compact('checksheet', 'items', 'users'));
+            return view('sub_assy.partials.edit_form', compact('checksheet', 'items', 'nextProcesses'));
         }
 
-        return view('sub_assy.edit', compact('checksheet', 'items', 'users'));
+        return view('sub_assy.edit', compact('checksheet', 'items', 'nextProcesses'));
     }
 
     // Update Checksheet

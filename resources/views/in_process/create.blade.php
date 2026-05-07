@@ -132,7 +132,7 @@
 
 </style>
     @php
-        $plant = request('plant') ?? auth()->user()->plant_id;
+        $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
     @endphp
@@ -546,17 +546,9 @@
                                             Proses: <span class="text-danger">*</span></label>
                                         <select class="form-control" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih Next Proses --</option>
-                                            <option value="CRUSHING">CRUSHING</option>
-                                            <option value="SORTIR">SORTIR</option>
-                                            <option value="FINISHING">FINISHING</option>
-                                            <option value="REPAIR">REPAIR</option>
-                                            <option value="SORTIR + FINISHING">SORTIR + FINISHING</option>
-                                            <option value="FINISHING + PASANG SUB PART">FINISHING + PASANG SUB PART</option>
-                                            <option value="FINISHING + PACKING">FINISHING + PACKING</option>
-                                            <option value="REBUS + FINISHING + PACKING">REBUS + FINISHING + PACKING</option>
-                                            <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
-                                            <option value="SORTIR + CRUSHING">SORTIR + CRUSHING</option>
-                                            <option value="FINISHING + MARKING + PACKING">FINISHING + MARKING + PACKING</option>
+                                            @foreach($nextProcesses as $opt)
+                                                <option value="{{ $opt->name }}">{{ $opt->name }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="remarks" rows="6"

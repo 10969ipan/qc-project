@@ -83,6 +83,110 @@
                                         <label class="custom-control-label" for="dailyApprovalGate"></label>
                                     </div>
                                 </div>
+
+                                <hr class="my-4" style="border-top: 1px dashed #e2e8f0;">
+
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div>
+                                        <h6 class="font-weight-bold text-dark mb-1">Manajemen Next Process</h6>
+                                        <p class="text-muted small mb-0">Kelola opsi proses selanjutnya berdasarkan plant</p>
+                                    </div>
+                                    <button type="button" class="btn btn-dark rounded-pill px-4 shadow-sm btn-sm-modern py-2" data-toggle="modal" data-target="#modalAddNextProcess">
+                                        <i class="fas fa-plus mr-2"></i> Tambah Opsi
+                                    </button>
+                                </div>
+
+                                <div class="next-process-accordion" id="nextProcessAccordion">
+                                    @foreach($qcModules as $moduleKey => $moduleLabel)
+                                    <div class="card border-0 mb-3 shadow-sm rounded-lg overflow-hidden slide-in">
+                                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center" 
+                                             id="heading{{ $moduleKey }}" 
+                                             data-toggle="collapse" 
+                                             data-target="#collapse{{ $moduleKey }}" 
+                                             style="cursor: pointer;">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar avatar-sm bg-light text-dark mr-3" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                                    <i class="fas fa-layer-group" style="font-size: 0.8rem;"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.9rem;">{{ $moduleLabel }}</h6>
+                                                    <p class="text-muted small mb-0">{{ $nextProcesses->where('module', $moduleKey)->count() }} Opsi Proses</p>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-chevron-down text-muted transition-arrow"></i>
+                                        </div>
+                                        <div id="collapse{{ $moduleKey }}" class="collapse {{ $loop->first ? 'show' : '' }}" aria-labelledby="heading{{ $moduleKey }}" data-parent="#nextProcessAccordion">
+                                            <div class="card-body p-0 border-top">
+                                                <div class="table-responsive">
+                                                    <table class="table table-borderless align-middle custom-table table-minimalist mb-0 w-100">
+                                                        <thead class="bg-light text-muted">
+                                                            <tr>
+                                                                <th width="10%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Order</th>
+                                                                <th width="35%" class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Nama Proses</th>
+                                                                <th width="20%" class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Plant</th>
+                                                                <th width="15%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Status</th>
+                                                                <th width="20%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @forelse($nextProcesses->where('module', $moduleKey) as $process)
+                                                            <tr class="table-row-hover" style="border-bottom: 1px solid #f8f9fa;">
+                                                                <td class="text-center">
+                                                                    <span class="badge badge-light rounded-pill px-2">{{ $process->order }}</span>
+                                                                </td>
+                                                                <td>
+                                                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.85rem;">{{ $process->name }}</h6>
+                                                                </td>
+                                                                <td>
+                                                                    @if($process->plant && strtoupper($process->plant->name) !== 'TOTAL')
+                                                                        <span class="badge badge-pill px-2 py-1 {{ strtolower($process->plant->code ?? '') === 'jakarta' ? 'badge-info' : 'badge-primary' }}" style="font-size: 0.65rem;">
+                                                                            {{ $process->plant->name }}
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="badge badge-pill px-2 py-1 badge-secondary" style="font-size: 0.65rem;">
+                                                                            Global
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
+                                                                        <input type="checkbox" class="custom-control-input toggle-process-status" id="processStatus{{ $process->id }}" data-id="{{ $process->id }}" data-plant="{{ $process->plant_id }}" data-module="{{ $process->module }}" {{ $process->is_active ? 'checked' : '' }}>
+                                                                        <label class="custom-control-label" for="processStatus{{ $process->id }}"></label>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm edit-process" 
+                                                                            data-id="{{ $process->id }}" 
+                                                                            data-name="{{ $process->name }}" 
+                                                                            data-order="{{ $process->order }}"
+                                                                            data-plant="{{ $process->plant_id }}"
+                                                                            data-module="{{ $process->module }}"
+                                                                            data-toggle="tooltip" title="Edit Opsi">
+                                                                            <i class="fas fa-pen text-primary" style="font-size: 0.7rem;"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm delete-process ml-1" 
+                                                                            data-id="{{ $process->id }}" 
+                                                                            data-name="{{ $process->name }}" 
+                                                                            data-toggle="tooltip" title="Hapus Opsi">
+                                                                            <i class="fas fa-trash text-danger" style="font-size: 0.7rem;"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            @empty
+                                                            <tr>
+                                                                <td colspan="5" class="text-center py-4 text-muted small">Belum ada opsi proses untuk modul ini.</td>
+                                                            </tr>
+                                                            @endforelse
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -328,6 +432,7 @@
                 </div>
             </div>
 
+
             <!-- Tab 4: Log Aktivitas -->
             <div class="tab-pane fade" id="activity-logs" role="tabpanel" aria-labelledby="activity-logs-tab">
                 <div class="card shadow border-0 rounded-lg mb-4 slide-in">
@@ -540,6 +645,107 @@
                     <button type="button" id="confirmResetPassword" class="btn btn-dark btn-block rounded-pill shadow-sm font-weight-bold mb-2">Ya, Reset Sekarang</button>
                     <button type="button" class="btn btn-outline-light btn-block rounded-pill text-muted small" data-dismiss="modal">Batalkan</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add Next Process -->
+    <div class="modal fade" id="modalAddNextProcess" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-lg">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title font-weight-bold"><i class="fas fa-plus mr-2"></i>Tambah Next Process</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formAddNextProcess">
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Nama Proses</label>
+                            <input type="text" name="name" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" required placeholder="Contoh: CRUSHING">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Plant</label>
+                            <select name="plant_id" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                @foreach($plants as $plant)
+                                    @if(strtoupper($plant->name) !== 'TOTAL')
+                                        <option value="{{ $plant->id }}">{{ $plant->name }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Modul</label>
+                            <select name="module" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                <option value="">-- Pilih Modul --</option>
+                                @foreach($qcModules as $val => $label)
+                                    <option value="{{ $val }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold text-dark">Urutan (Order)</label>
+                            <input type="number" name="order" class="form-control rounded-pill border-0 bg-light px-3" value="0">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4 shadow-sm">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Next Process -->
+    <div class="modal fade" id="modalEditNextProcess" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-lg">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title font-weight-bold"><i class="fas fa-pen mr-2"></i>Edit Next Process</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formEditNextProcess">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="id" id="edit_process_id">
+                    <div class="modal-body p-4">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Nama Proses</label>
+                            <input type="text" name="name" id="edit_process_name" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Plant</label>
+                            <select name="plant_id" id="edit_process_plant_id" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                @foreach($plants as $plant)
+                                    @if(strtoupper($plant->name) !== 'TOTAL')
+                                        <option value="{{ $plant->id }}">{{ $plant->name }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Modul</label>
+                            <select name="module" id="edit_process_module" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                @foreach($qcModules as $val => $label)
+                                    <option value="{{ $val }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold text-dark">Urutan (Order)</label>
+                            <input type="number" name="order" id="edit_process_order" class="form-control rounded-pill border-0 bg-light px-3">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4 shadow-sm">Perbarui</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -2285,6 +2491,128 @@
                 },
                 complete: function() {
                     btn.html(originalHtml).prop('disabled', false);
+                }
+            });
+        });
+
+        // Handle Add Next Process
+        $('#formAddNextProcess').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var btn = form.find('button[type="submit"]');
+            
+            $.ajax({
+                url: "{{ route('admin.settings.next-processes.store') }}",
+                type: "POST",
+                data: form.serialize(),
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500
+                    }).then(() => location.reload());
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menambahkan opsi.';
+                    Swal.fire('Error', msg, 'error');
+                }
+            });
+        });
+
+        // Handle Edit Next Process Modal
+        $(document).on('click', '.edit-process', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            var order = $(this).data('order');
+            var plant = $(this).data('plant');
+            var module = $(this).data('module');
+            
+            $('#edit_process_id').val(id);
+            $('#edit_process_name').val(name);
+            $('#edit_process_order').val(order);
+            $('#edit_process_plant_id').val(plant);
+            $('#edit_process_module').val(module);
+            
+            $('#modalEditNextProcess').modal('show');
+        });
+
+        // Handle Update Next Process
+        $('#formEditNextProcess').on('submit', function(e) {
+            e.preventDefault();
+            var id = $('#edit_process_id').val();
+            var form = $(this);
+            
+            $.ajax({
+                url: "{{ url('admin/settings/next-processes') }}/" + id,
+                type: "POST",
+                data: form.serialize(),
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500
+                    }).then(() => location.reload());
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal memperbarui opsi.';
+                    Swal.fire('Error', msg, 'error');
+                }
+            });
+        });
+
+        // Handle Toggle Process Status
+        $(document).on('change', '.toggle-process-status', function() {
+            var id = $(this).data('id');
+            var plant = $(this).data('plant');
+            var module = $(this).data('module');
+            var isActive = $(this).is(':checked') ? 1 : 0;
+            
+            $.ajax({
+                url: "{{ url('admin/settings/next-processes') }}/" + id,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    _method: "PUT",
+                    is_active: isActive,
+                    name: $(this).closest('tr').find('h6').text(),
+                    plant_id: plant,
+                    module: module
+                },
+                success: function(response) {
+                    // Success notification optional
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', 'Gagal mengubah status.', 'error');
+                    $(this).prop('checked', !isActive);
+                }
+            });
+        });
+
+        // Handle Delete Next Process
+        $(document).on('click', '.delete-process', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            
+            Swal.fire({
+                title: 'Hapus Opsi?',
+                text: "Anda akan menghapus opsi proses: " + name,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ url('admin/settings/next-processes') }}/" + id,
+                        type: "DELETE",
+                        data: { _token: "{{ csrf_token() }}" },
+                        success: function(response) {
+                            Swal.fire('Terhapus!', response.message, 'success').then(() => location.reload());
+                        }
+                    });
                 }
             });
         });

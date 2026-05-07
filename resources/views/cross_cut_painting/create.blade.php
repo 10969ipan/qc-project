@@ -10,7 +10,7 @@
                     <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
                         CHECK SHEET CROSS CUT PAINTING
                         @php
-                            $plant = request('plant') ?? auth()->user()->plant_id;
+                            $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
                             $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
                             $plantCode = strtolower($plantCode ?: 'karawang');
                         @endphp
@@ -219,11 +219,9 @@
                                             Proses:</label>
                                         <select class="form-control" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih Next Proses --</option>
-                                            <option value="CRUSHING">CRUSHING</option>
-                                            <option value="SORTIR">SORTIR</option>
-                                            <option value="FINISHING">FINISHING</option>
-                                            <option value="REPAIR">REPAIR</option>
-                                            <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
+                                            @foreach($nextProcesses as $opt)
+                                                <option value="{{ $opt->name }}">{{ $opt->name }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="keterangan" rows="3"></textarea>

@@ -109,7 +109,14 @@ class SortirChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('sortir.create', compact('ngItems', 'defaultDate', 'defaultShift'));
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'sortir')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('sortir.create', compact('ngItems', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
     public function store(StoreSortirChecksheetRequest $request)
@@ -157,11 +164,17 @@ class SortirChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'sortir')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('sortir.partials.edit_form', compact('checksheet', 'items'));
+            return view('sortir.partials.edit_form', compact('checksheet', 'items', 'nextProcesses'));
         }
 
-        return view('sortir.edit', compact('checksheet', 'items'));
+        return view('sortir.edit', compact('checksheet', 'items', 'nextProcesses'));
     }
 
     public function update(UpdateSortirChecksheetRequest $request, $id)

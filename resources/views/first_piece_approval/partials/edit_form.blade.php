@@ -239,17 +239,16 @@
                             </div>
                         </div>
                     </div>
-
                     <div id="next_proses_container" class="mt-3" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
                         <label class="small font-weight-bold text-danger"><i class="fas fa-directions mr-1"></i> Next Proses <span class="text-danger">*</span></label>
                         <select class="form-control form-control-sm border-danger font-weight-bold" id="next_proses" name="next_proses">
                             <option value="">-- Pilih --</option>
-                            @php
-                                $opts = ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'REBUS', 'PASANG SUB PART', 'PACKING', 'MARKING'];
-                            @endphp
-                            @foreach($opts as $o)
-                                <option value="{{ $o }}" {{ $checksheet->next_proses == $o ? 'selected' : '' }}>{{ $o }}</option>
+                            @foreach($nextProcesses as $opt)
+                                <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
                             @endforeach
+                            @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                                <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                            @endif
                         </select>
                     </div>
 

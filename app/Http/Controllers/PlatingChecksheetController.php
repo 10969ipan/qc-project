@@ -176,7 +176,14 @@ class PlatingChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('plating.create', compact('items', 'defaultDate', 'defaultShift'));
+        $plant = \App\Models\Plant::resolveId('karawang');
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'plating')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('plating.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
     public function store(StorePlatingChecksheetRequest $request)
@@ -238,11 +245,17 @@ class PlatingChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'plating')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('plating.partials.edit_form', compact('checksheet', 'items', 'users'));
+            return view('plating.partials.edit_form', compact('checksheet', 'items', 'users', 'nextProcesses'));
         }
 
-        return view('plating.edit', compact('checksheet', 'items', 'users'));
+        return view('plating.edit', compact('checksheet', 'items', 'users', 'nextProcesses'));
     }
 
     public function update(UpdatePlatingChecksheetRequest $request, $id)

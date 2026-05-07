@@ -259,11 +259,10 @@
                             <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
                             <select name="next_proses" id="next_proses_edit" class="form-control form-control-sm border-danger">
                                 <option value="">-- Pilih Next Proses --</option>
-                                <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>CRUSHING</option>
-                                <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR</option>
-                                <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR</option>
-                                <option value="MARKING+FINISHING+PACKING" {{ (isset($checksheet->next_proses) && $checksheet->next_proses == 'MARKING+FINISHING+PACKING') ? 'selected' : '' }}>MARKING+FINISHING+PACKING</option>
-                                @if($checksheet->next_proses && !in_array($checksheet->next_proses, ['CRUSHING', 'SORTIR', 'REPAIR', 'MARKING+FINISHING+PACKING']))
+                                @foreach($nextProcesses as $opt)
+                                    <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
+                                @endforeach
+                                @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
                                     <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                                 @endif
                             </select>

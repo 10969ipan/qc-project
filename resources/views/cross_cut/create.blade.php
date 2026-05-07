@@ -60,10 +60,13 @@
         </div>
         <div class="card-body">
 
+            @php
+                $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
+            @endphp
 
             <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
                 @csrf
-                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="plant" value="{{ $plant }}">
                 <div class="table-responsive">
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
@@ -214,11 +217,9 @@
                                             Proses:</label>
                                         <select class="form-control" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih Next Proses --</option>
-                                            <option value="CRUSHING">CRUSHING</option>
-                                            <option value="SORTIR">SORTIR</option>
-                                            <option value="FINISHING">FINISHING</option>
-                                            <option value="REPAIR">REPAIR</option>
-                                            <option value="MARKING+FINISHING+PACKING">MARKING+FINISHING+PACKING</option>
+                                            @foreach($nextProcesses as $opt)
+                                                <option value="{{ $opt->name }}">{{ $opt->name }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <textarea class="form-control" name="keterangan" rows="6"

@@ -174,10 +174,19 @@ class InProcessChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'in_process')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         return view('in_process.create', [
             'items' => $items,
             'defaultDate' => $defaultDate,
             'defaultShift' => $defaultShift,
+            'plant' => $plant,
+            'nextProcesses' => $nextProcesses,
             'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
         ]);
     }
@@ -244,12 +253,19 @@ class InProcessChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'in_process')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
             return view('in_process.partials.edit_form', [
                 'checksheet' => $checksheet,
                 'items' => $items,
                 'partDimensionStandards' => $partDimensionStandards,
-                'users' => $users
+                'users' => $users,
+                'nextProcesses' => $nextProcesses
             ]);
         }
 
@@ -257,7 +273,8 @@ class InProcessChecksheetController extends Controller
             'checksheet' => $checksheet,
             'items' => $items,
             'partDimensionStandards' => $partDimensionStandards,
-            'users' => $users
+            'users' => $users,
+            'nextProcesses' => $nextProcesses
         ]);
     }
 
@@ -418,10 +435,16 @@ class InProcessChecksheetController extends Controller
     public function editApproval($id)
     {
         $checksheet = InProcessChecksheet::findOrFail($id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'in_process')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('in_process.partials.edit_approval_form', compact('checksheet'));
+            return view('in_process.partials.edit_approval_form', compact('checksheet', 'nextProcesses'));
         }
-        return view('in_process.edit_approval', compact('checksheet'));
+        return view('in_process.edit_approval', compact('checksheet', 'nextProcesses'));
     }
 
     // Update status approval oleh admin

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ActivityLogger;
 use App\Models\GeneralSetting;
+use App\Models\NextProcess;
 
 class SettingsController extends Controller
 {
@@ -45,7 +46,28 @@ class SettingsController extends Controller
         }
         $generalSettings = $query->get()->keyBy('key');
 
-        return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings'));
+        // Fetch Next Processes with plant info
+        $nextProcesses = NextProcess::with('plant')
+            ->whereHas('plant', function($query) {
+                $query->where('name', '!=', 'TOTAL');
+            })
+            ->orderBy('module')
+            ->orderBy('plant_id')
+            ->orderBy('order')
+            ->get();
+
+        $qcModules = [
+            'sub_assy' => 'Sub Assy',
+            'sortir' => 'Sortir',
+            'plating' => 'Plating',
+            'in_process' => 'In-Process',
+            'first_piece_approval' => 'First Piece Approval (FPA)',
+            'double_tape' => 'Double Tape',
+            'cross_cut' => 'Cross-Cut',
+            'cross_cut_painting' => 'Cross-Cut Painting',
+        ];
+
+        return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings', 'nextProcesses', 'qcModules'));
     }
 
     /**
@@ -486,5 +508,108 @@ class SettingsController extends Controller
                 'message' => 'Gagal menyimpan konfigurasi: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Store a new next process
+     */
+    public function storeNextProcess(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'plant_id' => 'required|exists:plants,id',
+            'module' => 'required|string',
+            'order' => 'nullable|integer'
+        ]);
+
+        // Check for uniqueness per plant & module
+        $exists = NextProcess::where('name', strtoupper($request->name))
+            ->where('plant_id', $request->plant_id)
+            ->where('module', $request->module)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Proses ini sudah ada untuk plant dan modul yang dipilih.'
+            ], 422);
+        }
+
+        $nextProcess = NextProcess::create([
+            'name' => strtoupper($request->name),
+            'plant_id' => $request->plant_id,
+            'module' => $request->module,
+            'order' => $request->order ?? 0,
+            'is_active' => true
+        ]);
+
+        ActivityLogger::log('created', $nextProcess, "Menambahkan Next Process baru: {$nextProcess->name}");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Next Process berhasil ditambahkan.',
+            'next_process' => $nextProcess
+        ]);
+    }
+
+    /**
+     * Update a next process
+     */
+    public function updateNextProcess(Request $request, $id)
+    {
+        $nextProcess = NextProcess::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'plant_id' => 'required|exists:plants,id',
+            'module' => 'required|string',
+            'order' => 'nullable|integer',
+            'is_active' => 'boolean'
+        ]);
+
+        // Check for uniqueness per plant & module excluding current ID
+        $exists = NextProcess::where('name', strtoupper($request->name))
+            ->where('plant_id', $request->plant_id)
+            ->where('module', $request->module)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Proses ini sudah ada untuk plant dan modul yang dipilih.'
+            ], 422);
+        }
+
+        $nextProcess->update([
+            'name' => strtoupper($request->name),
+            'plant_id' => $request->plant_id,
+            'module' => $request->module,
+            'order' => $request->order ?? $nextProcess->order,
+            'is_active' => $request->has('is_active') ? $request->is_active : $nextProcess->is_active
+        ]);
+
+        ActivityLogger::log('updated', $nextProcess, "Memperbarui Next Process: {$nextProcess->name}");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Next Process berhasil diperbarui.',
+            'next_process' => $nextProcess
+        ]);
+    }
+
+    /**
+     * Delete a next process
+     */
+    public function deleteNextProcess($id)
+    {
+        $nextProcess = NextProcess::findOrFail($id);
+        ActivityLogger::log('deleted', $nextProcess, "Menghapus Next Process: {$nextProcess->name}");
+        $nextProcess->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Next Process berhasil dihapus.'
+        ]);
     }
 }

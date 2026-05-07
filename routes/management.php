@@ -38,6 +38,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('settings/menus/order', [\App\Http\Controllers\SettingsController::class, 'updateMenuOrder'])->name('settings.menus.order');
         Route::post('settings/permissions', [\App\Http\Controllers\SettingsController::class, 'savePermissions'])->name('settings.permissions.save');
         
+        // Next Process Management
+        Route::post('settings/next-processes', [\App\Http\Controllers\SettingsController::class, 'storeNextProcess'])->name('settings.next-processes.store');
+        Route::put('settings/next-processes/{id}', [\App\Http\Controllers\SettingsController::class, 'updateNextProcess'])->name('settings.next-processes.update');
+        Route::delete('settings/next-processes/{id}', [\App\Http\Controllers\SettingsController::class, 'deleteNextProcess'])->name('settings.next-processes.delete');
+        
         // Activity Logs
         Route::get('settings/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('settings.activity_logs');
         

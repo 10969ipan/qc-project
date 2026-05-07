@@ -179,17 +179,12 @@
                                 class="text-danger">*</span></label>
                         <select class="form-control form-control-sm" id="nextProses" name="next_proses">
                             <option value="">-- Pilih --</option>
-                            <option value="HOLD" {{ $checksheet->next_proses == 'HOLD' ? 'selected' : '' }}>HOLD</option>
-                            <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
-                            </option>
-                            <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>
-                                CRUSHING</option>
-                            <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR
-                            </option>
-                            <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>
-                                FINISHING</option>
-                            <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
-                                MARKING+FINISHING+PACKING</option>
+                            @foreach($nextProcesses as $opt)
+                                <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
+                            @endforeach
+                            @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                                <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                            @endif
                         </select>
                     </div>
                 </div>

@@ -161,10 +161,19 @@ class FirstPieceApprovalController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'first_piece_approval')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         return view('first_piece_approval.create', [
             'items' => $items,
             'defaultDate' => $defaultDate,
             'defaultShift' => $defaultShift,
+            'plant' => $plant,
+            'nextProcesses' => $nextProcesses,
             'partDimensionStandards' => $this->getConsolidatedStandards()
         ]);
     }
@@ -231,12 +240,19 @@ class FirstPieceApprovalController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'first_piece_approval')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
             return view('first_piece_approval.partials.edit_form', [
                 'checksheet' => $checksheet,
                 'items' => $items,
                 'partDimensionStandards' => $partDimensionStandards,
-                'users' => $users
+                'users' => $users,
+                'nextProcesses' => $nextProcesses
             ]);
         }
 
@@ -244,7 +260,8 @@ class FirstPieceApprovalController extends Controller
             'checksheet' => $checksheet,
             'items' => $items,
             'partDimensionStandards' => $partDimensionStandards,
-            'users' => $users
+            'users' => $users,
+            'nextProcesses' => $nextProcesses
         ]);
     }
 

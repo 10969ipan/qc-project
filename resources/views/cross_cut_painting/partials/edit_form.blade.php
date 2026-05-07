@@ -87,16 +87,12 @@
                             <label class="small font-weight-bold text-danger">Next Proses</label>
                             <select class="form-control form-control-sm" name="next_proses" id="editNextProses">
                                 <option value="">-- Pilih --</option>
-                                <option value="CRUSHING" {{ $checksheet->next_proses == 'CRUSHING' ? 'selected' : '' }}>
-                                    CRUSHING</option>
-                                <option value="SORTIR" {{ $checksheet->next_proses == 'SORTIR' ? 'selected' : '' }}>SORTIR
-                                </option>
-                                <option value="FINISHING" {{ $checksheet->next_proses == 'FINISHING' ? 'selected' : '' }}>
-                                    FINISHING</option>
-                                <option value="REPAIR" {{ $checksheet->next_proses == 'REPAIR' ? 'selected' : '' }}>REPAIR
-                                </option>
-                                <option value="MARKING+FINISHING+PACKING" {{ $checksheet->next_proses == 'MARKING+FINISHING+PACKING' ? 'selected' : '' }}>
-                                    MARKING+FINISHING+PACKING</option>
+                                @foreach($nextProcesses as $opt)
+                                    <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
+                                @endforeach
+                                @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                                    <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                                @endif
                             </select>
                         </div>
                         <textarea class="form-control" name="keterangan" rows="2"

@@ -270,13 +270,10 @@
                         <label class="small font-weight-bold text-danger"><i class="fas fa-directions mr-1"></i> Instruksi Lanjutan (Next Proses) <span class="text-danger">*</span></label>
                         <select class="form-control form-control-sm border-danger font-weight-bold" id="next_proses" name="next_proses">
                             <option value="">-- Pilih --</option>
-                            @php
-                                $options = ['CRUSHING', 'SORTIR', 'FINISHING', 'REPAIR', 'SORTIR + FINISHING', 'FINISHING + PASANG SUB PART', 'FINISHING + PACKING', 'REBUS + FINISHING + PACKING', 'MARKING+FINISHING+PACKING', 'SORTIR + CRUSHING'];
-                            @endphp
-                            @foreach($options as $opt)
-                                <option value="{{ $opt }}" {{ $checksheet->next_proses == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                            @foreach($nextProcesses as $opt)
+                                <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
                             @endforeach
-                            @if($checksheet->next_proses && !in_array($checksheet->next_proses, $options))
+                            @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
                                 <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                             @endif
                         </select>

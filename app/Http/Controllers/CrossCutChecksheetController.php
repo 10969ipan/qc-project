@@ -122,7 +122,14 @@ class CrossCutChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        return view('cross_cut.create', compact('items', 'defaultDate', 'defaultShift'));
+        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
+            ->where('module', 'cross_cut')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('cross_cut.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
     /**
@@ -337,11 +344,17 @@ class CrossCutChecksheetController extends Controller
             ->orderBy('name')
             ->get();
 
+        $nextProcesses = \App\Models\NextProcess::where('plant_id', $checksheet->plant_id)
+            ->where('module', 'cross_cut')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
         if (request()->ajax()) {
-            return view('cross_cut.partials.edit_form', compact('checksheet', 'items'));
+            return view('cross_cut.partials.edit_form', compact('checksheet', 'items', 'nextProcesses'));
         }
 
-        return view('cross_cut.edit', compact('checksheet', 'items'));
+        return view('cross_cut.edit', compact('checksheet', 'items', 'nextProcesses'));
     }
 
     public function update(UpdateCrossCutChecksheetRequest $request, $id)
