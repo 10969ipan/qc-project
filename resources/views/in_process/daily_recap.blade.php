@@ -257,17 +257,17 @@
                                 $totalPackingAll += $row->total_packing;
                             @endphp
                             <tr>
-                                <td class="text-center font-weight-bold text-muted small">{{ $index + 1 }}</td>
-                                <td class="font-weight-bold text-gray-800">{{ $row->item->name ?? '-' }}</td>
-                                <td class="text-uppercase small font-weight-bold">{{ $row->item->part_number ?? '-' }}</td>
+                                <td class="text-center font-weight text-muted small">{{ $index + 1 }}</td>
+                                <td class="font-weight text-gray-800">{{ $row->item->name ?? '-' }}</td>
+                                <td class="text-uppercase small font-weight">{{ $row->item->part_number ?? '-' }}</td>
                                 <td class="small">{{ $row->item->customer ?? '-' }}</td>
                                 <td class="text-center">
                                     Shift {{ $row->shift }}
                                 </td>
-                                <td class="text-center font-weight-bold text-gray-700">{{ number_format($row->packing_size) }}</td>
-                                <td class="text-center font-weight-bold text-info">{{ number_format($row->total_packing) }}</td>
-                                <td class="text-center text-success font-weight-bold">{{ number_format($row->total_ok_sum) }}</td>
-                                <td class="text-center text-danger font-weight-bold">{{ number_format($row->total_ng_sum) }}</td>
+                                <td class="text-center font-weight text-gray-700">{{ number_format($row->packing_size) }} pcs</td>
+                                <td class="text-center font-weight text-info">{{ number_format($row->total_packing) }} box/bucket/plastik</td>
+                                <td class="text-center text-success font-weight">{{ number_format($row->total_ok_sum) }}</td>
+                                <td class="text-center text-danger font-weight">{{ number_format($row->total_ng_sum) }}</td>
                             </tr>
                         @empty
                             <tr>

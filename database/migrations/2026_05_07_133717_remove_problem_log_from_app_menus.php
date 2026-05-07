@@ -11,8 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Removed as per request to hide 'Problem Log'
-        /*
+        // Remove 'Problem Log' from app_menus
+        \DB::table('app_menus')->where('name', 'Problem Log')
+            ->where('route', 'calibration.tools.problem-logs')
+            ->delete();
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        // Re-add if rolled back (Optional, but good practice)
         $parentId = \DB::table('app_menus')->where('name', 'KALIBRASI')->value('id');
         
         if ($parentId) {
@@ -26,16 +36,5 @@ return new class extends Migration
                 'updated_at' => now(),
             ]);
         }
-        */
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        \DB::table('app_menus')->where('name', 'Problem Log')
-            ->where('route', 'calibration.tools.problem-logs')
-            ->delete();
     }
 };

@@ -250,10 +250,6 @@
                     class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
                     <i class="fas fa-undo fa-sm"></i>
                 </a>
-                <a href="{{ route('calibration.tools.problem-logs') }}"
-                    class="btn btn-warning btn-sm shadow-sm rounded-pill px-3" title="Problem Logs">
-                    <i class="fas fa-exclamation-circle fa-sm mr-1"></i> <span class="small font-weight-bold">Log</span>
-                </a>
                 <button type="submit" formaction="{{ route('calibration.tools.pdf') }}" formtarget="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
                     <i class="fas fa-file-pdf fa-sm"></i>
                 </button>

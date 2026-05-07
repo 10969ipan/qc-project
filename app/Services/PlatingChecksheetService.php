@@ -149,6 +149,8 @@ class PlatingChecksheetService extends BaseService
         try {
             $checksheet = PlatingChecksheet::findOrFail($id);
 
+            $defects = $this->processDefects($data);
+            
             $updateData = [
                 'item_id' => $data['item_id'],
                 'qrcode' => $data['qrcode'] ?? $checksheet->qrcode,
@@ -174,8 +176,9 @@ class PlatingChecksheetService extends BaseService
                 'next_proses' => $data['next_proses'] ?? null,
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'no_lot' => $data['no_lot'] ?? $checksheet->no_lot,
+                'defects' => $defects,
             ];
-
+            
             $checksheet->update($updateData);
 
             DB::commit();

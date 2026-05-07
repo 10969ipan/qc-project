@@ -63,6 +63,8 @@ class UpdatePlatingChecksheetRequest extends FormRequest
             'is_scanned' => 'nullable|boolean',
             'jam_before' => 'nullable|string',
             'jam_after' => 'nullable|string',
+            'defect_types' => 'nullable|array',
+            'defect_quantities' => 'nullable|array',
         ];
     }
 
