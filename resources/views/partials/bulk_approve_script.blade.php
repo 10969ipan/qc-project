@@ -1,6 +1,6 @@
 {{-- Bulk Approve JavaScript - Include in @push('scripts') --}}
 {{-- Requires: $bulkApproveRoute variable to be set before including --}}
-@if(in_array(auth()->user()->role, ['supervisor', 'asst_manager', 'manager', 'admin']) && request('start_date'))
+@if(in_array(auth()->user()->role, ['supervisor', 'supervisor_plating', 'asst_manager', 'manager', 'manager_qc', 'manager_plating', 'admin']) && request('start_date'))
     <script>
         $(document).ready(function () {
             $('#btnBulkApprove').on('click', function () {
@@ -18,8 +18,10 @@
                         inputOptions: {
                             'kashift': 'Kashift',
                             'supervisor': 'Supervisor',
+                            'supervisor_plating': 'Supervisor Plating',
                             'asst_manager': 'Asst Manager',
-                            'manager': 'Manager'
+                            'manager': 'Manager',
+                            'manager_plating': 'Manager Plating'
                         },
                         inputPlaceholder: 'Pilih level...',
                         showCancelButton: true,

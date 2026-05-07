@@ -26,6 +26,11 @@ trait HasChecksheetApproval
         return $mapping[$type] ?? null;
     }
 
+    protected function getApprovalDateColumn()
+    {
+        return 'date';
+    }
+
     public function approve(Request $request, $id, $type)
     {
         $map = $this->getApprovalMapping($type);
@@ -270,7 +275,7 @@ trait HasChecksheetApproval
 
         // Determine approval type based on user role
         $type = null;
-        $allowedRoles = ['supervisor', 'asst_manager', 'manager', 'admin'];
+        $allowedRoles = ['supervisor', 'supervisor_plating', 'asst_manager', 'manager', 'manager_qc', 'manager_plating', 'admin'];
 
         if ($user->role === 'admin') {
             // Admin must specify which type to approve
@@ -320,8 +325,9 @@ trait HasChecksheetApproval
             }
 
             // Filter by date range
-            $query->whereDate('date', '>=', $request->start_date)
-                ->whereDate('date', '<=', $request->end_date);
+            $dateColumn = $this->getApprovalDateColumn();
+            $query->whereDate($dateColumn, '>=', $request->start_date)
+                ->whereDate($dateColumn, '<=', $request->end_date);
 
             // Only records that are pending approval (field is NULL or REJECTED)
             $query->where(function ($q) use ($field) {

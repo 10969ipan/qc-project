@@ -43,6 +43,11 @@ class CrossCutChecksheetController extends Controller
         ];
         return $mappings[$type] ?? null;
     }
+    protected function getApprovalDateColumn()
+    {
+        return 'qc_datetime';
+    }
+
     /**
      * Menampilkan daftar data (resource).
      */
