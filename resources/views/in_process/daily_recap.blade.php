@@ -262,7 +262,7 @@
                                 <td class="text-uppercase small font-weight-bold">{{ $row->item->part_number ?? '-' }}</td>
                                 <td class="small">{{ $row->item->customer ?? '-' }}</td>
                                 <td class="text-center">
-                                    <span class="badge badge-light border rounded-pill px-3 shadow-sm">Shift {{ $row->shift }}</span>
+                                    Shift {{ $row->shift }}
                                 </td>
                                 <td class="text-center font-weight-bold text-gray-700">{{ number_format($row->packing_size) }}</td>
                                 <td class="text-center font-weight-bold text-info">{{ number_format($row->total_packing) }}</td>
@@ -280,17 +280,6 @@
                             </tr>
                         @endforelse
                     </tbody>
-                    @if($recap->count() > 0)
-                    <tfoot>
-                        <tr>
-                            <td colspan="5" class="text-right py-3 text-uppercase small letter-spacing-1">Grand Total</td>
-                            <td class="text-center py-3 text-gray-700">-</td>
-                            <td class="text-center py-3 text-info">{{ number_format($totalPackingAll) }}</td>
-                            <td class="text-center py-3 text-success">{{ number_format($totalOkAll) }}</td>
-                            <td class="text-center py-3 text-danger">{{ number_format($totalNgAll) }}</td>
-                        </tr>
-                    </tfoot>
-                    @endif
                 </table>
             </div>
         </div>
