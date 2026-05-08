@@ -230,6 +230,18 @@
                     </div>
                 </div>
 
+                <!-- Field: Entry Method -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tipe:</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="entry_method" id="filterMethod" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua</option>
+                            <option value="verification" {{ request('entry_method') == 'verification' ? 'selected' : '' }}>Verification</option>
+                            <option value="regular" {{ request('entry_method') == 'regular' ? 'selected' : '' }}>Regular</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Field: QR Raw -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
@@ -872,6 +884,7 @@
                 initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
                 initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
                 initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+                initItemSearch('filterMethod', { placeholder: 'Pilih Tipe...', maxResults: 5 });
             }
 
             var form = document.getElementById('filterFormSubAssy');

@@ -106,6 +106,15 @@ class SubAssyChecksheetService extends BaseService
             $query->where('sub_assy_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
         }
 
+        // Entry Method filter (Verification vs Regular)
+        if (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'verification') {
+                $query->whereNotNull('sub_assy_checksheets.qrcode');
+            } elseif ($filters['entry_method'] === 'regular') {
+                $query->whereNull('sub_assy_checksheets.qrcode');
+            }
+        }
+
         return $query;
     }
 

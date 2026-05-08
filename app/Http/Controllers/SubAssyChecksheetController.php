@@ -107,6 +107,7 @@ class SubAssyChecksheetController extends Controller
             'id' => $request->id,
             'search' => $request->search,
             'qr_raw' => $request->qr_raw,
+            'entry_method' => $request->entry_method,
         ];
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
@@ -343,7 +344,7 @@ class SubAssyChecksheetController extends Controller
         }
 
         // Apply filters via service
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift']);
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift', 'entry_method']);
 
         // Ensure we get all records, not paginated
         // The service's getFilteredChecksheets returns a Paginator if not careful. 
@@ -392,7 +393,7 @@ class SubAssyChecksheetController extends Controller
             $request->merge(['plant' => $user->plant_id]);
         }
 
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift']);
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift', 'entry_method']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
