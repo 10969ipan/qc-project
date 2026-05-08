@@ -322,7 +322,7 @@
                                     <td class="text-center font-weight">{{ number_format($row->total_act / 60, 2) }}</td>
                                     <td class="text-center small">
                                         @if($row->sct > 0)
-                                            {{ number_format($row->sct / 60, 2) }}
+                                            {{ number_format($row->sct, 2) }}
                                         @else
                                             <span class="text-muted italic">Not set</span>
                                         @endif

@@ -302,7 +302,7 @@ class PlatingChecksheetService extends BaseService
 
         return $query->get()->map(function($row) {
             $act_min = $row->total_act / 60;
-            $sct_min = $row->sct / 60;
+            $sct_min = $row->sct; // Assumed to be in minutes
 
             $row->target = $sct_min > 0 ? ($act_min / $sct_min) : 0;
             $row->plus_minus = $sct_min > 0 ? (($row->total_qty_sum * $sct_min - $act_min) / 5) : 0;

@@ -289,7 +289,7 @@
                                 <td class="text-nowrap">{{ $item->cavity ?? 1 }}</td>
                                 <td class="text-nowrap font-weight-bold text-primary">
                                     @if($item->standard_cycle_time > 0)
-                                        {{ number_format($item->standard_cycle_time, 2) }}s
+                                        {{ number_format($item->standard_cycle_time, 2) }}m
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
@@ -494,10 +494,10 @@
                                         class="form-control form-control-sm" placeholder="Contoh: 15.5">
                                 </div>
                                 <div class="form-group mb-3 sct-field-wrapper" style="display: none;">
-                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (detik)</label>
+                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (menit)</label>
                                     <input type="number" step="0.01" name="standard_cycle_time" id="edit_standard_cycle_time"
-                                        class="form-control form-control-sm" placeholder="Contoh: 60">
-                                    <small class="text-muted">Khusus untuk kategori PLATING.</small>
+                                        class="form-control form-control-sm" placeholder="Contoh: 0.16">
+                                    <small class="text-muted">Khusus untuk kategori PLATING. Masukkan dalam satuan MENIT.</small>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Baru (Standard)</label>
@@ -681,10 +681,10 @@
                                         placeholder="Masukkan Standar Berat (gr)...">
                                 </div>
                                 <div class="form-group mb-3 sct-field-wrapper" style="display: none;">
-                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (detik)</label>
+                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (menit)</label>
                                     <input type="number" step="0.01" name="standard_cycle_time" class="form-control form-control-sm"
-                                        placeholder="Masukkan Standar Cycletime (detik)...">
-                                    <small class="text-muted">Khusus untuk kategori PLATING.</small>
+                                        placeholder="Masukkan Standar Cycletime (menit)...">
+                                    <small class="text-muted">Khusus untuk kategori PLATING. Masukkan dalam satuan MENIT.</small>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Standard <span
