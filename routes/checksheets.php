@@ -112,6 +112,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/checksheets/print', [SubAssyChecksheetController::class, 'printView'])->name('admin.checksheets.print');
 
         Route::post('/report/checksheets/sync', [SubAssyChecksheetController::class, 'syncToGoogleSheets'])->name('admin.checksheets.sync');
+        Route::get('/report/plating-checksheets/daily-recap', [PlatingChecksheetController::class, 'dailyRecap'])->name('plating.daily_recap');
         Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
         Route::get('/report/plating-checksheets/print', [PlatingChecksheetController::class, 'printView'])->name('plating.print');
         Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');

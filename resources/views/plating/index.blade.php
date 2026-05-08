@@ -222,6 +222,12 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    <a href="{{ route('plating.daily_recap', ['start_date' => request('start_date') ?: now()->toDateString(), 'plant' => request('plant')]) }}"
+                        id="btnDailyRecap"
+                        class="btn btn-dark btn-sm shadow-sm rounded-pill px-3 no-loader" title="Rekap Harian Verification"
+                        target="_blank">
+                        <i class="fas fa-list-alt fa-sm"></i>
+                    </a>
                     @if($canExport)
                         <a href="{{ route('plating.print', request()->query()) }}" target="_blank"
                             class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview"

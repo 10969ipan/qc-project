@@ -216,4 +216,41 @@ class PlatingChecksheetService extends BaseService
         }
     }
 
+    /**
+     * Get daily recap for verification data
+     *
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDailyRecap(array $filters)
+    {
+        $query = PlatingChecksheet::with('item')
+            ->whereNotNull('qrcode') // Verification only
+            ->select(
+                'item_id',
+                'shift',
+                DB::raw('MIN(total_qty) as packing_size'),
+                DB::raw('COUNT(*) as total_packing'),
+                DB::raw('SUM(total_qty) as total_qty_sum'),
+                DB::raw('SUM(total_qty - total_ng) as total_ok_sum'),
+                DB::raw('SUM(total_ng) as total_ng_sum')
+            )
+            ->groupBy('item_id', 'shift');
+
+        if (isset($filters['plant'])) {
+            $query->where('plant_id', $this->resolvePlantId($filters['plant']));
+        }
+
+        if (!empty($filters['date'])) {
+            $query->whereDate('date', $filters['date']);
+        } else {
+            $query->whereDate('date', now()->toDateString());
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
+        return $query->get();
+    }
 }

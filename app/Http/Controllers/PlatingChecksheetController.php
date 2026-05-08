@@ -421,4 +421,28 @@ class PlatingChecksheetController extends Controller
 
         return response()->json(['success' => false]);
     }
+
+    /**
+     * Report Harian: Rekap data Verification per Item & Shift
+     */
+    public function dailyRecap(Request $request)
+    {
+        $date = $request->get('start_date') ?: ($request->get('date') ?: now()->toDateString());
+        $plant = 'karawang'; // Plating is restricted to Karawang
+        $shift = $request->get('shift');
+
+        $filters = [
+            'date' => $date,
+            'plant' => $plant,
+            'shift' => $shift
+        ];
+
+        $recap = $this->checksheetService->getDailyRecap($filters);
+        
+        $plantModel = \App\Models\Plant::where('code', $plant)->orWhere('id', $plant)->first();
+        $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
+        $plantName = $plantModel ? $plantModel->name : 'Karawang';
+
+        return view('plating.daily_recap', compact('recap', 'date', 'plantName', 'plantCode'));
+    }
 }
