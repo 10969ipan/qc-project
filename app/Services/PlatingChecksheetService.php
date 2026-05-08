@@ -270,35 +270,36 @@ class PlatingChecksheetService extends BaseService
      */
     public function getInspectorDailyRecap(array $filters)
     {
-        $query = PlatingChecksheet::with('item')
-            ->whereNotNull('qrcode')
+        $query = PlatingChecksheet::query()
+            ->join('items', 'plating_checksheets.item_id', '=', 'items.id')
+            ->whereNotNull('plating_checksheets.qrcode')
             ->select(
-                'operator_initials',
-                'item_id',
-                DB::raw('SUM(total_qty) as total_qty_sum'),
-                DB::raw('SUM(cycle_time) as total_act'),
-                DB::raw('MAX(standard_cycle_time) as sct'),
+                'plating_checksheets.operator_initials',
+                'plating_checksheets.item_id',
+                DB::raw('SUM(plating_checksheets.total_qty) as total_qty_sum'),
+                DB::raw('SUM(plating_checksheets.cycle_time) as total_act'),
+                DB::raw('COALESCE(MAX(plating_checksheets.standard_cycle_time), MAX(items.standard_cycle_time)) as sct'),
                 DB::raw('COUNT(*) as total_entries')
             )
-            ->groupBy('operator_initials', 'item_id');
+            ->groupBy('plating_checksheets.operator_initials', 'plating_checksheets.item_id');
 
         if (isset($filters['plant'])) {
-            $query->where('plant_id', $this->resolvePlantId($filters['plant']));
+            $query->where('plating_checksheets.plant_id', $this->resolvePlantId($filters['plant']));
         }
 
         if (!empty($filters['start_date'])) {
-            $query->whereDate('date', '>=', $filters['start_date']);
+            $query->whereDate('plating_checksheets.date', '>=', $filters['start_date']);
         }
         
         if (!empty($filters['end_date'])) {
-            $query->whereDate('date', '<=', $filters['end_date']);
+            $query->whereDate('plating_checksheets.date', '<=', $filters['end_date']);
         }
 
         if (!empty($filters['shift'])) {
-            $query->where('shift', $filters['shift']);
+            $query->where('plating_checksheets.shift', $filters['shift']);
         }
         
-        $query->orderBy('operator_initials');
+        $query->with('item')->orderBy('plating_checksheets.operator_initials');
 
         return $query->get()->map(function($row) {
             $act_min = $row->total_act / 60;
@@ -307,7 +308,6 @@ class PlatingChecksheetService extends BaseService
             $row->target = $sct_min > 0 ? ($act_min / $sct_min) : 0;
             $row->plus_minus = $sct_min > 0 ? (($row->total_qty_sum * $sct_min - $act_min) / 5) : 0;
             
-            // Keep original values for display if needed, but the results are now in the correct scale
             return $row;
         });
     }
