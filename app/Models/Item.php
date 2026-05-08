@@ -39,6 +39,7 @@ class Item extends Model
         'weight_standard',
         'defects',
         'cavity',
+        'standard_cycle_time',
     ];
 
     protected $casts = [

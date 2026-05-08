@@ -114,6 +114,7 @@ class PlatingChecksheetService extends BaseService
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'no_lot' => $data['no_lot'] ?? null,
                 'defects' => $defects,
+                'standard_cycle_time' => $data['standard_cycle_time'] ?? Item::find($data['item_id'])->standard_cycle_time,
             ]);
 
             DB::commit();
@@ -241,10 +242,20 @@ class PlatingChecksheetService extends BaseService
             $query->where('plant_id', $this->resolvePlantId($filters['plant']));
         }
 
-        if (!empty($filters['date'])) {
-            $query->whereDate('date', $filters['date']);
-        } else {
-            $query->whereDate('date', now()->toDateString());
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('date', '>=', $filters['start_date']);
+        }
+        
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('date', '<=', $filters['end_date']);
+        }
+
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            if (!empty($filters['date'])) {
+                $query->whereDate('date', $filters['date']);
+            } else {
+                $query->whereDate('date', now()->toDateString());
+            }
         }
 
         if (!empty($filters['shift'])) {
@@ -252,5 +263,52 @@ class PlatingChecksheetService extends BaseService
         }
 
         return $query->get();
+    }
+
+    /**
+     * Get daily recap per inspector for performance tracking
+     */
+    public function getInspectorDailyRecap(array $filters)
+    {
+        $query = PlatingChecksheet::with('item')
+            ->whereNotNull('qrcode')
+            ->select(
+                'operator_initials',
+                'item_id',
+                DB::raw('SUM(total_qty) as total_qty_sum'),
+                DB::raw('SUM(cycle_time) as total_act'),
+                DB::raw('MAX(standard_cycle_time) as sct'),
+                DB::raw('COUNT(*) as total_entries')
+            )
+            ->groupBy('operator_initials', 'item_id');
+
+        if (isset($filters['plant'])) {
+            $query->where('plant_id', $this->resolvePlantId($filters['plant']));
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('date', '>=', $filters['start_date']);
+        }
+        
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('date', '<=', $filters['end_date']);
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+        
+        $query->orderBy('operator_initials');
+
+        return $query->get()->map(function($row) {
+            $act_min = $row->total_act / 60;
+            $sct_min = $row->sct / 60;
+
+            $row->target = $sct_min > 0 ? ($act_min / $sct_min) : 0;
+            $row->plus_minus = $sct_min > 0 ? (($row->total_qty_sum * $sct_min - $act_min) / 5) : 0;
+            
+            // Keep original values for display if needed, but the results are now in the correct scale
+            return $row;
+        });
     }
 }

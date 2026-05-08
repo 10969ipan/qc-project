@@ -427,22 +427,26 @@ class PlatingChecksheetController extends Controller
      */
     public function dailyRecap(Request $request)
     {
-        $date = $request->get('start_date') ?: ($request->get('date') ?: now()->toDateString());
-        $plant = 'karawang'; // Plating is restricted to Karawang
+        $startDate = $request->get('start_date') ?: ($request->get('date') ?: now()->toDateString());
+        $endDate = $request->get('end_date') ?: $startDate;
+        $plant = 'karawang';
         $shift = $request->get('shift');
+        $date = $startDate; // For backward compatibility if needed
 
         $filters = [
-            'date' => $date,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'plant' => $plant,
             'shift' => $shift
         ];
 
         $recap = $this->checksheetService->getDailyRecap($filters);
+        $inspectorRecap = $this->checksheetService->getInspectorDailyRecap($filters);
         
         $plantModel = \App\Models\Plant::where('code', $plant)->orWhere('id', $plant)->first();
         $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
         $plantName = $plantModel ? $plantModel->name : 'Karawang';
 
-        return view('plating.daily_recap', compact('recap', 'date', 'plantName', 'plantCode'));
+        return view('plating.daily_recap', compact('recap', 'inspectorRecap', 'startDate', 'endDate', 'plantName', 'plantCode'));
     }
 }

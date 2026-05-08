@@ -49,6 +49,7 @@ class PlatingChecksheet extends Model
         'plating_date',
         'plating_shift',
         'no_lot',
+        'standard_cycle_time',
     ];
 
     protected $casts = [

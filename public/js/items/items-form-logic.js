@@ -66,6 +66,7 @@
                 $('#edit_sap_code').val(item.sap_code);
                 $('#edit_cavity').val(item.cavity || 1);
                 $('#edit_weight_standard').val(item.weight_standard);
+                $('#edit_standard_cycle_time').val(item.standard_cycle_time);
                 $('#edit_defects').val(response.defects_text);
                 $('#edit_plant').val(response.plant_code);
                 $('#edit_item_id').val(item.id);

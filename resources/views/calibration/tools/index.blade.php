@@ -256,6 +256,10 @@
                 <button type="submit" formaction="{{ route('calibration.tools.print') }}" formtarget="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
                     <i class="fas fa-print fa-sm"></i>
                 </button>
+                <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode]) }}"
+                    class="btn btn-warning btn-sm shadow-sm rounded-pill px-3" title="Problem Log">
+                    <i class="fas fa-exclamation-triangle fa-sm"></i>
+                </a>
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahAlat" title="Tambah Alat">
                     <i class="fas fa-plus fa-sm"></i>
                 </button>

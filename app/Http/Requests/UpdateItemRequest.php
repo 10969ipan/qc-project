@@ -95,6 +95,7 @@ class UpdateItemRequest extends FormRequest
             'dimension_tolerances' => 'nullable|array',
             'dimension_mins' => 'nullable|array',
             'dimension_maxs' => 'nullable|array',
+            'standard_cycle_time' => 'nullable|numeric|min:0',
         ];
     }
 

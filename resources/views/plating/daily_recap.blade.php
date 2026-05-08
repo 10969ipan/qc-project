@@ -11,29 +11,29 @@
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
-    #recapTable {
+    #recapTable, #performanceTable {
         border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
     }
-    #recapTable td, #recapTable th {
+    #recapTable td, #recapTable th, #performanceTable td, #performanceTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-    #recapTable tbody td {
+    #recapTable tbody td, #performanceTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         vertical-align: middle !important;
-        color: #334155 !important;
+        color: #000000 !important;
         font-size: 0.75rem !important;
         padding: 8px 12px !important;
     }
-    #recapTable thead th {
+    #recapTable thead th, #performanceTable thead th {
         position: sticky !important;
         top: 0 !important;
         z-index: 10 !important;
         background-color: #f8fafc !important;
-        color: #475569 !important;
+        color: #000000 !important;
         font-weight: 700 !important;
         text-transform: uppercase;
         font-size: 0.7rem !important;
@@ -41,7 +41,7 @@
         padding: 10px 12px !important;
         border-bottom: 1px solid #e2e8f0 !important;
     }
-    #recapTable tfoot td {
+    #recapTable tfoot td, #performanceTable tfoot td {
         background-color: #f8fafc !important;
         font-weight: 700 !important;
         color: #1e293b !important;
@@ -96,12 +96,12 @@
 
         .sub-header { margin-bottom: 8px; font-size: 10px; display: block !important; }
 
-        #recapTable {
+        #recapTable, #performanceTable {
             width: 100% !important;
             border-collapse: collapse !important;
             table-layout: auto !important;
         }
-        #recapTable thead th {
+        #recapTable thead th, #performanceTable thead th {
             border: 1px solid #000 !important;
             background-color: #f2f2f2 !important;
             color: #000 !important;
@@ -111,13 +111,13 @@
             padding: 4px 6px !important;
             position: static !important;
         }
-        #recapTable tbody td {
+        #recapTable tbody td, #performanceTable tbody td {
             border: 1px solid #000 !important;
             padding: 4px 6px !important;
             font-size: 9px !important;
             color: #000 !important;
         }
-        #recapTable tfoot td {
+        #recapTable tfoot td, #performanceTable tfoot td {
             border: 1px solid #000 !important;
             background-color: #f2f2f2 !important;
             -webkit-print-color-adjust: exact;
@@ -172,7 +172,7 @@
             </tr>
         </table>
         <div class="sub-header">
-            <strong>Periode:</strong> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}
+            <strong>Periode:</strong> {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} @if($startDate != $endDate) - {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }} @endif
             &nbsp;&nbsp;|&nbsp;&nbsp;
             <strong>Plant:</strong> {{ strtoupper($plantName) }}
             @if(request('shift'))
@@ -188,14 +188,19 @@
             <form action="{{ route('plating.daily_recap') }}" method="GET" class="row align-items-center">
                 
                 <div class="col-md-auto mb-2 mb-md-0 d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
-                    <input type="date" name="date" class="form-control form-control-sm shadow-sm" value="{{ $date }}" style="width: 150px;">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Mulai:</label>
+                    <input type="date" name="start_date" class="form-control form-control-sm shadow-sm" value="{{ $startDate }}" style="width: 140px;">
+                </div>
+
+                <div class="col-md-auto mb-2 mb-md-0 d-flex align-items-center ml-md-2">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Sampai:</label>
+                    <input type="date" name="end_date" class="form-control form-control-sm shadow-sm" value="{{ $endDate }}" style="width: 140px;">
                 </div>
 
                 <div class="col-md-auto mb-2 mb-md-0 d-flex align-items-center ml-md-3">
                     <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Shift:</label>
-                    <select name="shift" class="form-control form-control-sm shadow-sm" style="width: 120px;">
-                        <option value="">Semua Shift</option>
+                    <select name="shift" class="form-control form-control-sm shadow-sm" style="width: 110px;">
+                        <option value="">Semua</option>
                         <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
                         <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
                         <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
@@ -213,7 +218,11 @@
 
                 <div class="col text-md-right mt-2 mt-md-0">
                     <span class="badge badge-white border px-3 py-2 rounded-pill shadow-sm">
-                        <i class="far fa-calendar-alt mr-1 text-primary"></i> <strong>{{ \Carbon\Carbon::parse($date)->format('d F Y') }}</strong>
+                        <i class="far fa-calendar-alt mr-1 text-primary"></i> 
+                        <strong>{{ \Carbon\Carbon::parse($startDate)->format('d M y') }}</strong>
+                        @if($startDate != $endDate)
+                            - <strong>{{ \Carbon\Carbon::parse($endDate)->format('d M y') }}</strong>
+                        @endif
                     </span>
                     <span class="badge badge-white border px-3 py-2 rounded-pill shadow-sm ml-2">
                         <i class="fas fa-industry mr-1 text-primary"></i> <strong>{{ strtoupper($plantName) }}</strong>
@@ -223,7 +232,11 @@
         </div>
     </div>
 
+    <!-- ITEM RECAP CARD -->
     <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-dark">Rekap Verifikasi per Item</h6>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table mb-0" id="recapTable">
@@ -241,31 +254,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php 
-                            $totalOkAll = 0; 
-                            $totalNgAll = 0; 
-                            $totalQtyAll = 0;
-                            $totalPackingAll = 0;
-                        @endphp
                         @forelse($recap as $index => $row)
-                            @php
-                                $totalOkAll += $row->total_ok_sum;
-                                $totalNgAll += $row->total_ng_sum;
-                                $totalQtyAll += $row->total_qty_sum;
-                                $totalPackingAll += $row->total_packing;
-                            @endphp
                             <tr>
-                                <td class="text-center font-weight text-muted small">{{ $index + 1 }}</td>
-                                <td class="font-weight text-gray-800">{{ $row->item->name ?? '-' }}</td>
+                                <td class="text-center font-weight small">{{ $index + 1 }}</td>
+                                <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
                                 <td class="text-uppercase small font-weight">{{ $row->item->part_number ?? '-' }}</td>
                                 <td class="small">{{ $row->item->customer ?? '-' }}</td>
                                 <td class="text-center">
                                     Shift {{ $row->shift }}
                                 </td>
-                                <td class="text-center font-weight text-gray-700">{{ number_format($row->packing_size) }} pcs</td>
-                                <td class="text-center font-weight text-info">{{ number_format($row->total_packing) }} box/bucket/plastik</td>
-                                <td class="text-center text-success font-weight">{{ number_format($row->total_ok_sum) }}</td>
-                                <td class="text-center text-danger font-weight">{{ number_format($row->total_ng_sum) }}</td>
+                                <td class="text-center font-weight">{{ number_format($row->packing_size) }} pcs</td>
+                                <td class="text-center font-weight">{{ number_format($row->total_packing) }} box/bucket/plastik</td>
+                                <td class="text-center font-weight">{{ number_format($row->total_ok_sum) }}</td>
+                                <td class="text-center font-weight">{{ number_format($row->total_ng_sum) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -273,6 +274,85 @@
                                     <div class="py-5">
                                         <i class="fas fa-folder-open fa-3x text-gray-300 mb-3"></i>
                                         <p class="text-muted">Tidak ada data verification pada kriteria ini.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSPECTOR PERFORMANCE CARD -->
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-dark">Rekap Performance Inspector</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0" id="performanceTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th>Inisial Inspector</th>
+                            <th>Nama Barang</th>
+                            <th class="text-center">Total Qty</th>
+                            <th class="text-center">AKT CT (MENIT)</th>
+                            <th class="text-center">STD CT (MENIT)</th>
+                            <th class="text-center">Target Pencapaian (pcs)</th>
+                            <th class="text-center">Plus / Minus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $globalIndex = 1; @endphp
+                        @forelse($inspectorRecap->groupBy('operator_initials') as $operator => $rows)
+                            @foreach($rows as $index => $row)
+                                <tr>
+                                    @if($loop->first)
+                                        <td rowspan="{{ $rows->count() }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
+                                            {{ $globalIndex++ }}
+                                        </td>
+                                        <td rowspan="{{ $rows->count() }}" class="font-weight-bold text-primary align-middle" style="background-color: #fcfcfc;">
+                                            {{ $operator }}
+                                        </td>
+                                    @endif
+                                    <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
+                                    <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
+                                    <td class="text-center font-weight">{{ number_format($row->total_act / 60, 2) }}</td>
+                                    <td class="text-center small">
+                                        @if($row->sct > 0)
+                                            {{ number_format($row->sct / 60, 2) }}
+                                        @else
+                                            <span class="text-muted italic">Not set</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center font-weight-bold">
+                                        @if($row->sct > 0 )
+                                            {{ number_format($row->target, 0) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="text-center font-weight-bold">
+                                        @if($row->sct > 0)
+                                            @if(abs($row->plus_minus) < 1)
+                                                0
+                                            @else
+                                                {{ $row->plus_minus > 0 ? '+' : '' }}{{ number_format($row->plus_minus, 0) }}
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="py-5">
+                                        <i class="fas fa-user-clock fa-3x text-gray-300 mb-3"></i>
+                                        <p class="text-muted">Tidak ada data performa pada kriteria ini.</p>
                                     </div>
                                 </td>
                             </tr>

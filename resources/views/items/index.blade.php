@@ -486,6 +486,11 @@
                                         class="form-control form-control-sm" placeholder="Contoh: 15.5">
                                 </div>
                                 <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Standar Cycletime (detik)</label>
+                                    <input type="number" step="0.01" name="standard_cycle_time" id="edit_standard_cycle_time"
+                                        class="form-control form-control-sm" placeholder="Contoh: 60">
+                                </div>
+                                <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Baru (Standard)</label>
                                     <input type="file" name="files[]" class="form-control-file form-control-sm"
                                         accept=".pdf" multiple>
@@ -665,6 +670,11 @@
                                     <label class="font-weight-bold">Standar Berat (gr)</label>
                                     <input type="text" name="weight_standard" class="form-control form-control-sm"
                                         placeholder="Masukkan Standar Berat (gr)...">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold">Standar Cycletime (detik)</label>
+                                    <input type="number" step="0.01" name="standard_cycle_time" class="form-control form-control-sm"
+                                        placeholder="Masukkan Standar Cycletime (detik)...">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Standard <span
