@@ -298,7 +298,7 @@
                             <th>Inisial Inspector</th>
                             <th>Nama Barang</th>
                             <th class="text-center">Total Qty</th>
-                            <th class="text-center">AKT CT (MENIT)</th>
+                            <th class="text-center" style="background-color: #28a745; color: white;">AKT. DURA (MENIT)</th>
                             <th class="text-center">STD CT (MENIT)</th>
                             <th class="text-center">Target Pencapaian (pcs)</th>
                             <th class="text-center">Plus / Minus</th>
@@ -319,7 +319,7 @@
                                     @endif
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
-                                    <td class="text-center font-weight">{{ number_format($row->total_act / 60, 2) }}</td>
+                                    <td class="text-center font-weight">{{ number_format($row->total_act / 60, 0) }}</td>
                                     <td class="text-center small">
                                         @if($row->sct > 0)
                                             {{ number_format($row->sct, 2) }}
@@ -336,10 +336,11 @@
                                     </td>
                                     <td class="text-center font-weight-bold">
                                         @if($row->sct > 0)
-                                            @if(abs($row->plus_minus) < 1)
+                                            @php $roundedPM = round($row->plus_minus); @endphp
+                                            @if($roundedPM == 0)
                                                 0
                                             @else
-                                                {{ $row->plus_minus > 0 ? '+' : '' }}{{ number_format($row->plus_minus, 0) }}
+                                                {{ $roundedPM > 0 ? '+' : '' }}{{ $roundedPM }}
                                             @endif
                                         @else
                                             -
