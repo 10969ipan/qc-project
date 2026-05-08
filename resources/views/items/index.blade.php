@@ -240,6 +240,7 @@
                             <th>Customer</th>
                             <th>No Part</th>
                             <th>Cavity</th>
+                            <th class="text-primary"><i class="fas fa-stopwatch mr-1"></i> SCT (Plating)</th>
                             <th>Kode SAP</th>
                             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                 <th>Aksi</th>
@@ -286,6 +287,13 @@
                                 <td class="text-nowrap">{{ $item->customer }}</td>
                                 <td class="text-nowrap">{{ $item->part_number }}</td>
                                 <td class="text-nowrap">{{ $item->cavity ?? 1 }}</td>
+                                <td class="text-nowrap font-weight-bold text-primary">
+                                    @if($item->standard_cycle_time > 0)
+                                        {{ number_format($item->standard_cycle_time, 2) }}s
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                     <td class="no-export">
@@ -485,10 +493,11 @@
                                     <input type="text" name="weight_standard" id="edit_weight_standard"
                                         class="form-control form-control-sm" placeholder="Contoh: 15.5">
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Standar Cycletime (detik)</label>
+                                <div class="form-group mb-3 sct-field-wrapper" style="display: none;">
+                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (detik)</label>
                                     <input type="number" step="0.01" name="standard_cycle_time" id="edit_standard_cycle_time"
                                         class="form-control form-control-sm" placeholder="Contoh: 60">
+                                    <small class="text-muted">Khusus untuk kategori PLATING.</small>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Baru (Standard)</label>
@@ -671,10 +680,11 @@
                                     <input type="text" name="weight_standard" class="form-control form-control-sm"
                                         placeholder="Masukkan Standar Berat (gr)...">
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Standar Cycletime (detik)</label>
+                                <div class="form-group mb-3 sct-field-wrapper" style="display: none;">
+                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (detik)</label>
                                     <input type="number" step="0.01" name="standard_cycle_time" class="form-control form-control-sm"
                                         placeholder="Masukkan Standar Cycletime (detik)...">
+                                    <small class="text-muted">Khusus untuk kategori PLATING.</small>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Upload PDF Standard <span

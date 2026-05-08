@@ -48,6 +48,24 @@
         });
     });
 
+    const toggleSctField = (selectElement) => {
+        const selectedText = $(selectElement).find('option:selected').text().toUpperCase();
+        const modal = $(selectElement).closest('.modal');
+        const wrapper = modal.find('.sct-field-wrapper');
+        const input = wrapper.find('input[name="standard_cycle_time"]');
+
+        if (selectedText.includes('PLATING')) {
+            wrapper.show();
+        } else {
+            wrapper.hide();
+            input.val(''); // Clear if not plating
+        }
+    };
+
+    $('#modal_category_select, #edit_category_id').on('change', function () {
+        toggleSctField(this);
+    });
+
     $('.btn-edit-item').on('click', function () {
         const id = $(this).data('id');
         const btn = $(this);
@@ -128,6 +146,7 @@
                 $('#edit-modal-dimension-table tbody').html(dimHtml);
 
                 $('#formEditItem').attr('action', ROUTES.update.replace(':id', id));
+                toggleSctField($('#edit_category_id')[0]);
                 $('#modalEditItem').modal('show');
                 btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
             },
