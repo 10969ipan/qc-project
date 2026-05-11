@@ -400,6 +400,13 @@
                 dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.sortir[i] }))
             });
         }
+        if (plantData.plating) {
+            series.push({
+                type: "spline", name: "Plating", color: "#6610f2",
+                showInLegend: true, yValueFormatString: "##0.00'%'",
+                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.plating[i] }))
+            });
+        }
 
         const chart = new CanvasJS.Chart(containerId, {
             animationEnabled: true,

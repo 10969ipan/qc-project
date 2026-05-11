@@ -13,6 +13,7 @@ use App\Models\MonthlyReport;
 use App\Models\CustomerClaim;
 use App\Models\CustomerClaimRecord;
 use App\Models\DoubleTapeChecksheet;
+use App\Models\PlatingChecksheet;
 use App\Models\Plant;
 use App\Helpers\ShiftHelper;
 use Illuminate\Support\Facades\Schema;
@@ -212,6 +213,7 @@ class DashboardService extends BaseService
                 $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
                 $this->processModelStats(CrossCutPaintingChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
                 $this->processModelStats(DoubleTapeChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
+                $this->processModelStats(PlatingChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
             }
         }
 
@@ -687,7 +689,7 @@ class DashboardService extends BaseService
         return [
             'labels' => $dates,
             'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa']),
-            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting', 'double_tape']),
+            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting', 'double_tape', 'plating']),
         ];
     }
 
@@ -742,6 +744,13 @@ class DashboardService extends BaseService
                     ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
             } elseif ($type === 'double_tape') {
                 $records = DoubleTapeChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+            } elseif ($type === 'plating') {
+                $records = PlatingChecksheet::where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
                     ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')

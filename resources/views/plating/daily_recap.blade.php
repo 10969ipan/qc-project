@@ -319,7 +319,7 @@
                                     @endif
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
-                                    <td class="text-center font-weight">{{ number_format($row->total_act / 60, 0) }}</td>
+                                    <td class="text-center font-weight">{{ number_format($row->total_act / 60, 1) }}</td>
                                     <td class="text-center small">
                                         @if($row->sct > 0)
                                             {{ number_format($row->sct, 2) }}
