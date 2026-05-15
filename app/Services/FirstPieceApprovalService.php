@@ -774,6 +774,74 @@ class FirstPieceApprovalService extends BaseService
     }
 
     /**
+     * Get hourly distribution of FPA inputs for a given date
+     * Returns an array of 24 slots (hour 0–23), each with:
+     * - hour (int)
+     * - count (int)
+     * - percentage (float)
+     * - avg_cycle_time_seconds (float|null)
+     *
+     * @param array $filters  Expects: 'date' (Y-m-d), optionally 'plant'
+     * @return array
+     */
+    public function getHourlyDistribution(array $filters): array
+    {
+        $date = $filters['date'] ?? now()->toDateString();
+
+        $query = DB::table('first_piece_approvals')
+            ->whereDate('created_at', $date);
+
+        if (!empty($filters['plant'])) {
+            $query->where('plant_id', $this->resolvePlantId($filters['plant']));
+        }
+
+        // Total FPA on that day
+        $total = (clone $query)->count();
+
+        // Group by hour of created_at (save/finish time)
+        $rows = (clone $query)
+            ->select(
+                DB::raw('HOUR(created_at) as hour'),
+                DB::raw('COUNT(*) as count'),
+                DB::raw('AVG(NULLIF(cycle_time, 0)) as avg_cycle_time_seconds')
+            )
+            ->groupBy(DB::raw('HOUR(created_at)'))
+            ->orderBy('hour')
+            ->get()
+            ->keyBy('hour');
+
+        // Build full 24-hour array
+        $distribution = [];
+        $maxCount = 0;
+        for ($h = 0; $h < 24; $h++) {
+            $row = $rows->get($h);
+            $count = $row ? (int) $row->count : 0;
+            if ($count > $maxCount) {
+                $maxCount = $count;
+            }
+            $distribution[$h] = [
+                'hour'                   => $h,
+                'count'                  => $count,
+                'percentage'             => $total > 0 ? round(($count / $total) * 100, 2) : 0,
+                'avg_cycle_time_seconds' => $row ? round((float) $row->avg_cycle_time_seconds, 1) : null,
+            ];
+        }
+
+        // Mark peak hours (count == maxCount and count > 0)
+        foreach ($distribution as $h => &$slot) {
+            $slot['is_peak'] = ($maxCount > 0 && $slot['count'] === $maxCount);
+        }
+        unset($slot);
+
+        return [
+            'distribution' => $distribution,
+            'total'        => $total,
+            'max_count'    => $maxCount,
+            'date'         => $date,
+        ];
+    }
+
+    /**
      * Normalize part number for consistent internal matching
      */
     private function normalizePartNumber(?string $pn): string

@@ -502,8 +502,62 @@ class FirstPieceApprovalController extends Controller
     }
 
     /**
-     * Ekspor Data Pengukuran (Actual) ke XLSX berdasarkan filter
+     * Rekap Harian FPA — Distribusi Beban Jam (24 Jam)
      */
+    public function dailyRecap(Request $request)
+    {
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        if (in_array(auth()->user()->role, $restrictedRoles)) {
+            $request->merge(['plant' => auth()->user()->plant_id]);
+        }
+
+        $date = $request->get('date', now()->toDateString());
+        $plant = $request->get('plant');
+
+        $filters = [
+            'date'  => $date,
+            'plant' => $plant,
+        ];
+
+        $recap = $this->firstPieceService->getHourlyDistribution($filters);
+
+        // Resolve plant name
+        $user = auth()->user();
+        $plantName = 'Karawang';
+        if ($plant) {
+            $plantModel = \App\Models\Plant::where('code', $plant)->orWhere('id', $plant)->first();
+            if ($plantModel) {
+                $plantName = $plantModel->name;
+            }
+        } elseif ($user->plant) {
+            $plantName = $user->plant->name;
+        }
+
+        // Calculate overall avg cycle time (weighted)
+        $totalSeconds = 0;
+        $totalWithCt  = 0;
+        foreach ($recap['distribution'] as $slot) {
+            if ($slot['avg_cycle_time_seconds'] !== null && $slot['count'] > 0) {
+                $totalSeconds += $slot['avg_cycle_time_seconds'] * $slot['count'];
+                $totalWithCt  += $slot['count'];
+            }
+        }
+        $overallAvgCt = $totalWithCt > 0 ? round($totalSeconds / $totalWithCt) : null;
+
+        // Find peak hour label
+        $peakHours = array_filter($recap['distribution'], fn($s) => $s['is_peak'] && $s['count'] > 0);
+        $peakLabel = collect($peakHours)->map(fn($s) => sprintf('%02d:00', $s['hour']))->implode(', ');
+
+        return view('first_piece_approval.daily_recap', compact(
+            'recap',
+            'date',
+            'plantName',
+            'overallAvgCt',
+            'peakLabel'
+        ));
+    }
+
+
     public function exportMeasureData(Request $request)
     {
         $plantId = \App\Models\Plant::resolveId($request->get('plant') ?: auth()->user()->plant_id);

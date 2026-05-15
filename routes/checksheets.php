@@ -104,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/report/in-process-checksheets/import-measurements', [InProcessChecksheetController::class, 'importMeasureData'])->name('in_process.import_measurements');
 
         Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
+        Route::get('/report/first-piece-approvals/daily-recap', [FirstPieceApprovalController::class, 'dailyRecap'])->name('first_piece_approval.daily_recap');
         Route::get('/report/first-piece-approvals/print', [FirstPieceApprovalController::class, 'printView'])->name('first_piece_approval.print');
         Route::get('/report/first-piece-approvals/export-measurements', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements');
         Route::post('/report/first-piece-approvals/import-measurements', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements');

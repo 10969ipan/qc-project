@@ -303,6 +303,12 @@
                         style="background-color: #17a589; color: white;">
                         <i class="fas fa-print fa-sm"></i>
                     </a>
+                    <a href="{{ route('first_piece_approval.daily_recap', ['plant' => request('plant'), 'date' => request('start_date') ?: now()->toDateString()]) }}"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold"
+                        title="Rekap Harian FPA — Distribusi Jam"
+                        style="background-color: #7c3aed; color: white;">
+                        <i class="fas fa-chart-bar fa-sm mr-1"></i> Rekap
+                    </a>
                     @endif
                 </div>
 
