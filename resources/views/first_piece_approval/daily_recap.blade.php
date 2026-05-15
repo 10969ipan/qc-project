@@ -78,13 +78,18 @@
     }
     /* ─── Peak Badge ─── */
     .badge-peak {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
         background: linear-gradient(135deg, #f59e0b, #ef4444);
         color: #fff;
         font-size: 0.65rem;
-        padding: 3px 8px;
+        padding: 3px 9px;
         border-radius: 30px;
         font-weight: 700;
         letter-spacing: 0.5px;
+        white-space: nowrap;
+        line-height: 1.4;
     }
     /* ─── Row highlight for peak hours ─── */
     tr.is-peak td {
@@ -109,6 +114,11 @@
         .card { border: none !important; box-shadow: none !important; margin-bottom: 6px !important; }
         .card-body { padding: 0 !important; }
         .summary-card { box-shadow: none !important; border: 1px solid #ccc !important; }
+        /* Hapus max-height saat print agar semua 24 baris muncul */
+        .table-responsive {
+            max-height: none !important;
+            overflow: visible !important;
+        }
         #hourlyTable {
             width: 100% !important;
             border-collapse: collapse !important;
@@ -129,9 +139,21 @@
             font-size: 9px !important;
             color: #000 !important;
         }
+        #hourlyTable tfoot td {
+            border: 1px solid #000 !important;
+            background-color: #f2f2f2 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            font-size: 9px !important;
+            font-weight: 700 !important;
+        }
         tr.is-peak td { background-color: #fff9e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .badge-peak { background: #f59e0b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .chart-section { display: none !important; }
         a[href]:after { content: none !important; }
+        /* Progress bar — tampilkan sebagai teks saja saat print */
+        .progress-bar-wrap { display: none !important; }
+        .pct-text-only { display: inline !important; }
     }
 </style>
 
@@ -141,7 +163,7 @@
     <div class="d-flex align-items-center justify-content-between mb-3 no-print">
         <div>
             <h1 class="h4 mb-0 text-gray-800 font-weight-bold">REKAP HARIAN FPA</h1>
-            <p class="text-muted small mb-0">Distribusi Beban Kerja Inspector per Jam (24 Jam)</p>
+            <p class="text-muted small mb-0">DISTRIBUSI FPA SELAMA 24 Jam</p>
         </div>
         <div class="d-flex" style="gap:8px;">
             <button onclick="window.print()" class="btn btn-sm btn-dark shadow-sm rounded-pill px-3">
@@ -273,8 +295,7 @@
     <div class="card shadow mb-4 border-0 rounded-lg chart-section no-print">
         <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-dark">
-                <i class="fas fa-chart-bar mr-2 text-primary"></i>
-                Grafik Distribusi Input FPA per Jam
+                GRAFIK FPA DALAM SATU HARI
             </h6>
             <small class="text-muted">
                 <span class="badge-peak mr-1">PEAK</span> = Jam tersibuk
@@ -291,8 +312,7 @@
     <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
         <div class="card-header bg-white py-3">
             <h6 class="m-0 font-weight-bold text-dark">
-                <i class="fas fa-table mr-2 text-primary"></i>
-                Tabel Distribusi 24 Jam
+                FPA DALAM SATU HARI
             </h6>
         </div>
         <div class="card-body p-0">
@@ -300,19 +320,20 @@
                 <table class="table mb-0" id="hourlyTable">
                     <thead>
                         <tr>
-                            <th class="text-center" style="width:50px;">No</th>
-                            <th>Blok Jam</th>
-                            <th class="text-center">Jumlah FPA</th>
-                            <th class="text-center">Persentase (%)</th>
-                            <th class="text-center">Avg Cycle Time</th>
-                            <th class="text-center">Status</th>
+                            <th class="text-center" style="width:40px;">No</th>
+                            <th class="text-center" style="width:120px;">Jam</th>
+                            <th class="text-center" style="width:90px;">Jumlah FPA</th>
+                            <th class="text-center" style="width:160px;">Persentase (%)</th>
+                            <th class="text-center" style="width:110px;">Avg Cycle Time</th>
+                            <th class="text-center" style="width:180px; max-width:180px;">Inspector</th>
+                            <th class="text-center" style="width:80px;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($recap['distribution'] as $slot)
                             <tr class="{{ $slot['is_peak'] && $slot['count'] > 0 ? 'is-peak' : '' }}">
                                 <td class="text-center text-muted small">{{ $loop->iteration }}</td>
-                                <td class="font-weight-bold">
+                                <td class="text-center font-weight-bold">
                                     {{ sprintf('%02d', $slot['hour']) }}:00
                                     &ndash;
                                     {{ sprintf('%02d', ($slot['hour'] + 1) % 24) }}:00
@@ -326,12 +347,13 @@
                                 </td>
                                 <td class="text-center">
                                     @if($slot['count'] > 0)
-                                        {{-- Progress bar --}}
-                                        <div class="d-flex align-items-center justify-content-center" style="gap:8px;">
-                                            <div style="width:90px; background:#e2e8f0; border-radius:20px; height:8px; overflow:hidden;">
-                                                <div style="width:{{ $slot['percentage'] }}%; height:100%; background:{{ $slot['is_peak'] ? 'linear-gradient(90deg,#f59e0b,#ef4444)' : 'linear-gradient(90deg,#3b82f6,#6366f1)' }}; border-radius:20px; transition:width 0.5s;"></div>
+                                        {{-- Progress bar (layar) + teks saja (print) --}}
+                                        <span class="pct-text-only" style="display:none; font-weight:700;">{{ number_format($slot['percentage'], 1) }}%</span>
+                                        <div class="progress-bar-wrap d-flex align-items-center justify-content-center" style="gap:8px;">
+                                            <div style="width:80px; background:#e2e8f0; border-radius:20px; height:8px; overflow:hidden;">
+                                                <div style="width:{{ $slot['percentage'] }}%; height:100%; background:{{ $slot['is_peak'] ? 'linear-gradient(90deg,#f59e0b,#ef4444)' : 'linear-gradient(90deg,#3b82f6,#6366f1)' }}; border-radius:20px;"></div>
                                             </div>
-                                            <span class="font-weight-bold" style="min-width:42px;">{{ number_format($slot['percentage'], 1) }}%</span>
+                                            <span class="font-weight-bold" style="min-width:38px;">{{ number_format($slot['percentage'], 1) }}%</span>
                                         </div>
                                     @else
                                         <span class="text-muted">0%</span>
@@ -344,13 +366,20 @@
                                         <span class="text-muted">—</span>
                                     @endif
                                 </td>
+                                <td class="text-center small" style="max-width:180px; word-break:break-word; text-transform:uppercase;">
+                                    @if($slot['inspectors'])
+                                        {{ $slot['inspectors'] }}
+                                    @else
+                                        <span class="text-muted" style="text-transform:none;">—</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
                                     @if($slot['is_peak'] && $slot['count'] > 0)
-                                        <span class="badge-peak"><i class="fas fa-fire mr-1"></i>PEAK</span>
+                                        <span class="badge-peak">🔥 PEAK</span>
                                     @elseif($slot['count'] > 0)
-                                        <span class="badge badge-light text-muted border small">Normal</span>
+                                        <span class="badge badge-light text-muted border" style="font-size:0.65rem;">Normal</span>
                                     @else
-                                        <span class="text-muted small">—</span>
+                                        <span class="text-muted">—</span>
                                     @endif
                                 </td>
                             </tr>
@@ -368,6 +397,7 @@
                                     —
                                 @endif
                             </td>
+                            <td></td>
                             <td></td>
                         </tr>
                     </tfoot>

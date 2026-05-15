@@ -798,7 +798,7 @@ class FirstPieceApprovalService extends BaseService
         // Total FPA on that day
         $total = (clone $query)->count();
 
-        // Group by hour of created_at (save/finish time)
+        // Group by hour: count, avg cycle time
         $rows = (clone $query)
             ->select(
                 DB::raw('HOUR(created_at) as hour'),
@@ -807,6 +807,18 @@ class FirstPieceApprovalService extends BaseService
             )
             ->groupBy(DB::raw('HOUR(created_at)'))
             ->orderBy('hour')
+            ->get()
+            ->keyBy('hour');
+
+        // Group by hour: inspector initials (distinct, sorted)
+        $inspectorRows = (clone $query)
+            ->whereNotNull('operator_initials')
+            ->where('operator_initials', '!=', '')
+            ->select(
+                DB::raw('HOUR(created_at) as hour'),
+                DB::raw('GROUP_CONCAT(DISTINCT operator_initials ORDER BY operator_initials SEPARATOR \', \') as inspectors')
+            )
+            ->groupBy(DB::raw('HOUR(created_at)'))
             ->get()
             ->keyBy('hour');
 
@@ -819,11 +831,13 @@ class FirstPieceApprovalService extends BaseService
             if ($count > $maxCount) {
                 $maxCount = $count;
             }
+            $inspRow = $inspectorRows->get($h);
             $distribution[$h] = [
                 'hour'                   => $h,
                 'count'                  => $count,
                 'percentage'             => $total > 0 ? round(($count / $total) * 100, 2) : 0,
                 'avg_cycle_time_seconds' => $row ? round((float) $row->avg_cycle_time_seconds, 1) : null,
+                'inspectors'             => $inspRow ? $inspRow->inspectors : null,
             ];
         }
 

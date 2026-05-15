@@ -313,7 +313,7 @@
                                         <td rowspan="{{ $rows->count() }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
                                             {{ $globalIndex++ }}
                                         </td>
-                                        <td rowspan="{{ $rows->count() }}" class="font-weight-bold text-primary align-middle" style="background-color: #fcfcfc;">
+                                        <td rowspan="{{ $rows->count() }}" class="font-weight-bold text-primary align-middle" style="background-color: #fcfcfc; text-transform: uppercase;">
                                             {{ $operator }}
                                         </td>
                                     @endif
