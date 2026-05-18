@@ -313,13 +313,18 @@
                                 <td class="align-middle" style="min-width: 280px;">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
-                                        <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" style="min-width: 180px;"
-                                                name="defect_types[]" id="defectSelect">
-                                                <option value="">-- Pilih Defect --</option>
-                                            </select>
-                                            <input type="number" class="form-control defect-qty" style="min-width: 100px;"
-                                                name="defect_quantities[]" placeholder="Qty" min="1">
+                                        <div class="row no-gutters mb-2 defect-row align-items-center">
+                                            <div class="col-8 pr-1">
+                                                <select class="form-control defect-select font-weight-bold"
+                                                    name="defect_types[]" id="defectSelect">
+                                                    <option value="">-- Pilih Defect --</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-3 pr-1">
+                                                <input type="number" class="form-control defect-qty text-center font-weight-bold"
+                                                    name="defect_quantities[]" placeholder="Qty" min="1">
+                                            </div>
+                                            <div class="col-1 text-center"></div>
                                         </div>
                                     </div>
                                     <button type="button" id="addDefectBtn" class="btn btn-info mt-1"

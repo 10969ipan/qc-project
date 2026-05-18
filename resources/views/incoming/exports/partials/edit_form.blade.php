@@ -28,22 +28,32 @@
         <div id="editDefectContainer">
             @php $defects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true); @endphp
             @forelse($defects ?? [] as $d)
-                <div class="input-group mb-2 edit-defect-row">
-                    <select class="form-control edit-defect-select" name="defect_types[]">
-                        <option value="{{ $d['type'] }}">{{ $d['type'] }}</option>
-                    </select>
-                    <input type="number" class="form-control edit-defect-qty" name="defect_quantities[]"
-                        value="{{ $d['qty'] }}" min="1" style="max-width: 80px;">
-                    <div class="input-group-append"><button type="button" class="btn btn-danger remove-defect-btn"><i
-                                class="fas fa-trash"></i></button></div>
+                <div class="row no-gutters mb-2 edit-defect-row align-items-center bg-white p-1 rounded shadow-sm">
+                    <div class="col-8 pr-1">
+                        <select class="form-control edit-defect-select font-weight-bold" name="defect_types[]">
+                            <option value="{{ $d['type'] }}">{{ $d['type'] }}</option>
+                        </select>
+                    </div>
+                    <div class="col-3 pr-1">
+                        <input type="number" class="form-control edit-defect-qty text-center font-weight-bold" name="defect_quantities[]"
+                            value="{{ $d['qty'] }}" min="1">
+                    </div>
+                    <div class="col-1 text-center">
+                        <button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>
+                    </div>
                 </div>
             @empty
-                <div class="input-group mb-2 edit-defect-row">
-                    <select class="form-control edit-defect-select" name="defect_types[]">
-                        <option value="">-- Defect --</option>
-                    </select>
-                    <input type="number" class="form-control edit-defect-qty" name="defect_quantities[]" min="1"
-                        style="max-width: 80px;">
+                <div class="row no-gutters mb-2 edit-defect-row align-items-center bg-white p-1 rounded shadow-sm">
+                    <div class="col-8 pr-1">
+                        <select class="form-control edit-defect-select font-weight-bold" name="defect_types[]">
+                            <option value="">-- Pilih Defect --</option>
+                        </select>
+                    </div>
+                    <div class="col-3 pr-1">
+                        <input type="number" class="form-control edit-defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty"
+                            min="1">
+                    </div>
+                    <div class="col-1 text-center"></div>
                 </div>
             @endforelse
         </div>

@@ -178,21 +178,24 @@
                         <div id="editDefectContainer">
                             @if(count($defects) > 0)
                                 @foreach($defects as $index => $defect)
-                                    <div class="input-group mb-2 defect-row shadow-sm">
-                                        <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
-                                            <option value="">-- Pilih Defect --</option>
-                                            @php
-                                                $itemDefects = $checksheet->item->defects ?? [];
-                                            @endphp
-                                            @foreach($itemDefects as $idft)
-                                                <option value="{{ $idft }}" {{ ($defect['type'] ?? '') == $idft ? 'selected' : '' }}>{{ $idft }}</option>
-                                            @endforeach
-                                        </select>
-                                        <input type="number" class="form-control form-control-sm defect-qty bg-white font-weight-bold" 
-                                            name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;"
-                                            value="{{ $defect['qty'] ?? 1 }}">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-times"></i></button>
+                                    <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
+                                        <div class="col-8 pr-1">
+                                            <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
+                                                <option value="">-- Pilih Defect --</option>
+                                                @php
+                                                    $itemDefects = $checksheet->item->defects ?? [];
+                                                @endphp
+                                                @foreach($itemDefects as $idft)
+                                                    <option value="{{ $idft }}" {{ ($defect['type'] ?? '') == $idft ? 'selected' : '' }}>{{ $idft }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-3 pr-1">
+                                            <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" 
+                                                name="defect_quantities[]" min="1" value="{{ $defect['qty'] ?? 1 }}">
+                                        </div>
+                                        <div class="col-1 text-center">
+                                            <button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>
                                         </div>
                                     </div>
                                 @endforeach
@@ -349,13 +352,17 @@
             $(document).on('input', '.defect-qty', calculateTotalNG);
             
             $('#editAddDefectBtn').click(function() {
-                const row = $('<div class="input-group mb-2 defect-row shadow-sm">' +
+                const row = $('<div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">' +
+                    '<div class="col-8 pr-1">' +
                     '<select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">' +
                     '<option value="">-- Pilih Defect --</option>' +
                     '</select>' +
-                    '<input type="number" class="form-control form-control-sm defect-qty bg-white font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1" value="1" style="max-width: 80px;">' +
-                    '<div class="input-group-append">' +
-                    '<button class="btn btn-danger btn-xs remove-defect-btn" type="button"><i class="fas fa-times"></i></button>' +
+                    '</div>' +
+                    '<div class="col-3 pr-1">' +
+                    '<input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1" value="1">' +
+                    '</div>' +
+                    '<div class="col-1 text-center">' +
+                    '<button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>' +
                     '</div>' +
                     '</div>');
                 $('#editDefectContainer').append(row);

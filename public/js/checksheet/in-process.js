@@ -947,7 +947,17 @@ class InProcessCreate {
 
             // Pembaruan Daftar Defect
             $("#defectContainer").html(
-                '<div class="input-group mb-2 defect-row"><select class="form-control defect-select" name="defect_types[]" id="defectSelect"><option value="">-- Pilih Defect --</option></select><input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;"></div>',
+                `<div class="row no-gutters mb-2 defect-row align-items-center">
+                    <div class="col-8 pr-1">
+                        <select class="form-control defect-select font-weight-bold" name="defect_types[]" id="defectSelect">
+                            <option value="">-- Pilih Defect --</option>
+                        </select>
+                    </div>
+                    <div class="col-3 pr-1">
+                        <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
+                    </div>
+                    <div class="col-1 text-center"></div>
+                </div>`,
             );
             const defectSelect = $("#defectSelect");
             if (typeof defectsData === "string") {
@@ -1365,7 +1375,17 @@ class InProcessCreate {
             if (rowCount < 4) {
                 const firstSelect = $("#defectSelect");
                 const newRow = $(
-                    `<div class="input-group mb-2 defect-row"><select class="form-control defect-select" style="min-width: 180px;" name="defect_types[]">${firstSelect.html()}</select><input type="number" class="form-control defect-qty" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1"><div class="input-group-append"><button class="btn btn-danger btn-sm remove-defect-btn" type="button"><i class="fas fa-minus"></i></button></div></div>`,
+                    `<div class="row no-gutters mb-2 defect-row align-items-center">
+                        <div class="col-8 pr-1">
+                            <select class="form-control defect-select font-weight-bold" name="defect_types[]">${firstSelect.html()}</select>
+                        </div>
+                        <div class="col-3 pr-1">
+                            <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
+                        </div>
+                        <div class="col-1 text-center">
+                            <button class="btn btn-link text-danger p-0 remove-defect-btn" type="button"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    </div>`,
                 );
                 $("#defectContainer").append(newRow);
             }

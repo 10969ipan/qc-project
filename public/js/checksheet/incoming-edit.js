@@ -11,10 +11,8 @@ $(document).ready(function () {
         firstRow.find('input').val('');
         firstRow.find('select').val('');
         
-        // Pastikan tombol hapus ada
-        if (firstRow.find('.remove-defect-btn').length === 0) {
-            firstRow.append('<div class="input-group-append"><button type="button" class="btn btn-danger remove-defect-btn"><i class="fas fa-trash"></i></button></div>');
-        }
+        const lastCol = firstRow.find('.col-1');
+        lastCol.empty().append('<button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>');
         
         container.append(firstRow);
     });

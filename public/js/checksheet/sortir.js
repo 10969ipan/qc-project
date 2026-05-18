@@ -232,11 +232,15 @@ class SortirCreate {
         // Manajemen baris defect
         $('#addDefectBtn').on('click', () => {
             var newRow = `
-                <div class="input-group mb-2 defect-row">
-                    <input type="text" class="form-control" style="min-width: 180px;" name="defect_types[]" placeholder="Jenis Defect">
-                    <input type="number" class="form-control" style="min-width: 100px;" name="defect_quantities[]" placeholder="Qty" min="1">
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-danger btn-sm remove-defect"><i class="fas fa-times"></i></button>
+                <div class="row no-gutters mb-2 defect-row align-items-center bg-white p-1 rounded shadow-sm">
+                    <div class="col-8 pr-1">
+                        <input type="text" class="form-control font-weight-bold" name="defect_types[]" placeholder="Jenis Defect">
+                    </div>
+                    <div class="col-3 pr-1">
+                        <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
+                    </div>
+                    <div class="col-1 text-center">
+                        <button type="button" class="btn btn-link text-danger p-0 remove-defect"><i class="fas fa-times-circle"></i></button>
                     </div>
                 </div>`;
             $('#defectContainer').append(newRow);

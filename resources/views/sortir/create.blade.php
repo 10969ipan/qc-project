@@ -219,11 +219,16 @@
                                     <hr class="my-2">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
-                                        <div class="input-group mb-2 defect-row">
-                                            <input type="text" class="form-control" style="min-width: 180px;"
-                                                name="defect_types[]" placeholder="Jenis Defect">
-                                            <input type="number" class="form-control" style="min-width: 100px;"
-                                                name="defect_quantities[]" placeholder="Qty" min="1">
+                                        <div class="row no-gutters mb-2 defect-row align-items-center">
+                                            <div class="col-8 pr-1">
+                                                <input type="text" class="form-control font-weight-bold"
+                                                    name="defect_types[]" placeholder="Jenis Defect">
+                                            </div>
+                                            <div class="col-3 pr-1">
+                                                <input type="number" class="form-control text-center font-weight-bold"
+                                                    name="defect_quantities[]" placeholder="Qty" min="1">
+                                            </div>
+                                            <div class="col-1 text-center"></div>
                                         </div>
                                     </div>
                                     <button type="button" id="addDefectBtn" class="btn btn-info btn-sm mt-1">

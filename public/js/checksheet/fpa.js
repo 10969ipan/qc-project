@@ -823,9 +823,19 @@ class FpaCreate {
     }
 
     updateDefectList(defectsData) {
-        // Reset container dengan 1 row kosong
+        // Reset container dengan 1 row kosong menggunakan Bootstrap grid
         $("#defectContainer").html(
-            '<div class="input-group mb-2 defect-row"><select class="form-control defect-select" name="defect_types[]" id="defectSelect"><option value="">-- Pilih Defect --</option></select><input type="number" class="form-control defect-qty" name="defect_quantities[]" placeholder="Qty" min="1" style="max-width: 80px;"></div>'
+            `<div class="row no-gutters mb-2 defect-row align-items-center">
+                <div class="col-8 pr-1">
+                    <select class="form-control defect-select font-weight-bold" name="defect_types[]" id="defectSelect">
+                        <option value="">-- Pilih Defect --</option>
+                    </select>
+                </div>
+                <div class="col-3 pr-1">
+                    <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
+                </div>
+                <div class="col-1 text-center"></div>
+            </div>`
         );
         const $select = $("#defectSelect");
 
@@ -1245,23 +1255,45 @@ class FpaCreate {
     }
 
     initDefectManagement() {
-        $("#addDefectBtn").on("click", () => {
-            const newRow = $(".defect-row:first").clone();
-            newRow.find("input").val("");
-            newRow.find("select").val("");
-            newRow.append(
-                '<div class="input-group-append"><button type="button" class="btn btn-outline-danger remove-defect"><i class="fas fa-minus"></i></button></div>',
-            );
-            $("#defectContainer").append(newRow);
-            this.config.hasDefects = true;
-            this.updateJudgment();
+        const _this = this;
+        $("#addDefectBtn").on("click", function () {
+            const rowCount = $(".defect-row").length;
+            if (rowCount < 4) {
+                const firstSelect = $("#defectSelect");
+                const newRow = $(
+                    `<div class="row no-gutters mb-2 defect-row align-items-center">
+                        <div class="col-8 pr-1">
+                            <select class="form-control defect-select font-weight-bold" name="defect_types[]">${firstSelect.html()}</select>
+                        </div>
+                        <div class="col-3 pr-1">
+                            <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
+                        </div>
+                        <div class="col-1 text-center">
+                            <button class="btn btn-link text-danger p-0 remove-defect-btn" type="button"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    </div>`
+                );
+                $("#defectContainer").append(newRow);
+                _this.config.hasDefects = true;
+                _this.updateJudgment();
+            }
+            if ($(".defect-row").length >= 4) {
+                $(this).hide();
+            }
         });
 
-        $(document).on("click", ".remove-defect", (e) => {
-            $(e.currentTarget).closest(".defect-row").remove();
-            this.config.hasDefects =
+        $(document).on("click", ".remove-defect-btn, .remove-defect", function () {
+            $(this).closest(".defect-row").remove();
+            _this.config.hasDefects =
                 $(".defect-row").length > 1 || $(".defect-select").val() !== "";
-            this.calculateTotalNG();
+            _this.calculateTotalNG();
+            
+            const ngCount = parseInt($("#total_ng").val()) || 0;
+            if ($(".defect-row").length < 4 && ngCount >= 1) {
+                $("#addDefectBtn").show();
+            } else {
+                $("#addDefectBtn").hide();
+            }
         });
 
         $(document).on("change input", ".defect-select, .defect-qty", () => {
@@ -1271,6 +1303,15 @@ class FpaCreate {
             });
             this.config.hasDefects = hasAny;
             this.calculateTotalNG();
+        });
+
+        $("#total_ng").on("input", function () {
+            const ng = parseInt($(this).val()) || 0;
+            if (ng >= 1 && $(".defect-row").length < 4) {
+                $("#addDefectBtn").show();
+            } else {
+                $("#addDefectBtn").hide();
+            }
         });
     }
 

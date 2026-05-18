@@ -120,12 +120,17 @@
                                 <!-- Defect Details -->
                                 <td>
                                     <div id="defectContainer">
-                                        <div class="input-group mb-2 defect-row">
-                                            <select class="form-control defect-select" name="defect_types[]">
-                                                <option value="">-- Pilih Defect --</option>
-                                            </select>
-                                            <input type="number" class="form-control defect-qty" name="defect_quantities[]"
-                                                placeholder="Qty" min="1" style="max-width: 80px;">
+                                        <div class="row no-gutters mb-2 defect-row align-items-center">
+                                            <div class="col-8 pr-1">
+                                                <select class="form-control defect-select font-weight-bold" name="defect_types[]">
+                                                    <option value="">-- Pilih Defect --</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-3 pr-1">
+                                                <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]"
+                                                    placeholder="Qty" min="1">
+                                            </div>
+                                            <div class="col-1 text-center"></div>
                                         </div>
                                     </div>
                                     <button type="button" id="addDefectBtn" class="btn btn-outline-info btn-sm mt-1">
