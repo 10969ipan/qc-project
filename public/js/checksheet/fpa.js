@@ -382,7 +382,7 @@ class FpaCreate {
                 $(`#${type}PdfLoading`)
                     .removeClass("d-flex")
                     .addClass("d-none");
-                $(`#${type}PdfCanvas`).removeClass("d-none");
+                $(`#${type}PdfCanvas`).removeClass("d-none").show();
                 $(`.${type}-nav-controls`).show();
                 if (type === "standard" && p.files.length > 1)
                     $(".file-nav").show();
@@ -1502,14 +1502,27 @@ class FpaCreate {
         $("#addDefectBtn").hide();
         $(".defect-row").not(":first").remove();
 
-        $("#standardPdfCanvas, #similarPdfCanvas").addClass('d-none').hide();
+        // Clear standard and similar PDF canvases and reset display
+        $("#standardPdfCanvas, #similarPdfCanvas").addClass('d-none').css('display', '');
         $("#standardPdfPlaceholder").show().find('p').text('Pilih Item untuk menampilkan Standard PDF');
         $("#similarPdfPlaceholder").show().find('p').text('Pilih Item untuk menampilkan Dimensi Part');
         $(".standard-nav-controls, .similar-nav-controls, #fullStandardBtn, #fullSimilarBtn").hide();
 
+        // Clear loaded PDF references
+        this.pdf.standard.doc = null;
+        this.pdf.similar.doc = null;
+
         $("#judgmentBadge").addClass("d-none").text("-");
         $("#judgmentSelect").val("").removeClass("text-success text-danger");
-        $("#itemSelect").val("");
+        
+        // Reset item selection and sync search autocomplete widget
+        const itemSelect = $("#itemSelect");
+        itemSelect.val("");
+        if (itemSelect[0] && typeof itemSelect[0]._ipsReset === 'function') {
+            itemSelect[0]._ipsReset();
+        }
+        itemSelect.trigger("change");
+
         $("#sapCodeInput").val("").removeClass("is-valid is-invalid");
         $("#sapCodeInputHidden").val("");
     }
