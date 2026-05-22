@@ -386,6 +386,7 @@
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle">WIP/FG</th>
                             <th rowspan="2" class="align-middle">Inspector</th>
 
                             <th colspan="4" class="align-middle">Approval Status</th>
@@ -776,6 +777,7 @@
                                          {{ $effectiveJudgment }}
                                      </span>
                                 </td>
+                                <td class="align-middle font-weight-bold text-nowrap" style="font-size: 0.75rem;">{{ in_array($checksheet->tujuan, ['WIP', 'FG']) ? $checksheet->tujuan : '-' }}</td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}</td>
 
                                 {{-- Kashift QC --}}

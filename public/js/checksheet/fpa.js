@@ -89,12 +89,6 @@ class FpaIndex {
     initAjaxForms() {
         $(document).on("submit", ".ajax-form", (e) => {
             const $form = $(e.currentTarget);
-            if ($form.find('input[name="_method"]').val() === "DELETE") {
-                if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
 
             e.preventDefault();
             const $submitBtn = $form.find('button[type="submit"]');

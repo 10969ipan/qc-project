@@ -94,12 +94,6 @@ class InProcessIndex {
     initAjaxForms() {
         $(document).on("submit", ".ajax-form", function (e) {
             const $form = $(this);
-            if ($form.find('input[name="_method"]').val() === "DELETE") {
-                if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
 
             e.preventDefault();
             const $submitBtn = $form.find('button[type="submit"]');
@@ -415,12 +409,27 @@ class InProcessCreate {
         this.initPDFReference();
         this.initHardwareScanner();
         this.initMachinePersistence();
-        this.lockInputs();
+
+        // Fitur antrian scan sementara HANYA untuk Karawang
+        if (this.config.useQueue) {
+            this.initTempQueue();
+
+            const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+            if (queue.length > 0) {
+                this.startTimer();
+            } else {
+                this.lockInputs();
+            }
+        } else {
+            // Jakarta: langsung lock inputs, tidak ada antrian
+            this.lockInputs();
+        }
+
         this.checkUrlParams();
 
         // Auto focus on scan field on load (Tablet optimized)
         this.applyAutoFocus();
-        
+
         // Click to refocus helper for tablet users
         $(document).on("click", ".card-body", (e) => {
             if ($(e.target).closest("input, select, textarea, button").length === 0) {
@@ -436,13 +445,345 @@ class InProcessCreate {
                 // Prevent virtual keyboard on tablets/phones during auto-focus
                 $input.attr('inputmode', 'none');
                 $input.focus();
-                
+
                 // If user actually taps the input, allow keyboard
-                $input.one('mousedown touchstart', function() {
+                $input.one('mousedown touchstart', function () {
                     $(this).attr('inputmode', 'text');
                 });
             }
         }, 600);
+    }
+
+    initTempQueue() {
+        const _this = this;
+
+        // Render standard queue on page load
+        this.renderQueueTable();
+
+        // Bind Save All Queue button (hanya jika element ada)
+        if ($("#btnSaveQueue").length) {
+            $("#btnSaveQueue").click(() => {
+                this.saveQueueSequentially();
+            });
+        }
+
+        // Bind Clear Queue button (hanya jika element ada)
+        if ($("#btnClearQueue").length) {
+            $("#btnClearQueue").click(() => {
+                this.clearQueue();
+            });
+        }
+
+        // Bind delete action for individual row items using event delegation
+        $(document).on("click", ".btn-delete-queue-item", function () {
+            const idx = $(this).data("index");
+            _this.deleteQueueItem(idx);
+        });
+    }
+
+    addToQueue() {
+        // Collect dimensions
+        const dimensions = {};
+        $('.dimension-input').each(function () {
+            const name = $(this).attr('name');
+            if (name) {
+                const match = name.match(/dimensions\[(\d+)\]\[(\d+)\]/);
+                if (match) {
+                    const cav = match[1];
+                    const pt = match[2];
+                    if (!dimensions[cav]) dimensions[cav] = {};
+                    dimensions[cav][pt] = $(this).val();
+                }
+            }
+        });
+
+        // Collect part weights
+        const part_weights = [];
+        $('input[name="part_weight[]"]').each(function () {
+            part_weights.push($(this).val());
+        });
+
+        // Collect defects
+        const defect_types = [];
+        $('.defect-select').each(function () {
+            defect_types.push($(this).val());
+        });
+        const defect_quantities = [];
+        $('.defect-qty').each(function () {
+            defect_quantities.push($(this).val());
+        });
+
+        // Build queue item object
+        const item = {
+            plant: $('input[name="plant"]').val(),
+            qrcode: $('#qrcodeInput').val(),
+            part_code: $('#partCodeInput').val(),
+            supplier_id: $('#supplierIdInput').val(),
+            quantity: $('#quantityInput').val(),
+            unique_code_id: $('#uniqueCodeInput').val(),
+            sap_code: $('#sapCodeInputHidden').val(),
+            scan_method: "hardware",
+            item_id: $('#itemSelect').val(),
+            date: $('input[name="date"]').val(),
+            shift: $('select[name="shift"]').val(),
+            code_machine: $('#code_machine').val(),
+            total_qty: $('input[name="total_qty"]').val(),
+            sampling_qty: $('input[name="sampling_qty"]').val(),
+            operator_initials: $('input[name="operator_initials"]').val(),
+            remarks: $('textarea[name="remarks"]').val(),
+            total_ok: $('input[name="total_ok"]').val(),
+            total_ng: $('input[name="total_ng"]').val(),
+            judgment: $('#judgmentSelect').val(),
+            next_proses: $('#nextProses').val(),
+            cycle_time: $('#cycleTimeInput').val(),
+            dimensions: dimensions,
+            part_weight: part_weights,
+            defect_types: defect_types,
+            defect_quantities: defect_quantities,
+            itemNameDisplay: $("#itemSelect option:selected").text().trim()
+        };
+
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        queue.push(item);
+        localStorage.setItem('inprocess_scan_buffer', JSON.stringify(queue));
+
+        // Toast/Swal feedback
+        Swal.fire({
+            icon: "success",
+            title: "Scan Berhasil",
+            text: `Item: ${item.itemNameDisplay} berhasil di-scan.`,
+            timer: 1500,
+            showConfirmButton: false
+        });
+
+        // Reset and restore
+        this.resetForm();
+        this.restorePersistentFields();
+
+        // Render queue
+        this.renderQueueTable();
+    }
+
+    renderQueueTable() {
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        const tbody = $("#tempQueueBody");
+        tbody.empty();
+
+        if (queue.length === 0) {
+            $("#tempQueueCard").addClass("d-none");
+            return;
+        }
+
+        $("#tempQueueCard").removeClass("d-none");
+        $("#queueBadge").text(`${queue.length} Data`);
+        $("#queueCountDisplay").text(queue.length);
+
+        queue.forEach((item, index) => {
+            const judgmentClass = item.judgment === 'OK' ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
+            const initialsUpper = (item.operator_initials || '-').toUpperCase();
+            const tr = `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td class="text-left font-weight-bold" style="word-break: break-all;">${item.qrcode || '-'}</td>
+                    <td>Mesin ${item.code_machine || '-'}</td>
+                    <td>${item.total_qty || '0'}</td>
+                    <td><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
+                    <td>${initialsUpper}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-xs btn-delete-queue-item" data-index="${index}" title="Hapus data">
+                            <i class="fas fa-trash-alt"></i> Hapus
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(tr);
+        });
+    }
+
+    deleteQueueItem(index) {
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        if (index >= 0 && index < queue.length) {
+            queue.splice(index, 1);
+            localStorage.setItem('inprocess_scan_buffer', JSON.stringify(queue));
+            this.renderQueueTable();
+        }
+    }
+
+    clearQueue() {
+        Swal.fire({
+            title: "Kosongkan Daftar Scan?",
+            text: "Semua data scan sementara akan dihapus dari browser ini!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, Hapus Semua!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('inprocess_scan_buffer');
+                this.renderQueueTable();
+                Swal.fire("Dihapus!", "Daftar scan sementara telah dikosongkan.", "success");
+            }
+        });
+    }
+
+    saveQueueSequentially() {
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        if (queue.length === 0) {
+            Swal.fire("Daftar Kosong", "Tidak ada data untuk disimpan.", "info");
+            return;
+        }
+
+        Swal.fire({
+            title: 'Pilih Next Proses',
+            text: 'Silakan pilih tujuan proses berikutnya:',
+            icon: 'question',
+            input: 'select',
+            inputOptions: {
+                'WIP': 'WIP',
+                'FG': 'FG'
+            },
+            inputPlaceholder: '- Pilih Tujuan -',
+            showCancelButton: true,
+            confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#4e73df',
+            cancelButtonColor: '#858796',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Anda harus memilih tujuan proses terlebih dahulu!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const batchNextProses = result.value;
+                this.executeSequentialSave(batchNextProses);
+            }
+        });
+    }
+
+    async executeSequentialSave(batchNextProses) {
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        if (queue.length === 0) return;
+
+        $("#saveProgressContainer").removeClass("d-none");
+        $("#btnSaveQueue").prop("disabled", true);
+        $("#btnClearQueue").prop("disabled", true);
+        $(".btn-delete-queue-item").prop("disabled", true);
+
+        let successCount = 0;
+        let failedIndex = -1;
+        let errorMessage = "";
+
+        const formActionUrl = $("#checksheetForm").attr("action");
+
+        for (let i = 0; i < queue.length; i++) {
+            const percent = Math.round((i / queue.length) * 100);
+            $("#saveProgressBar").css("width", percent + "%").attr("aria-valuenow", percent).text(percent + "%");
+            $("#saveProgressText").text(`Menyimpan data ${i + 1} dari ${queue.length}...`);
+
+            const item = queue[i];
+            const formData = new FormData();
+            const csrfToken = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+            formData.append('_token', csrfToken);
+
+            function appendToFormData(fd, data, parentKey) {
+                if (data === null || data === undefined) return;
+
+                if (Array.isArray(data)) {
+                    data.forEach((val) => {
+                        fd.append(parentKey + '[]', val);
+                    });
+                } else if (typeof data === 'object' && !(data instanceof File)) {
+                    Object.keys(data).forEach(key => {
+                        const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+                        appendToFormData(fd, data[key], fullKey);
+                    });
+                } else {
+                    fd.append(parentKey, data);
+                }
+            }
+
+            Object.keys(item).forEach(key => {
+                if (key === 'itemNameDisplay') return;
+                if (key === 'next_proses') return; // Override original value
+                appendToFormData(formData, item[key], key);
+            });
+            formData.append('tujuan', batchNextProses);
+
+            try {
+                await new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: formActionUrl,
+                        method: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            if (response.success) {
+                                successCount++;
+                                resolve(response);
+                            } else {
+                                reject(new Error(response.message || "Gagal menyimpan data."));
+                            }
+                        },
+                        error: function (xhr) {
+                            const msg = xhr.responseJSON && xhr.responseJSON.message
+                                ? xhr.responseJSON.message
+                                : "Gagal menyimpan data.";
+                            reject(new Error(msg));
+                        }
+                    });
+                });
+            } catch (error) {
+                failedIndex = i;
+                errorMessage = error.message;
+                break;
+            }
+        }
+
+        $("#saveProgressContainer").addClass("d-none");
+        $("#btnSaveQueue").prop("disabled", false);
+        $("#btnClearQueue").prop("disabled", false);
+        $(".btn-delete-queue-item").prop("disabled", false);
+
+        if (failedIndex === -1) {
+            localStorage.removeItem('inprocess_scan_buffer');
+            Swal.fire({
+                icon: "success",
+                title: "Semua Berhasil Disimpan",
+                text: `Berhasil menyimpan ${successCount} data ke database!`,
+            });
+            this.renderQueueTable();
+        } else {
+            const remainingQueue = queue.slice(failedIndex);
+            localStorage.setItem('inprocess_scan_buffer', JSON.stringify(remainingQueue));
+
+            Swal.fire({
+                icon: "error",
+                title: `Penyimpanan Terhenti di Data ke-${failedIndex + 1}`,
+                text: `Error: ${errorMessage}. Sisa ${remainingQueue.length} data tetap aman di dalam tabel.`,
+            });
+            this.renderQueueTable();
+        }
+    }
+
+    restorePersistentFields() {
+        const fields = [
+            { id: "code_machine", key: "last_machine_selection" },
+            { id: "shiftSelect", key: "last_shift_selection", name: "shift" },
+            { name: "operator_initials", key: "last_operator_initials" }
+        ];
+        fields.forEach(field => {
+            const $el = field.id ? $("#" + field.id) : $(`input[name="${field.name}"], select[name="${field.name}"]`);
+            if ($el.length) {
+                const savedVal = localStorage.getItem(field.key);
+                if (savedVal) {
+                    $el.val(savedVal).trigger("change");
+                }
+            }
+        });
     }
 
     lockInputs() {
@@ -459,6 +800,9 @@ class InProcessCreate {
     }
 
     unlockInputs() {
+        this.formInputs = $(
+            '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn):not(#sapCodeInput), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
+        );
         this.formInputs.prop("disabled", false);
         $("#checksheetForm").removeClass("inputs-locked");
         $("#saveBtn").prop("disabled", false);
@@ -657,11 +1001,11 @@ class InProcessCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
-        
+
         // Set to hardware method to trigger auto-fill dash and allow auto-submit
-        $("#scanMethodInput").val("hardware"); 
-        this.startTimer(); 
-        
+        $("#scanMethodInput").val("hardware");
+        this.startTimer();
+
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
                 // Auto-submit after a short delay to ensure UI is updated
@@ -676,17 +1020,46 @@ class InProcessCreate {
         const parts = qrString.split("|");
 
         if (parts.length < 5) {
+            Swal.fire({
+                icon: "warning",
+                title: "Format QR Salah",
+                html: "Data QR tidak sesuai standar.<br><br><b>Format wajib:</b><br><code>customer_part|supplier_id|qty|lot_id-unique_code-cav|kode_sap</code><br><br><b>Contoh:</b><br><code>53209-K3V -N001-AA|1200044|100|PN121225SHDM1A-001-202|7-02-0347</code>"
+            });
+            if (callback) callback(false);
+            return;
+        }
+
+        const part_code = (parts[0] || "").trim();
+        const supplier_id = (parts[1] || "").trim();
+        const quantity = parseInt(parts[2]) || 0;
+        const unique_code_id = (parts[3] || "").trim();
+        const sap_code = (parts[4] || "").trim();
+
+        if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
+            Swal.fire({
+                icon: "warning",
+                title: "Format QR Tidak Valid",
+                text: "Komponen QR Code tidak lengkap atau tidak valid!"
+            });
+            if (callback) callback(false);
+            return;
+        }
+
+        // 1. Validasi Unik di Antrean Temporary Sisi Client (Local Storage)
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        const isDuplicateInQueue = queue.some(item => item.qrcode === qrString);
+        if (isDuplicateInQueue) {
             Swal.fire(
-                "Format QR Salah",
-                "Data QR tidak sesuai standar (" + qrString + ")",
-                "warning",
+                "QR Sudah Digunakan",
+                "QR Code ini sudah pernah di-scan!",
+                "error"
             );
             if (callback) callback(false);
             return;
         }
 
         try {
-            // 1. Validasi QR Duplikat via AJAX
+            // 2. Validasi QR Duplikat via AJAX ke Database
             if (this.config.qrUniqueUrl) {
                 $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
                     if (res.success && !res.unique) {
@@ -1814,6 +2187,13 @@ class InProcessCreate {
                 }
             });
 
+            // Jika hardware scan DAN useQueue aktif (Karawang): masukkan ke antrian
+            if (isHardwareScan && _this.config.useQueue) {
+                _this.addToQueue();
+                return;
+            }
+
+            // Untuk Jakarta (useQueue=false) atau manual: langsung simpan ke database
             const saveBtn = $("#saveBtn");
             const originalHtml = saveBtn.html();
             saveBtn
@@ -1835,12 +2215,19 @@ class InProcessCreate {
                             text: "Data Berhasil Disimpan",
                             showCancelButton: !isHardwareScan,
                             confirmButtonText: isHardwareScan ? "OK" : "Lihat Data",
-                            timer: isHardwareScan ? 1200 : null,
+                            timer: isHardwareScan ? 1500 : null,
                             timerProgressBar: isHardwareScan,
                         }).then((result) => {
                             if (result.isConfirmed && !isHardwareScan)
                                 window.location.href = response.index_url;
-                            else _this.resetForm();
+                            else {
+                                _this.resetForm();
+                                _this.restorePersistentFields();
+                                // Untuk hardware scan Jakarta: unlock inputs kembali setelah reset
+                                if (isHardwareScan) {
+                                    _this.startTimer();
+                                }
+                            }
                         });
                     }
                 },
@@ -1871,8 +2258,22 @@ class InProcessCreate {
             .addClass("btn-success")
             .removeAttr("disabled")
             .html('<i class="fas fa-play"></i> Start');
-        this.lockInputs();
-        $("#saveBtn").prop("disabled", true);
+
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        if (this.config.useQueue) {
+            // Karawang: lanjutkan berdasarkan antrian
+            if (queue.length > 0) {
+                this.startTimer();
+            } else {
+                this.lockInputs();
+                $("#saveBtn").prop("disabled", true);
+            }
+        } else {
+            // Jakarta: langsung lock & siap scan berikutnya
+            this.lockInputs();
+            $("#saveBtn").prop("disabled", true);
+        }
+
         $("#addDefectBtn").hide();
         $(".defect-row").not(":first").remove();
         $("#imageContainer").html(

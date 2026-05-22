@@ -34,6 +34,7 @@ class InProcessChecksheet extends Model
         'operator_initials',
         'remarks',
         'next_proses',
+        'tujuan',
         'dimension_check', // New field
         'part_weight', // Added for AHM
         'defects', // JSON or serialized

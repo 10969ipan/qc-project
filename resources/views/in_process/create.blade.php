@@ -130,6 +130,50 @@
         color: #3b5bdb !important;
     }
 
+    /* ─── Temporary Queue Card & Table ─── */
+    #tempQueueCard {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+    #tempQueueCard .card-header {
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    #tempQueueTable {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        border: 1px solid #cbd5e1 !important;
+        width: 100% !important;
+    }
+    #tempQueueTable td, #tempQueueTable th {
+        border: 1px solid #cbd5e1 !important;
+        vertical-align: middle !important;
+    }
+    #tempQueueTable thead th {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.68rem !important;
+        letter-spacing: 0.3px;
+        padding: 10px 12px !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+    }
+    #tempQueueTable tbody td {
+        font-size: 0.8rem !important;
+        color: #334155 !important;
+        padding: 8px 10px !important;
+    }
+    .badge-info-premium {
+        background-color: #e0f2fe;
+        color: #0369a1;
+        font-weight: 700;
+        border: 1px solid #bae6fd;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+
 </style>
     @php
         $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
@@ -311,7 +355,7 @@
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold small font-weight-bold mb-1">
-                                            <i class="fas fa-barcode mr-1"></i>Scan Verifikasi Quantity
+                                        Scan Verifikasi Quanlity
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
@@ -581,6 +625,54 @@
             </form>
         </div>
     </div>
+
+    <!-- Card Daftar Scan Sementara (Hanya untuk Karawang) -->
+    @if($plantCode === 'karawang')
+    <div class="card shadow mb-4 d-none" id="tempQueueCard">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">
+                List Data 
+            </h6>
+            <span class="badge badge-info-premium" id="queueBadge">0 Data</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table text-center table-striped table-hover mb-0" id="tempQueueTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>QR Raw</th>
+                            <th>No Mesin</th>
+                            <th>Qty</th>
+                            <th>Judgment</th>
+                            <th>Inisial QC</th>
+                            <th style="width: 80px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tempQueueBody">
+                        <!-- Dinamik via JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap">
+                <div id="saveProgressContainer" class="w-100 w-md-50 mb-3 mb-md-0 d-none">
+                    <div class="progress" style="height: 18px; border-radius: 9px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="saveProgressBar" role="progressbar" style="width: 0%; font-size: 0.75rem; font-weight: 700;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                    <small class="text-muted mt-1 d-block font-weight-bold" id="saveProgressText">Menyimpan data...</small>
+                </div>
+                <div class="text-right ml-auto">
+                    <button type="button" class="btn btn-danger btn-sm mr-2 shadow-sm" id="btnClearQueue">
+                        <i class="fas fa-trash-alt mr-1"></i> Kosongkan List
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm" id="btnSaveQueue">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Simpan Semua Data (<span id="queueCountDisplay">0</span> Data)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Bagian Tampilan PDF Berdampingan -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
@@ -860,6 +952,7 @@
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 plantContext: "{{ request('plant') ?? auth()->user()->plant_id }}",
+                useQueue: {{ $plantCode === 'karawang' ? 'true' : 'false' }},
                 partDimensionStandards: {!! $partDimensionStandards !!}
             });
             // Pasang autocomplete di field Item Part

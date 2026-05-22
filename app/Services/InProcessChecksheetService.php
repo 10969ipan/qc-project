@@ -431,6 +431,7 @@ class InProcessChecksheetService extends BaseService
                 'next_proses' => ($data['judgment'] === 'NG') 
                     ? ($data['next_proses'] ?: 'SORTIR') 
                     : null,
+                'tujuan' => $data['tujuan'] ?? null,
             ]);
 
             // Clear manual machine status override
