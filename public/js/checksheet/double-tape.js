@@ -113,9 +113,9 @@ class DoubleTapeIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    (response.message ||
-                                        "Terjadi kesalahan saat menyimpan data.") +
-                                    "</div>",
+                                (response.message ||
+                                    "Terjadi kesalahan saat menyimpan data.") +
+                                "</div>",
                             )
                             .fadeIn();
                         $submitBtn
@@ -144,8 +144,8 @@ class DoubleTapeIndex {
                         $modalErrors
                             .html(
                                 '<div class="alert alert-danger">' +
-                                    message +
-                                    "</div>",
+                                message +
+                                "</div>",
                             )
                             .fadeIn();
                     }
@@ -194,7 +194,7 @@ class DoubleTapeIndex {
                 },
             );
 
-            _this.qrScanner._setVideoMirror = function (facingMode) {};
+            _this.qrScanner._setVideoMirror = function (facingMode) { };
 
             $("#toggleMirrorBtn")
                 .off("click")
@@ -308,7 +308,7 @@ class DoubleTapeIndex {
                 oscillator.start();
                 oscillator.stop(this.audioContext.currentTime + 0.3);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     handleQRScanned(decodedText) {
@@ -473,7 +473,7 @@ class DoubleTapeCreate {
                             })
                             .val(
                                 track.getSettings().zoom ||
-                                    capabilities.zoom.min,
+                                capabilities.zoom.min,
                             );
 
                         $slider.off("input").on("input", function () {
@@ -604,7 +604,7 @@ class DoubleTapeCreate {
                         (res) => {
                             if (res.success && !res.unique) {
                                 Swal.fire(
-                                    "QR Sudah Digunakan",
+                                    "QR-Code Duplicate",
                                     res.message,
                                     "error",
                                 );
@@ -666,7 +666,7 @@ class DoubleTapeCreate {
                 );
                 let pNum = normalize(
                     $(this).attr("data-part-number") ||
-                        $(this).data("part-number"),
+                    $(this).data("part-number"),
                 );
                 let sCode = normalize(
                     $(this).attr("data-sap-code") || $(this).data("sap-code"),
@@ -946,7 +946,7 @@ class DoubleTapeCreate {
                         return (
                             itemSapCode &&
                             itemSapCode.toString().toLowerCase() ===
-                                sapCode.toLowerCase()
+                            sapCode.toLowerCase()
                         );
                     },
                 );
@@ -977,7 +977,7 @@ class DoubleTapeCreate {
 
             // Perbarui pratinjau Berdampingan
             let parsedFiles = files;
-            if (typeof parsedFiles === 'string') { try { parsedFiles = JSON.parse(parsedFiles); } catch(e) { parsedFiles = []; } }
+            if (typeof parsedFiles === 'string') { try { parsedFiles = JSON.parse(parsedFiles); } catch (e) { parsedFiles = []; } }
             this.refStandardFiles = Array.isArray(parsedFiles) ? parsedFiles : [];
             this.refStandardFileIndex = 0;
             this.refStandardPageNum = 1;
@@ -1076,18 +1076,18 @@ class DoubleTapeCreate {
             const firstSelect = $("#defectSelect");
             const clone = $(
                 '<div class="row no-gutters mb-2 defect-row align-items-center">' +
-                    '<div class="col-8 pr-1">' +
-                    '<select class="form-control defect-select font-weight-bold" name="defect_types[]">' +
-                    firstSelect.html() +
-                    "</select>" +
-                    '</div>' +
-                    '<div class="col-3 pr-1">' +
-                    '<input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">' +
-                    '</div>' +
-                    '<div class="col-1 text-center">' +
-                    '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row"><i class="fas fa-times-circle"></i></button>' +
-                    '</div>' +
-                    "</div>",
+                '<div class="col-8 pr-1">' +
+                '<select class="form-control defect-select font-weight-bold" name="defect_types[]">' +
+                firstSelect.html() +
+                "</select>" +
+                '</div>' +
+                '<div class="col-3 pr-1">' +
+                '<input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">' +
+                '</div>' +
+                '<div class="col-1 text-center">' +
+                '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row"><i class="fas fa-times-circle"></i></button>' +
+                '</div>' +
+                "</div>",
             );
             $("#defectContainer").append(clone);
         });
@@ -1586,7 +1586,7 @@ class DoubleTapeCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Item Belum Dipilih",
-                    
+
                 });
                 $("#itemSelect").addClass("is-invalid").focus();
                 setTimeout(() => $("#itemSelect").removeClass("is-invalid"), 3000);

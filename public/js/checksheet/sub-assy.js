@@ -386,6 +386,10 @@ class SubAssyCreate {
         // QR Scanner Logic
         this.qrScanner = null;
 
+        this.isProcessingScan = false;
+        this.scanLockTimeout = null;
+        this.lastLinePromise = null;
+
         this.init();
     }
 
@@ -395,6 +399,8 @@ class SubAssyCreate {
             this.initEventListeners();
             this.initPdfJS();
             this.initQRScanner();
+            this.initHardwareScanner();
+            this.initLinePersistence();
             this.initPDFReference();
             this.calculateTotalNG();
             this.updateJudgment();
@@ -426,24 +432,8 @@ class SubAssyCreate {
     initEventListeners() {
         const self = this;
 
-        $("#startTimerBtn").click(function () {
-            if (!self.timerRunning) {
-                self.timerRunning = true;
-                $(this)
-                    .removeClass("btn-success")
-                    .addClass("btn-secondary")
-                    .attr("disabled", true)
-                    .html('<i class="fas fa-clock"></i> Running...');
-                $("#saveBtn").prop("disabled", false);
-
-                self.formInputs.prop("disabled", false);
-                $("#checksheetForm").removeClass("inputs-locked");
-
-                self.timerInterval = setInterval(() => {
-                    self.totalSeconds++;
-                    self.updateTimerDisplay();
-                }, 1000);
-            }
+        $("#startTimerBtn").click(() => {
+            this.startTimer();
         });
 
         $("#itemSelect").change((e) => this.handleItemChange(e));
@@ -512,6 +502,14 @@ class SubAssyCreate {
         $(document).on("click", ".remove-defect-btn", (e) =>
             this.handleRemoveDefect(e),
         );
+
+        // Mencegah form tersubmit otomatis saat PDA scanner mengirimkan tombol "Enter"
+        $("#checksheetForm").on("keydown", "input", function (e) {
+            if (e.key === "Enter" || e.keyCode === 13) {
+                e.preventDefault();
+                return false;
+            }
+        });
 
         $("#checksheetForm").on("submit", (e) => this.handleFormSubmit(e));
 
@@ -686,7 +684,19 @@ class SubAssyCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
-        this.parseAndFillQR(decodedText);
+
+        // Set scan method ke hardware untuk trigger auto-fill dan auto-submit
+        $("#scanMethodInput").val("hardware");
+        this.startTimer();
+
+        this.parseAndFillQR(decodedText, (success) => {
+            if (success) {
+                // Auto-submit setelah jeda singkat agar UI terupdate
+                setTimeout(() => {
+                    $("#checksheetForm").trigger("submit");
+                }, 500);
+            }
+        });
     }
 
     unlockAudio() {
@@ -731,53 +741,51 @@ class SubAssyCreate {
         }
     }
 
-    parseAndFillQR(decodedText) {
+    parseAndFillQR(qrString, callback) {
+        const parts = qrString.split("|");
+
+        if (parts.length < 5) {
+            Swal.fire({
+                icon: "warning",
+                title: "Format QR Salah",
+                html: "Data QR tidak sesuai standar.<br><br><b>Format wajib:</b><br><code>customer_part|supplier_id|qty|lot_id-unique_code-cav|kode_sap</code><br><br><b>Contoh:</b><br><code>53209-K3V -N001-AA|1200044|100|PN121225SHDM1A-001-202|7-02-0347</code>"
+            });
+            if (callback) callback(false);
+            return;
+        }
+
+        const part_code = (parts[0] || "").trim();
+        const supplier_id = (parts[1] || "").trim();
+        const quantity = parseInt(parts[2]) || 0;
+        const unique_code_id = (parts[3] || "").trim();
+        const sap_code = (parts[4] || "").trim();
+
+        if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
+            Swal.fire({
+                icon: "warning",
+                title: "Format QR Tidak Valid",
+                text: "Komponen QR Code tidak lengkap atau tidak valid!"
+            });
+            if (callback) callback(false);
+            return;
+        }
+
         try {
-            $("#qrcodeInput").val(decodedText);
-            const parts = decodedText.split("|");
-
-            if (parts.length >= 5) {
-                const partCode = parts[0].trim();
-                const supplierId = parts[1].trim();
-                const quantity = parts[2].trim();
-                const uniqueCode = parts[3].trim();
-                const sapCode = parts[4].trim();
-
-                $("#sapCodeInput").val(sapCode);
-                $("#partCodeInput").val(partCode);
-                $("#supplierIdInput").val(supplierId);
-                $("#quantityInput").val(quantity);
-                $("#uniqueCodeInput").val(uniqueCode);
-                $("#sapCodeInputHidden").val(sapCode);
-
-                // 1. Validasi QR Duplikat via AJAX
-                if (this.config.qrUniqueUrl) {
-                    $.get(
-                        this.config.qrUniqueUrl,
-                        { qrcode: decodedText },
-                        (res) => {
-                            if (res.success && !res.unique) {
-                                Swal.fire(
-                                    "QR Sudah Digunakan",
-                                    res.message,
-                                    "error",
-                                );
-                            } else {
-                                this.processFillQR(decodedText, parts);
-                            }
-                        },
-                    ).fail(() => {
-                        this.processFillQR(decodedText, parts);
-                    });
-                } else {
-                    this.processFillQR(decodedText, parts);
-                }
+            // Validasi QR Duplikat via AJAX ke Database
+            if (this.config.qrUniqueUrl) {
+                $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
+                    if (res.success && !res.unique) {
+                        Swal.fire("QR-Code Duplicate", res.message, "error");
+                        if (callback) callback(false);
+                    } else {
+                        this.processFillQR(qrString, parts, callback);
+                    }
+                }).fail(() => {
+                    // Jika API gagal, tetap lanjut ke pemrosesan lokal sebagai fallback
+                    this.processFillQR(qrString, parts, callback);
+                });
             } else {
-                Swal.fire(
-                    "Format QR Salah",
-                    "Data QR tidak sesuai standar (" + decodedText + ")",
-                    "warning",
-                );
+                this.processFillQR(qrString, parts, callback);
             }
         } catch (e) {
             console.error("Parse QR Error:", e);
@@ -786,6 +794,7 @@ class SubAssyCreate {
                 "Gagal memproses data QR: " + e.message,
                 "error",
             );
+            if (callback) callback(false);
         }
     }
 
@@ -797,6 +806,8 @@ class SubAssyCreate {
             const uniqueCode = parts[3].trim();
             const sapCode = parts[4].trim();
 
+            // WAJIB: Simpan QR raw string ke hidden input agar tersimpan ke database
+            $("#qrcodeInput").val(decodedText);
             $("#sapCodeInput").val(sapCode);
             $("#partCodeInput").val(partCode);
             $("#supplierIdInput").val(supplierId);
@@ -846,15 +857,25 @@ class SubAssyCreate {
                     $('input[name="total_qty"]').val(quantity).trigger("input");
                 }
 
-                Swal.fire({
-                    icon: "success",
-                    title: "QR Berhasil Discan",
-                    text: "Item otomatis terpilih.",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
+                // Tampilkan notifikasi hanya di mode manual (tidak ada callback auto-submit)
+                // Di mode hardware scan, notifikasi cukup dari "Data Berhasil Disimpan"
+                if (!callback) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "QR Berhasil Discan",
+                        text: "Item otomatis terpilih.",
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+                }
 
-                if (callback) callback(true);
+                // Tunggu AJAX last-line selesai sebelum auto-submit agar meja sudah terisi
+                const doCallback = () => { if (callback) callback(true); };
+                if (this.lastLinePromise) {
+                    this.lastLinePromise.always(doCallback);
+                } else {
+                    doCallback();
+                }
             } else {
                 Swal.fire(
                     "Info",
@@ -1319,6 +1340,39 @@ class SubAssyCreate {
         }
 
         this.updateJudgment();
+
+        // ─── Auto-fill Meja berdasarkan data item hari ini ───
+        if (itemId && this.config.lastLineUrl) {
+            const $lineSelect = $("#line");
+            const dateVal = $('input[name="date"]').val() || new Date().toISOString().split("T")[0];
+            const plantVal = $('input[name="plant"]').val();
+
+            // Reset sementara sambil loading
+            $lineSelect.removeClass("is-valid is-invalid");
+
+            // Simpan promise agar processFillQR bisa menunggu hasilnya sebelum auto-submit
+            this.lastLinePromise = $.get(this.config.lastLineUrl, { item_id: itemId, date: dateVal, plant: plantVal })
+                .done((res) => {
+                    if (res.found && res.line) {
+                        // Ada data hari ini → auto-fill meja
+                        $lineSelect.val(res.line).trigger("change");
+                        $lineSelect.addClass("is-valid");
+                        setTimeout(() => $lineSelect.removeClass("is-valid"), 2500);
+                    } else {
+                        // Belum ada data hari ini → wajib pilih manual
+                        $lineSelect.val("");
+                        $lineSelect.addClass("is-invalid");
+                        setTimeout(() => $lineSelect.removeClass("is-invalid"), 3000);
+                    }
+                })
+                .fail(() => {
+                    // Jika API gagal, biarkan user pilih manual
+                    $lineSelect.val("");
+                    this.lastLinePromise = null;
+                });
+        } else {
+            this.lastLinePromise = null;
+        }
     }
 
     updateDefectDropdown(defects) {
@@ -1503,10 +1557,211 @@ class SubAssyCreate {
         $("#cycleTimeInput").val(this.totalSeconds);
     }
 
+    startTimer() {
+        if (!this.timerRunning) {
+            this.timerRunning = true;
+            $("#startTimerBtn")
+                .removeClass("btn-success")
+                .addClass("btn-secondary")
+                .attr("disabled", true)
+                .html('<i class="fas fa-clock"></i> Running...');
+            $("#saveBtn").prop("disabled", false);
+            this.formInputs.prop("disabled", false);
+            $("#checksheetForm").removeClass("inputs-locked");
+            this.timerInterval = setInterval(() => {
+                this.totalSeconds++;
+                this.updateTimerDisplay();
+            }, 1000);
+        }
+    }
+
+    initHardwareScanner() {
+        let buffer = "";
+        let lastTime = Date.now();
+        let scanTimeout;
+
+        // Toast notification untuk feedback scan hardware (tanpa dialog modal)
+        const showToast = (msg, color) => {
+            let $toast = $("#scanToast");
+            if (!$toast.length) {
+                $toast = $('<div id="scanToast"></div>').css({
+                    position: "fixed", bottom: "20px", left: "50%",
+                    transform: "translateX(-50%)",
+                    background: "#1e293b", color: "#fff",
+                    padding: "8px 20px", borderRadius: "20px",
+                    fontSize: "0.85rem", fontWeight: "600",
+                    zIndex: 9999, pointerEvents: "none",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    transition: "opacity 0.3s",
+                }).appendTo("body");
+            }
+            $toast.text(msg).css({ color, opacity: 1 }).stop(true);
+            clearTimeout($toast.data("hideTimer"));
+            $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
+        };
+
+        const processScan = (raw) => {
+            raw = (raw || "").trim();
+            console.log("Hardware Scan Triggered (Sub Assy):", raw);
+
+            this.isProcessingScan = true;
+            clearTimeout(this.scanLockTimeout);
+
+            if (!raw.includes("|")) {
+                showToast("❌ Format QR salah (tidak ada |)", "#f87171");
+                this.isProcessingScan = false;
+                buffer = "";
+                return;
+            }
+
+            const parts = raw.split("|");
+            if (parts.length < 5) {
+                showToast(`❌ QR tidak lengkap: ${parts.length}/5 bagian`, "#f87171");
+                buffer = "";
+                return;
+            }
+
+            // Auto start timer jika belum berjalan
+            this.startTimer();
+
+            $("#scanMethodInput").val("hardware");
+
+            // Panggil parseAndFillQR dengan callback untuk auto-submit
+            this.parseAndFillQR(raw, (success) => {
+                if (success) {
+                    setTimeout(() => {
+                        console.log("Auto-submitting form after successful hardware scan (Sub Assy)...");
+                        $("#checksheetForm").trigger("submit");
+                        this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
+                    }, 500);
+                } else {
+                    this.isProcessingScan = false;
+                }
+            });
+            buffer = "";
+        };
+
+        // ─── Method PDA: Global Capturing Listener ───
+        // Menangkap tombol Enter di fase Capturing untuk memblokir submit browser
+        window.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.keyCode === 13) && document.activeElement && document.activeElement.id === 'sapCodeInput') {
+                console.log("Enter key captured and blocked (Sub Assy PDA Mode)");
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
+
+        // ─── Method A: Dedicated input handler for PDA Keyboard Wedge ───
+        $("#sapCodeInput").on("keydown", function (e) {
+            if (e.key === "Enter" || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const val = ($(this).val() || "").trim();
+                if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                    $(this).val(""); // Clear field
+                    processScan(val);
+                }
+                return false;
+            }
+        });
+
+        // Fallback untuk PDA yang hanya mengirim input event tanpa Enter
+        let sapInputTimeout;
+        $("#sapCodeInput").on("input", function () {
+            const val = ($(this).val() || "").trim();
+            if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                clearTimeout(sapInputTimeout);
+                sapInputTimeout = setTimeout(() => {
+                    const finalVal = ($(this).val() || "").trim();
+                    if (finalVal && finalVal === val) {
+                        $(this).val("");
+                        processScan(finalVal);
+                    }
+                }, 400);
+            }
+        });
+
+        // ─── Method B: Global keydown buffer (scanner USB/wireless) ───
+        window.addEventListener("keydown", (e) => {
+            const currentTime = Date.now();
+            const isTerminator = e.key === "Enter" || e.keyCode === 13 ||
+                e.key === "Tab" || e.keyCode === 9;
+
+            // Reset buffer jika jeda terlalu lama (ketik manual)
+            if (currentTime - lastTime > 1000) {
+                buffer = "";
+            }
+
+            if (!isTerminator) {
+                const char = e.key;
+                if (char && char.length === 1) {
+                    buffer += char;
+                } else if (e.keyCode >= 32 && e.keyCode <= 126) {
+                    buffer += String.fromCharCode(e.keyCode);
+                }
+            } else if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+                e.preventDefault();
+                clearTimeout(scanTimeout);
+                processScan(buffer);
+                buffer = "";
+            }
+
+            lastTime = currentTime;
+
+            // Auto-process on timeout untuk scanner tanpa terminator Enter
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => {
+                if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+                    processScan(buffer);
+                    buffer = "";
+                }
+            }, 500);
+        }, true);
+    }
+
+    initLinePersistence() {
+        const fields = [
+            { id: "line", key: "last_subassy_line_selection" },
+            { name: "operator_initials", key: "last_subassy_operator_initials" },
+            { id: "shiftSelect", key: "last_subassy_shift_selection" }
+        ];
+
+        fields.forEach(field => {
+            const $el = field.id
+                ? $("#" + field.id)
+                : $(`input[name="${field.name}"], select[name="${field.name}"]`);
+            if (!$el.length) return;
+
+            // Load dari localStorage
+            const savedVal = localStorage.getItem(field.key);
+            if (savedVal && (!$el.val() || $el.val() === "")) {
+                $el.val(savedVal).trigger("change");
+            }
+
+            // Simpan saat berubah
+            $el.on("change input", function () {
+                const val = $(this).val();
+                if (val) {
+                    localStorage.setItem(field.key, val);
+                }
+            });
+        });
+    }
+
     handleFormSubmit(e) {
         e.preventDefault();
         const _this = this;
         const form = e.target;
+        const isHardwareScan = $("#scanMethodInput").val() === "hardware";
+
+        // Blokir submit yang bukan dari tombol Save atau hardware scan
+        const submitter = (e.originalEvent && e.originalEvent.submitter) || document.activeElement;
+        if (!isHardwareScan && (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0))) {
+            console.warn("Submit diblokir karena tidak berasal dari tombol Save.");
+            return false;
+        }
+
         const judgment = $("#judgmentSelect").val();
         const nextProses = $("#nextProses").val();
         const itemId = $("#itemSelect").val();
@@ -1517,6 +1772,13 @@ class SubAssyCreate {
 
         // 1. Validasi: Item harus dipilih
         if (!itemId) {
+            // Blokir alert jika masih dalam proses scan hardware
+            const isManualClick = submitter && (submitter.id === 'saveBtn' || $(submitter).closest('#saveBtn').length > 0);
+            if (this.isProcessingScan || !isManualClick) {
+                console.warn("Submit diblokir: Sedang memproses scan atau bukan klik manual.");
+                return false;
+            }
+
             Swal.fire({
                 icon: "warning",
                 title: "Item Belum Dipilih",
@@ -1654,8 +1916,6 @@ class SubAssyCreate {
         const formData = new FormData(form);
         const actionUrl = $(form).attr("action");
 
-        console.log("Sending AJAX request to:", actionUrl);
-
         $.ajax({
             url: actionUrl,
             method: "POST",
@@ -1666,14 +1926,22 @@ class SubAssyCreate {
                 if (response.success) {
                     Swal.fire({
                         icon: "success",
-                        title: "Berhasil",
-                        text: "Data Berhasil Disimpan",
-                        showCancelButton: true,
-                        confirmButtonText: "Lihat Data",
+                        title: isHardwareScan ? "QR Berhasil Discan" : "Berhasil",
+                        text: isHardwareScan ? "QR berhasil discan & data berhasil disimpan." : "Data Berhasil Disimpan",
+                        showCancelButton: !isHardwareScan,
+                        confirmButtonText: isHardwareScan ? "OK" : "Lihat Data",
+                        timer: isHardwareScan ? 1500 : null,
+                        timerProgressBar: isHardwareScan,
                     }).then((result) => {
-                        if (result.isConfirmed)
+                        if (result.isConfirmed && !isHardwareScan)
                             window.location.href = response.index_url;
-                        else _this.resetState();
+                        else {
+                            _this.resetState();
+                            // Untuk hardware scan / camera scan: langsung siap scan berikutnya
+                            if (isHardwareScan) {
+                                _this.startTimer();
+                            }
+                        }
                     });
                 }
             },
@@ -1707,6 +1975,22 @@ class SubAssyCreate {
         });
     }
 
+    restorePersistentFields() {
+        const fields = [
+            { id: "line", key: "last_subassy_line_selection" },
+            { name: "operator_initials", key: "last_subassy_operator_initials" },
+            { id: "shiftSelect", key: "last_subassy_shift_selection" }
+        ];
+        fields.forEach(field => {
+            const $el = field.id
+                ? $("#" + field.id)
+                : $(`input[name="${field.name}"], select[name="${field.name}"]`);
+            if (!$el.length) return;
+            const savedVal = localStorage.getItem(field.key);
+            if (savedVal) $el.val(savedVal).trigger("change");
+        });
+    }
+
     resetState() {
         $("#checksheetForm")[0].reset();
         clearInterval(this.timerInterval);
@@ -1719,9 +2003,13 @@ class SubAssyCreate {
             .addClass("btn-success")
             .removeAttr("disabled")
             .html('<i class="fas fa-play"></i> Start');
+
+        // Lock form dan tunggu scan berikutnya
         this.formInputs.prop("disabled", true);
         $("#checksheetForm").addClass("inputs-locked");
         $("#saveBtn").prop("disabled", true);
+        $("#scanMethodInput").val("");
+
         $("#addDefectBtn").hide();
         $(".defect-row").not(":first").remove();
         $("#itemSelect").val("").trigger("change");
@@ -1736,6 +2024,7 @@ class SubAssyCreate {
         this.refStandardPdfDoc = null;
         this.refSimilarPdfDoc = null;
         this.updateRefNavControls();
+        this.restorePersistentFields();
     }
 
     handleOpenPdf(e) {

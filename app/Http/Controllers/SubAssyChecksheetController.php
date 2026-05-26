@@ -173,6 +173,36 @@ class SubAssyChecksheetController extends Controller
         return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
     }
 
+    /**
+     * Cek meja terakhir yang digunakan untuk item tertentu hari ini.
+     * Digunakan untuk auto-fill field "meja" saat item dipilih.
+     */
+    public function getLastLine(Request $request)
+    {
+        $itemId  = $request->get('item_id');
+        $plantId = \App\Models\Plant::resolveId($request->get('plant') ?? auth()->user()->plant_id);
+        $date    = $request->get('date', now()->toDateString());
+
+        if (!$itemId) {
+            return response()->json(['found' => false, 'line' => null]);
+        }
+
+        $record = \App\Models\SubAssyChecksheet::where('item_id', $itemId)
+            ->where('plant_id', $plantId)
+            ->whereDate('date', $date)
+            ->orderBy('created_at', 'desc')
+            ->first(['line']);
+
+        if ($record && $record->line) {
+            return response()->json([
+                'found' => true,
+                'line'  => $record->line,
+            ]);
+        }
+
+        return response()->json(['found' => false, 'line' => null]);
+    }
+
     // Simpan data (submission)
     public function store(StoreSubAssyChecksheetRequest $request)
     {

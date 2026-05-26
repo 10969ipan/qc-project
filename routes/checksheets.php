@@ -83,6 +83,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/plating/next-no-lot', [PlatingChecksheetController::class, 'getAutoNoLot'])->name('plating.next_no_lot');
     Route::get('/api/plating/last-data', [PlatingChecksheetController::class, 'getLastData'])->name('plating.last_data');
 
+    // Special routes for Sub Assy
+    Route::get('/api/sub-assy/last-line', [SubAssyChecksheetController::class, 'getLastLine'])->name('sub_assy.last_line');
+
     // --- Report & Action Routes ---
 
     Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating,oshef'])->group(function () {

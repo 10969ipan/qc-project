@@ -621,7 +621,7 @@ class PlatingCreate {
                         (res) => {
                             if (res.success && !res.unique) {
                                 Swal.fire(
-                                    "QR Sudah Digunakan",
+                                    "QR-Code Duplicate",
                                     res.message,
                                     "error",
                                 );
@@ -1324,7 +1324,7 @@ class PlatingCreate {
         if (totalQty > 0) {
             const result = ng > 0 ? "NG" : "OK";
             $("#judgmentSelect").val(result).trigger("change");
-            
+
             // Update Badge Style (for Scan mode)
             $("#judgmentBadge").text(result).removeClass('badge-success badge-danger');
             if (result === "NG") {

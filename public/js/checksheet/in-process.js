@@ -1050,7 +1050,7 @@ class InProcessCreate {
         const isDuplicateInQueue = queue.some(item => item.qrcode === qrString);
         if (isDuplicateInQueue) {
             Swal.fire(
-                "QR Sudah Digunakan",
+                "QR-Code Duplicate",
                 "QR Code ini sudah pernah di-scan!",
                 "error"
             );
@@ -1063,7 +1063,7 @@ class InProcessCreate {
             if (this.config.qrUniqueUrl) {
                 $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
                     if (res.success && !res.unique) {
-                        Swal.fire("QR Sudah Digunakan", res.message, "error");
+                        Swal.fire("QR-Code Duplicate", res.message, "error");
                         if (callback) callback(false);
                     } else {
                         this.processFillQR(qrString, parts, callback);

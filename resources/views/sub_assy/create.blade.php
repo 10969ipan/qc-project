@@ -201,6 +201,7 @@
                 <input type="hidden" name="quantity" id="quantityInput">
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
                 <div class="table-responsive">
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
@@ -625,7 +626,8 @@
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
                 itemSearchUrl: "{{ route('items.search-by-part') }}",
-                qrUniqueUrl: "{{ route('items.check-qr-unique') }}"
+                qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
+                lastLineUrl: "{{ route('sub_assy.last_line') }}"
             });
             window.initItemSearch('itemSelect');
         });
