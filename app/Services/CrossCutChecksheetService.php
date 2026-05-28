@@ -89,6 +89,10 @@ class CrossCutChecksheetService extends BaseService
             $query->whereIn('check_type', $filters['check_type']);
         }
 
+        if (!empty($filters['shift'])) {
+            $query->where('qc_shift', $filters['shift']);
+        }
+
         return $query;
     }
 

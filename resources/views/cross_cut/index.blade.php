@@ -197,6 +197,18 @@
                     </div>
                 </div>
 
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Shift:</label>
+                    <div style="width: 100px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua Shift</option>
+                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="ml-auto d-flex" style="gap: 5px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
@@ -524,6 +536,7 @@
                                                 <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kepala Regu)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -568,6 +581,7 @@
                                                 <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Quality)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -597,6 +611,7 @@
                                                 <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Plating)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -626,6 +641,7 @@
                                                 <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -655,6 +671,7 @@
                                                 <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1"
                                                     title="Approve (Manager Plating)" style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
@@ -809,6 +826,7 @@
                                 <input type="hidden" name="customer" value="{{ request('customer') }}">
                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                 <div class="modal-body">
                                     <div class="alert alert-warning">
                                         <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
@@ -880,6 +898,7 @@
                             <input type="hidden" name="customer" value="{{ request('customer') }}">
                             <input type="hidden" name="search" value="{{ request('search') }}">
                             <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                             <div class="modal-body">
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i> Anda akan menyetujui checksheet ini sebagai
