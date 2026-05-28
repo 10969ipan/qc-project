@@ -66,6 +66,7 @@ class CrossCutPaintingChecksheetController extends Controller
             'approval_status' => $request->get('approval_status'),
             'id' => $request->get('id'),
             'search' => $request->get('search'),
+            'shift' => $request->get('shift'),
         ];
         $checksheets = $this->paintingService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Cross Cut Painting')->orderBy('name')->get();
@@ -277,11 +278,11 @@ class CrossCutPaintingChecksheetController extends Controller
             $label = $mapping['label'] ?? $type;
             ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$label}) pada checksheet Cross Cut Painting: {$checksheet->item->name}");
 
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('success', 'Cross Cut Painting Checksheet approved successfully.');
+            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status', 'shift']))->with('success', 'Cross Cut Painting Checksheet approved successfully.');
         } catch (\Exception $e) {
             if ($e->getCode() == 403)
                 abort(403);
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))->with('error', $e->getMessage());
+            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status', 'shift']))->with('error', $e->getMessage());
         }
     }
 
@@ -295,7 +296,7 @@ class CrossCutPaintingChecksheetController extends Controller
             $this->paintingService->rejectChecksheet($id, $type, $request->rejection_remarks);
             $checksheet = CrossCutPaintingChecksheet::find($id);
             \App\Helpers\ActivityLogger::log('rejected', $checksheet, "Melakukan rejection pada checksheet Cross Cut Painting: {$checksheet->item->name}");
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status']))
+            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status', 'shift']))
                 ->with('warning', 'Checksheet telah ditolak.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menolak checksheet: ' . $e->getMessage());
@@ -304,7 +305,7 @@ class CrossCutPaintingChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer']);
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'shift']);
 
         // Default to today if no date range is provided
         if (empty($filters['start_date']) && empty($filters['end_date'])) {
@@ -342,7 +343,7 @@ class CrossCutPaintingChecksheetController extends Controller
 
     public function printView(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer']);
+        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'operator_initials', 'customer', 'shift']);
 
         // Default to today if no date range is provided
         if (empty($filters['start_date']) && empty($filters['end_date'])) {

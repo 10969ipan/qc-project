@@ -70,6 +70,11 @@ class CrossCutPaintingChecksheetService extends BaseService
             });
         }
 
+        // Shift filter
+        if (!empty($filters['shift'])) {
+            $query->where('qc_shift', $filters['shift']);
+        }
+
         // ID filter
         if (!empty($filters['id'])) {
             $query->where('id', $filters['id']);

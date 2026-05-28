@@ -118,6 +118,7 @@ class InProcessChecksheetController extends Controller
             'id' => $request->id,
             'qr_raw' => $request->qr_raw,
             'entry_method' => $request->entry_method,
+            'shift' => $request->shift,
         ];
 
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
@@ -303,7 +304,7 @@ class InProcessChecksheetController extends Controller
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -348,7 +349,7 @@ class InProcessChecksheetController extends Controller
             ActivityLogger::log('deleted', null, "Menghapus checksheet In Process: {$itemName}");
 
             // Only preserve specific navigation and filter parameters
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -384,7 +385,7 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method', 'shift']);
 
         if (empty($filters['start_date']) && empty($filters['end_date']) && 
             empty($filters['item_id']) && empty($filters['operator_initials']) && 
@@ -477,7 +478,7 @@ class InProcessChecksheetController extends Controller
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -508,7 +509,7 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method', 'shift']);
 
         if (empty($filters['start_date']) && empty($filters['end_date']) && 
             empty($filters['item_id']) && empty($filters['operator_initials']) && 

@@ -279,6 +279,19 @@
                     </div>
                 </div>
 
+                <!-- Field: Shift -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Shift:</label>
+                    <div style="width: 90px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua</option>
+                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Field: Method -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tipe:</label>
@@ -936,6 +949,7 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
                                                     style="min-width: 110px;">
@@ -960,6 +974,7 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
                                                     style="min-width: 110px;">
@@ -984,6 +999,7 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
                                                     style="min-width: 110px;">
@@ -1008,6 +1024,7 @@
                                                 <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                 <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
                                                     style="min-width: 110px;">

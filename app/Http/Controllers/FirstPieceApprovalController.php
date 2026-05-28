@@ -113,6 +113,7 @@ class FirstPieceApprovalController extends Controller
             'customer' => $request->customer,
             'next_proses' => $request->next_proses,
             'id' => $request->id,
+            'shift' => $request->shift,
         ];
 
         $checksheets = $this->firstPieceService->getFilteredChecksheets($filters);
@@ -289,7 +290,7 @@ class FirstPieceApprovalController extends Controller
 
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet First Piece Approval: {$checksheet->item->name}");
 
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -323,7 +324,7 @@ class FirstPieceApprovalController extends Controller
             $this->firstPieceService->deleteChecksheet($id);
             ActivityLogger::log('deleted', null, "Menghapus checksheet First Piece Approval: {$itemName}");
 
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -354,7 +355,7 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -432,7 +433,7 @@ class FirstPieceApprovalController extends Controller
 
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet First Piece Approval: {$checksheet->item->name}");
 
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -463,7 +464,7 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -562,7 +563,7 @@ class FirstPieceApprovalController extends Controller
     {
         $plantId = \App\Models\Plant::resolveId($request->get('plant') ?: auth()->user()->plant_id);
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant', 'shift']);
         $filters['plant'] = $plantId;
 
         $query = $this->firstPieceService->buildFilteredQuery($filters)->latest();

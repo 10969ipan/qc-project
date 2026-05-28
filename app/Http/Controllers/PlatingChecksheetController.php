@@ -106,7 +106,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift']);
         $filters['plant'] = 'karawang'; 
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
@@ -138,7 +138,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift']);
         $filters['plant'] = 'karawang';
 
         if (empty($filters['start_date'])) {
@@ -309,7 +309,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
@@ -346,7 +346,7 @@ class PlatingChecksheetController extends Controller
         $this->checksheetService->updateApprovalStatus($id, $validated);
         $checksheet = \App\Models\PlatingChecksheet::find($id);
         \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Plating: {$checksheet->item->name}");
-        return redirect()->route('plating.index')->with('success', 'Status approval Plating berhasil diperbarui.');
+        return redirect()->route('plating.index', $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift']))->with('success', 'Status approval Plating berhasil diperbarui.');
     }
 
     /**

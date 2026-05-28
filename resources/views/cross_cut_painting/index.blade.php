@@ -112,6 +112,19 @@
                         </div>
                     </div>
 
+                    <!-- Filter Shift -->
+                    <div class="col-lg-2 col-md-3 col-sm-6 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="shift" class="small font-weight-bold">Shift QC</label>
+                            <select name="shift" id="shift" class="form-control form-control-sm">
+                                <option value="">Semua Shift</option>
+                                <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                                <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                                <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Buttons: Cari, Reset, Export -->
                     <div class="col-lg-3 col-md-4 col-sm-12 mb-2">
                         <div class="form-group mb-0">
@@ -364,6 +377,14 @@
             <div class="modal-content border-0 shadow-lg">
                 <form id="approvalForm" method="POST">
                     @csrf
+                    <input type="hidden" name="page" value="{{ request('page') }}">
+                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                    <input type="hidden" name="plant" value="{{ request('plant') }}">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title"><i class="fas fa-check-circle mr-2"></i>Konfirmasi Approval</h5>
                         <button type="button" class="close text-white" data-dismiss="modal">&times;</button>

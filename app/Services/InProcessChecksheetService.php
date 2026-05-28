@@ -193,6 +193,10 @@ class InProcessChecksheetService extends BaseService
             }
         }
 
+        if (!empty($filters['shift'])) {
+            $query->where('in_process_checksheets.shift', $filters['shift']);
+        }
+
         return $query;
     }
 

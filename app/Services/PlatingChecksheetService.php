@@ -50,6 +50,10 @@ class PlatingChecksheetService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
             $query->where(function ($q) use ($searchTerm) {

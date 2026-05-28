@@ -67,6 +67,10 @@ class SortirChecksheetService extends BaseService
             $query->whereDate('sortir_checksheets.date', '<=', $filters['end_date']);
         }
 
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
         if (!empty($filters['approval_status'])) {
             $this->applyApprovalStatusFilter($query, $filters['approval_status']);
         }

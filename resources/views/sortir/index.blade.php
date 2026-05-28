@@ -180,6 +180,17 @@
                 </div>
 
                 <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Shift:</label>
+                    <select name="shift" class="form-control form-control-sm border-0 shadow-sm"
+                        style="border-radius: 0.35rem; width: 100px;">
+                        <option value="">Semua</option>
+                        <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                        <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                        <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                    </select>
+                </div>
+
+                <div class="d-flex align-items-center">
                     <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Dari:</label>
                     <input type="date" name="start_date" class="form-control form-control-sm border-0 shadow-sm"
                         style="border-radius: 0.35rem;" value="{{ request('start_date') }}">
@@ -432,6 +443,7 @@
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ $isAdmin ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? ' KR' : '') }}
@@ -450,6 +462,7 @@
                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Supervisor)">
                                                     <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' SPV' : '' }}
                                                 </button>
@@ -522,6 +535,7 @@
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                     <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                     <div class="modal-body">
                                                         <div class="form-group">
                                                             <label>Alasan Rejection:</label>

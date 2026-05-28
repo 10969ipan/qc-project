@@ -69,6 +69,10 @@ class DoubleTapeChecksheetService extends BaseService
             $query->where('double_tape_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
         }
 
+        if (!empty($filters['shift'])) {
+            $query->where('double_tape_checksheets.shift', $filters['shift']);
+        }
+
         return $query;
     }
 

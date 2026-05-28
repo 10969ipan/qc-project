@@ -108,6 +108,7 @@ class SubAssyChecksheetController extends Controller
             'search' => $request->search,
             'qr_raw' => $request->qr_raw,
             'entry_method' => $request->entry_method,
+            'shift' => $request->shift,
         ];
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);

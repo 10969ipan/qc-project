@@ -191,6 +191,19 @@
                     </div>
                 </div>
 
+                <!-- Field: Shift -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Shift:</label>
+                    <div style="width: 80px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua</option>
+                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="d-flex align-items-center px-1" style="gap: 5px;">
                     <span class="small font-weight-bold text-gray-700">Tipe:</span>
                     <div class="form-check form-check-inline mb-0 mr-0">
