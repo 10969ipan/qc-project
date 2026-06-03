@@ -800,36 +800,50 @@
             const filterForm = document.getElementById('filterFormDoubleTape');
             if (!filterForm) return;
 
-            // Debounce helper
-            function debounce(fn, delay) {
-                let timer;
-                return function (...args) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => fn.apply(this, args), delay);
-                };
+            // Link Synchronization (Sync Print/Export links with current filter selections)
+            function syncExportLinks() {
+                var baseUrlPrint = "{{ route('double_tape.print') }}";
+                var baseUrlPdf = "{{ route('double_tape.export_pdf') }}";
+                
+                var params = new URLSearchParams();
+                var formData = new FormData(filterForm);
+                for (var pair of formData.entries()) {
+                    if (pair[0] === 'check_type[]') {
+                        // Handle multiple checkboxes correctly
+                        params.append(pair[0], pair[1]);
+                    } else if (pair[1]) {
+                        params.append(pair[0], pair[1]);
+                    }
+                }
+                
+                var queryString = params.toString();
+                
+                var printBtn = filterForm.querySelector('a[title="Print"]');
+                var pdfBtn = filterForm.querySelector('a[title="Export to PDF"]');
+                
+                if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
+                if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
             }
 
-            // Field Cari: debounce 500ms
-            const searchInput = filterForm.querySelector('#liveSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', debounce(function () {
-                    filterForm.submit();
-                }, 500));
-            }
+            $(filterForm).find('input, select').on('change', syncExportLinks);
+            syncExportLinks();
 
-            // Date fields: submit langsung saat berubah
-            filterForm.querySelectorAll('input[type="date"]').forEach(function (input) {
-                input.addEventListener('change', function () {
-                    filterForm.submit();
-                });
+            // Date validation on submit
+            $(filterForm).on('submit', function(e) {
+                var startDate = document.getElementById('start_date').value;
+                var endDate = document.getElementById('end_date').value;
+
+                if (startDate && endDate && startDate > endDate) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Rentang Tanggal Tidak Valid',
+                        text: 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir.',
+                        confirmButtonColor: '#4e73df'
+                    });
+                }
             });
 
-            // Checkboxes Tipe: submit langsung saat berubah
-            filterForm.querySelectorAll('input[name="check_type[]"]').forEach(function (checkbox) {
-                checkbox.addEventListener('change', function () {
-                    filterForm.submit();
-                });
-            });
         });
     </script>
     @include('partials.qr_scanner_modal')

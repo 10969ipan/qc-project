@@ -50,6 +50,17 @@ class DoubleTapeChecksheetService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        if (!empty($filters['operator_initials'])) {
+            $query->where('double_tape_checksheets.operator_initials', $filters['operator_initials']);
+        }
+
+        if (!empty($filters['customer'])) {
+            $customer = $filters['customer'];
+            $query->whereHas('item', function ($q) use ($customer) {
+                $q->where('customer', $customer);
+            });
+        }
+
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
             $query->where(function ($q) use ($searchTerm) {

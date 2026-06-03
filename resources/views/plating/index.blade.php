@@ -129,7 +129,7 @@
         <div class="card-body">
             <form action="{{ route('plating.index') }}" method="GET" 
                 class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-4 shadow-sm"
-                style="gap: 8px; overflow-x: auto; white-space: nowrap;">
+                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormPlating">
                 @if(request('plant'))
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                 @endif
@@ -796,6 +796,55 @@
                 initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
                 initItemSearch('filterMethod', { placeholder: 'Ketik Tipe...', maxResults: 5 });
                 initItemSearch('filterShift', { placeholder: 'Pilih Shift...', maxResults: 5 });
+            }
+
+            var form = document.getElementById('filterFormPlating');
+            if (form) {
+                // Link Synchronization (Sync Print/Export links with current filter selections)
+                function syncExportLinks() {
+                    var baseUrlPrint = "{{ route('plating.print') }}";
+                    var baseUrlPdf = "{{ route('plating.export_pdf') }}";
+                    var baseUrlRecap = "{{ route('plating.daily_recap') }}";
+                    
+                    var params = new URLSearchParams();
+                    var formData = new FormData(form);
+                    for (var pair of formData.entries()) {
+                        if (pair[1]) params.append(pair[0], pair[1]);
+                    }
+                    
+                    var queryString = params.toString();
+                    
+                    var printBtn = form.querySelector('a[title="Print Preview"]');
+                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
+                    var recapBtn = document.getElementById('btnDailyRecap');
+                    
+                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
+                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                    if (recapBtn) {
+                        var startDate = form.querySelector('#start_date').value || new Date().toISOString().slice(0,10);
+                        var plant = form.querySelector('input[name="plant"]')?.value || 'karawang';
+                        recapBtn.href = baseUrlRecap + '?start_date=' + startDate + '&plant=' + plant;
+                    }
+                }
+
+                $(form).find('input, select').on('change', syncExportLinks);
+                // Also sync on initial load
+                syncExportLinks();
+
+                $(form).on('submit', function(e) {
+                    var startDate = document.getElementById('start_date').value;
+                    var endDate = document.getElementById('end_date').value;
+
+                    if (startDate && endDate && startDate > endDate) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Rentang Tanggal Tidak Valid',
+                            text: 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir.',
+                            confirmButtonColor: '#4e73df'
+                        });
+                    }
+                });
             }
         });
     </script>

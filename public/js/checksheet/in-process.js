@@ -1033,7 +1033,7 @@ class InProcessCreate {
         if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
             Swal.fire({
                 icon: "warning",
-                title: "FORMAT QR SALAH",
+                title: "FORMAT QR SALAH!",
                 text: "Scan QR Internal, Bukan QR Customer!"
             });
             if (callback) callback(false);
@@ -1243,57 +1243,80 @@ class InProcessCreate {
             }
 
             // Logika Referensi PDF
-            const standardPdf = selectedOption.data("standard");
-            const similarPdf = selectedOption.data("similar");
-            _this.refStandardPdfDoc = null;
-            _this.refStandardPageNum = 1;
-            _this.refStandardFileIndex = 0;
-            _this.refStandardFiles = files || [];
-            _this.refSimilarPdfDoc = null;
-            _this.refSimilarPageNum = 1;
-
-            if (standardPdf) {
-                _this.renderPdfToCanvas(
-                    standardPdf,
-                    "standardPdfCanvas",
-                    "standardPdfPlaceholder",
-                    "standardPdfLoading",
-                    1,
-                );
-                $("#downloadStandardBtn").attr("href", standardPdf).show();
+            if (itemId === _this.lastItemId) {
+                // Tetap tampilkan PDF yang sudah ter-render sebelumnya
+                $("#standardPdfCanvas, #similarPdfCanvas").show().removeClass("d-none");
+                $("#standardPdfPlaceholder, #similarPdfPlaceholder").hide().addClass("d-none");
+                _this.updateRefNavControls();
+                
+                const standardPdf = selectedOption.data("standard");
+                const similarPdf = selectedOption.data("similar");
+                if (standardPdf) {
+                    $("#downloadStandardBtn").attr("href", standardPdf).show();
+                    $("#fullStandardBtn").show();
+                } else {
+                    $("#downloadStandardBtn, #fullStandardBtn").hide();
+                }
+                if (similarPdf) {
+                    $("#downloadSimilarBtn").attr("href", similarPdf).show();
+                    $("#fullSimilarBtn").show();
+                } else {
+                    $("#downloadSimilarBtn, #fullSimilarBtn").hide();
+                }
             } else {
-                $("#standardPdfCanvas").addClass("d-none").hide();
-                $("#standardPdfPlaceholder")
-                    .removeClass("d-none")
-                    .addClass("d-flex")
-                    .find("p")
-                    .text("Standard PDF tidak tersedia");
-                $(".standard-nav-controls").hide();
-                $("#downloadStandardBtn").hide();
-            }
+                _this.lastItemId = itemId;
+                const standardPdf = selectedOption.data("standard");
+                const similarPdf = selectedOption.data("similar");
+                _this.refStandardPdfDoc = null;
+                _this.refStandardPageNum = 1;
+                _this.refStandardFileIndex = 0;
+                _this.refStandardFiles = files || [];
+                _this.refSimilarPdfDoc = null;
+                _this.refSimilarPageNum = 1;
 
-            if (similarPdf) {
-                _this.renderPdfToCanvas(
-                    similarPdf,
-                    "similarPdfCanvas",
-                    "similarPdfPlaceholder",
-                    "similarPdfLoading",
-                    1,
-                );
-                $("#similarStatusText").text("");
-                $("#downloadSimilarBtn").attr("href", similarPdf).show();
-            } else {
-                $("#similarPdfCanvas").addClass("d-none").hide();
-                $("#similarPdfPlaceholder")
-                    .removeClass("d-none")
-                    .addClass("d-flex");
-                $("#similarStatusText").text(
-                    "Referral Dimensi Part tidak tersedia untuk item ini",
-                );
-                $(".similar-nav-controls").hide();
-                $("#downloadSimilarBtn").hide();
+                if (standardPdf) {
+                    _this.renderPdfToCanvas(
+                        standardPdf,
+                        "standardPdfCanvas",
+                        "standardPdfPlaceholder",
+                        "standardPdfLoading",
+                        1,
+                    );
+                    $("#downloadStandardBtn").attr("href", standardPdf).show();
+                } else {
+                    $("#standardPdfCanvas").addClass("d-none").hide();
+                    $("#standardPdfPlaceholder")
+                        .removeClass("d-none")
+                        .addClass("d-flex")
+                        .find("p")
+                        .text("Standard PDF tidak tersedia");
+                    $(".standard-nav-controls").hide();
+                    $("#downloadStandardBtn").hide();
+                }
+
+                if (similarPdf) {
+                    _this.renderPdfToCanvas(
+                        similarPdf,
+                        "similarPdfCanvas",
+                        "similarPdfPlaceholder",
+                        "similarPdfLoading",
+                        1,
+                    );
+                    $("#similarStatusText").text("");
+                    $("#downloadSimilarBtn").attr("href", similarPdf).show();
+                } else {
+                    $("#similarPdfCanvas").addClass("d-none").hide();
+                    $("#similarPdfPlaceholder")
+                        .removeClass("d-none")
+                        .addClass("d-flex");
+                    $("#similarStatusText").text(
+                        "Referral Dimensi Part tidak tersedia untuk item ini",
+                    );
+                    $(".similar-nav-controls").hide();
+                    $("#downloadSimilarBtn").hide();
+                }
+                _this.updateRefNavControls();
             }
-            _this.updateRefNavControls();
 
             // Pembaruan Kontainer Gambar
             const container = $("#imageContainer");
@@ -2291,18 +2314,19 @@ class InProcessCreate {
         $("#imageContainer").html(
             '<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>',
         );
-        $("#standardPdfCanvas, #similarPdfCanvas").hide();
-        $("#standardPdfPlaceholder")
-            .show()
-            .find("p")
-            .text("Pilih Item untuk menampilkan Standard PDF");
-        $("#similarPdfPlaceholder")
-            .show()
-            .find("p")
-            .text("Pilih Item untuk menampilkan Dimensi Part");
-        $(
-            "#fullStandardBtn, #fullSimilarBtn, .standard-nav-controls, .similar-nav-controls",
-        ).hide();
+        // Jangan reset tampilan PDF agar tetap muncul pada halaman untuk kenyamanan scan berulang
+        // $("#standardPdfCanvas, #similarPdfCanvas").hide();
+        // $("#standardPdfPlaceholder")
+        //     .show()
+        //     .find("p")
+        //     .text("Pilih Item untuk menampilkan Standard PDF");
+        // $("#similarPdfPlaceholder")
+        //     .show()
+        //     .find("p")
+        //     .text("Pilih Item untuk menampilkan Dimensi Part");
+        // $(
+        //     "#fullStandardBtn, #fullSimilarBtn, .standard-nav-controls, .similar-nav-controls",
+        // ).hide();
         $("#judgmentBadge").addClass("d-none").text("-");
         $("#itemSelect").val("").trigger("change");
 

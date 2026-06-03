@@ -50,6 +50,17 @@ class PlatingChecksheetService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        if (!empty($filters['operator_initials'])) {
+            $query->where('plating_checksheets.operator_initials', $filters['operator_initials']);
+        }
+
+        if (!empty($filters['customer'])) {
+            $customer = $filters['customer'];
+            $query->whereHas('item', function ($q) use ($customer) {
+                $q->where('customer', $customer);
+            });
+        }
+
         if (!empty($filters['shift'])) {
             $query->where('shift', $filters['shift']);
         }

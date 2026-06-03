@@ -371,6 +371,7 @@ class SubAssyCreate {
         this.currentPdfIndex = 0;
         this.totalPdfFiles = 0;
         this.currentItemId = null;
+        this.lastItemId = null;
 
         // PDF Reference Logic (Dual Column)
         this.pdfCache = {};
@@ -1297,50 +1298,72 @@ class SubAssyCreate {
 
     handleItemChange(e) {
         const option = $(e.target).find("option:selected");
+        const itemId = option.val();
+        if (!itemId) return;
+
+        this.currentItemId = itemId;
         const imageUrl = option.data("image");
         const standardUrl = option.data("standard");
         const similarUrl = option.data("similar");
         const files = option.data("files");
-        const itemId = option.val();
-        this.currentItemId = itemId;
 
-        // Reset display
-        $("#standardPdfCanvas, #similarPdfCanvas").hide();
-        $("#standardPdfPlaceholder, #similarPdfPlaceholder")
-            .removeClass("d-none")
-            .addClass("d-flex");
-        this.refStandardFiles = files || [];
-        this.refStandardFileIndex = 0;
-        this.refStandardPageNum = 1;
-
-        // Handle Standard / PCCP
-        if (standardUrl) {
-            this.renderPdfToCanvas(
-                standardUrl,
-                "standardPdfCanvas",
-                "standardPdfPlaceholder",
-                "standardPdfLoading",
-            );
-            $("#downloadStandardBtn").attr("href", standardUrl).show();
+        if (itemId === this.lastItemId) {
+            // Tetap tampilkan PDF yang sudah ter-render sebelumnya
+            $("#standardPdfCanvas, #similarPdfCanvas").show().removeClass("d-none");
+            $("#standardPdfPlaceholder, #similarPdfPlaceholder").hide().addClass("d-none");
+            this.updateRefNavControls();
+            
+            if (standardUrl) {
+                $("#downloadStandardBtn").attr("href", standardUrl).show();
+            } else {
+                $("#downloadStandardBtn").hide();
+            }
+            if (similarUrl) {
+                $("#downloadSimilarBtn").attr("href", similarUrl).show();
+            } else {
+                $("#downloadSimilarBtn").hide();
+            }
         } else {
-            $("#standardPdfPlaceholder p").text(
-                "Standard (PCCP) tidak tersedia",
-            );
-            $("#downloadStandardBtn").hide();
-        }
+            this.lastItemId = itemId;
+            
+            // Reset display
+            $("#standardPdfCanvas, #similarPdfCanvas").hide();
+            $("#standardPdfPlaceholder, #similarPdfPlaceholder")
+                .removeClass("d-none")
+                .addClass("d-flex");
+            this.refStandardFiles = files || [];
+            this.refStandardFileIndex = 0;
+            this.refStandardPageNum = 1;
 
-        // Handle Dimensi Part
-        if (similarUrl) {
-            this.renderPdfToCanvas(
-                similarUrl,
-                "similarPdfCanvas",
-                "similarPdfPlaceholder",
-                "similarPdfLoading",
-            );
-            $("#downloadSimilarBtn").attr("href", similarUrl).show();
-        } else {
-            $("#similarPdfPlaceholder p").text("Similar Part tidak tersedia");
-            $("#downloadSimilarBtn").hide();
+            // Handle Standard / PCCP
+            if (standardUrl) {
+                this.renderPdfToCanvas(
+                    standardUrl,
+                    "standardPdfCanvas",
+                    "standardPdfPlaceholder",
+                    "standardPdfLoading",
+                );
+                $("#downloadStandardBtn").attr("href", standardUrl).show();
+            } else {
+                $("#standardPdfPlaceholder p").text(
+                    "Standard (PCCP) tidak tersedia",
+                );
+                $("#downloadStandardBtn").hide();
+            }
+
+            // Handle Dimensi Part
+            if (similarUrl) {
+                this.renderPdfToCanvas(
+                    similarUrl,
+                    "similarPdfCanvas",
+                    "similarPdfPlaceholder",
+                    "similarPdfLoading",
+                );
+                $("#downloadSimilarBtn").attr("href", similarUrl).show();
+            } else {
+                $("#similarPdfPlaceholder p").text("Similar Part tidak tersedia");
+                $("#downloadSimilarBtn").hide();
+            }
         }
 
         this.updateDefectDropdown(option.data("defects"));
@@ -2053,13 +2076,14 @@ class SubAssyCreate {
         $("#nextProsesContainer").hide();
         $("#judgmentBadge").addClass("d-none").text("-");
         $("#judgmentSelect").val("");
-        $("#standardPdfCanvas, #similarPdfCanvas").hide().addClass("d-none");
-        $("#standardPdfPlaceholder, #similarPdfPlaceholder")
-            .removeClass("d-none")
-            .addClass("d-flex");
-        this.refStandardPdfDoc = null;
-        this.refSimilarPdfDoc = null;
-        this.updateRefNavControls();
+        // Jangan reset tampilan PDF agar tetap muncul pada halaman untuk kenyamanan scan berulang
+        // $("#standardPdfCanvas, #similarPdfCanvas").hide().addClass("d-none");
+        // $("#standardPdfPlaceholder, #similarPdfPlaceholder")
+        //     .removeClass("d-none")
+        //     .addClass("d-flex");
+        // this.refStandardPdfDoc = null;
+        // this.refSimilarPdfDoc = null;
+        // this.updateRefNavControls();
         this.restorePersistentFields();
 
         // Buka kembali input scan untuk siklus berikutnya
