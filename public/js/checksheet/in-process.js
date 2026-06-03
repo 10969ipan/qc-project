@@ -547,15 +547,6 @@ class InProcessCreate {
         queue.push(item);
         localStorage.setItem('inprocess_scan_buffer', JSON.stringify(queue));
 
-        // Toast/Swal feedback
-        Swal.fire({
-            icon: "success",
-            title: "Scan Berhasil",
-            text: `Item: ${item.itemNameDisplay} berhasil di-scan.`,
-            timer: 1500,
-            showConfirmButton: false
-        });
-
         // Reset and restore
         this.resetForm();
         this.restorePersistentFields();
@@ -623,7 +614,7 @@ class InProcessCreate {
             if (result.isConfirmed) {
                 localStorage.removeItem('inprocess_scan_buffer');
                 this.renderQueueTable();
-                Swal.fire("Dihapus!", "Daftar scan sementara telah dikosongkan.", "success");
+                this.applyAutoFocus();
             }
         });
     }
@@ -754,6 +745,8 @@ class InProcessCreate {
                 icon: "success",
                 title: "Semua Berhasil Disimpan",
                 text: `Berhasil menyimpan ${successCount} data ke database!`,
+            }).then(() => {
+                this.applyAutoFocus();
             });
             this.renderQueueTable();
         } else {
@@ -764,6 +757,8 @@ class InProcessCreate {
                 icon: "error",
                 title: `Penyimpanan Terhenti di Data ke-${failedIndex + 1}`,
                 text: `Error: ${errorMessage}. Sisa ${remainingQueue.length} data tetap aman di dalam tabel.`,
+            }).then(() => {
+                this.applyAutoFocus();
             });
             this.renderQueueTable();
         }
@@ -1011,7 +1006,7 @@ class InProcessCreate {
                 // Auto-submit after a short delay to ensure UI is updated
                 setTimeout(() => {
                     $("#checksheetForm").trigger("submit");
-                }, 500);
+                }, 100);
             }
         });
     }
@@ -1019,7 +1014,7 @@ class InProcessCreate {
     parseAndFillQR(qrString, callback) {
         const parts = qrString.split("|");
 
-        if (parts.length < 5) {
+        if (parts.length !== 5) {
             Swal.fire({
                 icon: "warning",
                 title: "Format QR Salah",
@@ -1047,11 +1042,14 @@ class InProcessCreate {
 
         // 1. Validasi Unik di Antrean Temporary Sisi Client (Local Storage)
         const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
-        const isDuplicateInQueue = queue.some(item => item.qrcode === qrString);
+        const isDuplicateInQueue = queue.some(item => {
+            return (parseInt(item.quantity) || 0) === quantity &&
+                (item.unique_code_id || "").trim() === unique_code_id;
+        });
         if (isDuplicateInQueue) {
             Swal.fire(
                 "QR-Code Duplicate",
-                "QR Code ini sudah pernah di-scan!",
+                `QR Code dengan Qty: ${quantity} dan ID: ${unique_code_id} sudah ada di list!`,
                 "error"
             );
             if (callback) callback(false);
@@ -1060,7 +1058,9 @@ class InProcessCreate {
 
         try {
             // 2. Validasi QR Duplikat via AJAX ke Database
-            if (this.config.qrUniqueUrl) {
+            // FAST PATH: Jika direct save (Jakarta / useQueue=false), kita lewati GET check uniqueness 
+            // karena request POST akan memvalidasi keunikan database secara otomatis
+            if (this.config.qrUniqueUrl && this.config.useQueue) {
                 $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
                     if (res.success && !res.unique) {
                         Swal.fire("QR-Code Duplicate", res.message, "error");
@@ -1141,14 +1141,6 @@ class InProcessCreate {
             $select[0].dispatchEvent(new Event("change", { bubbles: true }));
             if (quantity)
                 $('input[name="total_qty"]').val(quantity).trigger("input");
-
-            Swal.fire({
-                icon: "success",
-                title: "QR Berhasil Discan",
-                text: "Item otomatis terpilih.",
-                timer: 1500,
-                showConfirmButton: false,
-            });
 
             if (callback) callback(true);
         } else {
@@ -1427,30 +1419,35 @@ class InProcessCreate {
         });
     }
 
+    showToast(msg, color) {
+        let $toast = $("#scanToast");
+        if (!$toast.length) {
+            $toast = $('<div id="scanToast"></div>').css({
+                position: "fixed",
+                bottom: "20px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "#1e293b",
+                color: "#fff",
+                padding: "8px 20px",
+                borderRadius: "20px",
+                fontSize: "0.85rem",
+                fontWeight: "600",
+                zIndex: 9999,
+                pointerEvents: "none",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                transition: "opacity 0.3s",
+            }).appendTo("body");
+        }
+        $toast.text(msg).css({ color, opacity: 1 }).stop(true);
+        clearTimeout($toast.data("hideTimer"));
+        $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
+    }
+
     initHardwareScanner() {
         let buffer = "";
         let lastTime = Date.now();
         let scanTimeout;
-
-        // Toast notification for scan feedback (no dedicated field needed)
-        const showToast = (msg, color) => {
-            let $toast = $("#scanToast");
-            if (!$toast.length) {
-                $toast = $('<div id="scanToast"></div>').css({
-                    position: "fixed", bottom: "20px", left: "50%",
-                    transform: "translateX(-50%)",
-                    background: "#1e293b", color: "#fff",
-                    padding: "8px 20px", borderRadius: "20px",
-                    fontSize: "0.85rem", fontWeight: "600",
-                    zIndex: 9999, pointerEvents: "none",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                    transition: "opacity 0.3s",
-                }).appendTo("body");
-            }
-            $toast.text(msg).css({ color, opacity: 1 }).stop(true);
-            clearTimeout($toast.data("hideTimer"));
-            $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
-        };
 
         const processScan = (raw) => {
             raw = (raw || "").trim();
@@ -1461,15 +1458,16 @@ class InProcessCreate {
             clearTimeout(this.scanLockTimeout);
 
             if (!raw.includes("|")) {
-                showToast("❌ Format QR salah (tidak ada |)", "#f87171");
+                this.showToast("❌ Format QR salah (tidak ada |)", "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
                 return;
             }
 
             const parts = raw.split("|");
-            if (parts.length < 5) {
-                showToast(`❌ QR tidak lengkap: ${parts.length}/5 bagian`, "#f87171");
+            if (parts.length !== 5) {
+                this.showToast(`❌ Format QR salah (harus 5 bagian)`, "#f87171");
+                this.isProcessingScan = false;
                 buffer = "";
                 return;
             }
@@ -1479,7 +1477,7 @@ class InProcessCreate {
                 this.startTimer();
             }
 
-            showToast("✅ Scan berhasil diproses!", "#4ade80");
+            this.showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
 
             // Panggil parseAndFillQR dengan callback untuk auto-submit
@@ -1490,7 +1488,7 @@ class InProcessCreate {
                         $("#checksheetForm").trigger("submit");
                         // Lock akan dilepas setelah submit atau timeout
                         this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
-                    }, 500);
+                    }, 100);
                 } else {
                     this.isProcessingScan = false;
                 }
@@ -1516,7 +1514,7 @@ class InProcessCreate {
                 e.stopPropagation();
 
                 const val = ($(this).val() || "").trim();
-                if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                if (val.length > 10 && val.includes("|") && val.split("|").length === 5) {
                     $(this).val(""); // Clear field
                     processScan(val);
                 }
@@ -1528,7 +1526,7 @@ class InProcessCreate {
         let sapInputTimeout;
         $("#sapCodeInput").on("input", function () {
             const val = ($(this).val() || "").trim();
-            if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+            if (val.length > 10 && val.includes("|") && val.split("|").length === 5) {
                 clearTimeout(sapInputTimeout);
                 sapInputTimeout = setTimeout(() => {
                     const finalVal = ($(this).val() || "").trim();
@@ -1536,7 +1534,7 @@ class InProcessCreate {
                         $(this).val("");
                         processScan(finalVal);
                     }
-                }, 400); // Wait 400ms to ensure the full SAP code is typed
+                }, 80); // Wait 80ms to ensure the full SAP code is typed
             }
         });
 
@@ -1558,7 +1556,7 @@ class InProcessCreate {
                 } else if (e.keyCode >= 32 && e.keyCode <= 126) {
                     buffer += String.fromCharCode(e.keyCode);
                 }
-            } else if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+            } else if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length === 5) {
                 e.preventDefault();
                 clearTimeout(scanTimeout);
                 processScan(buffer);
@@ -1570,11 +1568,11 @@ class InProcessCreate {
             // Auto-process on timeout for scanners without Enter terminator
             clearTimeout(scanTimeout);
             scanTimeout = setTimeout(() => {
-                if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+                if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length === 5) {
                     processScan(buffer);
                     buffer = "";
                 }
-            }, 500);
+            }, 80); // Wait 80ms instead of 500ms
         }, true);
     }
 
@@ -2209,26 +2207,28 @@ class InProcessCreate {
                 contentType: false,
                 success: function (response) {
                     if (response.success) {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Berhasil",
-                            text: "Data Berhasil Disimpan",
-                            showCancelButton: !isHardwareScan,
-                            confirmButtonText: isHardwareScan ? "OK" : "Lihat Data",
-                            timer: isHardwareScan ? 1500 : null,
-                            timerProgressBar: isHardwareScan,
-                        }).then((result) => {
-                            if (result.isConfirmed && !isHardwareScan)
-                                window.location.href = response.index_url;
-                            else {
-                                _this.resetForm();
-                                _this.restorePersistentFields();
-                                // Untuk hardware scan Jakarta: unlock inputs kembali setelah reset
-                                if (isHardwareScan) {
-                                    _this.startTimer();
+                        if (isHardwareScan) {
+                            // FAST TRACK: Tampilkan toast non-blocking, langsung reset dan siap scan berikutnya
+                            _this.showToast("✅ Data Berhasil Disimpan", "#4ade80");
+                            _this.resetForm();
+                            _this.restorePersistentFields();
+                            _this.startTimer();
+                        } else {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Berhasil",
+                                text: "Data Berhasil Disimpan",
+                                showCancelButton: true,
+                                confirmButtonText: "Lihat Data",
+                            }).then((result) => {
+                                if (result.isConfirmed)
+                                    window.location.href = response.index_url;
+                                else {
+                                    _this.resetForm();
+                                    _this.restorePersistentFields();
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 },
                 error: function (xhr) {

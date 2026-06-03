@@ -24,9 +24,11 @@ class SettingsController extends Controller
         
         // Fetch all top-level menus with their children (deeply nested for permission matrix)
         $menus = \App\Models\AppMenu::whereNull('parent_id')
+            ->where('is_active', true)
             ->with(['children' => function($q) {
-                $q->with(['children' => function($sq) {
-                    $sq->with('children');
+                $q->where('is_active', true)
+                  ->with(['children' => function($sq) {
+                    $sq->where('is_active', true)->with('children');
                 }]);
             }])
             ->orderBy('order')

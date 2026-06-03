@@ -507,7 +507,7 @@ class ItemController extends Controller
 
         $parts = explode('|', $qrCode);
 
-        if (count($parts) < 5) {
+        if (count($parts) !== 5) {
             return response()->json([
                 'success' => false,
                 'message' => 'Format QR tidak lengkap. Diperlukan 5 segmen: part|supplier|qty|unique_id|sap'
@@ -529,18 +529,36 @@ class ItemController extends Controller
         ];
 
         foreach ($tables as $table => $moduleName) {
-            // Pengecekan composite 5-field: seluruh segmen raw barcode harus unik
-            $record = DB::table($table)
-                ->where('part_code',     $partCode)
-                ->where('supplier_id',   $supplierId)
-                ->where('quantity',      $quantity)
-                ->where('unique_code_id', $uniqueCodeId)
-                ->where('sap_code',      $sapCode)
-                ->latest()
-                ->first();
+            // Pengecekan composite: seluruh segmen raw barcode harus unik
+            // KHUSUS untuk In-Process: hanya mengecek qty dan lot_id-unique_code-cav (yaitu quantity dan unique_code_id)
+            if ($table === 'in_process_checksheets') {
+                $record = DB::table($table)
+                    ->where('quantity',      $quantity)
+                    ->where('unique_code_id', $uniqueCodeId)
+                    ->latest()
+                    ->first();
+            } else {
+                $record = DB::table($table)
+                    ->where('part_code',     $partCode)
+                    ->where('supplier_id',   $supplierId)
+                    ->where('quantity',      $quantity)
+                    ->where('unique_code_id', $uniqueCodeId)
+                    ->where('sap_code',      $sapCode)
+                    ->latest()
+                    ->first();
+            }
 
             if ($record) {
                 $date = Carbon::parse($record->created_at)->format('d-m-Y H:i');
+
+                if ($table === 'in_process_checksheets') {
+                    return response()->json([
+                        'success' => true,
+                        'unique'  => false,
+                        'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}. "
+                            . "(Qty: {$quantity} | ID: {$uniqueCodeId})"
+                    ]);
+                }
 
                 return response()->json([
                     'success' => true,
