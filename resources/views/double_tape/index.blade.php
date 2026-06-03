@@ -250,6 +250,12 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    <a href="{{ route('double_tape.daily_recap', ['start_date' => request('start_date') ?: now()->toDateString(), 'plant' => request('plant')]) }}"
+                        id="btnDailyRecap"
+                        class="btn btn-dark btn-sm shadow-sm rounded-pill px-3 no-loader" title="Rekap Harian Verification"
+                        target="_blank">
+                        <i class="fas fa-list-alt fa-sm"></i>
+                    </a>
                     @if($canExport)
                     <a href="{{ route('double_tape.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
@@ -804,6 +810,7 @@
             function syncExportLinks() {
                 var baseUrlPrint = "{{ route('double_tape.print') }}";
                 var baseUrlPdf = "{{ route('double_tape.export_pdf') }}";
+                var baseUrlRecap = "{{ route('double_tape.daily_recap') }}";
                 
                 var params = new URLSearchParams();
                 var formData = new FormData(filterForm);
@@ -820,9 +827,19 @@
                 
                 var printBtn = filterForm.querySelector('a[title="Print"]');
                 var pdfBtn = filterForm.querySelector('a[title="Export to PDF"]');
+                var recapBtn = document.getElementById('btnDailyRecap');
                 
                 if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
                 if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
+                if (recapBtn) {
+                    var startDate = filterForm.querySelector('#start_date').value || new Date().toISOString().slice(0,10);
+                    var endDate = filterForm.querySelector('#end_date').value || startDate;
+                    var plant = filterForm.querySelector('input[name="plant"]')?.value || 'karawang';
+                    var shift = filterForm.querySelector('select[name="shift"]')?.value || '';
+                    var operatorInitials = filterForm.querySelector('select[name="operator_initials"]')?.value || '';
+                    
+                    recapBtn.href = baseUrlRecap + '?start_date=' + startDate + '&end_date=' + endDate + '&plant=' + plant + '&shift=' + shift + '&operator_initials=' + operatorInitials;
+                }
             }
 
             $(filterForm).find('input, select').on('change', syncExportLinks);

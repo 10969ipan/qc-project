@@ -310,4 +310,40 @@ class DoubleTapeChecksheetController extends Controller
         \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Double Tape: {$checksheet->item->name}");
         return redirect()->back()->with('success', 'Status approval Double Tape berhasil diperbarui.');
     }
+
+    /**
+     * Report Harian: Rekap data Verification per Item & Shift (Double Tape)
+     */
+    public function dailyRecap(Request $request)
+    {
+        $startDate = $request->get('start_date') ?: ($request->get('date') ?: now()->toDateString());
+        $endDate = $request->get('end_date') ?: $startDate;
+        $plant = 'karawang';
+        $shift = $request->get('shift');
+        $operatorInitials = $request->get('operator_initials');
+
+        $filters = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'plant' => $plant,
+            'shift' => $shift,
+            'operator_initials' => $operatorInitials
+        ];
+
+        $recap = $this->checksheetService->getDailyRecap($filters);
+        $inspectorRecap = $this->checksheetService->getInspectorDailyRecap($filters);
+        
+        $plantId = \App\Models\Plant::resolveId('karawang');
+        $initials = DoubleTapeChecksheet::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials')
+            ->distinct()
+            ->pluck('operator_initials')
+            ->sort();
+
+        $plantModel = \App\Models\Plant::where('code', $plant)->orWhere('id', $plant)->first();
+        $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
+        $plantName = $plantModel ? $plantModel->name : 'Karawang';
+
+        return view('double_tape.daily_recap', compact('recap', 'inspectorRecap', 'startDate', 'endDate', 'plantName', 'plantCode', 'initials'));
+    }
 }

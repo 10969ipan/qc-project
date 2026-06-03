@@ -215,4 +215,108 @@ class DoubleTapeChecksheetService extends BaseService
         }
     }
 
+    /**
+     * Get daily recap for verification data
+     *
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDailyRecap(array $filters)
+    {
+        $query = DoubleTapeChecksheet::with('item')
+            ->select(
+                'item_id',
+                'shift',
+                DB::raw('MIN(total_qty) as packing_size'),
+                DB::raw('COUNT(*) as total_packing'),
+                DB::raw('SUM(total_qty) as total_qty_sum'),
+                DB::raw('SUM(total_qty - total_ng) as total_ok_sum'),
+                DB::raw('SUM(total_ng) as total_ng_sum')
+            )
+            ->groupBy('item_id', 'shift');
+
+        if (isset($filters['plant'])) {
+            $query->where('plant_id', $this->resolvePlantId($filters['plant']));
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('date', '>=', $filters['start_date']);
+        }
+        
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('date', '<=', $filters['end_date']);
+        }
+
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            if (!empty($filters['date'])) {
+                $query->whereDate('date', $filters['date']);
+            } else {
+                $query->whereDate('date', now()->toDateString());
+            }
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
+        if (!empty($filters['operator_initials'])) {
+            $query->where('operator_initials', $filters['operator_initials']);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Get daily recap per inspector for performance tracking
+     */
+    public function getInspectorDailyRecap(array $filters)
+    {
+        $query = DoubleTapeChecksheet::query()
+            ->join('items', 'double_tape_checksheets.item_id', '=', 'items.id')
+            ->select(
+                'double_tape_checksheets.operator_initials',
+                'double_tape_checksheets.item_id',
+                DB::raw('SUM(double_tape_checksheets.total_qty) as total_qty_sum'),
+                DB::raw('SUM(double_tape_checksheets.cycle_time) as total_act'),
+                DB::raw('MAX(items.standard_cycle_time) as sct'),
+                DB::raw('COUNT(*) as total_entries')
+            )
+            ->groupBy('double_tape_checksheets.operator_initials', 'double_tape_checksheets.item_id');
+
+        if (isset($filters['plant'])) {
+            $query->where('double_tape_checksheets.plant_id', $this->resolvePlantId($filters['plant']));
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('double_tape_checksheets.date', '>=', $filters['start_date']);
+        }
+        
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('double_tape_checksheets.date', '<=', $filters['end_date']);
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('double_tape_checksheets.shift', $filters['shift']);
+        }
+
+        if (!empty($filters['operator_initials'])) {
+            $query->where('double_tape_checksheets.operator_initials', $filters['operator_initials']);
+        }
+        
+        $query->with('item')->orderBy('double_tape_checksheets.operator_initials');
+
+        return $query->get()->map(function($row) {
+            $act_min = $row->total_act / 60;
+            $sct_min = $row->sct; // In minutes
+
+            // Target = Actual Duration (Min) / Standard Cycle Time (Min)
+            $target = $sct_min > 0 ? ($act_min / $sct_min) : 0;
+            $row->target = round($target);
+
+            // Plus/Minus = Total Actual Qty - Target
+            $row->plus_minus = $row->total_qty_sum - $row->target;
+            
+            return $row;
+        });
+    }
 }

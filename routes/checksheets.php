@@ -119,6 +119,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/plating-checksheets/daily-recap', [PlatingChecksheetController::class, 'dailyRecap'])->name('plating.daily_recap');
         Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
         Route::get('/report/plating-checksheets/print', [PlatingChecksheetController::class, 'printView'])->name('plating.print');
+        Route::get('/report/double-tape-checksheets/daily-recap', [DoubleTapeChecksheetController::class, 'dailyRecap'])->name('double_tape.daily_recap');
         Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');
         Route::get('/report/double-tape-checksheets/print', [DoubleTapeChecksheetController::class, 'printView'])->name('double_tape.print');
         Route::get('/report/in-process-checksheets/export', [InProcessChecksheetController::class, 'export'])->name('in_process.export');
