@@ -1033,8 +1033,8 @@ class InProcessCreate {
         if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
             Swal.fire({
                 icon: "warning",
-                title: "Format QR Tidak Valid",
-                text: "Komponen QR Code tidak lengkap atau tidak valid!"
+                title: "FORMAT QR SALAH",
+                text: "Scan QR Internal, Bukan QR Customer!"
             });
             if (callback) callback(false);
             return;
@@ -1427,19 +1427,28 @@ class InProcessCreate {
                 bottom: "20px",
                 left: "50%",
                 transform: "translateX(-50%)",
-                background: "#1e293b",
-                color: "#fff",
-                padding: "8px 20px",
-                borderRadius: "20px",
-                fontSize: "0.85rem",
+                background: "#ffffff",
+                padding: "10px 24px",
+                borderRadius: "30px",
+                fontSize: "0.875rem",
                 fontWeight: "600",
                 zIndex: 9999,
                 pointerEvents: "none",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                border: "1px solid #e2e8f0",
                 transition: "opacity 0.3s",
             }).appendTo("body");
         }
-        $toast.text(msg).css({ color, opacity: 1 }).stop(true);
+        let textColor = "#1e293b";
+        let borderColor = "#e2e8f0";
+        if (color === "#4ade80") {
+            textColor = "#15803d";
+            borderColor = "#bbf7d0";
+        } else if (color === "#f87171") {
+            textColor = "#b91c1c";
+            borderColor = "#fecaca";
+        }
+        $toast.text(msg).css({ color: textColor, borderColor: borderColor, opacity: 1 }).stop(true);
         clearTimeout($toast.data("hideTimer"));
         $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
     }
@@ -2269,12 +2278,12 @@ class InProcessCreate {
                 this.startTimer();
             } else {
                 this.lockInputs();
-                $("#saveBtn").prop("disabled", true);
+                $("#saveBtn").prop("disabled", true).html('<i class="fas fa-save fa-sm"></i> Simpan');
             }
         } else {
             // Jakarta: langsung lock & siap scan berikutnya
             this.lockInputs();
-            $("#saveBtn").prop("disabled", true);
+            $("#saveBtn").prop("disabled", true).html('<i class="fas fa-save fa-sm"></i> Simpan');
         }
 
         $("#addDefectBtn").hide();

@@ -412,6 +412,7 @@ class SubAssyCreate {
         this.formInputs = form
             .find("input, select, textarea, button")
             .not("#startTimerBtn")
+            .not("#sapCodeInput")
             .not('[type="hidden"]');
         this.formInputs.prop("disabled", true);
         form.addClass("inputs-locked");
@@ -421,6 +422,16 @@ class SubAssyCreate {
                 '<style id="lockStyle">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>',
             ).appendTo("head");
         }
+
+        // Pastikan sapCodeInput tetap enabled dan terfokus saat halaman dimuat
+        $("#sapCodeInput").prop("disabled", false).focus();
+
+        // Helper klik untuk memfokuskan kembali input scan bagi pengguna tablet/PDA
+        $(document).on("click", ".card-body", (e) => {
+            if ($(e.target).closest("input, select, textarea, button").length === 0) {
+                $("#sapCodeInput").focus();
+            }
+        });
     }
 
     initPdfJS() {
@@ -1575,6 +1586,40 @@ class SubAssyCreate {
         }
     }
 
+    showToast(msg, color) {
+        let $toast = $("#scanToast");
+        if (!$toast.length) {
+            $toast = $('<div id="scanToast"></div>').css({
+                position: "fixed",
+                bottom: "20px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "#ffffff",
+                padding: "10px 24px",
+                borderRadius: "30px",
+                fontSize: "0.875rem",
+                fontWeight: "600",
+                zIndex: 9999,
+                pointerEvents: "none",
+                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                border: "1px solid #e2e8f0",
+                transition: "opacity 0.3s",
+            }).appendTo("body");
+        }
+        let textColor = "#1e293b";
+        let borderColor = "#e2e8f0";
+        if (color === "#4ade80") {
+            textColor = "#15803d";
+            borderColor = "#bbf7d0";
+        } else if (color === "#f87171") {
+            textColor = "#b91c1c";
+            borderColor = "#fecaca";
+        }
+        $toast.text(msg).css({ color: textColor, borderColor: borderColor, opacity: 1 }).stop(true);
+        clearTimeout($toast.data("hideTimer"));
+        $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
+    }
+
     initHardwareScanner() {
         let buffer = "";
         let lastTime = Date.now();
@@ -1582,22 +1627,7 @@ class SubAssyCreate {
 
         // Toast notification untuk feedback scan hardware (tanpa dialog modal)
         const showToast = (msg, color) => {
-            let $toast = $("#scanToast");
-            if (!$toast.length) {
-                $toast = $('<div id="scanToast"></div>').css({
-                    position: "fixed", bottom: "20px", left: "50%",
-                    transform: "translateX(-50%)",
-                    background: "#1e293b", color: "#fff",
-                    padding: "8px 20px", borderRadius: "20px",
-                    fontSize: "0.85rem", fontWeight: "600",
-                    zIndex: 9999, pointerEvents: "none",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                    transition: "opacity 0.3s",
-                }).appendTo("body");
-            }
-            $toast.text(msg).css({ color, opacity: 1 }).stop(true);
-            clearTimeout($toast.data("hideTimer"));
-            $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
+            this.showToast(msg, color);
         };
 
         const processScan = (raw) => {
@@ -1615,8 +1645,9 @@ class SubAssyCreate {
             }
 
             const parts = raw.split("|");
-            if (parts.length < 5) {
-                showToast(`❌ QR tidak lengkap: ${parts.length}/5 bagian`, "#f87171");
+            if (parts.length !== 5) {
+                showToast(`❌ Format QR salah (harus 5 bagian, terdeteksi: ${parts.length})`, "#f87171");
+                this.isProcessingScan = false;
                 buffer = "";
                 return;
             }
@@ -1624,6 +1655,10 @@ class SubAssyCreate {
             // Auto start timer jika belum berjalan
             this.startTimer();
 
+            // Kunci input agar tidak bisa scan kedua sebelum data diproses
+            $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
+
+            showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
 
             // Panggil parseAndFillQR dengan callback untuk auto-submit
@@ -1633,8 +1668,10 @@ class SubAssyCreate {
                         console.log("Auto-submitting form after successful hardware scan (Sub Assy)...");
                         $("#checksheetForm").trigger("submit");
                         this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
-                    }, 500);
+                    }, 100);
                 } else {
+                    // Unlock kembali jika gagal
+                    $("#sapCodeInput").prop("disabled", false).css("background", "");
                     this.isProcessingScan = false;
                 }
             });
@@ -1670,7 +1707,7 @@ class SubAssyCreate {
         let sapInputTimeout;
         $("#sapCodeInput").on("input", function () {
             const val = ($(this).val() || "").trim();
-            if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+            if (val.length > 10 && val.includes("|") && val.split("|").length === 5) {
                 clearTimeout(sapInputTimeout);
                 sapInputTimeout = setTimeout(() => {
                     const finalVal = ($(this).val() || "").trim();
@@ -1678,7 +1715,7 @@ class SubAssyCreate {
                         $(this).val("");
                         processScan(finalVal);
                     }
-                }, 400);
+                }, 80);
             }
         });
 
@@ -1937,7 +1974,6 @@ class SubAssyCreate {
                             window.location.href = response.index_url;
                         else {
                             _this.resetState();
-                            // Untuk hardware scan / camera scan: langsung siap scan berikutnya
                             if (isHardwareScan) {
                                 _this.startTimer();
                             }
@@ -2007,7 +2043,7 @@ class SubAssyCreate {
         // Lock form dan tunggu scan berikutnya
         this.formInputs.prop("disabled", true);
         $("#checksheetForm").addClass("inputs-locked");
-        $("#saveBtn").prop("disabled", true);
+        $("#saveBtn").prop("disabled", true).html('<i class="fas fa-save fa-sm"></i> Simpan Data');
         $("#scanMethodInput").val("");
 
         $("#addDefectBtn").hide();
@@ -2025,6 +2061,11 @@ class SubAssyCreate {
         this.refSimilarPdfDoc = null;
         this.updateRefNavControls();
         this.restorePersistentFields();
+
+        // Buka kembali input scan untuk siklus berikutnya
+        $("#sapCodeInput").prop("disabled", false).css("background", "");
+        this.isProcessingScan = false;
+        setTimeout(() => { $("#sapCodeInput").focus(); }, 600);
     }
 
     handleOpenPdf(e) {
