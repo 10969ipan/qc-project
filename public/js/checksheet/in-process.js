@@ -1477,6 +1477,9 @@ class InProcessCreate {
                 this.startTimer();
             }
 
+            // Kunci input agar tidak bisa scan kedua sebelum data diproses
+            $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
+
             this.showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
 
@@ -2293,6 +2296,10 @@ class InProcessCreate {
         ).hide();
         $("#judgmentBadge").addClass("d-none").text("-");
         $("#itemSelect").val("").trigger("change");
+
+        // Buka kembali input scan untuk siklus berikutnya
+        $("#sapCodeInput").prop("disabled", false).css("background", "");
+        this.isProcessingScan = false;
         this.applyAutoFocus();
     }
 
