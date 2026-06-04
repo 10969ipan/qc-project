@@ -262,8 +262,8 @@
                             @endif
                         </tr>
                         <tr class="text-center">
-                            <th style="width: 5%">Pcs</th>
-                            <th>Jenis NG</th>
+                            <th style="width: 60px; min-width: 60px;">Pcs</th>
+                            <th style="min-width: 150px;">Jenis NG</th>
                             <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
                             </th>
                             <th style="font-size: 10px;">Supervisor QC</th>
@@ -323,26 +323,24 @@
                                     }
                                 @endphp
 
-                                <td class="text-center align-middle p-0">
+                                <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
                                     @if(count($pcsLines) > 0)
-                                        @foreach($pcsLines as $index => $qty)
-                                            <div class="{{ $index < count($pcsLines) - 1 ? 'border-bottom' : '' }} py-1">
-                                                <small class="text-danger font-weight-bold">{{ $qty }}</small>
-                                            </div>
-                                        @endforeach
+                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: fixed;">
+                                            <tbody>
+                                                @foreach($pcsLines as $index => $qty)
+                                                    <tr style="border: none !important; border-bottom: {{ $index < count($pcsLines) - 1 ? '1.5px solid #dee2e6 !important' : 'none !important' }}; background: transparent !important;">
+                                                        <td style="width: 60px; min-width: 60px; max-width: 60px; border: none !important; border-right: 1.5px solid #dee2e6 !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
+                                                            <small class="text-danger font-weight-bold">{{ $qty }}</small>
+                                                        </td>
+                                                        <td style="border: none !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
+                                                            <small class="text-danger font-weight-bold">{{ $nameLines[$index] ?? '-' }}</small>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
                                     @else
-                                        <div class="py-1">-</div>
-                                    @endif
-                                </td>
-                                <td class="text-center align-middle p-0">
-                                    @if(count($nameLines) > 0)
-                                        @foreach($nameLines as $index => $name)
-                                            <div class="{{ $index < count($nameLines) - 1 ? 'border-bottom' : '' }} py-1 px-2">
-                                                <small class="text-danger font-weight-bold">{{ $name }}</small>
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        <div class="py-1 px-2">-</div>
+                                        <div class="py-1 text-center" style="padding: 4px 6px !important;">-</div>
                                     @endif
                                 </td>
 

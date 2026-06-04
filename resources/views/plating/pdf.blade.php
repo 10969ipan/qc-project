@@ -182,8 +182,8 @@
                 <th rowspan="2">Ket</th>
             </tr>
             <tr>
-                <th>Pcs</th>
-                <th>Jenis</th>
+                <th style="width: 30px; min-width: 30px;">Pcs</th>
+                <th style="width: 80px; min-width: 80px;">Jenis</th>
             </tr>
         </thead>
         <tbody>
@@ -223,11 +223,25 @@
                         }
                     @endphp
 
-                    <td class="text-danger p-0">
-                        {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
-                    </td>
-                    <td class="text-danger p-0" style="font-size: 7px;">
-                        {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+                    <td colspan="2" class="p-0 align-middle">
+                        @if(count($pcsLines) > 0)
+                            <table style="width: 100%; border-collapse: collapse; margin: 0; border: none; table-layout: fixed;">
+                                <tbody>
+                                    @foreach($pcsLines as $index => $qty)
+                                        <tr style="border-bottom: {{ $index < count($pcsLines) - 1 ? '1px solid #000' : 'none' }};">
+                                            <td style="width: 30px; min-width: 30px; border: none !important; border-right: 1px solid #000 !important; padding: 2px; text-align: center; vertical-align: middle;" class="text-danger">
+                                                {{ $qty }}
+                                            </td>
+                                            <td style="width: 80px; min-width: 80px; border: none !important; padding: 2px; text-align: center; vertical-align: middle; font-size: 7px;" class="text-danger">
+                                                {{ $nameLines[$index] ?? '-' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            -
+                        @endif
                     </td>
 
                     <td>
