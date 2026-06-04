@@ -78,6 +78,11 @@
         font-size: 0.6rem !important;
         padding: 0.2rem 0.4rem !important;
     }
+
+    #checksheetTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
+    }
 </style>
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -271,7 +276,7 @@
             </style>
 
             <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
                         @php
                             $requestPlant = request('plant');
