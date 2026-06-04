@@ -228,7 +228,7 @@
                             @if(count($defects) > 0)
                                 @foreach($defects as $index => $defect)
                                     <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
-                                        <div class="col-8 pr-1">
+                                        <div class="col-7 pr-1">
                                             <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
                                                 <option value="">-- Pilih Defect --</option>
                                                 @php
@@ -239,7 +239,7 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-3 pr-1">
+                                        <div class="col-4 pr-1">
                                             <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" 
                                                 name="defect_quantities[]" min="1" value="{{ $defect['qty'] ?? 1 }}">
                                         </div>
@@ -352,12 +352,12 @@
             
             $('#editAddDefectBtn').click(function() {
                 const row = $('<div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">' +
-                    '<div class="col-8 pr-1">' +
+                    '<div class="col-7 pr-1">' +
                     '<select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">' +
                     '<option value="">-- Pilih Defect --</option>' +
                     '</select>' +
                     '</div>' +
-                    '<div class="col-3 pr-1">' +
+                    '<div class="col-4 pr-1">' +
                     '<input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1" value="1">' +
                     '</div>' +
                     '<div class="col-1 text-center">' +

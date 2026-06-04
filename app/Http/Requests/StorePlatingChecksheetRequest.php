@@ -83,7 +83,7 @@ class StorePlatingChecksheetRequest extends FormRequest
             'defect_quantities' => 'nullable|array',
             'next_proses' => [
                 Rule::requiredIf(function () {
-                    return $this->judgment === 'NG' && $this->is_scanned == 1;
+                    return $this->judgment === 'NG';
                 }),
                 'nullable',
                 'string'

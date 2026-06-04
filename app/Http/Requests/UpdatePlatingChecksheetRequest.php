@@ -55,7 +55,7 @@ class UpdatePlatingChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'next_proses' => [
                 Rule::requiredIf(function () {
-                    return $this->judgment === 'NG' && $this->is_scanned == 1;
+                    return $this->judgment === 'NG';
                 }),
                 'nullable',
                 'string'

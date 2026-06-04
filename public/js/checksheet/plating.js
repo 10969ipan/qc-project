@@ -1182,12 +1182,12 @@ class PlatingCreate {
             const firstSelect = $("#defectSelect");
             const clone = $(
                 '<div class="row no-gutters mb-2 defect-row align-items-center">' +
-                '<div class="col-8 pr-1">' +
+                '<div class="col-7 pr-1">' +
                 '<select class="form-control defect-select font-weight-bold" name="defect_types[]">' +
                 firstSelect.html() +
                 "</select>" +
                 '</div>' +
-                '<div class="col-3 pr-1">' +
+                '<div class="col-4 pr-1">' +
                 '<input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">' +
                 '</div>' +
                 '<div class="col-1 text-center">' +
@@ -1350,15 +1350,10 @@ class PlatingCreate {
         }
 
         // Next Proses visibility/validation logic
-        if (isScanned) {
-            // No additional logic needed here, validation happens on submit
+        if ($("#judgmentSelect").val() === "NG" || ng > 0) {
+            $("#nextProsesContainer").show();
         } else {
-            // Manual selection: Judgment is auto-calculated but Next Proses remains optional
-            if ($("#judgmentSelect").val() === "NG" || ng > 0) {
-                $("#nextProsesContainer").show();
-            } else {
-                $("#nextProsesContainer").hide();
-            }
+            $("#nextProsesContainer").hide();
         }
     }
 
@@ -1482,9 +1477,8 @@ class PlatingCreate {
                 }
             }
 
-            // 4. Validasi: NG harus pilih Next Proses (Hanya jika Scanned)
-            const isScanned = $("#isScannedInput").val() === "1";
-            if (isScanned && judgment === "NG" && !nextProses) {
+            // 4. Validasi: NG harus pilih Next Proses
+            if (judgment === "NG" && !nextProses) {
                 Swal.fire({
                     icon: "warning",
                     title: "Next Proses Wajib Dipilih",

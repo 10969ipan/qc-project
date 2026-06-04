@@ -205,17 +205,17 @@
                                         name="total_qty" id="totalQty" placeholder="0" min="0" required>
                                 </td>
 
-                                <td class="align-middle" style="min-width: 200px;">
+                                <td class="align-middle" style="min-width: 240px;">
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-8 pr-1">
+                                            <div class="col-7 pr-1">
                                                 <select class="form-control defect-select font-weight-bold"
                                                     name="defect_types[]" id="defectSelect">
                                                     <option value="">-- Pilih Defect --</option>
                                                 </select>
                                             </div>
-                                            <div class="col-3 pr-1">
+                                            <div class="col-4 pr-1">
                                                 <input type="number" class="form-control defect-qty text-center font-weight-bold"
                                                     name="defect_quantities[]" placeholder="Qty" min="1">
                                             </div>
