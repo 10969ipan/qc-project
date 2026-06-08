@@ -1509,23 +1509,21 @@ class PlatingCreate {
             $("#judgmentSelect").val(result).trigger("change");
 
             // Update Badge Style (for Scan mode)
-            $("#judgmentBadge").text(result).removeClass('badge-success badge-danger');
+            $("#judgmentBadge").text(result).removeClass('badge-success badge-danger text-white text-dark');
             if (result === "NG") {
-                $("#judgmentBadge").css({
+                $("#judgmentBadge").addClass("text-white").css({
                     "background-color": "#e74a3b",
-                    "color": "white",
                     "border-color": "#e74a3b"
                 });
             } else {
-                $("#judgmentBadge").css({
+                $("#judgmentBadge").addClass("text-white").css({
                     "background-color": "#1cc88a",
-                    "color": "white",
                     "border-color": "#1cc88a"
                 });
             }
         } else {
             $("#judgmentSelect").val("");
-            $("#judgmentBadge").text("-").css({
+            $("#judgmentBadge").removeClass("text-white text-dark").text("-").css({
                 "background-color": "#f8f9fc",
                 "color": "#5a5c69",
                 "border-color": "#dddfeb"
