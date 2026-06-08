@@ -784,30 +784,19 @@ class PlatingCreate {
             let sapCode = '';
             let lotCabut = '';
 
-            const isCbtFormat = parts.length === 6 && parts[5].trim().indexOf('CBT-') === 0;
-
-            if (!isCbtFormat) {
-                // Warn the user — the QR scanned does not look like a Plating Cabut QR
-                Swal.fire({
-                    icon: "warning",
-                    title: "Bukan QR Plating-Cabut",
-                    html: `QR yang discan bukan format Plating-Cabut (CBT).<br>
-                           <small class="text-muted">Format yang benar: <code>PartCode|PO|Qty|LotCabut|QtySplit|CBT-xxx</code></small><br><br>
-                           Jika ini adalah <b>QR Verifikasi</b>, masukkan ke kolom <b>QR Verifikasi (Gudang)</b> di bawah.<br>
-                           Jika ini adalah <b>QR WIP/Injection</b>, hubungi supervisor.`,
-                    showConfirmButton: true,
-                    confirmButtonText: "Mengerti",
-                });
-                return false;
-            }
-
-            if (isCbtFormat) {
+            if (parts.length >= 5) {
                 partCode = parts[0].trim();
                 supplierId = parts[1].trim();
-                quantity = parts[4].trim(); // qty split bucket
-                lotCabut = parts[3].trim(); // tanggal cabut-operator cabut-shift
-                uniqueCode = lotCabut + '|' + parts[5].trim(); // e.g. 04062026AJ2|CBT-001
-                sapCode = partCode; // default sap_code to partCode
+                quantity = parts[2].trim();
+                uniqueCode = parts[3].trim();
+                sapCode = parts[4].trim();
+            } else if (parts.length === 3) {
+                partCode = parts[0].trim();
+                quantity = parts[1].trim();
+                sapCode = parts[2].trim();
+            } else {
+                partCode = parts[0].trim();
+                sapCode = partCode;
             }
 
             $("#sapCodeInput").val(sapCode);

@@ -117,30 +117,15 @@
                                 <td class="align-middle" style="min-width: 450px;">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold small mb-1">
-                                            Scan QR Plating-Cabut (Autofill)
+                                            Scan QR Code (Autofill)
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
                                                 placeholder="Masukkan Kode SAP" autocomplete="off" value="">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
-                                                    title="Buka QR Scanner Plating-Cabut">
-                                                    <i class="fas fa-qrcode mr-1"></i> Scan QR Cabut
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label class="font-weight-bold small mb-1 text-info">
-                                            QR Verifikasi (Gudang)
-                                        </label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" name="qrcode_verifikasi" id="qrcodeVerifikasiInput"
-                                                placeholder="Masukkan QR Verifikasi..." autocomplete="off" value="">
-                                            <div class="input-group-append">
-                                                <button type="button" class="btn btn-info" id="btnScanQRVerifikasi"
-                                                    title="Buka QR Scanner Verifikasi">
-                                                    <i class="fas fa-qrcode mr-1"></i> Scan QR Verifikasi
+                                                    title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode mr-1"></i> Scan QR Code
                                                 </button>
                                             </div>
                                         </div>
@@ -540,45 +525,6 @@
     <script src="{{ asset('js/checksheet/plating.js') }}?v={{ time() }}"></script>
     <script>
         $(document).ready(function () {
-            // Override handleQRScanned to support dynamic scan targets (Plating-Cabut vs Verification QR)
-            let activeScanTarget = 'cabut';
-            
-            if (typeof PlatingCreate !== 'undefined') {
-                PlatingCreate.prototype.handleQRScanned = function(decodedText) {
-                    this.playSuccessFeedback();
-                    this.stopScanner();
-                    $("#qrScannerModal").modal("hide");
-                    
-                    if (activeScanTarget === 'verifikasi') {
-                        document.getElementById('qrcodeVerifikasiInput').value = decodedText;
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'QR Verifikasi Berhasil',
-                                text: 'Scanned: ' + decodedText,
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-                        }
-                    } else {
-                        this.parseAndFillQR(decodedText);
-                    }
-                };
-            }
-
-            document.getElementById('btnScanQR').addEventListener('click', function() {
-                activeScanTarget = 'cabut';
-            });
-
-            const btnScanQRVerifikasi = document.getElementById('btnScanQRVerifikasi');
-            if (btnScanQRVerifikasi) {
-                btnScanQRVerifikasi.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    activeScanTarget = 'verifikasi';
-                    $('#btnScanQR').click();
-                });
-            }
-
             window.initPlatingCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfRoute: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
