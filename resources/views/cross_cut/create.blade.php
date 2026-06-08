@@ -196,6 +196,12 @@
                                             <small id="noLotHint" class="text-muted d-none" style="font-size:11px;"></small>
                                         </div>
                                     </div>
+                                    <div class="form-group mb-0 mt-2">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="visualOkCheck" name="visual_ok" value="1">
+                                            <label class="custom-control-label" for="visualOkCheck">Visual 100% OK</label>
+                                        </div>
+                                    </div>
                                 </td>
                                 <!-- Result Remark -->
                                 <td class="align-middle">
@@ -222,7 +228,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="keterangan" rows="6"
+                                    <textarea class="form-control" name="keterangan" id="keteranganInput" rows="6"
                                         style="min-height:140px; min-width:300px; width:100%; resize:both;"></textarea>
                                 </td>
                             </tr>
@@ -494,6 +500,23 @@
 
             // Trigger fetch on page load if values are already filled
             setTimeout(fetchNextNoLot, 300);
+
+            // --- Auto-fill Keterangan Visual OK ---
+            var visualOkCheck = document.getElementById('visualOkCheck');
+            var keteranganInput = document.getElementById('keteranganInput');
+            if (visualOkCheck && keteranganInput) {
+                visualOkCheck.addEventListener('change', function() {
+                    var currentVal = keteranganInput.value;
+                    var appendStr = "Visual 100% OK";
+                    if (this.checked) {
+                        if (currentVal.indexOf(appendStr) === -1) {
+                            keteranganInput.value = currentVal ? currentVal + '\n' + appendStr : appendStr;
+                        }
+                    } else {
+                        keteranganInput.value = currentVal.replace(new RegExp('\n?' + appendStr, 'g'), '').trim();
+                    }
+                });
+            }
         });
     </script>
 @endpush

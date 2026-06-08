@@ -115,15 +115,23 @@
                 </div>
             </div>
 
-            <div class="form-group mb-2">
-                <label class="small font-weight-bold">Result Remark</label>
-                <input type="text" class="form-control form-control-sm" id="result_remark_edit" name="result_remark" value="{{ $checksheet->result_remark }}">
-                <small id="remarkHint_edit" class="text-info d-block mt-1 d-none" style="font-size: 0.70rem; line-height: 1.1;"></small>
+            <div class="row">
+                <div class="col-6 form-group mb-2">
+                    <label class="small font-weight-bold">Result Remark</label>
+                    <input type="text" class="form-control form-control-sm" id="result_remark_edit" name="result_remark" value="{{ $checksheet->result_remark }}">
+                    <small id="remarkHint_edit" class="text-info d-block mt-1 d-none" style="font-size: 0.70rem; line-height: 1.1;"></small>
+                </div>
+                <div class="col-6 form-group mb-2 mt-4">
+                    <div class="custom-control custom-checkbox mt-2">
+                        <input type="checkbox" class="custom-control-input" id="visualOkCheck_edit" name="visual_ok" value="1" {{ $checksheet->visual_ok ? 'checked' : '' }}>
+                        <label class="custom-control-label small font-weight-bold" for="visualOkCheck_edit">Visual 100% OK</label>
+                    </div>
+                </div>
             </div>
             
             <div class="form-group mb-0">
                 <label class="small font-weight-bold">Keterangan</label>
-                <textarea class="form-control form-control-sm" name="keterangan" rows="2">{{ $checksheet->keterangan }}</textarea>
+                <textarea class="form-control form-control-sm" name="keterangan" id="keteranganInput_edit" rows="2">{{ $checksheet->keterangan }}</textarea>
             </div>
         </div>
 
@@ -325,6 +333,23 @@
                     fetchNextNoLot_edit();
                     fetchNextRemark_edit();
                 }, 500);
+            });
+        }
+
+        // --- Auto-fill Keterangan Visual OK ---
+        var visualOkCheck_edit = document.getElementById('visualOkCheck_edit');
+        var keteranganInput_edit = document.getElementById('keteranganInput_edit');
+        if (visualOkCheck_edit && keteranganInput_edit) {
+            visualOkCheck_edit.addEventListener('change', function() {
+                var currentVal = keteranganInput_edit.value;
+                var appendStr = "Visual 100% OK";
+                if (this.checked) {
+                    if (currentVal.indexOf(appendStr) === -1) {
+                        keteranganInput_edit.value = currentVal ? currentVal + '\n' + appendStr : appendStr;
+                    }
+                } else {
+                    keteranganInput_edit.value = currentVal.replace(new RegExp('\n?' + appendStr, 'g'), '').trim();
+                }
             });
         }
 

@@ -23,6 +23,7 @@ class CrossCutChecksheet extends Model
         'chemical_abu',
         'position_remark_judgment',
         'position_remark_no_lot',
+        'visual_ok',
         'result_remark',
         'keterangan',
         'next_proses',

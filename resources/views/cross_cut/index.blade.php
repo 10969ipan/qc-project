@@ -258,6 +258,7 @@
                             <th rowspan="2" class="align-middle no-export">Hasil Cross Cut</th>
                             <th rowspan="2" class="align-middle">Bak No</th>
                             <th rowspan="2" class="align-middle">Posisi Remark</th>
+                            <th rowspan="2" class="align-middle">Visual OK</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="6" class="align-middle">Approval Status</th>
@@ -319,6 +320,13 @@
                                 </td>
                                 <td class="align-middle">{{ $checksheet->position_remark_judgment }} -
                                     {{ $checksheet->position_remark_no_lot }}
+                                </td>
+                                <td class="align-middle text-center">
+                                    @if($checksheet->visual_ok)
+                                        <span class="badge badge-success"><i class="fas fa-check"></i> OK</span>
+                                    @else
+                                        -
+                                    @endif
                                 </td>
                                 <td class="align-middle">{{ $checksheet->result_remark }}</td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
@@ -718,7 +726,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 22 : 21 }}" class="text-center">No data
+                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 23 : 22 }}" class="text-center">No data
                                     available</td>
                             </tr>
                         @endforelse

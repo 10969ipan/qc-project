@@ -35,6 +35,7 @@ class StoreCrossCutChecksheetRequest extends FormRequest
             'chemical_abu' => 'nullable|string|max:255',
             'position_remark_judgment' => 'required|in:OK,NG',
             'position_remark_no_lot' => 'required|string|max:255',
+            'visual_ok' => 'nullable|boolean',
             'result_remark' => 'nullable|string',
             'keterangan' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
