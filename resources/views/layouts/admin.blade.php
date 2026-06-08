@@ -1278,6 +1278,214 @@
         </div>
     </div>
 
+    <!-- Reusable Thermal Print Preview Modal -->
+    <div class="modal fade" id="printQrPreviewModal" tabindex="-1" role="dialog" aria-labelledby="printQrPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content shadow border-0">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <h5 class="modal-title font-weight-bold" id="printQrPreviewModalLabel">
+                        <i class="fas fa-print mr-2"></i> Pratinjau Label Cetak Plating
+                    </h5>
+                    <button type="button" class="close text-white font-weight-bold" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 bg-light d-flex flex-row flex-wrap justify-content-center align-items-start gap-3" id="printQrPreviewModalBody" style="min-height: 200px; max-height: 80vh; overflow-y: auto;">
+                    <!-- Content loaded dynamically -->
+                </div>
+                <div class="modal-footer border-0 bg-white py-3">
+                    <button type="button" class="btn btn-secondary font-weight-bold shadow-sm" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Batal
+                    </button>
+                    <button type="button" class="btn btn-primary font-weight-bold shadow-sm" id="btnPrintModalAction">
+                        <i class="fas fa-print mr-1"></i> Cetak Label
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Print Preview Scoped Styles for Modal Content */
+        #printQrPreviewModal .print-pages {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        #printQrPreviewModal .label-container {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            justify-content: flex-start !important;
+            align-content: flex-start !important;
+            gap: 15px !important;
+            width: 715px !important;
+            height: 1045px !important;
+            background-color: #ffffff !important;
+            border: 1px solid #ccc !important;
+            padding: 30px !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+            position: relative;
+        }
+
+        #printQrPreviewModal .thermal-label {
+            background-color: #ffffff;
+            width: 320px !important;
+            height: 230px !important;
+            padding: 8px 10px !important;
+            border: 1.5px dashed #000 !important;
+            border-radius: 4px;
+            box-sizing: border-box;
+            position: relative;
+            color: #000 !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+        }
+
+        #printQrPreviewModal .label-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px !important;
+            border-bottom: 2px solid #000 !important;
+            padding-bottom: 4px !important;
+            margin-bottom: 6px !important;
+            letter-spacing: 0.5px;
+            color: #000 !important;
+        }
+
+        #printQrPreviewModal .label-content {
+            display: flex !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+            flex-grow: 1 !important;
+        }
+
+        #printQrPreviewModal .qr-section {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100px !important;
+            flex-shrink: 0 !important;
+        }
+
+        #printQrPreviewModal .qr-image {
+            width: 90px !important;
+            height: 90px !important;
+            object-fit: contain;
+            border: 1px solid #000 !important;
+            padding: 1px !important;
+        }
+
+        #printQrPreviewModal .qr-text {
+            font-size: 6.5px !important;
+            font-weight: bold !important;
+            word-break: break-all;
+            text-align: center;
+            margin-top: 3px !important;
+            color: #000 !important;
+            max-width: 90px !important;
+            line-height: 1.1 !important;
+        }
+
+        #printQrPreviewModal .details-section {
+            flex-grow: 1 !important;
+            width: 0 !important;
+            display: flex !important;
+        }
+
+        #printQrPreviewModal .details-table {
+            width: 100% !important;
+            height: 100% !important;
+            border-collapse: collapse !important;
+            border: 1.5px solid #000 !important;
+        }
+
+        #printQrPreviewModal .details-table td {
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 8px !important;
+            font-weight: bold !important;
+            padding: 2px 3px !important;
+            vertical-align: middle !important;
+            color: #000 !important;
+            border: 1.5px solid #000 !important;
+        }
+
+        #printQrPreviewModal .details-table td.label {
+            width: 45% !important;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        #printQrPreviewModal .details-table td.value {
+            width: 55% !important;
+            word-break: break-word;
+        }
+
+        #printQrPreviewModal .label-footer {
+            margin-top: 6px !important;
+            border-top: 1px dashed #000 !important;
+            padding-top: 4px !important;
+            text-align: center;
+            font-size: 7.5px !important;
+            font-weight: bold !important;
+            color: #000 !important;
+        }
+    </style>
+
+    <script>
+        function printQrLabel(url) {
+            let iframe = document.getElementById('print-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'print-iframe';
+                iframe.style.position = 'absolute';
+                iframe.style.width = '0px';
+                iframe.style.height = '0px';
+                iframe.style.border = 'none';
+                document.body.appendChild(iframe);
+            }
+            iframe.src = url;
+            iframe.onload = function() {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            };
+        }
+
+        function showPrintPreview(url) {
+            $('#printQrPreviewModalBody').html(
+                '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted">Memuat pratinjau label...</p></div>'
+            );
+            $('#printQrPreviewModal').modal('show');
+            
+            $.get(url, function(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const printPages = doc.querySelector('.print-pages');
+                if (printPages) {
+                    $('#printQrPreviewModalBody').html(printPages.innerHTML);
+                    $('#btnPrintModalAction').attr('onclick', `printQrLabel('${url}')`);
+                } else {
+                    const labelContainer = doc.querySelector('.label-container');
+                    if (labelContainer) {
+                        $('#printQrPreviewModalBody').html(labelContainer.innerHTML);
+                        $('#btnPrintModalAction').attr('onclick', `printQrLabel('${url}')`);
+                    } else {
+                        $('#printQrPreviewModalBody').html('<div class="alert alert-danger">Gagal memuat format label.</div>');
+                    }
+                }
+            }).fail(function() {
+                $('#printQrPreviewModalBody').html('<div class="alert alert-danger">Gagal memuat pratinjau dari server.</div>');
+            });
+        }
+    </script>
+
     @stack('scripts')
 
 </body>

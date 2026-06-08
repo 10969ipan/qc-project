@@ -25,6 +25,7 @@ class UpdatePlatingChecksheetRequest extends FormRequest
         return [
             'item_id' => 'required|exists:items,id',
             'qrcode' => 'nullable|string',
+            'qrcode_verifikasi' => 'nullable|string',
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',
             'quantity' => 'nullable|string',

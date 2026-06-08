@@ -28,7 +28,7 @@ class PlatingChecksheetService extends BaseService
     public function buildFilteredQuery(array $filters)
     {
         /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = PlatingChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = PlatingChecksheet::with(['item', 'platingCabutSplit.cabutRecord.pasangRecord'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if (isset($filters['plant'])) {
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
@@ -111,6 +111,7 @@ class PlatingChecksheetService extends BaseService
                 'quantity' => $data['quantity'] ?? null,
                 'unique_code_id' => $data['unique_code_id'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
+                'qrcode_verifikasi' => $data['qrcode_verifikasi'] ?? null,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
                 'injection_date' => $data['injection_date'],
@@ -175,6 +176,7 @@ class PlatingChecksheetService extends BaseService
                 'quantity' => $data['quantity'] ?? $checksheet->quantity,
                 'unique_code_id' => $data['unique_code_id'] ?? $checksheet->unique_code_id,
                 'sap_code' => $data['sap_code'] ?? $checksheet->sap_code,
+                'qrcode_verifikasi' => $data['qrcode_verifikasi'] ?? $checksheet->qrcode_verifikasi,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
                 'injection_date' => $data['injection_date'],

@@ -506,20 +506,27 @@ class ItemController extends Controller
         }
 
         $parts = explode('|', $qrCode);
+        $count = count($parts);
 
-        if (count($parts) !== 5) {
+        if ($count === 6 && strpos(trim($parts[5]), 'CBT-') === 0) {
+            $partCode     = trim($parts[0]);
+            $supplierId   = trim($parts[1]);
+            $quantity     = trim($parts[4]); // qty split bucket
+            $lotCabut     = trim($parts[3]);
+            $uniqueCodeId = $lotCabut . '|' . trim($parts[5]);
+            $sapCode      = $partCode;
+        } elseif ($count >= 5) {
+            $partCode     = trim($parts[0]);
+            $supplierId   = trim($parts[1]);
+            $quantity     = trim($parts[2]);
+            $uniqueCodeId = implode('|', array_slice($parts, 3, $count - 4));
+            $sapCode      = trim($parts[$count - 1]);
+        } else {
             return response()->json([
                 'success' => false,
-                'message' => 'Format QR tidak lengkap. Diperlukan 5 segmen: part|supplier|qty|unique_id|sap'
+                'message' => 'Format QR tidak valid. Minimal 5 segmen dibutuhkan.'
             ], 400);
         }
-
-        // Ekstrak seluruh 5 segmen dari raw barcode
-        $partCode    = trim($parts[0]);
-        $supplierId  = trim($parts[1]);
-        $quantity    = trim($parts[2]);
-        $uniqueCodeId = trim($parts[3]);
-        $sapCode     = trim($parts[4]);
 
         $tables = [
             'in_process_checksheets'  => 'In-Process',

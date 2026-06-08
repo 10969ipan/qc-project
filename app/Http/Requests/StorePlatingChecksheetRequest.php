@@ -31,6 +31,7 @@ class StorePlatingChecksheetRequest extends FormRequest
             'part_code' => !empty($this->part_code) ? $this->part_code : null,
             'supplier_id' => !empty($this->supplier_id) ? $this->supplier_id : null,
             'sap_code' => !empty($this->sap_code) ? $this->sap_code : null,
+            'qrcode_verifikasi' => !empty($this->qrcode_verifikasi) ? $this->qrcode_verifikasi : null,
         ]);
     }
 
@@ -50,6 +51,7 @@ class StorePlatingChecksheetRequest extends FormRequest
                 },
             ],
             'qrcode' => 'nullable|string',
+            'qrcode_verifikasi' => 'nullable|string',
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',
             'quantity' => 'nullable|string',

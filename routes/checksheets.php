@@ -14,8 +14,23 @@ use App\Http\Controllers\IncomingExportController;
 use App\Http\Controllers\IncomingChemicalController;
 use App\Http\Controllers\PlatingChecksheetController;
 use App\Http\Controllers\DoubleTapeChecksheetController;
+use App\Http\Controllers\PlatingScanController;
 
 Route::middleware(['auth'])->group(function () {
+    // Plating Scan Routes
+    Route::prefix('plating-scan')->group(function () {
+        Route::get('/pasang', [PlatingScanController::class, 'pasangCreate'])->name('plating_scan.pasang.create');
+        Route::post('/pasang', [PlatingScanController::class, 'pasangStore'])->name('plating_scan.pasang.store');
+        Route::get('/pasang/{id}/qr', [PlatingScanController::class, 'showPasangQr'])->name('plating_scan.pasang.qr');
+        Route::get('/pasang-data', [PlatingScanController::class, 'getPasangData'])->name('plating_scan.pasang.data');
+        Route::get('/wip-info', [PlatingScanController::class, 'getWipInfo'])->name('plating_scan.wip_info');
+
+        Route::get('/cabut', [PlatingScanController::class, 'cabutCreate'])->name('plating_scan.cabut.create');
+        Route::post('/cabut', [PlatingScanController::class, 'cabutStore'])->name('plating_scan.cabut.store');
+        Route::get('/cabut/{id}/qr', [PlatingScanController::class, 'showCabutQr'])->name('plating_scan.cabut.qr');
+
+        Route::get('/history', [PlatingScanController::class, 'history'])->name('plating_scan.history');
+    });
     // --- Input Routes (Protected by Approval Rate after 12:00 PM) ---
     Route::middleware(['check_approval_rate'])->group(function () {
         // Sub Assy

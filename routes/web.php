@@ -59,3 +59,5 @@ Route::fallback(function () {
 });
 
 
+
+Route::get('/test-label-qr', function () { return view('plating.label_qr'); });

@@ -50,6 +50,7 @@ class PlatingChecksheet extends Model
         'plating_shift',
         'no_lot',
         'standard_cycle_time',
+        'qrcode_verifikasi',
     ];
 
     protected $casts = [
@@ -71,5 +72,10 @@ class PlatingChecksheet extends Model
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    public function platingCabutSplit()
+    {
+        return $this->belongsTo(PlatingCabutSplit::class, 'qrcode', 'generated_qrcode');
     }
 }

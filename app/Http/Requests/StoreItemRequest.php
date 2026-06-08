@@ -68,13 +68,8 @@ class StoreItemRequest extends FormRequest
                 'max:100',
                 function ($attribute, $value, $fail) {
                     if (!empty($value)) {
-                        $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
-                        $categoryId = $this->input('category_id');
-                        if (Item::where('sap_code', $value)
-                            ->where('plant_id', $plantId)
-                            ->where('category_id', $categoryId)
-                            ->exists()) {
-                            $fail('Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
+                        if (Item::where('sap_code', $value)->exists()) {
+                            $fail('Kode SAP ini sudah terdaftar di sistem.');
                         }
                     }
                 },

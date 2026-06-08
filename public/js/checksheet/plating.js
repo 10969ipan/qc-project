@@ -167,14 +167,130 @@ class PlatingIndex {
     }
 
     initQRDetail() {
+        // ── QR Parsers ─────────────────────────────────────────────────────────
+
+        // WIP / QC Verifikasi: PartCode|PO|Qty|LotCode|SapCode  (5 segments)
+        const parseWipQr = (qr) => {
+            if (!qr || qr === '-') return null;
+            const p = qr.split('|');
+            if (p.length < 5) return null;
+            return { part: p[0], po: p[1], qty: p[2], lot: p[3], sap: p[4] };
+        };
+
+        // Plating Pasang: PartCode|LotId|UniqueCode|DateOpsShift|Qty|JIG-xxx  (6 segments, last starts with JIG-)
+        const parsePasangQr = (qr) => {
+            if (!qr || qr === '-') return null;
+            const p = qr.split('|');
+            if (p.length < 6 || !p[5].startsWith('JIG-')) return null;
+            const raw = p[3]; // e.g. "04062026IPKLJK1"
+            let dateStr = '-', ops = '-';
+            if (raw.length >= 8) {
+                const dd = raw.substring(0, 2);
+                const mm = raw.substring(2, 4);
+                const yy = raw.substring(4, 8);
+                dateStr = `${dd}-${mm}-${yy}`;
+                const tail = raw.substring(8); // e.g. "IPKLJK1"
+                if (tail.length > 0) {
+                    const shift = tail.slice(-1);
+                    const oper = tail.slice(0, -1) || '-';
+                    ops = `${oper} / Shift ${shift}`;
+                }
+            }
+            return { part: p[0], lot: p[1], unique: p[2], date: dateStr, ops: ops, qty: p[4], jig: p[5] };
+        };
+
+        // Plating Cabut: PartCode|PO|QtyOrig|LotCabut|QtySplit|CBT-xxx  (6 segments, last starts with CBT-)
+        const parseCabutQr = (qr) => {
+            if (!qr || qr === '-') return null;
+            const p = qr.split('|');
+            if (p.length < 6 || !p[5].startsWith('CBT-')) return null;
+            const raw = p[3]; // e.g. "04062026AJ2"
+            let dateStr = '-', ops = '-';
+            if (raw.length >= 8) {
+                const dd = raw.substring(0, 2);
+                const mm = raw.substring(2, 4);
+                const yy = raw.substring(4, 8);
+                dateStr = `${dd}-${mm}-${yy}`;
+                const tail = raw.substring(8); // e.g. "AJ2"
+                if (tail.length > 0) {
+                    const shift = tail.slice(-1);
+                    const oper = tail.slice(0, -1) || '-';
+                    ops = `${oper} / Shift ${shift}`;
+                }
+            }
+            return { part: p[0], po: p[1], qtyOrig: p[2], date: dateStr, ops: ops, qtySplit: p[4], bucket: p[5] };
+        };
+
+        // ── Click Handler ──────────────────────────────────────────────────────
         $(document).on("click", ".btn-qr-detail", function () {
             const data = $(this).data();
-            $("#modal-qr-raw").text(data.qr || "-");
-            $("#modal-qr-part").text(data.part || "-");
-            $("#modal-qr-supplier").text(data.supplier || "-");
-            $("#modal-qr-qty").text(data.qty || "-");
-            $("#modal-qr-unique").text(data.unique || "-");
-            $("#modal-qr-sap").text(data.sap || "-");
+            const wipQr    = data.qrWip    || '-';
+            const pasangQr = data.qrPasang || '-';
+            const cabutQr  = data.qrCabut  || '-';
+            const qcQr     = data.qrQc     || '-';
+
+            // Populate raw QR strings
+            $("#modal-trace-wip").text(wipQr);
+            $("#modal-trace-pasang").text(pasangQr);
+            $("#modal-trace-cabut").text(cabutQr);
+            $("#modal-trace-qc").text(qcQr);
+
+            // ── Stage 1: WIP ──────────────────────────────────────────────────
+            const wip = parseWipQr(wipQr);
+            if (wip) {
+                $("#trace-wip-part").text(wip.part);
+                $("#trace-wip-po").text(wip.po);
+                $("#trace-wip-qty").text(wip.qty + ' pcs');
+                $("#trace-wip-lot").text(wip.lot);
+                $("#trace-wip-sap").text(wip.sap);
+                $("#trace-detail-wip").removeClass('d-none');
+            } else {
+                $("#trace-detail-wip").addClass('d-none');
+            }
+
+            // ── Stage 2: Plating Pasang ───────────────────────────────────────
+            const pasang = parsePasangQr(pasangQr);
+            if (pasang) {
+                $("#trace-pasang-part").text(pasang.part);
+                $("#trace-pasang-lot").text(pasang.lot);
+                $("#trace-pasang-unique").text(pasang.unique);
+                $("#trace-pasang-date").text(pasang.date);
+                $("#trace-pasang-ops").text(pasang.ops);
+                $("#trace-pasang-qty").text(pasang.qty + ' pcs');
+                $("#trace-pasang-jig").text(pasang.jig);
+                $("#trace-detail-pasang").removeClass('d-none');
+            } else {
+                $("#trace-detail-pasang").addClass('d-none');
+            }
+
+            // ── Stage 3: Plating Cabut ────────────────────────────────────────
+            const cabut = parseCabutQr(cabutQr);
+            if (cabut) {
+                $("#trace-cabut-part").text(cabut.part);
+                $("#trace-cabut-po").text(cabut.po);
+                $("#trace-cabut-qty-orig").text(cabut.qtyOrig + ' pcs');
+                $("#trace-cabut-date").text(cabut.date);
+                $("#trace-cabut-ops").text(cabut.ops);
+                $("#trace-cabut-qty-split").text(cabut.qtySplit + ' pcs');
+                $("#trace-cabut-bucket").text(cabut.bucket);
+                $("#trace-detail-cabut").removeClass('d-none');
+            } else {
+                $("#trace-detail-cabut").addClass('d-none');
+            }
+
+            // ── Stage 4: QC Verifikasi (same format as WIP) ───────────────────
+            const qc = parseWipQr(qcQr);
+            if (qc) {
+                $("#trace-qc-part").text(qc.part);
+                $("#trace-qc-po").text(qc.po);
+                $("#trace-qc-qty").text(qc.qty + ' pcs');
+                $("#trace-qc-lot").text(qc.lot);
+                $("#trace-qc-sap").text(qc.sap);
+                $("#trace-detail-qc").removeClass('d-none');
+            } else {
+                $("#trace-detail-qc").addClass('d-none');
+            }
+
             $("#qrModal").modal("show");
         });
     }
@@ -369,6 +485,7 @@ class PlatingCreate {
         this.initJudgmentLogic();
         this.initQRScanner();
         this.initFormSubmit();
+        this.initHardwareScanner();
 
         // Inisialisasi awal untuk logic kalkulasi & judgment
         this.updateJudgment();
@@ -608,7 +725,7 @@ class PlatingCreate {
         }
     }
 
-    parseAndFillQR(decodedText) {
+    parseAndFillQR(decodedText, callback) {
         try {
             $("#qrcodeInput").val(decodedText);
             const parts = decodedText.split("|");
@@ -625,15 +742,19 @@ class PlatingCreate {
                                     res.message,
                                     "error",
                                 );
+                                if (callback) callback(false);
                             } else {
-                                this.processFillQR(decodedText, parts);
+                                const filled = this.processFillQR(decodedText, parts);
+                                if (callback) callback(filled);
                             }
                         },
                     ).fail(() => {
-                        this.processFillQR(decodedText, parts);
+                        const filled = this.processFillQR(decodedText, parts);
+                        if (callback) callback(filled);
                     });
                 } else {
-                    this.processFillQR(decodedText, parts);
+                    const filled = this.processFillQR(decodedText, parts);
+                    if (callback) callback(filled);
                 }
             } else {
                 Swal.fire(
@@ -641,6 +762,7 @@ class PlatingCreate {
                     "Data QR tidak sesuai standar (" + decodedText + ")",
                     "warning",
                 );
+                if (callback) callback(false);
             }
         } catch (e) {
             console.error("Parse QR Error:", e);
@@ -649,16 +771,44 @@ class PlatingCreate {
                 "Gagal memproses data QR: " + e.message,
                 "error",
             );
+            if (callback) callback(false);
         }
     }
 
     processFillQR(decodedText, parts) {
         try {
-            const partCode = parts[0].trim();
-            const supplierId = parts[1].trim();
-            const quantity = parts[2].trim();
-            const uniqueCode = parts[3].trim();
-            const sapCode = parts[4].trim();
+            let partCode = '';
+            let supplierId = '';
+            let quantity = '';
+            let uniqueCode = '';
+            let sapCode = '';
+            let lotCabut = '';
+
+            const isCbtFormat = parts.length === 6 && parts[5].trim().indexOf('CBT-') === 0;
+
+            if (!isCbtFormat) {
+                // Warn the user — the QR scanned does not look like a Plating Cabut QR
+                Swal.fire({
+                    icon: "warning",
+                    title: "Bukan QR Plating-Cabut",
+                    html: `QR yang discan bukan format Plating-Cabut (CBT).<br>
+                           <small class="text-muted">Format yang benar: <code>PartCode|PO|Qty|LotCabut|QtySplit|CBT-xxx</code></small><br><br>
+                           Jika ini adalah <b>QR Verifikasi</b>, masukkan ke kolom <b>QR Verifikasi (Gudang)</b> di bawah.<br>
+                           Jika ini adalah <b>QR WIP/Injection</b>, hubungi supervisor.`,
+                    showConfirmButton: true,
+                    confirmButtonText: "Mengerti",
+                });
+                return false;
+            }
+
+            if (isCbtFormat) {
+                partCode = parts[0].trim();
+                supplierId = parts[1].trim();
+                quantity = parts[4].trim(); // qty split bucket
+                lotCabut = parts[3].trim(); // tanggal cabut-operator cabut-shift
+                uniqueCode = lotCabut + '|' + parts[5].trim(); // e.g. 04062026AJ2|CBT-001
+                sapCode = partCode; // default sap_code to partCode
+            }
 
             $("#sapCodeInput").val(sapCode);
             $("#partCodeInput").val(partCode);
@@ -666,6 +816,43 @@ class PlatingCreate {
             $("#quantityInput").val(quantity);
             $("#uniqueCodeInput").val(uniqueCode);
             $("#sapCodeInputHidden").val(sapCode);
+            $("#isScannedInput").val("1");
+
+            // Auto-fill no_lot, plating_date, plating_shift if lotCabut is available
+            if (lotCabut) {
+                $("#noLotInput").val(lotCabut);
+                
+                if (lotCabut.includes("-")) {
+                    const lotParts = lotCabut.split("-");
+                    if (lotParts.length === 3) {
+                        const dateStr = lotParts[0]; // e.g. 04062026
+                        if (dateStr.length === 8) {
+                            const day = dateStr.substring(0, 2);
+                            const month = dateStr.substring(2, 4);
+                            const year = dateStr.substring(4, 8);
+                            const formattedDate = `${year}-${month}-${day}`;
+                            $("#platingDateInput").val(formattedDate);
+                        }
+                        const shiftStr = lotParts[2]; // e.g. 1
+                        if (shiftStr === "1" || shiftStr === "2" || shiftStr === "3") {
+                            $("#platingShiftInput").val(shiftStr);
+                        }
+                    }
+                } else if (lotCabut.length >= 9) {
+                    const dateStr = lotCabut.substring(0, 8);
+                    const shiftStr = lotCabut.substring(lotCabut.length - 1);
+                    if (/^\d{8}$/.test(dateStr)) {
+                        const day = dateStr.substring(0, 2);
+                        const month = dateStr.substring(2, 4);
+                        const year = dateStr.substring(4, 8);
+                        const formattedDate = `${year}-${month}-${day}`;
+                        $("#platingDateInput").val(formattedDate);
+                    }
+                    if (shiftStr === "1" || shiftStr === "2" || shiftStr === "3") {
+                        $("#platingShiftInput").val(shiftStr);
+                    }
+                }
+            }
 
             // Melakukan pemindaian lokal di dropdown yang tersedia
             let localFound = false;
@@ -716,16 +903,19 @@ class PlatingCreate {
                     timer: 1500,
                     showConfirmButton: false,
                 });
+                return true;
             } else {
                 Swal.fire(
                     "Info",
                     "Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.",
                     "warning",
                 );
+                return false;
             }
         } catch (e) {
             console.error("Fill QR Error:", e);
             Swal.fire("Error", "Gagal mengisi data QR: " + e.message, "error");
+            return false;
         }
     }
 
@@ -765,6 +955,10 @@ class PlatingCreate {
     initSapSelection() {
         $("#sapCodeInput").on("input", (e) => {
             const sapCode = $(e.target).val().trim();
+            if (sapCode.includes("|")) {
+                // Ignore raw QR scans, they will be processed by initHardwareScanner
+                return;
+            }
             if (sapCode.length >= 1) {
                 let normalize = (str) =>
                     (str || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
@@ -1482,7 +1676,6 @@ class PlatingCreate {
                 Swal.fire({
                     icon: "warning",
                     title: "Next Proses Wajib Dipilih",
-                    text: "Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!",
                 });
                 $("#nextProses").addClass("is-invalid").focus();
                 setTimeout(() => $("#nextProses").removeClass("is-invalid"), 3000);
@@ -1612,6 +1805,140 @@ class PlatingCreate {
             "#qrcodeInput, #partCodeInput, #supplierIdInput, #quantityInput, #uniqueCodeInput, #sapCodeInputHidden",
         ).val("");
         $("#sapCodeInput").removeClass("is-valid is-invalid").val("");
+        $("#isScannedInput").val("0");
+    }
+
+    showToast(msg, color) {
+        let $toast = $("#scanner-toast");
+        if (!$toast.length) {
+            $toast = $(
+                `<div id="scanner-toast" style="position:fixed; top:20px; right:20px; z-index:9999; padding:12px 24px; border-radius:8px; color:white; font-weight:bold; font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15); opacity:0; pointer-events:none;"></div>`,
+            ).appendTo("body");
+        }
+        $toast.text(msg).css("background-color", color || "#333");
+        $toast.stop().animate({ opacity: 1 }, 200);
+        clearTimeout($toast.data("hideTimer"));
+        $toast.data("hideTimer", setTimeout(() => $toast.animate({ opacity: 0 }, 400), 2000));
+    }
+
+    initHardwareScanner() {
+        let buffer = "";
+        let lastTime = Date.now();
+        let scanTimeout;
+
+        const processScan = (raw) => {
+            raw = (raw || "").trim();
+            console.log("Hardware Scan Triggered (Plating):", raw);
+
+            // Aktifkan lock agar submit form diblokir sementara
+            this.isProcessingScan = true;
+            clearTimeout(this.scanLockTimeout);
+
+            if (!raw.includes("|")) {
+                this.showToast("❌ Format QR salah (tidak ada |)", "#f87171");
+                this.isProcessingScan = false;
+                buffer = "";
+                return;
+            }
+
+            const parts = raw.split("|");
+            if (parts.length < 5) {
+                this.showToast(`❌ Format QR salah`, "#f87171");
+                this.isProcessingScan = false;
+                buffer = "";
+                return;
+            }
+
+            // Kunci input agar tidak bisa scan kedua sebelum data diproses
+            $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
+
+            this.showToast("✅ Scan berhasil diproses!", "#4ade80");
+
+            // Panggil parseAndFillQR
+            this.parseAndFillQR(raw, (success) => {
+                // Biarkan input bisa di-scan lagi setelah 1.5 detik
+                setTimeout(() => {
+                    $("#sapCodeInput").prop("disabled", false).css("background", "");
+                    this.isProcessingScan = false;
+                }, 1500);
+            });
+            buffer = "";
+        };
+
+        // Capturing Listener to prevent Enter key on sapCodeInput from submitting form
+        window.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.keyCode === 13) && document.activeElement && document.activeElement.id === 'sapCodeInput') {
+                console.log("Enter key captured and blocked (PDA Mode)");
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
+
+        // Catch the Enter key sent by PDA at the end of the scan
+        $("#sapCodeInput").on("keydown", function (e) {
+            if (e.key === "Enter" || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const val = ($(this).val() || "").trim();
+                if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                    $(this).val(""); // Clear field
+                    processScan(val);
+                }
+                return false;
+            }
+        });
+
+        // Fallback for PDA scanners that only send input events without Enter
+        let sapInputTimeout;
+        $("#sapCodeInput").on("input", function () {
+            const val = ($(this).val() || "").trim();
+            if (val.length > 10 && val.includes("|") && val.split("|").length >= 5) {
+                clearTimeout(sapInputTimeout);
+                sapInputTimeout = setTimeout(() => {
+                    const finalVal = ($(this).val() || "").trim();
+                    if (finalVal && finalVal === val) { // Ensure typing has stopped
+                        $(this).val("");
+                        processScan(finalVal);
+                    }
+                }, 80); // Wait 80ms to ensure the full QR is typed
+            }
+        });
+
+        // Global keydown buffer (PC wired/wireless scanners)
+        window.addEventListener("keydown", (e) => {
+            const currentTime = Date.now();
+            const isTerminator = e.key === "Enter" || e.keyCode === 13 ||
+                e.key === "Tab" || e.keyCode === 9;
+
+            if (currentTime - lastTime > 1000) {
+                buffer = "";
+            }
+
+            if (!isTerminator) {
+                const char = e.key;
+                if (char && char.length === 1) {
+                    buffer += char;
+                } else if (e.keyCode >= 32 && e.keyCode <= 126) {
+                    buffer += String.fromCharCode(e.keyCode);
+                }
+            } else if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+                e.preventDefault();
+                clearTimeout(scanTimeout);
+                processScan(buffer);
+                buffer = "";
+            }
+
+            lastTime = currentTime;
+
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => {
+                if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length >= 5) {
+                    processScan(buffer);
+                    buffer = "";
+                }
+            }, 80);
+        }, true);
     }
 }
 

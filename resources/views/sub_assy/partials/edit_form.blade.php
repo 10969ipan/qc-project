@@ -139,8 +139,8 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Inisial Operator</label>
-                                <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control form-control-sm text-uppercase"
-                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial...">
+                                <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control form-control-sm text-uppercase bg-light font-weight-bold"
+                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial..." readonly>
                             </div>
                         </div>
                     </div>

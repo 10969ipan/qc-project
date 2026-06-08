@@ -77,14 +77,10 @@ class UpdateItemRequest extends FormRequest
                 'max:100',
                 function ($attribute, $value, $fail) use ($itemId) {
                     if (!empty($value)) {
-                        $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
-                        $categoryId = $this->input('category_id');
                         if (Item::where('sap_code', $value)
-                            ->where('plant_id', $plantId)
-                            ->where('category_id', $categoryId)
                             ->where('id', '!=', $itemId)
                             ->exists()) {
-                            $fail('Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
+                            $fail('Kode SAP ini sudah terdaftar di sistem.');
                         }
                     }
                 },

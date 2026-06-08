@@ -583,9 +583,9 @@
 
                                 <!-- Inisial Operator -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" style="min-width: 60px;"
+                                    <input type="text" class="form-control text-center bg-light font-weight-bold" style="min-width: 60px; text-transform: uppercase;"
                                         name="operator_initials" placeholder="Inisial"
-                                        value="{{ auth()->user()->initials ?? '' }}" required>
+                                        value="{{ auth()->user()->initials ?? '' }}" readonly required>
                                 </td>
 
                                 <!-- Keterangan -->

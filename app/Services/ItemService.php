@@ -77,6 +77,13 @@ class ItemService extends BaseService
     {
         DB::beginTransaction();
         try {
+            // Pre-validate uniqueness in DB to avoid moving files if SQL insert will fail
+            if (!empty($data['sap_code'])) {
+                if (Item::where('sap_code', $data['sap_code'])->exists()) {
+                    throw new \Exception("Duplicate entry '{$data['sap_code']}' for key 'items.items_sap_code_unique'");
+                }
+            }
+
             // Handle multi-file upload
             $filePaths = [];
             if (isset($data['files'])) {
@@ -133,6 +140,13 @@ class ItemService extends BaseService
     {
         DB::beginTransaction();
         try {
+            // Pre-validate uniqueness in DB to avoid moving files if SQL update will fail
+            if (!empty($data['sap_code'])) {
+                if (Item::where('sap_code', $data['sap_code'])->where('id', '!=', $id)->exists()) {
+                    throw new \Exception("Duplicate entry '{$data['sap_code']}' for key 'items.items_sap_code_unique'");
+                }
+            }
+
             // Get item (with or without global scope based on role)
             if (auth()->user()->role === 'admin') {
                 $item = Item::withoutGlobalScope('plant')->findOrFail($id);

@@ -201,4 +201,258 @@ class QCAutomatedValidationTest extends TestCase
         }
         $this->assertDatabaseHas('cross_cut_painting_checksheets', ['item_id' => $item->id]);
     }
+
+    /** @test */
+    public function it_formats_and_parses_plating_cabut_qr_code_correctly()
+    {
+        $plant = Plant::first() ?: Plant::create(['name' => 'Karawang', 'code' => 'KRW']);
+        
+        $admin = User::where('role', 'admin')->first();
+        if ($admin) {
+            $admin->is_active = true;
+            $admin->save();
+        } else {
+            $admin = User::create([
+                'name' => 'Admin Test',
+                'email' => 'admin_test@qc.com',
+                'password' => bcrypt('password'),
+                'role' => 'admin',
+                'is_active' => true,
+                'plant_id' => $plant->id
+            ]);
+        }
+        
+        $this->actingAs($admin);
+        $this->withoutExceptionHandling();
+        
+        // 1. Create a dummy Pasang record with a unique PO and date
+        $po = 'PO' . rand(100000, 999999);
+        $date = '2029-06-04';
+        $dateFormatted = '04062029';
+        $pasangRecord = \App\Models\PlatingPasangRecord::create([
+            'wip_qrcode' => "53102-K0L-D002|$po|100|{$dateFormatted}IP1|JIG-010",
+            'tanggal_pasang' => $date,
+            'shift' => '1',
+            'customer_part' => '53102-K0L-D002',
+            'no_po' => $po,
+            'qty' => 100,
+            'lot_id' => "{$dateFormatted}IP1",
+            'unique_code' => 'JIG-010',
+            'inisial_pasang' => 'IP',
+            'generated_qrcode' => "53102-K0L-D002|$po|100|{$dateFormatted}IP1|JIG-010",
+            'plant_id' => $plant->id,
+            'user_id' => $admin->id
+        ]);
+
+        // 2. Mock request data for Cabut process
+        $data = [
+            'pasang_qrcode' => "53102-K0L-D002|$po|100|{$dateFormatted}IP1|JIG-010",
+            'tanggal_cabut' => $date,
+            'shift' => '2',
+            'no_po' => $po,
+            'no_lot_original' => "{$dateFormatted}IP1|100|JIG-010",
+            'qty_original' => 100,
+            'inisial_cabut' => 'AJ',
+            'splits' => [
+                1 => ['qty_split' => 20, 'no_lot_split' => "{$dateFormatted}IP1|100|JIG-010"],
+                2 => ['qty_split' => 30, 'no_lot_split' => "{$dateFormatted}IP1|100|JIG-010"],
+            ]
+        ];
+
+        // 3. Post to store route using relative path
+        $response = $this->post(route('plating_scan.cabut.store', [], false), $data);
+        $response->assertRedirect(route('plating_scan.cabut.create', [], false));
+
+        // 4. Assert that Cabut and Split records were created
+        $cabut = \App\Models\PlatingCabutRecord::where('pasang_qrcode', $data['pasang_qrcode'])->first();
+        $this->assertNotNull($cabut);
+
+        $splits = \App\Models\PlatingCabutSplit::where('plating_cabut_record_id', $cabut->id)->get();
+        $this->assertCount(2, $splits);
+
+        // First split QR format should be: PartCode|NoPO|TglCabutInisialCabutShift|QtySplit|CBT-001
+        // e.g. 53102-K0L-D002|POXXXXXX|04062029AJ2|20|CBT-001
+        $this->assertEquals(
+            "53102-K0L-D002|$po|{$dateFormatted}AJ2|20|CBT-001",
+            $splits[0]->generated_qrcode
+        );
+
+        $this->assertEquals(
+            "53102-K0L-D002|$po|{$dateFormatted}AJ2|30|CBT-002",
+            $splits[1]->generated_qrcode
+        );
+
+        // 5. Test uniqueness checking endpoint for the new QR format
+        $checkResponse = $this->get(route('items.check-qr-unique', ['qrcode' => $splits[0]->generated_qrcode], false));
+        $checkResponse->assertStatus(200);
+        $checkResponse->assertJson(['success' => true]);
+    }
+
+    /** @test */
+    public function it_resets_jig_code_when_no_po_changes()
+    {
+        $plant = Plant::first() ?: Plant::create(['name' => 'Karawang', 'code' => 'KRW']);
+        $admin = User::where('role', 'admin')->first() ?: User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin_test@qc.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+            'plant_id' => $plant->id
+        ]);
+        
+        $this->actingAs($admin);
+
+        // 1. First Pasang with PO-12345
+        $data1 = [
+            'wip_qrcode' => 'B74-F4786-00|PO-12345|20|1|7-02-0347',
+            'no_po' => 'PO-12345',
+            'no_lot' => '1',
+            'qty' => 20,
+            'tanggal_pasang' => '2026-06-05',
+            'shift' => '1',
+            'inisial_pasang' => 'AJ'
+        ];
+        $response1 = $this->post(route('plating_scan.pasang.store', [], false), $data1);
+        $response1->assertStatus(302);
+        $record1 = \App\Models\PlatingPasangRecord::where('no_po', 'PO-12345')->orderBy('id', 'desc')->first();
+        $this->assertStringEndsWith('JIG-001', $record1->generated_qrcode);
+
+        // 2. Second Pasang with PO-12345 (JIG should increment to JIG-002)
+        $data2 = [
+            'wip_qrcode' => 'B74-F4786-00|PO-12345|20|2|7-02-0348',
+            'no_po' => 'PO-12345',
+            'no_lot' => '2',
+            'qty' => 20,
+            'tanggal_pasang' => '2026-06-05',
+            'shift' => '1',
+            'inisial_pasang' => 'AJ'
+        ];
+        $response2 = $this->post(route('plating_scan.pasang.store', [], false), $data2);
+        $response2->assertStatus(302);
+        $record2 = \App\Models\PlatingPasangRecord::where('no_po', 'PO-12345')->orderBy('id', 'desc')->first();
+        $this->assertStringEndsWith('JIG-002', $record2->generated_qrcode);
+
+        // 3. Third Pasang with a different PO-54321 (JIG should reset to JIG-001)
+        $data3 = [
+            'wip_qrcode' => 'B74-F4786-00|PO-54321|20|1|7-02-0349',
+            'no_po' => 'PO-54321',
+            'no_lot' => '1',
+            'qty' => 20,
+            'tanggal_pasang' => '2026-06-05',
+            'shift' => '1',
+            'inisial_pasang' => 'AJ'
+        ];
+        $response3 = $this->post(route('plating_scan.pasang.store', [], false), $data3);
+        $response3->assertStatus(302);
+        $record3 = \App\Models\PlatingPasangRecord::where('no_po', 'PO-54321')->orderBy('id', 'desc')->first();
+        $this->assertStringEndsWith('JIG-001', $record3->generated_qrcode);
+    }
+
+    /** @test */
+    public function it_resets_cabut_cbt_code_when_no_po_changes()
+    {
+        $plant = Plant::first() ?: Plant::create(['name' => 'Karawang', 'code' => 'KRW']);
+        $admin = User::where('role', 'admin')->first() ?: User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin_test@qc.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+            'plant_id' => $plant->id
+        ]);
+        
+        $this->actingAs($admin);
+
+        // Create dummy Pasang records for two different POs
+        $pasang1 = \App\Models\PlatingPasangRecord::create([
+            'wip_qrcode' => '53102-K0L-D002|PO-111|100|04062026IP1|JIG-010',
+            'tanggal_pasang' => '2026-06-04',
+            'shift' => '1',
+            'customer_part' => '53102-K0L-D002',
+            'no_po' => 'PO-111',
+            'qty' => 100,
+            'lot_id' => '04062026IP1',
+            'unique_code' => 'JIG-010',
+            'inisial_pasang' => 'IP',
+            'generated_qrcode' => '53102-K0L-D002|PO-111|100|04062026IP1|JIG-010',
+            'plant_id' => $plant->id,
+            'user_id' => $admin->id
+        ]);
+
+        $pasang2 = \App\Models\PlatingPasangRecord::create([
+            'wip_qrcode' => '53102-K0L-D002|PO-222|100|04062026IP2|JIG-011',
+            'tanggal_pasang' => '2026-06-04',
+            'shift' => '1',
+            'customer_part' => '53102-K0L-D002',
+            'no_po' => 'PO-222',
+            'qty' => 100,
+            'lot_id' => '04062026IP2',
+            'unique_code' => 'JIG-011',
+            'inisial_pasang' => 'IP',
+            'generated_qrcode' => '53102-K0L-D002|PO-222|100|04062026IP2|JIG-011',
+            'plant_id' => $plant->id,
+            'user_id' => $admin->id
+        ]);
+
+        // 1. Cabut first split for PO-111
+        $data1 = [
+            'pasang_qrcode' => '53102-K0L-D002|PO-111|100|04062026IP1|JIG-010',
+            'tanggal_cabut' => '2026-06-04',
+            'shift' => '2',
+            'no_po' => 'PO-111',
+            'no_lot_original' => '04062026IP1|100|JIG-010',
+            'qty_original' => 100,
+            'inisial_cabut' => 'AJ',
+            'splits' => [
+                1 => ['qty_split' => 20, 'no_lot_split' => '04062026IP1|100|JIG-010'],
+            ]
+        ];
+        $response1 = $this->post(route('plating_scan.cabut.store', [], false), $data1);
+        $response1->assertStatus(302);
+        
+        $cabut1 = \App\Models\PlatingCabutRecord::where('no_po', 'PO-111')->orderBy('id', 'desc')->first();
+        $split1 = \App\Models\PlatingCabutSplit::where('plating_cabut_record_id', $cabut1->id)->first();
+        $this->assertStringEndsWith('CBT-001', $split1->generated_qrcode);
+
+        // 2. Cabut second split for PO-111 (CBT should continue to CBT-002)
+        $data2 = [
+            'pasang_qrcode' => '53102-K0L-D002|PO-111|100|04062026IP1|JIG-010',
+            'tanggal_cabut' => '2026-06-04',
+            'shift' => '2',
+            'no_po' => 'PO-111',
+            'no_lot_original' => '04062026IP1|100|JIG-010',
+            'qty_original' => 100,
+            'inisial_cabut' => 'AJ',
+            'splits' => [
+                1 => ['qty_split' => 30, 'no_lot_split' => '04062026IP1|100|JIG-010'],
+            ]
+        ];
+        $response2 = $this->post(route('plating_scan.cabut.store', [], false), $data2);
+        $response2->assertStatus(302);
+
+        $cabut2 = \App\Models\PlatingCabutRecord::where('no_po', 'PO-111')->orderBy('id', 'desc')->first();
+        $split2 = \App\Models\PlatingCabutSplit::where('plating_cabut_record_id', $cabut2->id)->first();
+        $this->assertStringEndsWith('CBT-002', $split2->generated_qrcode);
+
+        // 3. Cabut third split for PO-222 (CBT should reset to CBT-001)
+        $data3 = [
+            'pasang_qrcode' => '53102-K0L-D002|PO-222|100|04062026IP2|JIG-011',
+            'tanggal_cabut' => '2026-06-04',
+            'shift' => '2',
+            'no_po' => 'PO-222',
+            'no_lot_original' => '04062026IP2|100|JIG-011',
+            'qty_original' => 100,
+            'inisial_cabut' => 'AJ',
+            'splits' => [
+                1 => ['qty_split' => 40, 'no_lot_split' => '04062026IP2|100|JIG-011'],
+            ]
+        ];
+        $response3 = $this->post(route('plating_scan.cabut.store', [], false), $data3);
+        $response3->assertStatus(302);
+
+        $cabut3 = \App\Models\PlatingCabutRecord::where('no_po', 'PO-222')->orderBy('id', 'desc')->first();
+        $split3 = \App\Models\PlatingCabutSplit::where('plating_cabut_record_id', $cabut3->id)->first();
+        $this->assertStringEndsWith('CBT-001', $split3->generated_qrcode);
+    }
 }

@@ -330,13 +330,42 @@
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle">
                                     @if($canExport)
+                                    @php
+                                        $wipQr    = '-';
+                                        $pasangQr = '-';
+                                        $cabutQr  = '-';
+                                        $qcQr     = $checksheet->qrcode_verifikasi ?: '-';
+
+                                        $rawQr = $checksheet->qrcode;
+
+                                        // Determine if the stored qrcode is CBT format (6 segments, last segment starts with CBT-)
+                                        $isCbtFormat = $rawQr && preg_match('/\|CBT-\d+$/', $rawQr);
+
+                                        if ($checksheet->platingCabutSplit && $checksheet->platingCabutSplit->cabutRecord) {
+                                            // Found the CBT split record — resolve the full chain
+                                            $cabutRec = $checksheet->platingCabutSplit->cabutRecord;
+                                            $cabutQr  = $checksheet->platingCabutSplit->generated_qrcode ?: ($isCbtFormat ? $rawQr : '-');
+                                            $wipQr    = $cabutRec->pasangRecord ? ($cabutRec->pasangRecord->wip_qrcode ?: '-') : '-';
+                                            $pasangQr = $cabutRec->pasangRecord ? ($cabutRec->pasangRecord->generated_qrcode ?: '-') : '-';
+                                        } elseif ($isCbtFormat) {
+                                            // No split record yet but qrcode looks like CBT — show in Cabut slot
+                                            $cabutQr = $rawQr;
+                                        } elseif ($rawQr && $qcQr === '-') {
+                                            // qrcode is NOT CBT format and no qrcode_verifikasi — treat as QC Verifikasi
+                                            $qcQr = $rawQr;
+                                        }
+                                    @endphp
                                     <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
                                         data-qr="{{ $checksheet->qrcode }}"
                                         data-part="{{ $checksheet->part_code ?? '-' }}"
                                         data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
                                         data-qty="{{ $checksheet->quantity ?? '-' }}"
                                         data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
-                                        data-sap="{{ $checksheet->sap_code ?? '-' }}">
+                                        data-sap="{{ $checksheet->sap_code ?? '-' }}"
+                                        data-qr-wip="{{ $wipQr }}"
+                                        data-qr-pasang="{{ $pasangQr }}"
+                                        data-qr-cabut="{{ $cabutQr }}"
+                                        data-qr-qc="{{ $qcQr }}">
                                         <i class="fas fa-qrcode"></i> View
                                     </button>
                                     @else
@@ -733,46 +762,237 @@
 
     {{-- Modal Traceability QR Code --}}
     <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="qrModalLabel">
-                        <i class="fas fa-qrcode mr-2"></i> Traceability QR Code
+                <div class="modal-header text-white py-2" style="background: linear-gradient(135deg, #3a7bd5, #2255b0);">
+                    <h5 class="modal-title font-weight-bold" id="qrModalLabel">
+                        <i class="fas fa-route mr-2"></i> Traceability QR Code — Alur WIP → QC
                     </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <table class="table table-bordered table-striped">
-                        <tr>
-                            <th style="width: 25%">QR Raw</th>
-                            <td id="modal-qr-raw" style="word-break: break-all; font-family: monospace;"></td>
-                        </tr>
-                        <tr>
-                            <th>Part Code</th>
-                            <td id="modal-qr-part"></td>
-                        </tr>
-                        <tr>
-                            <th>Supplier ID</th>
-                            <td id="modal-qr-supplier"></td>
-                        </tr>
-                        <tr>
-                            <th>Qty</th>
-                            <td id="modal-qr-qty"></td>
-                        </tr>
-                        <tr>
-                            <th>Unique ID</th>
-                            <td id="modal-qr-unique"></td>
-                        </tr>
-                        <tr>
-                            <th>SAP Code</th>
-                            <td id="modal-qr-sap"></td>
-                        </tr>
-                    </table>
+                <div class="modal-body p-0">
+
+                    {{-- STAGE 1: WIP / Injection --}}
+                    <div class="border-bottom" style="border-left: 5px solid #6c757d !important;">
+                        <div class="px-3 pt-3 pb-1 d-flex align-items-center">
+                            <span class="badge badge-secondary px-2 py-1 mr-2" style="font-size:0.75rem;">1</span>
+                            <span class="font-weight-bold text-secondary" style="font-size:0.88rem;">WIP / Injection (QR Bahan Baku)</span>
+                        </div>
+                        <div class="px-3 pb-3">
+                            <div class="mb-2">
+                                <small class="text-muted font-weight-bold">QR String:</small><br>
+                                <code id="modal-trace-wip" class="text-secondary d-block mt-1 p-2 rounded" style="word-break:break-all; font-size:0.78rem; background:#f8f9fa; border:1px solid #dee2e6;">-</code>
+                            </div>
+                            <div id="trace-detail-wip" class="d-none">
+                                <div class="row no-gutters" style="font-size:0.78rem;">
+                                    <div class="col-md-4 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Part Code</div>
+                                            <div id="trace-wip-part" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">No PO / Supplier</div>
+                                            <div id="trace-wip-po" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Qty</div>
+                                            <div id="trace-wip-qty" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Lot Code / Unique</div>
+                                            <div id="trace-wip-lot" class="font-weight-bold text-truncate">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">SAP Code</div>
+                                            <div id="trace-wip-sap" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STAGE 2: Plating Pasang --}}
+                    <div class="border-bottom" style="border-left: 5px solid #17a2b8 !important;">
+                        <div class="px-3 pt-3 pb-1 d-flex align-items-center">
+                            <span class="badge badge-info px-2 py-1 mr-2" style="font-size:0.75rem;">2</span>
+                            <span class="font-weight-bold text-info" style="font-size:0.88rem;">Plating Pasang (QR Label Pasang)</span>
+                        </div>
+                        <div class="px-3 pb-3">
+                            <div class="mb-2">
+                                <small class="text-muted font-weight-bold">QR String:</small><br>
+                                <code id="modal-trace-pasang" class="text-info d-block mt-1 p-2 rounded" style="word-break:break-all; font-size:0.78rem; background:#f0fbff; border:1px solid #bee5eb;">-</code>
+                            </div>
+                            <div id="trace-detail-pasang" class="d-none">
+                                <div class="row no-gutters" style="font-size:0.78rem;">
+                                    <div class="col-md-4 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Part Code</div>
+                                            <div id="trace-pasang-part" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Lot ID</div>
+                                            <div id="trace-pasang-lot" class="font-weight-bold text-truncate">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Unique Code (Cavity)</div>
+                                            <div id="trace-pasang-unique" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Tgl Pasang</div>
+                                            <div id="trace-pasang-date" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Operator / Shift</div>
+                                            <div id="trace-pasang-ops" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Qty</div>
+                                            <div id="trace-pasang-qty" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">No JIG</div>
+                                            <div id="trace-pasang-jig" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STAGE 3: Plating Cabut --}}
+                    <div class="border-bottom" style="border-left: 5px solid #28a745 !important;">
+                        <div class="px-3 pt-3 pb-1 d-flex align-items-center">
+                            <span class="badge badge-success px-2 py-1 mr-2" style="font-size:0.75rem;">3</span>
+                            <span class="font-weight-bold text-success" style="font-size:0.88rem;">Plating Cabut (QR Split Bucket)</span>
+                        </div>
+                        <div class="px-3 pb-3">
+                            <div class="mb-2">
+                                <small class="text-muted font-weight-bold">QR String:</small><br>
+                                <code id="modal-trace-cabut" class="text-success d-block mt-1 p-2 rounded" style="word-break:break-all; font-size:0.78rem; background:#f0fff4; border:1px solid #c3e6cb;">-</code>
+                            </div>
+                            <div id="trace-detail-cabut" class="d-none">
+                                <div class="row no-gutters" style="font-size:0.78rem;">
+                                    <div class="col-md-3 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Part Code</div>
+                                            <div id="trace-cabut-part" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">No PO</div>
+                                            <div id="trace-cabut-po" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Qty Original (Lot)</div>
+                                            <div id="trace-cabut-qty-orig" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">No Bucket</div>
+                                            <div id="trace-cabut-bucket" class="font-weight-bold text-success">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Tgl Cabut</div>
+                                            <div id="trace-cabut-date" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Operator / Shift</div>
+                                            <div id="trace-cabut-ops" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Qty Split Bucket</div>
+                                            <div id="trace-cabut-qty-split" class="font-weight-bold text-success">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STAGE 4: QC Verifikasi --}}
+                    <div style="border-left: 5px solid #ffc107 !important;">
+                        <div class="px-3 pt-3 pb-1 d-flex align-items-center">
+                            <span class="badge badge-warning px-2 py-1 mr-2" style="font-size:0.75rem;">4</span>
+                            <span class="font-weight-bold" style="font-size:0.88rem; color:#d39e00;">QC Verifikasi / Gudang (QR Scan Akhir)</span>
+                        </div>
+                        <div class="px-3 pb-3">
+                            <div class="mb-2">
+                                <small class="text-muted font-weight-bold">QR String:</small><br>
+                                <code id="modal-trace-qc" class="d-block mt-1 p-2 rounded" style="word-break:break-all; font-size:0.78rem; background:#fffdf0; border:1px solid #ffeaa7; color:#856404;">-</code>
+                            </div>
+                            <div id="trace-detail-qc" class="d-none">
+                                <div class="row no-gutters" style="font-size:0.78rem;">
+                                    <div class="col-md-4 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Part Code</div>
+                                            <div id="trace-qc-part" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 px-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">No PO / Supplier</div>
+                                            <div id="trace-qc-po" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Qty</div>
+                                            <div id="trace-qc-qty" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 pr-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">Lot Code / Unique</div>
+                                            <div id="trace-qc-lot" class="font-weight-bold text-truncate">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 pl-md-1 mb-1">
+                                        <div class="border rounded p-2 h-100 bg-white">
+                                            <div class="text-muted font-weight-bold mb-1">SAP Code</div>
+                                            <div id="trace-qc-sap" class="font-weight-bold">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
