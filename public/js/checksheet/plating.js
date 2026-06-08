@@ -224,10 +224,10 @@ class PlatingIndex {
         // ── Click Handler ──────────────────────────────────────────────────────
         $(document).on("click", ".btn-qr-detail", function () {
             const data = $(this).data();
-            const wipQr    = data.qrWip    || '-';
+            const wipQr = data.qrWip || '-';
             const pasangQr = data.qrPasang || '-';
-            const cabutQr  = data.qrCabut  || '-';
-            const qcQr     = data.qrQc     || '-';
+            const cabutQr = data.qrCabut || '-';
+            const qcQr = data.qrQc || '-';
 
             // Populate raw QR strings
             $("#modal-trace-wip").text(wipQr);
@@ -810,7 +810,7 @@ class PlatingCreate {
             // Auto-fill no_lot, plating_date, plating_shift if lotCabut is available
             if (lotCabut) {
                 $("#noLotInput").val(lotCabut);
-                
+
                 if (lotCabut.includes("-")) {
                     const lotParts = lotCabut.split("-");
                     if (lotParts.length === 3) {
@@ -1509,21 +1509,21 @@ class PlatingCreate {
             $("#judgmentSelect").val(result).trigger("change");
 
             // Update Badge Style (for Scan mode)
-            $("#judgmentBadge").text(result).removeClass('badge-success badge-danger text-white text-dark');
+            $("#judgmentBadge").text(result).removeClass('badge-success badge-danger text-white text-dark text-success text-danger');
             if (result === "NG") {
-                $("#judgmentBadge").addClass("text-white").css({
-                    "background-color": "#e74a3b",
-                    "border-color": "#e74a3b"
+                $("#judgmentBadge").addClass("text-danger").css({
+                    "background-color": "#fff",
+                    "border-color": "#dc3545"
                 });
             } else {
-                $("#judgmentBadge").addClass("text-white").css({
-                    "background-color": "#1cc88a",
-                    "border-color": "#1cc88a"
+                $("#judgmentBadge").addClass("text-success").css({
+                    "background-color": "#fff",
+                    "border-color": "#28a745"
                 });
             }
         } else {
             $("#judgmentSelect").val("");
-            $("#judgmentBadge").removeClass("text-white text-dark").text("-").css({
+            $("#judgmentBadge").removeClass("text-white text-dark text-success text-danger").text("-").css({
                 "background-color": "#f8f9fc",
                 "color": "#5a5c69",
                 "border-color": "#dddfeb"
