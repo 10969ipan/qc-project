@@ -30,6 +30,7 @@ class InProcessChecksheetApiController extends Controller
             'Sub Assy' => \App\Models\SubAssyChecksheet::class,
             'Double Tape' => \App\Models\DoubleTapeChecksheet::class,
             'Plating' => \App\Models\PlatingChecksheet::class,
+            'Painting' => \App\Models\PaintingChecksheet::class,
         ];
 
         $foundChecksheet = null;
