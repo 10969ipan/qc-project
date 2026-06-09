@@ -680,7 +680,14 @@ class PlatingCreate {
         this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
-        this.parseAndFillQR(decodedText);
+        this.parseAndFillQR(decodedText, (success) => {
+            if (success) {
+                this.lockInputs(false);
+                setTimeout(() => {
+                    $("#checksheetForm").submit();
+                }, 1200);
+            }
+        });
     }
 
     unlockAudio() {
@@ -1843,6 +1850,12 @@ class PlatingCreate {
 
             // Panggil parseAndFillQR
             this.parseAndFillQR(raw, (success) => {
+                if (success) {
+                    this.lockInputs(false);
+                    setTimeout(() => {
+                        $("#checksheetForm").submit();
+                    }, 1200);
+                }
                 // Biarkan input bisa di-scan lagi setelah 1.5 detik
                 setTimeout(() => {
                     $("#sapCodeInput").prop("disabled", false).css("background", "");
