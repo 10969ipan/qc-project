@@ -294,7 +294,7 @@ class PlatingChecksheetController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $this->restrictToKarawang();
 
@@ -302,6 +302,14 @@ class PlatingChecksheetController extends Controller
         $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
         \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Plating: {$itemName}");
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Checksheet Plating berhasil dihapus.'
+            ]);
+        }
+
         return redirect()->route('plating.index')->with('success', 'Data Checksheet Plating berhasil dihapus.');
     }
 
