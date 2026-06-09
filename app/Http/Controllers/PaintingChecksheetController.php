@@ -294,7 +294,7 @@ class PaintingChecksheetController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $this->restrictToKarawang();
 
@@ -302,6 +302,14 @@ class PaintingChecksheetController extends Controller
         $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
         \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Painting: {$itemName}");
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Checksheet Painting berhasil dihapus.'
+            ]);
+        }
+
         return redirect()->route('painting.index')->with('success', 'Data Checksheet Painting berhasil dihapus.');
     }
 
