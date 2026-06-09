@@ -1783,7 +1783,6 @@ class SubAssyCreate {
     initLinePersistence() {
         const fields = [
             { id: "line", key: "last_subassy_line_selection" },
-            { name: "operator_initials", key: "last_subassy_operator_initials" },
             { id: "shiftSelect", key: "last_subassy_shift_selection" }
         ];
 
@@ -2037,7 +2036,6 @@ class SubAssyCreate {
     restorePersistentFields() {
         const fields = [
             { id: "line", key: "last_subassy_line_selection" },
-            { name: "operator_initials", key: "last_subassy_operator_initials" },
             { id: "shiftSelect", key: "last_subassy_shift_selection" }
         ];
         fields.forEach(field => {

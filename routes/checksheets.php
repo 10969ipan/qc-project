@@ -13,6 +13,7 @@ use App\Http\Controllers\IncomingSubPartController;
 use App\Http\Controllers\IncomingExportController;
 use App\Http\Controllers\IncomingChemicalController;
 use App\Http\Controllers\PlatingChecksheetController;
+use App\Http\Controllers\PaintingChecksheetController;
 use App\Http\Controllers\DoubleTapeChecksheetController;
 use App\Http\Controllers\PlatingScanController;
 
@@ -40,6 +41,10 @@ Route::middleware(['auth'])->group(function () {
         // Plating
         Route::get('/checksheet/plating', [PlatingChecksheetController::class, 'create'])->name('plating.create');
         Route::post('/checksheet/plating', [PlatingChecksheetController::class, 'store'])->name('plating.store');
+
+        // Painting
+        Route::get('/checksheet/painting', [PaintingChecksheetController::class, 'create'])->name('painting.create');
+        Route::post('/checksheet/painting', [PaintingChecksheetController::class, 'store'])->name('painting.store');
 
         // Double Tape
         Route::get('/checksheet/double-tape', [DoubleTapeChecksheetController::class, 'create'])->name('double_tape.create');
@@ -98,6 +103,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/plating/next-no-lot', [PlatingChecksheetController::class, 'getAutoNoLot'])->name('plating.next_no_lot');
     Route::get('/api/plating/last-data', [PlatingChecksheetController::class, 'getLastData'])->name('plating.last_data');
 
+    // Special routes for Painting
+    Route::get('/api/painting/next-no-lot', [PaintingChecksheetController::class, 'getAutoNoLot'])->name('painting.next_no_lot');
+    Route::get('/api/painting/last-data', [PaintingChecksheetController::class, 'getLastData'])->name('painting.last_data');
+
     // Special routes for Sub Assy
     Route::get('/api/sub-assy/last-line', [SubAssyChecksheetController::class, 'getLastLine'])->name('sub_assy.last_line');
 
@@ -107,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
         // Index Pages
         Route::get('/report/checksheets', [SubAssyChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/plating-checksheets', [PlatingChecksheetController::class, 'index'])->name('plating.index');
+        Route::get('/report/painting-checksheets', [PaintingChecksheetController::class, 'index'])->name('painting.index');
         Route::get('/report/double-tape-checksheets', [DoubleTapeChecksheetController::class, 'index'])->name('double_tape.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
         Route::get('/report/first-piece-approvals', [FirstPieceApprovalController::class, 'index'])->name('first_piece_approval.index');
@@ -134,6 +144,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/plating-checksheets/daily-recap', [PlatingChecksheetController::class, 'dailyRecap'])->name('plating.daily_recap');
         Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
         Route::get('/report/plating-checksheets/print', [PlatingChecksheetController::class, 'printView'])->name('plating.print');
+        Route::get('/report/painting-checksheets/daily-recap', [PaintingChecksheetController::class, 'dailyRecap'])->name('painting.daily_recap');
+        Route::get('/report/painting-checksheets/export-pdf', [PaintingChecksheetController::class, 'exportPdf'])->name('painting.export_pdf');
+        Route::get('/report/painting-checksheets/print', [PaintingChecksheetController::class, 'printView'])->name('painting.print');
         Route::get('/report/double-tape-checksheets/daily-recap', [DoubleTapeChecksheetController::class, 'dailyRecap'])->name('double_tape.daily_recap');
         Route::get('/report/double-tape-checksheets/export-pdf', [DoubleTapeChecksheetController::class, 'exportPdf'])->name('double_tape.export_pdf');
         Route::get('/report/double-tape-checksheets/print', [DoubleTapeChecksheetController::class, 'printView'])->name('double_tape.print');
@@ -171,6 +184,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/plating-checksheets/{id}/approve/{type}', [PlatingChecksheetController::class, 'approve'])->name('plating.approve');
         Route::post('/plating-checksheets/{id}/reject/{type}', [PlatingChecksheetController::class, 'reject'])->name('plating.reject');
 
+        // Painting Approval
+        Route::get('/report/painting-checksheets/{id}/edit-approval', [PaintingChecksheetController::class, 'editApproval'])->name('painting.edit_approval');
+        Route::put('/report/painting-checksheets/{id}/update-approval', [PaintingChecksheetController::class, 'updateApproval'])->name('painting.update_approval');
+        Route::post('/painting-checksheets/{id}/approve/{type}', [PaintingChecksheetController::class, 'approve'])->name('painting.approve');
+        Route::post('/painting-checksheets/{id}/reject/{type}', [PaintingChecksheetController::class, 'reject'])->name('painting.reject');
+
         // Double Tape Approval
         Route::get('/report/double-tape-checksheets/{id}/edit-approval', [DoubleTapeChecksheetController::class, 'editApproval'])->name('double_tape.edit_approval');
         Route::put('/report/double-tape-checksheets/{id}/update-approval', [DoubleTapeChecksheetController::class, 'updateApproval'])->name('double_tape.update_approval');
@@ -194,6 +213,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cross-cut-painting-checksheets/bulk-approve', [CrossCutPaintingChecksheetController::class, 'bulkApprove'])->name('cross_cut_painting.bulk_approve');
         Route::post('/sortir-checksheets/bulk-approve', [SortirChecksheetController::class, 'bulkApprove'])->name('sortir.bulk_approve');
         Route::post('/plating-checksheets/bulk-approve', [PlatingChecksheetController::class, 'bulkApprove'])->name('plating.bulk_approve');
+        Route::post('/painting-checksheets/bulk-approve', [PaintingChecksheetController::class, 'bulkApprove'])->name('painting.bulk_approve');
         Route::post('/double-tape-checksheets/bulk-approve', [DoubleTapeChecksheetController::class, 'bulkApprove'])->name('double_tape.bulk_approve');
         Route::post('/first-piece-approvals/bulk-approve', [FirstPieceApprovalController::class, 'bulkApprove'])->name('first_piece_approval.bulk_approve');
 
@@ -220,6 +240,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('plating-checksheets/{id}/edit', [PlatingChecksheetController::class, 'edit'])->name('plating.edit');
             Route::put('plating-checksheets/{id}', [PlatingChecksheetController::class, 'update'])->name('plating.update');
             Route::delete('plating-checksheets/{id}', [PlatingChecksheetController::class, 'destroy'])->name('plating.destroy');
+
+            // Painting Edit/Update/Delete
+            Route::get('painting-checksheets/{id}/edit', [PaintingChecksheetController::class, 'edit'])->name('painting.edit');
+            Route::put('painting-checksheets/{id}', [PaintingChecksheetController::class, 'update'])->name('painting.update');
+            Route::delete('painting-checksheets/{id}', [PaintingChecksheetController::class, 'destroy'])->name('painting.destroy');
 
             // Double Tape Edit/Update/Delete
             Route::get('double-tape-checksheets/{id}/edit', [DoubleTapeChecksheetController::class, 'edit'])->name('double_tape.edit');

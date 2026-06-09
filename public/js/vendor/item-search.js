@@ -91,9 +91,9 @@
         selectEl.dataset.ipsInit = '1';
 
         opts = opts || {};
-        var placeholder   = opts.placeholder   || 'Cari nama / part no / SAP...';
-        var maxResults    = opts.maxResults    || 60;
-        var startBtnId    = opts.startButtonId !== undefined ? opts.startButtonId : 'startTimerBtn';
+        var placeholder = opts.placeholder || 'Cari items / part number / kode sap...';
+        var maxResults = opts.maxResults || 60;
+        var startBtnId = opts.startButtonId !== undefined ? opts.startButtonId : 'startTimerBtn';
 
         injectStyles();
 
@@ -134,9 +134,9 @@
         }
 
         function matchOption(opt, q) {
-            var name    = (opt.dataset.name     || opt.text || '').toLowerCase();
-            var partNo  = (opt.dataset.partNumber || '').toLowerCase();
-            var sapCode = (opt.dataset.sapCode   || opt.dataset.sap_code || '').toLowerCase();
+            var name = (opt.dataset.name || opt.text || '').toLowerCase();
+            var partNo = (opt.dataset.partNumber || '').toLowerCase();
+            var sapCode = (opt.dataset.sapCode || opt.dataset.sap_code || '').toLowerCase();
             return name.indexOf(q) !== -1 || partNo.indexOf(q) !== -1 || sapCode.indexOf(q) !== -1;
         }
 
@@ -150,7 +150,7 @@
             currentItems = [];
 
             var allOpts = getOptions();
-            var matched = q ? allOpts.filter(function(o){ return matchOption(o, q); }) : allOpts;
+            var matched = q ? allOpts.filter(function (o) { return matchOption(o, q); }) : allOpts;
 
             if (matched.length === 0) {
                 var empty = document.createElement('div');
@@ -165,29 +165,29 @@
             var shown = matched.slice(0, maxResults);
             currentItems = shown;
 
-            shown.forEach(function(opt, idx) {
-                var name    = opt.dataset.name     || opt.text || '';
-                var partNo  = opt.dataset.partNumber || '';
-                var sapCode = opt.dataset.sapCode   || opt.dataset.sap_code || '';
-                var customer= opt.dataset.customer  || '';
+            shown.forEach(function (opt, idx) {
+                var name = opt.dataset.name || opt.text || '';
+                var partNo = opt.dataset.partNumber || '';
+                var sapCode = opt.dataset.sapCode || opt.dataset.sap_code || '';
+                var customer = opt.dataset.customer || '';
 
                 var item = document.createElement('div');
                 item.className = 'ips-item';
                 item.dataset.idx = idx;
 
                 var sub = [];
-                if (partNo)  sub.push(partNo);
+                if (partNo) sub.push(partNo);
                 if (sapCode) sub.push('SAP: ' + sapCode);
-                if (customer)sub.push(customer);
+                if (customer) sub.push(customer);
 
                 var detail = opt.dataset.detail || '';
 
                 item.innerHTML =
                     '<div class="ips-name">' + highlight(name, q) + '</div>' +
                     (sub.length ? '<div class="ips-sub">' + highlight(sub.join(' · '), q) + '</div>' : '') +
-                    (detail  ? '<div class="ips-sub ips-detail">' + detail + '</div>' : '');
+                    (detail ? '<div class="ips-sub ips-detail">' + detail + '</div>' : '');
 
-                item.addEventListener('mousedown', function(e) {
+                item.addEventListener('mousedown', function (e) {
                     e.preventDefault();
                     selectOption(opt);
                     closeDropdown();
@@ -210,7 +210,7 @@
             var rect = input.getBoundingClientRect();
             var scrollY = window.pageYOffset || document.documentElement.scrollTop;
             var scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-            
+
             dropdown.style.setProperty('position', 'absolute', 'important');
             dropdown.style.setProperty('top', (rect.bottom + scrollY) + 'px', 'important');
             dropdown.style.setProperty('left', (rect.left + scrollX) + 'px', 'important');
@@ -242,7 +242,7 @@
 
         function setActive(idx) {
             var items = dropdown.querySelectorAll('.ips-item');
-            items.forEach(function(el) { el.classList.remove('ips-active'); });
+            items.forEach(function (el) { el.classList.remove('ips-active'); });
             if (idx >= 0 && idx < items.length) {
                 items[idx].classList.add('ips-active');
                 items[idx].scrollIntoView({ block: 'nearest' });

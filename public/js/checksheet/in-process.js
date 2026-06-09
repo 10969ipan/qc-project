@@ -767,8 +767,7 @@ class InProcessCreate {
     restorePersistentFields() {
         const fields = [
             { id: "code_machine", key: "last_machine_selection" },
-            { id: "shiftSelect", key: "last_shift_selection", name: "shift" },
-            { name: "operator_initials", key: "last_operator_initials" }
+            { id: "shiftSelect", key: "last_shift_selection", name: "shift" }
         ];
         fields.forEach(field => {
             const $el = field.id ? $("#" + field.id) : $(`input[name="${field.name}"], select[name="${field.name}"]`);
@@ -1620,8 +1619,7 @@ class InProcessCreate {
         const _this = this;
         const fields = [
             { id: "code_machine", key: "last_machine_selection" },
-            { id: "shiftSelect", key: "last_shift_selection", name: "shift" },
-            { id: "operatorInput", key: "last_operator_initials", name: "operator_initials" }
+            { id: "shiftSelect", key: "last_shift_selection", name: "shift" }
         ];
 
         fields.forEach(field => {

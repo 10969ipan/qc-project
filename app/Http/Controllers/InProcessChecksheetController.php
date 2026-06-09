@@ -137,9 +137,20 @@ class InProcessChecksheetController extends Controller
             $query->select('item_id')->from('in_process_checksheets')->where('plant_id', $plantId);
         })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
 
-        $initials = InProcessChecksheet::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials')
-            ->distinct()
+        $initialsQuery = InProcessChecksheet::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials');
+
+        if (!empty($filters['start_date'])) {
+            $initialsQuery->whereDate('date', '>=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $initialsQuery->whereDate('date', '<=', $filters['end_date']);
+        }
+        if (!empty($filters['shift'])) {
+            $initialsQuery->where('shift', $filters['shift']);
+        }
+
+        $initials = $initialsQuery->distinct()
             ->pluck('operator_initials')
             ->sort();
 
