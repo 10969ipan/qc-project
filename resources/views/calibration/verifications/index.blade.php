@@ -281,14 +281,29 @@
                     <!-- Cari Umum -->
                     <div class="d-flex align-items-center">
                         <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                        <input type="text" name="search" id="searchVerif"
-                            class="form-control form-control-sm border-0 shadow-sm" 
-                            style="width: 250px; font-size: 0.75rem;" 
-                            placeholder="Cari Alat, Merk, No. Seri..." 
-                            value="{{ request('search') }}" autocomplete="off">
+                        <div style="width: 250px;" class="custom-filter-wrapper">
+                            <select name="search" id="searchVerif" class="form-control form-control-sm border-0 shadow-sm d-none">
+                                <option value="">Semua Alat, Merk, No. Seri...</option>
+                                @foreach($tools as $tool)
+                                    <option value="{{ $tool->serial_number }}" 
+                                            data-name="{{ $tool->name_alat }}" 
+                                            data-part-number="{{ $tool->serial_number }}" 
+                                            data-sap-code="{{ $tool->merk }}" 
+                                            {{ request('search') == $tool->serial_number ? 'selected' : '' }}>
+                                        {{ $tool->name_alat }} {{ $tool->merk ? '- '.$tool->merk : '' }} {{ $tool->serial_number ? '('.$tool->serial_number.')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+                        <style>
+                            .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                            .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                            .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                            .custom-filter-wrapper { position: relative; top: -1px; }
+                        </style>
                         <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
                             <i class="fas fa-search fa-sm"></i>
                         </button>
@@ -1037,6 +1052,14 @@
         };
     </script>
     <script src="{{ asset('js/calibration/calibration-verifications.js') }}?v={{ filemtime(public_path('js/calibration/calibration-verifications.js')) }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('searchVerif', { placeholder: 'Cari Alat, Merk, No. Seri...', maxResults: 50 });
+            }
+        });
+    </script>
     <script>
         $(document).ready(function() {
             $('.delete-form').on('submit', function(e) {
