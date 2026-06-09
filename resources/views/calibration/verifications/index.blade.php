@@ -1057,20 +1057,6 @@
                     }
                 });
             });
-
-            // Auto-submit filter: debounce for text input
-            var debounceTimer;
-            $('#searchVerif').on('input', function () {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    $('#filterFormVerif').submit();
-                }, 500);
-            });
-
-            // Auto-submit filter: instant for date + select + year
-            $('#startDateVerif, #endDateVerif, #yearVerif').on('change', function () {
-                $('#filterFormVerif').submit();
-            });
         });
     </script>
 @endpush
