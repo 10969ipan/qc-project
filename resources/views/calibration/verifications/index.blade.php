@@ -255,7 +255,7 @@
                     <div class="d-flex align-items-center">
                         <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
                         <div style="width: 85px;">
-                            <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
+                            <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm">
                                 @foreach($availableYears as $ay)
                                     <option value="{{ $ay }}" {{ $year == $ay ? 'selected' : '' }}>{{ $ay }}</option>
                                 @endforeach
