@@ -79,7 +79,11 @@ class ItemService extends BaseService
         try {
             // Pre-validate uniqueness in DB to avoid moving files if SQL insert will fail
             if (!empty($data['sap_code'])) {
-                if (Item::where('sap_code', $data['sap_code'])->exists()) {
+                $plantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id);
+                if (Item::where('sap_code', $data['sap_code'])
+                    ->where('plant_id', $plantId)
+                    ->where('category_id', $data['category_id'])
+                    ->exists()) {
                     throw new \Exception("Duplicate entry '{$data['sap_code']}' for key 'items.items_sap_code_unique'");
                 }
             }
@@ -142,7 +146,13 @@ class ItemService extends BaseService
         try {
             // Pre-validate uniqueness in DB to avoid moving files if SQL update will fail
             if (!empty($data['sap_code'])) {
-                if (Item::where('sap_code', $data['sap_code'])->where('id', '!=', $id)->exists()) {
+                $itemCurrent = Item::find($id);
+                $plantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? ($itemCurrent ? $itemCurrent->plant_id : auth()->user()->plant_id));
+                if (Item::where('sap_code', $data['sap_code'])
+                    ->where('plant_id', $plantId)
+                    ->where('category_id', $data['category_id'])
+                    ->where('id', '!=', $id)
+                    ->exists()) {
                     throw new \Exception("Duplicate entry '{$data['sap_code']}' for key 'items.items_sap_code_unique'");
                 }
             }
