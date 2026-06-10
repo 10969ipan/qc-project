@@ -121,6 +121,11 @@ class InProcessChecksheetController extends Controller
             'shift' => $request->shift,
         ];
 
+        // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
+        if ($request->get('view_mode') !== 'verifikasi') {
+            $filters['entry_method'] = 'regular';
+        }
+
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
 
         $partDimensionStandards = $this->getConsolidatedStandards();

@@ -113,6 +113,11 @@ class SubAssyChecksheetController extends Controller
             'shift' => $request->shift,
         ];
 
+        // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
+        if ($request->get('view_mode') !== 'verifikasi') {
+            $filters['entry_method'] = 'regular';
+        }
+
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
         // Data for filters (Standardized with Cross-Cut)

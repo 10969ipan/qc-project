@@ -107,7 +107,12 @@ class PaintingChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
-        $filters['plant'] = 'karawang'; 
+        $filters['plant'] = 'karawang';
+
+        // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
+        if ($request->get('view_mode') !== 'verifikasi') {
+            $filters['entry_method'] = 'regular';
+        }
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         
