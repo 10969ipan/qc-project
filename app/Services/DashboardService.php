@@ -253,6 +253,11 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
+        // Hanya hitung data regular (bukan verification) untuk modul yang memiliki kolom entry_method
+        if (Schema::hasColumn($table, 'entry_method')) {
+            $query->where('entry_method', 'regular');
+        }
+
         // Filter data H-1 saja (Hari ini tidak termasuk) per user request
         if ($dailyOnly) {
             $query->whereDate($dateColumn, '=', now()->subDay()->toDateString());
