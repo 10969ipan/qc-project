@@ -170,6 +170,13 @@
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            @if(request('view_mode') === 'verifikasi')
+                <h6 class="m-0 font-weight-bold" style="color: #6f42c1;"><i class="fas fa-clipboard-check mr-1"></i> Data Hasil Verifikasi Sub Assy</h6>
+            @else
+                <h6 class="m-0 font-weight-bold text-primary">Data Masuk Sub Assy</h6>
+            @endif
+        </div>
         <div class="card-body">
             <form action="{{ route('admin.checksheets.index') }}" method="GET"
                 class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
@@ -243,17 +250,7 @@
                     </div>
                 </div>
 
-                <!-- Field: Entry Method -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tipe:</label>
-                    <div style="width: 120px;" class="custom-filter-wrapper">
-                        <select name="entry_method" id="filterMethod" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua</option>
-                            <option value="verification" {{ request('entry_method') == 'verification' ? 'selected' : '' }}>Verification</option>
-                            <option value="regular" {{ request('entry_method') == 'regular' ? 'selected' : '' }}>Regular</option>
-                        </select>
-                    </div>
-                </div>
+
 
                 <!-- Field: QR Raw -->
                 <div class="d-flex align-items-center">
@@ -284,6 +281,19 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if(request('view_mode') !== 'verifikasi')
+                        <a href="{{ route('admin.checksheets.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Data Hasil Verifikasi"
+                            style="background-color: #6f42c1; color: white;">
+                            <i class="fas fa-clipboard-check fa-sm"></i> Hasil Verifikasi
+                        </a>
+                    @else
+                        <a href="{{ route('admin.checksheets.index', ['plant' => request('plant')]) }}"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Kembali ke Data Regular"
+                            style="background-color: #6c757d; color: white;">
+                            <i class="fas fa-arrow-left fa-sm"></i> Kembali
+                        </a>
+                    @endif
                     @if($canExport)
                     <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
@@ -333,20 +343,24 @@
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inspector</th>
 
-                            <th colspan="4" class="align-middle">Approval Status</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="4" class="align-middle">Approval Status</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                            @if(request('view_mode') !== 'verifikasi' && !in_array(auth()->user()->role, ['inspector', 'oshef']))
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
                             @endif
                         </tr>
                         <tr class="text-center">
                             <th style="width: 60px; min-width: 60px;">Pcs</th>
                             <th style="min-width: 150px;">Jenis NG</th>
-                            <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
-                            </th>
-                            <th style="font-size: 10px;">Supervisor QC</th>
-                            <th style="font-size: 10px;">Asst. Manager QC</th>
-                            <th style="font-size: 10px;">Manager QC</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
+                                </th>
+                                <th style="font-size: 10px;">Supervisor QC</th>
+                                <th style="font-size: 10px;">Asst. Manager QC</th>
+                                <th style="font-size: 10px;">Manager QC</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -429,6 +443,7 @@
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}</td>
 
+                                @if(request('view_mode') !== 'verifikasi')
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->kashift_qc === 'REJECTED')
@@ -522,6 +537,7 @@
                                             class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
+                                @endif {{-- end view_mode !== verifikasi --}}
 
                                 <td class="align-middle">
                                     @if($checksheet->rejection_remarks)
@@ -548,7 +564,7 @@
                                     @endif
                                 </td>
 
-                                @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                @if(request('view_mode') !== 'verifikasi' && !in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')
