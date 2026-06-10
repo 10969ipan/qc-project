@@ -741,6 +741,33 @@ class InProcessCreate {
 
         if (failedIndex === -1) {
             localStorage.removeItem('inprocess_scan_buffer');
+
+            //  call AMR logic
+            if (this.config.plantContext === 'karawang') {
+                const machineVal = queue.length > 0 ? queue[0].code_machine : $('#code_machine').val();
+                const fromLoc = machineVal ? ('MESIN-' + machineVal) : '';
+                const toLoc = batchNextProses;
+                if (fromLoc && toLoc && (toLoc === 'WIP' || toLoc === 'FG')) {
+                    $.ajax({
+                        url: 'http://192.168.230.38:1880/api/bawa-box',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ from: fromLoc.toUpperCase(), to: toLoc.toUpperCase() }),
+                        success: function (res) {
+                            if (res.ok) {
+                                console.log('Memanggil AMR Berhasil. OrderKey:', res.orderKey);
+                            } else {
+                                console.warn('Respon AMR Gagal:', res);
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error('AMR Error:', xhr);
+                        }
+                    });
+                }
+            }
+
+
             Swal.fire({
                 icon: "success",
                 title: "Semua Berhasil Disimpan",
@@ -1247,7 +1274,7 @@ class InProcessCreate {
                 $("#standardPdfCanvas, #similarPdfCanvas").show().removeClass("d-none");
                 $("#standardPdfPlaceholder, #similarPdfPlaceholder").hide().addClass("d-none");
                 _this.updateRefNavControls();
-                
+
                 const standardPdf = selectedOption.data("standard");
                 const similarPdf = selectedOption.data("similar");
                 if (standardPdf) {
