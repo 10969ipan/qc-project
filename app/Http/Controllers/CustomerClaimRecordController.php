@@ -46,6 +46,11 @@ class CustomerClaimRecordController extends Controller
             $query->where('id', $request->smart_filter);
         }
 
+        // Filter by claim type
+        if ($request->filled('claim_type')) {
+            $query->where('claim_type', $request->claim_type);
+        }
+
         // Global Search
         if ($request->filled('q')) {
             $searchTerm = $request->q;
@@ -114,27 +119,12 @@ class CustomerClaimRecordController extends Controller
             $query->where('id', $request->smart_filter);
         }
 
-        // Global Search
-        if ($request->filled('q')) {
-            $searchTerm = $request->q;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
-            });
+        // Filter by claim type
+        if ($request->filled('claim_type')) {
+            $query->where('claim_type', $request->claim_type);
         }
+
+        // Global Search
 
         if ($request->has('page')) {
             $records = $query->paginate(15)->getCollection();
@@ -194,6 +184,11 @@ class CustomerClaimRecordController extends Controller
 
         if ($request->filled('smart_filter')) {
             $query->where('id', $request->smart_filter);
+        }
+
+        // Filter by claim type
+        if ($request->filled('claim_type')) {
+            $query->where('claim_type', $request->claim_type);
         }
 
         if ($request->filled('q')) {

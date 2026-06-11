@@ -69,6 +69,17 @@
                     </select>
                 </div>
 
+                <!-- Field: Claim Type -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Type:</label>
+                    <select name="claim_type" class="form-control form-control-sm border-0 shadow-sm" style="width: 130px; font-size: 0.75rem;">
+                        <option value="">SEMUA</option>
+                        <option value="OFFICIAL" {{ request('claim_type') == 'OFFICIAL' ? 'selected' : '' }}>Officially</option>
+                        <option value="NON OFFICIAL" {{ request('claim_type') == 'NON OFFICIAL' ? 'selected' : '' }}>Non Officially</option>
+                        <option value="SUSPECT" {{ request('claim_type') == 'SUSPECT' ? 'selected' : '' }}>Suspect</option>
+                    </select>
+                </div>
+
                 @php
                     $selectedId = request('smart_filter');
                 @endphp
@@ -108,11 +119,11 @@
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
                     @if($canExport)
-                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer'])) }}"
+                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type'])) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
                         <i class="fas fa-file-pdf fa-sm"></i>
                     </a>
-                    <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer'])) }}"
+                    <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type'])) }}"
                         target="_blank"
                         class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print" title="Print"
                         style="background-color: #17a589; color: white;">
@@ -243,7 +254,15 @@
                                 <td class="align-middle font-weight-bold">{{ $record->customer }}</td>
                                 <td class="align-middle">{{ Str::title($record->plant_up_customer) }}</td>
                                 <td class="text-center align-middle">
-                                    <span class="badge badge-{{ $record->claim_type == 'OFFICIAL' ? 'danger' : 'warning' }}">
+                                    @php
+                                        $claimBadge = match(strtoupper($record->claim_type ?? '')) {
+                                            'OFFICIAL'    => 'danger',
+                                            'NON OFFICIAL'=> 'warning',
+                                            'SUSPECT'     => 'success',
+                                            default       => 'secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge badge-{{ $claimBadge }}">
                                         {{ $record->claim_type }}
                                     </span>
                                 </td>
