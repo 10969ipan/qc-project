@@ -877,10 +877,10 @@
                                     <code id="modal-trace-qc" class="qr-string">-</code>
                                 </div>
                                 <div id="trace-detail-qc" class="trace-info d-none">
-                                    <div class="trace-row"><div class="trace-label">Part</div><div id="trace-qc-part" class="trace-val">-</div></div>
-                                    <div class="trace-row"><div class="trace-label">PO</div><div id="trace-qc-po" class="trace-val">-</div></div>
+                                    <div class="trace-row"><div class="trace-label">Part No</div><div id="trace-qc-part" class="trace-val">-</div></div>
+                                    <div class="trace-row"><div class="trace-label">ID IPP</div><div id="trace-qc-po" class="trace-val">-</div></div>
                                     <div class="trace-row"><div class="trace-label">Qty</div><div id="trace-qc-qty" class="trace-val">-</div></div>
-                                    <div class="trace-row"><div class="trace-label">Lot/Unq</div><div id="trace-qc-lot" class="trace-val">-</div></div>
+                                    <div class="trace-row"><div class="trace-label">Lot/Unique ID/CAV</div><div id="trace-qc-lot" class="trace-val">-</div></div>
                                     <div class="trace-row"><div class="trace-label">SAP</div><div id="trace-qc-sap" class="trace-val">-</div></div>
                                 </div>
                             </div>
