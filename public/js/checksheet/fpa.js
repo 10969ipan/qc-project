@@ -1603,7 +1603,7 @@ class FpaEdit {
             newRow += `</tr>`;
             $("#editDimensionBody").append(newRow);
         } else {
-            alert("Maximum 30 cavities reached");
+            alert("Maximum 50 cavities reached");
         }
     }
 
@@ -1623,7 +1623,7 @@ class FpaEdit {
                 </td>`);
             });
         } else {
-            alert("Maximum 30 points reached");
+            alert("Maximum 50 points reached");
         }
     }
 

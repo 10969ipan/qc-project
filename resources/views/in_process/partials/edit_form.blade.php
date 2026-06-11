@@ -384,8 +384,8 @@
             const partDimensionStandards = {!! $partDimensionStandards ?: '{}' !!};
             let currentCavities = {{ $maxCavityFound }};
             let currentPoints = {{ $maxPointFound }};
-            const maxCavities = 30;
-            const maxPoints = 30;
+            const maxCavities = 50;
+            const maxPoints = 50;
 
         $('#editAddCavityBtn').click(function () {
             if (currentCavities < maxCavities) {
@@ -406,7 +406,7 @@
                 newRow += `</tr>`;
                 $('#editDimensionBody').append(newRow);
             } else {
-                Swal.fire('Limit!', 'Maksimum 30 cavities.', 'warning');
+                Swal.fire('Limit!', 'Maksimum 50 cavities.', 'warning');
             }
         });
 
@@ -427,7 +427,7 @@
                                 </td>`);
                 });
             } else {
-                Swal.fire('Limit!', 'Maksimum 30 points.', 'warning');
+                Swal.fire('Limit!', 'Maksimum 50 points.', 'warning');
             }
         });
 

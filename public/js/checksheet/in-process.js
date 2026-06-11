@@ -385,8 +385,8 @@ class InProcessCreate {
         // Logika perluasan dimensi
         this.currentCavities = 2;
         this.currentPoints = 5;
-        this.maxCavities = 30;
-        this.maxPoints = 30;
+        this.maxCavities = 50;
+        this.maxPoints = 50;
 
         // Berat cavity maksimal
         this.MAX_WEIGHT_CAV = 8;
