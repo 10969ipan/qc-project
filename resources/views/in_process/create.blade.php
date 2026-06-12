@@ -677,7 +677,7 @@
     <!-- Bagian Tampilan PDF Berdampingan -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
         <div class="card-header py-3 bg-light">
-            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>STANDARD</h6>
+            <h6 class="m-0 font-weight-bold text-primary">STANDARD</h6>
         </div>
         <div class="card-body">
             <div class="row">
