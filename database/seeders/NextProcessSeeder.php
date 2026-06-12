@@ -19,7 +19,7 @@ class NextProcessSeeder extends Seeder
         }
 
         $modules = [
-            'plating', 'sub_assy', 'sortir', 'in_process', 
+            'plating', 'Painting', 'sub_assy', 'sortir', 'in_process', 
             'first_piece_approval', 'double_tape', 'cross_cut', 'cross_cut_painting'
         ];
 

@@ -62,6 +62,7 @@ class SettingsController extends Controller
             'sub_assy' => 'Sub Assy',
             'sortir' => 'Sortir',
             'plating' => 'Plating',
+            'Painting' => 'Painting',
             'in_process' => 'In-Process',
             'first_piece_approval' => 'First Piece Approval (FPA)',
             'double_tape' => 'Double Tape',
