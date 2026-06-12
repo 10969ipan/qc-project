@@ -3,46 +3,45 @@
 @section('title', 'Input Data Checksheet')
 
 @section('content')
-    <div class="card shadow mb-4 border-left-primary">
-        <div class="card-body py-3">
-            <div class="row align-items-start">
-                <div class="col-md-8 border-right">
-                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        CHECK SHEET CROSS CUT PAINTING
-                        @php
-                            $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
-                            $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-                            $plantCode = strtolower($plantCode ?: 'karawang');
-                        @endphp
-                        <span
-                            class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
-                            style="font-size: 0.8rem; width: fit-content;">
-                            <i class="fas fa-building mr-1"></i>
-                            Plant {{ ucfirst($plantCode) }}
-                        </span>
-                    </h1>
-                </div>
-                <div class="col-md-4 d-flex justify-content-end">
-                    <div class="col p-0" style="max-width: 250px;">
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: QC-KRW-F-0214</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 25/03/2015</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Revisi / Tgl</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 3 / 22/12/2025</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Halaman</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 1 / 1</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    <div class="card shadow mb-2">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            CHECK SHEET CROSS CUT PAINTING
+                        </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-0055/2</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">3 / 22/12/2025</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 
@@ -57,54 +56,33 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Cross Cut</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Checksheet Cross Cut Painting</h6>
         </div>
         <div class="card-body">
-            <!-- Plant Selector for Admin -->
-            @if(auth()->user()->role === 'admin')
-                <form method="GET" action="{{ route('cross_cut.create') }}" class="mb-3">
-                    <div class="form-group row">
-                        <label for="plant" class="col-sm-2 col-form-label font-weight-bold">Pilih Plant:</label>
-                        <div class="col-sm-4">
-                            <select name="plant" id="plant" class="form-control" onchange="this.form.submit()">
-                                <option value="">-- Semua Plant --</option>
-                                <option value="karawang" {{ request('plant') == 'karawang' ? 'selected' : '' }}>Karawang
-                                </option>
-                                <option value="jakarta" {{ request('plant') == 'jakarta' ? 'selected' : '' }}>Jakarta</option>
-                            </select>
-                            <small class="text-muted">Pilih plant untuk memfilter daftar item.</small>
-                        </div>
-                    </div>
-                </form>
-            @endif
 
-            <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
+            @php
+                $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
+            @endphp
+
+            <form action="{{ route('cross_cut_painting.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
                 @csrf
-                <input type="hidden" name="plant" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="plant" value="{{ $plant }}">
                 <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
+                    <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
-                                <th>Standard</th>
+
                                 <th>Item Part</th>
-                                <th>Tanggal & Shift Produksi / QC</th>
-                                <th>Hasil Cross Cut</th>
-                                <th>Bak No</th>
-                                <th>Posisi Remark (Judgement / No Lot QC)</th>
-                                <th>Result Remark</th>
+                                <th>Tanggal &amp; Shift Produksi / QC</th>
+                                <th>Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
+                                <th>Posisi Remark (Judgement)</th>
                                 <th>Inisial QC</th>
                                 <th>Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <!-- Standard -->
-                                <td class="align-middle text-center" id="imageContainer">
-                                    <div
-                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                        <i class="fas fa-image fa-2x text-gray-300"></i>
-                                    </div>
-                                </td>
+
                                 <!-- Item Part -->
                                 <td class="align-middle" style="min-width: 150px;">
                                     <div class="form-group mb-2">
@@ -124,6 +102,8 @@
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-name="{{ $item->name }}"
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    data-customer="{{ $item->customer ?? '' }}"
                                                     data-description="{{ $item->description ?? '' }}"
                                                     data-sap-code="{{ $item->sap_code ?? '' }}">
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
@@ -138,9 +118,9 @@
                                     <div class="form-group mb-2">
                                         <label>Tgl. & Shift Produksi</label>
                                         <div class="input-group">
-                                            <input type="date" class="form-control" name="production_date"
+                                            <input type="date" class="form-control" name="production_date" id="productionDateInput"
                                                 value="{{ $defaultDate }}" required>
-                                            <select class="form-control" name="production_shift" required>
+                                            <select class="form-control" name="production_shift" id="productionShiftInput" required>
                                                 <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
                                                 </option>
                                                 <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
@@ -155,7 +135,7 @@
                                         <div class="input-group">
                                             <input type="date" class="form-control" name="qc_date"
                                                 value="{{ $defaultDate }}" required>
-                                            <select class="form-control" name="qc_shift" required>
+                                            <select class="form-control" name="qc_shift" id="qcShiftInput" required>
                                                 <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
                                                 </option>
                                                 <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
@@ -166,57 +146,71 @@
                                         </div>
                                     </div>
                                 </td>
-                                <!-- Hasil Cross Cut (Image) -->
-                                <td class="align-middle text-center">
-                                    <label for="image" class="mb-2 d-block">Ambil Gambar</label>
-                                    <!-- Hidden file input -->
-                                    <input type="file" class="d-none" id="image" name="image" accept="image/*"
-                                        capture="environment" required>
-                                    <!-- Custom button untuk trigger file input -->
-                                    <button type="button" class="btn btn-primary btn-block mb-2" id="captureBtn">
-                                        <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih
-                                            Foto</span>
-                                    </button>
-                                    <!-- Preview button -->
-                                    <button type="button" id="previewBtn" class="btn btn-info btn-sm btn-block"
-                                        style="display: none;">
-                                        <i class="fas fa-eye"></i> Preview Foto
-                                    </button>
-                                    <!-- File name display -->
-                                    <small id="fileName" class="text-muted d-block"></small>
+                                <!-- Hasil Cross Cut (Gambar) -->
+                                <!-- Hasil Cross Cut, Pencil Scratch & Tap Test -->
+                                <td class="align-middle text-center" style="min-width: 280px;">
+                                    <div class="row">
+                                        <div class="col-12 form-group mb-2">
+                                            <label for="image" class="mb-1 d-block font-weight-bold">Ambil Gambar</label>
+                                            <!-- Input file tersembunyi -->
+                                            <input type="file" class="d-none" id="image" name="image" accept="image/*"
+                                                capture="environment" required>
+                                            <!-- Tombol kustom untuk memicu input file -->
+                                            <button type="button" class="btn btn-primary btn-block mb-1" id="captureBtn">
+                                                <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih Foto</span>
+                                            </button>
+                                            <!-- Tombol pratinjau -->
+                                            <button type="button" id="previewBtn" class="btn btn-info btn-sm btn-block mb-1"
+                                                style="display: none;">
+                                                <i class="fas fa-eye"></i> Preview Foto
+                                            </button>
+                                            <!-- Tampilan nama file -->
+                                            <small id="fileName" class="text-muted d-block"></small>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-4 px-1 form-group mb-0">
+                                            <label class="font-weight-bold mb-1" style="font-size: 11px;">Cross Cut</label>
+                                            <select class="form-control form-control-sm" name="defects[cross_cut]" id="defectCrossCut" required>
+                                                <option value="OK">OK</option>
+                                                <option value="NG">NG</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4 px-1 form-group mb-0">
+                                            <label class="font-weight-bold mb-1" style="font-size: 11px;">Pencil Scratch</label>
+                                            <select class="form-control form-control-sm" name="pencil_scratch" id="defectPencilScratch" required>
+                                                <option value="OK">OK</option>
+                                                <option value="NG">NG</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4 px-1 form-group mb-0">
+                                            <label class="font-weight-bold mb-1" style="font-size: 11px;">Tap Test</label>
+                                            <select class="form-control form-control-sm" name="tap_test" id="defectTapTest" required>
+                                                <option value="OK">OK</option>
+                                                <option value="NG">NG</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </td>
-                                <!-- Bak No -->
-                                <td class="align-middle" style="min-width: 150px;">
-                                    <div class="form-group mb-2"><label>Catalyst</label><input type="text"
-                                            class="form-control" name="chemical_catalyst"></div>
-                                    <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control"
-                                            name="chemical_abu"></div>
-                                </td>
-                                <!-- Posisi Remark -->
+                                <!-- Posisi Remark (Judgment) -->
                                 <td class="align-middle" style="min-width: 120px;">
-                                    <div class="form-group mb-2">
-                                        <label>Judgment</label>
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold">Judgment</label>
                                         <select class="form-control" name="position_remark_judgment" required>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
                                         </select>
-                                    </div>
-                                    <div class="form-group mb-0"><label>No Lot QC</label><input type="text"
-                                            class="form-control" name="position_remark_no_lot" required></div>
-                                </td>
-                                <!-- Result Remark -->
-                                <td class="align-middle"><input type="text" class="form-control" name="result_remark">
+                                     </div>
                                 </td>
                                 <!-- Inisial QC -->
                                 <td class="align-middle">
-                                    <input type="text" class="form-control text-center" name="operator_initials"
+                                    <input type="text" class="form-control text-center" name="operator_initials" id="operatorInitialsInput"
                                         placeholder="Inisial" value="{{ auth()->user()->initials ?? '' }}" required>
                                 </td>
                                 <!-- Keterangan -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 320px;">
                                     <div class="form-group mb-2" id="nextProsesContainer" style="display: none;">
-                                        <label for="nextProses" class="font-weight-bold text-danger">Next
-                                            Proses:</label>
+                                        <label for="nextProses" class="font-weight-bold text-danger">Next Proses:</label>
                                         <select class="form-control" id="nextProses" name="next_proses">
                                             <option value="">-- Pilih Next Proses --</option>
                                             @foreach($nextProcesses as $opt)
@@ -224,7 +218,8 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                                    <textarea class="form-control" name="keterangan" id="keteranganInput" rows="6"
+                                        style="min-height:140px; min-width:300px; width:100%; resize:both;"></textarea>
                                 </td>
                             </tr>
                         </tbody>
@@ -245,6 +240,71 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Bagian Tampilan PDF -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>STANDARD</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">STANDARD PDF</h6>
+                        <div class="d-flex align-items-center">
+                            <!-- Kontrol Zoom -->
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard"
+                                    title="Zoom Out">
+                                    <i class="fas fa-search-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard"
+                                    title="Reset Zoom">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard"
+                                    title="Zoom In">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download Standard PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded border"
+                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="standardPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                        </div>
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -358,13 +418,15 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
-    <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('js/checksheet/cross-cut.js') }}?v={{ time() }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.initCrossCutCreate({
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
+            window.initItemSearch('item_id');
         });
     </script>
 @endpush

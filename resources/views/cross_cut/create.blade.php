@@ -71,7 +71,7 @@
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
-                                <th>Standard</th>
+
                                 <th>Item Part</th>
                                 <th>Tanggal &amp; Shift Produksi / QC</th>
                                 <th>Hasil Cross Cut</th>
@@ -84,13 +84,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <!-- Standar -->
-                                <td class="align-middle text-center" id="imageContainer">
-                                    <div
-                                        style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                                        <i class="fas fa-image fa-2x text-gray-300"></i>
-                                    </div>
-                                </td>
+
                                 <!-- Item Part -->
                                 <td class="align-middle" style="min-width: 150px;">
                                     <div class="form-group mb-2">
@@ -250,6 +244,71 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Bagian Tampilan PDF -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-eye mr-2"></i>STANDARD</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">STANDARD PDF</h6>
+                        <div class="d-flex align-items-center">
+                            <!-- Kontrol Zoom -->
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard"
+                                    title="Zoom Out">
+                                    <i class="fas fa-search-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard"
+                                    title="Reset Zoom">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard"
+                                    title="Zoom In">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download Standard PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded border"
+                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="standardPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                        </div>
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

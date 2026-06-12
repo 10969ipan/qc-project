@@ -38,6 +38,7 @@ class StoreCrossCutPaintingChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'operator_initials' => 'nullable|string|max:255',
             'next_proses' => 'nullable|string',
+            'defects' => 'nullable|array',
         ];
     }
 }

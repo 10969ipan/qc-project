@@ -138,7 +138,7 @@
                 <th rowspan="2">Jam Bef</th>
                 <th rowspan="2">Jam Aft</th>
                 <th rowspan="2" style="width: 15%;">Nama Part</th>
-                <th rowspan="2" style="width: 10%;">Pengujian</th>
+                <th rowspan="2" style="width: 15%;">Hasil CC, PS &amp; TT</th>
                 <th rowspan="2">Judgement</th>
                 <th rowspan="2">Inisial</th>
             </tr>
@@ -160,8 +160,9 @@
 
                     {{-- Unified Pengujian --}}
                     <td>
-                        @if($row->tap_test) Tap: {{ $row->tap_test }} <br> @endif
-                        @if($row->image_path) [Foto Check] @else - @endif
+                        CC: {{ $row->defects['cross_cut'] ?? 'OK' }} <br>
+                        PS: {{ $row->pencil_scratch ?? 'OK' }} <br>
+                        TT: {{ $row->tap_test ?? 'OK' }}
                     </td>
 
                     <td

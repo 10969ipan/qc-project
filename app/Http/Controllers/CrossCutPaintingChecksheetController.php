@@ -66,14 +66,30 @@ class CrossCutPaintingChecksheetController extends Controller
             'approval_status' => $request->get('approval_status'),
             'id' => $request->get('id'),
             'search' => $request->get('search'),
+            'operator_initials' => $request->get('operator_initials'),
+            'customer' => $request->get('customer'),
             'shift' => $request->get('shift'),
         ];
         $checksheets = $this->paintingService->getFilteredChecksheets($filters);
-        $items = Item::byCategory('Cross Cut Painting')->orderBy('name')->get();
+
+        $existingItemIds = CrossCutPaintingChecksheet::withoutGlobalScope('plant')->distinct()->pluck('item_id');
+        $items = Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $customers = Item::whereIn('id', $existingItemIds)
+            ->whereNotNull('customer')
+            ->where('customer', '!=', '')
+            ->distinct()
+            ->orderBy('customer')
+            ->pluck('customer');
+        $initials = CrossCutPaintingChecksheet::withoutGlobalScope('plant')
+            ->whereNotNull('operator_initials')
+            ->where('operator_initials', '!=', '')
+            ->distinct()
+            ->orderBy('operator_initials')
+            ->pluck('operator_initials');
 
         $approvalOrder = ['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating', 'manager', 'manager_plating'];
 
-        return view('cross_cut_painting.index', compact('checksheets', 'items', 'approvalOrder'));
+        return view('cross_cut_painting.index', compact('checksheets', 'items', 'customers', 'initials', 'approvalOrder'));
     }
 
     /**

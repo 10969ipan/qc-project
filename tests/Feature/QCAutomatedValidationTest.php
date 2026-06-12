@@ -21,6 +21,9 @@ class QCAutomatedValidationTest extends TestCase
     protected $admin;
     protected $plant;
     protected $categories;
+    protected $inprocessItem;
+    protected $platingItem;
+    protected $paintingItem;
 
     protected function setUp(): void
     {
@@ -43,7 +46,7 @@ class QCAutomatedValidationTest extends TestCase
             $this->categories[$name] = $cat;
         }
 
-        $item = Item::create([
+        $this->inprocessItem = Item::create([
             'name' => 'Test Item Part',
             'part_number' => 'PN-TEST-001',
             'category_id' => $this->categories['INPROSES']->id,
@@ -52,14 +55,14 @@ class QCAutomatedValidationTest extends TestCase
         ]);
         
         // Mocking item for Cross Cut 
-        Item::create([
+        $this->platingItem = Item::create([
             'name' => 'Test Item Cross Cut',
             'part_number' => 'PN-CC-001',
             'category_id' => $this->categories['Cross Cut Plating']->id,
             'plant_id' => $this->plant->id
         ]);
 
-        Item::create([
+        $this->paintingItem = Item::create([
             'name' => 'Test Item Painting',
             'part_number' => 'PN-PT-001',
             'category_id' => $this->categories['Cross Cut Painting']->id,
@@ -89,14 +92,14 @@ class QCAutomatedValidationTest extends TestCase
     public function it_can_create_in_process_checksheet_ok()
     {
         $this->actingAs($this->admin);
-        $item = Item::where('category_id', $this->categories['INPROSES']->id)->first();
+        $item = $this->inprocessItem;
 
         $data = [
             'item_id' => $item->id,
             'plant' => $this->plant->id,
             'date' => now()->toDateString(),
             'shift' => 'Shift 1',
-            'code_machine' => 'MC-01',
+            'code_machine' => '1',
             'total_qty' => 100,
             'sampling_qty' => 5,
             'total_ok' => 100,
@@ -109,9 +112,6 @@ class QCAutomatedValidationTest extends TestCase
         
         // Assert redirect or JSON success
         if ($response->status() === 302) {
-            if (session()->has('errors')) {
-                dump(session('errors')->getBag('default')->all());
-            }
             $response->assertRedirect();
             $this->assertDatabaseHas('in_process_checksheets', ['item_id' => $item->id]);
         } else {
@@ -123,14 +123,14 @@ class QCAutomatedValidationTest extends TestCase
     public function it_requires_next_proses_if_in_process_is_ng()
     {
         $this->actingAs($this->admin);
-        $item = Item::where('category_id', $this->categories['INPROSES']->id)->first();
+        $item = $this->inprocessItem;
 
         $data = [
             'item_id' => $item->id,
             'plant' => $this->plant->id,
             'date' => now()->toDateString(),
             'shift' => 'Shift 1',
-            'code_machine' => 'MC-01',
+            'code_machine' => '1',
             'total_qty' => 100,
             'sampling_qty' => 5,
             'total_ok' => 90,
@@ -148,7 +148,7 @@ class QCAutomatedValidationTest extends TestCase
     {
         $this->actingAs($this->admin);
         
-        $item = Item::where('category_id', $this->categories['Cross Cut Plating']->id)->first();
+        $item = $this->platingItem;
 
         $data = [
             'item_id' => $item->id,
@@ -178,7 +178,7 @@ class QCAutomatedValidationTest extends TestCase
     {
         $this->actingAs($this->admin);
         
-        $item = Item::where('category_id', $this->categories['Cross Cut Painting']->id)->first();
+        $item = $this->paintingItem;
 
         $data = [
             'item_id' => $item->id,

@@ -70,6 +70,18 @@ class CrossCutPaintingChecksheetService extends BaseService
             });
         }
 
+        // operator_initials filter
+        if (!empty($filters['operator_initials'])) {
+            $query->where('operator_initials', $filters['operator_initials']);
+        }
+
+        // customer filter
+        if (!empty($filters['customer'])) {
+            $query->whereHas('item', function ($q) use ($filters) {
+                $q->where('customer', $filters['customer']);
+            });
+        }
+
         // Shift filter
         if (!empty($filters['shift'])) {
             $query->where('qc_shift', $filters['shift']);
@@ -119,6 +131,7 @@ class CrossCutPaintingChecksheetService extends BaseService
                 'next_proses' => $data['next_proses'] ?? null,
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'operator_initials' => $data['operator_initials'] ?? null,
+                'defects' => $data['defects'] ?? null,
             ]);
 
             DB::commit();

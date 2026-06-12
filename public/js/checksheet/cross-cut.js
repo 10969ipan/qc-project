@@ -262,6 +262,12 @@ class CrossCutCreate {
         this.config = config;
         this.timer = { running: false, seconds: 0, interval: null };
         this.pdf = { doc: null, page: 1, rendering: false, pending: null, scale: 1.0, currentIdx: 0, totalFiles: 0, itemId: null };
+        this.refStandardPdfDoc = null;
+        this.refStandardPageNum = 1;
+        this.refStandardFileIndex = 0;
+        this.refStandardFiles = [];
+        this.standardZoomLevel = 1.0;
+        this.pdfCache = {};
         this.init();
     }
 
@@ -274,6 +280,7 @@ class CrossCutCreate {
         this.initImageCapture();
         this.initTimer();
         this.initNextProses();
+        this.initAutoJudgment();
         this.initFormSubmit();
     }
 
@@ -350,29 +357,269 @@ class CrossCutCreate {
             $('#pdfModal').modal('show');
             loadFile(this.pdf.itemId, 0);
         });
+
+        // Controls for inline STANDARD PDF
+        $('#prevStandardPage').click(() => {
+            if (this.refStandardPageNum > 1) {
+                this.refStandardPageNum--;
+                this.renderPageOnCanvas(
+                    this.refStandardPdfDoc,
+                    "standardPdfCanvas",
+                    this.refStandardPageNum,
+                );
+            } else if (this.refStandardFileIndex > 0) {
+                this.refStandardFileIndex--;
+                const itemId = $('#item_id').val();
+                const prevFileUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+
+                this.renderPdfToCanvas(
+                    prevFileUrl,
+                    "standardPdfCanvas",
+                    "standardPdfPlaceholder",
+                    "standardPdfLoading",
+                    1
+                );
+            }
+        });
+
+        $('#nextStandardPage').click(() => {
+            if (
+                this.refStandardPdfDoc &&
+                this.refStandardPageNum < this.refStandardPdfDoc.numPages
+            ) {
+                this.refStandardPageNum++;
+                this.renderPageOnCanvas(
+                    this.refStandardPdfDoc,
+                    "standardPdfCanvas",
+                    this.refStandardPageNum,
+                );
+            } else if (this.refStandardFiles && this.refStandardFileIndex < this.refStandardFiles.length - 1) {
+                this.refStandardFileIndex++;
+                const itemId = $('#item_id').val();
+                const nextFileUrl = this.config.pdfUrlPattern
+                    .replace("ID_PLACEHOLDER", itemId)
+                    .replace("INDEX_PLACEHOLDER", this.refStandardFileIndex);
+
+                this.renderPdfToCanvas(
+                    nextFileUrl,
+                    "standardPdfCanvas",
+                    "standardPdfPlaceholder",
+                    "standardPdfLoading",
+                    1
+                );
+            }
+        });
+
+        // Zoom logic for inline STANDARD PDF
+        $("#zoomInStandard").click(() => {
+            this.standardZoomLevel += 0.25;
+            if (this.refStandardPdfDoc)
+                this.renderPageOnCanvas(
+                    this.refStandardPdfDoc,
+                    "standardPdfCanvas",
+                    this.refStandardPageNum,
+                );
+        });
+        $("#zoomOutStandard").click(() => {
+            if (this.standardZoomLevel > 0.5) {
+                this.standardZoomLevel -= 0.25;
+                if (this.refStandardPdfDoc)
+                    this.renderPageOnCanvas(
+                        this.refStandardPdfDoc,
+                        "standardPdfCanvas",
+                        this.refStandardPageNum,
+                    );
+            }
+        });
+        $("#zoomResetStandard").click(() => {
+            this.standardZoomLevel = 1.0;
+            if (this.refStandardPdfDoc)
+                this.renderPageOnCanvas(
+                    this.refStandardPdfDoc,
+                    "standardPdfCanvas",
+                    this.refStandardPageNum,
+                );
+        });
+
+        // Full screen viewer trigger from inline card
+        $("#fullStandardBtn").click(() => {
+            const itemId = $('#item_id').val();
+            if (itemId) {
+                this.pdf.itemId = itemId;
+                this.pdf.totalFiles = this.refStandardFiles.length;
+                this.pdf.currentIdx = this.refStandardFileIndex;
+                $('#pdfModal').modal('show');
+                loadFile(this.pdf.itemId, this.pdf.currentIdx);
+            }
+        });
+    }
+
+    renderPdfToCanvas(url, canvasId, placeholderId, loadingId, pageNum = 1) {
+        const _this = this;
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const $placeholder = $("#" + placeholderId);
+        const $loading = $("#" + loadingId);
+        const $canvas = $(canvas);
+
+        $placeholder.removeClass("d-flex").addClass("d-none");
+        $canvas.addClass("d-none").hide();
+        $loading.removeClass("d-none").addClass("d-flex");
+
+        if (this.pdfCache && this.pdfCache[url]) {
+            this.drawPage(
+                this.pdfCache[url],
+                canvas,
+                ctx,
+                $loading,
+                $canvas,
+                pageNum,
+                canvasId,
+            );
+            return;
+        }
+
+        pdfjsLib
+            .getDocument(url)
+            .promise.then((pdf) => {
+                if (!_this.pdfCache) _this.pdfCache = {};
+                _this.pdfCache[url] = pdf;
+                _this.drawPage(
+                    pdf,
+                    canvas,
+                    ctx,
+                    $loading,
+                    $canvas,
+                    pageNum,
+                    canvasId,
+                );
+            })
+            .catch((err) => {
+                $loading.removeClass("d-flex").addClass("d-none");
+                $placeholder
+                    .removeClass("d-none")
+                    .addClass("d-flex")
+                    .find("p")
+                    .text("Gagal memuat PDF");
+            });
+    }
+
+    drawPage(pdf, canvas, ctx, $loading, $canvas, pageNum, canvasId) {
+        const _this = this;
+        pdf.getPage(pageNum).then((page) => {
+            const containerWidth = $canvas.parent().width() || 500;
+            const availableWidth = containerWidth - 40;
+            const viewport = page.getViewport({ scale: 1.0 });
+            let zoom = _this.standardZoomLevel || 1.0;
+            const scale = (availableWidth / viewport.width) * zoom;
+            const scaledViewport = page.getViewport({ scale: scale });
+
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            if (zoom > 1.0) $canvas.css({ width: "auto", "max-width": "none" });
+            else $canvas.css({ width: "100%", "max-width": "100%" });
+            $canvas.css("height", "auto");
+
+            page.render({
+                canvasContext: ctx,
+                viewport: scaledViewport,
+            }).promise.then(() => {
+                $loading.removeClass("d-flex").addClass("d-none");
+                $canvas.removeClass("d-none").show();
+                if (canvasId === "standardPdfCanvas") {
+                    _this.refStandardPdfDoc = pdf;
+                    const fileInfo = _this.refStandardFiles.length > 1 ? ` (${_this.refStandardFileIndex + 1}/${_this.refStandardFiles.length})` : '';
+                    $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}${fileInfo}`);
+                    _this.refStandardPageNum = pageNum;
+                }
+                _this.updateRefNavControls();
+            });
+        });
+    }
+
+    renderPageOnCanvas(pdf, canvasId, pageNum) {
+        if (!pdf) return;
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const $canvas = $(canvas);
+        const $loading = $("#standardPdfLoading");
+
+        $canvas.hide();
+        $loading.removeClass("d-none").addClass("d-flex");
+        this.drawPage(
+            pdf,
+            canvas,
+            ctx,
+            $loading,
+            $canvas,
+            pageNum,
+            canvasId,
+        );
+    }
+
+    updateRefNavControls() {
+        if (this.refStandardFiles && this.refStandardFiles.length > 0)
+            $(".standard-nav-controls").attr(
+                "style",
+                "display: flex !important;",
+            );
+        else $(".standard-nav-controls").hide();
     }
 
     initItemSelection() {
+        const _this = this;
         $('#item_id').on('change', function() {
             const opt = $(this).find('option:selected');
-            const img = opt.data('image');
             const files = opt.data('files');
             const id = $(this).val();
-            const container = $('#imageContainer');
-            let html = '';
 
             // Guard: only show PDF button if files array has valid non-empty entries
             const validFiles = Array.isArray(files) ? files.filter(f => f && f.trim && f.trim() !== '') : [];
 
-            if (validFiles.length > 0) {
-                html += `<button type="button" class="btn btn-danger btn-sm view-pdf-btn mb-1" data-id="${id}" data-count="${validFiles.length}"><i class="fas fa-file-pdf"></i> PDF (${validFiles.length})</button>`;
+            // Trigger inline PDF loading
+            if (id) {
+                _this.refStandardPdfDoc = null;
+                _this.refStandardPageNum = 1;
+                _this.refStandardFileIndex = 0;
+                _this.refStandardFiles = validFiles;
+
+                if (validFiles.length > 0) {
+                    const firstPdfUrl = _this.config.pdfUrlPattern
+                        .replace('ID_PLACEHOLDER', id)
+                        .replace('INDEX_PLACEHOLDER', 0);
+                    _this.renderPdfToCanvas(
+                        firstPdfUrl,
+                        "standardPdfCanvas",
+                        "standardPdfPlaceholder",
+                        "standardPdfLoading",
+                        1
+                    );
+                    $("#downloadStandardBtn").attr("href", firstPdfUrl).show();
+                    $("#fullStandardBtn").show();
+                } else {
+                    $("#standardPdfCanvas").addClass("d-none").hide();
+                    $("#standardPdfPlaceholder")
+                        .removeClass("d-none")
+                        .addClass("d-flex")
+                        .find("p")
+                        .text("Standard PDF tidak tersedia");
+                    $(".standard-nav-controls").hide();
+                    $("#downloadStandardBtn, #fullStandardBtn").hide();
+                }
+            } else {
+                $("#standardPdfCanvas").addClass("d-none").hide();
+                $("#standardPdfPlaceholder")
+                    .removeClass("d-none")
+                    .addClass("d-flex")
+                    .find("p")
+                    .text("Pilih Item untuk menampilkan Standard PDF");
+                $(".standard-nav-controls").hide();
+                $("#downloadStandardBtn, #fullStandardBtn").hide();
             }
-            if (img) {
-                html += `<img src="${img}" class="img-thumbnail" style="max-width: 100px; max-height: 80px; cursor: pointer; display:block; margin: 0 auto;" data-toggle="modal" data-target="#imageModal" data-image="${img}" data-title="${opt.data('name')}" data-description="${opt.data('description')}">` ;
-            }
-            if (!html) html = '<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>';
-            
-            container.html(validFiles.length > 0 && img ? `<div class="d-flex flex-column align-items-center">${html}</div>` : html);
         });
     }
 
@@ -457,6 +704,24 @@ class CrossCutCreate {
         toggle();
     }
 
+    initAutoJudgment() {
+        const updateJudgment = () => {
+            const crossCutVal = $('#defectCrossCut').val();
+            const pencilScratchVal = $('#defectPencilScratch').val();
+            const tapTestVal = $('#defectTapTest').val();
+
+            if (crossCutVal === 'NG' || pencilScratchVal === 'NG' || tapTestVal === 'NG') {
+                $('select[name="position_remark_judgment"]').val('NG').trigger('change');
+            } else {
+                if ($('#defectCrossCut').length > 0) {
+                    $('select[name="position_remark_judgment"]').val('OK').trigger('change');
+                }
+            }
+        };
+
+        $(document).on('change', '#defectCrossCut, #defectPencilScratch, #defectTapTest', updateJudgment);
+    }
+
     initFormSubmit() {
         $('#checksheetForm').on('submit', (e) => {
             const judgement = $('select[name="position_remark_judgment"]').val();
@@ -501,7 +766,6 @@ class CrossCutCreate {
         $('#startTimerBtn').removeClass('btn-secondary').addClass('btn-success').prop('disabled', false).html('<i class="fas fa-play"></i> Start');
         this.lockInputs(true);
         $('#checksheetForm')[0].reset();
-        $('#imageContainer').html('<i class="fas fa-image fa-2x text-gray-300"></i>');
         $('#previewBtn').hide();
         
         // Kembalikan tombol Ambil Gambar ke semula
@@ -511,6 +775,14 @@ class CrossCutCreate {
         
         // Kembalikan tombol Simpan Data ke semula
         $('#saveBtn').prop('disabled', true).html('<i class="fas fa-save fa-sm"></i> Simpan Data');
+
+        // Reset inline PDF viewer
+        this.refStandardPdfDoc = null;
+        this.refStandardPageNum = 1;
+        this.refStandardFileIndex = 0;
+        this.refStandardFiles = [];
+        this.standardZoomLevel = 1.0;
+        $('#item_id').trigger('change');
     }
 }
 
