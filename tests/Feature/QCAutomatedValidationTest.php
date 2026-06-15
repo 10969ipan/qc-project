@@ -563,7 +563,7 @@ class QCAutomatedValidationTest extends TestCase
         
         // Ensure the data array is decoded properly
         $data = $notification->data;
-        $expectedUrl = route('cross_cut_painting.index', ['id' => $checksheet->id], false);
+        $expectedUrl = route('cross_cut_painting.index', ['id' => $checksheet->id]);
         $this->assertEquals($expectedUrl, $data['url']);
     }
 }

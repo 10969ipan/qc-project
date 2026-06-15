@@ -193,7 +193,7 @@ class NotificationService
                         $title = "Reminder Kalibrasi: {$tool->name_alat}";
                         $message = "Alat {$tool->name_alat} ({$tool->serial_number}) dijadwalkan kalibrasi {$tool->jenis_kalibrasi} pada {$scheduleDate->format('d-m-Y')}. Silakan lakukan verifikasi.";
 
-                        $url = route('calibration.verifications.index', ['plant' => $tool->plant->code ?? 'jakarta'], false);
+                        $url = route('calibration.verifications.index', ['plant' => $tool->plant->code ?? 'jakarta']);
 
                         foreach ($targetUsers as $user) {
                             // Avoid duplicate notifications for the same day/tool/user
@@ -234,34 +234,34 @@ class NotificationService
 
         switch ($type) {
             case 'In Process':
-                return route('in_process.index', $params, false);
+                return route('in_process.index', $params);
             case 'Cross Cut':
-                return route('cross_cut.index', $params, false);
+                return route('cross_cut.index', $params);
             case 'Cross Cut Painting':
-                return route('cross_cut_painting.index', $params, false);
+                return route('cross_cut_painting.index', $params);
             case 'Sortir':
-                return route('sortir.index', $params, false);
+                return route('sortir.index', $params);
             case 'Plating':
-                return route('plating.index', $params, false);
+                return route('plating.index', $params);
             case 'Painting':
-                return route('painting.index', $params, false);
+                return route('painting.index', $params);
             case 'Double Tape':
-                return route('double_tape.index', $params, false);
+                return route('double_tape.index', $params);
             case 'First Piece Approval':
-                return route('first_piece_approval.index', $params, false);
+                return route('first_piece_approval.index', $params);
             case 'Incoming Part':
-                return route('incoming.parts.index', $params, false);
+                return route('incoming.parts.index', $params);
             case 'Incoming Material':
-                return route('incoming.materials.index', $params, false);
+                return route('incoming.materials.index', $params);
             case 'Incoming Sub-Part':
-                return route('incoming.sub_parts.index', $params, false);
+                return route('incoming.sub_parts.index', $params);
             case 'Incoming Export':
-                return route('incoming.exports.index', $params, false);
+                return route('incoming.exports.index', $params);
             case 'Incoming Chemical':
-                return route('incoming.chemicals.index', $params, false);
+                return route('incoming.chemicals.index', $params);
             case 'Sub Assy':
             default:
-                return route('admin.checksheets.index', $params, false);
+                return route('admin.checksheets.index', $params);
         }
     }
 
