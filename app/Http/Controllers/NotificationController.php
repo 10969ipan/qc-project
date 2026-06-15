@@ -37,6 +37,71 @@ class NotificationController extends Controller
             ->limit(20)
             ->get();
 
+        // Dynamically correct and relative-ize URLs for compatibility and updates
+        $notifications->transform(function ($notification) {
+            $data = $notification->data;
+            if (isset($data['checksheet_id']) && isset($data['checksheet_type'])) {
+                $params = ['id' => $data['checksheet_id']];
+                $type = $data['checksheet_type'];
+                
+                switch ($type) {
+                    case 'In Process':
+                        $data['url'] = route('in_process.index', $params, false);
+                        break;
+                    case 'Cross Cut':
+                        $data['url'] = route('cross_cut.index', $params, false);
+                        break;
+                    case 'Cross Cut Painting':
+                        $data['url'] = route('cross_cut_painting.index', $params, false);
+                        break;
+                    case 'Sortir':
+                        $data['url'] = route('sortir.index', $params, false);
+                        break;
+                    case 'Plating':
+                        $data['url'] = route('plating.index', $params, false);
+                        break;
+                    case 'Painting':
+                        $data['url'] = route('painting.index', $params, false);
+                        break;
+                    case 'Double Tape':
+                        $data['url'] = route('double_tape.index', $params, false);
+                        break;
+                    case 'First Piece Approval':
+                        $data['url'] = route('first_piece_approval.index', $params, false);
+                        break;
+                    case 'Incoming Part':
+                        $data['url'] = route('incoming.parts.index', $params, false);
+                        break;
+                    case 'Incoming Material':
+                        $data['url'] = route('incoming.materials.index', $params, false);
+                        break;
+                    case 'Incoming Sub-Part':
+                        $data['url'] = route('incoming.sub_parts.index', $params, false);
+                        break;
+                    case 'Incoming Export':
+                        $data['url'] = route('incoming.exports.index', $params, false);
+                        break;
+                    case 'Incoming Chemical':
+                        $data['url'] = route('incoming.chemicals.index', $params, false);
+                        break;
+                    case 'Sub Assy':
+                    default:
+                        $data['url'] = route('admin.checksheets.index', $params, false);
+                        break;
+                }
+                
+                $notification->data = $data;
+            } elseif (isset($data['url']) && is_string($data['url'])) {
+                $parsedUrl = parse_url($data['url']);
+                $relativeUrl = ($parsedUrl['path'] ?? '') . (isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '');
+                if (!empty($relativeUrl)) {
+                    $data['url'] = $relativeUrl;
+                    $notification->data = $data;
+                }
+            }
+            return $notification;
+        });
+
         $unreadCountQuery = Notification::where(function ($q) use ($user) {
             $q->where('user_id', $user->id)
                 ->orWhereNull('user_id');
