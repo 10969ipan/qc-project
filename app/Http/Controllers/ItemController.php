@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
 class ItemController extends Controller
 {
@@ -580,5 +584,349 @@ class ItemController extends Controller
             'success' => true,
             'unique'  => true,
         ]);
+    }
+
+    /**
+     * Download template Excel untuk import master data item.
+     */
+    public function downloadTemplate(Request $request)
+    {
+        // Check authorization
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift'])) {
+            abort(403, 'Anda tidak memiliki akses untuk melakukan tindakan ini.');
+        }
+
+        $plantIdentifier = $request->query('plant');
+        $plantId = null;
+        if ($plantIdentifier && $plantIdentifier !== 'total') {
+            $plantId = Plant::resolveId($plantIdentifier);
+        } else if (auth()->user()->plant_id) {
+            $plantId = auth()->user()->plant_id;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Master Data Item');
+
+        $headers = [
+            'Nama Item',
+            'Kategori',
+            'Customer',
+            'Nomor Part',
+            'Kode SAP',
+            'Cavity',
+            'Standar Berat',
+            'SCT Plating',
+            'Defects'
+        ];
+
+        // Tulis header
+        foreach ($headers as $colIndex => $header) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+            $sheet->setCellValue($colLetter . '1', $header);
+            
+            // Format header: Bold, text centered, and light gray background
+            $style = $sheet->getStyle($colLetter . '1');
+            $style->getFont()->setBold(true);
+            $style->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+            $style->getFill()->getStartColor()->setARGB('FFE2E8F0');
+            $style->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Ambil kategori untuk dropdown opsi
+        $categoriesQuery = Category::withoutGlobalScope('plant');
+        if ($plantId) {
+            $categoriesQuery->where('plant_id', $plantId);
+        }
+        $categoriesList = $categoriesQuery->pluck('name')->unique()->toArray();
+        $categoryNames = array_map('strtoupper', array_filter(array_map('trim', $categoriesList)));
+        if (empty($categoryNames)) {
+            $categoryNames = ['IN PROCESS', 'PLATING'];
+        }
+        $formula = '"' . implode(',', $categoryNames) . '"';
+
+        // Set validation dropdown pada kolom B (Kategori) baris 2-1000
+        for ($r = 2; $r <= 1000; $r++) {
+            $validation = $sheet->getCell('B' . $r)->getDataValidation();
+            $validation->setType(DataValidation::TYPE_LIST);
+            $validation->setErrorStyle(DataValidation::STYLE_STOP);
+            $validation->setAllowBlank(true);
+            $validation->setShowInputMessage(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true);
+            $validation->setErrorTitle('Input Salah');
+            $validation->setError('Pilih Kategori dari daftar opsi yang disediakan.');
+            $validation->setPromptTitle('Kategori');
+            $validation->setPrompt('Silakan pilih Kategori.');
+            $validation->setFormula1($formula);
+        }
+
+        // Ambil data item yang sudah ada untuk diexport/download
+        $itemsQuery = Item::withoutGlobalScope('plant')->with('category');
+        if ($plantId) {
+            $itemsQuery->where('plant_id', $plantId);
+        }
+        $items = $itemsQuery->get();
+
+        $rowsData = [];
+        if ($items->count() > 0) {
+            foreach ($items as $item) {
+                $categoryName = $item->category ? $item->category->name : '';
+                $defectsString = '';
+                if ($item->defects && is_array($item->defects)) {
+                    $defectsString = implode(', ', $item->defects);
+                }
+                $rowsData[] = [
+                    $item->name,
+                    $categoryName,
+                    $item->customer,
+                    $item->part_number,
+                    $item->sap_code,
+                    $item->cavity,
+                    $item->weight_standard,
+                    $item->standard_cycle_time,
+                    $defectsString
+                ];
+            }
+        } else {
+            // Default sample rows if no items exist
+            $rowsData = [
+                [
+                    'GRILL RAD C GR',
+                    'IN PROCESS',
+                    'AHM',
+                    '64301-K59-A70',
+                    '12345678',
+                    2,
+                    '150.5',
+                    '',
+                    'Scratch, Bintik, Silver, Belang'
+                ],
+                [
+                    'FRONT TOP COVER',
+                    'PLATING',
+                    'YIMM',
+                    '2DP-F835U-00',
+                    '87654321',
+                    1,
+                    '85.2',
+                    0.15,
+                    'Meler, kotor, kasar'
+                ]
+            ];
+        }
+
+        foreach ($rowsData as $rowIndex => $rowData) {
+            foreach ($rowData as $colIndex => $val) {
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+                $sheet->setCellValue($colLetter . ($rowIndex + 2), $val);
+            }
+        }
+
+        // Auto size columns
+        foreach ($headers as $colIndex => $header) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'template_master_data_item.xlsx';
+
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+
+    /**
+     * Import master data item dari file Excel/CSV.
+     */
+    public function import(Request $request)
+    {
+        // Check authorization
+        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift'])) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk melakukan tindakan ini.');
+        }
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:5120',
+            'plant' => 'required|string',
+        ], [
+            'file.required' => 'File Excel wajib diunggah.',
+            'file.mimes' => 'Format file harus berupa .xlsx, .xls, atau .csv.',
+            'file.max' => 'Ukuran file tidak boleh melebihi 5MB.',
+            'plant.required' => 'Plant wajib dipilih.',
+        ]);
+
+        $plantId = Plant::resolveId($request->plant);
+        if (!$plantId) {
+            return redirect()->back()->with('error', 'Plant tidak valid.');
+        }
+
+        $plantModel = Plant::find($plantId);
+        $plantCode = $plantModel ? $plantModel->code : $request->plant;
+
+        $file = $request->file('file');
+        
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membaca file: ' . $e->getMessage());
+        }
+
+        if (count($rows) <= 1) {
+            return redirect()->back()->with('error', 'File Excel kosong atau hanya berisi baris header.');
+        }
+
+        $insertedCount = 0;
+        $updatedCount = 0;
+        $warnings = [];
+        $skippedCount = 0;
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($rows as $index => $row) {
+                // Lewati baris header pertama
+                if ($index === 0) {
+                    continue;
+                }
+
+                // Cek baris kosong
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                $name = isset($row[0]) ? trim((string)$row[0]) : '';
+                $categoryName = isset($row[1]) ? trim((string)$row[1]) : '';
+                $customer = isset($row[2]) ? trim((string)$row[2]) : null;
+                $partNumber = isset($row[3]) ? trim((string)$row[3]) : null;
+                $sapCode = isset($row[4]) ? trim((string)$row[4]) : null;
+                $cavity = isset($row[5]) ? intval($row[5]) : 1;
+                $weightStandard = isset($row[6]) ? trim((string)$row[6]) : null;
+                $sctPlating = isset($row[7]) && is_numeric($row[7]) ? floatval($row[7]) : null;
+                $defectsText = isset($row[8]) ? trim((string)$row[8]) : '';
+
+                // Validasi data minimal
+                if (empty($name)) {
+                    $warnings[] = "Baris " . ($index + 1) . ": Nama Item kosong, dilewati.";
+                    $skippedCount++;
+                    continue;
+                }
+
+                if (empty($categoryName)) {
+                    $warnings[] = "Baris " . ($index + 1) . ": Kategori kosong untuk item '{$name}', dilewati.";
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Cari atau buat kategori baru
+                $category = Category::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
+                    ->where(DB::raw('LOWER(name)'), strtolower($categoryName))
+                    ->first();
+
+                if (!$category) {
+                    $category = Category::create([
+                        'plant_id' => $plantId,
+                        'name' => strtoupper($categoryName)
+                    ]);
+                }
+
+                // Normalisasi defects
+                $defects = null;
+                if (!empty($defectsText)) {
+                    $defectsList = array_values(array_filter(array_map('trim', preg_split('/[,|;]/', $defectsText))));
+                    if (!empty($defectsList)) {
+                        $defects = $defectsList;
+                    }
+                }
+
+                if ($cavity <= 0) {
+                    $cavity = 1;
+                }
+
+                // Cari item yang sudah ada untuk di-update
+                $existingItem = null;
+
+                // Match 1: Berdasarkan sap_code di plant & kategori yang sama
+                if (!empty($sapCode)) {
+                    $existingItem = Item::withoutGlobalScope('plant')
+                        ->where('plant_id', $plantId)
+                        ->where('category_id', $category->id)
+                        ->where('sap_code', $sapCode)
+                        ->first();
+                }
+
+                // Match 2: Berdasarkan part_number di plant & kategori yang sama
+                if (!$existingItem && !empty($partNumber)) {
+                    $existingItem = Item::withoutGlobalScope('plant')
+                        ->where('plant_id', $plantId)
+                        ->where('category_id', $category->id)
+                        ->where('part_number', $partNumber)
+                        ->first();
+                }
+
+                // Match 3: Berdasarkan name di plant & kategori yang sama
+                if (!$existingItem) {
+                    $existingItem = Item::withoutGlobalScope('plant')
+                        ->where('plant_id', $plantId)
+                        ->where('category_id', $category->id)
+                        ->where('name', $name)
+                        ->first();
+                }
+
+                $itemData = [
+                    'plant_id' => $plantId,
+                    'name' => $name,
+                    'category_id' => $category->id,
+                    'customer' => $customer,
+                    'part_number' => $partNumber,
+                    'sap_code' => $sapCode,
+                    'cavity' => $cavity,
+                    'weight_standard' => $weightStandard,
+                    'standard_cycle_time' => $sctPlating,
+                    'defects' => $defects,
+                ];
+
+                if ($existingItem) {
+                    // Update
+                    $existingItem->update($itemData);
+                    $updatedCount++;
+                } else {
+                    // Insert
+                    Item::create($itemData);
+                    $insertedCount++;
+                }
+            }
+
+            DB::commit();
+
+            ActivityLogger::log('updated', null, "Melakukan import master data item untuk plant {$plantCode} ({$insertedCount} baru, {$updatedCount} diperbarui, {$skippedCount} dilewati)");
+
+            $successMsg = "Berhasil memproses import: {$insertedCount} item baru ditambahkan, {$updatedCount} item diperbarui.";
+            if ($skippedCount > 0) {
+                $successMsg .= " {$skippedCount} item dilewati.";
+            }
+
+            if (!empty($warnings)) {
+                return redirect()->back()->with('success', $successMsg)->with('import_warnings', $warnings);
+            }
+
+            return redirect()->back()->with('success', $successMsg);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memproses data import: ' . $e->getMessage());
+        }
     }
 }

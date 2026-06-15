@@ -90,6 +90,29 @@
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mx-3" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(session('import_warnings'))
+        <div class="alert alert-warning alert-dismissible fade show mx-3" role="alert" style="max-height: 250px; overflow-y: auto;">
+            <strong>Peringatan Import:</strong>
+            <ul class="mb-0 pl-3 small">
+                @foreach(session('import_warnings') as $warning)
+                    <li>{{ $warning }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
             {{ session('error') }}
@@ -119,10 +142,16 @@
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
-                    data-target="#modalTambahItem">
-                    <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
-                </button>
+                <div class="d-flex" style="gap: 10px;">
+                    <button type="button" class="btn btn-sm btn-success shadow-sm" data-toggle="modal"
+                        data-target="#modalImportItem">
+                        <i class="fas fa-file-excel fa-sm text-white-50"></i> Import Excel
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
+                        data-target="#modalTambahItem">
+                        <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
+                    </button>
+                </div>
             @endif
         </div>
         <div class="card-body">
@@ -554,6 +583,75 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="modalImportItem" tabindex="-1" role="dialog" aria-labelledby="modalImportItemLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="modalImportItemLabel">
+                        <i class="fas fa-file-excel mr-2"></i> Import Master Data Item
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('admin.items.import') }}" method="POST" enctype="multipart/form-data" id="formImportItem">
+                    @csrf
+                    <div class="modal-body text-left">
+                        @if(!$plantCode)
+                            <div class="alert alert-warning py-2 mb-3 small">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Anda sedang di tampilan <strong>Total</strong>. Silakan pilih Plant tujuan import ini.
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="font-weight-bold">Pilih Plant <span class="text-danger">*</span></label>
+                                <select name="plant" class="form-control form-control-sm" required>
+                                    <option value="">-- Pilih Plant --</option>
+                                    @foreach($allPlants as $p)
+                                        <option value="{{ $p->code }}">{{ strtoupper($p->name) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            <input type="hidden" name="plant" value="{{ $plantCode }}">
+                            <div class="alert alert-info py-2 px-3 mb-3 small">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Item akan diimport untuk Plant: <strong>{{ strtoupper($plantCode) }}</strong>
+                            </div>
+                        @endif
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold">Pilih File Excel / CSV <span class="text-danger">*</span></label>
+                            <input type="file" name="file" class="form-control-file form-control-sm" accept=".xlsx,.xls,.csv" required>
+                            <small class="text-muted text-xs d-block mt-1">Format file yang didukung: .xlsx, .xls, .csv. Ukuran maks 5MB.</small>
+                        </div>
+
+                        <div class="border rounded p-3 bg-light mb-3">
+                            <h6 class="font-weight-bold text-gray-800 small mb-2"><i class="fas fa-info-circle mr-1"></i> Petunjuk Import:</h6>
+                            <ul class="pl-3 mb-0 text-xs text-muted" style="line-height: 1.5;">
+                                <li>Gunakan template Excel resmi yang disediakan agar format kolom sesuai.</li>
+                                <li>Kolom <strong>Nama Item</strong> dan <strong>Kategori</strong> wajib diisi.</li>
+                                <li>Kategori baru akan otomatis terbuat jika belum ada di sistem.</li>
+                                <li>Jika <strong>Nomor Part</strong>, <strong>Kode SAP</strong>, atau <strong>Nama Item</strong> sudah ada di Plant & Kategori yang sama, data item tersebut akan <strong>diperbarui (updated)</strong>.</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center">
+                            <a href="{{ route('admin.items.import-template', ['plant' => $plantCode ?? request('plant')]) }}" class="btn btn-sm btn-outline-success font-weight-bold">
+                                <i class="fas fa-download mr-1"></i> Unduh Template Excel
+                            </a>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success btn-sm px-4 shadow-sm" id="btnSubmitImport">
+                            <i class="fas fa-upload mr-1"></i> Mulai Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="modalTambahItem" tabindex="-1" role="dialog" aria-labelledby="modalTambahItemLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
@@ -892,6 +990,14 @@
                         });
                         return false;
                     }
+                });
+
+                // --- LOADING STATE FOR IMPORT FORM ---
+                $('#formImportItem').on('submit', function() {
+                    var btn = $('#btnSubmitImport');
+                    btn.prop('disabled', true);
+                    btn.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Memproses...');
+                    return true;
                 });
             });
         </script>

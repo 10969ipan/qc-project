@@ -11,6 +11,8 @@ Route::middleware(['auth'])->group(function () {
     // Master Data Management (Admin & Staff)
     Route::middleware(['role:admin,supervisor,kashift,karu_qc,asst_manager,manager,oshef'])->prefix('admin')->name('admin.')->group(function () {
         // Items
+        Route::get('items/import-template', [ItemController::class, 'downloadTemplate'])->name('items.import-template');
+        Route::post('items/import', [ItemController::class, 'import'])->name('items.import');
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
         Route::delete('items/{id}/pdf-similar', [ItemController::class, 'deleteSimilarPdf'])->name('items.delete-similar-pdf');
         Route::resource('items', ItemController::class)->except(['create']);
