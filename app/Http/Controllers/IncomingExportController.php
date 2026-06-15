@@ -62,7 +62,7 @@ class IncomingExportController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Incoming Export')->orderBy('name')->get();
 
@@ -149,7 +149,7 @@ class IncomingExportController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
         $query = $this->checksheetService->getQuery($filters)->latest();
 
         if ($request->has('page')) {

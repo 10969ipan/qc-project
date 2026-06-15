@@ -78,7 +78,7 @@ class SortirChecksheetController extends Controller
         }
 
         $plantFilter = $request->get('plant');
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
         $checksheets = $this->sortirService->getFilteredChecksheets($filters);
         $items = Item::orderBy('name')->get();
 
@@ -231,7 +231,7 @@ class SortirChecksheetController extends Controller
 
     protected function getFilterParams(Request $request, $ignorePage = false)
     {
-        $params = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
+        $params = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
         if (!$ignorePage && $request->has('page')) {
             $params['page'] = $request->page;
         }
@@ -250,7 +250,7 @@ class SortirChecksheetController extends Controller
         }
 
         // Filter parameters
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
 
         // Get data (using service logic but without pagination)
         $query = $this->sortirService->getQuery($filters)->latest();
@@ -293,7 +293,7 @@ class SortirChecksheetController extends Controller
             $request->merge(['plant' => $user->plant_id]);
         }
 
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();

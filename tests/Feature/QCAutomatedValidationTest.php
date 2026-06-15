@@ -566,4 +566,67 @@ class QCAutomatedValidationTest extends TestCase
         $expectedUrl = route('cross_cut_painting.index', ['id' => $checksheet->id]);
         $this->assertEquals($expectedUrl, $data['url']);
     }
+
+    /** @test */
+    public function it_filters_checksheets_by_id_query_parameter()
+    {
+        $this->actingAs($this->admin);
+
+        // Find or create a plant with name 'Karawang' to match resolvePlantId('karawang')
+        $krwPlant = \App\Models\Plant::where('code', 'karawang')
+            ->orWhere('name', 'Karawang')
+            ->first() ?: \App\Models\Plant::create(['name' => 'Karawang', 'code' => 'karawang']);
+
+        $category = \App\Models\Category::where('name', 'Double Tape')->first() ?: \App\Models\Category::create(['name' => 'Double Tape']);
+
+        // Create double tape checksheet
+        $item = \App\Models\Item::create([
+            'name' => 'Double Tape Item',
+            'part_number' => 'DT-123',
+            'category_id' => $category->id,
+            'plant_id' => $krwPlant->id,
+            'min_sampling' => 1
+        ]);
+
+        $checksheet1 = \App\Models\DoubleTapeChecksheet::create([
+            'plant_id' => $krwPlant->id,
+            'item_id' => $item->id,
+            'date' => now(),
+            'shift' => '1',
+            'total_qty' => 10,
+            'total_ok' => 10,
+            'total_ng' => 0,
+            'sampling_qty' => 5,
+            'judgment' => 'OK',
+            'operator_initials' => 'OP',
+            'check_type' => 'regular'
+        ]);
+
+        $checksheet2 = \App\Models\DoubleTapeChecksheet::create([
+            'plant_id' => $krwPlant->id,
+            'item_id' => $item->id,
+            'date' => now(),
+            'shift' => '1',
+            'total_qty' => 20,
+            'total_ok' => 20,
+            'total_ng' => 0,
+            'sampling_qty' => 5,
+            'judgment' => 'OK',
+            'operator_initials' => 'OP',
+            'check_type' => 'regular'
+        ]);
+
+        // Request with id filter for checksheet1
+        $response = $this->get(route('double_tape.index', ['id' => $checksheet1->id]));
+        $response->assertStatus(200);
+
+        // Verify checksheet1 is present
+        $response->assertSee('Double Tape Item');
+        
+        // Let's assert database filter works through the service
+        $service = app(\App\Services\DoubleTapeChecksheetService::class);
+        $results = $service->getFilteredChecksheets(['id' => $checksheet1->id, 'plant' => 'karawang']);
+        $this->assertEquals(1, $results->count());
+        $this->assertEquals($checksheet1->id, $results->first()->id);
+    }
 }

@@ -52,6 +52,10 @@ class IncomingPartService extends BaseService
             });
         }
 
+        if (!empty($filters['id'])) {
+            $query->where($query->getModel()->getTable() . '.id', $filters['id']);
+        }
+
         return $query;
     }
 

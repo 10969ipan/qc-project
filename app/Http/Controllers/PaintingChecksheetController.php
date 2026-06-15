@@ -106,7 +106,7 @@ class PaintingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
         $filters['plant'] = 'karawang';
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
@@ -143,7 +143,7 @@ class PaintingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
         $filters['plant'] = 'karawang';
 
         if (empty($filters['start_date'])) {
@@ -322,7 +322,7 @@ class PaintingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift', 'operator_initials', 'customer']);
         $filters['plant'] = 'karawang';
 
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();

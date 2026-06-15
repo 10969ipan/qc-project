@@ -84,6 +84,10 @@ class DoubleTapeChecksheetService extends BaseService
             $query->where('double_tape_checksheets.shift', $filters['shift']);
         }
 
+        if (!empty($filters['id'])) {
+            $query->where($query->getModel()->getTable() . '.id', $filters['id']);
+        }
+
         return $query;
     }
 

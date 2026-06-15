@@ -355,7 +355,7 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -464,7 +464,7 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -563,7 +563,7 @@ class FirstPieceApprovalController extends Controller
     {
         $plantId = \App\Models\Plant::resolveId($request->get('plant') ?: auth()->user()->plant_id);
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant', 'shift']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant', 'shift']);
         $filters['plant'] = $plantId;
 
         $query = $this->firstPieceService->buildFilteredQuery($filters)->latest();
