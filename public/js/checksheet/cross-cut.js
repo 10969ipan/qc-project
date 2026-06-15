@@ -266,7 +266,10 @@ class CrossCutCreate {
         this.refStandardPageNum = 1;
         this.refStandardFileIndex = 0;
         this.refStandardFiles = [];
+        this.refSimilarPdfDoc = null;
+        this.refSimilarPageNum = 1;
         this.standardZoomLevel = 1.0;
+        this.similarZoomLevel = 1.0;
         this.pdfCache = {};
         this.init();
     }
@@ -329,7 +332,13 @@ class CrossCutCreate {
             this.pdf.page = 1;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             $('#pageInfo').text('Loading...');
-            $('#pdfInfo').text(`File ${index + 1} of ${this.pdf.totalFiles}`);
+            if (index === 'similar') {
+                $('#pdfInfo').text("Dimensi Part PDF");
+                $('#prevPdf, #nextPdf').hide();
+            } else {
+                $('#pdfInfo').text(`File ${index + 1} of ${this.pdf.totalFiles}`);
+                $('#prevPdf, #nextPdf').show();
+            }
 
             pdfjsLib.getDocument(url).promise.then(pdfDoc => {
                 this.pdf.doc = pdfDoc;
@@ -346,16 +355,17 @@ class CrossCutCreate {
         $('#pdfZoomOut').click(() => { if (this.pdf.scale > 0.25) { this.pdf.scale -= 0.25; queueRender(this.pdf.page); } });
         $('#pdfZoomReset').click(() => { this.pdf.scale = 1.0; queueRender(this.pdf.page); });
 
-        $('#prevPdf').click(() => { if (this.pdf.currentIdx > 0) loadFile(this.pdf.itemId, --this.pdf.currentIdx); });
-        $('#nextPdf').click(() => { if (this.pdf.currentIdx < this.pdf.totalFiles - 1) loadFile(this.pdf.itemId, ++this.pdf.currentIdx); });
+        $('#prevPdf').click(() => { if (this.pdf.currentIdx !== 'similar' && this.pdf.currentIdx > 0) loadFile(this.pdf.itemId, --this.pdf.currentIdx); });
+        $('#nextPdf').click(() => { if (this.pdf.currentIdx !== 'similar' && this.pdf.currentIdx < this.pdf.totalFiles - 1) loadFile(this.pdf.itemId, ++this.pdf.currentIdx); });
 
         $(document).on('click', '.view-pdf-btn', (e) => {
             const btn = $(e.currentTarget);
             this.pdf.itemId = btn.data('id');
-            this.pdf.totalFiles = btn.data('count');
-            this.pdf.currentIdx = 0;
+            const isSimilar = btn.data('similar') || (btn.attr('id') === 'fullSimilarBtn');
+            this.pdf.totalFiles = isSimilar ? 1 : btn.data('count');
+            this.pdf.currentIdx = isSimilar ? 'similar' : 0;
             $('#pdfModal').modal('show');
-            loadFile(this.pdf.itemId, 0);
+            loadFile(this.pdf.itemId, this.pdf.currentIdx);
         });
 
         // Controls for inline STANDARD PDF
@@ -454,6 +464,75 @@ class CrossCutCreate {
                 loadFile(this.pdf.itemId, this.pdf.currentIdx);
             }
         });
+
+        // Controls for inline SIMILAR PDF
+        $('#prevSimilarPage').click(() => {
+            if (this.refSimilarPageNum > 1) {
+                this.refSimilarPageNum--;
+                this.renderPageOnCanvas(
+                    this.refSimilarPdfDoc,
+                    "similarPdfCanvas",
+                    this.refSimilarPageNum,
+                );
+            }
+        });
+
+        $('#nextSimilarPage').click(() => {
+            if (
+                this.refSimilarPdfDoc &&
+                this.refSimilarPageNum < this.refSimilarPdfDoc.numPages
+            ) {
+                this.refSimilarPageNum++;
+                this.renderPageOnCanvas(
+                    this.refSimilarPdfDoc,
+                    "similarPdfCanvas",
+                    this.refSimilarPageNum,
+                );
+            }
+        });
+
+        // Zoom logic for inline SIMILAR PDF
+        $("#zoomInSimilar").click(() => {
+            this.similarZoomLevel += 0.25;
+            if (this.refSimilarPdfDoc)
+                this.renderPageOnCanvas(
+                    this.refSimilarPdfDoc,
+                    "similarPdfCanvas",
+                    this.refSimilarPageNum,
+                );
+        });
+        $("#zoomOutSimilar").click(() => {
+            if (this.similarZoomLevel > 0.5) {
+                this.similarZoomLevel -= 0.25;
+                if (this.refSimilarPdfDoc)
+                    this.renderPageOnCanvas(
+                        this.refSimilarPdfDoc,
+                        "similarPdfCanvas",
+                        this.refSimilarPageNum,
+                    );
+            }
+        });
+        $("#zoomResetSimilar").click(() => {
+            this.similarZoomLevel = 1.0;
+            if (this.refSimilarPdfDoc)
+                this.renderPageOnCanvas(
+                    this.refSimilarPdfDoc,
+                    "similarPdfCanvas",
+                    this.refSimilarPageNum,
+                );
+        });
+
+        // Full screen viewer trigger for similar PDF
+        $("#fullSimilarBtn").click(() => {
+            const itemId = $('#item_id').val();
+            if (itemId) {
+                this.pdf.itemId = itemId;
+                this.pdf.totalFiles = 1;
+                this.pdf.currentIdx = 'similar';
+                $('#pdfModal').modal('show');
+                loadFile(this.pdf.itemId, this.pdf.currentIdx);
+            }
+        });
     }
 
     renderPdfToCanvas(url, canvasId, placeholderId, loadingId, pageNum = 1) {
@@ -513,7 +592,7 @@ class CrossCutCreate {
             const containerWidth = $canvas.parent().width() || 500;
             const availableWidth = containerWidth - 40;
             const viewport = page.getViewport({ scale: 1.0 });
-            let zoom = _this.standardZoomLevel || 1.0;
+            let zoom = canvasId === "standardPdfCanvas" ? (_this.standardZoomLevel || 1.0) : (_this.similarZoomLevel || 1.0);
             const scale = (availableWidth / viewport.width) * zoom;
             const scaledViewport = page.getViewport({ scale: scale });
 
@@ -534,6 +613,10 @@ class CrossCutCreate {
                     const fileInfo = _this.refStandardFiles.length > 1 ? ` (${_this.refStandardFileIndex + 1}/${_this.refStandardFiles.length})` : '';
                     $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}${fileInfo}`);
                     _this.refStandardPageNum = pageNum;
+                } else if (canvasId === "similarPdfCanvas") {
+                    _this.refSimilarPdfDoc = pdf;
+                    $("#similarPageInfo").text(`P ${pageNum}/${pdf.numPages}`);
+                    _this.refSimilarPageNum = pageNum;
                 }
                 _this.updateRefNavControls();
             });
@@ -546,7 +629,7 @@ class CrossCutCreate {
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
         const $canvas = $(canvas);
-        const $loading = $("#standardPdfLoading");
+        const $loading = $(canvasId === "standardPdfCanvas" ? "#standardPdfLoading" : "#similarPdfLoading");
 
         $canvas.hide();
         $loading.removeClass("d-none").addClass("d-flex");
@@ -568,6 +651,13 @@ class CrossCutCreate {
                 "display: flex !important;",
             );
         else $(".standard-nav-controls").hide();
+
+        if (this.refSimilarPdfDoc)
+            $(".similar-nav-controls").attr(
+                "style",
+                "display: flex !important;",
+            );
+        else $(".similar-nav-controls").hide();
     }
 
     initItemSelection() {
@@ -576,6 +666,7 @@ class CrossCutCreate {
             const opt = $(this).find('option:selected');
             const files = opt.data('files');
             const id = $(this).val();
+            const similarPdf = opt.data('similar');
 
             // Guard: only show PDF button if files array has valid non-empty entries
             const validFiles = Array.isArray(files) ? files.filter(f => f && f.trim && f.trim() !== '') : [];
@@ -610,6 +701,30 @@ class CrossCutCreate {
                     $(".standard-nav-controls").hide();
                     $("#downloadStandardBtn, #fullStandardBtn").hide();
                 }
+
+                _this.refSimilarPdfDoc = null;
+                _this.refSimilarPageNum = 1;
+
+                if (similarPdf) {
+                    _this.renderPdfToCanvas(
+                        similarPdf,
+                        "similarPdfCanvas",
+                        "similarPdfPlaceholder",
+                        "similarPdfLoading",
+                        1
+                    );
+                    $("#similarStatusText").text("");
+                    $("#downloadSimilarBtn").attr("href", similarPdf).show();
+                    $("#fullSimilarBtn").show();
+                } else {
+                    $("#similarPdfCanvas").addClass("d-none").hide();
+                    $("#similarPdfPlaceholder")
+                        .removeClass("d-none")
+                        .addClass("d-flex");
+                    $("#similarStatusText").text("Referral Dimensi Part tidak tersedia untuk item ini");
+                    $(".similar-nav-controls").hide();
+                    $("#downloadSimilarBtn, #fullSimilarBtn").hide();
+                }
             } else {
                 $("#standardPdfCanvas").addClass("d-none").hide();
                 $("#standardPdfPlaceholder")
@@ -619,6 +734,14 @@ class CrossCutCreate {
                     .text("Pilih Item untuk menampilkan Standard PDF");
                 $(".standard-nav-controls").hide();
                 $("#downloadStandardBtn, #fullStandardBtn").hide();
+
+                $("#similarPdfCanvas").addClass("d-none").hide();
+                $("#similarPdfPlaceholder")
+                    .removeClass("d-none")
+                    .addClass("d-flex");
+                $("#similarStatusText").text("");
+                $(".similar-nav-controls").hide();
+                $("#downloadSimilarBtn, #fullSimilarBtn").hide();
             }
         });
     }
@@ -782,6 +905,9 @@ class CrossCutCreate {
         this.refStandardFileIndex = 0;
         this.refStandardFiles = [];
         this.standardZoomLevel = 1.0;
+        this.refSimilarPdfDoc = null;
+        this.refSimilarPageNum = 1;
+        this.similarZoomLevel = 1.0;
         $('#item_id').trigger('change');
     }
 }
