@@ -95,15 +95,18 @@ class NotificationController extends Controller
                 $parsedUrl = parse_url($data['url']);
                 $pathAndQuery = ($parsedUrl['path'] ?? '') . (isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '');
                 
-                if (preg_match('/(\/(report|checksheet|calibration|notifications|dashboard|kakotora)\b.*)/i', $pathAndQuery, $matches)) {
+                if (preg_match('/(\/(report|checksheet|calibration|notifications|dashboard|kakotora|admin|verifications)\b.*)/i', $pathAndQuery, $matches)) {
                     $data['url'] = url($matches[1]);
                     $notification->data = $data;
                 } else {
-                    $cleanPath = ltrim($pathAndQuery, '/');
-                    $basePath = trim(request()->getBasePath(), '/');
-                    if (!empty($basePath) && strpos($cleanPath, $basePath) === 0) {
-                        $cleanPath = substr($cleanPath, strlen($basePath));
-                        $cleanPath = ltrim($cleanPath, '/');
+                    $basePath = request()->getBaseUrl(); // e.g. "/qc" or "/qc-project/public"
+                    $cleanPath = $pathAndQuery;
+                    if (!empty($basePath)) {
+                        if (strpos($cleanPath, $basePath . '/') === 0) {
+                            $cleanPath = substr($cleanPath, strlen($basePath));
+                        } elseif ($cleanPath === $basePath) {
+                            $cleanPath = '/';
+                        }
                     }
                     $data['url'] = url($cleanPath);
                     $notification->data = $data;
