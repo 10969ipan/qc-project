@@ -64,14 +64,37 @@
             });
 
             function doBulkApprove(startDate, endDate, plant, approvalType) {
-                // Show loading
+                // Show animated progress bar
+                let progress = 0;
                 Swal.fire({
                     title: 'Memproses...',
-                    html: 'Sedang meng-approve data checksheet...',
+                    html: `
+                        <div class="mb-2" style="font-size:0.9rem; color:#555;">Sedang meng-approve data checksheet...</div>
+                        <div class="progress" style="height:20px; border-radius:10px; background:#e9ecef;">
+                            <div id="bulk-approve-progress-bar"
+                                 class="progress-bar progress-bar-striped progress-bar-animated"
+                                 role="progressbar"
+                                 style="width:0%; background: linear-gradient(90deg,#1cc88a,#17a673); border-radius:10px; transition:width 0.3s ease; font-size:0.8rem; font-weight:600;">
+                                0%
+                            </div>
+                        </div>`,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
-                    didOpen: () => { Swal.showLoading(); }
+                    showConfirmButton: false
                 });
+
+                // Animate progress bar while waiting for AJAX
+                const progressInterval = setInterval(function () {
+                    if (progress < 85) {
+                        progress += Math.random() * 8;
+                        if (progress > 85) progress = 85;
+                        const bar = document.getElementById('bulk-approve-progress-bar');
+                        if (bar) {
+                            bar.style.width = progress.toFixed(0) + '%';
+                            bar.textContent = progress.toFixed(0) + '%';
+                        }
+                    }
+                }, 300);
 
                 $.ajax({
                     url: '{{ $bulkApproveRoute }}',
@@ -84,16 +107,28 @@
                         approval_type: approvalType
                     },
                     success: function (response) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            html: response.message,
-                            confirmButtonColor: '#1cc88a'
-                        }).then(() => {
-                            location.reload();
-                        });
+                        clearInterval(progressInterval);
+
+                        // Complete the bar to 100%
+                        const bar = document.getElementById('bulk-approve-progress-bar');
+                        if (bar) {
+                            bar.style.width = '100%';
+                            bar.textContent = '100%';
+                        }
+
+                        setTimeout(function () {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                html: response.message,
+                                confirmButtonColor: '#1cc88a'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        }, 400);
                     },
                     error: function (xhr) {
+                        clearInterval(progressInterval);
                         var msg = 'Terjadi kesalahan.';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             msg = xhr.responseJSON.message;
@@ -110,3 +145,4 @@
         });
     </script>
 @endif
+
