@@ -109,23 +109,22 @@
                     success: function (response) {
                         clearInterval(progressInterval);
 
-                        // Complete the bar to 100%
+                        // Complete the bar to 100% then show success
                         const bar = document.getElementById('bulk-approve-progress-bar');
                         if (bar) {
                             bar.style.width = '100%';
                             bar.textContent = '100%';
                         }
 
-                        setTimeout(function () {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                html: response.message,
-                                confirmButtonColor: '#1cc88a'
-                            }).then(() => {
-                                location.reload();
-                            });
-                        }, 400);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#1cc88a'
+                        }).then(() => {
+                            location.reload();
+                        });
                     },
                     error: function (xhr) {
                         clearInterval(progressInterval);
