@@ -528,4 +528,42 @@ class QCAutomatedValidationTest extends TestCase
             'id' => $notification->id
         ]);
     }
+
+    /** @test */
+    public function it_creates_notifications_with_correct_module_routes()
+    {
+        $this->actingAs($this->admin);
+
+        // Instatiate NotificationService
+        $service = new \App\Services\NotificationService();
+
+        // Create a checksheet
+        $checksheet = CrossCutPaintingChecksheet::create([
+            'plant_id' => $this->plant->id,
+            'item_id' => $this->paintingItem->id,
+            'production_shift' => '1',
+            'qc_shift' => '1',
+            'production_datetime' => now(),
+            'qc_datetime' => now(),
+            'position_remark_judgment' => 'OK',
+            'operator_initials' => 'AJ',
+            'image_path' => 'test.png'
+        ]);
+
+        // Trigger notification
+        $service->notifyApprovalRequest($checksheet, 'Cross Cut Painting');
+
+        // Verify the created notification has the correct URL
+        $notification = \App\Models\Notification::where('user_id', $this->admin->id)
+            ->where('type', 'approval')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $this->assertNotNull($notification);
+        
+        // Ensure the data array is decoded properly
+        $data = $notification->data;
+        $expectedUrl = route('cross_cut_painting.index', ['id' => $checksheet->id], false);
+        $this->assertEquals($expectedUrl, $data['url']);
+    }
 }

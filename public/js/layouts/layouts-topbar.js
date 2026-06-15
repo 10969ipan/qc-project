@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', function (e) {
                 const id = this.getAttribute('data-id');
-                markAsRead(id);
+                const href = this.getAttribute('href');
 
                 // Immediately remove the clicked element from the dropdown list
                 this.remove();
@@ -111,6 +111,36 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (count > 0) {
                         updateBadge(count - 1);
                     }
+                }
+
+                // Handle navigation and marking as read synchronously/sequentially
+                if (e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey) {
+                    // Middle click or ctrl/cmd/shift click: let browser handle new tab/window,
+                    // but still fire markAsRead in background.
+                    markAsRead(id);
+                } else {
+                    e.preventDefault();
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    fetch(`/notifications/${id}/read`, {
+                        method: 'POST',
+                        keepalive: true,
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    }).then(response => {
+                        if (response.status === 419) {
+                            window.location.reload();
+                        } else if (href && href !== '#') {
+                            window.location.href = href;
+                        }
+                    }).catch(() => {
+                        if (href && href !== '#') {
+                            window.location.href = href;
+                        }
+                    });
                 }
             });
         });
