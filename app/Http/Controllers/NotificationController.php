@@ -137,16 +137,30 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark a notification as read
+     * Mark a notification as read.
+     * Also deletes all sibling notifications for the same checksheet
+     * so every user's notification list reflects the view action.
      */
     public function markAsRead($id)
     {
         $notification = Notification::find($id);
-        if ($notification) {
-            $notification->update(['is_read' => true]);
-            return response()->json(['success' => true]);
+        if (!$notification) {
+            return response()->json(['success' => false], 404);
         }
-        return response()->json(['success' => false], 404);
+
+        $data = $notification->data ?? [];
+
+        // Delete all related notifications for the same checksheet (NG/approval)
+        if (!empty($data['checksheet_id']) && !empty($data['checksheet_type'])) {
+            Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$data['checksheet_id']])
+                ->whereRaw("JSON_EXTRACT(data, '$.checksheet_type') = ?", [$data['checksheet_type']])
+                ->delete();
+        } else {
+            // Fallback: just mark this one notification as read
+            $notification->update(['is_read' => true]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**
