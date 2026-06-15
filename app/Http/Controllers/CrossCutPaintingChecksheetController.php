@@ -254,7 +254,10 @@ class CrossCutPaintingChecksheetController extends Controller
             $this->paintingService->updateChecksheet($id, $request->validated());
             $checksheet = \App\Models\CrossCutPaintingChecksheet::find($id);
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Cross Cut Painting: {$checksheet->item->name}");
-            return redirect()->route('cross_cut_painting.index')->with('success', 'Data berhasil diperbarui.');
+            
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'search', 'shift', 'operator_initials', 'customer'];
+            $redirectParams = $request->only($preservationKeys);
+            return redirect()->route('cross_cut_painting.index', $redirectParams)->with('success', 'Data berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
@@ -270,10 +273,9 @@ class CrossCutPaintingChecksheetController extends Controller
             $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
             $this->paintingService->deleteChecksheet($id);
             \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut Painting: {$itemName}");
-            $redirectParams = [];
-            if ($request->has('plant')) {
-                $redirectParams['plant'] = $request->input('plant');
-            }
+            
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'search', 'shift', 'operator_initials', 'customer'];
+            $redirectParams = $request->only($preservationKeys);
             return redirect()->route('cross_cut_painting.index', $redirectParams)->with('success', 'Data Cross Cut Painting berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
@@ -282,6 +284,8 @@ class CrossCutPaintingChecksheetController extends Controller
 
     public function approve(Request $request, $id, $type)
     {
+        $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'search', 'shift', 'operator_initials', 'customer'];
+        $redirectParams = $request->only($preservationKeys);
         try {
             $data = [];
             if ($type === 'kashift_plating') {
@@ -294,11 +298,11 @@ class CrossCutPaintingChecksheetController extends Controller
             $label = $mapping['label'] ?? $type;
             ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$label}) pada checksheet Cross Cut Painting: {$checksheet->item->name}");
 
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status', 'shift']))->with('success', 'Cross Cut Painting Checksheet approved successfully.');
+            return redirect()->route('cross_cut_painting.index', $redirectParams)->with('success', 'Cross Cut Painting Checksheet approved successfully.');
         } catch (\Exception $e) {
             if ($e->getCode() == 403)
                 abort(403);
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status', 'shift']))->with('error', $e->getMessage());
+            return redirect()->route('cross_cut_painting.index', $redirectParams)->with('error', $e->getMessage());
         }
     }
 
@@ -308,11 +312,13 @@ class CrossCutPaintingChecksheetController extends Controller
             'rejection_remarks' => 'required|string|min:10|max:500',
         ]);
 
+        $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'search', 'shift', 'operator_initials', 'customer'];
+        $redirectParams = $request->only($preservationKeys);
         try {
             $this->paintingService->rejectChecksheet($id, $type, $request->rejection_remarks);
             $checksheet = CrossCutPaintingChecksheet::find($id);
             \App\Helpers\ActivityLogger::log('rejected', $checksheet, "Melakukan rejection pada checksheet Cross Cut Painting: {$checksheet->item->name}");
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'start_date', 'end_date', 'item_id', 'approval_status', 'shift']))
+            return redirect()->route('cross_cut_painting.index', $redirectParams)
                 ->with('warning', 'Checksheet telah ditolak.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menolak checksheet: ' . $e->getMessage());
@@ -419,7 +425,10 @@ class CrossCutPaintingChecksheetController extends Controller
             }
 
             \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Cross Cut Painting: {$checksheet->item->name}");
-            return redirect()->route('cross_cut_painting.index', $request->only(['page', 'part_number', 'customer', 'approval_status', 'date_from', 'date_to']))->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+            
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'item_id', 'approval_status', 'search', 'shift', 'operator_initials', 'customer'];
+            $redirectParams = $request->only($preservationKeys);
+            return redirect()->route('cross_cut_painting.index', $redirectParams)->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }

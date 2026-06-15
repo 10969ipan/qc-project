@@ -1,4 +1,4 @@
-<form action="{{ route('cross_cut_painting.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST"
+<form action="{{ route('cross_cut_painting.update', array_merge(['id' => $checksheet->id], request()->query())) }}" method="POST"
     enctype="multipart/form-data" id="formEditCrossCut">
     @csrf
     @method('PUT')

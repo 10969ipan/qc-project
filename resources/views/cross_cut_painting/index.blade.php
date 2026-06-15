@@ -441,7 +441,7 @@
 
                                         {{-- Standard Actions --}}
                                         @if($isAdmin)
-                                            <a href="{{ route('admin.cross_cut_painting.edit_approval', ['id' => $checksheet->id]) }}"
+                                            <a href="{{ route('admin.cross_cut_painting.edit_approval', array_merge(['id' => $checksheet->id], request()->query())) }}"
                                                 class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
@@ -449,12 +449,12 @@
                                         @endif
                                         
                                         @if(!in_array($user->role, ['manager', 'asst_manager', 'manager_plating']))
-                                            <a href="javascript:void(0)" class="btn btn-warning btn-sm m-1 edit-btn" 
+                                            <a href="{{ route('cross_cut_painting.edit', array_merge(['id' => $checksheet->id], request()->query())) }}" class="btn btn-warning btn-sm m-1 edit-btn" 
                                                 data-id="{{ $checksheet->id }}" title="Edit"
                                                 style="min-width: 80px;">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-                                            <form action="{{ route('cross_cut_painting.destroy', $checksheet->id) }}"
+                                            <form action="{{ route('cross_cut_painting.destroy', array_merge(['id' => $checksheet->id], request()->query())) }}"
                                                 method="POST" class="d-inline p-0">
                                                 @csrf
                                                 @method('DELETE')
@@ -515,6 +515,8 @@
                     <input type="hidden" name="search" value="{{ request('search') }}">
                     <input type="hidden" name="shift" value="{{ request('shift') }}">
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
+                    <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                    <input type="hidden" name="customer" value="{{ request('customer') }}">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title"><i class="fas fa-check-circle mr-2"></i>Konfirmasi Approval</h5>
                         <button type="button" class="close text-white" data-dismiss="modal">&times;</button>

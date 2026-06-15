@@ -2,7 +2,7 @@
     <h6 class="align-middle m-0 font-weight-bold">Checksheet ID: {{ $checksheet->id }}</h6>
 </div>
 
-<form action="{{ route('admin.cross_cut_painting.update_approval', $checksheet->id) }}" method="POST">
+<form action="{{ route('admin.cross_cut_painting.update_approval', array_merge(['id' => $checksheet->id], request()->query())) }}" method="POST">
     @csrf
     @method('PUT')
 
