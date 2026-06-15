@@ -138,8 +138,8 @@ class NotificationController extends Controller
 
     /**
      * Mark a notification as read.
-     * Also deletes all sibling notifications for the same checksheet
-     * so every user's notification list reflects the view action.
+     * Deletes all notifications for the current user related to the same checksheet,
+     * so sibling notifications (same checksheet) are also cleared for this user only.
      */
     public function markAsRead($id)
     {
@@ -148,16 +148,20 @@ class NotificationController extends Controller
             return response()->json(['success' => false], 404);
         }
 
+        $user = auth()->user();
         $data = $notification->data ?? [];
 
-        // Delete all related notifications for the same checksheet (NG/approval)
+        // Delete all notifications for THIS user related to the same checksheet
         if (!empty($data['checksheet_id']) && !empty($data['checksheet_type'])) {
-            Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$data['checksheet_id']])
+            Notification::where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)->orWhereNull('user_id');
+                })
+                ->whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$data['checksheet_id']])
                 ->whereRaw("JSON_EXTRACT(data, '$.checksheet_type') = ?", [$data['checksheet_type']])
                 ->delete();
         } else {
-            // Fallback: just mark this one notification as read
-            $notification->update(['is_read' => true]);
+            // Fallback: just delete this single notification
+            $notification->delete();
         }
 
         return response()->json(['success' => true]);
