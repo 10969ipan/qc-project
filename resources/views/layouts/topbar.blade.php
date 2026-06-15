@@ -205,7 +205,7 @@
         data-notifications-index-url="{{ route('notifications.index') }}"
         data-mark-all-read-url="{{ route('notifications.mark-all-read') }}"
         data-clear-all-notifications-url="{{ route('notifications.clear-all') }}"
-        data-mark-as-read-url-template="/notifications/:id/read">
+        data-mark-as-read-url-template="{{ route('notifications.mark-as-read', ['id' => ':id']) }}">
         {}
     </script>
     <script>

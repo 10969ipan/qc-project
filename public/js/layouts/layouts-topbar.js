@@ -113,6 +113,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
 
+                const readUrl = config.markAsReadUrlTemplate
+                    ? config.markAsReadUrlTemplate.replace(':id', id)
+                    : `/notifications/${id}/read`;
+
                 // Handle navigation and marking as read synchronously/sequentially
                 if (e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey) {
                     // Middle click or ctrl/cmd/shift click: let browser handle new tab/window,
@@ -122,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     e.preventDefault();
                     
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                    fetch(`/notifications/${id}/read`, {
+                    fetch(readUrl, {
                         method: 'POST',
                         keepalive: true,
                         headers: {
@@ -147,8 +151,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function markAsRead(id) {
+        const readUrl = config.markAsReadUrlTemplate
+            ? config.markAsReadUrlTemplate.replace(':id', id)
+            : `/notifications/${id}/read`;
+
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        fetch(`/notifications/${id}/read`, {
+        fetch(readUrl, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
