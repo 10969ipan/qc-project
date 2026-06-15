@@ -32,7 +32,8 @@ class NotificationController extends Controller
             });
         }
 
-        $notifications = $query->orderBy('created_at', 'desc')
+        $notifications = $query->unread()
+            ->orderBy('created_at', 'desc')
             ->limit(20)
             ->get();
 

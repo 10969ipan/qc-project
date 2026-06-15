@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SubAssyChecksheet extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter;
+    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasDeleteNotification;
 
     protected $table = 'sub_assy_checksheets';
 

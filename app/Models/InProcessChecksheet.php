@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class InProcessChecksheet extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter;
+    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasDeleteNotification;
 
     protected $table = 'in_process_checksheets';
 

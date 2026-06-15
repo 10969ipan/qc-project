@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class IncomingExport extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter;
+    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasDeleteNotification;
 
     protected $table = 'incoming_exports';
 

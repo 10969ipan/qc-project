@@ -214,8 +214,8 @@
             if (dataEl) {
                 window.__LAYOUTS_TOPBAR__ = {
                     notificationsIndexUrl: dataEl.getAttribute('data-notifications-index-url'),
-                    markAllReadUrl: dataEl.getAttribute('data-mark-all-read-url'),
-                    clearAllNotificationsUrl: dataEl.getAttribute('data-clear-all-notifications-url'),
+                    notificationsMarkAllReadUrl: dataEl.getAttribute('data-mark-all-read-url'),
+                    notificationsClearAllUrl: dataEl.getAttribute('data-clear-all-notifications-url'),
                     markAsReadUrlTemplate: dataEl.getAttribute('data-mark-as-read-url-template')
                 };
             }

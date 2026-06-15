@@ -455,4 +455,77 @@ class QCAutomatedValidationTest extends TestCase
         $split3 = \App\Models\PlatingCabutSplit::where('plating_cabut_record_id', $cabut3->id)->first();
         $this->assertStringEndsWith('CBT-001', $split3->generated_qrcode);
     }
+
+    /** @test */
+    public function it_deletes_notifications_on_checksheet_deletion()
+    {
+        $this->actingAs($this->admin);
+
+        // Create a checksheet
+        $checksheet = CrossCutPaintingChecksheet::create([
+            'plant_id' => $this->plant->id,
+            'item_id' => $this->paintingItem->id,
+            'production_shift' => '1',
+            'qc_shift' => '1',
+            'production_datetime' => now(),
+            'qc_datetime' => now(),
+            'position_remark_judgment' => 'OK',
+            'operator_initials' => 'AJ',
+            'image_path' => 'test.png'
+        ]);
+
+        // Create a mock notification linked to it
+        $notification = \App\Models\Notification::create([
+            'user_id' => $this->admin->id,
+            'type' => 'approval',
+            'title' => 'Test Approval Request',
+            'message' => 'Laporan membutuhkan approval',
+            'data' => [
+                'checksheet_id' => $checksheet->id,
+                'checksheet_type' => 'Cross Cut Painting',
+                'plant_id' => $this->plant->id
+            ]
+        ]);
+
+        // Verify the notification exists
+        $this->assertDatabaseHas('notifications', [
+            'id' => $notification->id
+        ]);
+
+        // Delete the checksheet
+        $checksheet->delete();
+
+        // Verify the notification is deleted
+        $this->assertDatabaseMissing('notifications', [
+            'id' => $notification->id
+        ]);
+    }
+
+    /** @test */
+    public function it_can_clear_all_notifications()
+    {
+        $this->actingAs($this->admin);
+
+        // Create a mock notification
+        $notification = \App\Models\Notification::create([
+            'user_id' => $this->admin->id,
+            'type' => 'approval',
+            'title' => 'Test Notification',
+            'message' => 'Laporan membutuhkan approval',
+            'data' => [
+                'plant_id' => $this->plant->id
+            ]
+        ]);
+
+        $this->assertDatabaseHas('notifications', [
+            'id' => $notification->id
+        ]);
+
+        $response = $this->delete(route('notifications.clear-all'));
+        $response->assertStatus(200);
+
+        $this->assertDatabaseMissing('notifications', [
+            'id' => $notification->id
+        ]);
+    }
 }

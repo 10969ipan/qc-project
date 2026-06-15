@@ -90,6 +90,28 @@ document.addEventListener('DOMContentLoaded', function () {
             item.addEventListener('click', function (e) {
                 const id = this.getAttribute('data-id');
                 markAsRead(id);
+
+                // Immediately remove the clicked element from the dropdown list
+                this.remove();
+
+                // Show 'No notifications' if list is empty
+                const remaining = document.querySelectorAll('.notification-item');
+                if (remaining.length === 0) {
+                    if (notificationList) {
+                        notificationList.innerHTML = '<div class="text-center p-3 small text-muted">No notifications</div>';
+                    }
+                }
+
+                // Update/decrement badge count
+                let currentBadgeText = notificationBadge ? notificationBadge.textContent : '0';
+                if (currentBadgeText.includes('+')) {
+                    fetchNotifications();
+                } else {
+                    let count = parseInt(currentBadgeText) || 0;
+                    if (count > 0) {
+                        updateBadge(count - 1);
+                    }
+                }
             });
         });
     }
