@@ -886,7 +886,7 @@
                 <div class="modal-body p-0">
                     <div class="table-responsive" style="max-height: 400px;">
                         <table class="table table-hover table-sm mb-0" id="tableLogItem">
-                            <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
+                            <thead class="bg-white text-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
                                     <th class="border-top-0 border-bottom-0 pl-4 py-2">Waktu</th>
                                     <th class="border-top-0 border-bottom-0 py-2">User</th>
@@ -1047,7 +1047,7 @@
                     $('#modalLogItem').modal('show');
 
                     $.ajax({
-                        url: `/admin/items/${itemId}/logs`,
+                        url: `/items/${itemId}/logs`,
                         method: 'GET',
                         success: function(response) {
                             if(response.success) {
