@@ -334,27 +334,56 @@ trait HasChecksheetApproval
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
             });
 
-            $checksheets = $query->get();
-            $approvedCount = 0;
+            // Get IDs before updating to know the count
+            $checksheetIds = $query->pluck('id')->toArray();
+            $approvedCount = count($checksheetIds);
 
-            foreach ($checksheets as $checksheet) {
-                // Clear rejection if it was rejected
-                if ($checksheet->$field === 'REJECTED') {
-                    $checksheet->rejection_remarks = null;
-                }
-
-                $checksheet->$field = $user->name;
-                $checksheet->$timeField = now();
+            if ($approvedCount > 0) {
+                $updateData = [
+                    $field => $user->name,
+                    $timeField => now(),
+                ];
+                
+                $dummyModel = new $modelClass();
+                $table = $dummyModel->getTable();
 
                 // Set global approval status if Supervisor approves
                 if ($type === 'supervisor' || $type === 'supervisor_plating') {
-                    if (Schema::hasColumn($checksheet->getTable(), 'approval_status')) {
-                        $checksheet->approval_status = 'Approved';
+                    if (Schema::hasColumn($table, 'approval_status')) {
+                        $updateData['approval_status'] = 'Approved';
                     }
                 }
 
-                $checksheet->save();
-                $approvedCount++;
+                // Clear rejection if it was rejected
+                if (Schema::hasColumn($table, 'rejection_remarks')) {
+                    $updateData['rejection_remarks'] = null;
+                }
+
+                // Execute mass update (very fast, O(1) query)
+                $modelClass::whereIn('id', $checksheetIds)->update($updateData);
+
+                // Bulk clear notifications for the approved checksheets
+                try {
+                    $typeLabel = 'Checksheet';
+                    if (strpos($modelClass, 'SubAssy') !== false) $typeLabel = 'Sub Assy';
+                    if (strpos($modelClass, 'InProcess') !== false) $typeLabel = 'In Process';
+                    if (strpos($modelClass, 'CrossCut') !== false) $typeLabel = 'Cross Cut';
+                    if (strpos($modelClass, 'Sortir') !== false) $typeLabel = 'Sortir';
+                    if (strpos($modelClass, 'Plating') !== false) $typeLabel = 'Plating';
+                    if (strpos($modelClass, 'Painting') !== false) $typeLabel = 'Painting';
+
+                    // Using LIKE instead of JSON_EXTRACT for better compatibility and performance with many IDs
+                    foreach (array_chunk($checksheetIds, 200) as $chunk) {
+                        \App\Models\Notification::where(function($q) use ($chunk, $typeLabel) {
+                            foreach ($chunk as $id) {
+                                $q->orWhere('data', 'LIKE', '%"checksheet_id":' . $id . ',"checksheet_type":"' . $typeLabel . '"%')
+                                  ->orWhere('data', 'LIKE', '%"checksheet_id":"' . $id . '","checksheet_type":"' . $typeLabel . '"%');
+                            }
+                        })->delete();
+                    }
+                } catch (\Exception $ne) {
+                    Log::error('Bulk Approval Notification Clear Error: ' . $ne->getMessage());
+                }
             }
 
             if ($approvedCount > 0) {
