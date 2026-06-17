@@ -390,7 +390,8 @@ class ItemController extends Controller
         try {
             $this->itemService->deleteItemPdf($id, $index);
             $item = Item::withoutGlobalScope('plant')->find($id);
-            ActivityLogger::log('deleted', $item, "Menghapus file PDF index {$index} pada item: {$item->name}");
+            $urutan = $index + 1;
+            ActivityLogger::log('deleted', $item, "Menghapus file PDF Standard (lampiran ke-{$urutan}) pada item: {$item->name}");
             return response()->json(['success' => true, 'message' => 'PDF berhasil dihapus.']);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to delete PDF for Item ID {$id}: " . $e->getMessage());
