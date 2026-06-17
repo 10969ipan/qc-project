@@ -90,7 +90,6 @@ class IncomingExportService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Export');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Incoming Export');
 
             return ['checksheet' => $checksheet];
         } catch (\Exception $e) {

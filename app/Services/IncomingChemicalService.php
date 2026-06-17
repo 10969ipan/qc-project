@@ -94,7 +94,6 @@ class IncomingChemicalService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Chemical');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Incoming Chemical');
 
             return ['checksheet' => $checksheet];
         } catch (\Exception $e) {

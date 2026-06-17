@@ -107,51 +107,7 @@ class NotificationService
         }
     }
 
-    /**
-     * Notify about a request for approval (Karu, Kashift, Supervisor)
-     */
-    public function notifyApprovalRequest($checksheet, $type = 'Sub Assy')
-    {
-        try {
-            $item = $checksheet->item;
-            $rawDate = $checksheet->date ?? $checksheet->qc_datetime ?? $checksheet->production_datetime ?? clone $checksheet->created_at;
-            $dateStr = ($rawDate instanceof \Carbon\Carbon)
-                ? $rawDate->format('d-m-Y')
-                : \Carbon\Carbon::parse($rawDate)->format('d-m-Y');
 
-            $title = "Permintaan Approval: " . ($item ? $item->name : 'N/A');
-            $locationLabel = $this->getLocationLabel($type);
-            $locationValue = $this->getLineInfo($checksheet, $type);
-            $shift = $checksheet->shift ?? $checksheet->qc_shift ?? $checksheet->production_shift ?? '-';
-            $message = "Laporan {$type} pada {$dateStr} (Shift {$shift})" . ($locationValue ? " {$locationLabel} {$locationValue}" : "") . " membutuhkan approval.";
-
-            $url = $this->getChecksheetUrl($checksheet, $type);
-
-            // Specific roles as requested: Karu, Kashift, Supervisor
-            // Admin role should receive from all plants
-            $users = User::where(function ($q) use ($checksheet) {
-                $q->where('plant_id', $checksheet->plant_id)
-                    ->whereIn('role', ['karu_qc', 'kashift', 'supervisor']);
-            })->orWhere('role', 'admin')->get();
-
-            foreach ($users as $user) {
-                Notification::create([
-                    'user_id' => $user->id,
-                    'type' => 'approval',
-                    'title' => $title,
-                    'message' => $message,
-                    'data' => [
-                        'url' => $url,
-                        'checksheet_id' => $checksheet->id,
-                        'checksheet_type' => $type,
-                        'plant_id' => $checksheet->plant_id  // Filter per plant
-                    ],
-                ]);
-            }
-        } catch (\Exception $e) {
-            Log::error('Notification Error (Approval): ' . $e->getMessage());
-        }
-    }
 
     /**
      * Notify about calibration schedules that need verification
@@ -300,61 +256,5 @@ class NotificationService
         }
     }
 
-    /**
-     * Delete all notifications related to a specific checksheet
-     * This is called after approval to remove the notification from list
-     */
-    public function markChecksheetNotificationsAsRead($checksheet, $type = 'In Process')
-    {
-        try {
-            // Delete all notifications related to this checksheet
-            // Using LIKE instead of JSON_EXTRACT because JSON_EXTRACT forces a slow full table scan with heavy parsing.
-            // LIKE is also a full scan but significantly faster.
-            $deleted = Notification::where(function($q) use ($checksheet) {
-                    $q->where('data', 'LIKE', '%"checksheet_id":' . $checksheet->id . '%')
-                      ->orWhere('data', 'LIKE', '%"checksheet_id":"' . $checksheet->id . '"%');
-                })
-                ->where('data', 'LIKE', '%"checksheet_type":"' . $type . '"%')
-                ->delete();
 
-            Log::info("Deleted {$deleted} notifications for checksheet ID: {$checksheet->id}, Type: {$type}");
-
-            // If no notifications were deleted, try fallback for old notifications without checksheet_id
-            if ($deleted === 0) {
-                Log::warning("No notifications found with checksheet_id. Trying fallback for old notifications...");
-
-                // Delete notifications where URL contains id parameter using LIKE on the raw data column
-                $deletedOld = Notification::where('data', 'LIKE', '%"url":"%id=' . $checksheet->id . '%')
-                    ->orWhere('data', 'LIKE', '%"url":"%id%3D' . $checksheet->id . '%')
-                    ->delete();
-
-                Log::info("Fallback: Deleted {$deletedOld} old notifications by URL for checksheet ID: {$checksheet->id}");
-            }
-        } catch (\Exception $e) {
-            Log::error('Error deleting notifications: ' . $e->getMessage());
-
-            // Final fallback: Try to mark as read
-            try {
-                // Try with LIKE first
-                $updated = Notification::where(function($q) use ($checksheet) {
-                        $q->where('data', 'LIKE', '%"checksheet_id":' . $checksheet->id . '%')
-                          ->orWhere('data', 'LIKE', '%"checksheet_id":"' . $checksheet->id . '"%');
-                    })
-                    ->where('is_read', false)
-                    ->update(['is_read' => true]);
-
-                // If nothing updated, try URL fallback
-                if ($updated === 0) {
-                    $updated = Notification::where('data', 'LIKE', '%"url":"%id=' . $checksheet->id . '%')
-                        ->orWhere('data', 'LIKE', '%"url":"%id%3D' . $checksheet->id . '%')
-                        ->where('is_read', false)
-                        ->update(['is_read' => true]);
-                }
-
-                Log::info("Fallback: Marked {$updated} notifications as read for checksheet ID: {$checksheet->id}");
-            } catch (\Exception $e2) {
-                Log::error('Fallback also failed: ' . $e2->getMessage());
-            }
-        }
-    }
 }

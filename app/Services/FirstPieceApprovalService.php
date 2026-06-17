@@ -572,7 +572,6 @@ class FirstPieceApprovalService extends BaseService
                     "First Piece Approval",
                 );
             }
-            $this->notificationService->notifyApprovalRequest(
                 $checksheet,
                 "First Piece Approval",
             );

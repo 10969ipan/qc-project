@@ -147,7 +147,6 @@ class PlatingChecksheetService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Plating');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Plating');
 
             return [
                 'checksheet' => $checksheet,

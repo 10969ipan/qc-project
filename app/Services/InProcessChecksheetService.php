@@ -464,7 +464,6 @@ class InProcessChecksheetService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'In Process');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'In Process');
 
             // Try to send to Google Sheets
             $googleSheetsSuccess = false;

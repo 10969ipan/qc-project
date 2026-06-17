@@ -147,7 +147,6 @@ class PaintingChecksheetService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Painting');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Painting');
 
             return [
                 'checksheet' => $checksheet,

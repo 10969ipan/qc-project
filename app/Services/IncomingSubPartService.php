@@ -94,7 +94,6 @@ class IncomingSubPartService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Sub-Part');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Incoming Sub-Part');
 
             return ['checksheet' => $checksheet];
         } catch (\Exception $e) {

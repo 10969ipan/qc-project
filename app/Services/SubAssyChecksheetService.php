@@ -193,7 +193,6 @@ class SubAssyChecksheetService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Sub Assy');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Sub Assy');
 
             // Try to send to Google Sheets
             $googleSheetsSuccess = false;

@@ -94,7 +94,6 @@ class IncomingMaterialService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Material');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Incoming Material');
 
             return ['checksheet' => $checksheet];
         } catch (\Exception $e) {

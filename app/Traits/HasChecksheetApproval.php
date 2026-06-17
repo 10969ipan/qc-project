@@ -111,23 +111,7 @@ trait HasChecksheetApproval
             $modelName = str_replace(['App\\Models\\', 'Checksheet'], ['', ''], $modelClass);
             ActivityLogger::log('approved', $checksheet, "Melakukan approval ({$map['label']}) pada checksheet {$modelName}: ID #{$checksheet->id}");
 
-            // Mark related notifications as read after successful approval
-            try {
-                $notificationService = app(\App\Services\NotificationService::class);
-                $typeLabel = 'Checksheet';
-                if (strpos($modelClass, 'SubAssy') !== false)
-                    $typeLabel = 'Sub Assy';
-                if (strpos($modelClass, 'InProcess') !== false)
-                    $typeLabel = 'In Process';
-                if (strpos($modelClass, 'CrossCut') !== false)
-                    $typeLabel = 'Cross Cut';
-                if (strpos($modelClass, 'Sortir') !== false)
-                    $typeLabel = 'Sortir';
 
-                $notificationService->markChecksheetNotificationsAsRead($checksheet, $typeLabel);
-            } catch (\Exception $ne) {
-                Log::error('Gagal mark notifications as read: ' . $ne->getMessage());
-            }
 
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -362,28 +346,7 @@ trait HasChecksheetApproval
                 // Execute mass update (very fast, O(1) query)
                 $modelClass::whereIn('id', $checksheetIds)->update($updateData);
 
-                // Bulk clear notifications for the approved checksheets
-                try {
-                    $typeLabel = 'Checksheet';
-                    if (strpos($modelClass, 'SubAssy') !== false) $typeLabel = 'Sub Assy';
-                    if (strpos($modelClass, 'InProcess') !== false) $typeLabel = 'In Process';
-                    if (strpos($modelClass, 'CrossCut') !== false) $typeLabel = 'Cross Cut';
-                    if (strpos($modelClass, 'Sortir') !== false) $typeLabel = 'Sortir';
-                    if (strpos($modelClass, 'Plating') !== false) $typeLabel = 'Plating';
-                    if (strpos($modelClass, 'Painting') !== false) $typeLabel = 'Painting';
 
-                    // Using LIKE instead of JSON_EXTRACT for better compatibility and performance with many IDs
-                    foreach (array_chunk($checksheetIds, 200) as $chunk) {
-                        \App\Models\Notification::where(function($q) use ($chunk, $typeLabel) {
-                            foreach ($chunk as $id) {
-                                $q->orWhere('data', 'LIKE', '%"checksheet_id":' . $id . ',"checksheet_type":"' . $typeLabel . '"%')
-                                  ->orWhere('data', 'LIKE', '%"checksheet_id":"' . $id . '","checksheet_type":"' . $typeLabel . '"%');
-                            }
-                        })->delete();
-                    }
-                } catch (\Exception $ne) {
-                    Log::error('Bulk Approval Notification Clear Error: ' . $ne->getMessage());
-                }
             }
 
             if ($approvedCount > 0) {

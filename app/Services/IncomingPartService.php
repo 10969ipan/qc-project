@@ -90,7 +90,6 @@ class IncomingPartService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Part');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Incoming Part');
 
             return ['checksheet' => $checksheet];
         } catch (\Exception $e) {

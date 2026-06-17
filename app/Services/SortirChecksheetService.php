@@ -231,7 +231,6 @@ class SortirChecksheetService extends BaseService
             ]);
 
             // Notifications
-            $this->notificationService->notifyApprovalRequest($sortir, 'Sortir');
 
             return $sortir;
         } catch (\Exception $e) {

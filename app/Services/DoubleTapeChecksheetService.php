@@ -137,7 +137,6 @@ class DoubleTapeChecksheetService extends BaseService
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Double Tape');
             }
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Double Tape');
 
             return [
                 'checksheet' => $checksheet,

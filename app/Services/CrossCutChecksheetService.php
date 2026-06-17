@@ -145,7 +145,6 @@ class CrossCutChecksheetService extends BaseService
             ]);
 
             // Notifications
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Cross Cut');
 
             return $checksheet;
         } catch (\Exception $e) {

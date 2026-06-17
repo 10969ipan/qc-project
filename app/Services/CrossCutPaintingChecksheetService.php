@@ -143,7 +143,6 @@ class CrossCutPaintingChecksheetService extends BaseService
             ]);
 
             // Notifications
-            $this->notificationService->notifyApprovalRequest($checksheet, 'Cross Cut Painting');
 
             return $checksheet;
         } catch (\Exception $e) {
