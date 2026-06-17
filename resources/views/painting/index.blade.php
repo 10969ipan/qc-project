@@ -319,7 +319,7 @@
                                 <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(request('view_mode') !== 'verifikasi' && !in_array(auth()->user()->role, ['inspector', 'oshef']))
+                            @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
                             @endif
                         </tr>
@@ -566,8 +566,9 @@
                                     @endif
                                 </td>
 
-                                @if(request('view_mode') !== 'verifikasi' && !in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                        @if(request('view_mode') !== 'verifikasi')
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')
                                         @endif
@@ -654,6 +655,7 @@
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
+                                        @endif
                                         @endif
                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                             @if($canEdit)
