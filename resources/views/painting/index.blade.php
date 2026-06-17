@@ -319,7 +319,7 @@
                                 <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                            @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector', 'oshef']))
                                 <th rowspan="2" class="no-export align-middle">Aksi</th>
                             @endif
                         </tr>
@@ -566,7 +566,7 @@
                                     @endif
                                 </td>
 
-                                @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector', 'oshef']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
                                         @if(request('view_mode') !== 'verifikasi')
                                         @if($loop->first)
@@ -657,15 +657,15 @@
                                             </a>
                                         @endif
                                         @endif
-                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            @if($canEdit)
+                                        @if(request('view_mode') === 'verifikasi' || !in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                            @if(request('view_mode') === 'verifikasi' || $canEdit)
                                                 <a href="{{ route('painting.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
                                                     class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-edit"></i> Edit
                                                 </a>
                                             @endif
-                                            @if($canDelete)
+                                            @if(request('view_mode') === 'verifikasi' || $canDelete)
                                                 <form action="{{ route('painting.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}" method="POST"
                                                     class="d-inline ajax-form">
                                                     @csrf
