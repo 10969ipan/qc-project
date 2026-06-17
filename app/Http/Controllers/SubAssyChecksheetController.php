@@ -298,10 +298,10 @@ class SubAssyChecksheetController extends Controller
             ->get();
 
         if (request()->ajax()) {
-            return view('sub_assy.partials.edit_form', compact('checksheet', 'items', 'nextProcesses'));
+            return view('sub_assy.partials.edit_form', compact('checksheet', 'items', 'nextProcesses', 'users'));
         }
 
-        return view('sub_assy.edit', compact('checksheet', 'items', 'nextProcesses'));
+        return view('sub_assy.edit', compact('checksheet', 'items', 'nextProcesses', 'users'));
     }
 
     // Update Checksheet
