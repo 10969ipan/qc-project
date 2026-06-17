@@ -552,14 +552,14 @@
                                     <label class="font-weight-bold small">Standar Dimensi In-Process</label>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm mb-0" id="edit-modal-dimension-table">
-                                            <thead class="bg-light small">
+                                            <thead class="bg-white text-dark small">
                                                 <tr class="text-center">
-                                                    <th>Point/No</th>
-                                                    <th>Standar</th>
-                                                    <th>Min</th>
-                                                    <th>Max</th>
-                                                    <th>Toleransi (+/-)</th>
-                                                    <th style="width: 30px;">
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Point/No</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Standar</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Min</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Max</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Toleransi (+/-)</th>
+                                                    <th style="width: 30px; background-color: #ffffff !important; color: #333 !important;">
                                                         <button type="button"
                                                             class="btn btn-xs btn-success add-edit-dimension-row">
                                                             <i class="fas fa-plus"></i>
@@ -814,14 +814,14 @@
                                     <label class="font-weight-bold small">Standar Dimensi In-Process</label>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm mb-0" id="modal-dimension-table">
-                                            <thead class="bg-light small">
+                                            <thead class="bg-white text-dark small">
                                                 <tr class="text-center">
-                                                    <th>Point/No</th>
-                                                    <th>Standar</th>
-                                                    <th>Min</th>
-                                                    <th>Max</th>
-                                                    <th>Toleransi (+/-)</th>
-                                                    <th style="width: 30px;">
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Point/No</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Standar</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Min</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Max</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important;">Toleransi (+/-)</th>
+                                                    <th style="width: 30px; background-color: #ffffff !important; color: #333 !important;">
                                                         <button type="button"
                                                             class="btn btn-xs btn-success add-dimension-row">
                                                             <i class="fas fa-plus"></i>
