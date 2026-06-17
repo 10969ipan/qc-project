@@ -888,10 +888,10 @@
                         <table class="table table-hover table-sm mb-0" id="tableLogItem">
                             <thead class="bg-white text-dark" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
-                                    <th class="border-top-0 border-bottom-0 pl-4 py-2">Waktu</th>
-                                    <th class="border-top-0 border-bottom-0 py-2">User</th>
-                                    <th class="border-top-0 border-bottom-0 py-2">Aksi</th>
-                                    <th class="border-top-0 border-bottom-0 pr-4 py-2">Deskripsi</th>
+                                    <th class="border-top-0 border-bottom-0 pl-4 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Waktu</th>
+                                    <th class="border-top-0 border-bottom-0 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">User</th>
+                                    <th class="border-top-0 border-bottom-0 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Aksi</th>
+                                    <th class="border-top-0 border-bottom-0 pr-4 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Deskripsi</th>
                                 </tr>
                             </thead>
                             <tbody>
