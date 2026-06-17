@@ -215,7 +215,7 @@ class PlatingChecksheetController extends Controller
                     ]);
                 }
 
-                return redirect()->route('plating.index', ['plant' => 'karawang'])
+                return redirect()->route('plating.index', $request->query())
                     ->with('success', $message);
             } else {
                 throw new \Exception('Gagal menyimpan data checksheet.');
@@ -282,7 +282,7 @@ class PlatingChecksheetController extends Controller
                 ]);
             }
 
-            return redirect()->route('plating.index')->with('success', $message);
+            return redirect()->route('plating.index', $request->query())->with('success', $message);
         } catch (\Exception $e) {
             \Log::error('Plating Update Error: ' . $e->getMessage());
 
@@ -315,7 +315,7 @@ class PlatingChecksheetController extends Controller
             ]);
         }
 
-        return redirect()->route('plating.index')->with('success', 'Data Checksheet Plating berhasil dihapus.');
+        return redirect()->route('plating.index', $request->query())->with('success', 'Data Checksheet Plating berhasil dihapus.');
     }
 
     public function exportPdf(Request $request)
@@ -359,7 +359,7 @@ class PlatingChecksheetController extends Controller
         $this->checksheetService->updateApprovalStatus($id, $validated);
         $checksheet = \App\Models\PlatingChecksheet::find($id);
         \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Plating: {$checksheet->item->name}");
-        return redirect()->route('plating.index', $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift']))->with('success', 'Status approval Plating berhasil diperbarui.');
+        return redirect()->route('plating.index', $request->query())->with('success', 'Status approval Plating berhasil diperbarui.');
     }
 
     /**

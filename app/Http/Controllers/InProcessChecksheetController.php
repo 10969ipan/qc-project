@@ -320,7 +320,7 @@ class InProcessChecksheetController extends Controller
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift', 'view_mode'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -332,7 +332,7 @@ class InProcessChecksheetController extends Controller
                 ]);
             }
 
-            return redirect()->route('in_process.index', $redirectParams)->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
+            return redirect()->route('in_process.index', $request->query())->with('success', 'Data Checksheet Inprocess berhasil diperbarui.');
         } catch (\Exception $e) {
             // Log error untuk debugging
             \Log::error('Gagal update Checksheet In Process', [
@@ -365,7 +365,7 @@ class InProcessChecksheetController extends Controller
             ActivityLogger::log('deleted', null, "Menghapus checksheet In Process: {$itemName}");
 
             // Only preserve specific navigation and filter parameters
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift', 'view_mode'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -377,7 +377,7 @@ class InProcessChecksheetController extends Controller
                 ]);
             }
 
-            return redirect()->route('in_process.index', $redirectParams)
+            return redirect()->route('in_process.index', $request->query())
                 ->with('success', 'Data Checksheet Inprocess berhasil dihapus.');
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -494,7 +494,7 @@ class InProcessChecksheetController extends Controller
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift', 'view_mode'];
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -506,7 +506,7 @@ class InProcessChecksheetController extends Controller
                 ]);
             }
 
-            return redirect()->route('in_process.index', $redirectParams)->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+            return redirect()->route('in_process.index', $request->query())->with('success', 'Status approval berhasil diperbarui oleh Admin.');
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([

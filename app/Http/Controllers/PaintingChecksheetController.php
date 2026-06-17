@@ -215,7 +215,7 @@ class PaintingChecksheetController extends Controller
                     ]);
                 }
 
-                return redirect()->route('painting.index', ['plant' => 'karawang'])
+                return redirect()->route('painting.index', $request->query())
                     ->with('success', $message);
             } else {
                 throw new \Exception('Gagal menyimpan data checksheet.');
@@ -282,7 +282,7 @@ class PaintingChecksheetController extends Controller
                 ]);
             }
 
-            return redirect()->route('painting.index')->with('success', $message);
+            return redirect()->route('painting.index', $request->query())->with('success', $message);
         } catch (\Exception $e) {
             \Log::error('Painting Update Error: ' . $e->getMessage());
 
@@ -315,7 +315,7 @@ class PaintingChecksheetController extends Controller
             ]);
         }
 
-        return redirect()->route('painting.index')->with('success', 'Data Checksheet Painting berhasil dihapus.');
+        return redirect()->route('painting.index', $request->query())->with('success', 'Data Checksheet Painting berhasil dihapus.');
     }
 
     public function exportPdf(Request $request)
@@ -359,7 +359,7 @@ class PaintingChecksheetController extends Controller
         $this->checksheetService->updateApprovalStatus($id, $validated);
         $checksheet = \App\Models\PaintingChecksheet::find($id);
         \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Painting: {$checksheet->item->name}");
-        return redirect()->route('painting.index', $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift']))->with('success', 'Status approval Painting berhasil diperbarui.');
+        return redirect()->route('painting.index', $request->query())->with('success', 'Status approval Painting berhasil diperbarui.');
     }
 
     /**

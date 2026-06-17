@@ -336,13 +336,10 @@ class SubAssyChecksheetController extends Controller
         $this->checksheetService->deleteChecksheet($id);
         \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Sub Assy: {$itemName}");
 
-        // Preserve plant parameter when redirecting back
-        $redirectParams = [];
-        if ($request->has('plant')) {
-            $redirectParams['plant'] = $request->input('plant');
-        }
+        // Preserve all query parameters when redirecting back
+        $redirectParams = $request->query();
 
-        return redirect()->route('admin.checksheets.index', $redirectParams)
+        return redirect()->route('admin.checksheets.index', $request->query())
             ->with('success', 'Data Checksheet berhasil dihapus.');
     }
 
