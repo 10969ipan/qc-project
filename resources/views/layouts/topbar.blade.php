@@ -124,15 +124,38 @@
                                                                             $subPlant = $sub->plant_code ?: $grandPlant;
                                                                             $subUrl = $sub->route ? (Route::has($sub->route) ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : url($sub->route)) : '#';
                                                                         @endphp
-                                                                        <li>
-                                                                            <a class="dropdown-item @if($sub->is_maintenance) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
-                                                                            @if($sub->is_maintenance) 
-                                                                                data-message="{{ $sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
-                                                                                onclick="return false;" 
-                                                                            @endif>
-                                                                            {{ $sub->name }}
-                                                                        </a>
-                                                                        </li>
+                                                                        @if($sub->children->isEmpty())
+                                                                            <li>
+                                                                                <a class="dropdown-item @if($sub->is_maintenance) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
+                                                                                @if($sub->is_maintenance) 
+                                                                                    data-message="{{ $sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                                    onclick="return false;" 
+                                                                                @endif>
+                                                                                {{ $sub->name }}
+                                                                                </a>
+                                                                            </li>
+                                                                        @else
+                                                                            <li class="has-submenu">
+                                                                                <a href="#" class="dropdown-item d-flex justify-content-between">{{ $sub->name }} <i class="fas fa-chevron-right small"></i></a>
+                                                                                <ul class="dropdown-menu sub-menu">
+                                                                                    @foreach($sub->children as $deep)
+                                                                                        @php
+                                                                                            $deepPlant = $deep->plant_code ?: $subPlant;
+                                                                                            $deepUrl = $deep->route ? (Route::has($deep->route) ? route($deep->route, $deepPlant ? ['plant' => $deepPlant] : []) : url($deep->route)) : '#';
+                                                                                        @endphp
+                                                                                        <li>
+                                                                                            <a class="dropdown-item @if($deep->is_maintenance) menu-maintenance-trigger @endif" href="{{ $deepUrl }}"
+                                                                                            @if($deep->is_maintenance) 
+                                                                                                data-message="{{ $deep->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                                                onclick="return false;" 
+                                                                                            @endif>
+                                                                                            {{ $deep->name }}
+                                                                                            </a>
+                                                                                        </li>
+                                                                                    @endforeach
+                                                                                </ul>
+                                                                            </li>
+                                                                        @endif
                                                                     @endforeach
                                                                 </ul>
                                                             </li>
