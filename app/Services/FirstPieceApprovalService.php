@@ -572,9 +572,6 @@ class FirstPieceApprovalService extends BaseService
                     "First Piece Approval",
                 );
             }
-                $checksheet,
-                "First Piece Approval",
-            );
 
             return [
                 "checksheet" => $checksheet,
