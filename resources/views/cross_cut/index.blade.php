@@ -271,8 +271,8 @@
                             <th style="font-size: 10px;">Kepala Regu QC</th>
                             <th style="font-size: 10px;">Supervisor Quality</th>
                             <th style="font-size: 10px;">Supervisor Plating</th>
-                            <th style="font-size: 10px;">Manager QC</th>
-                            <th style="font-size: 10px;">Manager Plating</th>
+                            <th style="font-size: 10px;">Asst Manager QC</th>
+                            <th style="font-size: 10px;">Asst Manager Plating</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -411,7 +411,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Level 5: Manager QC --}}
+                                {{-- Level 5: Asst Manager QC --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->manager_qc)
                                         @if($checksheet->manager_qc === 'REJECTED')
@@ -437,7 +437,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Level 6: Manager Plating --}}
+                                {{-- Level 6: Asst Manager Plating --}}
                                 <td class="align-middle text-center">
                                     @if($checksheet->manager_plating)
                                         @if($checksheet->manager_plating === 'REJECTED')
@@ -595,7 +595,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- Level 5: Manager QC --}}
+                                        {{-- Level 5: Asst Manager QC --}}
                                         @if($canApproveManager)
                                             <form
                                                 action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}"
@@ -612,20 +612,20 @@
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)"
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager QC)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ (auth()->user()->role === 'admin') ? ' MGR Q' : '' }}
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager QC)"
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager QC)"
                                                 data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
 
-                                        {{-- Level 6: Manager Plating --}}
+                                        {{-- Level 6: Asst Manager Plating --}}
                                         @if($canApproveManagerPlating)
                                             <form
                                                 action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager_plating', 'plant' => request('plant')]) }}"
@@ -643,12 +643,12 @@
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                 <button type="submit" class="btn btn-success btn-sm m-1"
-                                                    title="Approve (Manager Plating)" style="min-width: 110px;">
+                                                    title="Approve (Asst Manager Plating)" style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
                                                     Approve{{ (auth()->user()->role === 'admin') ? ' MGR P' : '' }}
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager Plating)"
+                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager Plating)"
                                                 data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager_plating"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject

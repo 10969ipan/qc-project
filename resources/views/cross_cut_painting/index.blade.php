@@ -287,8 +287,8 @@
                             <th style="font-size: 10px;">Kepala Regu QC</th>
                             <th style="font-size: 10px;">Supervisor Quality</th>
                             <th style="font-size: 10px;">Supervisor Plating</th>
-                            <th style="font-size: 10px;">Manager QC</th>
-                            <th style="font-size: 10px;">Manager Plating</th>
+                            <th style="font-size: 10px;">Asst Manager QC</th>
+                            <th style="font-size: 10px;">Asst Manager Plating</th>
                         </tr>
                     </thead>
                     <tbody>
