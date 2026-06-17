@@ -329,6 +329,9 @@
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
+                                        <button type="button" class="btn btn-info btn-sm btn-log-item" data-id="{{ $item->id }}">
+                                            <i class="fas fa-history"></i> Log
+                                        </button>
                                         <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
                                             class="d-inline delete-form">
                                             @csrf
@@ -419,9 +422,9 @@
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="modalEditItemLabel">
-                        <i class="fas fa-edit mr-2"></i> Edit Master Data Item
+                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold" id="modalEditItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+                        Edit Master Data Item
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -573,10 +576,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-warning btn-sm px-4 shadow-sm">
-                            <i class="fas fa-save mr-1"></i> Update
+                    <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                        <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
+                            Update Item
                         </button>
                     </div>
                 </form>
@@ -587,11 +590,11 @@
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="modalImportItemLabel">
-                        <i class="fas fa-file-excel mr-2"></i> Import Master Data Item
+                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold" id="modalImportItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+                        Import Master Data Item
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -636,16 +639,16 @@
                             </ul>
                         </div>
 
-                        <div class="text-center">
-                            <a href="{{ route('admin.items.import-template', ['plant' => $plantCode ?? request('plant')]) }}" class="btn btn-sm btn-outline-success font-weight-bold">
-                                <i class="fas fa-download mr-1"></i> Unduh Template Excel
+                        <div class="text-center mt-3">
+                            <a href="{{ route('admin.items.import-template', ['plant' => $plantCode ?? request('plant')]) }}" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                Unduh Template Excel
                             </a>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success btn-sm px-4 shadow-sm" id="btnSubmitImport">
-                            <i class="fas fa-upload mr-1"></i> Mulai Import
+                    <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                        <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm" id="btnSubmitImport">
+                            Mulai Import
                         </button>
                     </div>
                 </form>
@@ -656,11 +659,11 @@
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalTambahItemLabel">
-                        <i class="fas fa-plus-circle mr-2"></i> Tambah Master Data Item
+                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold" id="modalTambahItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+                        Tambah Master Data Item
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -857,13 +860,49 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                    <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                        <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
                             <i class="fas fa-save mr-1"></i> Simpan
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Log Item -->
+    <div class="modal fade" id="modalLogItem" tabindex="-1" role="dialog" aria-labelledby="modalLogItemLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold" id="modalLogItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+                        Riwayat Perubahan Data
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-hover table-sm mb-0" id="tableLogItem">
+                            <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <th class="border-top-0 border-bottom-0 pl-4 py-2">Waktu</th>
+                                    <th class="border-top-0 border-bottom-0 py-2">User</th>
+                                    <th class="border-top-0 border-bottom-0 py-2">Aksi</th>
+                                    <th class="border-top-0 border-bottom-0 pr-4 py-2">Deskripsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                    <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -998,6 +1037,49 @@
                     btn.prop('disabled', true);
                     btn.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Memproses...');
                     return true;
+                });
+
+                // --- LOG ITEM ---
+                $('.btn-log-item').on('click', function() {
+                    const itemId = $(this).data('id');
+                    const tbody = $('#tableLogItem tbody');
+                    tbody.html('<tr><td colspan="4" class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary" role="status"></span> Memuat data...</td></tr>');
+                    $('#modalLogItem').modal('show');
+
+                    $.ajax({
+                        url: `/admin/items/${itemId}/logs`,
+                        method: 'GET',
+                        success: function(response) {
+                            if(response.success) {
+                                tbody.empty();
+                                if(response.logs.length === 0) {
+                                    tbody.html('<tr><td colspan="4" class="text-center py-4 text-muted">Belum ada riwayat perubahan.</td></tr>');
+                                } else {
+                                    response.logs.forEach(function(log) {
+                                        let actionBadge = '';
+                                        if(log.action === 'created') actionBadge = '<span class="badge badge-success px-2 py-1">Dibuat</span>';
+                                        else if(log.action === 'updated') actionBadge = '<span class="badge badge-warning px-2 py-1">Diedit</span>';
+                                        else if(log.action === 'deleted') actionBadge = '<span class="badge badge-danger px-2 py-1">Dihapus</span>';
+                                        else actionBadge = `<span class="badge badge-secondary px-2 py-1">${log.action}</span>`;
+
+                                        tbody.append(`
+                                            <tr>
+                                                <td class="pl-4 align-middle text-nowrap"><small>${log.date}</small></td>
+                                                <td class="align-middle font-weight-bold"><small>${log.user}</small></td>
+                                                <td class="align-middle">${actionBadge}</td>
+                                                <td class="pr-4 align-middle"><small>${log.description || '-'}</small></td>
+                                            </tr>
+                                        `);
+                                    });
+                                }
+                            } else {
+                                tbody.html('<tr><td colspan="4" class="text-center py-4 text-danger">Gagal memuat data log.</td></tr>');
+                            }
+                        },
+                        error: function() {
+                            tbody.html('<tr><td colspan="4" class="text-center py-4 text-danger">Terjadi kesalahan pada server.</td></tr>');
+                        }
+                    });
                 });
             });
         </script>

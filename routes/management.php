@@ -71,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('items/search-by-part', [ItemController::class, 'searchByPartNumber'])->name('items.search-by-part');
     Route::get('items/check-qr-unique', [ItemController::class, 'checkQrUniqueness'])->name('items.check-qr-unique');
     Route::get('items/{id}/pdf/{index?}', [ItemController::class, 'servePdf'])->name('items.pdf');
+    Route::get('items/{id}/logs', [\App\Http\Controllers\ActivityLogController::class, 'getItemLogs'])->name('items.logs');
 
     Route::get('monthly-reports/{id}/pdf', [MonthlyReportController::class, 'servePdf'])->name('monthly_reports.pdf');
 });
