@@ -148,7 +148,7 @@
                 $('#formEditItem').attr('action', ROUTES.update.replace(':id', id));
                 toggleSctField($('#edit_category_id')[0]);
                 $('#modalEditItem').modal('show');
-                btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                btn.prop('disabled', false).html('<i class="fas fa-edit"></i> Edit');
             },
             error: function (xhr) {
                 let message = 'Gagal mengambil data item.';
@@ -156,7 +156,7 @@
                 else if (xhr.status === 403) message = 'Anda tidak memiliki akses.';
                 else if (xhr.status === 500) message = 'Kesalahan server.';
                 Swal.fire('Error', message, 'error');
-                btn.prop('disabled', false).html('<i class="fas fa-edit"></i>');
+                btn.prop('disabled', false).html('<i class="fas fa-edit"></i> Edit');
             }
         });
     });
