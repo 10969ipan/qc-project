@@ -20,6 +20,10 @@ Route::middleware(['auth'])->group(function () {
         // Categories
         Route::resource('categories', CategoryController::class)->except(['create']);
 
+        // Thickness Standards
+        Route::post('thickness-standards/import', [\App\Http\Controllers\ThicknessStandardController::class, 'import'])->name('thickness-standards.import');
+        Route::resource('thickness-standards', \App\Http\Controllers\ThicknessStandardController::class);
+
         // Settings UI Prototype
         Route::get('settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
         Route::post('settings/general', [\App\Http\Controllers\SettingsController::class, 'updateGeneralSettings'])->name('settings.general.update');

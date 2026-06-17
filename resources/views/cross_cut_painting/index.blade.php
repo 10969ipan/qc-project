@@ -424,13 +424,31 @@
                                             @endphp
                                             
                                             @if($canApproveThis)
-                                                <button type="button" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})"
-                                                    data-toggle="modal" data-target="#approvalModal" 
-                                                    data-id="{{ $checksheet->id }}" data-type="{{ $role }}"
-                                                    data-label="{{ getApprovalLabel($role, $plantCode) }}"
-                                                    style="min-width: 80px;">
-                                                    <i class="fas fa-check"></i> Approve {{ $label }}
-                                                </button>
+                                                @if($role === 'kashift_plating')
+                                                    <button type="button" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})"
+                                                        onclick="toggleApprovalModal('{{ $checksheet->id }}', '{{ $role }}', '{{ getApprovalLabel($role, $plantCode) }}', false)"
+                                                        style="min-width: 80px;">
+                                                        <i class="fas fa-check"></i> Approve {{ $label }}
+                                                    </button>
+                                                @else
+                                                    <form action="{{ route('cross_cut_painting.approve', ['id' => $checksheet->id, 'type' => $role]) }}" method="POST" class="d-inline p-0">
+                                                        @csrf
+                                                        <input type="hidden" name="page" value="{{ request('page') }}">
+                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                        <input type="hidden" name="search" value="{{ request('search') }}">
+                                                        <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                        <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                        <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                        <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                        <input type="hidden" name="action_type" value="approve">
+                                                        <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})" style="min-width: 80px;">
+                                                            <i class="fas fa-check"></i> Approve {{ $label }}
+                                                        </button>
+                                                    </form>
+                                                @endif
                                                 <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $label }})"
                                                     onclick="toggleApprovalModal('{{ $checksheet->id }}', '{{ $role }}', '{{ getApprovalLabel($role, $plantCode) }}', true)"
                                                     style="min-width: 80px;">
@@ -530,7 +548,7 @@
                             <input type="text" name="approver_name" id="approver_name_input" class="form-control" placeholder="Masukkan Nama...">
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group d-none">
                             <label class="font-weight-bold">Tindakan:</label>
                             <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
                                 <label class="btn btn-outline-success active">
