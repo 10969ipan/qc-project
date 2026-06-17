@@ -1047,7 +1047,7 @@
                     $('#modalLogItem').modal('show');
 
                     $.ajax({
-                        url: `/items/${itemId}/logs`,
+                        url: "{{ route('items.logs', ':id') }}".replace(':id', itemId),
                         method: 'GET',
                         success: function(response) {
                             if(response.success) {
