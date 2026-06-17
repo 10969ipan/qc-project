@@ -87,7 +87,7 @@ class CrossCutPaintingChecksheetController extends Controller
             ->orderBy('operator_initials')
             ->pluck('operator_initials');
 
-        $approvalOrder = ['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating', 'manager', 'manager_plating'];
+        $approvalOrder = ['karu_qc', 'supervisor', 'supervisor_plating', 'manager', 'manager_plating'];
 
         return view('cross_cut_painting.index', compact('checksheets', 'items', 'customers', 'initials', 'approvalOrder'));
     }

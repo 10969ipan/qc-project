@@ -261,7 +261,7 @@
                             <th rowspan="2" class="align-middle">Visual OK</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="6" class="align-middle">Approval Status</th>
+                            <th colspan="5" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
@@ -269,7 +269,6 @@
                         </tr>
                         <tr class="text-center">
                             <th style="font-size: 10px;">Kepala Regu QC</th>
-                            <th style="font-size: 10px;">Kepala Shift Plating</th>
                             <th style="font-size: 10px;">Supervisor Quality</th>
                             <th style="font-size: 10px;">Supervisor Plating</th>
                             <th style="font-size: 10px;">Manager QC</th>
@@ -358,31 +357,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Level 2: Kashift Plating --}}
-                                <td class="align-middle text-center">
-                                    @if($checksheet->kashift_plating)
-                                        @if($checksheet->kashift_plating === 'REJECTED')
-                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                            </span>
-                                            <br><small class="text-muted">oleh
-                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
-                                        @else
-                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                            </span>
-                                            <br><small class="text-muted">oleh {{ $checksheet->kashift_plating }}</small>
-                                        @endif
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->kashift_plating_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_plating_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
+
 
                                 {{-- Level 3: SPV Quality --}}
                                 <td class="align-middle text-center">
@@ -521,7 +496,7 @@
                                         @php
                                             // Dimodifikasi: Mengizinkan approval pada level apa pun tanpa menunggu level sebelumnya
                                             $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED');
-                                            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$checksheet->kashift_plating || $checksheet->kashift_plating === 'REJECTED');
+
                                             $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
                                             $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
                                             $canApproveManagerPlating = (auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->manager_plating || $checksheet->manager_plating === 'REJECTED');
@@ -558,20 +533,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- Level 2: Kashift Plating --}}
-                                        @if($canApproveKashiftPlating)
-                                            <button type="button" class="btn btn-success btn-sm m-1" title="Approve (Kashift Plating)"
-                                                style="min-width: 110px;" data-toggle="modal"
-                                                data-target="#approveModal{{ $checksheet->id }}kashift_plating">
-                                                <i class="fas fa-check"></i>
-                                                Approve{{ (auth()->user()->role === 'admin') ? ' KS Plt' : '' }}
-                                            </button>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift_plating"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+
 
                                         {{-- Level 3: SPV Quality --}}
                                         @if($canApproveSupervisor)
@@ -789,13 +751,11 @@
 
     <!-- Modal Penolakan untuk setiap checksheet dan tipe -->
     @foreach($checksheets as $cs)
-        @foreach(['karu_qc', 'kashift_plating', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
+        @foreach(['karu_qc', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
             @php
                 $canReject = false;
                 // Dimodifikasi: Mengizinkan penolakan pada level apa pun tanpa menunggu level sebelumnya
                 if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$cs->karu_qc || $cs->karu_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED'))) {
                     $canReject = true;
                 } elseif ($rejectType == 'supervisor_plating' && ((auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$cs->supervisor_plating || $cs->supervisor_plating === 'REJECTED'))) {
                     $canReject = true;
@@ -875,73 +835,6 @@
         @endforeach
     @endforeach
 
-    <!-- Modal Approval untuk Kashift Plating -->
-    @foreach($checksheets as $cs)
-        @php
-            $canApproveKashiftPlating = (auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED');
-        @endphp
-        @if($canApproveKashiftPlating)
-            <div class="modal fade" id="approveModal{{ $cs->id }}kashift_plating" tabindex="-1" role="dialog"
-                aria-labelledby="approveModalLabel{{ $cs->id }}kashift_plating" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="approveModalLabel{{ $cs->id }}kashift_plating">
-                                <i class="fas fa-check-circle mr-2"></i>Konfirmasi Approval Kepala Shift Plating
-                            </h5>
-                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="{{ route('cross_cut.approve', ['id' => $cs->id, 'type' => 'kashift_plating']) }}"
-                            method="POST">
-                            @csrf
-                            <input type="hidden" name="page" value="{{ request('page') }}">
-                            <input type="hidden" name="plant" value="{{ request('plant') }}">
-                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                            <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                            <input type="hidden" name="customer" value="{{ request('customer') }}">
-                            <input type="hidden" name="search" value="{{ request('search') }}">
-                            <input type="hidden" name="check_type" value="{{ request('check_type') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                            <div class="modal-body">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> Anda akan menyetujui checksheet ini sebagai
-                                    <strong>Kepala Shift Plating</strong>
-                                </div>
-                                <div class="form-group">
-                                    <label for="approver_name{{ $cs->id }}kashift_plating" class="font-weight-bold">
-                                        Nama User/Approver <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" class="form-control @error('approver_name') is-invalid @enderror"
-                                        id="approver_name{{ $cs->id }}kashift_plating" name="approver_name"
-                                        placeholder="Masukkan nama Anda (minimal 3 karakter)" required minlength="3" maxlength="100"
-                                        value="{{ old('approver_name') }}">
-                                    <small class="form-text text-muted">
-                                        Masukkan nama lengkap Anda untuk konfirmasi approval
-                                    </small>
-                                    @error('approver_name')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                    <i class="fas fa-times"></i> Batal
-                                </button>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-check"></i> Setujui Checksheet
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @endif
-    @endforeach
 
     {{-- Image Modal --}}
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"

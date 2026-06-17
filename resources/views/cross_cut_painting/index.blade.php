@@ -277,7 +277,7 @@
                             <th rowspan="2" class="align-middle">Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
                             <th rowspan="2" class="align-middle">Judgement</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="6" class="align-middle">Approval Status</th>
+                            <th colspan="5" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
@@ -285,7 +285,6 @@
                         </tr>
                         <tr class="text-center">
                             <th style="font-size: 10px;">Kepala Regu QC</th>
-                            <th style="font-size: 10px;">Kepala Shift Plating</th>
                             <th style="font-size: 10px;">Supervisor Quality</th>
                             <th style="font-size: 10px;">Supervisor Plating</th>
                             <th style="font-size: 10px;">Manager QC</th>
@@ -406,7 +405,6 @@
                                             // Mapping current role to its button label
                                             $rolesToApprove = [
                                                 'karu_qc' => 'KR',
-                                                'kashift_plating' => 'KS Plt',
                                                 'supervisor' => 'SPV Q',
                                                 'supervisor_plating' => 'SPV P',
                                                 'manager' => 'MGR Q',
@@ -424,31 +422,23 @@
                                             @endphp
                                             
                                             @if($canApproveThis)
-                                                @if($role === 'kashift_plating')
-                                                    <button type="button" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})"
-                                                        onclick="toggleApprovalModal('{{ $checksheet->id }}', '{{ $role }}', '{{ getApprovalLabel($role, $plantCode) }}', false)"
-                                                        style="min-width: 80px;">
+                                                <form action="{{ route('cross_cut_painting.approve', ['id' => $checksheet->id, 'type' => $role]) }}" method="POST" class="d-inline p-0">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                    <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                    <input type="hidden" name="action_type" value="approve">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})" style="min-width: 80px;">
                                                         <i class="fas fa-check"></i> Approve {{ $label }}
                                                     </button>
-                                                @else
-                                                    <form action="{{ route('cross_cut_painting.approve', ['id' => $checksheet->id, 'type' => $role]) }}" method="POST" class="d-inline p-0">
-                                                        @csrf
-                                                        <input type="hidden" name="page" value="{{ request('page') }}">
-                                                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                        <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                        <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                        <input type="hidden" name="search" value="{{ request('search') }}">
-                                                        <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                        <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                        <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                                                        <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                        <input type="hidden" name="action_type" value="approve">
-                                                        <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})" style="min-width: 80px;">
-                                                            <i class="fas fa-check"></i> Approve {{ $label }}
-                                                        </button>
-                                                    </form>
-                                                @endif
+                                                </form>
                                                 <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $label }})"
                                                     onclick="toggleApprovalModal('{{ $checksheet->id }}', '{{ $role }}', '{{ getApprovalLabel($role, $plantCode) }}', true)"
                                                     style="min-width: 80px;">
