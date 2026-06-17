@@ -17,7 +17,7 @@ return new class extends Migration
             ['name' => 'PLANT KARAWANG', 'plant_code' => 'karawang'],
         ];
 
-        $roles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'inspector', 'oshef'];
+        $roles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'inspector'];
 
         foreach ($parents as $parentInfo) {
             $parentMenu = DB::table('app_menus')

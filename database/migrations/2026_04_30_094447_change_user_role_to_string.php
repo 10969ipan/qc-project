@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Reverting to the last known enum state
-            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('global','total','admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating', 'oshef') NOT NULL DEFAULT 'inspector'");
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('global','total','admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating') NOT NULL DEFAULT 'inspector'");
         });
     }
 };

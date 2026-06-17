@@ -121,7 +121,7 @@
                                 <td class="align-middle small">{{ $cs->remarks }}</td>
                                 <td class="align-middle">
                                     <div class="btn-group">
-                                        @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                        @if(!in_array(auth()->user()->role, ['inspector']))
                                             <a href="{{ route('incoming.exports.edit', $cs->id) }}"
                                                 class="btn btn-warning btn-xs px-2"><i class="fas fa-edit"></i></a>
                                             <form action="{{ route('incoming.exports.destroy', $cs->id) }}" method="POST"

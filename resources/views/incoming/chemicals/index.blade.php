@@ -136,7 +136,7 @@
                                 @endforeach
                                 <td class="align-middle">
                                     <div class="btn-group">
-                                        @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                        @if(!in_array(auth()->user()->role, ['inspector']))
                                             <a href="{{ route('incoming.chemicals.edit', $cs->id) }}"
                                                 class="btn btn-warning btn-xs px-2"><i class="fas fa-edit"></i></a>
                                             <form action="{{ route('incoming.chemicals.destroy', $cs->id) }}" method="POST"

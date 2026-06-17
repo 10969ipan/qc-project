@@ -46,8 +46,7 @@ return new class extends Migration
             'karu_qc', 
             'kashift_plating', 
             'supervisor_plating', 
-            'manager_plating', 
-            'oshef'
+            'manager_plating'
         ];
 
         // 1. Seed QR Plating-Pasang and QR Plating-Cabut under CHECKSHEET

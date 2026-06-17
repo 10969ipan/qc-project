@@ -168,7 +168,7 @@
                                 <td class="align-middle small">{{ $cs->remarks }}</td>
                                 <td class="align-middle text-nowrap">
                                     <div class="btn-group">
-                                        @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                        @if(!in_array(auth()->user()->role, ['inspector']))
                                             <a href="{{ route('incoming.materials.edit', $cs->id) }}"
                                                 class="btn btn-warning btn-xs mx-1">
                                                 <i class="fas fa-edit"></i>

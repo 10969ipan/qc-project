@@ -165,7 +165,7 @@
                                 <td class="align-middle text-nowrap">
                                     <div class="btn-group">
                                         {{-- Approval Actions --}}
-                                        @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                        @if(!in_array(auth()->user()->role, ['inspector']))
                                             <button type="button" class="btn btn-success btn-xs mx-1 approve-btn" data-id="{{ $cs->id }}" data-type="kashift">
                                                 Approve
                                             </button>

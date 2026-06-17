@@ -279,7 +279,7 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="6" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Keterangan</th>
-                            @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                            @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
                             @endif
                         </tr>
@@ -393,7 +393,7 @@
                                     @endif
                                 </td>
 
-                                @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                @if(!in_array(auth()->user()->role, ['inspector']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 150px;">
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')

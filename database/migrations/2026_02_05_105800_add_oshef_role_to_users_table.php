@@ -11,7 +11,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating', 'oshef') NOT NULL DEFAULT 'inspector'");
+        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'kashift_plating', 'supervisor_plating', 'manager_plating') NOT NULL DEFAULT 'inspector'");
     }
 
     /**

@@ -223,8 +223,7 @@ class MenuAndPermissionSeeder extends Seeder
             'karu_qc', 
             'kashift_plating', 
             'supervisor_plating', 
-            'manager_plating', 
-            'oshef'
+            'manager_plating'
         ];
 
         foreach ($roles as $role) {

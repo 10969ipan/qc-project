@@ -103,7 +103,7 @@ class CrossCutPaintingChecksheetController extends Controller
         $query = Item::byCategory('Cross Cut Painting')->orderBy('name');
 
         $user = auth()->user();
-        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager', 'oshef'];
+        $canSwitchPlants = ['admin', 'supervisor', 'supervisor_plating', 'manager', 'manager_qc', 'manager_plating', 'kashift', 'asst_manager'];
 
         if (in_array($user->role, $canSwitchPlants)) {
             if ($request->has('plant')) {

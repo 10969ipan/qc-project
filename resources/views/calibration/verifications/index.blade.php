@@ -435,7 +435,7 @@
                             <td class="align-middle">{{ $v->acuan_toleransi }}</td>
                             <td class="align-middle no-export">
                                 <div class="d-flex justify-content-center" style="gap: 5px;">
-                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'oshef']))
+                                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
                                         @if($canEdit)
                                             <button type="button"
                                                 class="btn btn-sm btn-info btn-edit-verif shadow-sm"

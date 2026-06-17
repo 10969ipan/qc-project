@@ -148,7 +148,7 @@
                                 @endforeach
                                 <td class="align-middle">
                                     <div class="btn-group">
-                                        @if(!in_array(auth()->user()->role, ['inspector', 'oshef']))
+                                        @if(!in_array(auth()->user()->role, ['inspector']))
                                             @if($canEdit)
                                                 <a href="{{ route('incoming.sub_parts.edit', $cs->id) }}"
                                                     class="btn btn-warning btn-xs px-2"><i class="fas fa-edit"></i></a>

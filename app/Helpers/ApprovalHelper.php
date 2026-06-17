@@ -1,9 +1,8 @@
 <?php
-
 if (!function_exists('getApprovalLabel')) {
     /**
      * Get approval label based on plant and level
-     * 
+     *
      * @param string $level
      * @param string|null $plant
      * @return string
@@ -14,12 +13,10 @@ if (!function_exists('getApprovalLabel')) {
         if (!$plant) {
             $plant = request('plant') ?? auth()->user()->plant ?? 'karawang';
         }
-
         // If plant is an object (Eloquent Model), get the code or name
         if (is_object($plant)) {
             $plant = $plant->code ?? $plant->name ?? 'karawang';
         }
-
         $labels = [
             'karawang' => [
                 'karu_qc' => 'Kepala Regu QC',
@@ -42,15 +39,13 @@ if (!function_exists('getApprovalLabel')) {
                 'manager' => 'Manager QC',
             ],
         ];
-
         return $labels[strtolower($plant)][$level] ?? $labels['karawang'][$level];
     }
 }
-
 if (!function_exists('getApprovalLabelShort')) {
     /**
      * Get short approval label based on plant and level
-     * 
+     *
      * @param string $level
      * @param string|mixed $plant
      * @return string
@@ -61,12 +56,10 @@ if (!function_exists('getApprovalLabelShort')) {
         if (!$plant) {
             $plant = request('plant') ?? auth()->user()->plant ?? 'karawang';
         }
-
         // If plant is an object (Eloquent Model), get the code or name
         if (is_object($plant)) {
             $plant = $plant->code ?? $plant->name ?? 'karawang';
         }
-
         $labels = [
             'karawang' => [
                 'karu_qc' => 'Karu QC',
@@ -89,15 +82,13 @@ if (!function_exists('getApprovalLabelShort')) {
                 'manager' => 'Manager',
             ],
         ];
-
         return $labels[strtolower($plant)][$level] ?? $labels['karawang'][$level];
     }
 }
-
 if (!function_exists('getRoleDisplayName')) {
     /**
      * Get display name for a role
-     * 
+     *
      * @param string $role
      * @return string
      */
@@ -105,7 +96,6 @@ if (!function_exists('getRoleDisplayName')) {
     {
         $roles = [
             'admin' => 'Administrator',
-            'oshef' => 'Sub Administrator',
             'inspector' => 'Inspector QC',
             'karu_qc' => 'Kepala Regu',
             'supervisor' => 'Supervisor QC',
@@ -116,16 +106,14 @@ if (!function_exists('getRoleDisplayName')) {
             'manager_plating' => 'Manager Plating',
             'kashift' => 'Kashift QC',
         ];
-
         return $roles[strtolower($role)] ?? ucfirst(str_replace('_', ' ', $role));
     }
 }
-
 if (!function_exists('getRejectorName')) {
     /**
      * Parse rejector name from rejection remarks
      * Remarks Format: [Role] Reason - Name (Date)
-     * 
+     *
      * @param string|null $remarks
      * @return string|null
      */
@@ -133,17 +121,14 @@ if (!function_exists('getRejectorName')) {
     {
         if (!$remarks)
             return null;
-
         // Pattern to match " - Name (Date)" at the end
         // Example: ... - John Doe (17/01/2026 20:04)
         if (preg_match('/ - (.*?) \(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}\)$/', $remarks, $matches)) {
             return $matches[1];
         }
-
         return null;
     }
 }
-
 if (!function_exists('getApprovalField')) {
     function getApprovalField($type)
     {
@@ -161,7 +146,6 @@ if (!function_exists('getApprovalField')) {
         return $fields[$type] ?? $type;
     }
 }
-
 if (!function_exists('getApprovalDateField')) {
     function getApprovalDateField($type)
     {

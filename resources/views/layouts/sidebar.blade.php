@@ -23,12 +23,12 @@
     <hr class="sidebar-divider">
 
     @php
-        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'oshef']);
+        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
 
-        $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'oshef']);
+        $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
     @endphp
 
-    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'oshef'])))
+    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
                 aria-controls="collapseQC">
@@ -42,7 +42,7 @@
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qcPlantJKT">Plant Jakarta</a>
                         <div id="qcPlantJKT" class="collapse pl-2">
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcMasterJKT">Master data</a>
                                 <div id="qcMasterJKT" class="collapse pl-2">
@@ -55,7 +55,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcReportJKT">Report</a>
                                 <div id="qcReportJKT" class="collapse pl-2">
@@ -68,7 +68,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckJKT">Checksheet</a>
                                 <div id="qcCheckJKT" class="collapse pl-2">
@@ -82,7 +82,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanJKT">Laporan</a>
                                 <div id="qcLaporanJKT" class="collapse pl-2">
@@ -105,7 +105,7 @@
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qcPlantKRW">Plant Karawang</a>
                         <div id="qcPlantKRW" class="collapse pl-2">
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcMasterKRW">Master data</a>
                                 <div id="qcMasterKRW" class="collapse pl-2">
@@ -118,7 +118,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcReportKRW">Report</a>
                                 <div id="qcReportKRW" class="collapse pl-2">
@@ -134,7 +134,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckKRW">Checksheet</a>
                                 <div id="qcCheckKRW" class="collapse pl-2">
@@ -156,7 +156,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'oshef']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanKRW">Laporan</a>
                                 <div id="qcLaporanKRW" class="collapse pl-2">
