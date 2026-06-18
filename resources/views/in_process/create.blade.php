@@ -683,7 +683,7 @@
             <div class="row">
                 <div class="col-md-6 border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">PCCP DAN SIMILAR PART</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">{{ $plantCode === 'jakarta' ? 'PCCP DAN DIMENSI' : 'PCCP DAN SIMILAR PART' }}</h6>
                         <div class="d-flex align-items-center">
                             <!-- Kontrol Zoom -->
                             <div class="btn-group mr-2">
@@ -738,7 +738,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">DIMENSI</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">{{ $plantCode === 'jakarta' ? 'SIMILAR PART' : 'DIMENSI' }}</h6>
                         <div class="d-flex align-items-center">
                             <!-- Kontrol Zoom Similar -->
                             <div class="btn-group mr-2">
@@ -772,7 +772,7 @@
                                 style="display:none;">
                                 <i class="fas fa-expand"></i> Full
                             </button>
-                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Dimensi Part PDF" style="display:none;">
+                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download {{ $plantCode === 'jakarta' ? 'Similar Part' : 'Dimensi Part' }} PDF" style="display:none;">
                                 <i class="fas fa-download"></i>
                             </a>
                         </div>
@@ -782,7 +782,7 @@
                         <div id="similarPdfPlaceholder"
                             class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
                             <i class="fas fa-file-alt fa-3x mb-3"></i>
-                            <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
+                            <p class="mb-0">Pilih Item untuk menampilkan {{ $plantCode === 'jakarta' ? 'Similar Part' : 'Dimensi Part' }}</p>
                             <p class="small mt-2" id="similarStatusText"></p>
                         </div>
                         <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
