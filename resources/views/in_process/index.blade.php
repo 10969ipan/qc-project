@@ -396,6 +396,9 @@
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager', 'supervisor_plating', 'manager_plating']))
+                                <th rowspan="2" class="align-middle">No Mesin</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
@@ -459,6 +462,9 @@
                                 </td>
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
+                                @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager', 'supervisor_plating', 'manager_plating', 'oshef']))
+                                    <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
+                                @endif
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
