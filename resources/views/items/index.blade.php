@@ -44,7 +44,6 @@
         letter-spacing: 0.2px;
         padding: 6px 12px !important;
         border: none !important;
-        border-bottom: 2px solid #e2e8f0 !important;
         vertical-align: middle !important;
         line-height: 1.2;
         white-space: nowrap !important;
@@ -77,10 +76,10 @@
         <div class="card-body p-0">
             <table style="width:100%; border-collapse:collapse;">
                 <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                    <td style="width:75px; padding:5px; text-align:center; vertical-align:middle;">
                         <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
                     </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                    <td style="padding:5px 8px; text-align:center; vertical-align:middle;">
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:1.15rem; letter-spacing:0.3px;">
                             MASTER DATA - PLANT {{ strtoupper($plantCode ?? ($currentPlant->name ?? '')) }}
                         </h1>
@@ -263,7 +262,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Standard</th>
+                            <th style="width:1%; white-space:nowrap;">Standard</th>
                             <th>Nama Item</th>
                             <th>Kategori</th>
                             <th>Customer</th>
@@ -281,27 +280,46 @@
                             <tr>
                                 <td>{{ $items->firstItem() + $index }}</td>
                                 <td class="text-nowrap">
-                                    @if($item->file_path)
-                                        <button type="button" class="btn btn-primary btn-xs view-pdf-btn mr-1" data-toggle="modal"
-                                            data-target="#pdfModal" data-src="{{ route('items.pdf', $item->id) }}?t={{ time() }}"
-                                            title="Lihat PCCP">
+                                    @php
+                                        $filePaths = $item->file_paths ?? [];
+                                        if (empty($filePaths) && $item->file_path) {
+                                            $filePaths = [$item->file_path];
+                                        }
+                                        $fileUrls = [];
+                                        foreach ($filePaths as $fIdx => $fPath) {
+                                            $fileUrls[] = route('items.pdf', ['id' => $item->id, 'index' => $fIdx]) . '?t=' . time();
+                                        }
+                                    @endphp
+
+                                    @if(count($fileUrls) > 0)
+                                        <button type="button" class="btn btn-primary btn-xs view-pdf-btn mr-1 mb-1"
+                                            data-toggle="modal" data-target="#pdfModal"
+                                            data-src="{{ $fileUrls[0] }}"
+                                            data-files="{{ json_encode($fileUrls) }}"
+                                            title="Lihat PCCP ({{ count($fileUrls) }} file)">
                                             <i class="fas fa-file-pdf"></i> PCCP
+                                            @if(count($fileUrls) > 1)
+                                                <span class="badge badge-light ml-1">{{ count($fileUrls) }}</span>
+                                            @endif
                                         </button>
                                     @endif
+
                                     @if($item->similar_part_file_path)
                                         @php
                                             $catName = strtoupper($item->category->name ?? '');
                                             $isProcess = (str_contains($catName, 'INPROSES') || str_contains($catName, 'IN-PROCESS') || str_contains($catName, 'INPROCESS'));
                                             $standardLabel = $isProcess ? 'Dimensi' : 'Similar';
                                         @endphp
-                                        <button type="button" class="btn btn-info btn-xs view-pdf-btn" data-toggle="modal"
+                                        <button type="button" class="btn btn-info btn-xs view-pdf-btn mb-1" data-toggle="modal"
                                             data-target="#pdfModal"
                                             data-src="{{ route('items.pdf', ['id' => $item->id, 'index' => 'similar']) }}?t={{ time() }}"
+                                            data-files="{{ json_encode([route('items.pdf', ['id' => $item->id, 'index' => 'similar']) . '?t=' . time()]) }}"
                                             title="Lihat {{ $standardLabel }} Part">
                                             <i class="fas fa-file-alt"></i> {{ $standardLabel }}
                                         </button>
                                     @endif
-                                    @if(!$item->file_path && !$item->similar_part_file_path)
+
+                                    @if(empty($fileUrls) && !$item->similar_part_file_path)
                                         <span class="text-muted">No File</span>
                                     @endif
                                 </td>
@@ -386,6 +404,17 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    {{-- File navigation (shown only when multiple files) --}}
+                    <div id="pdfFileNav" class="d-none d-flex justify-content-center align-items-center mb-2 py-1 px-2 bg-light rounded" style="gap:8px;">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="prevFile">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="fileInfo" class="small font-weight-bold text-muted">File 1 / 1</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="nextFile">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    {{-- Page navigation --}}
                     <div class="d-flex justify-content-center mb-2 align-items-center">
                         <button type="button" class="btn btn-secondary btn-sm mr-2" id="prevPage">
                             <i class="fas fa-chevron-left"></i>
@@ -531,21 +560,30 @@
                                         class="form-control form-control-sm" placeholder="Contoh: 0.16">
                                     <small class="text-muted">Khusus untuk kategori PLATING. Masukkan dalam satuan MENIT.</small>
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Upload PDF Baru (Standard)</label>
-                                    <input type="file" name="files[]" class="form-control-file form-control-sm"
-                                        accept=".pdf" multiple>
-                                    <small class="text-muted text-xs d-block">Bisa upload lebih dari satu file PDF. Max 10MB
-                                        per file.</small>
-                                    <div id="edit_existing_files" class="mt-2"></div>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Similar / Dimensi Part PDF</label>
-                                    <input type="file" name="similar_part_file" class="form-control-file form-control-sm"
-                                        accept=".pdf">
-                                    <small class="text-muted text-xs d-block">Upload PDF referensi dimensi part. Max
-                                        10MB.</small>
-                                    <div id="edit_existing_similar_file" class="mt-2"></div>
+                                {{-- PDF Upload: Horizontal side-by-side layout --}}
+                                <div class="d-flex mb-3" style="border: 1px solid #e9ecef; border-radius: 6px;">
+                                    {{-- Left: Standard PDF --}}
+                                    <div class="p-3" style="flex: 1; min-width: 0; border-right: 2px solid #e9ecef; overflow: hidden;">
+                                        <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Upload PDF Baru (Standard)
+                                        </label>
+                                        <input type="file" id="edit_files_input" name="files[]" class="form-control-file form-control-sm"
+                                            accept=".pdf" multiple>
+                                        <small class="text-muted text-xs d-block mt-1">Bisa upload lebih dari satu file PDF. Max 10MB per file.</small>
+                                        <div id="edit_existing_files" class="mt-2"></div>
+                                        <div id="edit_preview_new_files" class="mt-1"></div>
+                                    </div>
+                                    {{-- Right: Similar / Dimensi Part PDF --}}
+                                    <div class="p-3" style="flex: 1; min-width: 0;">
+                                        <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
+                                            <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi Part PDF
+                                        </label>
+                                        <input type="file" id="edit_similar_input" name="similar_part_file" class="form-control-file form-control-sm"
+                                            accept=".pdf">
+                                        <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dimensi part. Max 10MB.</small>
+                                        <div id="edit_existing_similar_file" class="mt-2"></div>
+                                        <div id="edit_preview_new_similar" class="mt-1"></div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group mb-0">
@@ -787,27 +825,35 @@
                                         placeholder="Masukkan Standar Cycletime (menit)...">
                                     <small class="text-muted">Khusus untuk kategori PLATING. Masukkan dalam satuan MENIT.</small>
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Upload PDF Standard <span
-                                            class="text-danger">*</span></label>
-                                    <input type="file" name="files[]" class="form-control-file form-control-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
-                                        accept=".pdf" multiple required>
-                                    @if($errors->has('files'))
-                                        <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files') }}</div>
-                                    @endif
-                                    @if($errors->has('files.*'))
-                                        <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files.*') }}</div>
-                                    @endif
-                                    <small class="text-muted text-xs d-block">Bisa upload lebih dari satu file PDF. Max 10MB
-                                        per file.</small>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Upload Similar / Dimensi Part PDF</label>
-                                    <input type="file" name="similar_part_file" class="form-control-file form-control-sm"
-                                        accept=".pdf">
-                                    <small class="text-muted text-xs d-block">Optional: PDF referensi part serupa. Max
-                                        10MB.</small>
+                                {{-- PDF Upload: Horizontal side-by-side layout --}}
+                                <div class="d-flex mb-3" style="border: 1px solid #e9ecef; border-radius: 6px;">
+                                    {{-- Left: Standard PDF --}}
+                                    <div class="p-3" style="flex: 1; min-width: 0; border-right: 2px solid #e9ecef; overflow: hidden;">
+                                        <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Upload PDF Standard <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="file" id="tambah_files_input" name="files[]"
+                                            class="form-control-file form-control-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
+                                            accept=".pdf" multiple required>
+                                        @if($errors->has('files'))
+                                            <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files') }}</div>
+                                        @endif
+                                        @if($errors->has('files.*'))
+                                            <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files.*') }}</div>
+                                        @endif
+                                        <small class="text-muted text-xs d-block mt-1">Bisa upload lebih dari satu file PDF. Max 10MB per file.</small>
+                                        <div id="tambah_preview_files" class="mt-2"></div>
+                                    </div>
+                                    {{-- Right: Similar / Dimensi Part PDF --}}
+                                    <div class="p-3" style="flex: 1; min-width: 0;">
+                                        <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
+                                            <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi Part PDF
+                                        </label>
+                                        <input type="file" id="tambah_similar_input" name="similar_part_file"
+                                            class="form-control-file form-control-sm" accept=".pdf">
+                                        <small class="text-muted text-xs d-block mt-1">Optional: PDF referensi part serupa. Max 10MB.</small>
+                                        <div id="tambah_preview_similar" class="mt-2"></div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group mb-0">
@@ -822,8 +868,7 @@
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Max</th>
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Toleransi (+/-)</th>
                                                     <th style="width: 30px; background-color: #ffffff !important; color: #333 !important;">
-                                                        <button type="button"
-                                                            class="btn btn-xs btn-success add-dimension-row">
+                                                        <button type="button" class="btn btn-xs btn-success add-dimension-row">
                                                             <i class="fas fa-plus"></i>
                                                         </button>
                                                     </th>
@@ -831,24 +876,13 @@
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td><input type="text" name="dimension_points[]"
-                                                            class="form-control form-control-sm" placeholder="Contoh: 1, A">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_sizes[]"
-                                                            class="form-control form-control-sm" placeholder="10.5">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_mins[]"
-                                                            class="form-control form-control-sm" placeholder="9.9">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_maxs[]"
-                                                            class="form-control form-control-sm" placeholder="10.1">
-                                                    </td>
-                                                    <td><input type="text" name="dimension_tolerances[]"
-                                                            class="form-control form-control-sm" placeholder="0.1">
-                                                    </td>
+                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="1" readonly style="background:#f8f9fa; color:#495057;"></td>
+                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm"></td>
+                                                    <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm"></td>
+                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm"></td>
+                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm"></td>
                                                     <td class="text-center">
-                                                        <button type="button"
-                                                            class="btn btn-xs btn-outline-danger remove-dimension-row">
+                                                        <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </td>

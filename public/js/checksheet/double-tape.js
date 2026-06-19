@@ -698,7 +698,7 @@ class DoubleTapeCreate {
             } else {
                 Swal.fire(
                     "Info",
-                    "Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.",
+                    "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
                     "warning",
                 );
             }

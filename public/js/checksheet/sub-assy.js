@@ -891,7 +891,7 @@ class SubAssyCreate {
             } else {
                 Swal.fire(
                     "Info",
-                    "Data item QR terbaca, tetapi tidak tersedia untuk plant ini. Silahkan cari manual.",
+                    "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
                     "warning",
                 );
                 if (callback) callback(false);
@@ -1312,7 +1312,7 @@ class SubAssyCreate {
             $("#standardPdfCanvas, #similarPdfCanvas").show().removeClass("d-none");
             $("#standardPdfPlaceholder, #similarPdfPlaceholder").hide().addClass("d-none");
             this.updateRefNavControls();
-            
+
             if (standardUrl) {
                 $("#downloadStandardBtn").attr("href", standardUrl).show();
             } else {
@@ -1325,7 +1325,7 @@ class SubAssyCreate {
             }
         } else {
             this.lastItemId = itemId;
-            
+
             // Reset display
             $("#standardPdfCanvas, #similarPdfCanvas").hide();
             $("#standardPdfPlaceholder, #similarPdfPlaceholder")
