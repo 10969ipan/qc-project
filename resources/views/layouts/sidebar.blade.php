@@ -28,7 +28,7 @@
         $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
     @endphp
 
-    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc'])))
+    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'supervisor_plating', 'manager_plating'])))
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
                 aria-controls="collapseQC">
@@ -156,7 +156,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'supervisor_plating', 'manager_plating']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanKRW">Laporan</a>
                                 <div id="qcLaporanKRW" class="collapse pl-2">
@@ -225,7 +225,7 @@
         </li>
     @endif
 
-    @if(auth()->check() && (auth()->user()->plant && auth()->user()->plant->code !== 'jakarta') && (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'manager_plating'))
+    @if(auth()->check() && (auth()->user()->plant && auth()->user()->plant->code !== 'jakarta') && in_array(auth()->user()->role, ['karu_qc', 'kashift_plating']))
         <li class="nav-item">
             <a class="nav-link" href="{{ route('cross_cut.index') }}">
                 <i class="fas fa-fw fa-file-alt"></i>

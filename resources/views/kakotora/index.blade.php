@@ -214,15 +214,15 @@
             </div>
 
             <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
-                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter Data">
+                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" id="btnFilterSearch" title="Filter Data">
                     <i class="fas fa-search fa-sm"></i>
                 </button>
-                <a href="{{ route('kakotora.index', ['plant' => $plant]) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                <button type="button" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" id="btnResetFilter" title="Reset Filter">
                     <i class="fas fa-undo fa-sm"></i>
-                </a>
-                <a href="{{ route('kakotora.print', request()->all()) }}" target="_blank" class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview" style="background-color: #17a589; color: white;">
+                </button>
+                <button type="submit" formaction="{{ route('kakotora.print') }}" formtarget="_blank" class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview" style="background-color: #17a589; color: white;">
                     <i class="fas fa-print fa-sm"></i>
-                </a>
+                </button>
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahKakotora">
                     <i class="fas fa-plus fa-sm mr-1"></i> <span class="font-weight-bold small">Tambah</span>
                 </button>
@@ -720,6 +720,64 @@
                     }
                 }
             });
+
+            // Prevent form submit on Enter key press on search input
+            $('input[name="search"]').on('keypress', function (e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                }
+            });
+
+            // Prevent normal form submission unless printing
+            $('#filterFormKakotora').on('submit', function (e) {
+                if (document.activeElement && document.activeElement.hasAttribute('formaction')) {
+                    return;
+                }
+                e.preventDefault();
+            });
+
+            // Instant smart search
+            $('input[name="search"]').on('keyup input', function () {
+                table.search($(this).val()).draw();
+            });
+
+            // Instant claim filter (Column index 8)
+            $('select[name="category_claim"]').on('change', function () {
+                var val = $(this).val();
+                table.column(8).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+            });
+
+            // Instant status filter (Column index 23)
+            $('select[name="status"]').on('change', function () {
+                var val = $(this).val();
+                table.column(23).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+            });
+
+            // Reset filters client-side
+            $('#btnResetFilter').on('click', function () {
+                $('input[name="search"]').val('');
+                $('select[name="category_claim"]').val('');
+                $('select[name="status"]').val('');
+                
+                table.search('').columns().search('').draw();
+            });
+
+            // Run initial filters if preset
+            var initialSearch = $('input[name="search"]').val();
+            if (initialSearch) {
+                table.search(initialSearch);
+            }
+            var initialClaim = $('select[name="category_claim"]').val();
+            if (initialClaim) {
+                table.column(8).search('^' + $.fn.dataTable.util.escapeRegex(initialClaim) + '$', true, false);
+            }
+            var initialStatus = $('select[name="status"]').val();
+            if (initialStatus) {
+                table.column(23).search('^' + $.fn.dataTable.util.escapeRegex(initialStatus) + '$', true, false);
+            }
+            if (initialSearch || initialClaim || initialStatus) {
+                table.draw();
+            }
 
             // Add event listener for opening and closing details
             $('#dataTableKakotora tbody').on('click', 'td.details-control', function () {

@@ -18,35 +18,8 @@ class KakotoraController extends Controller
             $query->where('plant', $plant);
         }
 
-        // Unified Search: Part Name, Part No, Model, No Reg
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('part_name', 'like', "%{$search}%")
-                  ->orWhere('part_number', 'like', "%{$search}%")
-                  ->orWhere('model', 'like', "%{$search}%")
-                  ->orWhere('no_reg', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter Claim
-        if ($request->filled('category_claim')) {
-            $query->where('category_claim', $request->category_claim);
-        }
-
-        // Filter Status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter Date Range
-        if ($request->filled('start_date')) {
-            $query->whereDate('date', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('date', '<=', $request->end_date);
-        }
-
+        // ponytail: Load all records client-side because the database is small (currently <500 rows).
+        // If data size grows and performance is affected, upgrade to server-side DataTables.
         $kakotoras = $query->orderBy('date', 'desc')->get();
         
         // Get unique claims and statuses for dropdown filters
