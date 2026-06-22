@@ -72,12 +72,11 @@
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckJKT">Checksheet</a>
                                 <div id="qcCheckJKT" class="collapse pl-2">
-                                    <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub
-                                        Assy</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
+                                    <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
+                                    <a class="collapse-item" href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <a class="collapse-item" href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
+                                    <a class="collapse-item" href="{{ route('cross_cut_painting.create') }}">Cross Cut Painting</a>
+                                    <a class="collapse-item" href="{{ route('painting.create') }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -86,13 +85,11 @@
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanJKT">Laporan</a>
                                 <div id="qcLaporanJKT" class="collapse pl-2">
-                                    <a class="collapse-item"
-                                        href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub
-                                        Assy</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
+                                    <a class="collapse-item" href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub Assy</a>
+                                    <a class="collapse-item" href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
+                                    <a class="collapse-item" href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
+                                    <a class="collapse-item" href="{{ route('cross_cut_painting.index') }}">Cross Cut Painting</a>
+                                    <a class="collapse-item" href="{{ route('painting.index') }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
                                 </div>
                             @endif

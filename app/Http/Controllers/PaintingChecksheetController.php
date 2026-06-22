@@ -30,16 +30,10 @@ class PaintingChecksheetController extends Controller
         return PaintingChecksheet::class;
     }
 
-    protected function restrictToKarawang()
+    protected function getPlantCode(Request $request)
     {
-        $user = auth()->user();
-        if ($user->role === 'admin')
-            return;
-
-        $plant = $user->plant;
-        if (!$plant || strtolower($plant->code) !== 'karawang') {
-            abort(403, 'Akses terbatas untuk Plant Karawang saja.');
-        }
+        $plant = $request->get('plant') ?? optional(auth()->user()->plant)->code ?? 'karawang';
+        return strtolower($plant);
     }
 
     protected function getExportHeaders()
@@ -104,10 +98,9 @@ class PaintingChecksheetController extends Controller
 
     public function index(Request $request)
     {
-        $this->restrictToKarawang();
-
+        $plantCode = $this->getPlantCode($request);
         $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
-        $filters['plant'] = 'karawang';
+        $filters['plant'] = $plantCode;
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
         if ($request->get('view_mode') !== 'verifikasi') {
@@ -116,7 +109,7 @@ class PaintingChecksheetController extends Controller
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         
-        $plantId = \App\Models\Plant::resolveId('karawang');
+        $plantId = \App\Models\Plant::resolveId($plantCode);
         
         $items = Item::whereIn('id', function($query) use ($plantId) {
             $query->select('item_id')->from('painting_checksheets')->where('plant_id', $plantId);
@@ -141,10 +134,9 @@ class PaintingChecksheetController extends Controller
 
     public function printView(Request $request)
     {
-        $this->restrictToKarawang();
-
+        $plantCode = $this->getPlantCode($request);
         $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
-        $filters['plant'] = 'karawang';
+        $filters['plant'] = $plantCode;
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
@@ -155,8 +147,8 @@ class PaintingChecksheetController extends Controller
 
         $checksheets = $this->checksheetService->buildFilteredQuery($filters)->latest()->get();
 
-        $plantName = 'Karawang';
-        $plantCode = 'karawang';
+        $plantModel = \App\Models\Plant::find(\App\Models\Plant::resolveId($plantCode));
+        $plantName = $plantModel ? $plantModel->name : ucfirst($plantCode);
 
         $dispStart = $filters['start_date'];
         $dispEnd = $filters['end_date'];
@@ -169,19 +161,18 @@ class PaintingChecksheetController extends Controller
 
     public function create(Request $request)
     {
-        $this->restrictToKarawang();
-
+        $plantCode = $this->getPlantCode($request);
         $user = auth()->user();
         $items = Item::whereHas('category', function ($q) {
             $q->where('name', 'Painting');
-        })->whereHas('plant', function ($q) {
-            $q->where('code', 'karawang');
+        })->whereHas('plant', function ($q) use ($plantCode) {
+            $q->where('code', $plantCode);
         })->orderBy('name')->get();
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        $plant = \App\Models\Plant::resolveId('karawang');
+        $plant = \App\Models\Plant::resolveId($plantCode);
         $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
             ->where('module', 'Painting')
             ->where('is_active', true)
@@ -193,7 +184,7 @@ class PaintingChecksheetController extends Controller
 
     public function store(StorePaintingChecksheetRequest $request)
     {
-        $this->restrictToKarawang();
+        $plantCode = $this->getPlantCode($request);
 
         try {
             $result = $this->checksheetService->createChecksheet(
@@ -211,11 +202,11 @@ class PaintingChecksheetController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => $message,
-                        'index_url' => route('painting.index', ['plant' => 'karawang'])
+                        'index_url' => route('painting.index', ['plant' => $plantCode])
                     ]);
                 }
 
-                return redirect()->route('painting.index', $request->query())
+                return redirect()->route('painting.index', array_merge($request->query(), ['plant' => $plantCode]))
                     ->with('success', $message);
             } else {
                 throw new \Exception('Gagal menyimpan data checksheet.');
@@ -236,9 +227,9 @@ class PaintingChecksheetController extends Controller
         }
     }
 
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        $this->restrictToKarawang();
+        $plantCode = $this->getPlantCode($request);
 
         $checksheet = PaintingChecksheet::findOrFail($id);
         $items = Item::byCategory('Painting')
@@ -265,7 +256,7 @@ class PaintingChecksheetController extends Controller
 
     public function update(UpdatePaintingChecksheetRequest $request, $id)
     {
-        $this->restrictToKarawang();
+        $plantCode = $this->getPlantCode($request);
 
         try {
             $this->checksheetService->updateChecksheet($id, $request->validated());
@@ -301,7 +292,7 @@ class PaintingChecksheetController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $this->restrictToKarawang();
+        $plantCode = $this->getPlantCode($request);
 
         $checksheet = \App\Models\PaintingChecksheet::find($id);
         $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
@@ -320,15 +311,14 @@ class PaintingChecksheetController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $this->restrictToKarawang();
-
+        $plantCode = $this->getPlantCode($request);
         $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'shift', 'operator_initials', 'customer']);
-        $filters['plant'] = 'karawang';
+        $filters['plant'] = $plantCode;
 
         $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
 
-        $plantName = 'Karawang';
-        $plantCode = 'karawang';
+        $plantModel = \App\Models\Plant::find(\App\Models\Plant::resolveId($plantCode));
+        $plantName = $plantModel ? $plantModel->name : ucfirst($plantCode);
         $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
         $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
 
@@ -440,9 +430,10 @@ class PaintingChecksheetController extends Controller
      */
     public function dailyRecap(Request $request)
     {
+        $plantCode = $this->getPlantCode($request);
         $startDate = $request->get('start_date') ?: ($request->get('date') ?: now()->toDateString());
         $endDate = $request->get('end_date') ?: $startDate;
-        $plant = 'karawang';
+        $plant = $plantCode;
         $shift = $request->get('shift');
         $date = $startDate; // For backward compatibility if needed
 

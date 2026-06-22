@@ -111,7 +111,7 @@
 
     <div class="sub-header">
         <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
-        <strong>Plant:</strong> Karawang
+        <strong>Plant:</strong> {{ strtoupper($plantName) }}
     </div>
 
     <table class="table">

@@ -93,7 +93,7 @@
         <div class="card-body">
             <form action="{{ route('painting.store') }}" method="POST" id="checksheetForm" class="ajax-form" novalidate>
                 @csrf
-                <input type="hidden" name="plant" value="karawang">
+                <input type="hidden" name="plant" value="{{ $plantCode }}">
                 <input type="hidden" name="qrcode" id="qrcodeInput">
                 <input type="hidden" name="part_code" id="partCodeInput">
                 <input type="hidden" name="supplier_id" id="supplierIdInput">
