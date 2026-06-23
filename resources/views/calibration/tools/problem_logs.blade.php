@@ -1,6 +1,116 @@
 @extends('layouts.admin')
 
 @section('content')
+<style>
+    .table-responsive {
+        max-height: 75vh !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+        margin-bottom: 0 !important;
+    }
+    #problemLogsTable, table.dataTable {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        border-top: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+    
+    #problemLogsTable td, #problemLogsTable th {
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
+    }
+
+    #problemLogsTable tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 4px 6px !important;
+    }
+
+    #problemLogsTable > thead > tr > th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #ffffff !important;
+        background-clip: padding-box !important;
+        color: #5a5c69 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px;
+        padding: 10px 12px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 2px solid #e3e6f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #e2e8f0;
+        top: 0 !important;
+        z-index: 105 !important;
+    }
+
+    /* Remove DataTables default sorting icons and background */
+    #problemLogsTable.dataTable thead .sorting:before,
+    #problemLogsTable.dataTable thead .sorting:after,
+    #problemLogsTable.dataTable thead .sorting_asc:before,
+    #problemLogsTable.dataTable thead .sorting_asc:after,
+    #problemLogsTable.dataTable thead .sorting_desc:before,
+    #problemLogsTable.dataTable thead .sorting_desc:after {
+        display: none !important;
+    }
+    #problemLogsTable.dataTable thead th,
+    #problemLogsTable.dataTable thead .sorting,
+    #problemLogsTable.dataTable thead .sorting_asc,
+    #problemLogsTable.dataTable thead .sorting_desc {
+        background-image: none !important;
+        background-color: #ffffff !important;
+    }
+
+    #problemLogsTable .btn {
+        min-width: 0 !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
+    }
+    #problemLogsTable .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+
+    /* Fixed Pagination at the bottom of card */
+    .dataTables_wrapper > .row:last-child {
+        position: sticky !important;
+        bottom: 0 !important; 
+        background-color: #ffffff !important;
+        z-index: 106 !important;
+        padding: 10px 0 !important;
+        margin: 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+        border-bottom-left-radius: 0.35rem !important;
+        border-bottom-right-radius: 0.35rem !important;
+    }
+    
+    /* Ensure info and pagination look clean */
+    .dataTables_info {
+        font-size: 0.7rem !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        padding-top: 5px !important;
+    }
+    .dataTables_paginate .pagination {
+        margin: 0 !important;
+    }
+    .page-link {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.7rem !important;
+    }
+</style>
     <div class="container-fluid">
         <div class="card shadow mb-2">
             <div class="card-body p-0">
@@ -91,7 +201,7 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover small" id="problemLogsTable">
-                        <thead class="bg-primary text-white text-center">
+                        <thead class="text-center">
                             <tr>
                                 <th width="30">NO.</th>
                                 <th>BAGIAN</th>

@@ -396,14 +396,14 @@
 
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true" style="z-index: 1060;">
         <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pdfModalLabel">Lihat PDF</h5>
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" id="pdfModalLabel" style="font-size: 1.1rem;"><i class="fas fa-file-pdf mr-2 text-danger"></i> Lihat PDFLihat PDF</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     {{-- File navigation (shown only when multiple files) --}}
                     <div id="pdfFileNav" class="d-none d-flex justify-content-center align-items-center mb-2 py-1 px-2 bg-light rounded" style="gap:8px;">
                         <button type="button" class="btn btn-outline-secondary btn-sm" id="prevFile">
@@ -450,9 +450,9 @@
     <div class="modal fade" id="modalEditItem" tabindex="-1" role="dialog" aria-labelledby="modalEditItemLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
-                    <h5 class="modal-title font-weight-bold" id="modalEditItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" id="modalEditItemLabel" style="font-size: 1.1rem;"><i class="fas fa-edit mr-2 text-primary"></i> Edit Master Data Item
                         Edit Master Data Item
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -474,7 +474,7 @@
                     <input type="hidden" name="plant" id="edit_plant">
                     <input type="hidden" name="item_id" id="edit_item_id">
 
-                    <div class="modal-body">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                         @if($errors->any())
                             <div class="alert alert-danger py-2 mb-3 small">
                                 <ul class="mb-0 pl-3">
@@ -488,7 +488,7 @@
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="edit_name" class="form-control form-control-sm @error('name') is-invalid @enderror" value="{{ old('name') }}"
+                                    <input type="text" name="name" id="edit_name" class="form-control form-control-sm border-0 shadow-sm @error('name') is-invalid @enderror" value="{{ old('name') }}"
                                         required>
                                     @error('name')
                                         <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
@@ -496,7 +496,7 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
-                                    <select name="category_id" id="edit_category_id" class="form-control form-control-sm @error('category_id') is-invalid @enderror"
+                                    <select name="category_id" id="edit_category_id" class="form-control form-control-sm border-0 shadow-sm @error('category_id') is-invalid @enderror"
                                         required>
                                         <option value="">Pilih Kategori</option>
                                         @if(!$plantCode)
@@ -523,12 +523,12 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Customer</label>
-                                    <textarea name="customer" id="edit_customer" class="form-control form-control-sm"
+                                    <textarea name="customer" id="edit_customer" class="form-control form-control-sm border-0 shadow-sm"
                                         rows="2"></textarea>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
-                                    <textarea name="defects" id="edit_defects" class="form-control form-control-sm"
+                                    <textarea name="defects" id="edit_defects" class="form-control form-control-sm border-0 shadow-sm"
                                         rows="18"></textarea>
                                     <small class="text-muted">Pisahkan setiap defect dengan baris baru.</small>
                                 </div>
@@ -537,27 +537,27 @@
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nomor Part</label>
                                     <input type="text" name="part_number" id="edit_part_number"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm border-0 shadow-sm">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kode SAP</label>
                                     <input type="text" name="sap_code" id="edit_sap_code"
-                                        class="form-control form-control-sm">
+                                        class="form-control form-control-sm border-0 shadow-sm">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Cavity</label>
-                                    <input type="number" name="cavity" id="edit_cavity" class="form-control form-control-sm"
+                                    <input type="number" name="cavity" id="edit_cavity" class="form-control form-control-sm border-0 shadow-sm"
                                         min="1">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Standar Berat (gr)</label>
                                     <input type="text" name="weight_standard" id="edit_weight_standard"
-                                        class="form-control form-control-sm" placeholder="Contoh: 15.5">
+                                        class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: 15.5">
                                 </div>
                                 <div class="form-group mb-3 sct-field-wrapper" style="display: none;">
-                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (menit)</label>
+                                    <label class="font-weight-bold">Standar Cycletime Plating (menit)</label>
                                     <input type="number" step="0.01" name="standard_cycle_time" id="edit_standard_cycle_time"
-                                        class="form-control form-control-sm" placeholder="Contoh: 0.16">
+                                        class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: 0.16">
                                     <small class="text-muted">Khusus untuk kategori PLATING. Masukkan dalam satuan MENIT.</small>
                                 </div>
                                 {{-- PDF Upload: Horizontal side-by-side layout --}}
@@ -567,7 +567,7 @@
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
                                             <i class="fas fa-file-pdf text-danger mr-1"></i> Upload PDF Baru (Standard)
                                         </label>
-                                        <input type="file" id="edit_files_input" name="files[]" class="form-control-file form-control-sm"
+                                        <input type="file" id="edit_files_input" name="files[]" class="form-control-file form-control-sm border-0 shadow-sm"
                                             accept=".pdf" multiple>
                                         <small class="text-muted text-xs d-block mt-1">Bisa upload lebih dari satu file PDF. Max 10MB per file.</small>
                                         <div id="edit_existing_files" class="mt-2"></div>
@@ -578,7 +578,7 @@
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
                                             <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi Part PDF
                                         </label>
-                                        <input type="file" id="edit_similar_input" name="similar_part_file" class="form-control-file form-control-sm"
+                                        <input type="file" id="edit_similar_input" name="similar_part_file" class="form-control-file form-control-sm border-0 shadow-sm"
                                             accept=".pdf">
                                         <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dimensi part. Max 10MB.</small>
                                         <div id="edit_existing_similar_file" class="mt-2"></div>
@@ -614,7 +614,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                         <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
                             Update Item
@@ -627,9 +627,9 @@
     <div class="modal fade" id="modalImportItem" tabindex="-1" role="dialog" aria-labelledby="modalImportItemLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
-                    <h5 class="modal-title font-weight-bold" id="modalImportItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" id="modalImportItemLabel" style="font-size: 1.1rem;"><i class="fas fa-file-excel mr-2 text-success"></i> Import Master Data Item
                         Import Master Data Item
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -646,7 +646,7 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label class="font-weight-bold">Pilih Plant <span class="text-danger">*</span></label>
-                                <select name="plant" class="form-control form-control-sm" required>
+                                <select name="plant" class="form-control form-control-sm border-0 shadow-sm" required>
                                     <option value="">-- Pilih Plant --</option>
                                     @foreach($allPlants as $p)
                                         <option value="{{ $p->code }}">{{ strtoupper($p->name) }}</option>
@@ -663,7 +663,7 @@
 
                         <div class="form-group mb-3">
                             <label class="font-weight-bold">Pilih File Excel / CSV <span class="text-danger">*</span></label>
-                            <input type="file" name="file" class="form-control-file form-control-sm" accept=".xlsx,.xls,.csv" required>
+                            <input type="file" name="file" class="form-control-file form-control-sm border-0 shadow-sm" accept=".xlsx,.xls,.csv" required>
                             <small class="text-muted text-xs d-block mt-1">Format file yang didukung: .xlsx, .xls, .csv. Ukuran maks 5MB.</small>
                         </div>
 
@@ -683,7 +683,7 @@
                             </a>
                         </div>
                     </div>
-                    <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                         <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm" id="btnSubmitImport">
                             Mulai Import
@@ -696,9 +696,9 @@
     <div class="modal fade" id="modalTambahItem" tabindex="-1" role="dialog" aria-labelledby="modalTambahItemLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
-                    <h5 class="modal-title font-weight-bold" id="modalTambahItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" id="modalTambahItemLabel" style="font-size: 1.1rem;"><i class="fas fa-plus-circle mr-2 text-primary"></i>
                         Tambah Master Data Item
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -715,7 +715,7 @@
                     <input type="hidden" name="filter_part_number" value="{{ request('part_number') }}">
                     <input type="hidden" name="filter_sap_code" value="{{ request('sap_code') }}">
                     <input type="hidden" name="page" value="{{ request('page') }}">
-                    <div class="modal-body">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                         @if($errors->any())
                             <div class="alert alert-danger py-2 mb-3 small">
                                 <ul class="mb-0 pl-3">
@@ -732,7 +732,7 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label class="font-weight-bold">Pilih Plant <span class="text-danger">*</span></label>
-                                <select name="plant" class="form-control form-control-sm @error('plant') is-invalid @enderror" required id="modal_plant_select">
+                                <select name="plant" class="form-control form-control-sm border-0 shadow-sm @error('plant') is-invalid @enderror" required id="modal_plant_select">
                                     <option value="">-- Pilih Plant --</option>
                                     @foreach($allPlants as $p)
                                         <option value="{{ $p->code }}" data-uuid="{{ $p->id }}" {{ old('plant') == $p->code ? 'selected' : '' }}>{{ strtoupper($p->name) }}</option>
@@ -753,7 +753,7 @@
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control form-control-sm @error('name') is-invalid @enderror" required
+                                    <input type="text" name="name" class="form-control form-control-sm border-0 shadow-sm @error('name') is-invalid @enderror" required
                                         value="{{ old('name') }}" placeholder="Masukkan Nama Item...">
                                     @error('name')
                                         <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
@@ -762,7 +762,7 @@
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
                                     <select name="category_id" id="modal_category_select"
-                                        class="form-control form-control-sm @error('category_id') is-invalid @enderror" required>
+                                        class="form-control form-control-sm border-0 shadow-sm @error('category_id') is-invalid @enderror" required>
                                         <option value="">Pilih Kategori</option>
                                         @if(!$plantCode)
                                             @foreach($categories->groupBy('plant_id') as $pId => $group)
@@ -788,12 +788,12 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Customer</label>
-                                    <textarea name="customer" class="form-control form-control-sm" rows="2"
+                                    <textarea name="customer" class="form-control form-control-sm border-0 shadow-sm" rows="2"
                                         placeholder="Masukkan Nama Customer..."></textarea>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
-                                    <textarea name="defects" class="form-control form-control-sm" rows="18"
+                                    <textarea name="defects" class="form-control form-control-sm border-0 shadow-sm" rows="18"
                                         placeholder="Pisahkan setiap defect dengan baris baru"></textarea>
                                     <small class="text-muted">Biarkan kosong untuk menggunakan default defects.</small>
                                 </div>
@@ -801,27 +801,27 @@
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nomor Part</label>
-                                    <input type="text" name="part_number" class="form-control form-control-sm"
+                                    <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm"
                                         placeholder="Masukkan Nomor Part...">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kode SAP</label>
-                                    <input type="text" name="sap_code" class="form-control form-control-sm"
+                                    <input type="text" name="sap_code" class="form-control form-control-sm border-0 shadow-sm"
                                         placeholder="Masukkan Kode SAP (Opsional)">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Cavity</label>
-                                    <input type="number" name="cavity" class="form-control form-control-sm"
+                                    <input type="number" name="cavity" class="form-control form-control-sm border-0 shadow-sm"
                                         placeholder="Jml Cavity" value="1" min="1">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Standar Berat (gr)</label>
-                                    <input type="text" name="weight_standard" class="form-control form-control-sm"
+                                    <input type="text" name="weight_standard" class="form-control form-control-sm border-0 shadow-sm"
                                         placeholder="Masukkan Standar Berat (gr)...">
                                 </div>
                                 <div class="form-group mb-3 sct-field-wrapper" style="display: none;">
-                                    <label class="font-weight-bold text-primary"><i class="fas fa-stopwatch mr-1"></i> Standar Cycletime Plating (menit)</label>
-                                    <input type="number" step="0.01" name="standard_cycle_time" class="form-control form-control-sm"
+                                    <label class="font-weight-bold">Standar Cycletime Plating (menit)</label>
+                                    <input type="number" step="0.01" name="standard_cycle_time" class="form-control form-control-sm border-0 shadow-sm"
                                         placeholder="Masukkan Standar Cycletime (menit)...">
                                     <small class="text-muted">Khusus untuk kategori PLATING. Masukkan dalam satuan MENIT.</small>
                                 </div>
@@ -833,7 +833,7 @@
                                             <i class="fas fa-file-pdf text-danger mr-1"></i> Upload PDF Standard <span class="text-danger">*</span>
                                         </label>
                                         <input type="file" id="tambah_files_input" name="files[]"
-                                            class="form-control-file form-control-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
+                                            class="form-control-file form-control-sm border-0 shadow-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
                                             accept=".pdf" multiple required>
                                         @if($errors->has('files'))
                                             <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files') }}</div>
@@ -850,7 +850,7 @@
                                             <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi Part PDF
                                         </label>
                                         <input type="file" id="tambah_similar_input" name="similar_part_file"
-                                            class="form-control-file form-control-sm" accept=".pdf">
+                                            class="form-control-file form-control-sm border-0 shadow-sm" accept=".pdf">
                                         <small class="text-muted text-xs d-block mt-1">Optional: PDF referensi part serupa. Max 10MB.</small>
                                         <div id="tambah_preview_similar" class="mt-2"></div>
                                     </div>
@@ -876,11 +876,11 @@
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" value="1" readonly style="background:#f8f9fa; color:#495057;"></td>
-                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm"></td>
-                                                    <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm"></td>
-                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm"></td>
-                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm"></td>
+                                                    <td><input type="text" name="dimension_points[]" class="form-control form-control-sm border-0 shadow-sm" value="1" readonly style="background:#f8f9fa; color:#495057;"></td>
+                                                    <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm border-0 shadow-sm"></td>
+                                                    <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm border-0 shadow-sm"></td>
+                                                    <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm border-0 shadow-sm"></td>
+                                                    <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm border-0 shadow-sm"></td>
                                                     <td class="text-center">
                                                         <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
                                                             <i class="fas fa-trash"></i>
@@ -894,7 +894,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                         <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">
                             <i class="fas fa-save mr-1"></i> Simpan
@@ -908,16 +908,16 @@
     <!-- Modal Log Item -->
     <div class="modal fade" id="modalLogItem" tabindex="-1" role="dialog" aria-labelledby="modalLogItemLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-white text-dark" style="border-bottom: 1px solid #f1f5f9;">
-                    <h5 class="modal-title font-weight-bold" id="modalLogItemLabel" style="font-size: 1.1rem; letter-spacing: 0.2px;">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" id="modalLogItemLabel" style="font-size: 1.1rem;"><i class="fas fa-history mr-2 text-info"></i> Riwayat Perubahan Data
                         Riwayat Perubahan Data
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body p-0">
+                <div class="modal-body p-0" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     <div class="table-responsive" style="max-height: 400px;">
                         <table class="table table-hover table-sm mb-0" id="tableLogItem">
                             <thead class="bg-white text-dark" style="position: sticky; top: 0; z-index: 1;">
@@ -934,7 +934,7 @@
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-top-0 p-3" style="border-top: 1px solid #f1f5f9 !important;">
+                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Tutup</button>
                 </div>
             </div>
