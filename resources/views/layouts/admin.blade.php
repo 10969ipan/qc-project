@@ -30,6 +30,11 @@
     <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
 
     <style>
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+        }
         body,
         h1,
         h2,
@@ -1125,21 +1130,24 @@
 
 <body id="page-top">
 
-    <div id="wrapper">
+    <div id="wrapper" style="height: 100vh; overflow: hidden;">
 
 
-        <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content-wrapper" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
 
-            <div id="content">
+            <div id="content" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
 
                 @include('layouts.topbar')
-                <div class="container-fluid px-3 px-md-4 px-xl-5 py-4">
+                
+                <div id="main-scroll-area" style="flex: 1; overflow-y: auto; overflow-x: hidden;">
+                    <div class="container-fluid px-3 px-md-4 px-xl-5 py-4">
 
-                    @yield('content')
+                        @yield('content')
 
+                    </div>
+                    @include('layouts.footer')
                 </div>
             </div>
-            @include('layouts.footer')
         </div>
     </div>
     <a class="scroll-to-top rounded" href="#page-top">
