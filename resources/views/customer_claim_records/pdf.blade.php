@@ -149,11 +149,10 @@
 
     <div style="margin-bottom: 10px;">
         <strong>Periode:</strong>
-        {{ $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua' }} -
-        {{ $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua' }}
+        {{ $startDate }} - {{ $endDate }}
         <br>
         <strong>Plant:</strong> {{ strtoupper($plantName) }}<br>
-        <strong>Customer:</strong> {{ request('customer') ?: 'SEMUA' }}
+        <strong>Customer:</strong> {{ $displayCustomer }}
     </div>
 
     <table class="table">

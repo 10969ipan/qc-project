@@ -182,6 +182,20 @@
                 padding: 0.3rem 0.6rem !important;
                 font-size: 0.7rem !important;
             }
+
+            /* Override admin.blade.php blue header for modal tables */
+            .modal-table-verif thead th {
+                background-color: #f8fafc !important;
+                color: #475569 !important;
+                font-weight: 700 !important;
+                border: none !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .modal-table-verif tbody td {
+                border-bottom: 1px solid #f1f5f9 !important;
+                border-top: none !important;
+                vertical-align: middle !important;
+            }
         </style>
 
         @if(session('success'))
@@ -333,7 +347,16 @@
                     </div>
                 </form>
 
-                <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
+                <!-- Loading Spinner -->
+                <div id="tableLoader" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <h6 class="text-muted font-weight-bold">Memuat Data Verifikasi...</h6>
+                </div>
+
+                <div id="tableContainer" style="display: none;">
+                    <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th class="align-middle">NO.</th>
@@ -475,15 +498,18 @@
                 </tbody>
             </table>
         </div>
+        </div>
     </div>
 
     <!-- PDF Modal -->
     <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="pdfModalLabel">Lihat Sertifikat</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden; text-align: left;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="pdfModalLabel">
+                        <i class="fas fa-file-pdf text-danger mr-2"></i>Lihat Sertifikat
+                    </h5>
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -504,12 +530,12 @@
     <div class="modal fade" id="modalEditVerifikasi" tabindex="-1" role="dialog" aria-labelledby="modalEditVerifikasiLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content border-0 shadow-lg text-left">
-                <div class="modal-header bg-primary text-white py-3">
-                    <h5 class="modal-title font-weight-bold" id="modalEditVerifikasiLabel">
-                        <i class="fas fa-edit mr-2"></i> Edit Verifikasi Alat Ukur
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden; text-align: left;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="modalEditVerifikasiLabel">
+                        <i class="fas fa-edit text-warning mr-2"></i>Edit Verifikasi Alat Ukur
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -519,9 +545,9 @@
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
                     <input type="hidden" name="year" value="{{ $year }}">
                     <input type="hidden" name="tool_id" id="edit_tool_id">
-                    <div class="modal-body p-4 bg-light">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 75vh; overflow-y: auto;">
                         @if($errors->any() && session('modal') == 'edit')
-                            <div class="alert alert-danger px-3 py-2 small shadow-sm border-0 border-left-danger">
+                            <div class="alert alert-danger px-3 py-2 small shadow-sm border-0 border-left-danger mb-4">
                                 <ul class="mb-0 pl-3">
                                     @foreach($errors->all() as $error)
                                         <li>{{ $error }}</li>
@@ -530,106 +556,99 @@
                             </div>
                         @endif
                         
-                        <div class="row">
+                        <div class="row mb-4">
                             {{-- Section 1: Informasi Alat --}}
                             <div class="col-md-5">
-                                <div class="card border-0 shadow-sm rounded-lg h-100">
-                                    <div class="card-header bg-white py-3 border-bottom-0">
-                                        <h6 class="m-0 font-weight-bold text-primary">
-                                            <i class="fas fa-info-circle mr-2"></i> Informasi Alat
-                                        </h6>
-                                    </div>
-                                    <div class="card-body pt-0">
-                                        <div class="form-group mb-3">
+                                <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                                    <i class="fas fa-info-circle mr-2"></i> INFORMASI ALAT
+                                </div>
+                                <div class="pr-md-3">
+                                    <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-gray-700">Nama Alat</label>
                                             <input type="text" name="name_alat" id="edit_name_alat"
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                         </div>
                                         <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-gray-700">Merk <span class="text-danger">*</span></label>
                                             <input type="text" name="merk" id="edit_merk" 
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                         </div>
                                         <div class="row px-0">
                                             <div class="col-6">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">No. Seri</label>
                                                     <input type="text" name="serial_number" id="edit_serial_number"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-6">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Resolusi</label>
                                                     <input type="text" name="resolusi" id="edit_resolusi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-gray-700">Rentang Ukur (Range)</label>
                                             <input type="text" name="rentang_ukur" id="edit_rentang_ukur"
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                         </div>
                                         <div class="row px-0">
                                             <div class="col-6">
                                                 <div class="form-group mb-0">
                                                     <label class="small font-weight-bold text-gray-700">Freq. Kalibrasi</label>
                                                     <input type="text" name="frekuensi_kalibrasi" id="edit_frekuensi_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-6">
                                                 <div class="form-group mb-0">
                                                     <label class="small font-weight-bold text-gray-700">Riwayat Kalibrasi</label>
                                                     <input type="text" name="riwayat_kalibrasi" id="edit_riwayat_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" readonly>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        readonly>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
                             </div>
 
                             {{-- Section 2: Jadwal & Hasil --}}
                             <div class="col-md-7">
-                                <div class="card border-0 shadow-sm rounded-lg h-100">
-                                    <div class="card-header bg-white py-3 border-bottom-0">
-                                        <h6 class="m-0 font-weight-bold text-primary">
-                                            <i class="fas fa-calendar-check mr-2"></i> Jadwal & Hasil Kalibrasi
-                                        </h6>
-                                    </div>
-                                    <div class="card-body pt-0">
+                                <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                                    <i class="fas fa-calendar-check mr-2"></i> JADWAL & HASIL KALIBRASI
+                                </div>
+                                <div class="pl-md-3">
                                         <div class="row">
                                             <div class="col-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Tgl. Kalibrasi <span class="text-danger">*</span></label>
                                                     <input type="date" name="tanggal_kalibrasi" id="edit_tanggal_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Tgl. Verifikasi <span class="text-danger">*</span></label>
                                                     <input type="date" name="tanggal_verifikasi" id="edit_tanggal_verifikasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Next Kalibrasi <span class="text-danger">*</span></label>
                                                     <input type="date" name="next_kalibrasi" id="edit_next_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                         </div>
@@ -639,8 +658,8 @@
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Judgment <span class="text-danger">*</span></label>
                                                     <select name="judgment" id="edit_judgment" 
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                         <option value="-">-</option>
                                                         <option value="OK">OK</option>
                                                         <option value="NG">NG</option>
@@ -651,52 +670,41 @@
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Std. Toleransi</label>
                                                     <input type="text" name="std_toleransi" id="edit_std_toleransi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" placeholder="Internal/Manual">
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        placeholder="Internal/Manual">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Acuan Toleransi</label>
                                                     <input type="text" name="acuan_toleransi" id="edit_acuan_toleransi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" placeholder="Contoh: JIS B 7507">
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        placeholder="Contoh: JIS B 7507">
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="form-group mb-0">
-                                            <label class="small font-weight-bold text-gray-700 d-flex align-items-center">
-                                                Upload PDF Baru (Sertifikat)
-                                                <i class="fas fa-file-upload ml-2 text-muted"></i>
-                                            </label>
-                                            <div class="custom-file custom-file-sm">
-                                                <input type="file" name="certification" class="custom-file-input" id="edit_cert_file" accept=".pdf">
-                                                <label class="custom-file-label border-0 bg-light" for="edit_cert_file" style="border-radius: 8px;">Pilih file PDF...</label>
-                                            </div>
+                                            <label class="small font-weight-bold text-gray-700">Upload PDF Baru (Sertifikat)</label>
+                                            <input type="file" name="certification" id="edit_cert_file" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" accept=".pdf">
                                             <div id="edit_existing_pdf" class="mt-2"></div>
                                         </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="my-4 border-light">
-
                         {{-- Measurement Table --}}
-                        <div class="card border-0 shadow-sm rounded-lg">
-                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 font-weight-bold text-primary">
-                                    <i class="fas fa-ruler-combined mr-2"></i> Data Pengukuran & Koreksi
-                                </h6>
-                                <button type="button" class="btn btn-sm btn-outline-success shadow-xs px-3" id="edit-modal-add-row" style="border-radius: 20px;">
-                                    <i class="fas fa-plus mr-1"></i> Tambah Baris
-                                </button>
+                        <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                            <div class="font-weight-bold">
+                                <i class="fas fa-ruler-combined mr-2"></i> DATA PENGUKURAN & KOREKSI
                             </div>
-                            <div class="card-body pt-0 px-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0 text-center" style="min-width: 600px;">
-                                        <thead class="bg-dark text-white small text-uppercase">
+                            <button type="button" class="btn btn-sm btn-outline-primary shadow-xs px-3 py-1" id="edit-modal-add-row" style="border-radius: 20px;">
+                                <i class="fas fa-plus mr-1"></i> Tambah Baris
+                            </button>
+                        </div>
+                        <div class="table-responsive shadow-sm rounded">
+                            <table class="table table-hover mb-0 text-center modal-table-verif" style="min-width: 600px; background: white;">
+                                        <thead class="bg-light text-gray-800 small text-uppercase">
                                             <tr>
                                                 <th class="py-3 border-0" style="width: 25%;">Nilai Ditunjukkan Alat</th>
                                                 <th class="py-3 border-0" style="width: 25%;">Nilai Koreksi Alat</th>
@@ -708,16 +716,12 @@
                                         <tbody id="edit-modal-verification-body">
                                             {{-- Filled by JS --}}
                                         </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            </table>
                         </div>
                     </div>
-                    <div class="modal-footer bg-white border-0 p-4 justify-content-end shadow-sm">
-                        <button type="button" class="btn btn-light btn-sm px-4 mr-2" data-dismiss="modal" style="border-radius: 20px;">Batal</button>
-                        <button type="submit" class="btn btn-primary btn-sm px-5 shadow-sm" style="border-radius: 20px; font-weight: 600;">
-                            <i class="fas fa-save mr-2"></i> SIMPAN PERUBAHAN
-                        </button>
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm"><i class="fas fa-save mr-1"></i> Simpan Perubahan</button>
                     </div>
                 </form>
             </div>
@@ -727,12 +731,12 @@
     <div class="modal fade" id="modalVerifikasiBaru" tabindex="-1" role="dialog" aria-labelledby="modalVerifikasiBaruLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content border-0 shadow-lg text-left">
-                <div class="modal-header bg-success text-white py-3">
-                    <h5 class="modal-title font-weight-bold" id="modalVerifikasiBaruLabel">
-                        <i class="fas fa-plus-circle mr-2"></i> Input Verifikasi Alat Ukur Baru
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden; text-align: left;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="modalVerifikasiBaruLabel">
+                        <i class="fas fa-plus-circle text-primary mr-2"></i>Input Verifikasi Alat Ukur Baru
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -740,9 +744,9 @@
                     @csrf
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
                     <input type="hidden" name="year" value="{{ $year }}">
-                    <div class="modal-body p-4 bg-light">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 75vh; overflow-y: auto;">
                         @if($errors->any() && session('modal') == 'create')
-                            <div class="alert alert-danger px-3 py-2 small shadow-sm border-0 border-left-danger">
+                            <div class="alert alert-danger px-3 py-2 small shadow-sm border-0 border-left-danger mb-4">
                                 <ul class="mb-0 pl-3">
                                     @foreach($errors->all() as $error)
                                         <li>{{ $error }}</li>
@@ -751,21 +755,18 @@
                             </div>
                         @endif
 
-                        <div class="row">
+                        <div class="row mb-4">
                             {{-- Section 1: Informasi Alat --}}
                             <div class="col-md-5">
-                                <div class="card border-0 shadow-sm rounded-lg h-100">
-                                    <div class="card-header bg-white py-3 border-bottom-0">
-                                        <h6 class="m-0 font-weight-bold text-success">
-                                            <i class="fas fa-search mr-2"></i> Informasi Alat
-                                        </h6>
-                                    </div>
-                                    <div class="card-body pt-0">
-                                        <div class="form-group mb-3">
+                                <div class="font-weight-bold text-success mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                                    <i class="fas fa-search mr-2"></i> INFORMASI ALAT
+                                </div>
+                                <div class="pr-md-3">
+                                    <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-gray-700">Pilih Alat Ukur <span class="text-danger">*</span></label>
                                             <select name="tool_id" id="modal_tool_select" 
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                                 <option value="">-- Pilih Alat --</option>
                                                 @foreach($tools as $tool)
                                                     <option value="{{ $tool->id }}" data-name="{{ $tool->name_alat }}"
@@ -782,75 +783,71 @@
                                         <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-gray-700">Nama Alat</label>
                                             <input type="text" name="name_alat" id="modal_name_alat"
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                         </div>
                                         <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-gray-700">Merk <span class="text-danger">*</span></label>
                                             <input type="text" name="merk" 
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                         </div>
                                         <div class="row px-0">
                                             <div class="col-6">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">No. Seri</label>
                                                     <input type="text" name="serial_number" id="modal_serial_number"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-6">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Resolusi</label>
                                                     <input type="text" name="resolusi" id="modal_resolusi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="form-group mb-0">
                                             <label class="small font-weight-bold text-gray-700">Rentang Ukur (Range)</label>
                                             <input type="text" name="rentang_ukur" id="modal_rentang_ukur"
-                                                class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                style="border-radius: 8px;" required>
+                                                class="form-control form-control-sm border-0 shadow-sm" 
+                                                required>
                                         </div>
-                                    </div>
                                 </div>
                             </div>
 
                             {{-- Section 2: Jadwal & Hasil --}}
                             <div class="col-md-7">
-                                <div class="card border-0 shadow-sm rounded-lg h-100">
-                                    <div class="card-header bg-white py-3 border-bottom-0">
-                                        <h6 class="m-0 font-weight-bold text-success">
-                                            <i class="fas fa-calendar-check mr-2"></i> Jadwal & Hasil Kalibrasi
-                                        </h6>
-                                    </div>
-                                    <div class="card-body pt-0">
+                                <div class="font-weight-bold text-success mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                                    <i class="fas fa-calendar-check mr-2"></i> JADWAL & HASIL KALIBRASI
+                                </div>
+                                <div class="pl-md-3">
                                         <div class="row px-0">
                                             <div class="col-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Tgl. Kalibrasi <span class="text-danger">*</span></label>
                                                     <input type="date" name="tanggal_kalibrasi" 
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Tgl. Verifikasi <span class="text-danger">*</span></label>
                                                     <input type="date" name="tanggal_verifikasi" id="modal_tanggal_verifikasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Next Kalibrasi <span class="text-danger">*</span></label>
                                                     <input type="date" name="next_kalibrasi" id="modal_next_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                         </div>
@@ -859,16 +856,16 @@
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Frekuensi Kalibrasi</label>
                                                     <input type="text" name="frekuensi_kalibrasi" id="modal_frekuensi_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="col-6">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Riwayat Kalibrasi</label>
                                                     <input type="text" name="riwayat_kalibrasi" id="modal_riwayat_kalibrasi"
-                                                        class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" readonly>
+                                                        class="form-control form-control-sm border-0 shadow-sm" 
+                                                        readonly>
                                                 </div>
                                             </div>
                                         </div>
@@ -877,8 +874,8 @@
                                             <div class="col-md-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Judgment <span class="text-danger">*</span></label>
-                                                    <select name="judgment" class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required>
+                                                    <select name="judgment" class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required>
                                                         <option value="-">-</option>
                                                         <option value="OK">OK</option>
                                                         <option value="NG">NG</option>
@@ -888,50 +885,39 @@
                                             <div class="col-md-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Std. Toleransi <span class="text-danger">*</span></label>
-                                                    <input type="text" name="std_toleransi" class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required placeholder="Input Std. Toleransi">
+                                                    <input type="text" name="std_toleransi" class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required placeholder="Input Std. Toleransi">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group mb-3">
                                                     <label class="small font-weight-bold text-gray-700">Acuan Toleransi <span class="text-danger">*</span></label>
-                                                    <input type="text" name="acuan_toleransi" class="form-control form-control-sm border-0 bg-light shadow-none" 
-                                                        style="border-radius: 8px;" required placeholder="Input Acuan Toleransi">
+                                                    <input type="text" name="acuan_toleransi" class="form-control form-control-sm border-0 shadow-sm" 
+                                                        required placeholder="Input Acuan Toleransi">
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="form-group mb-0">
-                                            <label class="small font-weight-bold text-gray-700 d-flex align-items-center">
-                                                Upload PDF (Sertifikat)
-                                                <i class="fas fa-file-upload ml-2 text-muted"></i>
-                                            </label>
-                                            <div class="custom-file custom-file-sm">
-                                                <input type="file" name="certification" class="custom-file-input" id="modal_cert_file" accept=".pdf">
-                                                <label class="custom-file-label border-0 bg-light" for="modal_cert_file" style="border-radius: 8px;">Pilih file PDF...</label>
-                                            </div>
+                                            <label class="small font-weight-bold text-gray-700">Upload PDF (Sertifikat)</label>
+                                            <input type="file" name="certification" id="modal_cert_file" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" accept=".pdf">
                                         </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="my-4 border-light">
-
                         {{-- Measurement Table --}}
-                        <div class="card border-0 shadow-sm rounded-lg">
-                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 font-weight-bold text-success">
-                                    <i class="fas fa-ruler-combined mr-2"></i> Data Pengukuran & Koreksi
-                                </h6>
-                                <button type="button" class="btn btn-sm btn-outline-primary shadow-xs px-3" id="modal-add-row" style="border-radius: 20px;">
-                                    <i class="fas fa-plus mr-1"></i> Tambah Baris
-                                </button>
+                        <div class="font-weight-bold text-success mb-3 pb-2 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                            <div class="font-weight-bold">
+                                <i class="fas fa-ruler-combined mr-2"></i> DATA PENGUKURAN & KOREKSI
                             </div>
-                            <div class="card-body pt-0 px-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0 text-center" style="min-width: 600px;">
-                                        <thead class="bg-dark text-white small text-uppercase">
+                            <button type="button" class="btn btn-sm btn-outline-success shadow-xs px-3 py-1" id="modal-add-row" style="border-radius: 20px;">
+                                <i class="fas fa-plus mr-1"></i> Tambah Baris
+                            </button>
+                        </div>
+                        <div class="table-responsive shadow-sm rounded">
+                            <table class="table table-hover mb-0 text-center modal-table-verif" style="min-width: 600px; background: white;">
+                                        <thead class="bg-light text-gray-800 small text-uppercase">
                                             <tr>
                                                 <th class="py-3 border-0" style="width: 25%;">Nilai Ditunjukkan Alat</th>
                                                 <th class="py-3 border-0" style="width: 25%;">Nilai Koreksi Alat</th>
@@ -942,10 +928,10 @@
                                         </thead>
                                         <tbody id="modal-verification-body">
                                             <tr>
-                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm border-0 bg-light mx-auto" style="border-radius: 6px; width: 80%;"></td>
-                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm border-0 bg-light mx-auto calc-input" style="border-radius: 6px; width: 80%;"></td>
-                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm border-0 bg-light mx-auto calc-input" style="border-radius: 6px; width: 80%;"></td>
-                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm border-0 bg-light mx-auto shadow-none" style="border-radius: 6px; width: 80%;" readonly></td>
+                                                <td><input type="text" name="nilai_alat[]" class="form-control form-control-sm border-0 shadow-sm mx-auto" style="width: 80%;"></td>
+                                                <td><input type="text" name="nilai_koreksi[]" class="form-control form-control-sm border-0 shadow-sm mx-auto calc-input" style="width: 80%;"></td>
+                                                <td><input type="text" name="nilai_ketidakpastian[]" class="form-control form-control-sm border-0 shadow-sm mx-auto calc-input" style="width: 80%;"></td>
+                                                <td><input type="text" name="hasil_verifikasi[]" class="form-control form-control-sm border-0 shadow-sm mx-auto" style="width: 80%;" readonly></td>
                                                 <td class="text-center">
                                                     <button type="button" class="btn btn-sm text-danger modal-remove-row" title="Hapus">
                                                         <i class="fas fa-trash"></i>
@@ -953,16 +939,12 @@
                                                 </td>
                                             </tr>
                                         </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            </table>
                         </div>
                     </div>
-                    <div class="modal-footer bg-white border-0 p-4 justify-content-end shadow-sm">
-                        <button type="button" class="btn btn-light btn-sm px-4 mr-2" data-dismiss="modal" style="border-radius: 20px;">Batal</button>
-                        <button type="submit" class="btn btn-success btn-sm px-5 shadow-sm" style="border-radius: 20px; font-weight: 600;">
-                            <i class="fas fa-save mr-2"></i> SIMPAN DATA VERIFIKASI
-                        </button>
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success px-4 font-weight-bold shadow-sm"><i class="fas fa-save mr-1"></i> Simpan Data Verifikasi</button>
                     </div>
                 </form>
             </div>
@@ -975,16 +957,16 @@
     <div class="modal fade" id="modalQrCode" tabindex="-1" role="dialog" aria-labelledby="modalQrCodeLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="modalQrCodeLabel">
-                        <i class="fas fa-qrcode mr-2"></i> Label QR Code Verifikasi
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="modalQrCodeLabel">
+                        <i class="fas fa-qrcode text-dark mr-2"></i>Label QR Code Verifikasi
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body text-center p-4">
+                <div class="modal-body text-center p-4" style="background-color: #f8fafc;">
                     <div id="qr-modal-image" class="mb-4 bg-white d-inline-block p-3 rounded shadow-sm">
                         <!-- QR Image will be injected here -->
                     </div>

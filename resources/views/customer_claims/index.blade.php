@@ -201,13 +201,13 @@
                                                 <tr class="text-center">
                                                     <td class="align-middle" style="font-size: 0.8rem;">{{ $claim->month_name }}</td>
                                                     <td class="align-middle font-weight-bold {{ $code == 'total' ? 'text-dark' : 'text-primary' }}" style="font-size: 0.8rem;">
-                                                        {{ number_format($claim->ppm_value ?? 0, 2) }}
+                                                        {{ ($claim->ppm_value == 0 || is_null($claim->ppm_value)) ? '-' : number_format($claim->ppm_value, 2) }}
                                                     </td>
                                                     <td class="align-middle font-weight-bold text-danger" style="font-size: 0.8rem;">
-                                                        {{ number_format($claim->target_value ?? 0, 2) }}
+                                                        {{ ($claim->target_value == 0 || is_null($claim->target_value)) ? '-' : number_format($claim->target_value, 2) }}
                                                     </td>
                                                     <td class="align-middle font-weight-bold text-dark" style="font-size: 0.8rem;">
-                                                        {{ number_format($claim->total_claims ?? 0, 0) }}
+                                                        {{ ($claim->total_claims == 0 || is_null($claim->total_claims)) ? '-' : number_format($claim->total_claims, 0) }}
                                                     </td>
                                                     <td class="align-middle">
                                                         @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
@@ -263,53 +263,54 @@
     <div class="modal fade" id="modalTambahData" tabindex="-1" role="dialog" aria-labelledby="modalTambahDataLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalTambahDataLabel">
-                        <i class="fas fa-plus-circle mr-2"></i> Tambah Data Claim Customer
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="modalTambahDataLabel">
+                        <i class="fas fa-plus-circle text-primary mr-2"></i>Tambah Data Claim Customer
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <form action="{{ route('admin.customer-claims.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    <div class="modal-body">
-                        <div class="alert alert-info py-2 small">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
+                        <div class="alert alert-info py-2 small border-0 shadow-sm rounded">
                             <i class="fas fa-info-circle mr-1"></i> Form ini akan menyimpan data untuk plant yang dipilih.
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-4">
                             <div class="col-md-6 text-left">
-                                <div class="form-group mb-0">
-                                    <label for="modal_plant_id" class="font-weight-bold small">Plant <span
-                                            class="text-danger">*</span></label>
-                                    <select name="plant_id" id="modal_plant_id" class="form-control form-control-sm"
-                                        required>
-                                        <option value="">Pilih Plant</option>
-                                        @foreach($plants as $plant)
-                                            <option value="{{ $plant->id }}" {{ $plantId == $plant->id ? 'selected' : '' }}>
-                                                {{ $plant->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <div class="form-group mb-0 row align-items-center">
+                                    <label for="modal_plant_id" class="col-sm-3 font-weight-bold small text-gray-700">Plant <span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
+                                        <select name="plant_id" id="modal_plant_id" class="form-control form-control-sm border-0 shadow-sm" required>
+                                            <option value="">Pilih Plant</option>
+                                            @foreach($plants as $plant)
+                                                <option value="{{ $plant->id }}" {{ $plantId == $plant->id ? 'selected' : '' }}>
+                                                    {{ $plant->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6 text-left">
-                                <div class="form-group mb-0">
-                                    <label for="modal_year" class="font-weight-bold small">Tahun <span
-                                            class="text-danger">*</span></label>
-                                    <input type="number" name="year" id="modal_year" class="form-control form-control-sm"
-                                        value="{{ $currentYear }}" min="2020" max="2100" required>
+                                <div class="form-group mb-0 row align-items-center">
+                                    <label for="modal_year" class="col-sm-3 font-weight-bold small text-gray-700">Tahun <span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
+                                        <input type="number" name="year" id="modal_year" class="form-control form-control-sm border-0 shadow-sm"
+                                            value="{{ $currentYear }}" min="2020" max="2100" required>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-sm mb-0">
-                                <thead class="bg-light">
-                                    <tr class="text-center small">
+                        <div class="custom-table-wrapper rounded border">
+                            <table class="table clean-table mb-0">
+                                <thead>
+                                    <tr class="text-center">
                                         <th width="150">Bulan</th>
                                         <th class="modal-ppm-fields">Total Claim (pcs)</th>
                                         <th class="modal-ppm-fields">Total Delivery</th>
@@ -319,51 +320,51 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="bg-light font-weight-bold">
-                                        <td class="align-middle text-info pl-3">TAHUNAN (0)</td>
+                                    <tr style="background-color: #f8fafc;">
+                                        <td class="align-middle font-weight-bold text-primary pl-3">TAHUNAN (0)</td>
                                         <td class="modal-ppm-fields">
                                              <input type="number" step="0.01" name="total_claim_pcs"
-                                                class="form-control form-control-sm calc-input-summary" data-month="summary" placeholder="0">
+                                                class="form-control form-control-sm border-0 shadow-sm calc-input-summary" data-month="summary" placeholder="0">
                                         </td>
                                         <td class="modal-ppm-fields">
                                              <input type="number" step="0.01" name="total_delivery"
-                                                class="form-control form-control-sm calc-input-summary" data-month="summary" placeholder="0">
+                                                class="form-control form-control-sm border-0 shadow-sm calc-input-summary" data-month="summary" placeholder="0">
                                         </td>
                                         <td class="modal-ppm-fields">
                                              <input type="number" step="0.01" name="ppm_value" id="ppm_value_summary"
-                                                 class="form-control form-control-sm bg-light" value="0.00" placeholder="0.00" readonly>
+                                                 class="form-control form-control-sm border-0 bg-white shadow-sm font-weight-bold text-primary" value="0.00" placeholder="0.00" readonly>
                                          </td>
                                         <td class="modal-ppm-fields">
                                             <input type="number" step="0.01" name="target_value"
-                                                class="form-control form-control-sm" placeholder="0.00">
+                                                class="form-control form-control-sm border-0 shadow-sm" placeholder="0.00">
                                         </td>
                                         <td class="modal-total-fields" style="display: none;">
                                             <input type="number" step="0.01" name="total_claims"
-                                                class="form-control form-control-sm" placeholder="0">
+                                                class="form-control form-control-sm border-0 shadow-sm" placeholder="0">
                                         </td>
                                     </tr>
                                     @foreach($months as $num => $name)
-                                        <tr class="small">
-                                            <td class="align-middle pl-3">{{ $name }}</td>
+                                        <tr>
+                                            <td class="align-middle font-weight-bold text-gray-700 pl-3">{{ $name }}</td>
                                             <td class="modal-ppm-fields">
                                                 <input type="number" step="0.01" name="data[{{ $num }}][total_claim_pcs]"
-                                                    class="form-control form-control-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
+                                                    class="form-control form-control-sm border-0 shadow-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
                                             </td>
                                             <td class="modal-ppm-fields">
                                                 <input type="number" step="0.01" name="data[{{ $num }}][total_delivery]"
-                                                    class="form-control form-control-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
+                                                    class="form-control form-control-sm border-0 shadow-sm calc-input-{{ $num }}" data-month="{{ $num }}" placeholder="0">
                                             </td>
                                             <td class="modal-ppm-fields">
                                                  <input type="number" step="0.01" name="data[{{ $num }}][ppm_value]" id="ppm_value_{{ $num }}"
-                                                     class="form-control form-control-sm bg-light" value="0.00" placeholder="0.00" readonly>
+                                                     class="form-control form-control-sm border-0 bg-white shadow-sm font-weight-bold text-primary" value="0.00" placeholder="0.00" readonly>
                                              </td>
                                             <td class="modal-ppm-fields">
                                                 <input type="number" step="0.01" name="data[{{ $num }}][target_value]"
-                                                    class="form-control form-control-sm" placeholder="0.00">
+                                                    class="form-control form-control-sm border-0 shadow-sm" placeholder="0.00">
                                             </td>
                                             <td class="modal-total-fields" style="display: none;">
                                                 <input type="number" step="0.01" name="data[{{ $num }}][total_claims]"
-                                                    class="form-control form-control-sm" placeholder="0">
+                                                    class="form-control form-control-sm border-0 shadow-sm" placeholder="0">
                                             </td>
                                         </tr>
                                     @endforeach
@@ -371,9 +372,9 @@
                             </table>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary btn-sm">
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm">
                             <i class="fas fa-save mr-1"></i> Simpan Semua
                         </button>
                     </div>
@@ -385,12 +386,12 @@
     <div class="modal fade" id="modalEditData" tabindex="-1" role="dialog" aria-labelledby="modalEditDataLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="modalEditDataLabel">
-                        <i class="fas fa-edit mr-2"></i> Edit Data Customer Claim
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="modalEditDataLabel">
+                        <i class="fas fa-edit text-warning mr-2"></i>Edit Data Customer Claim
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -401,69 +402,88 @@
                     <input type="hidden" name="filter_year" value="{{ request('year') }}">
                     <input type="hidden" name="filter_month" value="{{ request('month') }}">
 
-                    <div class="modal-body">
-                        <div class="form-group mb-3">
-                            <label class="font-weight-bold">Plant <span class="text-danger">*</span></label>
-                            <select name="plant_id" id="edit_plant_id" class="form-control" required>
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
+                        <div class="font-weight-bold text-warning mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">INFORMASI DASAR</div>
+                        <div class="form-group row align-items-center mb-2">
+                            <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Plant <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                <select name="plant_id" id="edit_plant_id" class="form-control form-control-sm border-0 shadow-sm" required>
                                 @foreach($plants as $p)
                                     <option value="{{ $p->id }}">{{ strtoupper($p->name) }}</option>
                                 @endforeach
-                            </select>
+                                </select>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Tahun <span class="text-danger">*</span></label>
-                                    <input type="number" name="year" id="edit_year" class="form-control" min="2000"
-                                        max="2100" required>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-6 col-form-label small font-weight-bold text-gray-700">Tahun <span class="text-danger">*</span></label>
+                                    <div class="col-sm-6">
+                                        <input type="number" name="year" id="edit_year" class="form-control form-control-sm border-0 shadow-sm" min="2000"
+                                            max="2100" required>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Bulan <span class="text-danger">*</span></label>
-                                    <select name="month" id="edit_month" class="form-control" required>
-                                        @foreach($months as $num => $name)
-                                            <option value="{{ $num }}">{{ $name }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Bulan <span class="text-danger">*</span></label>
+                                    <div class="col-sm-8">
+                                        <select name="month" id="edit_month" class="form-control form-control-sm border-0 shadow-sm" required>
+                                            @foreach($months as $num => $name)
+                                                <option value="{{ $num }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="font-weight-bold text-warning mt-4 mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">DETAIL CLAIM</div>
                         <div class="row edit-ppm-fields">
                              <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Total Claim (pcs)</label>
-                                    <input type="number" step="0.01" name="total_claim_pcs" id="edit_total_claim_pcs" class="form-control calc-input-edit">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-6 col-form-label small font-weight-bold text-gray-700">Total Claim (pcs)</label>
+                                    <div class="col-sm-6">
+                                        <input type="number" step="0.01" name="total_claim_pcs" id="edit_total_claim_pcs" class="form-control form-control-sm border-0 shadow-sm calc-input-edit">
+                                    </div>
                                 </div>
                             </div>
                              <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Total Delivery</label>
-                                    <input type="number" step="0.01" name="total_delivery" id="edit_total_delivery" class="form-control calc-input-edit">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Total Delivery</label>
+                                    <div class="col-sm-8">
+                                        <input type="number" step="0.01" name="total_delivery" id="edit_total_delivery" class="form-control form-control-sm border-0 shadow-sm calc-input-edit">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="font-weight-bold">PPM Value <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control bg-light" value="0.00" readonly>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-6 col-form-label small font-weight-bold text-gray-700">PPM Value <span class="text-danger">*</span></label>
+                                    <div class="col-sm-6">
+                                        <input type="number" step="0.01" name="ppm_value" id="edit_ppm_value" class="form-control form-control-sm border-0 shadow-sm bg-light" value="0.00" readonly>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group mb-0">
-                                    <label class="font-weight-bold">Target PPM <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" name="target_value" id="edit_target_value" class="form-control">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Target PPM <span class="text-danger">*</span></label>
+                                    <div class="col-sm-8">
+                                        <input type="number" step="0.01" name="target_value" id="edit_target_value" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group mb-0 edit-total-fields" style="display: none;">
-                            <label class="font-weight-bold">Total Claim <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="total_claims" id="edit_total_claims" class="form-control">
+                        <div class="form-group row align-items-center mb-2 edit-total-fields" style="display: none;">
+                            <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Total Claim <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                <input type="number" step="0.01" name="total_claims" id="edit_total_claims" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-warning btn-sm px-4">
-                            <i class="fas fa-save mr-1"></i> Update
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning px-4 font-weight-bold shadow-sm">
+                            <i class="fas fa-sync mr-1"></i> Update Data
                         </button>
                     </div>
                 </form>

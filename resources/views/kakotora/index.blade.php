@@ -242,8 +242,8 @@
             <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
                 <thead>
                     <tr>
-                        <th width="30"></th>
                         <th width="40">NO</th>
+                        <th width="50" class="text-center">DETAIL</th>
                         <th>TANGGAL ENTRY</th>
                         <th>NO REGISTRASI</th>
                         <th>ISSUE DATE</th>
@@ -272,8 +272,8 @@
                 <tbody>
                             @foreach ($kakotoras as $item)
                                 <tr>
-                                    <td class="details-control"><i class="fas fa-plus-circle text-primary fa-lg"></i></td>
-                                    <td>{{ $loop->iteration }}</td>
+                                    <td class="text-center">{{ $loop->iteration }}</td>
+                                    <td class="details-control"><i class="fas fa-caret-down text-primary fa-lg"></i></td>
                                     <td>{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('d/m/Y') : '-' }}</td>
                                     <td>{{ $item->no_reg ?? '-' }}</td>
                                     <td>{{ $item->issue_date ? \Carbon\Carbon::parse($item->issue_date)->format('d/m/Y') : '-' }}
@@ -815,7 +815,7 @@
                 "order": [[2, "desc"]],
                 "autoWidth": false,
                 "columnDefs": [
-                    { "orderable": false, "targets": 0 },
+                    { "orderable": false, "targets": 1 },
                     { "visible": false, "targets": [14, 16, 18, 19] }
                 ],
                 language: {
@@ -953,12 +953,12 @@
                 if (row.child.isShown()) {
                     row.child.hide();
                     tr.removeClass('shown');
-                    icon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    icon.removeClass('fa-caret-up').addClass('fa-caret-down');
                 }
                 else {
                     row.child(formatChildRow(row.data())).show();
                     tr.addClass('shown');
-                    icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    icon.removeClass('fa-caret-down').addClass('fa-caret-up');
                     
                     // Highlight details if search is active
                     var searchStr = table.search();

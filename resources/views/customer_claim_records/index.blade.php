@@ -80,26 +80,11 @@
                     </select>
                 </div>
 
-                @php
-                    $selectedId = request('smart_filter');
-                @endphp
-
-                <!-- Unified Smart Search -->
+                <!-- Instant Smart Search -->
                 <div class="d-flex align-items-center flex-grow-1 mx-2">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap"><i class="fas fa-search mr-1"></i> Cari:</label>
-                    <div style="flex-grow: 1; max-width: 600px;" class="custom-filter-wrapper">
-                        <select name="smart_filter" id="smartFilter" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Cari Part, Customer, Problem, atau Status...</option>
-                            @foreach($allRecords as $record)
-                                <option value="{{ $record->id }}" 
-                                    data-name="{{ $record->nama_part }}" 
-                                    data-detail="{{ $record->customer }} · {{ $record->problem }} · {{ $record->monitoring_status }}"
-                                    {{ $selectedId == $record->id ? 'selected' : '' }}>
-                                    {{ $record->nama_part }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                    <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0 no-autoupper" 
+                        placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 100%; font-size: 0.75rem;">
                 </div>
 
                 <!-- Tombol Aksi -->
@@ -214,6 +199,16 @@
                 }
             </style>
 
+        <!-- Loading Spinner -->
+        <div id="tableLoader" class="text-center py-5">
+            <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <h6 class="text-muted font-weight-bold">Memuat Data Claim...</h6>
+        </div>
+
+        <!-- Table Container (Hidden until initialized) -->
+        <div id="tableContainer" style="display: none;">
             <div class="table-responsive">
                 <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
                     <thead>
@@ -247,7 +242,7 @@
                     <tbody>
                         @forelse($records as $record)
                             <tr>
-                                <td class="text-center align-middle">{{ $records->firstItem() + $loop->index }}</td>
+                                <td class="text-center align-middle">{{ $loop->iteration }}</td>
                                 <td class="text-nowrap align-middle text-center">
                                     {{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}
                                 </td>
@@ -270,16 +265,16 @@
                                 <td class="text-center align-middle">{{ $record->project }}</td>
                                 <td class="align-middle text-nowrap font-weight-bold">{{ $record->nama_part }}</td>
                                 <td class="align-middle small">{{ Str::title($record->problem) }}</td>
-                                <td class="text-center align-middle font-weight-bold text-primary">{{ $record->qty }}</td>
+                                <td class="text-center align-middle font-weight-bold text-primary">{{ $record->qty == 0 ? '-' : $record->qty }}</td>
                                 <td class="align-middle text-center">{{ Str::title($record->kategori_defect) }}</td>
                                 <td class="align-middle text-center text-uppercase small">{{ $record->kategori_penyimpangan }}
                                 </td>
                                 <td class="text-center align-middle">{{ $record->initial_operator }}</td>
                                 <td class="text-center align-middle">{{ $record->initial_inspektor }}</td>
                                 <td class="align-middle small text-center">{{ Str::title($record->action_taken) }}</td>
-                                <td class="text-right align-middle">{{ number_format($record->total_akomodasi, 0, ',', '.') }}
+                                <td class="text-right align-middle">{{ $record->total_akomodasi == 0 ? '-' : number_format($record->total_akomodasi, 0, ',', '.') }}
                                 </td>
-                                <td class="text-right align-middle">{{ number_format($record->total_overtime, 0, ',', '.') }}
+                                <td class="text-right align-middle">{{ $record->total_overtime == 0 ? '-' : number_format($record->total_overtime, 0, ',', '.') }}
                                 </td>
                                 <td class="align-middle small">{{ Str::title($record->feedback) }}</td>
                                 <td class="text-center align-middle">{{ $record->status_feedback }}</td>
@@ -346,10 +341,8 @@
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <div class="mt-3">
-                {{ $records->links() }}
-            </div>
         </div>
     </div>
 
@@ -359,21 +352,23 @@
     <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content border-0">
-                <div class="modal-header bg-info text-white shadow-sm">
-                    <h5 class="modal-title font-weight-bold" id="previewModalLabel">Preview File</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;" id="previewModalLabel">
+                        <i class="fas fa-file-alt text-info mr-2"></i>Preview File
+                    </h5>
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body p-0 bg-dark" id="file_preview_body"
-                    style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                    style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
                 </div>
-                <div class="modal-footer bg-light">
-                    <a href="#" id="btn-download-full" download class="btn btn-primary btn-sm mr-auto px-4 shadow-sm">
+                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                    <a href="#" id="btn-download-full" download class="btn btn-info mr-auto px-4 font-weight-bold shadow-sm">
                         <i class="fas fa-download mr-1"></i> Download File
                     </a>
-                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -391,7 +386,8 @@
 @endpush
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
     <script>
         window.__CUSTOMER_CLAIM_RECORDS__ = {
             baseUrl: "{{ url('admin/customer-claim-records') }}",
@@ -400,17 +396,93 @@
         };
 
         $(document).ready(function() {
-            // Initialize Unified Smart Search
-            if (typeof initItemSearch === 'function') {
-                initItemSearch('smartFilter', { 
-                    placeholder: 'Cari Part, Customer, Problem, atau Status...', 
-                    maxResults: 60 
-                });
+            var table = $('#dataTable').DataTable({
+                dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+                     "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                "order": [[1, "desc"]],
+                "autoWidth": false,
+                "deferRender": true,
+                "columnDefs": [
+                    { "orderable": false, "targets": [20, 23] } // Evidential, Aksi
+                ],
+                language: {
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function(settings, json) {
+                    $('#tableLoader').hide();
+                    $('#tableContainer').fadeIn('fast', function() {
+                        table.columns.adjust();
+                    });
+                },
+                drawCallback: function(settings) {
+                    // ponytail: Highlight search keywords safely using TreeWalker
+                    var api = this.api();
+                    var tbody = api.table().body();
+                    
+                    $(tbody).find('mark.hlt').each(function() {
+                        $(this).replaceWith(this.childNodes);
+                    });
+                    tbody.normalize();
+
+                    var searchStr = api.search();
+                    if (!searchStr) return;
+
+                    var keywords = searchStr.split(' ').filter(w => w.trim().length > 1);
+                    if (keywords.length === 0) return;
+
+                    keywords = keywords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
+                    var regex = new RegExp("(" + keywords.join('|') + ")", "gi");
+
+                    api.rows({ page: 'current' }).nodes().each(function(row) {
+                        $(row).find('td:not(:last-child)').each(function() {
+                            var walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT, null, false);
+                            var nodes = [];
+                            while (walker.nextNode()) nodes.push(walker.currentNode);
+                            nodes.forEach(function(node) {
+                                var text = node.nodeValue;
+                                if (text.trim() && regex.test(text)) {
+                                    var span = document.createElement('span');
+                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                    var frag = document.createDocumentFragment();
+                                    while (span.firstChild) frag.appendChild(span.firstChild);
+                                    node.parentNode.replaceChild(frag, node);
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+
+            // Prevent form submit on Enter key press on search input
+            $('input[name="search"]').on('keypress', function (e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                }
+            });
+
+            // Instant smart search
+            $('input[name="search"]').on('keyup input', function () {
+                let input = $(this).val().toLowerCase();
+                let stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'kakotora', 'database', 'dari', 'ke', 'untuk'];
+                let keywords = input.split(/[\s,.]+/).filter(w => w && !stops.includes(w));
+                table.search(keywords.length ? keywords.join(' ') : input).draw();
+            });
+
+            var initialSearch = $('input[name="search"]').val();
+            if (initialSearch) {
+                table.search(initialSearch).draw();
             }
 
             var form = document.getElementById('filterFormClaim');
             if (form) {
-                function syncExportLinks() {
+                window.syncExportLinks = function() {
                     var baseUrlPdf = "{{ route('admin.customer-claim-records.export') }}";
                     var baseUrlPrint = "{{ route('admin.customer-claim-records.print') }}";
                     var params = new URLSearchParams();
@@ -418,6 +490,11 @@
                     for (var pair of formData.entries()) {
                         if (pair[1]) params.append(pair[0], pair[1]);
                     }
+                    
+                    // Add current search input to export params
+                    var searchVal = $('input[name="search"]').val();
+                    if (searchVal) params.append('search', searchVal);
+
                     var queryString = params.toString();
                     
                     var pdfBtn = form.querySelector('.btn-download');
@@ -425,10 +502,10 @@
                     
                     var printBtn = form.querySelector('.btn-print');
                     if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
-                }
+                };
 
-                $(form).find('input, select').on('change', syncExportLinks);
-                syncExportLinks();
+                $(form).find('input, select').on('change keyup input', window.syncExportLinks);
+                window.syncExportLinks();
             }
         });
     </script>

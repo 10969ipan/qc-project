@@ -52,8 +52,8 @@ class CustomerClaimRecordController extends Controller
         }
 
         // Global Search
-        if ($request->filled('q')) {
-            $searchTerm = $request->q;
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
                   ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
@@ -73,18 +73,14 @@ class CustomerClaimRecordController extends Controller
             });
         }
 
-        $records = $query->paginate(15)->withQueryString();
-
-        // Data for Smart Search
-        $allRecords = CustomerClaimRecord::select('id', 'nama_part', 'customer', 'problem', 'monitoring_status')
-            ->orderBy('nama_part')
-            ->get();
+        // ponytail: Load all records client-side to support instant DataTables search, similar to Kakotora.
+        $records = $query->get();
 
         $plants = Plant::orderBy('name')->get();
         $customers = CustomerClaimRecord::distinct()->orderBy('customer')->pluck('customer');
         $plantId = Plant::resolveId($request->plant) ?: (auth()->check() ? auth()->user()->plant_id : null);
 
-        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'allRecords', 'customers'));
+        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'customers'));
     }
 
     /**
@@ -125,12 +121,28 @@ class CustomerClaimRecordController extends Controller
         }
 
         // Global Search
-
-        if ($request->has('page')) {
-            $records = $query->paginate(15)->getCollection();
-        } else {
-            $records = $query->limit(10)->get();
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
+            });
         }
+
+        $records = $query->get();
 
         // Resolve plant name for display
         $plantName = 'ALL PLANTS';
@@ -144,10 +156,28 @@ class CustomerClaimRecordController extends Controller
             }
         }
 
-        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
-        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+        // Compute Periode from displayed data if not explicitly set
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->format('d/m/Y');
+            $endDate = \Carbon\Carbon::parse($request->end_date)->format('d/m/Y');
+        } else {
+            $startDate = $records->isNotEmpty() ? \Carbon\Carbon::parse($records->min('tanggal_claim'))->format('d/m/Y') : '-';
+            $endDate = $records->isNotEmpty() ? \Carbon\Carbon::parse($records->max('tanggal_claim'))->format('d/m/Y') : '-';
+        }
 
-        $pdf = Pdf::loadView('customer_claim_records.pdf', compact('records', 'plantName', 'request', 'startDate', 'endDate'))
+        // Compute Customer from displayed data if not explicitly set
+        if ($request->filled('customer')) {
+            $displayCustomer = strtoupper($request->customer);
+        } else {
+            if ($records->isEmpty()) {
+                $displayCustomer = '-';
+            } else {
+                $uniqueCustomers = $records->pluck('customer')->map(function($c) { return strtoupper(trim($c)); })->filter()->unique()->values();
+                $displayCustomer = $uniqueCustomers->implode(', ');
+            }
+        }
+
+        $pdf = Pdf::loadView('customer_claim_records.pdf', compact('records', 'plantName', 'request', 'startDate', 'endDate', 'displayCustomer'))
             ->setPaper('a4', 'landscape');
 
         $filename = 'List_Claim_Customer_' . str_replace(' ', '_', $plantName) . '_' . date('Ymd_His') . '.pdf';
@@ -191,13 +221,23 @@ class CustomerClaimRecordController extends Controller
             $query->where('claim_type', $request->claim_type);
         }
 
-        if ($request->filled('q')) {
-            $searchTerm = $request->q;
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
                   ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
                   ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%');
+                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
+                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
             });
         }
 
@@ -215,10 +255,28 @@ class CustomerClaimRecordController extends Controller
             }
         }
 
-        $startDate = $request->start_date ? Carbon::parse($request->start_date)->format('d/m/Y') : '-';
-        $endDate = $request->end_date ? Carbon::parse($request->end_date)->format('d/m/Y') : '-';
+        // Compute Periode from displayed data if not explicitly set
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->format('d/m/Y');
+            $endDate = \Carbon\Carbon::parse($request->end_date)->format('d/m/Y');
+        } else {
+            $startDate = $records->isNotEmpty() ? \Carbon\Carbon::parse($records->min('tanggal_claim'))->format('d/m/Y') : '-';
+            $endDate = $records->isNotEmpty() ? \Carbon\Carbon::parse($records->max('tanggal_claim'))->format('d/m/Y') : '-';
+        }
 
-        return view('customer_claim_records.print', compact('records', 'plantName', 'plantCode', 'startDate', 'endDate'));
+        // Compute Customer from displayed data if not explicitly set
+        if ($request->filled('customer')) {
+            $displayCustomer = strtoupper($request->customer);
+        } else {
+            if ($records->isEmpty()) {
+                $displayCustomer = '-';
+            } else {
+                $uniqueCustomers = $records->pluck('customer')->map(function($c) { return strtoupper(trim($c)); })->filter()->unique()->values();
+                $displayCustomer = $uniqueCustomers->implode(', ');
+            }
+        }
+
+        return view('customer_claim_records.print', compact('records', 'plantName', 'plantCode', 'startDate', 'endDate', 'displayCustomer'));
     }
 
     /**
