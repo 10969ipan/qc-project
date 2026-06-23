@@ -41,7 +41,17 @@ class KakotoraController extends Controller
                 $q->where('part_name', 'like', "%{$search}%")
                   ->orWhere('part_number', 'like', "%{$search}%")
                   ->orWhere('model', 'like', "%{$search}%")
-                  ->orWhere('no_reg', 'like', "%{$search}%");
+                  ->orWhere('no_reg', 'like', "%{$search}%")
+                  ->orWhere('problem', 'like', "%{$search}%")
+                  ->orWhere('cause', 'like', "%{$search}%")
+                  ->orWhere('countermeasure', 'like', "%{$search}%")
+                  ->orWhere('pic', 'like', "%{$search}%")
+                  ->orWhere('section', 'like', "%{$search}%")
+                  ->orWhere('process', 'like', "%{$search}%")
+                  ->orWhere('family', 'like', "%{$search}%")
+                  ->orWhere('category_claim', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%")
+                  ->orWhere('remarks', 'like', "%{$search}%");
             });
         }
 

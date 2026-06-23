@@ -26,8 +26,6 @@ class UserSeeder extends Seeder
             // Admin (access to both plants)
             ['name' => 'Administrator', 'email' => 'admin@qc.com', 'role' => 'admin', 'plant' => 'karawang', 'password' => $adminPassword],
 
-            // Sub Administrator (view and input only, no edit/delete/approve)
-
             // ===== PLANT KARAWANG =====
             // Supervisor
             ['name' => 'Mida Herdiyani', 'email' => 'spvqa@qc.com', 'role' => 'supervisor', 'plant' => 'karawang', 'password' => $defaultPassword, 'initials' => 'Mida'],

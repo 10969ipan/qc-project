@@ -187,8 +187,8 @@
             <!-- Unified Search: Part Name, Part No, Model -->
             <div class="d-flex align-items-center mr-2">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0" 
-                    placeholder="Part Name / No / Model..." value="{{ request('search') }}" style="width: 200px; font-size: 0.75rem;">
+                <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0 no-autoupper" 
+                    placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 200px; font-size: 0.75rem;">
             </div>
 
             <!-- Filter Claim -->
@@ -229,7 +229,17 @@
             </div>
         </form>
 
-        <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
+        <!-- Loading Spinner -->
+        <div id="tableLoader" class="text-center py-5">
+            <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <h6 class="text-muted font-weight-bold">Memuat Data Kakotora...</h6>
+        </div>
+
+        <!-- Table Container (Hidden until initialized) -->
+        <div id="tableContainer" style="display: none;">
+            <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th width="30"></th>
@@ -334,6 +344,7 @@
                             @endforeach
                         </tbody>
                     </table>
+            </div> <!-- End Table Container -->
         </div>
     </div>
 
@@ -718,6 +729,56 @@
                         next: "Next",
                         previous: "Previous"
                     }
+                },
+                initComplete: function(settings, json) {
+                    // ponytail: Prevent FOUC (Flash of Unstyled Content) by showing table only after fully initialized
+                    $('#tableLoader').hide();
+                    $('#tableContainer').fadeIn('fast', function() {
+                        table.columns.adjust(); // fix squished headers
+                    });
+                },
+                drawCallback: function(settings) {
+                    // ponytail: Highlight search keywords safely using TreeWalker (supports multiple words & overlapping)
+                    var api = this.api();
+                    var tbody = api.table().body();
+                    
+                    // 1. Unmark previous highlights and merge split text nodes
+                    $(tbody).find('mark.hlt').each(function() {
+                        $(this).replaceWith(this.childNodes);
+                    });
+                    tbody.normalize();
+
+                    var searchStr = api.search();
+                    if (!searchStr) return;
+
+                    var keywords = searchStr.split(' ').filter(w => w.trim().length > 1);
+                    if (keywords.length === 0) return;
+
+                    // Escape regex chars and sort by length descending to match longer words first
+                    keywords = keywords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
+                    var regex = new RegExp("(" + keywords.join('|') + ")", "gi");
+
+                    api.rows({ page: 'current' }).nodes().each(function(row) {
+                        $(row).find('td:not(:last-child)').each(function() {
+                            var walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT, null, false);
+                            var nodes = [];
+                            while (walker.nextNode()) {
+                                nodes.push(walker.currentNode);
+                            }
+                            nodes.forEach(function(node) {
+                                var text = node.nodeValue;
+                                if (text.trim() && regex.test(text)) {
+                                    var span = document.createElement('span');
+                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                    var frag = document.createDocumentFragment();
+                                    while (span.firstChild) {
+                                        frag.appendChild(span.firstChild);
+                                    }
+                                    node.parentNode.replaceChild(frag, node);
+                                }
+                            });
+                        });
+                    });
                 }
             });
 
@@ -738,7 +799,12 @@
 
             // Instant smart search
             $('input[name="search"]').on('keyup input', function () {
-                table.search($(this).val()).draw();
+                // ponytail: Smart NLP Search - Remove Indonesian stop words so conversational queries like 
+                // "tolong keluarkan problem bintik di proses plating" become "bintik plating".
+                let input = $(this).val().toLowerCase();
+                let stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'kakotora', 'database', 'dari', 'ke', 'untuk'];
+                let keywords = input.split(/[\s,.]+/).filter(w => w && !stops.includes(w));
+                table.search(keywords.length ? keywords.join(' ') : input).draw();
             });
 
             // Instant claim filter (Column index 8)
@@ -786,16 +852,37 @@
                 var icon = $(this).find('i');
 
                 if (row.child.isShown()) {
-                    // This row is already open - close it
                     row.child.hide();
                     tr.removeClass('shown');
                     icon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
                 }
                 else {
-                    // Open this row
                     row.child(formatChildRow(row.data())).show();
                     tr.addClass('shown');
                     icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    
+                    // Highlight details if search is active
+                    var searchStr = table.search();
+                    if (searchStr) {
+                        var keywords = searchStr.split(' ').filter(w => w.trim().length > 1);
+                        if (keywords.length > 0) {
+                            keywords = keywords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
+                            var regex = new RegExp("(" + keywords.join('|') + ")", "gi");
+                            var walker = document.createTreeWalker(row.child()[0], NodeFilter.SHOW_TEXT, null, false);
+                            var nodes = [];
+                            while (walker.nextNode()) nodes.push(walker.currentNode);
+                            nodes.forEach(function(node) {
+                                var text = node.nodeValue;
+                                if (text.trim() && regex.test(text)) {
+                                    var span = document.createElement('span');
+                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                    var frag = document.createDocumentFragment();
+                                    while (span.firstChild) frag.appendChild(span.firstChild);
+                                    node.parentNode.replaceChild(frag, node);
+                                }
+                            });
+                        }
+                    }
                 }
             });
 

@@ -182,6 +182,14 @@
 
             <input type="hidden" name="plant" value="{{ $plantCode }}">
 
+             <!-- Cari Cepat -->
+            <div class="d-flex align-items-center">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
+                    placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 250px; font-size: 0.75rem;">
+            </div>
+
+
             <!-- Tahun -->
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
@@ -195,31 +203,6 @@
                 </div>
             </div>
 
-            <!-- Nama Alat -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Alat:</label>
-                <div style="width: 180px;" class="custom-filter-wrapper">
-                    <select name="name_alat" id="filterAlat" class="form-control form-control-sm border-0 shadow-sm d-none">
-                        <option value="">Semua Alat</option>
-                        @foreach($uniqueNames as $name)
-                            <option value="{{ $name }}" {{ request('name_alat') == $name ? 'selected' : '' }}>{{ $name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <!-- Bagian -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Bagian:</label>
-                <div style="width: 130px;" class="custom-filter-wrapper">
-                    <select name="bagian" id="filterBagian" class="form-control form-control-sm border-0 shadow-sm d-none">
-                        <option value="">Semua</option>
-                        @foreach($uniqueBagian as $b)
-                            <option value="{{ $b }}" {{ request('bagian') == $b ? 'selected' : '' }}>{{ $b }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
 
             <!-- Status -->
             <div class="d-flex align-items-center">
@@ -232,13 +215,6 @@
                         <option value="broken" {{ request('status_kalibrasi') == 'broken' ? 'selected' : '' }}>Rusak (Broken)</option>
                     </select>
                 </div>
-            </div>
-
-            <!-- Cari Cepat -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
-                    placeholder="No. Seri, Merk..." value="{{ request('search') }}" style="width: 160px; font-size: 0.75rem;">
             </div>
 
             <!-- Tombol Aksi -->
@@ -266,7 +242,16 @@
             </div>
         </form>
 
+        <!-- Loading Spinner -->
+        <div id="tableLoader" class="text-center py-5">
+            <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <h6 class="text-muted font-weight-bold">Memuat Data Alat Ukur...</h6>
+        </div>
+
         <!-- Table Container -->
+        <div id="tableContainer" style="display: none;">
             <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
@@ -401,7 +386,7 @@
                     @endforeach
                 </tbody>
             </table>
-        <!-- End Table -->
+        </div> <!-- End Table Container -->
     </div>
 </div>
 
@@ -505,14 +490,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
-    <script src="{{ asset('js/calibration/calibration-tools.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            if (typeof initItemSearch === 'function') {
-                initItemSearch('filterAlat', { placeholder: 'Cari Nama Alat...', maxResults: 50 });
-                initItemSearch('filterBagian', { placeholder: 'Cari Bagian...', maxResults: 30 });
-            }
-        });
+    <script src="{{ asset('js/calibration/calibration-tools.js') }}?v={{ time() }}"></script>
 
     // PDF Modal Handler
     $('#pdfModal').on('show.bs.modal', function (event) {

@@ -100,7 +100,7 @@ $(document).ready(function () {
         var table = $('#dataTable').DataTable({
             dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
                 "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            searching: false,
+            searching: true,
             lengthChange: false,
             language: {
                 info: "Showing _START_ to _END_ of _TOTAL_ entries",
@@ -112,8 +112,71 @@ $(document).ready(function () {
                     next: "Next",
                     previous: "Previous"
                 }
+            },
+            initComplete: function(settings, json) {
+                // ponytail: Prevent FOUC
+                $('#tableLoader').hide();
+                $('#tableContainer').fadeIn('fast', function() {
+                    table.columns.adjust();
+                });
+            },
+            drawCallback: function(settings) {
+                // ponytail: Highlight search keywords safely using TreeWalker
+                var api = this.api();
+                var tbody = api.table().body();
+                
+                // Unmark previous
+                $(tbody).find('mark.hlt').each(function() {
+                    $(this).replaceWith(this.childNodes);
+                });
+                tbody.normalize();
+
+                var searchStr = api.search();
+                if (!searchStr) return;
+
+                var keywords = searchStr.split(' ').filter(w => w.trim().length > 1);
+                if (keywords.length === 0) return;
+
+                keywords = keywords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
+                var regex = new RegExp("(" + keywords.join('|') + ")", "gi");
+
+                api.rows({ page: 'current' }).nodes().each(function(row) {
+                    $(row).find('td:not(:last-child)').each(function() {
+                        var walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT, null, false);
+                        var nodes = [];
+                        while (walker.nextNode()) {
+                            nodes.push(walker.currentNode);
+                        }
+                        nodes.forEach(function(node) {
+                            var text = node.nodeValue;
+                            if (text.trim() && regex.test(text)) {
+                                var span = document.createElement('span');
+                                span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                var frag = document.createDocumentFragment();
+                                while (span.firstChild) {
+                                    frag.appendChild(span.firstChild);
+                                }
+                                node.parentNode.replaceChild(frag, node);
+                            }
+                        });
+                    });
+                });
             }
         });
+
+        // ponytail: Instant smart search
+        $('input[name="search"]').on('keypress', function (e) {
+            if (e.which == 13) e.preventDefault();
+        });
+
+        $('input[name="search"]').on('keyup input', function () {
+            table.search($(this).val()).draw();
+        });
+
+        var initialSearch = $('input[name="search"]').val();
+        if (initialSearch) {
+            table.search(initialSearch).draw();
+        }
     }
 
     // PDF Modal
