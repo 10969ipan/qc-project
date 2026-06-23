@@ -208,6 +208,8 @@ class DashboardService extends BaseService
         }
 
         if (!$type) {
+            $this->processModelStats(\App\Models\PaintingChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
+            
             // Jakarta only shows Sub Assy and In Process per user request
             if ($plantCode !== 'jakarta') {
                 $this->processModelStats(CrossCutChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
@@ -224,10 +226,8 @@ class DashboardService extends BaseService
     {
         $table = (new $modelClass)->getTable();
         
-        // Define possible signature columns. For daily stats, we only record Karu and Kashift per user request.
-        $potentialColumns = $dailyOnly 
-            ? ['kashift_qc', 'karu_qc'] 
-            : ['kashift_qc', 'supervisor_qc', 'karu_qc', 'asst_manager_qc', 'manager_qc'];
+        // Define possible signature columns based on user request
+        $potentialColumns = ['kashift_qc', 'karu_qc', 'supervisor_qc'];
         $columns = [];
         foreach ($potentialColumns as $col) {
             if (Schema::hasColumn($table, $col)) {
@@ -693,8 +693,8 @@ class DashboardService extends BaseService
 
         return [
             'labels' => $dates,
-            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa']),
-            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting', 'double_tape', 'plating']),
+            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'painting']),
+            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting', 'double_tape', 'plating', 'painting']),
         ];
     }
 
@@ -756,6 +756,13 @@ class DashboardService extends BaseService
                     ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
             } elseif ($type === 'plating') {
                 $records = PlatingChecksheet::where('plant_id', $plantId)
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+            } elseif ($type === 'painting') {
+                $records = \App\Models\PaintingChecksheet::where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
                     ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')

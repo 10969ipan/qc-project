@@ -407,6 +407,13 @@
                 dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.plating[i] }))
             });
         }
+        if (plantData.painting) {
+            series.push({
+                type: "spline", name: "Painting", color: "#e83e8c",
+                showInLegend: true, yValueFormatString: "##0.00'%'",
+                dataPoints: labels.map((l, i) => ({ label: formatLabel(l), y: plantData.painting[i] }))
+            });
+        }
 
         const chart = new CanvasJS.Chart(containerId, {
             animationEnabled: true,

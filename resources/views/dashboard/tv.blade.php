@@ -704,6 +704,7 @@
 
             const subData = ngRateDataRaw.sub_assy || [];
             const inpData = ngRateDataRaw.in_process || [];
+            const paintingData = ngRateDataRaw.painting || [];
 
             const ctx = canvas.getContext('2d');
             const W = canvas.parentElement.clientWidth - 32;
@@ -717,7 +718,7 @@
             const chartH = H - padT - padB;
             const n = Math.max(ngLabelsRaw.length, 2);
 
-            const allVals = [...subData, ...inpData].filter(v => v > 0);
+            const allVals = [...subData, ...inpData, ...paintingData].filter(v => v > 0);
             const maxVal = allVals.length ? Math.max(...allVals) * 1.3 : 5;
 
             function xPos(i) { return padL + (i / (n - 1)) * chartW; }
@@ -764,6 +765,7 @@
             }
             drawLine(subData, '#3b82f6');
             drawLine(inpData, '#f59e0b');
+            drawLine(paintingData, '#e83e8c');
 
             // --- Last data point labels
             function drawLastLabel(data, color, offset) {
@@ -786,6 +788,7 @@
             }
             drawLastLabel(subData, '#3b82f6', -5);
             drawLastLabel(inpData, '#f59e0b', 15);
+            drawLastLabel(paintingData, '#e83e8c', -25);
 
             // --- Data point labels (only for > 0)
             function drawValueLabels(data, color, yOffset) {
@@ -812,15 +815,18 @@
             }
             drawValueLabels(subData, '#3b82f6', -15);
             drawValueLabels(inpData, '#f59e0b', -15);
+            drawValueLabels(paintingData, '#e83e8c', -15);
 
             // --- Legend bottom
             const legendY = padT + chartH + 42;
             const centerX = (padL + padL + chartW) / 2;
             ctx.font = 'bold 12px Inter, sans-serif'; ctx.textAlign = 'left';
-            ctx.fillStyle = '#3b82f6'; ctx.fillRect(centerX - 120, legendY - 10, 26, 4);
-            ctx.fillStyle = '#334155'; ctx.fillText('Sub-Assy', centerX - 90, legendY);
-            ctx.fillStyle = '#f59e0b'; ctx.fillRect(centerX + 20, legendY - 10, 26, 4);
-            ctx.fillStyle = '#334155'; ctx.fillText('In-Process', centerX + 50, legendY);
+            ctx.fillStyle = '#3b82f6'; ctx.fillRect(centerX - 160, legendY - 10, 26, 4);
+            ctx.fillStyle = '#334155'; ctx.fillText('Sub-Assy', centerX - 130, legendY);
+            ctx.fillStyle = '#f59e0b'; ctx.fillRect(centerX - 40, legendY - 10, 26, 4);
+            ctx.fillStyle = '#334155'; ctx.fillText('In-Process', centerX - 10, legendY);
+            ctx.fillStyle = '#e83e8c'; ctx.fillRect(centerX + 80, legendY - 10, 26, 4);
+            ctx.fillStyle = '#334155'; ctx.fillText('Painting', centerX + 110, legendY);
 
         }
 
