@@ -349,164 +349,213 @@
     </div>
 
     <!-- Modal Tambah Kakotora -->
-    <div class="modal fade" id="modalTambahKakotora" tabindex="-1" role="dialog" aria-labelledby="modalTambahKakotoraLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white py-2">
-                    <h5 class="modal-title font-weight-bold" id="modalTambahKakotoraLabel" style="font-size: 0.9rem;">
-                        <i class="fas fa-plus-circle mr-2"></i> Tambah Data Kakotora
+    <div class="modal fade" id="modalTambahKakotora" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
+                        <i class="fas fa-plus-circle text-primary mr-2"></i> Tambah Data Kakotora
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <form action="{{ route('kakotora.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="plant" value="{{ $plant }}">
-                    <div class="modal-body text-left">
-                        <div class="row">
-                            <div class="col-md-6 border-right">
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Tanggal Entry</label>
-                                    <input type="date" name="date" class="form-control form-control-sm"
-                                        value="{{ date('Y-m-d') }}">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
+                        <!-- Section 1 -->
+                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">INFORMASI UMUM</div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Tanggal Entry</label>
+                                    <div class="col-sm-9">
+                                        <input type="date" name="date" class="form-control form-control-sm border-0 shadow-sm" value="{{ date('Y-m-d') }}">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">No Registrasi</label>
-                                    <input type="text" name="no_reg" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input No Registrasi">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Issue Date</label>
-                                    <input type="date" name="issue_date" class="form-control form-control-sm">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">No. Revmodel</label>
-                                    <input type="text" name="rev_model" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input No Revmodel">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">FAMILY (M, C, S)</label>
-                                    <select name="family" class="form-control form-control-sm">
-                                        <option value="">- Pilih Family -</option>
-                                        <option value="M">M</option>
-                                        <option value="C">C</option>
-                                        <option value="S">S</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">CATEGORY (NM , MP)</label>
-                                    <select name="category_nm_mp" class="form-control form-control-sm">
-                                        <option value="">- Pilih Kategori -</option>
-                                        <option value="NM">NM</option>
-                                        <option value="MP">MP</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">CATEGORY Claim (External, Internal)</label>
-                                    <select name="category_claim" class="form-control form-control-sm">
-                                        <option value="">- Pilih Kategori Claim -</option>
-                                        <option value="External">External</option>
-                                        <option value="Internal">Internal</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">MODEL</label>
-                                    <input type="text" name="model" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Model">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Part No.</label>
-                                    <input type="text" name="part_number" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Part Number">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Part Name</label>
-                                    <input type="text" name="part_name" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Part Name">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Mould</label>
-                                    <input type="text" name="mould" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Mould">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Owner of Mould</label>
-                                    <input type="text" name="owner_mould" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Owner Mould">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">No Registrasi</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="no_reg" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Similar Part</label>
-                                    <textarea name="similar_part" class="form-control form-control-sm no-autoupper" rows="3"
-                                        placeholder="Input Similar Part"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Issue Date</label>
+                                    <div class="col-sm-9">
+                                        <input type="date" name="issue_date" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Section</label>
-                                    <input type="text" name="section" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Section">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">No. Revmodel</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="rev_model" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Proses</label>
-                                    <input type="text" name="process" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Proses">
+                            </div>
+                        </div>
+
+                        <!-- Section 2 -->
+                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">DETAIL PART & KATEGORI</div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Family</label>
+                                    <div class="col-sm-9">
+                                        <select name="family" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="">- Pilih Family -</option>
+                                            <option value="M">M</option>
+                                            <option value="C">C</option>
+                                            <option value="S">S</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">PROBLEM</label>
-                                    <textarea name="problem" class="form-control form-control-sm no-autoupper" rows="2"
-                                        placeholder="Input Problem"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Category</label>
+                                    <div class="col-sm-9">
+                                        <select name="category_nm_mp" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="">- Pilih Kategori -</option>
+                                            <option value="NM">NM</option>
+                                            <option value="MP">MP</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">CAUSE</label>
-                                    <textarea name="cause" class="form-control form-control-sm no-autoupper" rows="2"
-                                        placeholder="Input Cause"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Claim</label>
+                                    <div class="col-sm-9">
+                                        <select name="category_claim" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="">- Pilih Claim -</option>
+                                            <option value="External">External</option>
+                                            <option value="Internal">Internal</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">COUNTERMEASURE</label>
-                                    <textarea name="countermeasure" class="form-control form-control-sm no-autoupper" rows="5"
-                                        placeholder="Input Countermeasure"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Model</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="model" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">PIC</label>
-                                    <input type="text" name="pic" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input PIC">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part No.</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Supplier</label>
-                                    <input type="text" name="supplier" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Supplier">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part Name</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="part_name" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Kategori Defect</label>
-                                    <input type="text" name="defect_category" class="form-control form-control-sm no-autoupper"
-                                        placeholder="Input Kategori Defect">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Similar Part</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="similar_part" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Status</label>
-                                    <select name="status" class="form-control form-control-sm">
-                                        <option value="Open">Open</option>
-                                        <option value="Closed">Closed</option>
-                                        <option value="On Progress">On Progress</option>
-                                    </select>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Mould</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="mould" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Form Analysis (PICA / AR / SA / dll)</label>
-                                    <input type="file" name="form_analysis" class="form-control-file">
-                                    <small class="text-muted">Allowed: pptx, xlsx, doc, docx, pdf (Max 10MB)</small>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Owner of Mould</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="owner_mould" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Remarks</label>
-                                    <textarea name="remarks" class="form-control form-control-sm no-autoupper" rows="2"
-                                        placeholder="Input Remarks"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Section 3 -->
+                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">ANALISIS PROBLEM & TINDAKAN</div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Section</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="section" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Proses</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="process" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Problem</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="problem" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Cause</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="cause" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Countermeasure</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="countermeasure" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="8"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">PIC</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="pic" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Supplier</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="supplier" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Kategori Defect</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="defect_category" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Status</label>
+                                    <div class="col-sm-9">
+                                        <select name="status" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="Open">Open</option>
+                                            <option value="Closed">Closed</option>
+                                            <option value="On Progress">On Progress</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Remarks</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="remarks" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="2"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Form Analysis</label>
+                                    <div class="col-sm-9">
+                                        <input type="file" name="form_analysis" class="form-control-file border-0 p-1 shadow-sm rounded" style="background:#fff;">
+                                        <small class="text-muted">Max 10MB (pptx, xlsx, doc, pdf)</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm">Simpan Data</button>
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm"><i class="fas fa-save mr-1"></i> Simpan Data</button>
                     </div>
                 </form>
             </div>
@@ -514,15 +563,14 @@
     </div>
 
     <!-- Modal Edit Kakotora -->
-    <div class="modal fade" id="modalEditKakotora" tabindex="-1" role="dialog" aria-labelledby="modalEditKakotoraLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white py-2">
-                    <h5 class="modal-title font-weight-bold" id="modalEditKakotoraLabel" style="font-size: 0.9rem;">
-                        <i class="fas fa-edit mr-2"></i> Edit Data Kakotora
+    <div class="modal fade" id="modalEditKakotora" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
+                        <i class="fas fa-edit text-info mr-2"></i> Edit Data Kakotora
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -530,149 +578,200 @@
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="plant" value="{{ $plant }}">
-                    <div class="modal-body text-left">
-                        <div class="row">
-                            <div class="col-md-6 border-right">
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Tanggal Entry</label>
-                                    <input type="date" name="date" id="edit_date" class="form-control form-control-sm">
+                    <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
+                        <!-- Section 1 -->
+                        <div class="font-weight-bold text-info mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">INFORMASI UMUM</div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Tanggal Entry</label>
+                                    <div class="col-sm-9">
+                                        <input type="date" name="date" id="edit_date" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">No Registrasi</label>
-                                    <input type="text" name="no_reg" id="edit_no_reg" class="form-control form-control-sm no-autoupper">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Issue Date</label>
-                                    <input type="date" name="issue_date" id="edit_issue_date"
-                                        class="form-control form-control-sm">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">No. Revmodel</label>
-                                    <input type="text" name="rev_model" id="edit_rev_model"
-                                        class="form-control form-control-sm no-autoupper">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">FAMILY (M, C, S)</label>
-                                    <select name="family" id="edit_family" class="form-control form-control-sm">
-                                        <option value="">- Pilih Family -</option>
-                                        <option value="M">M</option>
-                                        <option value="C">C</option>
-                                        <option value="S">S</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">CATEGORY (NM , MP)</label>
-                                    <select name="category_nm_mp" id="edit_category_nm_mp"
-                                        class="form-control form-control-sm">
-                                        <option value="">- Pilih Kategori -</option>
-                                        <option value="NM">NM</option>
-                                        <option value="MP">MP</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">CATEGORY Claim (External, Internal)</label>
-                                    <select name="category_claim" id="edit_category_claim"
-                                        class="form-control form-control-sm">
-                                        <option value="">- Pilih Kategori Claim -</option>
-                                        <option value="External">External</option>
-                                        <option value="Internal">Internal</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">MODEL</label>
-                                    <input type="text" name="model" id="edit_model" class="form-control form-control-sm no-autoupper">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Part No.</label>
-                                    <input type="text" name="part_number" id="edit_part_number"
-                                        class="form-control form-control-sm no-autoupper">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Part Name</label>
-                                    <input type="text" name="part_name" id="edit_part_name"
-                                        class="form-control form-control-sm no-autoupper">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Mould</label>
-                                    <input type="text" name="mould" id="edit_mould" class="form-control form-control-sm no-autoupper">
-                                </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Owner of Mould</label>
-                                    <input type="text" name="owner_mould" id="edit_owner_mould"
-                                        class="form-control form-control-sm no-autoupper">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">No Registrasi</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="no_reg" id="edit_no_reg" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Similar Part</label>
-                                    <textarea name="similar_part" id="edit_similar_part"
-                                        class="form-control form-control-sm no-autoupper" rows="3"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Issue Date</label>
+                                    <div class="col-sm-9">
+                                        <input type="date" name="issue_date" id="edit_issue_date" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Section</label>
-                                    <input type="text" name="section" id="edit_section"
-                                        class="form-control form-control-sm no-autoupper">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">No. Revmodel</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="rev_model" id="edit_rev_model" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Proses</label>
-                                    <input type="text" name="process" id="edit_process"
-                                        class="form-control form-control-sm no-autoupper">
+                            </div>
+                        </div>
+
+                        <!-- Section 2 -->
+                        <div class="font-weight-bold text-info mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">DETAIL PART & KATEGORI</div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Family</label>
+                                    <div class="col-sm-9">
+                                        <select name="family" id="edit_family" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="">- Pilih Family -</option>
+                                            <option value="M">M</option>
+                                            <option value="C">C</option>
+                                            <option value="S">S</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">PROBLEM</label>
-                                    <textarea name="problem" id="edit_problem" class="form-control form-control-sm no-autoupper"
-                                        rows="2"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Category</label>
+                                    <div class="col-sm-9">
+                                        <select name="category_nm_mp" id="edit_category_nm_mp" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="">- Pilih Kategori -</option>
+                                            <option value="NM">NM</option>
+                                            <option value="MP">MP</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">CAUSE</label>
-                                    <textarea name="cause" id="edit_cause" class="form-control form-control-sm no-autoupper"
-                                        rows="2"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Claim</label>
+                                    <div class="col-sm-9">
+                                        <select name="category_claim" id="edit_category_claim" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="">- Pilih Claim -</option>
+                                            <option value="External">External</option>
+                                            <option value="Internal">Internal</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">COUNTERMEASURE</label>
-                                    <textarea name="countermeasure" id="edit_countermeasure"
-                                        class="form-control form-control-sm no-autoupper" rows="5"></textarea>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Model</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="model" id="edit_model" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">PIC</label>
-                                    <input type="text" name="pic" id="edit_pic" class="form-control form-control-sm no-autoupper">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part No.</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="part_number" id="edit_part_number" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Supplier</label>
-                                    <input type="text" name="supplier" id="edit_supplier"
-                                        class="form-control form-control-sm no-autoupper">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part Name</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="part_name" id="edit_part_name" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Kategori Defect</label>
-                                    <input type="text" name="defect_category" id="edit_defect_category"
-                                        class="form-control form-control-sm no-autoupper">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Similar Part</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="similar_part" id="edit_similar_part" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Status</label>
-                                    <select name="status" id="edit_status" class="form-control form-control-sm">
-                                        <option value="Open">Open</option>
-                                        <option value="Closed">Closed</option>
-                                        <option value="On Progress">On Progress</option>
-                                    </select>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Mould</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="mould" id="edit_mould" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Form Analysis (PICA / AR / SA / dll)</label>
-                                    <div id="edit_file_preview" class="mb-2"></div>
-                                    <input type="file" name="form_analysis" class="form-control-file">
-                                    <small class="text-muted">Upload baru untuk ganti file. Allowed: pptx, xlsx, doc, docx,
-                                        pdf (Max 10MB)</small>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Owner of Mould</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="owner_mould" id="edit_owner_mould" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Remarks</label>
-                                    <textarea name="remarks" id="edit_remarks" class="form-control form-control-sm no-autoupper"
-                                        rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Section 3 -->
+                        <div class="font-weight-bold text-info mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">ANALISIS PROBLEM & TINDAKAN</div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Section</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="section" id="edit_section" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Proses</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="process" id="edit_process" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Problem</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="problem" id="edit_problem" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Cause</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="cause" id="edit_cause" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Countermeasure</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="countermeasure" id="edit_countermeasure" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="8"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">PIC</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="pic" id="edit_pic" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Supplier</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="supplier" id="edit_supplier" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Kategori Defect</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" name="defect_category" id="edit_defect_category" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-center mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Status</label>
+                                    <div class="col-sm-9">
+                                        <select name="status" id="edit_status" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="Open">Open</option>
+                                            <option value="Closed">Closed</option>
+                                            <option value="On Progress">On Progress</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Remarks</label>
+                                    <div class="col-sm-9">
+                                        <textarea name="remarks" id="edit_remarks" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="2"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Form Analysis</label>
+                                    <div class="col-sm-9">
+                                        <div id="edit_file_preview" class="mb-2"></div>
+                                        <input type="file" name="form_analysis" class="form-control-file border-0 p-1 shadow-sm rounded" style="background:#fff;">
+                                        <small class="text-muted">Max 10MB (pptx, xlsx, doc, pdf)</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-info btn-sm px-4 shadow-sm">Update Data</button>
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light border px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-info px-4 font-weight-bold shadow-sm"><i class="fas fa-save mr-1"></i> Update Data</button>
                     </div>
                 </form>
             </div>
@@ -953,3 +1052,4 @@
         });
     </script>
 @endpush
+

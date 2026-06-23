@@ -492,6 +492,7 @@
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/calibration/calibration-tools.js') }}?v={{ time() }}"></script>
 
+    <script>
     // PDF Modal Handler
     $('#pdfModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
