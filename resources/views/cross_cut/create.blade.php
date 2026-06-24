@@ -568,6 +568,14 @@
                     var currentVal = keteranganInput.value;
                     var appendStr = "Visual 100% OK";
                     if (this.checked) {
+                        Swal.fire({
+                            title: 'Perhatian!',
+                            text: 'Pilihan ini HANYA dicentang jika Anda benar-benar tidak menemukan NG visual 100% saat pengecekan!',
+                            icon: 'warning',
+                            confirmButtonColor: '#f6c23e',
+                            confirmButtonText: 'Mengerti'
+                        });
+                        
                         if (currentVal.indexOf(appendStr) === -1) {
                             keteranganInput.value = currentVal ? currentVal + '\n' + appendStr : appendStr;
                         }
