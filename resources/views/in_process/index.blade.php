@@ -390,6 +390,17 @@
                             }
                         @endphp
                         <tr class="text-center">
+                            @if(auth()->user()->role === 'admin')
+                                <th rowspan="2" class="align-middle" style="width: 50px; position: sticky; left: 0; z-index: 106; background-color: #f8fafc;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <span style="font-size: 10px; margin-bottom: 5px; white-space: nowrap;">Semua (<span id="checkedCountDisplay">0</span>)</span>
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                            <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                        </div>
+                                    </div>
+                                </th>
+                            @endif
                             <th rowspan="2" class="align-middle">No</th>
                             <th rowspan="2" class="align-middle">QR-Code</th>
                             <th rowspan="2" class="align-middle">Tanggal</th>
@@ -438,6 +449,14 @@
                     <tbody>
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
+                                @if(auth()->user()->role === 'admin')
+                                    <td class="align-middle text-center" style="position: sticky; left: 0; background-color: inherit; z-index: 1;">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $checksheet->id }}" value="{{ $checksheet->id }}">
+                                            <label class="custom-control-label" for="checkRow{{ $checksheet->id }}" style="cursor:pointer;"></label>
+                                        </div>
+                                    </td>
+                                @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle">
                                     @if($canExport)
@@ -1427,4 +1446,41 @@
 
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+
+    <script>
+        $(document).ready(function() {
+            const checkAllBtn = $('#checkAllRows');
+            const rowCheckboxes = $('.row-checkbox');
+            const countDisplay = $('#checkedCountDisplay');
+
+            function updateCount() {
+                const checkedCount = $('.row-checkbox:checked').length;
+                countDisplay.text(checkedCount);
+                
+                if(rowCheckboxes.length > 0) {
+                    checkAllBtn.prop('checked', checkedCount === rowCheckboxes.length);
+                }
+
+                // Add slight background color to checked rows
+                $('.row-checkbox').each(function() {
+                    const row = $(this).closest('tr');
+                    if ($(this).is(':checked')) {
+                        row.css('background-color', 'rgba(78, 115, 223, 0.05)');
+                    } else {
+                        row.css('background-color', '');
+                    }
+                });
+            }
+
+            checkAllBtn.on('change', function() {
+                const isChecked = $(this).prop('checked');
+                rowCheckboxes.prop('checked', isChecked);
+                updateCount();
+            });
+
+            rowCheckboxes.on('change', function() {
+                updateCount();
+            });
+        });
+    </script>
 @endpush
