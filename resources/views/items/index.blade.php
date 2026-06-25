@@ -453,7 +453,6 @@
             <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                 <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                     <h5 class="modal-title font-weight-bold text-gray-800" id="modalEditItemLabel" style="font-size: 1.1rem;"><i class="fas fa-edit mr-2 text-primary"></i> Edit Master Data Item
-                        Edit Master Data Item
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>

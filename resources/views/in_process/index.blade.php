@@ -795,6 +795,20 @@
                                             }
                                         }
                                     }
+                                    
+                                    if ($anyNGInRow ?? false) {
+                                        $hasDimensi = false;
+                                        foreach ($nameLines as $name) {
+                                            if (stripos($name, 'dimensi') !== false || stripos($name, 'dimension') !== false) {
+                                                $hasDimensi = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!$hasDimensi) {
+                                            $pcsLines[] = '-';
+                                            $nameLines[] = 'NG Dimensi';
+                                        }
+                                    }
                                 @endphp
 
                                 <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
@@ -1097,7 +1111,7 @@
                                             @endif
                                             @if(request('view_mode') === 'verifikasi' || $canDelete)
                                                 <form
-                                                    action="{{ route('in_process.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
+                                                    action="{{ route('in_process.destroy', array_merge(request()->query(), ['id' => $checksheet->id])) }}"
                                                     method="POST" class="d-inline ajax-form">
                                                     @csrf
                                                     @method('DELETE')
@@ -1461,6 +1475,18 @@
 
     <script>
         $(document).ready(function() {
+            // Restore scroll position
+            var savedScroll = sessionStorage.getItem('inProcessScrollPos');
+            if (savedScroll) {
+                $('.table-responsive').scrollTop(savedScroll);
+                sessionStorage.removeItem('inProcessScrollPos');
+            }
+
+            // Save scroll position before leaving or reloading
+            $(window).on('beforeunload', function() {
+                sessionStorage.setItem('inProcessScrollPos', $('.table-responsive').scrollTop());
+            });
+
             const checkAllBtn = $('#checkAllRows');
             const rowCheckboxes = $('.row-checkbox');
             const countDisplay = $('#checkedCountDisplay');
@@ -1537,7 +1563,7 @@
                             });
 
                             $.ajax({
-                                url: '{{ route("in_process.bulk_destroy") }}',
+                                url: '{{ route("in_process.bulk_destroy") }}' + window.location.search,
                                 type: 'POST',
                                 data: {
                                     _token: '{{ csrf_token() }}',

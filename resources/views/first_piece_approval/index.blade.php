@@ -699,6 +699,20 @@
                                             }
                                         }
                                     }
+                                    
+                                    if ($anyNGInRow ?? false) {
+                                        $hasDimensi = false;
+                                        foreach ($nameLines as $name) {
+                                            if (stripos($name, 'dimensi') !== false || stripos($name, 'dimension') !== false) {
+                                                $hasDimensi = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!$hasDimensi) {
+                                            $pcsLines[] = '-';
+                                            $nameLines[] = 'NG Dimensi';
+                                        }
+                                    }
                                 @endphp
 
                                 <td class="text-center align-middle p-0">

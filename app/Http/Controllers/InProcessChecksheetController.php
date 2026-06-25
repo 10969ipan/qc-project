@@ -227,7 +227,6 @@ class InProcessChecksheetController extends Controller
             $message = 'Data Checksheet Inprocess berhasil disimpan.';
 
             if ($request->ajax() || $request->wantsJson()) {
-                session()->flash('success', $message);
                 return response()->json([
                     'success' => true,
                     'message' => $message,
@@ -324,7 +323,6 @@ class InProcessChecksheetController extends Controller
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
-                session()->flash('success', 'Data Checksheet Inprocess berhasil diperbarui.');
                 return response()->json([
                     'success' => true,
                     'message' => 'Data Checksheet Inprocess berhasil diperbarui.',
@@ -369,7 +367,6 @@ class InProcessChecksheetController extends Controller
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
-                session()->flash('success', 'Data Checksheet Inprocess berhasil dihapus.');
                 return response()->json([
                     'success' => true,
                     'message' => 'Data Checksheet Inprocess berhasil dihapus.',
@@ -532,7 +529,6 @@ class InProcessChecksheetController extends Controller
             $redirectParams = $request->only($preservationKeys);
 
             if ($request->ajax() || $request->wantsJson()) {
-                session()->flash('success', 'Status approval berhasil diperbarui oleh Admin.');
                 return response()->json([
                     'success' => true,
                     'message' => 'Status approval berhasil diperbarui oleh Admin.',
