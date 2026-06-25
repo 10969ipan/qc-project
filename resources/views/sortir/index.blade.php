@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Checksheet Sortir')
 
@@ -267,9 +267,9 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
 
                             <th colspan="2" class="align-middle">Approval Status</th>
-                            <th rowspan="2" class="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
-                                <th rowspan="2" class="no-export align-middle">Aksi</th>
+                                <th rowspan="2" class="no-export align-middle">Actions</th>
                             @endif
                         </tr>
                         <tr class="text-center">

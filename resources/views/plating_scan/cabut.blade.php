@@ -163,7 +163,7 @@
                                         <th style="width: 8%; text-align: center;">No</th>
                                         <th style="width: 62%;">No Lot Bucket</th>
                                         <th style="width: 20%;">Qty</th>
-                                        <th style="width: 10%; text-align: center;">Aksi</th>
+                                        <th style="width: 10%; text-align: center;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="splitContainer">

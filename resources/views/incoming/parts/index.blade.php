@@ -100,7 +100,7 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="4">Approval Status</th>
                             <th rowspan="2" class="align-middle">Remarks</th>
-                            <th rowspan="2" class="align-middle">Aksi</th>
+                            <th rowspan="2" class="align-middle">Action</th>
                         </tr>
                         <tr>
                             <th>Pcs</th>

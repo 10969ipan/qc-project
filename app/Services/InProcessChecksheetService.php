@@ -197,6 +197,10 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.shift', $filters['shift']);
         }
 
+        if (!empty($filters['tujuan'])) {
+            $query->where('in_process_checksheets.tujuan', $filters['tujuan']);
+        }
+
         return $query;
     }
 

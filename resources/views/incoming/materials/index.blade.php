@@ -104,7 +104,7 @@
                             <th rowspan="2">QC</th>
                             <th colspan="4">Approval</th>
                             <th rowspan="2">Ket</th>
-                            <th rowspan="2">Aksi</th>
+                            <th rowspan="2">Action</th>
                         </tr>
                         <tr>
                             <th>Total</th>

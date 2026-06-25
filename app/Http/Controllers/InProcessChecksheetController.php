@@ -119,6 +119,7 @@ class InProcessChecksheetController extends Controller
             'qr_raw' => $request->qr_raw,
             'entry_method' => $request->entry_method,
             'shift' => $request->shift,
+            'tujuan' => $request->tujuan,
         ];
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif

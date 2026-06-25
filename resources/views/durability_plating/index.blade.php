@@ -109,7 +109,7 @@
                             <th>RESULT</th>
                             <th>ANALIS</th>
                             <th>APPROVAL STATUS</th>
-                            <th>AKSI</th>
+                            <th>ACTION</th>
                         </tr>
                     </thead>
                     <tbody>

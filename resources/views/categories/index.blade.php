@@ -139,7 +139,7 @@
                             <th>Jumlah Item</th>
                             <th>Plant</th>
                             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                <th>Aksi</th>
+                                <th>Action</th>
                             @endif
                         </tr>
                     </thead>

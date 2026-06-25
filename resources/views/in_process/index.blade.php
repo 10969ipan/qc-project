@@ -5,7 +5,8 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        height: calc(100vh - 170px) !important;
+        max-height: calc(100vh - 170px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
@@ -232,6 +233,12 @@
                 style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormInProcess">
 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
+                @if(request()->has('view_mode'))
+                    <input type="hidden" name="view_mode" value="{{ request('view_mode') }}">
+                @endif
+                @if(request()->has('entry_method'))
+                    <input type="hidden" name="entry_method" value="{{ request('entry_method') }}">
+                @endif
 
                 <!-- Field: Part -->
                 <div class="d-flex align-items-center">
@@ -295,6 +302,18 @@
                             <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
                             <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
                             <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: WIP/FG -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">WIP/FG:</label>
+                    <div style="width: 100px;" class="custom-filter-wrapper">
+                        <select name="tujuan" id="filterTujuan" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua</option>
+                            <option value="WIP" {{ request('tujuan') == 'WIP' ? 'selected' : '' }}>WIP</option>
+                            <option value="FG" {{ request('tujuan') == 'FG' ? 'selected' : '' }}>FG</option>
                         </select>
                     </div>
                 </div>
@@ -429,9 +448,9 @@
                             @if(request('view_mode') !== 'verifikasi')
                                 <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
-                                <th rowspan="2" class="no-export align-middle">Aksi</th>
+                                <th rowspan="2" class="no-export align-middle">Actions</th>
                             @endif
                         </tr>
                         <tr class="text-center">
@@ -447,7 +466,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($checksheets as $checksheet)
+                        @forelse($checksheets as $checksheet)
                             <tr class="text-center">
                                 @if(auth()->user()->role === 'admin')
                                     <td class="align-middle text-center">
@@ -1125,7 +1144,14 @@
                                     </td>
                                 @endif
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="25" class="text-center py-4 text-muted">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.5;"></i><br>
+                                    Data tidak ditemukan
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

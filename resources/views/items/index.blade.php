@@ -271,7 +271,7 @@
                             <th class="text-primary"><i class="fas fa-stopwatch mr-1"></i> SCT (Plating)</th>
                             <th>Kode SAP</th>
                             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                <th>Aksi</th>
+                                <th>Action</th>
                             @endif
                         </tr>
                     </thead>
@@ -923,7 +923,7 @@
                                 <tr>
                                     <th class="border-top-0 border-bottom-0 pl-4 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Waktu</th>
                                     <th class="border-top-0 border-bottom-0 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">User</th>
-                                    <th class="border-top-0 border-bottom-0 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Aksi</th>
+                                    <th class="border-top-0 border-bottom-0 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Action</th>
                                     <th class="border-top-0 border-bottom-0 pr-4 py-2 bg-white text-dark" style="background-color: #ffffff !important; color: #333 !important;">Deskripsi</th>
                                 </tr>
                             </thead>

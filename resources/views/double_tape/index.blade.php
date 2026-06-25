@@ -321,9 +321,9 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
 
                             <th colspan="4" class="align-middle">Approval Status</th>
-                            <th rowspan="2" class="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
-                                <th rowspan="2" class="no-export align-middle">Aksi</th>
+                                <th rowspan="2" class="no-export align-middle">Action</th>
                             @endif
                         </tr>
                         <tr class="text-center">
@@ -336,7 +336,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($checksheets as $checksheet)
+                        @forelse($checksheets as $checksheet)
                             <tr class="text-center">
                                 @if(auth()->user()->role === 'admin')
                                     <td class="align-middle text-center">
@@ -653,7 +653,14 @@
                                     </td>
                                 @endif
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="30" class="text-center py-4 text-muted">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.5;"></i><br>
+                                    Data tidak ditemukan
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

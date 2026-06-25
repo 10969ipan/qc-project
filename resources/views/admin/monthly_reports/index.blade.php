@@ -37,7 +37,7 @@
                                     <th width="30%">Judul</th>
                                     <th width="15%">Diupload Oleh</th>
                                     <th width="10%">Status</th>
-                                    <th width="25%">Aksi</th>
+                                    <th width="25%">Action</th>
                                 </tr>
                             </thead>
                             <tbody>

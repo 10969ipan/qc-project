@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Input Data Sortir')
 
@@ -122,7 +122,7 @@
                                 <th rowspan="2">Total (OK/NG)</th>
                                 <th rowspan="2">Judgment</th>
                                 <th rowspan="2">Inisial QC</th>
-                                <th rowspan="2">Keterangan</th>
+                                <th rowspan="2">DESCRIPTION</th>
                             </tr>
                             <tr></tr>
                         </thead>

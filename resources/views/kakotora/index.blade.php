@@ -277,7 +277,7 @@
                         <th>SUPPLIER</th>
                         <th>DEFECT</th>
                         <th>STATUS</th>
-                        <th width="100">AKSI</th>
+                        <th width="100">ACTION</th>
                     </tr>
                 </thead>
                 <tbody>

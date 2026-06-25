@@ -377,7 +377,7 @@
                             <th class="align-middle">JUDGEMENT</th>
                             <th class="align-middle">STD. TOLERANSI</th>
                             <th class="align-middle">ACUAN TOLERANSI</th>
-                            <th class="align-middle">AKSI</th>
+                            <th class="align-middle">Action</th>
                         </tr>
                     </thead>
                 <tbody>

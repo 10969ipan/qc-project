@@ -124,7 +124,7 @@
                                                                 <th width="35%" class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Nama Proses</th>
                                                                 <th width="20%" class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Plant</th>
                                                                 <th width="15%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Status</th>
-                                                                <th width="20%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Aksi</th>
+                                                                <th width="20%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -231,7 +231,7 @@
                                         <th width="35%" class="font-weight-bold pb-2 pt-3 text-left pl-4" style="border-radius: 10px 0 0 10px; font-size: 0.8rem; text-transform: uppercase;">Profil Pengguna</th>
                                         <th width="30%" class="font-weight-bold pb-2 pt-3 text-left" style="font-size: 0.8rem; text-transform: uppercase;">Otorisasi & Area</th>
                                         <th width="15%" class="font-weight-bold pb-2 pt-3 text-center" style="font-size: 0.8rem; text-transform: uppercase;">Status</th>
-                                        <th width="20%" class="font-weight-bold pb-2 pt-3 text-center" style="border-radius: 0 10px 10px 0; font-size: 0.8rem; text-transform: uppercase;">Aksi</th>
+                                        <th width="20%" class="font-weight-bold pb-2 pt-3 text-center" style="border-radius: 0 10px 10px 0; font-size: 0.8rem; text-transform: uppercase;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -790,24 +790,27 @@
         border-top: none;
     }
 
-    .settings-sidebar-item {
+    .settings-sidebar-nav .settings-sidebar-item {
         padding: 12px 16px;
-        color: #4a5568;
+        color: #4a5568 !important;
         font-size: 0.9rem;
-        border-bottom: 1px solid #edf2f7;
+        border: none !important;
+        border-bottom: 1px solid #edf2f7 !important;
+        border-left: 4px solid transparent !important;
         border-radius: 0 !important;
-        background-color: #fff;
-        border-left: 4px solid transparent;
+        background-color: #fff !important;
         transition: all 0.2s ease;
-        text-decoration: none;
+        text-decoration: none !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 
-    .settings-sidebar-item:hover {
-        background-color: #f8fafc;
-        color: #2d3748;
+    .settings-sidebar-nav .settings-sidebar-item:hover {
+        background-color: #f8fafc !important;
+        color: #2d3748 !important;
     }
 
-    .settings-sidebar-item.active {
+    .settings-sidebar-nav .settings-sidebar-item.active {
         background-color: #e6f2ff !important;
         color: #000 !important;
         border-left: 4px solid #0056b3 !important;

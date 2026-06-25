@@ -71,7 +71,7 @@
                             <th>NEXT VERIFIKASI</th>
                             <th>JUDGMENT</th>
                             <th>REMARKS</th>
-                            <th>AKSI</th>
+                            <th>ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>

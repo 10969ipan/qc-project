@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Input Data Plating Checksheet')
 
@@ -116,7 +116,7 @@
                                 <th rowspan="2" style="vertical-align: middle;">Total (OK/NG)</th>
                                 <th rowspan="2" class="judgment-column" style="vertical-align: middle;">Judgment</th>
                                 <th rowspan="2" style="vertical-align: middle;">Inisial QC</th>
-                                <th rowspan="2" style="vertical-align: middle;">Keterangan</th>
+                                <th rowspan="2" style="vertical-align: middle;">DESCRIPTION</th>
                             </tr>
                             <tr class="text-center">
                                 <th class="small py-1" style="vertical-align: middle;">Tanggal / Shift</th>

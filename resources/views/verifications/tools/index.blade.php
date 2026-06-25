@@ -253,7 +253,7 @@
                                 <th class="col-judgment">JUDGMENT</th>
                                 <th class="col-status-text">STATUS</th>
                                 <th class="col-stat-icon">STAT</th>
-                                <th class="col-aksi no-export">AKSI</th>
+                                <th class="col-aksi no-export">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>

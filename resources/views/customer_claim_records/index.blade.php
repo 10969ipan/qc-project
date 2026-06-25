@@ -236,7 +236,7 @@
                             <th>Dokumen Evidential</th>
                             <th>Evaluasi Problem</th>
                             <th>Monitoring Status</th>
-                            <th>Aksi</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>

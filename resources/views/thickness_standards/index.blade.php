@@ -186,7 +186,7 @@
                         <th rowspan="2">SALT SPRAY</th>
                         <th rowspan="2">PORECOUNT</th>
                         <th rowspan="2">CROSS CUT</th>
-                        <th rowspan="2" class="no-export">AKSI</th>
+                        <th rowspan="2" class="no-export">ACTIONS</th>
                     </tr>
                     <tr>
                         <th>Cu</th>

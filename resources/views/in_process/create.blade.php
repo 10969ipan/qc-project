@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Input Data Checksheet')
 
@@ -344,7 +344,7 @@
                             <th rowspan="2" class="align-middle">Total (OK/NG)</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial QC</th>
-                            <th rowspan="2" class="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
                         </tr>
                         <tr></tr>
                         </thead>
@@ -646,7 +646,7 @@
                             <th>Qty</th>
                             <th>Judgment</th>
                             <th>Inisial QC</th>
-                            <th style="width: 80px;">Aksi</th>
+                            <th style="width: 80px;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tempQueueBody">

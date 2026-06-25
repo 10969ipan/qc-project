@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Input Data Checksheet')
 
@@ -77,7 +77,7 @@
                                 <th>Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
                                 <th>Posisi Remark (Judgement)</th>
                                 <th>Inisial QC</th>
-                                <th>Keterangan</th>
+                                <th>DESCRIPTION</th>
                             </tr>
                         </thead>
                         <tbody>

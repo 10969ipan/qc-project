@@ -273,9 +273,9 @@
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="5" class="align-middle">Approval Status</th>
-                            <th rowspan="2" class="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
-                                <th rowspan="2" class="align-middle no-export">Aksi</th>
+                                <th rowspan="2" class="align-middle no-export">Actions</th>
                             @endif
                         </tr>
                         <tr class="text-center">
@@ -707,8 +707,10 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 23 : 22 }}" class="text-center">No data
-                                    available</td>
+                                <td colspan="30" class="text-center py-4 text-muted">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.5;"></i><br>
+                                    Data tidak ditemukan
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

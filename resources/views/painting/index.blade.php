@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Checksheet Painting')
 
@@ -329,9 +329,9 @@
                             @if(request('view_mode') !== 'verifikasi')
                                 <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Keterangan</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
-                                <th rowspan="2" class="no-export align-middle">Aksi</th>
+                                <th rowspan="2" class="no-export align-middle">Action</th>
                             @endif
                         </tr>
                         <tr class="text-center">
