@@ -31,8 +31,7 @@
 
     <style>
         html, body {
-            height: 100vh;
-            overflow: hidden;
+            height: 100%;
             margin: 0;
         }
         body,
@@ -1130,24 +1129,20 @@
 
 <body id="page-top">
 
-    <div id="wrapper" style="height: 100vh; overflow: hidden;">
+    <div id="wrapper">
 
-        <div id="content-wrapper" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
+        <div id="content-wrapper" class="d-flex flex-column">
 
-            <div id="content" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
+            <div id="content" class="d-flex flex-column">
 
-                <div style="flex-shrink: 0;">
-                    @include('layouts.topbar')
+                @include('layouts.topbar')
+
+                <div class="container-fluid px-3 px-md-4 px-xl-5 py-4" style="padding-top: calc(56px + 1.5rem) !important;">
+
+                    @yield('content')
+
                 </div>
-                
-                <div id="main-scroll-area" style="flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;">
-                    <div class="container-fluid px-3 px-md-4 px-xl-5 py-4">
 
-                        @yield('content')
-
-                    </div>
-                    <!-- Footer removed as per request -->
-                </div>
             </div>
         </div>
     </div>

@@ -4,7 +4,7 @@
     $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
 @endphp
 
-<nav class="navbar topbar static-top shadow px-4 d-flex align-items-center justify-content-between flex-nowrap">
+<nav class="navbar topbar shadow px-4 d-flex align-items-center justify-content-between flex-nowrap" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1030;">
     <div class="d-flex align-items-center flex-grow-1">
         <button class="menu-toggle mr-2" id="mobile-menu-toggle">
             <i class="fas fa-bars"></i>
