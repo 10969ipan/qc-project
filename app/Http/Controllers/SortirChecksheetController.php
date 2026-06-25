@@ -224,6 +224,60 @@ class SortirChecksheetController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus data Sortir: ' . $e->getMessage());
         }
     }
+    public function bulkDestroy(Request $request)
+    {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager']) && auth()->user()->name !== 'Marsiah') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action. Managers can only perform approvals.'
+            ], 403);
+        }
+
+        $ids = $request->input('ids');
+
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data yang dipilih untuk dihapus.'
+            ], 400);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $checksheets = SortirChecksheet::whereIn('id', $ids)->get();
+
+            if ($checksheets->isEmpty()) {
+                \DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan.'
+                ], 404);
+            }
+
+            foreach ($checksheets as $checksheet) {
+                $itemName = $checksheet->item ? $checksheet->item->name : 'Unknown';
+                $this->sortirService->deleteChecksheet($checksheet->id);
+                ActivityLogger::log('deleted', null, "Menghapus checksheet Sortir: {$itemName} secara massal");
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' data berhasil dihapus.',
+                'redirect' => route('sortir.index', $this->getFilterParams($request, true))
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     protected function applyFilters($query, Request $request)
     {
         // Redundant as we use service for filtering.

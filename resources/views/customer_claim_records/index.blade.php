@@ -449,7 +449,7 @@
                                 var text = node.nodeValue;
                                 if (text.trim() && regex.test(text)) {
                                     var span = document.createElement('span');
-                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; padding: 0 2px; border-radius: 2px;'>$1</mark>");
                                     var frag = document.createDocumentFragment();
                                     while (span.firstChild) frag.appendChild(span.firstChild);
                                     node.parentNode.replaceChild(frag, node);

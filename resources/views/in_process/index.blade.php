@@ -391,7 +391,7 @@
                         @endphp
                         <tr class="text-center">
                             @if(auth()->user()->role === 'admin')
-                                <th rowspan="2" class="align-middle" style="width: 50px; position: sticky; left: 0; z-index: 106; background-color: #f8fafc;">
+                                <th rowspan="2" class="align-middle" style="width: 50px;">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <span style="font-size: 10px; margin-bottom: 5px; white-space: nowrap;">Semua (<span id="checkedCountDisplay">0</span>)</span>
                                         <div class="custom-control custom-checkbox">
@@ -450,7 +450,7 @@
                         @foreach($checksheets as $checksheet)
                             <tr class="text-center">
                                 @if(auth()->user()->role === 'admin')
-                                    <td class="align-middle text-center" style="position: sticky; left: 0; background-color: inherit; z-index: 1;">
+                                    <td class="align-middle text-center">
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $checksheet->id }}" value="{{ $checksheet->id }}">
                                             <label class="custom-control-label" for="checkRow{{ $checksheet->id }}" style="cursor:pointer;"></label>
@@ -1447,18 +1447,43 @@
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 
+    <!-- Float Menu untuk Bulk Delete -->
+    @if(auth()->user()->role === 'admin')
+    <div id="bulkActionMenu" class="position-fixed shadow-lg rounded" style="bottom: 80px; left: 50%; transform: translateX(-50%); display: none; z-index: 1050; background: white; padding: 15px; border: 1px solid #e3e6f0;">
+        <div class="d-flex align-items-center">
+            <span class="mr-3 font-weight-bold text-gray-800"><span id="bulkSelectedCount">0</span> Data Terpilih</span>
+            <button class="btn btn-danger btn-sm shadow-sm" id="btnBulkDelete">
+                <i class="fas fa-trash-alt mr-1"></i> Hapus Data
+            </button>
+        </div>
+    </div>
+    @endif
+
     <script>
         $(document).ready(function() {
             const checkAllBtn = $('#checkAllRows');
             const rowCheckboxes = $('.row-checkbox');
             const countDisplay = $('#checkedCountDisplay');
+            const bulkMenu = $('#bulkActionMenu');
+            const bulkSelectedCount = $('#bulkSelectedCount');
+            const btnBulkDelete = $('#btnBulkDelete');
 
             function updateCount() {
                 const checkedCount = $('.row-checkbox:checked').length;
                 countDisplay.text(checkedCount);
+                if (bulkSelectedCount.length > 0) {
+                    bulkSelectedCount.text(checkedCount);
+                }
                 
                 if(rowCheckboxes.length > 0) {
                     checkAllBtn.prop('checked', checkedCount === rowCheckboxes.length);
+                }
+
+                // Show or hide floating menu
+                if (checkedCount > 0) {
+                    bulkMenu.fadeIn(200);
+                } else {
+                    bulkMenu.fadeOut(200);
                 }
 
                 // Add slight background color to checked rows
@@ -1481,6 +1506,70 @@
             rowCheckboxes.on('change', function() {
                 updateCount();
             });
+
+            // Handle Bulk Delete
+            if (btnBulkDelete.length > 0) {
+                btnBulkDelete.on('click', function() {
+                    const selectedIds = $('.row-checkbox:checked').map(function() {
+                        return $(this).val();
+                    }).get();
+
+                    if (selectedIds.length === 0) return;
+
+                    Swal.fire({
+                        title: 'Konfirmasi Hapus',
+                        text: "Apakah Anda yakin ingin menghapus " + selectedIds.length + " data yang dipilih? Data yang dihapus tidak dapat dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74a3b',
+                        cancelButtonColor: '#858796',
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Menghapus Data...',
+                                html: 'Mohon tunggu sebentar',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            $.ajax({
+                                url: '{{ route("in_process.bulk_destroy") }}',
+                                type: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    ids: selectedIds
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil!',
+                                            text: response.message,
+                                            timer: 1500,
+                                            showConfirmButton: false
+                                        }).then(() => {
+                                            if (response.redirect) {
+                                                window.location.href = response.redirect;
+                                            } else {
+                                                location.reload();
+                                            }
+                                        });
+                                    } else {
+                                        Swal.fire('Gagal!', response.message, 'error');
+                                    }
+                                },
+                                error: function(xhr) {
+                                    Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
+                                }
+                            });
+                        }
+                    });
+                });
+            }
         });
     </script>
 @endpush

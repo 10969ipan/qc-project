@@ -390,6 +390,40 @@ class InProcessChecksheetController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+        }
+
+        $ids = $request->input('ids');
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dipilih.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+            foreach ($ids as $id) {
+                $this->inProcessService->deleteChecksheet($id);
+            }
+            \DB::commit();
+
+            ActivityLogger::log('deleted', null, 'Menghapus multiple checksheet In Process');
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' data berhasil dihapus.',
+                'redirect' => route('in_process.index', $request->query())
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 
     // Export Checksheets to PDF

@@ -343,6 +343,40 @@ class SubAssyChecksheetController extends Controller
             ->with('success', 'Data Checksheet berhasil dihapus.');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+        }
+
+        $ids = $request->input('ids');
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dipilih.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+            foreach ($ids as $id) {
+                $this->checksheetService->deleteChecksheet($id);
+            }
+            \DB::commit();
+
+            \App\Helpers\ActivityLogger::log('deleted', null, 'Menghapus multiple checksheet Sub Assy');
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' data berhasil dihapus.',
+                'redirect' => route('admin.checksheets.index', $request->query())
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
     // Tampilkan form untuk admin mengedit status approval
     public function editApproval($id)
     {

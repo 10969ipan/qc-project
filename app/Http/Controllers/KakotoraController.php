@@ -191,4 +191,44 @@ class KakotoraController extends Controller
 
         return redirect()->route('kakotora.index', ['plant' => $plant])->with('success', 'Data KAKOTORA berhasil dihapus.');
     }
+
+    public function bulkDestroy(Request $request)
+    {
+        if (auth()->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
+        }
+
+        $ids = $request->ids;
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $records = Kakotora::whereIn('id', $ids)->get();
+            $count = $records->count();
+
+            foreach ($records as $record) {
+                if ($record->form_analysis_path) {
+                    Storage::disk('public')->delete($record->form_analysis_path);
+                }
+                ActivityLogger::log('deleted', null, "Menghapus massal data KAKOTORA: {$record->no_reg}");
+                $record->delete();
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            session()->flash('success', "Berhasil menghapus {$count} data KAKOTORA.");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil menghapus {$count} data.",
+                'redirect' => route('kakotora.index', ['plant' => request('plant')])
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()], 500);
+        }
+    }
 }

@@ -239,6 +239,38 @@ class DoubleTapeChecksheetController extends Controller
         return redirect()->back()->with('success', 'Data Checksheet Double Tape berhasil dihapus.');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $this->restrictToKarawang();
+
+        $ids = $request->input('ids');
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dipilih.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+            foreach ($ids as $id) {
+                $this->checksheetService->deleteChecksheet($id);
+            }
+            \DB::commit();
+
+            \App\Helpers\ActivityLogger::log('deleted', null, 'Menghapus multiple checksheet Double Tape');
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' data berhasil dihapus.',
+                'redirect' => route('double_tape.index', $request->query())
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
     public function exportPdf(Request $request)
     {
         ini_set('memory_limit', '512M');

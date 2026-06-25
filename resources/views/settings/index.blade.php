@@ -12,34 +12,32 @@
 <div class="row">
     <!-- Sidebar / Nav Pills -->
     <div class="col-xl-3 col-lg-4 mb-4">
-        <div class="card shadow-none border-0 bg-transparent">
+        <div class="card shadow-sm border-0 bg-white settings-sidebar-container">
             <div class="card-body p-0">
-                <div class="nav flex-column nav-pills custom-nav-pills-minimal" id="settings-tabs" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link active" id="general-tab" data-toggle="pill" href="#general" role="tab" aria-controls="general" aria-selected="true">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-cogs mr-3 text-muted"></i>
-                            <span class="font-weight-bold">Umum</span>
-                        </div>
+                <div class="nav flex-column settings-sidebar-nav" id="settings-tabs" role="tablist" aria-orientation="vertical">
+                    
+                    <!-- Group: Sistem -->
+                    <div class="settings-sidebar-header">
+                        <i class="fas fa-laptop-code mr-2 text-secondary"></i> Sistem
+                    </div>
+                    <a class="nav-link active settings-sidebar-item" id="general-tab" data-toggle="pill" href="#general" role="tab" aria-controls="general" aria-selected="true">
+                        <span>Umum</span>
                     </a>
-                    <a class="nav-link" id="users-tab" data-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-users-cog mr-3 text-muted"></i>
-                            <span class="font-weight-bold">Manajemen Pengguna</span>
-                        </div>
+                    <a class="nav-link settings-sidebar-item" id="activity-logs-tab" data-toggle="pill" href="#activity-logs" role="tab" aria-controls="activity-logs" aria-selected="false">
+                        <span>Log Aktivitas</span>
                     </a>
 
-                    <a class="nav-link" id="permissions-tab" data-toggle="pill" href="#permissions" role="tab" aria-controls="permissions" aria-selected="false">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-shield-alt mr-3 text-muted"></i>
-                            <span class="font-weight-bold">Hak Akses Modul</span>
-                        </div>
+                    <!-- Group: Pengguna & Akses -->
+                    <div class="settings-sidebar-header">
+                        <i class="fas fa-users-cog mr-2 text-secondary"></i> Pengguna & Akses
+                    </div>
+                    <a class="nav-link settings-sidebar-item" id="users-tab" data-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
+                        <span>Manajemen Pengguna</span>
                     </a>
-                    <a class="nav-link" id="activity-logs-tab" data-toggle="pill" href="#activity-logs" role="tab" aria-controls="activity-logs" aria-selected="false">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-history mr-3 text-muted"></i>
-                            <span class="font-weight-bold">Log Aktivitas</span>
-                        </div>
+                    <a class="nav-link settings-sidebar-item" id="permissions-tab" data-toggle="pill" href="#permissions" role="tab" aria-controls="permissions" aria-selected="false">
+                        <span>Hak Akses Modul</span>
                     </a>
+
                 </div>
             </div>
         </div>
@@ -757,6 +755,65 @@
 
 @push('scripts')
 <style>
+    /* Settings Style Sidebar */
+    .settings-sidebar-container {
+        border-right: 1px solid #e2e8f0;
+        background-color: #fff !important;
+        border-radius: 0;
+    }
+    
+    .settings-sidebar-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .settings-sidebar-container::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+    }
+    .settings-sidebar-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1; 
+        border-radius: 10px;
+    }
+    .settings-sidebar-container::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8; 
+    }
+
+    .settings-sidebar-header {
+        background-color: #f8f9fc;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #edf2f7;
+        border-top: 1px solid #edf2f7;
+    }
+    
+    .settings-sidebar-header:first-child {
+        border-top: none;
+    }
+
+    .settings-sidebar-item {
+        padding: 12px 16px;
+        color: #4a5568;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #edf2f7;
+        border-radius: 0 !important;
+        background-color: #fff;
+        border-left: 4px solid transparent;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .settings-sidebar-item:hover {
+        background-color: #f8fafc;
+        color: #2d3748;
+    }
+
+    .settings-sidebar-item.active {
+        background-color: #e6f2ff !important;
+        color: #000 !important;
+        border-left: 4px solid #0056b3 !important;
+        font-weight: 500;
+    }
+
     /* Modern UI Customization */
     body {
         background-color: #f4f6f9;

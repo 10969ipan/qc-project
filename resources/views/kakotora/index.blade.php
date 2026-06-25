@@ -224,7 +224,7 @@
                     <i class="fas fa-print fa-sm"></i>
                 </button>
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahKakotora">
-                    <i class="fas fa-plus fa-sm mr-1"></i> <span class="font-weight-bold small">Tambah</span>
+                    <i class="fas fa-plus fa-sm mr-1"></i> <span class="font-weight-bold small">Tambah Data</span>
                 </button>
             </div>
         </form>
@@ -242,6 +242,17 @@
             <table class="table table-hover" id="dataTableKakotora" width="100%" cellspacing="0">
                 <thead>
                     <tr>
+                        @if(auth()->user()->role === 'admin')
+                            <th width="40" class="text-center align-middle" style="width: 50px;">
+                                <div class="d-flex flex-column align-items-center justify-content-center">
+                                    <span style="font-size: 10px; margin-bottom: 5px; white-space: nowrap;">Semua (<span id="checkedCountDisplay">0</span>)</span>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                        <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                    </div>
+                                </div>
+                            </th>
+                        @endif
                         <th width="40">NO</th>
                         <th width="50" class="text-center">DETAIL</th>
                         <th>TANGGAL ENTRY</th>
@@ -272,8 +283,16 @@
                 <tbody>
                             @foreach ($kakotoras as $item)
                                 <tr>
+                                    @if(auth()->user()->role === 'admin')
+                                        <td class="align-middle text-center">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $item->id }}" value="{{ $item->id }}">
+                                                <label class="custom-control-label" for="checkRow{{ $item->id }}" style="cursor:pointer;"></label>
+                                            </div>
+                                        </td>
+                                    @endif
                                     <td class="text-center">{{ $loop->iteration }}</td>
-                                    <td class="details-control"><i class="fas fa-caret-down text-primary fa-lg"></i></td>
+                                    <td class="details-control"><i class="fas fa-caret-right text-primary fa-lg"></i></td>
                                     <td>{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('d/m/Y') : '-' }}</td>
                                     <td>{{ $item->no_reg ?? '-' }}</td>
                                     <td>{{ $item->issue_date ? \Carbon\Carbon::parse($item->issue_date)->format('d/m/Y') : '-' }}
@@ -778,6 +797,18 @@
         </div>
     </div>
     <div class="clearfix"></div>
+
+    <!-- Float Menu untuk Bulk Delete -->
+    @if(auth()->user()->role === 'admin')
+    <div id="bulkActionMenu" class="position-fixed shadow-lg rounded" style="bottom: 80px; left: 50%; transform: translateX(-50%); display: none; z-index: 1050; background: white; padding: 15px; border: 1px solid #e3e6f0;">
+        <div class="d-flex align-items-center">
+            <span class="mr-3 font-weight-bold text-gray-800"><span id="bulkSelectedCount">0</span> Data Terpilih</span>
+            <button class="btn btn-danger btn-sm shadow-sm" id="btnBulkDelete">
+                <i class="fas fa-trash-alt mr-1"></i> Hapus Data
+            </button>
+        </div>
+    </div>
+    @endif
 @endsection
 
 
@@ -786,24 +817,27 @@
     <script src="{{ asset('vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
     <script>
         $(document).ready(function () {
+            var isAdmin = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
+            var colOffset = isAdmin ? 1 : 0;
+
             var formatChildRow = function (d) {
                 return '<div class="p-3" style="background-color: #f8f9fc;">' +
                     '<table class="table table-sm table-borderless mb-0">' +
                     '<tr>' +
                     '<td style="width: 15%; font-weight: bold; padding: 0.5rem;">Similar Part</td>' +
-                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[14] || '-') + '</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[14 + colOffset] || '-') + '</td>' +
                     '</tr>' +
                     '<tr>' +
                     '<td style="font-weight: bold; padding: 0.5rem;">Problem</td>' +
-                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[16] || '-') + '</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[16 + colOffset] || '-') + '</td>' +
                     '</tr>' +
                     '<tr>' +
                     '<td style="font-weight: bold; padding: 0.5rem;">Cause</td>' +
-                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[18] || '-') + '</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[18 + colOffset] || '-') + '</td>' +
                     '</tr>' +
                     '<tr>' +
                     '<td style="font-weight: bold; padding: 0.5rem;">Countermeasure</td>' +
-                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[19] || '-') + '</td>' +
+                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[19 + colOffset] || '-') + '</td>' +
                     '</tr>' +
                     '</table>' +
                     '</div>';
@@ -812,11 +846,11 @@
             var table = $('#dataTableKakotora').DataTable({
                 dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
                      "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                "order": [[2, "desc"]],
+                "order": [[2 + colOffset, "desc"]],
                 "autoWidth": false,
                 "columnDefs": [
-                    { "orderable": false, "targets": 1 },
-                    { "visible": false, "targets": [14, 16, 18, 19] }
+                    { "orderable": false, "targets": isAdmin ? [0, 1 + colOffset] : [1] },
+                    { "visible": false, "targets": [14 + colOffset, 16 + colOffset, 18 + colOffset, 19 + colOffset] }
                 ],
                 language: {
                     info: "Showing _START_ to _END_ of _TOTAL_ entries",
@@ -868,7 +902,7 @@
                                 var text = node.nodeValue;
                                 if (text.trim() && regex.test(text)) {
                                     var span = document.createElement('span');
-                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; padding: 0 2px; border-radius: 2px;'>$1</mark>");
                                     var frag = document.createDocumentFragment();
                                     while (span.firstChild) {
                                         frag.appendChild(span.firstChild);
@@ -909,13 +943,13 @@
             // Instant claim filter (Column index 8)
             $('select[name="category_claim"]').on('change', function () {
                 var val = $(this).val();
-                table.column(8).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+                table.column(8 + colOffset).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
             });
 
             // Instant status filter (Column index 23)
             $('select[name="status"]').on('change', function () {
                 var val = $(this).val();
-                table.column(23).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+                table.column(23 + colOffset).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
             });
 
             // Reset filters client-side
@@ -934,11 +968,11 @@
             }
             var initialClaim = $('select[name="category_claim"]').val();
             if (initialClaim) {
-                table.column(8).search('^' + $.fn.dataTable.util.escapeRegex(initialClaim) + '$', true, false);
+                table.column(8 + colOffset).search('^' + $.fn.dataTable.util.escapeRegex(initialClaim) + '$', true, false);
             }
             var initialStatus = $('select[name="status"]').val();
             if (initialStatus) {
-                table.column(23).search('^' + $.fn.dataTable.util.escapeRegex(initialStatus) + '$', true, false);
+                table.column(23 + colOffset).search('^' + $.fn.dataTable.util.escapeRegex(initialStatus) + '$', true, false);
             }
             if (initialSearch || initialClaim || initialStatus) {
                 table.draw();
@@ -953,12 +987,12 @@
                 if (row.child.isShown()) {
                     row.child.hide();
                     tr.removeClass('shown');
-                    icon.removeClass('fa-caret-up').addClass('fa-caret-down');
+                    icon.removeClass('fa-caret-down').addClass('fa-caret-right');
                 }
                 else {
                     row.child(formatChildRow(row.data())).show();
                     tr.addClass('shown');
-                    icon.removeClass('fa-caret-down').addClass('fa-caret-up');
+                    icon.removeClass('fa-caret-right').addClass('fa-caret-down');
                     
                     // Highlight details if search is active
                     var searchStr = table.search();
@@ -974,7 +1008,7 @@
                                 var text = node.nodeValue;
                                 if (text.trim() && regex.test(text)) {
                                     var span = document.createElement('span');
-                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; font-weight: bold; padding: 0 2px; border-radius: 2px;'>$1</mark>");
+                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; padding: 0 2px; border-radius: 2px;'>$1</mark>");
                                     var frag = document.createDocumentFragment();
                                     while (span.firstChild) frag.appendChild(span.firstChild);
                                     node.parentNode.replaceChild(frag, node);
@@ -1049,6 +1083,119 @@
                 // Show Modal
                 $('#modalEditKakotora').modal('show');
             });
+
+            // Bulk Delete Logic
+            const checkAllBtn = $('#checkAllRows');
+            const bulkMenu = $('#bulkActionMenu');
+            const bulkSelectedCount = $('#bulkSelectedCount');
+            const btnBulkDelete = $('#btnBulkDelete');
+            const countDisplay = $('#checkedCountDisplay');
+
+            function updateCount() {
+                const checkedCount = $('.row-checkbox:checked').length;
+                const totalCheckboxes = $('.row-checkbox').length;
+                countDisplay.text(checkedCount);
+                if (bulkSelectedCount.length > 0) {
+                    bulkSelectedCount.text(checkedCount);
+                }
+                
+                if(totalCheckboxes > 0) {
+                    checkAllBtn.prop('checked', checkedCount === totalCheckboxes);
+                }
+
+                if (checkedCount > 0) {
+                    bulkMenu.fadeIn(200);
+                } else {
+                    bulkMenu.fadeOut(200);
+                }
+
+                $('.row-checkbox').each(function() {
+                    const row = $(this).closest('tr');
+                    if ($(this).is(':checked')) {
+                        row.css('background-color', 'rgba(78, 115, 223, 0.05)');
+                    } else {
+                        row.css('background-color', '');
+                    }
+                });
+            }
+
+            checkAllBtn.on('change', function() {
+                const isChecked = $(this).prop('checked');
+                $('.row-checkbox').prop('checked', isChecked);
+                updateCount();
+            });
+
+            $('#dataTableKakotora tbody').on('change', '.row-checkbox', function(e) {
+                e.stopPropagation();
+                updateCount();
+            });
+
+            table.on('draw', function() {
+                updateCount();
+            });
+
+            if (btnBulkDelete.length > 0) {
+                btnBulkDelete.on('click', function() {
+                    const selectedIds = $('.row-checkbox:checked').map(function() {
+                        return $(this).val();
+                    }).get();
+
+                    if (selectedIds.length === 0) return;
+
+                    Swal.fire({
+                        title: 'Konfirmasi Hapus',
+                        text: "Apakah Anda yakin ingin menghapus " + selectedIds.length + " data yang dipilih? Data yang dihapus tidak dapat dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74a3b',
+                        cancelButtonColor: '#858796',
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Menghapus Data...',
+                                html: 'Mohon tunggu sebentar',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            $.ajax({
+                                url: '{{ route("kakotora.bulk_destroy") }}',
+                                type: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    ids: selectedIds
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil!',
+                                            text: response.message,
+                                            timer: 1500,
+                                            showConfirmButton: false
+                                        }).then(() => {
+                                            if (response.redirect) {
+                                                window.location.href = response.redirect;
+                                            } else {
+                                                location.reload();
+                                            }
+                                        });
+                                    } else {
+                                        Swal.fire('Gagal!', response.message, 'error');
+                                    }
+                                },
+                                error: function(xhr) {
+                                    Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
+                                }
+                            });
+                        }
+                    });
+                });
+            }
         });
     </script>
 @endpush

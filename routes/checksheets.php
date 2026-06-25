@@ -224,14 +224,22 @@ Route::middleware(['auth'])->group(function () {
 
         // Bulk Approval Routes
         Route::post('/checksheets/bulk-approve', [SubAssyChecksheetController::class, 'bulkApprove'])->name('admin.checksheets.bulk_approve');
+        Route::post('/checksheets/bulk-destroy', [SubAssyChecksheetController::class, 'bulkDestroy'])->name('admin.checksheets.bulk_destroy');
         Route::post('/in-process-checksheets/bulk-approve', [InProcessChecksheetController::class, 'bulkApprove'])->name('in_process.bulk_approve');
+        Route::post('/in-process-checksheets/bulk-destroy', [InProcessChecksheetController::class, 'bulkDestroy'])->name('in_process.bulk_destroy');
         Route::post('/cross-cut-checksheets/bulk-approve', [CrossCutChecksheetController::class, 'bulkApprove'])->name('cross_cut.bulk_approve');
+        Route::post('/cross-cut-checksheets/bulk-destroy', [CrossCutChecksheetController::class, 'bulkDestroy'])->name('cross_cut.bulk_destroy');
         Route::post('/cross-cut-painting-checksheets/bulk-approve', [CrossCutPaintingChecksheetController::class, 'bulkApprove'])->name('cross_cut_painting.bulk_approve');
+        Route::post('/cross-cut-painting-checksheets/bulk-destroy', [CrossCutPaintingChecksheetController::class, 'bulkDestroy'])->name('cross_cut_painting.bulk_destroy');
         Route::post('/sortir-checksheets/bulk-approve', [SortirChecksheetController::class, 'bulkApprove'])->name('sortir.bulk_approve');
+        Route::post('/sortir-checksheets/bulk-destroy', [SortirChecksheetController::class, 'bulkDestroy'])->name('sortir.bulk_destroy');
         Route::post('/plating-checksheets/bulk-approve', [PlatingChecksheetController::class, 'bulkApprove'])->name('plating.bulk_approve');
+        Route::post('/plating-checksheets/bulk-destroy', [PlatingChecksheetController::class, 'bulkDestroy'])->name('plating.bulk_destroy');
         Route::post('/durability-plating-checksheets/bulk-approve', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'bulkApprove'])->name('durability_plating.bulk_approve');
         Route::post('/painting-checksheets/bulk-approve', [PaintingChecksheetController::class, 'bulkApprove'])->name('painting.bulk_approve');
+        Route::post('/painting-checksheets/bulk-destroy', [PaintingChecksheetController::class, 'bulkDestroy'])->name('painting.bulk_destroy');
         Route::post('/double-tape-checksheets/bulk-approve', [DoubleTapeChecksheetController::class, 'bulkApprove'])->name('double_tape.bulk_approve');
+        Route::post('/double-tape-checksheets/bulk-destroy', [DoubleTapeChecksheetController::class, 'bulkDestroy'])->name('double_tape.bulk_destroy');
         Route::post('/first-piece-approvals/bulk-approve', [FirstPieceApprovalController::class, 'bulkApprove'])->name('first_piece_approval.bulk_approve');
 
         // --- Incoming Routes (Approval) ---

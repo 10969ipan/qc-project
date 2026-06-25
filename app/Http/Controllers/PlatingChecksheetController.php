@@ -318,6 +318,38 @@ class PlatingChecksheetController extends Controller
         return redirect()->route('plating.index', $request->query())->with('success', 'Data Checksheet Plating berhasil dihapus.');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $this->restrictToKarawang();
+
+        $ids = $request->input('ids');
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dipilih.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+            foreach ($ids as $id) {
+                $this->checksheetService->deleteChecksheet($id);
+            }
+            \DB::commit();
+
+            \App\Helpers\ActivityLogger::log('deleted', null, 'Menghapus multiple checksheet Plating');
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' data berhasil dihapus.',
+                'redirect' => route('plating.index', $request->query())
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
     public function exportPdf(Request $request)
     {
         $this->restrictToKarawang();

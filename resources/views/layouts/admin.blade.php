@@ -1137,15 +1137,17 @@
 
             <div id="content" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
 
-                @include('layouts.topbar')
+                <div style="flex-shrink: 0;">
+                    @include('layouts.topbar')
+                </div>
                 
-                <div id="main-scroll-area" style="flex: 1; overflow-y: auto; overflow-x: hidden;">
+                <div id="main-scroll-area" style="flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column;">
                     <div class="container-fluid px-3 px-md-4 px-xl-5 py-4">
 
                         @yield('content')
 
                     </div>
-                    @include('layouts.footer')
+                    <!-- Footer removed as per request -->
                 </div>
             </div>
         </div>

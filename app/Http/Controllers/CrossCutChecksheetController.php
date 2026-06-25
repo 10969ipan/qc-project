@@ -403,6 +403,60 @@ class CrossCutChecksheetController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action. Managers can only perform approvals.'
+            ], 403);
+        }
+
+        $ids = $request->input('ids');
+
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data yang dipilih untuk dihapus.'
+            ], 400);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $checksheets = CrossCutChecksheet::whereIn('id', $ids)->get();
+
+            if ($checksheets->isEmpty()) {
+                \DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan.'
+                ], 404);
+            }
+
+            foreach ($checksheets as $checksheet) {
+                $itemName = $checksheet->item ? $checksheet->item->name : 'Unknown';
+                $this->crossCutService->deleteChecksheet($checksheet->id);
+                ActivityLogger::log('deleted', null, "Menghapus checksheet Cross Cut: {$itemName} secara massal");
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' data berhasil dihapus.',
+                'redirect' => route('cross_cut.index', $request->except(['ids', '_token']))
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function approve(Request $request, $id, $type)
     {
         try {
