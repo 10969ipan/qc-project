@@ -31,7 +31,7 @@
 
     <style>
         html, body {
-            height: 100%;
+            height: 100vh;
             overflow: hidden;
             margin: 0;
         }
@@ -1130,11 +1130,11 @@
 
 <body id="page-top">
 
-    <div id="wrapper">
+    <div id="wrapper" style="height: 100vh; overflow: hidden;">
 
-        <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content-wrapper" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
 
-            <div id="content" class="d-flex flex-column">
+            <div id="content" class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
 
                 <div style="flex-shrink: 0;">
                     @include('layouts.topbar')
