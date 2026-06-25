@@ -851,7 +851,7 @@ class FpaCreate {
                 { v: 'shoot_mold', t: 'SHOOT MOLD' },
                 { v: 'bending', t: 'BENDING' },
                 { v: 'sinkmark', t: 'SINKMARK' },
-                { v: 'dimension', t: 'NG Dimensi' },
+                { v: 'dimension', t: 'Dimensi' },
             ];
             $.each(defaultDefects, (i, d) =>
                 $select.append(`<option value="${d.v}">${d.t}</option>`)
@@ -860,9 +860,8 @@ class FpaCreate {
 
         // Pastikan opsi Dimensi selalu ada
         if (!$select.find('option[value="dimension"]').length &&
-            !$select.find('option:contains("Dimensi")').length &&
-            !$select.find('option:contains("NG Dimensi")').length) {
-            $select.append('<option value="dimension">NG Dimensi</option>');
+            !$select.find('option:contains("Dimensi")').length) {
+            $select.append('<option value="dimension">Dimensi</option>');
         }
     }
 
@@ -1209,8 +1208,7 @@ class FpaCreate {
             targetSelect.find("option").each(function () {
                 if (
                     $(this).val() === "dimension" ||
-                    $(this).text().toLowerCase() === "dimensi" ||
-                    $(this).text().toLowerCase() === "ng dimensi"
+                    $(this).text().toLowerCase() === "dimensi"
                 ) {
                     foundVal = $(this).val();
                     return false;
@@ -1218,7 +1216,7 @@ class FpaCreate {
             });
             if (!foundVal) {
                 targetSelect.append(
-                    '<option value="dimension">NG Dimensi</option>',
+                    '<option value="dimension">Dimensi</option>',
                 );
                 foundVal = "dimension";
             }
@@ -1236,7 +1234,7 @@ class FpaCreate {
         $(".defect-select").each(function () {
             const val = $(this).val();
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi" || text === "ng dimensi") {
+            if (val === "dimension" || text === "dimensi") {
                 const row = $(this).closest(".defect-row");
                 if ($(".defect-row").length > 1) {
                     row.remove();
@@ -1383,8 +1381,21 @@ class FpaCreate {
                 return false;
             }
 
-            // 5. Validasi: NG harus pilih Next Proses
-            if (judgment === 'NG' && !nextProses) {
+            // 5. Validasi: NG harus pilih Next Proses (Kecuali jika defect HANYA Dimensi)
+            let isOnlyDimensi = true;
+            let hasAnyDefect = false;
+            $(".defect-row").each(function () {
+                const type = $(this).find(".defect-select").val();
+                const qty = parseInt($(this).find(".defect-qty").val()) || 0;
+                if (qty > 0) {
+                    hasAnyDefect = true;
+                    if (type !== 'dimension') {
+                        isOnlyDimensi = false;
+                    }
+                }
+            });
+
+            if (judgment === 'NG' && !nextProses && !(hasAnyDefect && isOnlyDimensi)) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
@@ -1451,7 +1462,7 @@ class FpaCreate {
             let dimensionDefectSelected = false, dimensionQtyEmpty = false;
             $(".defect-select").each(function () {
                 const text = $(this).find("option:selected").text().toLowerCase();
-                if ($(this).val() === 'dimension' || text === 'dimensi' || text === 'ng dimensi') {
+                if ($(this).val() === 'dimension' || text === 'dimensi') {
                     dimensionDefectSelected = true;
                     const qtyInput = $(this).closest(".defect-row").find(".defect-qty");
                     if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
@@ -1477,7 +1488,7 @@ class FpaCreate {
                 const type = typeInput.val();
                 const text = $(this).find("option:selected").text().toLowerCase();
                 const qty = parseInt(qtyInput.val()) || 0;
-                if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi' && text !== 'ng dimensi') {
+                if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi') {
                     typeInput.val('');
                     qtyInput.val('');
                 }
@@ -1680,7 +1691,7 @@ class FpaEdit {
         let hasDimensiDefect = false;
         $(".defect-select").each(function () {
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (text === "dimensi" || text === "ng dimensi" || $(this).val() === "dimension") {
+            if (text === "dimensi" || $(this).val() === "dimension") {
                 hasDimensiDefect = true;
                 return false;
             }
@@ -1741,7 +1752,7 @@ class FpaEdit {
         $(".defect-select").each(function () {
             const val = $(this).val();
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi" || text === "ng dimensi") {
+            if (val === "dimension" || text === "dimensi") {
                 foundRow = $(this).closest(".defect-row");
                 return false;
             }
@@ -1773,8 +1784,7 @@ class FpaEdit {
             targetSelect.find("option").each(function () {
                 if (
                     $(this).val() === "dimension" ||
-                    $(this).text().toLowerCase() === "dimensi" ||
-                    $(this).text().toLowerCase() === "ng dimensi"
+                    $(this).text().toLowerCase() === "dimensi"
                 ) {
                     foundVal = $(this).val();
                     return false;
@@ -1782,7 +1792,7 @@ class FpaEdit {
             });
             if (!foundVal) {
                 targetSelect.append(
-                    '<option value="dimension">NG Dimensi</option>',
+                    '<option value="dimension">Dimensi</option>',
                 );
                 foundVal = "dimension";
             }
@@ -1800,7 +1810,7 @@ class FpaEdit {
         $(".defect-select").each(function () {
             const val = $(this).val();
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi" || text === "ng dimensi") {
+            if (val === "dimension" || text === "dimensi") {
                 const row = $(this).closest(".defect-row");
                 if ($(".defect-row").length > 1) {
                     row.remove();
@@ -1890,7 +1900,7 @@ class FpaEdit {
             { value: "shoot_mold", text: "SHOOT MOLD" },
             { value: "bending", text: "BENDING" },
             { value: "sinkmark", text: "SINKMARK" },
-            { value: "dimension", text: "NG Dimensi" },
+            { value: "dimension", text: "Dimensi" },
         ];
 
         $("#editAddDefectBtn").on("click", () => this.addDefectRow());
@@ -1922,7 +1932,7 @@ class FpaEdit {
 
             if (Array.isArray(defectsData) && defectsData.length > 0) {
                 $.each(defectsData, (_, value) => {
-                    const displayValue = value.toLowerCase() === 'dimension' ? 'NG Dimensi' : value;
+                    const displayValue = value.toLowerCase() === 'dimension' ? 'Dimensi' : value;
                     $select.append(
                         `<option value="${displayValue}">${displayValue}</option>`,
                     );
@@ -1935,7 +1945,7 @@ class FpaEdit {
                 });
             }
             if (currentVal) {
-                const normalizedVal = currentVal.toLowerCase() === 'dimension' ? 'NG Dimensi' : currentVal;
+                const normalizedVal = currentVal.toLowerCase() === 'dimension' ? 'Dimensi' : currentVal;
                 $select.val(normalizedVal);
             }
         });
@@ -2119,8 +2129,21 @@ class FpaEdit {
                 return false;
             }
 
-            // 5. Validasi: NG harus pilih Next Proses
-            if (judgment === "NG" && !nextProses) {
+            // 5. Validasi: NG harus pilih Next Proses (Kecuali jika defect HANYA Dimensi)
+            let isOnlyDimensi = true;
+            let hasAnyDefect = false;
+            $(".defect-row").each(function () {
+                const type = $(this).find(".defect-select").val();
+                const qty = parseInt($(this).find(".defect-qty").val()) || 0;
+                if (qty > 0) {
+                    hasAnyDefect = true;
+                    if (type !== 'dimension') {
+                        isOnlyDimensi = false;
+                    }
+                }
+            });
+
+            if (judgment === "NG" && !nextProses && !(hasAnyDefect && isOnlyDimensi)) {
                 e.preventDefault();
                 Swal.fire({
                     icon: "warning",
