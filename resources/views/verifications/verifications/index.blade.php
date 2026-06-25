@@ -1,10 +1,11 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Hasil Verifikasi')
 
 @section('content')
 <style>
     #dataTable { font-size: 0.75rem; }
+    }
     #dataTable thead th {
         background-color: #1cc88a !important;
         color: white !important;
@@ -12,6 +13,7 @@
         vertical-align: middle;
         text-transform: uppercase;
         font-size: 0.70rem;
+    }
     }
     #dataTable td { vertical-align: middle; padding: 0.4rem !important; }
 </style>
@@ -149,3 +151,4 @@
     </div>
 </div>
 @endsection
+

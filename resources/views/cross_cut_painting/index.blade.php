@@ -1,14 +1,20 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Cross Cut Painting')
 
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: calc(100vh - 220px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
     }
     #checksheetTable {
         border-collapse: collapse !important;
@@ -17,12 +23,12 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    
+    }
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-
+    }
     #checksheetTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -56,11 +62,13 @@
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
+    }
     #checksheetTable .btn {
         min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
+    }
     }
     #checksheetTable .badge {
         font-size: 0.6rem !important;
@@ -73,11 +81,13 @@
         z-index: 105 !important;
         height: 35px !important; 
     }
+    }
     #checksheetTable > thead > tr:nth-child(2) > th {
         top: 35px !important; 
         z-index: 104 !important;
         height: 30px !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    }
     }
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 65px !important; 
@@ -289,9 +299,9 @@
                             <th rowspan="2" class="align-middle">Judgement</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="5" class="align-middle">Approval Status</th>
-                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                            <th rowspan="2" class="align-middle">Keterangan</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
-                                <th rowspan="2" class="align-middle no-export">Aksi</th>
+                                <th rowspan="2" class="align-middle no-export">Action</th>
                             @endif
                         </tr>
                         <tr class="text-center">
@@ -496,9 +506,11 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="30" class="text-center py-4 text-muted">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.5;"></i><br>
-                                    Data tidak ditemukan
+                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 21 : 20 }}" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-info-circle fa-2x mb-2"></i><br>
+                                        Tidak ada data yang tersedia
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -794,3 +806,6 @@
         });
     </script>
 @endpush
+
+
+

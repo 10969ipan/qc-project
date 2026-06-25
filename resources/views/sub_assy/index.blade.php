@@ -1,14 +1,20 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Checksheet Sub-Assy')
 
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: calc(100vh - 220px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
     }
     #checksheetTable {
         border-collapse: separate !important;
@@ -17,12 +23,12 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    
+    }
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-
+    }
     #checksheetTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -52,7 +58,7 @@
         white-space: nowrap !important;
         box-shadow: inset 0 -1px 0 #cbd5e1;
     }
-
+    }
     #checksheetTable tbody tr:hover {
         background-color: #f1f5f9 !important;
         transition: background-color 0.2s ease;
@@ -63,11 +69,13 @@
         min-width: 0 !important;
         white-space: nowrap !important;
     }
+    }
     #checksheetTable .btn {
         min-width: 0 !important; /* Overrides 110px inline style */
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
+    }
     }
     #checksheetTable .badge {
         font-size: 0.6rem !important;
@@ -79,6 +87,7 @@
         top: 0 !important;
         z-index: 105 !important;
         height: 48px !important;
+    }
     }
     #checksheetTable > thead > tr:nth-child(2) > th {
         top: 48px !important; 
@@ -93,11 +102,12 @@
         height: 86px !important; /* 48 + 38 */
         z-index: 106 !important;
     }
-    
+    }
     #checksheetTable .btn-qr-detail {
         border-radius: 4px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         transition: transform 0.1s;
+    }
     }
     #checksheetTable .btn-qr-detail:hover {
         transform: scale(1.05);
@@ -1132,3 +1142,6 @@
         });
     </script>
 @endpush
+
+
+

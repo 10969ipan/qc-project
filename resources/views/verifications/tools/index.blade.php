@@ -1,17 +1,22 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Master Data Alat Verifikasi')
 
 @section('content')
     <style>
         .table-responsive {
-            max-height: 75vh !important;
-            overflow: auto !important;
-            border: none !important;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.02);
-        }
+        max-height: calc(100vh - 220px) !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
 
-        #dataTable {
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
+    }
+    #dataTable {
             border-collapse: collapse !important;
             border-spacing: 0 !important;
             border: none !important;
@@ -19,22 +24,22 @@
             table-layout: auto !important;
             font-size: 0.68rem;
         }
-
-        #dataTable td,
+    }
+    #dataTable td,
         #dataTable th {
             border-left: none !important;
             border-right: 1px solid #f1f5f9 !important;
             vertical-align: middle !important;
         }
-
-        #dataTable tbody td {
+    }
+    #dataTable tbody td {
             border-bottom: 1px solid #f1f5f9 !important;
             border-top: none !important;
             color: #334155 !important;
             padding: 6px 8px !important;
         }
-
-        #dataTable thead th {
+    }
+    #dataTable thead th {
             position: sticky !important;
             top: 0 !important;
             z-index: 10 !important;
@@ -433,3 +438,6 @@
     }
 </script>
 @endpush
+
+
+

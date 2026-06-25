@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Jadwal Verifikasi Jig, Mal, C/F')
 
@@ -61,12 +61,17 @@
 
     <style>
         .table-responsive {
-            max-height: 75vh !important;
-            overflow: auto !important;
-            border: none !important;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.02);
-            border-radius: 0.5rem;
+        max-height: calc(100vh - 220px) !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
         }
+    }
 
         .schedule-table {
             border-collapse: collapse !important;
@@ -273,3 +278,4 @@
     </div>
     </div>
 @endsection
+

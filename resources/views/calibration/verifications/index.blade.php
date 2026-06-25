@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Hasil Verifikasi')
 
@@ -51,25 +51,31 @@
 
         <style>
             .table-responsive {
-                max-height: 75vh !important;
-                overflow: auto !important;
-                border: none !important;
-                box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
-            }
-            #dataTable, table.dataTable {
+        max-height: calc(100vh - 220px) !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
+    }
+    #dataTable, table.dataTable {
                 border-collapse: separate !important;
                 border-spacing: 0 !important;
                 border: none !important;
                 border-top: none !important;
                 width: 100% !important;
             }
-            
-            #dataTable td, #dataTable th {
+    }
+    #dataTable td, #dataTable th {
                 border-left: none !important;
                 border-right: 1px solid #f1f5f9 !important;
             }
-
-            #dataTable tbody td {
+    }
+    #dataTable tbody td {
                 border-bottom: 1px solid #f1f5f9 !important;
                 border-top: none !important;
                 vertical-align: middle !important;
@@ -77,8 +83,8 @@
                 font-size: 0.68rem !important;
                 padding: 4px 6px !important;
             }
-
-            #dataTable > thead > tr > th {
+    }
+    #dataTable > thead > tr > th {
                 position: -webkit-sticky !important;
                 position: sticky !important;
                 background-color: #f8fafc !important;
@@ -110,21 +116,23 @@
             #dataTable.dataTable thead .sorting_desc:after {
                 display: none !important;
             }
-            #dataTable.dataTable thead th,
+    }
+    #dataTable.dataTable thead th,
             #dataTable.dataTable thead .sorting,
             #dataTable.dataTable thead .sorting_asc,
             #dataTable.dataTable thead .sorting_desc {
                 background-image: none !important;
                 background-color: #f8fafc !important;
             }
-
-            #dataTable .btn {
+    }
+    #dataTable .btn {
                 min-width: 0 !important;
                 padding: 0.2rem 0.4rem !important;
                 font-size: 0.6rem !important;
                 margin: 1px !important;
             }
-            #dataTable .badge {
+    }
+    #dataTable .badge {
                 font-size: 0.6rem !important;
                 padding: 0.2rem 0.4rem !important;
             }
@@ -1065,4 +1073,7 @@
         });
     </script>
 @endpush
+
+
+
 

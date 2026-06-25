@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Record Claim')
 
@@ -148,29 +148,38 @@
 
             <style>
                 .table-responsive {
-                    max-height: 75vh !important;
-                    overflow: auto !important;
-                    border: none !important;
-                    box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
-                }
-                #dataTable {
+        max-height: calc(100vh - 220px) !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
+    }
+    #dataTable {
                     border-collapse: collapse !important;
                     border-spacing: 0 !important;
                     border: none !important;
                     width: 100% !important;
                 }
-                #dataTable td, #dataTable th {
+    }
+    #dataTable td, #dataTable th {
                     border-left: none !important;
                     border-right: none !important;
                 }
-                #dataTable tbody td {
+    }
+    #dataTable tbody td {
                     border-bottom: 1px solid #f1f5f9 !important;
                     border-top: none !important;
                     vertical-align: middle !important;
                     color: #334155 !important;
                     padding: 6px 8px !important;
                 }
-                #dataTable thead th {
+    }
+    #dataTable thead th {
                     position: -webkit-sticky !important;
                     position: sticky !important;
                     top: 0 !important;
@@ -511,3 +520,6 @@
     </script>
     <script src="{{ asset('js/customer-claim-records/customer-claim-records.js') }}"></script>
 @endpush
+
+
+

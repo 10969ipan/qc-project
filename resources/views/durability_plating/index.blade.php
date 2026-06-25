@@ -1,15 +1,20 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Report Durability Plating')
 
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: calc(100vh - 220px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
-        margin-bottom: 0 !important;
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
     }
     #dataTable, table.dataTable {
         border-collapse: separate !important;
@@ -19,12 +24,12 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    
+    }
     #dataTable td, #dataTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-
+    }
     #dataTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -33,7 +38,7 @@
         font-size: 0.75rem !important;
         padding: 6px 8px !important;
     }
-
+    }
     #dataTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
@@ -56,7 +61,7 @@
         top: 0 !important;
         z-index: 105 !important;
     }
-
+    }
     #dataTable .btn {
         min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;
@@ -235,3 +240,6 @@
 </script>
 @endpush
 @endsection
+
+
+

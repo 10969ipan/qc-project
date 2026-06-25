@@ -1,14 +1,20 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Master Data Item')
 
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: calc(100vh - 220px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
     }
     #checksheetTable {
         border-collapse: collapse !important;
@@ -17,12 +23,12 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    
+    }
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
         border-right: none !important;
     }
-
+    }
     #checksheetTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -54,11 +60,13 @@
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
+    }
     #checksheetTable .btn {
         min-width: 0 !important; /* Overrides inline style */
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
+    }
     }
     #checksheetTable .badge {
         font-size: 0.6rem !important;
@@ -1118,3 +1126,6 @@
         </script>
     @endpush
 @endsection
+
+
+

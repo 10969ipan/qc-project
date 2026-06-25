@@ -1,15 +1,20 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Checksheet In-Process')
 
 @section('content')
 <style>
     .table-responsive {
-        height: calc(100vh - 170px) !important;
-        max-height: calc(100vh - 170px) !important;
+        max-height: calc(100vh - 220px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
     }
     #checksheetTable {
         border-collapse: separate !important;
@@ -18,12 +23,12 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    
+    }
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-
+    }
     #checksheetTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -59,11 +64,13 @@
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
+    }
     #checksheetTable .btn {
         min-width: 0 !important; /* Overrides 110px inline style */
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
+    }
     }
     #checksheetTable .badge {
         font-size: 0.6rem !important;
@@ -76,11 +83,13 @@
         z-index: 105 !important;
         height: 48px !important; 
     }
+    }
     #checksheetTable > thead > tr:nth-child(2) > th {
         top: 48px !important; 
         z-index: 104 !important;
         height: 38px !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    }
     }
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         top: 0 !important;
@@ -98,7 +107,7 @@
         background: #ffffff !important;
         border: none !important;
     }
-
+    }
     #checksheetTable .table-dimension-minimalist td,
     #checksheetTable .table-dimension-minimalist th {
         background-color: transparent !important;
@@ -117,18 +126,18 @@
         border-bottom: 1px solid #e2e8f0 !important;
         line-height: 1 !important;
     }
-
+    }
     #checksheetTable .table-dimension-minimalist .dim-data {
         font-size: 0.65rem !important;
         border-bottom: 1px solid #f1f5f9 !important;
         color: #1e293b !important;
         line-height: 1.2 !important;
     }
-
+    }
     #checksheetTable .table-dimension-minimalist tr:last-child .dim-data {
         border-bottom: none !important;
     }
-
+    }
     #checksheetTable .table-dimension-minimalist .text-std-header { 
         color: #64748b !important; 
         font-weight: 600 !important; 
@@ -1625,3 +1634,5 @@
         });
     </script>
 @endpush
+
+

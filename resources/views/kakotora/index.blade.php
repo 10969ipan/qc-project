@@ -1,16 +1,21 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Data Kakotora')
 
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: calc(100vh - 220px) !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
-    
+
+    @media (max-width: 992px) {
+        .table-responsive {
+            max-height: 60vh !important;
+        }
+    }
     #dataTableKakotora {
         border-collapse: separate !important;
         border-spacing: 0 !important;
@@ -18,12 +23,12 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    
+    }
     #dataTableKakotora td, #dataTableKakotora th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-
+    }
     #dataTableKakotora tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -68,7 +73,7 @@
     #dataTableKakotora.dataTable thead .sorting_desc:after {
         display: none !important;
     }
-    
+    }
     #dataTableKakotora.dataTable thead th,
     #dataTableKakotora.dataTable thead .sorting,
     #dataTableKakotora.dataTable thead .sorting_asc,
@@ -77,12 +82,13 @@
         background-color: #f8fafc !important;
         color: #475569 !important;
     }
-
+    }
     #dataTableKakotora .btn {
         min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
+    }
     }
     #dataTableKakotora .badge {
         font-size: 0.6rem !important;
@@ -1199,4 +1205,7 @@
         });
     </script>
 @endpush
+
+
+
 
