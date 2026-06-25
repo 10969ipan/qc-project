@@ -727,7 +727,7 @@
                                             @endif
                                             @if(request('view_mode') === 'verifikasi' || $canDelete)
                                                 <form
-                                                    action="{{ route('admin.checksheets.destroy', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                    action="{{ route('admin.checksheets.destroy', array_merge(request()->query(), ['checksheet' => $checksheet->id])) }}"
                                                     method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -980,6 +980,18 @@
                     }
                 });
             }
+
+            // Restore scroll position
+            var savedScroll = sessionStorage.getItem('subAssyScrollPos');
+            if (savedScroll) {
+                $('.table-responsive').scrollTop(savedScroll);
+                sessionStorage.removeItem('subAssyScrollPos');
+            }
+
+            // Save scroll position before leaving or reloading
+            $(window).on('beforeunload', function() {
+                sessionStorage.setItem('subAssyScrollPos', $('.table-responsive').scrollTop());
+            });
         });
     </script>
     @include('partials.qr_scanner_modal')
@@ -1077,7 +1089,7 @@
                             });
 
                             $.ajax({
-                                url: '{{ route("admin.checksheets.bulk_destroy") }}',
+                                url: '{{ route("admin.checksheets.bulk_destroy") }}' + window.location.search,
                                 type: 'POST',
                                 data: {
                                     _token: '{{ csrf_token() }}',
