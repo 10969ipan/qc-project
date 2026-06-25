@@ -747,6 +747,125 @@ class ItemController extends Controller
     }
 
     /**
+     * Bulk upload PDF ke semua item dalam satu kategori.
+     * File PDF yang diupload akan menggantikan file_paths[0] (PCCP standard) semua item di kategori tersebut.
+     */
+    public function bulkUploadPdf(Request $request)
+    {
+        if (auth()->user()->role !== 'admin') {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized action. Fitur ini hanya untuk Admin.'], 403);
+            }
+            return redirect()->back()->with('error', 'Unauthorized action. Fitur ini hanya untuk Admin.');
+        }
+
+        $request->validate([
+            'category_id'  => 'required|exists:categories,id',
+            'pdf_file'     => 'required|file|mimes:pdf|max:10240',
+            'pdf_type'     => 'required|in:standard,similar',
+        ], [
+            'category_id.required' => 'Kategori wajib dipilih.',
+            'pdf_file.required'    => 'File PDF wajib diunggah.',
+            'pdf_file.mimes'       => 'File harus berformat PDF.',
+            'pdf_file.max'         => 'Ukuran file tidak boleh melebihi 10MB.',
+            'pdf_type.required'    => 'Tipe PDF wajib dipilih.',
+        ]);
+
+        $categoryId = $request->category_id;
+        $pdfType    = $request->pdf_type; // 'standard' or 'similar'
+
+        $items = Item::withoutGlobalScope('plant')
+            ->where('category_id', $categoryId)
+            ->get();
+
+        if ($items->isEmpty()) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada item dalam kategori ini.'], 400);
+            }
+            return redirect()->back()->with('error', 'Tidak ada item dalam kategori ini.');
+        }
+
+        $file           = $request->file('pdf_file');
+        $originalName   = $file->getClientOriginalName();
+        $updatedCount   = 0;
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            foreach ($items as $item) {
+                // Upload copy for each item (shared filename with item id prefix to avoid collision)
+                $filename     = time() . '_' . $item->id . '_' . $originalName;
+                $customerFolder = $this->resolveCustomerFolder($item->customer);
+                $relativePath  = 'master item/' . $customerFolder . '/' . $filename;
+                $uploadDir     = public_path('master item/' . $customerFolder);
+
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                // Copy source file (not move, so we can reuse for next item)
+                copy($file->getRealPath(), $uploadDir . '/' . $filename);
+
+                if ($pdfType === 'standard') {
+                    // Delete old first standard PDF file
+                    $existingPaths = $item->file_paths ?? [];
+                    if (!empty($existingPaths[0])) {
+                        $oldPath = public_path($existingPaths[0]);
+                        if (file_exists($oldPath)) {
+                            @unlink($oldPath);
+                        }
+                    }
+                    // Replace only index 0; keep any additional files
+                    $existingPaths[0] = $relativePath;
+                    $item->update([
+                        'file_paths' => array_values($existingPaths),
+                        'file_path'  => $relativePath,
+                    ]);
+                } else {
+                    // similar/dimensi
+                    if ($item->similar_part_file_path) {
+                        $oldPath = public_path($item->similar_part_file_path);
+                        if (file_exists($oldPath)) {
+                            @unlink($oldPath);
+                        }
+                    }
+                    $item->update(['similar_part_file_path' => $relativePath]);
+                }
+
+                $updatedCount++;
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            $category = \App\Models\Category::find($categoryId);
+            $catName  = $category ? $category->name : $categoryId;
+            ActivityLogger::log('updated', null, "Bulk upload PDF ({$pdfType}) untuk kategori '{$catName}': {$updatedCount} item diperbarui.");
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => "Berhasil mengganti PDF untuk {$updatedCount} item di kategori '{$catName}'."]);
+            }
+            return redirect()->back()->with('success', "Berhasil mengganti PDF untuk {$updatedCount} item di kategori '{$catName}'.");
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Gagal bulk upload PDF: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', 'Gagal bulk upload PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Resolve customer folder name for file storage.
+     */
+    private function resolveCustomerFolder(?string $customer): string
+    {
+        if (!$customer) return 'others';
+        $c = strtolower(trim($customer));
+        if (str_contains($c, 'astra honda') || str_contains($c, 'ahm')) return 'ahm';
+        if (str_contains($c, 'yamaha') || str_contains($c, 'yimm')) return 'yimm';
+        return 'others';
+    }
+
+    /**
      * Import master data item dari file Excel/CSV.
      */
     public function import(Request $request)

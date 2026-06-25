@@ -15,6 +15,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('items/import', [ItemController::class, 'import'])->name('items.import');
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
         Route::delete('items/{id}/pdf-similar', [ItemController::class, 'deleteSimilarPdf'])->name('items.delete-similar-pdf');
+        Route::post('items/bulk-upload-pdf', [ItemController::class, 'bulkUploadPdf'])->name('items.bulk-upload-pdf');
         Route::resource('items', ItemController::class)->except(['create']);
 
         // Categories
@@ -57,7 +58,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('monthly-reports/{id}/set-active', [MonthlyReportController::class, 'setActive'])->name('monthly_reports.set_active');
 
         // Customer Claims
-
         Route::resource('customer-claims', CustomerClaimController::class)->except(['create', 'edit']);
 
         // Customer Claim Records (Detailed List)

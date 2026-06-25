@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Master Data Item')
 
@@ -154,6 +154,12 @@
                         data-target="#modalImportItem">
                         <i class="fas fa-file-excel fa-sm text-white-50"></i> Import Excel
                     </button>
+                    @if(auth()->user()->role === 'admin')
+                        <button type="button" class="btn btn-sm btn-warning shadow-sm" data-toggle="modal"
+                            data-target="#modalBulkUploadPdf" title="Ganti PDF semua item di satu kategori sekaligus">
+                            <i class="fas fa-layer-group fa-sm text-white-50"></i> Upload PDF Sekaligus
+                        </button>
+                    @endif
                     <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
                         data-target="#modalTambahItem">
                         <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
@@ -637,7 +643,7 @@
             <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                 <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                     <h5 class="modal-title font-weight-bold text-gray-800" id="modalImportItemLabel" style="font-size: 1.1rem;"><i class="fas fa-file-excel mr-2 text-success"></i> Import Master Data Item
-                        Import Master Data Item
+                        
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -1122,10 +1128,224 @@
                         }
                     });
                 });
+
+
             });
         </script>
     @endpush
+
+    {{-- ===================== MODAL BULK UPLOAD PDF ===================== --}}
+    <div class="modal fade" id="modalBulkUploadPdf" tabindex="-1" role="dialog" aria-labelledby="modalBulkUploadPdfLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                <div class="modal-header py-3 px-4 bg-white border-bottom" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-dark" id="modalBulkUploadPdfLabel" style="font-size: 1rem;">
+                        <i class="fas fa-layer-group text-warning mr-2"></i> Upload PDF Sekaligus (Per Kategori)
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('admin.items.bulk-upload-pdf') }}" method="POST" enctype="multipart/form-data" id="formBulkUploadPdf">
+                    @csrf
+                    <div class="modal-body px-4 py-4">
+                        <div class="alert alert-warning py-2 px-3 mb-3 small" style="border-radius: 8px;">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            <strong>Perhatian:</strong> PDF yang diupload akan <strong>menggantikan</strong> file PDF lama pada <strong>semua item</strong> di kategori yang dipilih.
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold small">Pilih Kategori <span class="text-danger">*</span></label>
+                            <select name="category_id" id="bulk_category_id" class="form-control form-control-sm border-0 shadow-sm" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold small">Tipe PDF <span class="text-danger">*</span></label>
+                            <div class="d-flex" style="gap: 16px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pdf_type" id="bulk_type_standard" value="standard" checked>
+                                    <label class="form-check-label small" for="bulk_type_standard">
+                                        <i class="fas fa-file-pdf text-danger mr-1"></i> PCCP / Standard
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pdf_type" id="bulk_type_similar" value="similar">
+                                    <label class="form-check-label small" for="bulk_type_similar">
+                                        <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="font-weight-bold small">File PDF <span class="text-danger">*</span></label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="bulk_pdf_file" name="pdf_file" accept=".pdf" required>
+                                <label class="custom-file-label small" for="bulk_pdf_file">Pilih file PDF...</label>
+                            </div>
+                            <small class="text-muted">Maks. 10MB. File ini akan diterapkan ke semua item dalam kategori yang dipilih.</small>
+                        </div>
+                        <div id="bulk_preview_filename" class="mt-2 d-none">
+                            <div class="d-flex align-items-center p-2 bg-light rounded" style="gap:8px;">
+                                <i class="fas fa-file-pdf text-danger fa-lg"></i>
+                                <span id="bulk_fname_text" class="small font-weight-bold text-truncate"></span>
+                            </div>
+                        </div>
+
+                        <!-- Upload Progress Bar -->
+                        <div id="bulk_upload_progress_container" class="mt-3 d-none">
+                            <label class="font-weight-bold small mb-1" id="bulk_upload_status">Mengunggah... 0%</label>
+                            <div class="progress" style="height: 10px;">
+                                <div id="bulk_upload_progress_bar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                        <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal" id="btnCancelBulkUpload">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm font-weight-bold" id="btnSubmitBulkUpload">
+                            <i class="fas fa-upload mr-1"></i> Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Show filename preview for bulk PDF upload
+    const pdfInput = document.getElementById('bulk_pdf_file');
+    if (pdfInput) {
+        pdfInput.addEventListener('change', function () {
+            const preview = document.getElementById('bulk_preview_filename');
+            const fname   = document.getElementById('bulk_fname_text');
+            const label   = document.querySelector('label[for="bulk_pdf_file"]');
+            if (this.files && this.files[0]) {
+                const name = this.files[0].name;
+                if (label) label.textContent = name;
+                fname.textContent = name;
+                preview.classList.remove('d-none');
+            } else {
+                if (label) label.textContent = 'Pilih file PDF...';
+                preview.classList.add('d-none');
+            }
+        });
+    }
+
+    // Confirm before submit
+    const bulkForm = document.getElementById('formBulkUploadPdf');
+    if (bulkForm) {
+        bulkForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const cat  = document.getElementById('bulk_category_id');
+            if(cat.selectedIndex <= 0) {
+                Swal.fire('Peringatan', 'Silakan pilih kategori terlebih dahulu.', 'warning');
+                return;
+            }
+            
+            const catLabel = cat.options[cat.selectedIndex]?.text || '';
+            const type = document.querySelector('input[name="pdf_type"]:checked')?.value || '';
+            const typeLabel = type === 'standard' ? 'PCCP / Standard' : 'Similar / Dimensi';
+            
+            Swal.fire({
+                title: 'Konfirmasi Upload Sekaligus',
+                text: `Yakin ingin mengganti PDF tipe "${typeLabel}" untuk SEMUA item di kategori "${catLabel}"?\nTindakan ini tidak dapat dibatalkan.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Ganti PDF!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    processBulkUpload(bulkForm);
+                }
+            });
+        });
+    }
+
+    function processBulkUpload(form) {
+        const formData = new FormData(form);
+        const progressContainer = document.getElementById('bulk_upload_progress_container');
+        const progressBar = document.getElementById('bulk_upload_progress_bar');
+        const statusText = document.getElementById('bulk_upload_status');
+        const btnSubmit = document.getElementById('btnSubmitBulkUpload');
+        const btnCancel = document.getElementById('btnCancelBulkUpload');
+        
+        progressContainer.classList.remove('d-none');
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', '0');
+        progressBar.classList.add('progress-bar-animated');
+        statusText.textContent = 'Mengunggah... 0%';
+        
+        btnSubmit.disabled = true;
+        btnCancel.disabled = true;
+        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...';
+        
+        $.ajax({
+            url: form.action,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                        progressBar.style.width = percentComplete + '%';
+                        progressBar.setAttribute('aria-valuenow', percentComplete);
+                        statusText.textContent = 'Mengunggah... ' + percentComplete + '%';
+                        
+                        if(percentComplete === 100) {
+                             statusText.textContent = 'Memproses data di server... Mohon tunggu';
+                             progressBar.classList.remove('progress-bar-animated');
+                        }
+                    }
+                }, false);
+                return xhr;
+            },
+            success: function(response) {
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: response.message || 'Upload PDF sekaligus berhasil dilakukan.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            },
+            error: function(xhr) {
+                let errorMsg = 'Gagal melakukan upload.';
+                if(xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: errorMsg,
+                    icon: 'error'
+                });
+                
+                progressContainer.classList.add('d-none');
+                btnSubmit.disabled = false;
+                btnCancel.disabled = false;
+                btnSubmit.innerHTML = '<i class="fas fa-upload mr-1"></i> Upload';
+            }
+        });
+    }
+});
+</script>
+@endpush
+
 
 
 
