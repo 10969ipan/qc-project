@@ -1,20 +1,14 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Double Tape')
 
 @section('content')
 <style>
     .table-responsive {
-        max-height: calc(100vh - 220px) !important;
+        max-height: 75vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
-    }
-
-    @media (max-width: 992px) {
-        .table-responsive {
-            max-height: 60vh !important;
-        }
     }
     #checksheetTable, #sortirTable {
         border-collapse: collapse !important;
@@ -23,13 +17,13 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    }
+    
     #checksheetTable td, #checksheetTable th,
     #sortirTable td, #sortirTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-    }
+
     #checksheetTable tbody td,
     #sortirTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
@@ -66,14 +60,12 @@
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
-    }
     #checksheetTable .btn,
     #sortirTable .btn {
         min-width: 0 !important; /* Overrides 110px inline style */
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
-    }
     }
     #checksheetTable .badge,
     #sortirTable .badge {
@@ -88,14 +80,12 @@
         z-index: 105 !important;
         height: 35px !important; 
     }
-    }
     #checksheetTable > thead > tr:nth-child(2) > th,
     #sortirTable > thead > tr:nth-child(2) > th {
         top: 35px !important; 
         z-index: 104 !important;
         height: 30px !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
-    }
     }
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"],
     #sortirTable > thead > tr:nth-child(1) > th[rowspan="2"] {
@@ -346,7 +336,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($checksheets as $checksheet)
+                        @foreach($checksheets as $checksheet)
                             <tr class="text-center">
                                 @if(auth()->user()->role === 'admin')
                                     <td class="align-middle text-center">
@@ -663,14 +653,7 @@
                                     </td>
                                 @endif
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="30" class="text-center py-4 text-muted">
-                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.5;"></i><br>
-                                    Data tidak ditemukan
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -1028,6 +1011,3 @@
         });
     </script>
 @endpush
-
-
-
