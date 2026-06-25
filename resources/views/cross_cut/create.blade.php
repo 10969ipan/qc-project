@@ -103,6 +103,7 @@
                                                     data-image="{{ $item->image_path ? asset($item->image_path) : '' }}"
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
+                                                    data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
                                                     data-name="{{ $item->name }}"
                                                     data-part-number="{{ $item->part_number ?? '' }}"
                                                     data-customer="{{ $item->customer ?? '' }}"
@@ -254,9 +255,9 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">STANDARD PDF</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">TSH6504 G-S (30&deg;)</h6>
                         <div class="d-flex align-items-center">
                             <!-- Kontrol Zoom -->
                             <div class="btn-group mr-2">
@@ -305,6 +306,61 @@
                         <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
                         <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
                             <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">JIS H 8502 (70&deg;)</h6>
+                        <div class="d-flex align-items-center">
+                            <!-- Kontrol Zoom Similar -->
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutSimilar"
+                                    title="Zoom Out">
+                                    <i class="fas fa-search-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetSimilar"
+                                    title="Reset Zoom">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInSimilar"
+                                    title="Zoom In">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage"
+                                    title="Previous Page">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage"
+                                    title="Next Page">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn mr-1" id="fullSimilarBtn"
+                                style="display:none;">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Similar Part PDF" style="display:none;">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div id="similarPdfContainer" class="rounded border"
+                        style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="similarPdfPlaceholder"
+                            class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-alt fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Similar PDF</p>
+                            <p class="small mt-2" id="similarStatusText"></p>
+                        </div>
+                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
                         </div>
                     </div>
                 </div>

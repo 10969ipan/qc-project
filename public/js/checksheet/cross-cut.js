@@ -783,18 +783,89 @@ class CrossCutCreate {
 
     initImageCapture() {
         $('#captureBtn').click(() => $('#image').click());
-        $('#image').on('change', (e) => {
+        $('#image').on('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
-                $('#fileName').text(`File: ${file.name}`);
-                $('#captureBtnText').html('<i class="fas fa-sync"></i> Ganti Foto');
-                $('#captureBtn').removeClass('btn-primary').addClass('btn-warning');
-                const reader = new FileReader();
-                reader.onload = (ev) => { $('#previewImage').attr('src', ev.target.result); $('#previewBtn').show(); };
-                reader.readAsDataURL(file);
+                const isImage = file.type.match(/image.*/);
+                
+                $('#captureBtnText').html('<i class="fas fa-spinner fa-spin"></i> Memproses...');
+                $('#captureBtn').removeClass('btn-primary btn-warning').addClass('btn-secondary');
+                
+                try {
+                    let processedFile = file;
+                    if (isImage) {
+                        processedFile = await this.compressImage(file);
+                        
+                        // Replace the file in the input using DataTransfer
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(processedFile);
+                        e.target.files = dataTransfer.files;
+                    }
+                    
+                    const sizeKB = (processedFile.size / 1024).toFixed(1);
+                    $('#fileName').text(`File: ${processedFile.name} (${sizeKB} KB)`);
+                    $('#captureBtnText').html('<i class="fas fa-sync"></i> Ganti Foto');
+                    $('#captureBtn').removeClass('btn-secondary btn-primary').addClass('btn-warning');
+                    
+                    const reader = new FileReader();
+                    reader.onload = (ev) => { $('#previewImage').attr('src', ev.target.result); $('#previewBtn').show(); };
+                    reader.readAsDataURL(processedFile);
+                } catch (err) {
+                    console.error("Gagal memproses gambar:", err);
+                    Swal.fire('Error', 'Gagal memproses gambar sebelum upload.', 'error');
+                    $('#captureBtnText').html('<i class="fas fa-camera"></i> Ambil Foto');
+                    $('#captureBtn').removeClass('btn-secondary btn-warning').addClass('btn-primary');
+                }
             }
         });
         $('#previewBtn').click(() => $('#imagePreviewModal').modal('show'));
+    }
+
+    compressImage(file, maxWidth = 1280, maxHeight = 1280, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newFile = new File([blob], file.name, {
+                                type: file.type,
+                                lastModified: Date.now()
+                            });
+                            resolve(newFile);
+                        } else {
+                            reject(new Error("Canvas to Blob failed"));
+                        }
+                    }, file.type, quality);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
     }
 
     initTimer() {
