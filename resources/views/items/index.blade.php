@@ -417,43 +417,45 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
-                    {{-- File navigation (shown only when multiple files) --}}
-                    <div id="pdfFileNav" class="d-none d-flex justify-content-center align-items-center mb-2 py-1 px-2 bg-light rounded" style="gap:8px;">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="prevFile">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span id="fileInfo" class="small font-weight-bold text-muted">File 1 / 1</span>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="nextFile">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                    {{-- Page navigation --}}
-                    <div class="d-flex justify-content-center mb-2 align-items-center">
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="prevPage">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <span id="pageInfo" class="mr-2">Page 1 of ?</span>
-                        <button type="button" class="btn btn-secondary btn-sm mr-2" id="nextPage">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="border-left pl-2 ml-2 d-flex align-items-center">
-                            <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomIn">
-                                <i class="fas fa-search-plus"></i> Zoom In
+                <div class="modal-body p-0 d-flex flex-column" style="background-color: #f8fafc; height: 85vh; overflow: hidden;">
+                    <div class="p-3 border-bottom bg-white flex-shrink-0">
+                        {{-- File navigation (shown only when multiple files) --}}
+                        <div id="pdfFileNav" class="d-none justify-content-center align-items-center mb-2 py-1 px-2 bg-light rounded" style="gap:8px;">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="prevFile">
+                                <i class="fas fa-chevron-left"></i>
                             </button>
-                            <button type="button" class="btn btn-secondary btn-sm mr-2" id="zoomReset">
-                                <i class="fas fa-sync-alt"></i> Reset
+                            <span id="fileInfo" class="small font-weight-bold text-muted">File 1 / 1</span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="nextFile">
+                                <i class="fas fa-chevron-right"></i>
                             </button>
-                            <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomOut">
-                                <i class="fas fa-search-minus"></i> Zoom Out
+                        </div>
+                        {{-- Page navigation --}}
+                        <div class="d-flex justify-content-center align-items-center">
+                            <button type="button" class="btn btn-secondary btn-sm mr-2" id="prevPage">
+                                <i class="fas fa-chevron-left"></i>
                             </button>
-                            <a id="downloadPdfBtn" href="#" class="btn btn-success btn-sm ml-1" download>
-                                <i class="fas fa-download"></i> Download PDF
-                            </a>
+                            <span id="pageInfo" class="mr-2">Page 1 of ?</span>
+                            <button type="button" class="btn btn-secondary btn-sm mr-2" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <div class="border-left pl-2 ml-2 d-flex align-items-center">
+                                <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomIn">
+                                    <i class="fas fa-search-plus"></i> Zoom In
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm mr-2" id="zoomReset">
+                                    <i class="fas fa-sync-alt"></i> Reset
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm mr-2" id="zoomOut">
+                                    <i class="fas fa-search-minus"></i> Zoom Out
+                                </button>
+                                <a id="downloadPdfBtn" href="#" class="btn btn-success btn-sm ml-1" download>
+                                    <i class="fas fa-download"></i> Download PDF
+                                </a>
+                            </div>
                         </div>
                     </div>
-                    <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">
-                        <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
+                    <div class="flex-grow-1 bg-dark" style="overflow: auto; position: relative;">
+                        <canvas id="the-canvas" style="border: 1px solid black; direction: ltr; margin: 20px auto; display: block;"></canvas>
                     </div>
                 </div>
             </div>

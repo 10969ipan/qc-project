@@ -9,7 +9,7 @@
     let pageNum = 1;
     let pageRendering = false;
     let pageNumPending = null;
-    let scale = 1.0;
+    let scale = 'auto';
 
     // Multi-file state
     let currentFileList = [];   // array of URL strings
@@ -26,6 +26,21 @@
         pageRendering = true;
 
         pdfDoc.getPage(num).then(function (page) {
+            const unscaledViewport = page.getViewport({ scale: 1.0 });
+            
+            if (scale === 'auto') {
+                const container = canvas.parentElement;
+                const containerHeight = container.clientHeight - 40; // 40px for margin/padding
+                const containerWidth = container.clientWidth - 40;
+                
+                const scaleHeight = containerHeight / unscaledViewport.height;
+                const scaleWidth = containerWidth / unscaledViewport.width;
+                
+                scale = Math.min(scaleHeight, scaleWidth);
+                if(scale > 2.0) scale = 2.0; // cap the scale
+                if(scale < 0.2) scale = 0.2;
+            }
+
             const viewport = page.getViewport({ scale: scale });
             canvas.height = viewport.height;
             canvas.width = viewport.width;
@@ -77,7 +92,7 @@
     if (zoomOutBtn) zoomOutBtn.addEventListener('click', function () { if (scale > 0.25) { scale -= 0.25; queueRenderPage(pageNum); } });
 
     const zoomResetBtn = document.getElementById('zoomReset');
-    if (zoomResetBtn) zoomResetBtn.addEventListener('click', function () { scale = 1.0; queueRenderPage(pageNum); });
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', function () { scale = 'auto'; queueRenderPage(pageNum); });
 
     /* ---------------------------------------------------------------
      *  File navigation bar (shown only for multi-file)
@@ -116,7 +131,7 @@
     function loadPdfFromUrl(url, isBlob) {
         pdfDoc = null;
         pageNum = 1;
-        scale = 1.0;
+        scale = 'auto';
         if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const pageInfoEl = document.getElementById('pageInfo');
