@@ -28,7 +28,7 @@
 
     <div class="row">
         <!-- Level 1: Karu QC -->
-        <div class="col-md-4 form-group mb-3">
+        <div class="col-md-3 form-group mb-3">
             <label class="small font-weight-bold text-gray-700" for="karu_qc">Karu QC</label>
             <select name="karu_qc" id="karu_qc" class="form-control form-control-sm">
                 <option value="Pending" @if(is_null($checksheet->karu_qc)) selected @endif>Pending</option>
@@ -38,7 +38,7 @@
         </div>
 
         <!-- Level 2: Kashift Plating -->
-        <div class="col-md-4 form-group mb-3">
+        <div class="col-md-3 form-group mb-3">
             <label class="small font-weight-bold text-gray-700" for="kashift_plating">Kashift Plating</label>
             <select name="kashift_plating" id="kashift_plating" class="form-control form-control-sm">
                 <option value="Pending" @if(is_null($checksheet->kashift_plating)) selected @endif>Pending</option>
@@ -48,7 +48,7 @@
         </div>
 
         <!-- Level 3: SPV Plating -->
-        <div class="col-md-4 form-group mb-3">
+        <div class="col-md-3 form-group mb-3">
             <label class="small font-weight-bold text-gray-700" for="supervisor_plating">SPV Plating</label>
             <select name="supervisor_plating" id="supervisor_plating" class="form-control form-control-sm">
                 <option value="Pending" @if(is_null($checksheet->supervisor_plating)) selected @endif>Pending</option>
@@ -56,11 +56,21 @@
                 <option value="Rejected" @if($checksheet->supervisor_plating === 'REJECTED') selected @endif>Rejected</option>
             </select>
         </div>
+
+        <!-- Level 3.5: Asst Manager Plating -->
+        <div class="col-md-3 form-group mb-3">
+            <label class="small font-weight-bold text-gray-700" for="asst_manager_plating">Asst Mgr Plating</label>
+            <select name="asst_manager_plating" id="asst_manager_plating" class="form-control form-control-sm">
+                <option value="Pending" @if(is_null($checksheet->asst_manager_plating)) selected @endif>Pending</option>
+                <option value="Approved" @if($checksheet->asst_manager_plating && $checksheet->asst_manager_plating !== 'REJECTED') selected @endif>Approved</option>
+                <option value="Rejected" @if($checksheet->asst_manager_plating === 'REJECTED') selected @endif>Rejected</option>
+            </select>
+        </div>
     </div>
 
     <div class="row">
         <!-- Level 4: SPV Quality -->
-        <div class="col-md-4 form-group mb-2">
+        <div class="col-md-6 form-group mb-2">
             <label class="small font-weight-bold text-gray-700" for="supervisor_qc">SPV QC</label>
             <select name="supervisor_qc" id="supervisor_qc" class="form-control form-control-sm">
                 <option value="Pending" @if(is_null($checksheet->supervisor_qc)) selected @endif>Pending</option>
@@ -69,23 +79,13 @@
             </select>
         </div>
 
-        <!-- Level 5: Manager Plating -->
-        <div class="col-md-4 form-group mb-2">
-            <label class="small font-weight-bold text-gray-700" for="manager_plating">Manager Plating</label>
-            <select name="manager_plating" id="manager_plating" class="form-control form-control-sm">
-                <option value="Pending" @if(is_null($checksheet->manager_plating)) selected @endif>Pending</option>
-                <option value="Approved" @if($checksheet->manager_plating && $checksheet->manager_plating !== 'REJECTED') selected @endif>Approved</option>
-                <option value="Rejected" @if($checksheet->manager_plating === 'REJECTED') selected @endif>Rejected</option>
-            </select>
-        </div>
-
-        <!-- Level 6: Manager QC (Final) -->
-        <div class="col-md-4 form-group mb-2">
-            <label class="small font-weight-bold text-gray-700" for="manager_qc">Manager QC (Final)</label>
-            <select name="manager_qc" id="manager_qc" class="form-control form-control-sm">
-                <option value="Pending" @if(is_null($checksheet->manager_qc)) selected @endif>Pending</option>
-                <option value="Approved" @if($checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED') selected @endif>Approved</option>
-                <option value="Rejected" @if($checksheet->manager_qc === 'REJECTED') selected @endif>Rejected</option>
+        <!-- Level 5: Asst Manager QC -->
+        <div class="col-md-6 form-group mb-2">
+            <label class="small font-weight-bold text-gray-700" for="asst_manager_qc">Asst Manager QC</label>
+            <select name="asst_manager_qc" id="asst_manager_qc" class="form-control form-control-sm">
+                <option value="Pending" @if(is_null($checksheet->asst_manager_qc)) selected @endif>Pending</option>
+                <option value="Approved" @if($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED') selected @endif>Approved</option>
+                <option value="Rejected" @if($checksheet->asst_manager_qc === 'REJECTED') selected @endif>Rejected</option>
             </select>
         </div>
     </div>

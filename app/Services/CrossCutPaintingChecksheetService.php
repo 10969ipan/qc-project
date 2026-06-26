@@ -264,19 +264,19 @@ class CrossCutPaintingChecksheetService extends BaseService
             $this->updateLevel($checksheet, 'kashift_plating', 'kashift_plating_approved_at', $data['kashift_plating'], $user);
             $this->updateLevel($checksheet, 'supervisor_plating', 'supervisor_plating_approved_at', $data['supervisor_plating'], $user);
             $this->updateLevel($checksheet, 'supervisor_qc', 'supervisor_approved_at', $data['supervisor_qc'], $user);
-            $this->updateLevel($checksheet, 'manager_plating', 'manager_plating_approved_at', $data['manager_plating'], $user);
-            $this->updateLevel($checksheet, 'manager_qc', 'manager_approved_at', $data['manager_qc'], $user);
+            $this->updateLevel($checksheet, 'asst_manager_plating', 'asst_manager_plating_approved_at', $data['asst_manager_plating'], $user);
+            $this->updateLevel($checksheet, 'asst_manager_qc', 'asst_manager_approved_at', $data['asst_manager_qc'], $user);
 
             if (
-                $checksheet->manager_qc === 'REJECTED' ||
-                $checksheet->manager_plating === 'REJECTED' ||
+                $checksheet->asst_manager_qc === 'REJECTED' ||
+                $checksheet->asst_manager_plating === 'REJECTED' ||
                 $checksheet->supervisor_qc === 'REJECTED' ||
                 $checksheet->supervisor_plating === 'REJECTED' ||
                 $checksheet->kashift_plating === 'REJECTED' ||
                 $checksheet->karu_qc === 'REJECTED'
             ) {
                 $checksheet->approval_status = 'Rejected';
-            } elseif ($checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED') {
+            } elseif ($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED') {
                 $checksheet->approval_status = 'Approved';
             } else {
                 $checksheet->approval_status = 'Pending';
@@ -309,6 +309,7 @@ class CrossCutPaintingChecksheetService extends BaseService
                     ->orWhere('kashift_plating', 'REJECTED')
                     ->orWhere('supervisor_plating', 'REJECTED')
                     ->orWhere('supervisor_qc', 'REJECTED')
+                    ->orWhere('asst_manager_plating', 'REJECTED')
                     ->orWhere('manager_plating', 'REJECTED')
                     ->orWhere('manager_qc', 'REJECTED');
             });
@@ -399,7 +400,7 @@ class CrossCutPaintingChecksheetService extends BaseService
                 $dateField = $this->getApprovalDateField($type);
                 $checksheet->$dateField = now();
 
-                if ($type === 'manager') {
+                if ($type === 'asst_manager') {
                     $checksheet->approval_status = 'Approved';
                 }
             }
@@ -447,9 +448,9 @@ class CrossCutPaintingChecksheetService extends BaseService
             'karu_qc' => 'karu_qc',
             'kashift_plating' => 'kashift_plating',
             'supervisor_plating' => 'supervisor_plating',
+            'asst_manager_plating' => 'asst_manager_plating',
             'supervisor' => 'supervisor_qc',
-            'manager_plating' => 'manager_plating',
-            'manager' => 'manager_qc',
+            'asst_manager' => 'asst_manager_qc',
         ];
         return $fields[$type] ?? $type;
     }
@@ -460,9 +461,9 @@ class CrossCutPaintingChecksheetService extends BaseService
             'karu_qc' => 'karu_qc_approved_at',
             'kashift_plating' => 'kashift_plating_approved_at',
             'supervisor_plating' => 'supervisor_plating_approved_at',
+            'asst_manager_plating' => 'asst_manager_plating_approved_at',
             'supervisor' => 'supervisor_approved_at',
-            'manager_plating' => 'manager_plating_approved_at',
-            'manager' => 'manager_approved_at',
+            'asst_manager' => 'asst_manager_approved_at',
         ];
         return $fields[$type] ?? "{$type}_approved_at";
     }
@@ -473,10 +474,10 @@ class CrossCutPaintingChecksheetService extends BaseService
             'karu_qc' => 'Karu QC',
             'kashift_plating' => 'Kashift Painting',
             'supervisor_plating' => 'SPV Painting',
+            'asst_manager_plating' => 'Asst Manager Painting',
             'supervisor' => 'SPV Quality',
-            'manager_plating' => 'Manager Painting',
-            'manager' => 'Manager QC',
+            'asst_manager' => 'Asst Manager QC',
         ];
-        return $labels[$type] ?? $type;
+        return $labels[$type] ?? ucfirst($type);
     }
 }

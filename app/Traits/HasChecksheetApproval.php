@@ -259,15 +259,13 @@ trait HasChecksheetApproval
 
         // Determine approval type based on user role
         $type = null;
-        $allowedRoles = ['supervisor', 'supervisor_plating', 'asst_manager', 'manager', 'manager_qc', 'manager_plating', 'admin'];
-
         if ($user->role === 'admin') {
             // Admin must specify which type to approve
             $type = $request->input('approval_type');
             if (!$type) {
                 return response()->json(['success' => false, 'message' => 'Admin harus memilih level approval.'], 422);
             }
-        } elseif (in_array($user->role, $allowedRoles)) {
+        } elseif (\App\Helpers\AppMenu::checkPermission(\Route::currentRouteName(), 'approve_all')) {
             $type = $user->role;
         }
 

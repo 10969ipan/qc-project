@@ -38,8 +38,8 @@ class CrossCutChecksheetController extends Controller
             'kashift_plating' => ['field' => 'kashift_plating', 'time' => 'kashift_plating_approved_at', 'label' => 'Kashift Plating'],
             'supervisor_plating' => ['field' => 'supervisor_plating', 'time' => 'supervisor_plating_approved_at', 'label' => 'Supervisor Plating'],
             'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'], // Mapped 'supervisor' to 'supervisor_qc'
-            'manager_plating' => ['field' => 'manager_plating', 'time' => 'manager_plating_approved_at', 'label' => 'Manager Plating'],
-            'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager QC'],
+            'asst_manager_plating' => ['field' => 'asst_manager_plating', 'time' => 'asst_manager_plating_approved_at', 'label' => 'Asst Manager Plating'],
+            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
         ];
         return $mappings[$type] ?? null;
     }
@@ -53,8 +53,7 @@ class CrossCutChecksheetController extends Controller
      */
     public function index(Request $request)
     {
-        // For restricted roles (inspector, plating), override request plant to their own plant
-        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'asst_manager_plating', 'manager_plating'];
 
         if (in_array(auth()->user()->role, $restrictedRoles)) {
             $request->merge(['plant' => auth()->user()->plant_id]);
@@ -88,7 +87,11 @@ class CrossCutChecksheetController extends Controller
             
         $initials = CrossCutChecksheet::withoutGlobalScope('plant')->whereNotNull('operator_initials')->where('operator_initials', '!=', '')->distinct()->orderBy('operator_initials')->pluck('operator_initials');
 
-        return view('cross_cut.index', compact('checksheets', 'items', 'customers', 'initials'));
+        $canExport = \App\Helpers\AppMenu::checkPermission('cross_cut.index', 'export');
+        $canEdit = \App\Helpers\AppMenu::checkPermission('cross_cut.index', 'edit');
+        $canDelete = \App\Helpers\AppMenu::checkPermission('cross_cut.index', 'delete');
+
+        return view('cross_cut.index', compact('checksheets', 'items', 'customers', 'initials', 'canExport', 'canEdit', 'canDelete'));
     }
 
     /**
@@ -596,8 +599,7 @@ class CrossCutChecksheetController extends Controller
             'kashift_plating' => 'required|in:Pending,Approved,Rejected',
             'supervisor_plating' => 'required|in:Pending,Approved,Rejected',
             'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
-            'manager_plating' => 'required|in:Pending,Approved,Rejected',
-            'manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
         try {

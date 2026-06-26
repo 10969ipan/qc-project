@@ -72,7 +72,7 @@
     </div>
 
     {{-- ── Permission Checkboxes ─────────────────────────────── --}}
-    @foreach(['view', 'input', 'edit', 'approve', 'export'] as $type)
+    @foreach(['view', 'input', 'edit', 'approve', 'approve_all', 'export'] as $type)
     <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
         <input type="checkbox"
                class="custom-control-input perm-check {{ $myChildClasses }}"

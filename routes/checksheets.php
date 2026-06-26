@@ -116,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
 
     // --- Report & Action Routes ---
 
-    Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,manager_plating,oshef'])->group(function () {
+    Route::middleware(['role:admin,supervisor,inspector,kashift,asst_manager,manager,karu_qc,kashift_plating,supervisor_plating,asst_manager_plating,manager_plating,oshef'])->group(function () {
         // Index Pages
         Route::get('/report/checksheets', [SubAssyChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/plating-checksheets', [PlatingChecksheetController::class, 'index'])->name('plating.index');

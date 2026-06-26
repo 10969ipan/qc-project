@@ -1,6 +1,6 @@
 {{-- Bulk Approve JavaScript - Include in @push('scripts') --}}
 {{-- Requires: $bulkApproveRoute variable to be set before including --}}
-@if(in_array(auth()->user()->role, ['supervisor', 'supervisor_plating', 'asst_manager', 'manager', 'manager_qc', 'manager_plating', 'admin']) && request('start_date'))
+@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && request('start_date'))
     <script>
         $(document).ready(function () {
             $('#btnBulkApprove').on('click', function () {

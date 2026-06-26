@@ -441,8 +441,8 @@
 
                                 {{-- Level 5: Asst Manager QC --}}
                                 <td class="align-middle text-center">
-                                    @if($checksheet->manager_qc)
-                                        @if($checksheet->manager_qc === 'REJECTED')
+                                    @if($checksheet->asst_manager_qc)
+                                        @if($checksheet->asst_manager_qc === 'REJECTED')
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
@@ -452,23 +452,23 @@
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
                                             </span>
-                                            <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
+                                            <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
                                         @endif
                                     @else
                                         <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
-                                    @if($checksheet->manager_approved_at)
+                                    @if($checksheet->asst_manager_approved_at)
                                         <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</small>
+                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
                                 {{-- Level 6: Asst Manager Plating --}}
                                 <td class="align-middle text-center">
-                                    @if($checksheet->manager_plating)
-                                        @if($checksheet->manager_plating === 'REJECTED')
+                                    @if($checksheet->asst_manager_plating)
+                                        @if($checksheet->asst_manager_plating === 'REJECTED')
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
@@ -478,16 +478,16 @@
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
                                             </span>
-                                            <br><small class="text-muted">oleh {{ $checksheet->manager_plating }}</small>
+                                            <br><small class="text-muted">oleh {{ $checksheet->asst_manager_plating }}</small>
                                         @endif
                                     @else
                                         <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
-                                    @if($checksheet->manager_plating_approved_at)
+                                    @if($checksheet->asst_manager_plating_approved_at)
                                         <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
@@ -527,8 +527,8 @@
 
                                             $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
                                             $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveManagerPlating = (auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->manager_plating || $checksheet->manager_plating === 'REJECTED');
-                                            $canApproveManager = (auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
+                                            $canApproveAsstManager = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                            $canApproveAsstManagerPlating = (auth()->user()->role === 'asst_manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->asst_manager_plating || $checksheet->asst_manager_plating === 'REJECTED');
                                         @endphp
 
                                         {{-- Level 1: Karu QC --}}
@@ -624,9 +624,9 @@
                                         @endif
 
                                         {{-- Level 5: Asst Manager QC --}}
-                                        @if($canApproveManager)
+                                        @if($canApproveAsstManager)
                                             <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}"
+                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager', 'plant' => request('plant')]) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -643,20 +643,20 @@
                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager QC)"
                                                     style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR Q' : '' }}
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' Asst MGR Q' : '' }}
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager QC)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
 
-                                        {{-- Level 6: Asst Manager Plating --}}
-                                        @if($canApproveManagerPlating)
+                                        {{-- Level 5.5: Asst Manager Plating --}}
+                                        @if($canApproveAsstManagerPlating)
                                             <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'manager_plating', 'plant' => request('plant')]) }}"
+                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager_plating', 'plant' => request('plant')]) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -670,14 +670,14 @@
                                                 <input type="hidden" name="search" value="{{ request('search') }}">
                                                 <input type="hidden" name="check_type" value="{{ request('check_type') }}">
                                                 <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1"
-                                                    title="Approve (Asst Manager Plating)" style="min-width: 110px;">
+                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager Plating)"
+                                                    style="min-width: 110px;">
                                                     <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR P' : '' }}
+                                                    Approve{{ (auth()->user()->role === 'admin') ? ' Asst MGR P' : '' }}
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager_plating"
+                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager_plating"
                                                 style="min-width: 110px;">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
@@ -690,7 +690,7 @@
                                                 <i class="fas fa-user-check"></i> Status
                                             </a>
                                         @endif
-                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
+                                        @if($canEdit || $canDelete)
                                             @if($canEdit)
                                                 <a href="{{ route('cross_cut.edit', ['id' => $checksheet->id]) }}"
                                                     class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"

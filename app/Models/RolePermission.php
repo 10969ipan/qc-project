@@ -17,6 +17,7 @@ class RolePermission extends Model
         'can_edit',
         'can_delete',
         'can_approve',
+        'can_approve_all',
         'can_export'
     ];
 
@@ -26,6 +27,7 @@ class RolePermission extends Model
         'can_edit' => 'boolean',
         'can_delete' => 'boolean',
         'can_approve' => 'boolean',
+        'can_approve_all' => 'boolean',
         'can_export' => 'boolean',
     ];
 

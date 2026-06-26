@@ -20,7 +20,10 @@ class SettingsController extends Controller
     {
         $users = \App\Models\User::with('plant')->orderBy('name', 'asc')->get();
         $plants = \App\Models\Plant::all();
-        $roles = \App\Models\User::distinct()->whereNotNull('role')->pluck('role')->toArray();
+        $dbRoles = \App\Models\User::distinct()->whereNotNull('role')->pluck('role')->toArray();
+        $defaultRoles = ['admin', 'manager', 'asst_manager', 'supervisor', 'inspector', 'kashift', 'karu_qc', 'manager_plating', 'asst_manager_plating', 'supervisor_plating', 'kashift_plating'];
+        $roles = array_values(array_unique(array_merge($dbRoles, $defaultRoles)));
+        sort($roles);
         
         // Fetch all top-level menus with their children (deeply nested for permission matrix)
         $menus = \App\Models\AppMenu::whereNull('parent_id')
@@ -435,6 +438,7 @@ class SettingsController extends Controller
                         'can_edit' => filter_var($perms['edit'] ?? false, FILTER_VALIDATE_BOOLEAN),
                         'can_delete' => filter_var($perms['edit'] ?? false, FILTER_VALIDATE_BOOLEAN),
                         'can_approve' => filter_var($perms['approve'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'can_approve_all' => filter_var($perms['approve_all'] ?? false, FILTER_VALIDATE_BOOLEAN),
                         'can_export' => filter_var($perms['export'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     ]);
                 }
@@ -454,6 +458,7 @@ class SettingsController extends Controller
                         'can_edit' => filter_var($perms['edit'] ?? false, FILTER_VALIDATE_BOOLEAN),
                         'can_delete' => filter_var($perms['edit'] ?? false, FILTER_VALIDATE_BOOLEAN),
                         'can_approve' => filter_var($perms['approve'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'can_approve_all' => filter_var($perms['approve_all'] ?? false, FILTER_VALIDATE_BOOLEAN),
                         'can_export' => filter_var($perms['export'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     ]);
                 }

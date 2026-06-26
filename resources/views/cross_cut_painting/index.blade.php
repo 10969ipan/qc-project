@@ -426,8 +426,8 @@
                                                 'karu_qc' => 'KR',
                                                 'supervisor' => 'SPV Q',
                                                 'supervisor_plating' => 'SPV P',
-                                                'manager' => 'MGR Q',
-                                                'manager_plating' => 'MGR P'
+                                                'asst_manager_plating' => 'Asst MGR P',
+                                                'asst_manager' => 'Asst MGR Q'
                                             ];
 
                                             $currentRole = $user->role;
@@ -455,7 +455,7 @@
                                                     <input type="hidden" name="customer" value="{{ request('customer') }}">
                                                     <input type="hidden" name="action_type" value="approve">
                                                     <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})" style="min-width: 80px;">
-                                                        <i class="fas fa-check"></i> Approve {{ $label }}
+                                                        <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' ' . $label : '' }}
                                                     </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $label }})"
@@ -475,21 +475,25 @@
                                             </a>
                                         @endif
                                         
-                                        @if(!in_array($user->role, ['manager', 'asst_manager', 'manager_plating']))
-                                            <a href="{{ route('cross_cut_painting.edit', array_merge(['id' => $checksheet->id], request()->query())) }}" class="btn btn-warning btn-sm m-1 edit-btn" 
-                                                data-id="{{ $checksheet->id }}" title="Edit"
-                                                style="min-width: 80px;">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form action="{{ route('cross_cut_painting.destroy', array_merge(['id' => $checksheet->id], request()->query())) }}"
-                                                method="POST" class="d-inline p-0">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" 
-                                                    title="Hapus" style="min-width: 80px;">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </button>
-                                            </form>
+                                        @if($canEdit || $canDelete)
+                                            @if($canEdit)
+                                                <a href="{{ route('cross_cut_painting.edit', array_merge(['id' => $checksheet->id], request()->query())) }}" class="btn btn-warning btn-sm m-1 edit-btn" 
+                                                    data-id="{{ $checksheet->id }}" title="Edit"
+                                                    style="min-width: 80px;">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                            @if($canDelete)
+                                                <form action="{{ route('cross_cut_painting.destroy', array_merge(['id' => $checksheet->id], request()->query())) }}"
+                                                    method="POST" class="d-inline p-0">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" 
+                                                        title="Hapus" style="min-width: 80px;">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </td>
                                 @endif

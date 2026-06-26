@@ -417,6 +417,7 @@
                                         <div>Input</div>
                                         <div>Edit/Hapus</div>
                                         <div>Approve</div>
+                                        <div style="line-height:1.2;">Approve<br><small>Semua</small></div>
                                         <div>Export</div>
                                     </div>
 
@@ -1336,7 +1337,7 @@
     /* Permission grid header */
     .permission-grid-header {
         display: grid;
-        grid-template-columns: 1fr repeat(5, 80px);
+        grid-template-columns: 1fr repeat(6, 80px);
         gap: 12px;
         padding: 0.6rem 1rem;
         background: #f4f6fb;
@@ -1359,7 +1360,7 @@
     /* Permission row (parent and child) */
     .permission-row-item {
         display: grid;
-        grid-template-columns: 1fr repeat(5, 80px);
+        grid-template-columns: 1fr repeat(6, 80px);
         gap: 12px;
         padding: 0.9rem 1rem;
         border-bottom: 1px solid #f2f4f7;
@@ -2095,6 +2096,7 @@
                     $(`#input_${menuId}`).prop('checked', !!perm.can_input);
                     $(`#edit_${menuId}`).prop('checked', !!perm.can_edit);
                     $(`#approve_${menuId}`).prop('checked', !!perm.can_approve);
+                    $(`#approve_all_${menuId}`).prop('checked', !!perm.can_approve_all);
                     $(`#export_${menuId}`).prop('checked', !!perm.can_export);
                 });
                 // Refresh cascade state after loading permissions
@@ -2108,6 +2110,7 @@
                input[type="checkbox"].custom-control-input[id^="input_"], \
                input[type="checkbox"].custom-control-input[id^="edit_"], \
                input[type="checkbox"].custom-control-input[id^="approve_"], \
+               input[type="checkbox"].custom-control-input[id^="approve_all_"], \
                input[type="checkbox"].custom-control-input[id^="export_"]').prop('checked', false);
         }
 
@@ -2131,6 +2134,7 @@
                     input: $(`#input_${id}`).is(':checked'),
                     edit: $(`#edit_${id}`).is(':checked'),
                     approve: $(`#approve_${id}`).is(':checked'),
+                    approve_all: $(`#approve_all_${id}`).is(':checked'),
                     export: $(`#export_${id}`).is(':checked')
                 };
             });

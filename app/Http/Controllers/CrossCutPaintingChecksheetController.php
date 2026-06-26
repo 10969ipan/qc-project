@@ -36,8 +36,8 @@ class CrossCutPaintingChecksheetController extends Controller
             'kashift_plating' => ['field' => 'kashift_plating', 'time' => 'kashift_plating_approved_at', 'label' => 'Kashift Painting'],
             'supervisor_plating' => ['field' => 'supervisor_plating', 'time' => 'supervisor_plating_approved_at', 'label' => 'Supervisor Painting'],
             'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'],
-            'manager_plating' => ['field' => 'manager_plating', 'time' => 'manager_plating_approved_at', 'label' => 'Manager Painting'],
-            'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager QC'],
+            'asst_manager_plating' => ['field' => 'asst_manager_plating', 'time' => 'asst_manager_plating_approved_at', 'label' => 'Asst Manager Painting'],
+            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
         ];
         return $mappings[$type] ?? null;
     }
@@ -52,7 +52,7 @@ class CrossCutPaintingChecksheetController extends Controller
      */
     public function index(Request $request)
     {
-        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
+        $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'asst_manager_plating', 'manager_plating'];
 
         if (in_array(auth()->user()->role, $restrictedRoles)) {
             $request->merge(['plant' => auth()->user()->plant_id]);
@@ -87,9 +87,13 @@ class CrossCutPaintingChecksheetController extends Controller
             ->orderBy('operator_initials')
             ->pluck('operator_initials');
 
-        $approvalOrder = ['karu_qc', 'supervisor', 'supervisor_plating', 'manager', 'manager_plating'];
+        $approvalOrder = ['karu_qc', 'supervisor', 'supervisor_plating', 'asst_manager', 'asst_manager_plating'];
 
-        return view('cross_cut_painting.index', compact('checksheets', 'items', 'customers', 'initials', 'approvalOrder'));
+        $canExport = \App\Helpers\AppMenu::checkPermission('cross_cut_painting.index', 'export');
+        $canEdit = \App\Helpers\AppMenu::checkPermission('cross_cut_painting.index', 'edit');
+        $canDelete = \App\Helpers\AppMenu::checkPermission('cross_cut_painting.index', 'delete');
+
+        return view('cross_cut_painting.index', compact('checksheets', 'items', 'customers', 'initials', 'approvalOrder', 'canExport', 'canEdit', 'canDelete'));
     }
 
     /**
@@ -457,8 +461,7 @@ class CrossCutPaintingChecksheetController extends Controller
             'kashift_plating' => 'required|in:Pending,Approved,Rejected',
             'supervisor_plating' => 'required|in:Pending,Approved,Rejected',
             'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
-            'manager_plating' => 'required|in:Pending,Approved,Rejected',
-            'manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
         try {

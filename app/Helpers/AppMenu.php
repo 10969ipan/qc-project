@@ -29,6 +29,15 @@ class AppMenu
         // Find the menu by route
         $menu = AppMenuModel::where('route', $route)->first();
 
+        // If not found, try to find the base module index route
+        if (!$menu) {
+            // Strip suffixes like .bulk_approve, .store, .update, etc., and append .index
+            $baseRoute = preg_replace('/\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject)$/', '.index', $route);
+            if ($baseRoute !== $route) {
+                $menu = AppMenuModel::where('route', $baseRoute)->first();
+            }
+        }
+
         if (!$menu) {
             // If menu not found, we might want to check by slug or allow it
             // For now, if it's not registered in AppMenu, we fallback to false for safety
