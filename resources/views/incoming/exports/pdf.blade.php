@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+    @php
+        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_exports', $headerPlantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
 <html lang="en">
 
 <head>

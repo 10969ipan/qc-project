@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+    @php
+        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('first_piece_approval', $headerPlantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
 <html lang="en">
 <head>
     <meta charset="UTF-8">

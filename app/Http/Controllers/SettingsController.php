@@ -615,4 +615,79 @@ class SettingsController extends Controller
             'message' => 'Next Process berhasil dihapus.'
         ]);
     }
+
+    /**
+     * Get Document Headers (AJAX)
+     */
+    public function getDocumentHeaders()
+    {
+        $headers = GeneralSetting::where('category', 'document_control')->get();
+        return response()->json($headers);
+    }
+
+    /**
+     * Store or Update a Document Header
+     */
+    public function storeDocumentHeader(Request $request)
+    {
+        $request->validate([
+            'key' => 'required|string|max:255',
+            'plant_code' => 'required|string|max:50',
+            'no_dokumen' => 'required|string|max:255',
+            'tgl_terbit' => 'required|string|max:255',
+            'revisi' => 'required|string|max:255',
+            'halaman' => 'required|string|max:255',
+        ]);
+
+        $value = json_encode([
+            'no_dokumen' => $request->no_dokumen,
+            'tgl_terbit' => $request->tgl_terbit,
+            'revisi' => $request->revisi,
+            'halaman' => $request->halaman,
+        ]);
+
+        // Key structure: {module}_{plant_code} or we just rely on key=module and plant_code=plant
+        $setting = GeneralSetting::updateOrCreate(
+            [
+                'category' => 'document_control',
+                'key' => $request->key,
+                'plant_code' => $request->plant_code
+            ],
+            [
+                'value' => $value,
+                'description' => 'Document Header Configuration'
+            ]
+        );
+
+        ActivityLogger::log('updated', null, "Memperbarui Header Dokumen untuk {$request->key} ({$request->plant_code})");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Header Dokumen berhasil disimpan.',
+            'data' => $setting
+        ]);
+    }
+
+    /**
+     * Delete a Document Header
+     */
+    public function deleteDocumentHeader($id)
+    {
+        $setting = GeneralSetting::findOrFail($id);
+        
+        if ($setting->category !== 'document_control') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid setting category.'
+            ], 403);
+        }
+
+        ActivityLogger::log('deleted', null, "Menghapus Header Dokumen untuk {$setting->key} ({$setting->plant_code})");
+        $setting->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Header Dokumen berhasil dihapus.'
+        ]);
+    }
 }

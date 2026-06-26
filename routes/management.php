@@ -50,6 +50,11 @@ Route::middleware(['auth'])->group(function () {
         Route::put('settings/next-processes/{id}', [\App\Http\Controllers\SettingsController::class, 'updateNextProcess'])->name('settings.next-processes.update');
         Route::delete('settings/next-processes/{id}', [\App\Http\Controllers\SettingsController::class, 'deleteNextProcess'])->name('settings.next-processes.delete');
         
+        // Document Header Management
+        Route::get('settings/document-headers', [\App\Http\Controllers\SettingsController::class, 'getDocumentHeaders'])->name('settings.document-headers');
+        Route::post('settings/document-headers', [\App\Http\Controllers\SettingsController::class, 'storeDocumentHeader'])->name('settings.document-headers.store');
+        Route::delete('settings/document-headers/{id}', [\App\Http\Controllers\SettingsController::class, 'deleteDocumentHeader'])->name('settings.document-headers.delete');
+        
         // Activity Logs
         Route::get('settings/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('settings.activity_logs');
         

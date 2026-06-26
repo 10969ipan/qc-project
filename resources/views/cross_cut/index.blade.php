@@ -99,6 +99,13 @@
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
         $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
         $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('cross_cut', request('plant'), [
+            'no_dokumen' => 'QC-KRW-F-0214',
+            'tgl_terbit' => '25/03/2015',
+            'revisi' => '3 / 22/12/2025',
+            'halaman' => '1 / 1'
+        ]);
     @endphp
     <div class="card shadow mb-2">
         <div class="card-body p-0">
@@ -109,7 +116,7 @@
                     </td>
                     <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA CHECKSHEET CROSS CUT PLATING
+                            LAPORAN DATA CHECKSHEET CROSS CUT
                         </h1>
                     </td>
                     <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
@@ -117,22 +124,22 @@
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0214</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">3 / 22/12/2025</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
                             </tr>
                         </table>
                     </td>

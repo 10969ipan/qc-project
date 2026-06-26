@@ -3,6 +3,15 @@
 @section('title', 'Edit Data Cross Cut')
 
 @section('content')
+        @php
+        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('cross_cut', $headerPlantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
     <div class="card shadow mb-4 border-left-primary">
         <div class="card-body py-3">
             <div class="row align-items-start">

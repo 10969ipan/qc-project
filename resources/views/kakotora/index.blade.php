@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Data Kakotora')
 
@@ -139,6 +139,12 @@
 
 @php
     $plantCode = strtolower($plant ?: 'jakarta');
+    $docHeader = \App\Models\GeneralSetting::getDocHeader('kakotora', $plantCode, [
+        'no_dokumen' => strtoupper($plantCode) === 'JAKARTA' ? 'ENG-JKT-F-037' : 'ENG-KRW-F-037',
+        'tgl_terbit' => '17-06-2020',
+        'revisi' => '1 / 06-04-2023',
+        'halaman' => '1 / 1'
+    ]);
 @endphp
 
 <div class="card shadow mb-2">
@@ -158,24 +164,22 @@
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                {{ strtoupper($plantCode) === 'JAKARTA' ? 'ENG-JKT-F-037' : 'ENG-KRW-F-037' }}
-                            </td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
                         </tr>
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">17-06-2020</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
                         </tr>
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 06-04-2023</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
                         </tr>
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
                         </tr>
                     </table>
                 </td>

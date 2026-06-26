@@ -13,7 +13,16 @@
                 </a>
             </div>
 
-            <div class="card shadow mb-4">
+                @php
+        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('double_tape', $headerPlantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
+    <div class="card shadow mb-4">
                 <div class="card-body">
                     @include('double_tape.partials.edit_form')
                 </div>

@@ -5,6 +5,7 @@
 @section('content')
     @php
         $currentPlant = $plants->firstWhere('id', $plantId);
+        $plantCode = strtolower($currentPlant->name ?? 'ALL');
         
         // Resolve menu ID for permission checks
         $currentMenu = \App\Models\AppMenu::where('route', 'admin.customer-claim-records.index')->first();
@@ -12,6 +13,13 @@
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
         $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
         $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('customer_claim', $plantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
     @endphp
 
     <div class="card shadow mb-4">
@@ -25,6 +33,30 @@
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:1.15rem; letter-spacing:0.3px;">
                             LIST CLAIM CUSTOMER - PLANT {{ strtoupper($currentPlant->name ?? 'ALL') }}
                         </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </table>
@@ -45,6 +77,13 @@
                 @if(request('plant'))
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                 @endif
+
+                <!-- Instant Smart Search -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                    <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0 no-autoupper" 
+                        placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 120px; font-size: 0.75rem;">
+                </div>
 
                 <!-- Field: Tanggal -->
                 <div class="d-flex align-items-center">
@@ -80,12 +119,7 @@
                     </select>
                 </div>
 
-                <!-- Instant Smart Search -->
-                <div class="d-flex align-items-center flex-grow-1 mx-2">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0 no-autoupper" 
-                        placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 100%; font-size: 0.75rem;">
-                </div>
+
 
                 <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
@@ -227,7 +261,7 @@
         <div id="tableContainer" style="display: none;">
             <div class="table-responsive">
                 <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
+                    <thead class="bg-light">
                         <tr>
                             <th>No</th>
                             <th>Tanggal Claim</th>

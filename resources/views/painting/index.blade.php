@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Checksheet Painting')
 
@@ -87,12 +87,23 @@
         font-size: 0.6rem !important;
         padding: 0.2rem 0.4rem !important;
     }
-    }
+
     #checksheetTable tbody tr:hover {
         background-color: #f1f5f9 !important;
         transition: background-color 0.2s ease;
     }
 </style>
+
+    @php
+        $plantCode = request('plant', 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('painting', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0183',
+            'tgl_terbit' => '25/03/2015',
+            'revisi' => '3 / 22/12/2025',
+            'halaman' => '1 / 1'
+        ]);
+    @endphp
+
     <div class="card shadow mb-2">
         <div class="card-body p-0">
             <table style="width:100%; border-collapse:collapse;">
@@ -110,22 +121,22 @@
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0183</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">3 / 22/12/2025</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
                                 <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
                             </tr>
                         </table>
                     </td>
@@ -133,6 +144,7 @@
             </table>
         </div>
     </div>
+
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 

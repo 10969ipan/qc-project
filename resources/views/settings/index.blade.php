@@ -26,6 +26,9 @@
                     <a class="nav-link settings-sidebar-item" id="activity-logs-tab" data-toggle="pill" href="#activity-logs" role="tab" aria-controls="activity-logs" aria-selected="false">
                         <span>Log Aktivitas</span>
                     </a>
+                    <a class="nav-link settings-sidebar-item" id="header-dokumen-tab" data-toggle="pill" href="#header-dokumen" role="tab" aria-controls="header-dokumen" aria-selected="false">
+                        <span>Header Dokumen</span>
+                    </a>
 
                     <!-- Group: Pengguna & Akses -->
                     <div class="settings-sidebar-header">
@@ -432,6 +435,42 @@
             </div>
 
 
+            <!-- Tab: Header Dokumen -->
+            <div class="tab-pane fade" id="header-dokumen" role="tabpanel" aria-labelledby="header-dokumen-tab">
+                <div class="card shadow border-0 rounded-lg mb-4 slide-in">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark letter-spacing-1 font-size-sm mb-1">Header Dokumen</h6>
+                            <p class="text-muted small mb-0">Kustomisasi dinamis untuk data dokumen di berbagai halaman laporan</p>
+                        </div>
+                        <button type="button" class="btn btn-dark rounded-pill px-4 shadow-sm btn-sm-modern py-2" data-toggle="modal" data-target="#modalAddDocumentHeader">
+                            <i class="fas fa-plus mr-2"></i> Tambah Kustomisasi
+                        </button>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle custom-table table-minimalist mb-0 w-100" id="documentHeadersTable">
+                                <thead class="bg-light text-muted">
+                                    <tr>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Modul / Area</th>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">No. Dokumen</th>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Tgl. Terbit</th>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Revisi / Tgl</th>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Halaman</th>
+                                        <th class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted small">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab 4: Log Aktivitas -->
             <div class="tab-pane fade" id="activity-logs" role="tabpanel" aria-labelledby="activity-logs-tab">
                 <div class="card shadow border-0 rounded-lg mb-4 slide-in">
@@ -749,7 +788,73 @@
         </div>
     </div>
 
-</div>
+    <!-- Modal Add/Edit Document Header -->
+    <div class="modal fade" id="modalAddDocumentHeader" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-lg">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title font-weight-bold" id="documentHeaderModalTitle"><i class="fas fa-file-alt mr-2"></i>Kustomisasi Header Dokumen</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formDocumentHeader">
+                    @csrf
+                    <input type="hidden" name="id" id="doc_header_id">
+                    <div class="modal-body p-4">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Pilih Modul / Laporan</label>
+                            <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                <option value="">-- Pilih Modul --</option>
+                                <option value="master_alat_ukur">Master Alat Ukur</option>
+                                <option value="hasil_verifikasi_alat_ukur">Hasil Verifikasi Alat Ukur</option>
+                                @foreach($qcModules as $val => $label)
+                                    <option value="{{ $val }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Pilih Plant / Area</label>
+                            <select name="plant_code" id="doc_header_plant_code" class="form-control rounded-pill border-0 bg-light px-3" required>
+                                <option value="">-- Pilih Plant --</option>
+                                <option value="jakarta">Jakarta</option>
+                                <option value="karawang">Karawang</option>
+                            </select>
+                        </div>
+                        
+                        <hr class="my-4" style="border-top: 1px dashed #e2e8f0;">
+                        
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">No. Dokumen</label>
+                            <input type="text" name="no_dokumen" id="doc_header_no_dokumen" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" required placeholder="Contoh: QC-KRW-F-0213">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-dark">Tgl. Terbit</label>
+                                    <input type="text" name="tgl_terbit" id="doc_header_tgl_terbit" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" required placeholder="Contoh: 25/03/2015">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-dark">Revisi / Tgl</label>
+                                    <input type="text" name="revisi" id="doc_header_revisi" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" required placeholder="Contoh: 3 / 22/12/2025">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold text-dark">Halaman</label>
+                            <input type="text" name="halaman" id="doc_header_halaman" class="form-control rounded-pill border-0 bg-light px-3 no-autoupper" required placeholder="Contoh: 1 / 1" value="1 / 1">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4 shadow-sm">Simpan Kustomisasi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 @endsection
 
@@ -2682,7 +2787,158 @@
         var hash = window.location.hash;
         if (hash) {
             $('.nav-link[href="' + hash + '"]').tab('show');
+            if (hash === '#header-dokumen') {
+                loadDocumentHeaders();
+            }
         }
+        
+        $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            if ($(e.target).attr('href') === '#header-dokumen') {
+                loadDocumentHeaders();
+            }
+        });
+
+        // Load Document Headers
+        function loadDocumentHeaders() {
+            var tbody = $('#documentHeadersTable tbody');
+            tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm mr-2 text-primary"></div> Memuat data...</td></tr>');
+            
+            $.ajax({
+                url: "{{ route('admin.settings.document-headers') }}",
+                type: "GET",
+                success: function(response) {
+                    tbody.empty();
+                    if(response.length === 0) {
+                        tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted small">Belum ada kustomisasi header dokumen.</td></tr>');
+                        return;
+                    }
+                    
+                    response.forEach(function(item) {
+                        let val = {};
+                        try {
+                            val = JSON.parse(item.value);
+                        } catch(e) {}
+                        
+                        let moduleName = $('#doc_header_key option[value="'+item.key+'"]').text();
+                        if(!moduleName || moduleName === '') moduleName = item.key;
+                        
+                        let html = `
+                        <tr class="table-row-hover" style="border-bottom: 1px solid #f8f9fa;">
+                            <td>
+                                <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.85rem;">${moduleName}</h6>
+                                <span class="badge badge-pill badge-${item.plant_code === 'jakarta' ? 'info' : 'primary'}" style="font-size: 0.65rem;">${item.plant_code.toUpperCase()}</span>
+                            </td>
+                            <td><span class="font-weight-bold text-dark" style="font-size: 0.8rem;">${val.no_dokumen || '-'}</span></td>
+                            <td><span style="font-size: 0.8rem;">${val.tgl_terbit || '-'}</span></td>
+                            <td><span style="font-size: 0.8rem;">${val.revisi || '-'}</span></td>
+                            <td><span style="font-size: 0.8rem;">${val.halaman || '-'}</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-light rounded-circle shadow-sm edit-doc-header" 
+                                    data-id="${item.id}" 
+                                    data-key="${item.key}"
+                                    data-plant="${item.plant_code}"
+                                    data-json='${JSON.stringify(val)}'
+                                    data-toggle="tooltip" title="Edit">
+                                    <i class="fas fa-pen text-primary" style="font-size: 0.7rem;"></i>
+                                </button>
+                                <button class="btn btn-sm btn-light rounded-circle shadow-sm delete-doc-header ml-1" 
+                                    data-id="${item.id}" 
+                                    data-toggle="tooltip" title="Hapus">
+                                    <i class="fas fa-trash text-danger" style="font-size: 0.7rem;"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                        tbody.append(html);
+                    });
+                },
+                error: function() {
+                    tbody.html('<tr><td colspan="6" class="text-center py-4 text-danger small">Gagal memuat data.</td></tr>');
+                }
+            });
+        }
+
+        // Add/Edit Document Header
+        $(document).on('click', '.edit-doc-header', function() {
+            var id = $(this).data('id');
+            var key = $(this).data('key');
+            var plant = $(this).data('plant');
+            var val = $(this).data('json');
+            
+            $('#doc_header_id').val(id);
+            $('#doc_header_key').val(key);
+            $('#doc_header_plant_code').val(plant);
+            $('#doc_header_no_dokumen').val(val.no_dokumen || '');
+            $('#doc_header_tgl_terbit').val(val.tgl_terbit || '');
+            $('#doc_header_revisi').val(val.revisi || '');
+            $('#doc_header_halaman').val(val.halaman || '');
+            
+            $('#documentHeaderModalTitle').html('<i class="fas fa-pen mr-2"></i>Edit Header Dokumen');
+            $('#modalAddDocumentHeader').modal('show');
+        });
+        
+        $('#modalAddDocumentHeader').on('hidden.bs.modal', function () {
+            $('#formDocumentHeader')[0].reset();
+            $('#doc_header_id').val('');
+            $('#documentHeaderModalTitle').html('<i class="fas fa-file-alt mr-2"></i>Kustomisasi Header Dokumen');
+        });
+
+        $('#formDocumentHeader').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            $.ajax({
+                url: "{{ route('admin.settings.document-headers.store') }}",
+                type: "POST",
+                data: form.serialize(),
+                success: function(response) {
+                    $('#modalAddDocumentHeader').modal('hide');
+                    form[0].reset();
+                    loadDocumentHeaders();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Tersimpan',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menyimpan data.', 'error');
+                }
+            });
+        });
+
+        // Delete Document Header
+        $(document).on('click', '.delete-doc-header', function() {
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Hapus Kustomisasi?',
+                text: "Header dokumen akan kembali ke nilai bawaan sistem.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ url('admin/settings/document-headers') }}/" + id,
+                        type: "DELETE",
+                        data: { _token: "{{ csrf_token() }}" },
+                        success: function(response) {
+                            loadDocumentHeaders();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
         });
     </script>
 @endpush

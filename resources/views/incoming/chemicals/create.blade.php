@@ -3,6 +3,15 @@
 @section('title', 'Input Data Incoming Chemical')
 
 @section('content')
+        @php
+        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $headerPlantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
     <div class="card shadow mb-4 border-left-primary">
         <div class="card-body py-3">
             <div class="row align-items-center">
@@ -26,11 +35,11 @@
                     <div style="max-width: 250px;">
                         <div class="row mb-1">
                             <div class="col-5">No. Dokumen</div>
-                            <div class="col-7">: QC-KRW-F-0214</div>
+                            <div class="col-7">: {{ $docHeader['no_dokumen'] }}</div>
                         </div>
                         <div class="row mb-1">
                             <div class="col-5">Tgl. Terbit</div>
-                            <div class="col-7">: 01/01/2026</div>
+                            <div class="col-7">: {{ $docHeader['tgl_terbit'] }}</div>
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,16 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="card shadow mb-4">
+            @php
+        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_parts', $headerPlantCode, [
+            'no_dokumen' => '-',
+            'tgl_terbit' => '-',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
+    <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Edit Data Incoming Part</h6>
                 <a href="{{ route('incoming.parts.index') }}" class="btn btn-secondary btn-sm">

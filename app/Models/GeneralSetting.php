@@ -41,4 +41,24 @@ class GeneralSetting extends Model
             return $default;
         }
     }
+
+    /**
+     * Helper to get Document Header configuration
+     */
+    public static function getDocHeader($module, $plantCode, $defaults = [])
+    {
+        $setting = self::where('category', 'document_control')
+            ->where('key', $module)
+            ->where('plant_code', strtolower($plantCode))
+            ->first();
+
+        if ($setting) {
+            $decoded = json_decode($setting->value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return array_merge($defaults, $decoded);
+            }
+        }
+
+        return $defaults;
+    }
 }

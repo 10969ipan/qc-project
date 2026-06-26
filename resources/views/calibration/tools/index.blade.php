@@ -133,6 +133,12 @@
 
 @php
     $plantCode = strtolower($plantCode ?: 'jakarta');
+    $docHeader = \App\Models\GeneralSetting::getDocHeader('master_alat_ukur', $plantCode, [
+        'no_dokumen' => $plantCode === 'jakarta' ? 'QC-JKT-F-0215' : 'QC-KRW-F-0215',
+        'tgl_terbit' => '28/11/2019',
+        'revisi' => '- / -',
+        'halaman' => '1 / 1'
+    ]);
 @endphp
 
 <div class="card shadow mb-2">
@@ -152,24 +158,22 @@
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                {{ $plantCode === 'jakarta' ? 'QC-JKT-F-0215' : 'QC-KRW-F-0215' }}
-                            </td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
                         </tr>
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">28/11/2019</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
                         </tr>
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">- / -</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
                         </tr>
                         <tr>
                             <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
                             <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
                         </tr>
                     </table>
                 </td>
@@ -258,7 +262,7 @@
         <!-- Table Container -->
         <div id="tableContainer" style="display: none;">
             <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
-                <thead>
+                <thead class="bg-light">
                     <tr>
                         <th>NO.</th>
                         <th>BAGIAN</th>
