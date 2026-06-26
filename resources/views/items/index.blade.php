@@ -17,17 +17,15 @@
         }
     }
     #checksheetTable {
-        border-collapse: collapse !important;
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
         table-layout: auto !important;
     }
-    }
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
-        border-right: none !important;
-    }
+        border-right: 1px solid #f1f5f9 !important;
     }
     #checksheetTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
@@ -43,16 +41,21 @@
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
-        text-transform: uppercase;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
         font-size: 0.62rem !important;
-        letter-spacing: 0.2px;
+        letter-spacing: 0.2px !important;
         padding: 6px 12px !important;
-        border: none !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
+        line-height: 1.2 !important;
         white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1 !important;
     }
 
     /* Forced overrides for compact view */

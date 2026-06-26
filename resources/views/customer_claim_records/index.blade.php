@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Record Claim')
 
@@ -160,42 +160,49 @@
         }
     }
     #dataTable {
-                    border-collapse: collapse !important;
-                    border-spacing: 0 !important;
-                    border: none !important;
-                    width: 100% !important;
-                }
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
     }
     #dataTable td, #dataTable th {
-                    border-left: none !important;
-                    border-right: none !important;
-                }
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
     }
     #dataTable tbody td {
-                    border-bottom: 1px solid #f1f5f9 !important;
-                    border-top: none !important;
-                    vertical-align: middle !important;
-                    color: #334155 !important;
-                    padding: 6px 8px !important;
-                }
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        padding: 6px 8px !important;
     }
-    #dataTable thead th {
-                    position: -webkit-sticky !important;
-                    position: sticky !important;
-                    top: 0 !important;
-                    z-index: 100 !important;
-                    background-color: #f8fafc !important; /* Industrial Slate */
-                    color: #475569 !important;
-                    font-weight: 600 !important;
-                    text-transform: uppercase;
-                    font-size: 0.65rem !important;
-                    letter-spacing: 0.2px;
-                    padding: 8px 12px !important;
-                    border: none !important;
-                    border-bottom: 2px solid #e2e8f0 !important;
-                    vertical-align: middle !important;
-                    white-space: nowrap !important;
-                }
+    
+    /* Global TH sticky setup - Forced override for admin.blade.php blue headers */
+    #dataTable > thead > tr > th,
+    #dataTable thead th,
+    .table#dataTable thead th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #f8fafc !important;
+        background-clip: padding-box !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.65rem !important;
+        letter-spacing: 0.2px !important;
+        padding: 8px 12px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1 !important;
+        top: 0 !important;
+        z-index: 105 !important;
+    }
                 .badge {
                     font-size: 0.65rem !important;
                     padding: 0.25rem 0.45rem !important;
