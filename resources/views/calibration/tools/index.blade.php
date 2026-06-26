@@ -273,7 +273,7 @@
                         <th>JENIS KALIBRASI</th>
                         <th>PR NUMBER</th>
                         <th>STATUS</th>
-                        <th class="no-export">AKSI</th>
+                        <th class="no-export">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -346,45 +346,49 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="no-export">
-                                <div class="d-flex justify-content-center flex-wrap" style="gap: 2px;">
-                                    @if($tool->certification_path)
-                                    <button type="button" class="btn btn-primary btn-sm view-pdf shadow-sm" 
-                                        data-toggle="modal" 
-                                        data-target="#pdfModal" 
-                                        data-url="{{ route('calibration.tools.serve-pdf', $tool->id) }}"
-                                        data-title="Sertifikat - {{ $tool->name_alat }}">
-                                        <i class="fas fa-file-pdf"></i>
+                            <td class="no-export align-middle text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-light btn-sm shadow-sm border" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width: 32px; height: 32px; border-radius: 8px;">
+                                        <i class="fas fa-ellipsis-v text-secondary"></i>
                                     </button>
-                                    @endif
-
-                                    <button type="button" class="btn btn-success btn-sm btn-verifikasi shadow-sm" 
-                                        data-tool-id="{{ $tool->id }}" 
-                                        data-toggle="modal" 
-                                        data-target="#modalVerifikasiBaru" 
-                                        title="Verifikasi">
-                                        <i class="fas fa-check-circle"></i>
-                                    </button>
-
-                                    <button type="button" class="btn btn-info btn-sm btn-edit-tool shadow-sm" data-id="{{ $tool->id }}" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-
-                                    <button type="button" class="btn btn-warning btn-sm btn-report-problem shadow-sm" 
-                                        data-id="{{ $tool->id }}" 
-                                        data-name="{{ $tool->name_alat }}" 
-                                        title="Lapor Masalah">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                    </button>
-
-                                    @if(auth()->user()->role === 'admin')
-                                    <form action="{{ route('calibration.tools.destroy', $tool->id) }}" method="POST" class="d-inline delete-form">
-                                        @csrf @method('DELETE')
-                                        <button type="button" class="btn btn-danger btn-sm shadow-sm btn-delete" title="Hapus">
-                                            <i class="fas fa-trash"></i>
+                                    <div class="dropdown-menu dropdown-menu-right shadow-lg border-0" style="border-radius: 8px; min-width: 180px;">
+                                        @if($tool->certification_path)
+                                        <button type="button" class="dropdown-item view-pdf" 
+                                            data-toggle="modal" 
+                                            data-target="#pdfModal" 
+                                            data-url="{{ route('calibration.tools.serve-pdf', $tool->id) }}"
+                                            data-title="Sertifikat - {{ $tool->name_alat }}">
+                                            <i class="fas fa-file-pdf text-primary fa-fw mr-2"></i> Lihat Sertifikat
                                         </button>
-                                    </form>
-                                    @endif
+                                        @endif
+
+                                        <button type="button" class="dropdown-item btn-verifikasi" 
+                                            data-tool-id="{{ $tool->id }}" 
+                                            data-toggle="modal" 
+                                            data-target="#modalVerifikasiBaru">
+                                            <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Verifikasi
+                                        </button>
+
+                                        <button type="button" class="dropdown-item btn-edit-tool" data-id="{{ $tool->id }}">
+                                            <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit
+                                        </button>
+
+                                        <button type="button" class="dropdown-item btn-report-problem" 
+                                            data-id="{{ $tool->id }}" 
+                                            data-name="{{ $tool->name_alat }}">
+                                            <i class="fas fa-exclamation-triangle text-warning fa-fw mr-2"></i> Lapor Masalah
+                                        </button>
+
+                                        @if(in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor']))
+                                        <div class="dropdown-divider"></div>
+                                        <form action="{{ route('calibration.tools.destroy', $tool->id) }}" method="POST" class="d-inline delete-form w-100">
+                                            @csrf @method('DELETE')
+                                            <button type="button" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                         </tr>
