@@ -522,195 +522,65 @@
                                             @include('partials.bulk_approve_button')
                                         @endif
                                         @php
-                                            // Dimodifikasi: Mengizinkan approval pada level apa pun tanpa menunggu level sebelumnya
-                                            $canApproveKaruQc = (auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$checksheet->karu_qc || $checksheet->karu_qc === 'REJECTED');
+                                            $isAdmin = auth()->user()->role === 'admin';
+                                            $currentRole = auth()->user()->role;
 
-                                            $canApproveSupervisorPlating = (auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_plating || $checksheet->supervisor_plating === 'REJECTED');
-                                            $canApproveSupervisor = (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveAsstManager = (auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                            $canApproveAsstManagerPlating = (auth()->user()->role === 'asst_manager_plating' || auth()->user()->role === 'admin') && (!$checksheet->asst_manager_plating || $checksheet->asst_manager_plating === 'REJECTED');
+                                            // Map role → [field_to_check, admin_label]
+                                            $approvalLevels = [
+                                                'karu_qc'              => ['field' => 'karu_qc',              'label' => 'KR'],
+                                                'supervisor'           => ['field' => 'supervisor_qc',         'label' => 'SPV Q'],
+                                                'supervisor_plating'   => ['field' => 'supervisor_plating',    'label' => 'SPV P'],
+                                                'asst_manager'         => ['field' => 'asst_manager_qc',       'label' => 'Asst MGR Q'],
+                                                'asst_manager_plating' => ['field' => 'asst_manager_plating',  'label' => 'Asst MGR P'],
+                                            ];
                                         @endphp
 
-                                        {{-- Level 1: Karu QC --}}
-                                        @if($canApproveKaruQc)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'karu_qc', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kepala Regu)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' KR' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kepala Regu)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-
-
-
-                                        {{-- Level 3: SPV Quality --}}
-                                        @if($canApproveSupervisor)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Quality)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV Q' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV Quality)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-
-                                        {{-- Level 4: SPV Plating --}}
-                                        @if($canApproveSupervisorPlating)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'supervisor_plating', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV Plating)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV P' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor_plating"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-
-                                        {{-- Level 5: Asst Manager QC --}}
-                                        @if($canApproveAsstManager)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager QC)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' Asst MGR Q' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager QC)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-
-                                        {{-- Level 5.5: Asst Manager Plating --}}
-                                        @if($canApproveAsstManagerPlating)
-                                            <form
-                                                action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => 'asst_manager_plating', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
-                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="check_type" value="{{ request('check_type') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager Plating)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' Asst MGR P' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager Plating)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager_plating"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.cross_cut.edit_approval', ['id' => $checksheet->id]) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
-                                        @endif
-                                        @if($canEdit || $canDelete)
-                                            @if($canEdit)
-                                                <a href="{{ route('cross_cut.edit', ['id' => $checksheet->id]) }}"
-                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            @endif
-                                            @if($canDelete)
+                                        @foreach($approvalLevels as $approvalRole => $config)
+                                            @php
+                                                $f = $config['field'];
+                                                $lbl = $config['label'];
+                                                $canApprove = ($isAdmin || $currentRole === $approvalRole)
+                                                              && (!$checksheet->$f || $checksheet->$f === 'REJECTED');
+                                            @endphp
+                                            @if($canApprove)
                                                 <form
-                                                    action="{{ route('cross_cut.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
+                                                    action="{{ route('cross_cut.approve', ['id' => $checksheet->id, 'type' => $approvalRole, 'plant' => request('plant')]) }}"
                                                     method="POST" class="d-inline">
                                                     @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                        style="min-width: 110px;">
-                                                        <i class="fas fa-trash"></i> Hapus
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
+                                                    <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="check_type" value="{{ request('check_type') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1"
+                                                        title="Approve ({{ $lbl }})" style="min-width: 110px;">
+                                                        <i class="fas fa-check"></i>
+                                                        Approve{{ $isAdmin ? ' ' . $lbl : '' }}
                                                     </button>
                                                 </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1"
+                                                    data-toggle="modal"
+                                                    data-target="#rejectModal{{ $checksheet->id }}{{ $approvalRole }}"
+                                                    style="min-width: 110px;">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
                                             @endif
-                                        @endif
+                                        @endforeach
+
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'      => $canEdit,
+                                            'canDelete'    => $canDelete,
+                                            'editUrl'      => route('cross_cut.edit', ['id' => $checksheet->id]),
+                                            'deleteRoute'  => route('cross_cut.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]),
+                                            'deleteParams' => [],
+                                            'statusUrl'    => $isAdmin ? route('admin.cross_cut.edit_approval', ['id' => $checksheet->id]) : null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>

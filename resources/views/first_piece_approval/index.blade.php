@@ -1,4 +1,4 @@
-ï»¿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'First Piece Approval')
 
@@ -328,7 +328,7 @@
                     </a>
                     <a href="{{ route('first_piece_approval.daily_recap', ['plant' => request('plant'), 'date' => request('start_date') ?: now()->toDateString()]) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold"
-                        title="Rekap Harian FPA â€” Distribusi Jam"
+                        title="Rekap Harian FPA — Distribusi Jam"
                         style="background-color: #7c3aed; color: white;">
                         <i class="fas fa-chart-bar fa-sm mr-1"></i> Rekap
                     </a>
@@ -542,7 +542,7 @@
                                                             <td class="dim-header text-std-header">Tol</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    {{ isset($standards[$j]) ? 'Â±' . $standards[$j]['tolerance'] : '-' }}
+                                                                    {{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -552,7 +552,7 @@
                                                     <tr>
                                                         <td class="dim-header">Cav</td>
                                                         @foreach ($activePoints as $j)
-                                                            <td class="dim-header">Ã˜{{ $j }}</td>
+                                                            <td class="dim-header">Ø{{ $j }}</td>
                                                         @endforeach
                                                     </tr>
                                                 </thead>
@@ -1005,34 +1005,14 @@
                                             </button>
                                         @endif
 
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.first_piece_approval.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
-                                        @endif
-                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            @if($canEdit)
-                                                <a href="{{ route('first_piece_approval.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            @endif
-                                            @if($canDelete)
-                                                <form
-                                                    action="{{ route('first_piece_approval.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                    method="POST" class="d-inline ajax-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                        style="min-width: 110px;">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'      => $canEdit,
+                                            'canDelete'    => $canDelete,
+                                            'editUrl'      => route('first_piece_approval.edit', array_merge(['id' => $checksheet->id], request()->all())),
+                                            'deleteRoute'  => route('first_piece_approval.destroy', array_merge(['id' => $checksheet->id], request()->all())),
+                                            'deleteParams' => [],
+                                            'statusUrl'    => (auth()->user()->role === 'admin') ? route('admin.first_piece_approval.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>

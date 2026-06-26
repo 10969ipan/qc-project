@@ -1110,36 +1110,17 @@
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         @endif
+                                        @endif
 
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.in_process.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
-                                        @endif
-                                        @endif
-                                        @if(request('view_mode') === 'verifikasi' || !in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            @if(request('view_mode') === 'verifikasi' || $canEdit)
-                                                <a href="{{ route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            @endif
-                                            @if(request('view_mode') === 'verifikasi' || $canDelete)
-                                                <form
-                                                    action="{{ route('in_process.destroy', array_merge(request()->query(), ['id' => $checksheet->id])) }}"
-                                                    method="POST" class="d-inline ajax-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                        style="min-width: 110px;">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                                        @php $showEdit = (request('view_mode') === 'verifikasi' || $canEdit); $showDel = (request('view_mode') === 'verifikasi' || $canDelete); @endphp
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'      => $showEdit,
+                                            'canDelete'    => $showDel,
+                                            'editUrl'      => route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())),
+                                            'deleteRoute'  => route('in_process.destroy', array_merge(request()->query(), ['id' => $checksheet->id])),
+                                            'deleteParams' => [],
+                                            'statusUrl'    => $isAdmin ? route('admin.in_process.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>

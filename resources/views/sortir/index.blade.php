@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Checksheet Sortir')
 
@@ -500,26 +500,14 @@
                                             </button>
                                         @endif
 
-                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']) || auth()->user()->role == 'admin' || auth()->user()->name == 'Marsiah')
-                                            @if($canEdit)
-                                                <a href="{{ route('sortir.edit', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            @endif
-                                            @if($canDelete)
-                                                <form
-                                                    action="{{ route('sortir.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]) }}"
-                                                    method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete"
-                                                        onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'   => $canEdit,
+                                            'canDelete' => $canDelete,
+                                            'editUrl'   => route('sortir.edit', ['id' => $checksheet->id, 'plant' => request('plant')]),
+                                            'deleteRoute' => route('sortir.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]),
+                                            'deleteParams' => [],
+                                            'statusUrl' => null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>

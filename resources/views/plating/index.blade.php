@@ -668,34 +668,15 @@
                                             </button>
                                         @endif
 
-                                        @if($isAdmin)
-                                            <a href="{{ route('plating.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
-                                        @endif
-                                        @endif
-                                        @if(request('view_mode') === 'verifikasi' || !in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            @if(request('view_mode') === 'verifikasi' || $canEdit)
-                                                <a href="{{ route('plating.edit', array_merge(['id' => $checksheet->id], request()->all())) }}"
-                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            @endif
-                                            @if(request('view_mode') === 'verifikasi' || $canDelete)
-                                                <form action="{{ route('plating.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}" method="POST"
-                                                    class="d-inline ajax-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                        style="min-width: 110px;">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                                        @php $showEdit = (request('view_mode') === 'verifikasi' || $canEdit); $showDel = (request('view_mode') === 'verifikasi' || $canDelete); @endphp
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'      => $showEdit,
+                                            'canDelete'    => $showDel,
+                                            'editUrl'      => route('plating.edit', array_merge(['id' => $checksheet->id], request()->all())),
+                                            'deleteRoute'  => route('plating.destroy', array_merge(['id' => $checksheet->id], request()->all())),
+                                            'deleteParams' => [],
+                                            'statusUrl'    => $isAdmin ? route('plating.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>

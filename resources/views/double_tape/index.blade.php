@@ -616,40 +616,14 @@
                                             </button>
                                         @endif
 
-                                        @if($isAdmin)
-                                            <a href="{{ route('double_tape.edit_approval', ['id' => $checksheet->id]) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
-                                        @endif
-                                        @if(!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                                            @if($canEdit)
-                                                <a href="{{ route('double_tape.edit', $checksheet->id) }}"
-                                                    class="btn btn-warning btn-sm m-1 btn-edit-modal no-loader" title="Edit"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            @endif
-                                            @if($checksheet->judgment === 'NG' && $checksheet->next_proses === 'SORTIR')
-                                                <a href="{{ route('sortir.create', ['plant' => 'karawang']) }}"
-                                                    class="btn btn-danger btn-sm m-1 no-loader" title="Input Sortir"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-sort-amount-down"></i> Sortir
-                                                </a>
-                                            @endif
-                                            @if($canDelete)
-                                                <form action="{{ route('double_tape.destroy', $checksheet->id) }}" method="POST"
-                                                    class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" title="Delete"
-                                                        style="min-width: 110px;">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'      => $canEdit,
+                                            'canDelete'    => $canDelete,
+                                            'editUrl'      => route('double_tape.edit', $checksheet->id),
+                                            'deleteRoute'  => route('double_tape.destroy', $checksheet->id),
+                                            'deleteParams' => [],
+                                            'statusUrl'    => $isAdmin ? route('double_tape.edit_approval', ['id' => $checksheet->id]) : null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>

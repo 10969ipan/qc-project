@@ -467,34 +467,14 @@
                                         @endforeach
 
                                         {{-- Standard Actions --}}
-                                        @if($isAdmin)
-                                            <a href="{{ route('admin.cross_cut_painting.edit_approval', array_merge(['id' => $checksheet->id], request()->query())) }}"
-                                                class="btn btn-info btn-sm m-1 btn-status-modal no-loader" title="Edit Approval Status"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-user-check"></i> Status
-                                            </a>
-                                        @endif
-                                        
-                                        @if($canEdit || $canDelete)
-                                            @if($canEdit)
-                                                <a href="{{ route('cross_cut_painting.edit', array_merge(['id' => $checksheet->id], request()->query())) }}" class="btn btn-warning btn-sm m-1 edit-btn" 
-                                                    data-id="{{ $checksheet->id }}" title="Edit"
-                                                    style="min-width: 80px;">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            @endif
-                                            @if($canDelete)
-                                                <form action="{{ route('cross_cut_painting.destroy', array_merge(['id' => $checksheet->id], request()->query())) }}"
-                                                    method="POST" class="d-inline p-0">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm m-1 btn-delete" 
-                                                        title="Hapus" style="min-width: 80px;">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
+                                        @include('partials.action_dropdown', [
+                                            'canEdit'      => $canEdit,
+                                            'canDelete'    => $canDelete,
+                                            'editUrl'      => route('cross_cut_painting.edit', array_merge(['id' => $checksheet->id], request()->query())),
+                                            'deleteRoute'  => route('cross_cut_painting.destroy', array_merge(['id' => $checksheet->id], request()->query())),
+                                            'deleteParams' => [],
+                                            'statusUrl'    => $isAdmin ? route('admin.cross_cut_painting.edit_approval', array_merge(['id' => $checksheet->id], request()->query())) : null,
+                                        ])
                                     </td>
                                 @endif
                             </tr>
