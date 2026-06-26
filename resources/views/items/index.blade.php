@@ -310,8 +310,8 @@
                                             data-toggle="modal" data-target="#pdfModal"
                                             data-src="{{ $fileUrls[0] }}"
                                             data-files="{{ json_encode($fileUrls) }}"
-                                            title="Lihat PCCP ({{ count($fileUrls) }} file)">
-                                            <i class="fas fa-file-pdf"></i> PCCP
+                                            title="Lihat Dokumen 1 ({{ count($fileUrls) }} file)">
+                                            <i class="fas fa-file-pdf"></i> Dokumen 1
                                             @if(count($fileUrls) > 1)
                                                 <span class="badge badge-light ml-1">{{ count($fileUrls) }}</span>
                                             @endif
@@ -322,7 +322,7 @@
                                         @php
                                             $catName = strtoupper($item->category->name ?? '');
                                             $isProcess = (str_contains($catName, 'INPROSES') || str_contains($catName, 'IN-PROCESS') || str_contains($catName, 'INPROCESS'));
-                                            $standardLabel = $isProcess ? 'Dimensi' : 'Similar';
+                                            $standardLabel = 'Dokumen 2';
                                         @endphp
                                         <button type="button" class="btn btn-info btn-xs view-pdf-btn mb-1" data-toggle="modal"
                                             data-target="#pdfModal"
@@ -412,7 +412,7 @@
         <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
             <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                 <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
-                    <h5 class="modal-title font-weight-bold text-gray-800" id="pdfModalLabel" style="font-size: 1.1rem;"><i class="fas fa-file-pdf mr-2 text-danger"></i> Lihat PDFLihat PDF</h5>
+                    <h5 class="modal-title font-weight-bold text-gray-800" id="pdfModalLabel" style="font-size: 1.1rem;"><i class="fas fa-file-pdf mr-2 text-danger"></i> Lihat PDF</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -580,22 +580,22 @@
                                     {{-- Left: Standard PDF --}}
                                     <div class="p-3" style="flex: 1; min-width: 0; border-right: 2px solid #e9ecef; overflow: hidden;">
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
-                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Upload PDF Baru (Standard)
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Dokumen 1
                                         </label>
                                         <input type="file" id="edit_files_input" name="files[]" class="form-control-file form-control-sm border-0 shadow-sm"
                                             accept=".pdf" multiple>
-                                        <small class="text-muted text-xs d-block mt-1">Bisa upload lebih dari satu file PDF. Max 10MB per file.</small>
+                                        <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dokumen part. Max 10MB.</small>
                                         <div id="edit_existing_files" class="mt-2"></div>
                                         <div id="edit_preview_new_files" class="mt-1"></div>
                                     </div>
-                                    {{-- Right: Similar / Dimensi Part PDF --}}
+                                    {{-- Right: Dokumen 2 Part PDF --}}
                                     <div class="p-3" style="flex: 1; min-width: 0;">
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
-                                            <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi Part PDF
+                                            <i class="fas fa-file-alt text-info mr-1"></i> Dokumen 2
                                         </label>
                                         <input type="file" id="edit_similar_input" name="similar_part_file" class="form-control-file form-control-sm border-0 shadow-sm"
                                             accept=".pdf">
-                                        <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dimensi part. Max 10MB.</small>
+                                        <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dokumen part. Max 10MB.</small>
                                         <div id="edit_existing_similar_file" class="mt-2"></div>
                                         <div id="edit_preview_new_similar" class="mt-1"></div>
                                     </div>
@@ -845,7 +845,7 @@
                                     {{-- Left: Standard PDF --}}
                                     <div class="p-3" style="flex: 1; min-width: 0; border-right: 2px solid #e9ecef; overflow: hidden;">
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
-                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Upload PDF Standard <span class="text-danger">*</span>
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Dokumen 1 <span class="text-danger">*</span>
                                         </label>
                                         <input type="file" id="tambah_files_input" name="files[]"
                                             class="form-control-file form-control-sm border-0 shadow-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
@@ -859,10 +859,10 @@
                                         <small class="text-muted text-xs d-block mt-1">Bisa upload lebih dari satu file PDF. Max 10MB per file.</small>
                                         <div id="tambah_preview_files" class="mt-2"></div>
                                     </div>
-                                    {{-- Right: Similar / Dimensi Part PDF --}}
+                                    {{-- Right: Dokumen 2 Part PDF --}}
                                     <div class="p-3" style="flex: 1; min-width: 0;">
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
-                                            <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi Part PDF
+                                            <i class="fas fa-file-alt text-info mr-1"></i> Dokumen 2
                                         </label>
                                         <input type="file" id="tambah_similar_input" name="similar_part_file"
                                             class="form-control-file form-control-sm border-0 shadow-sm" accept=".pdf">
@@ -1170,13 +1170,13 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="pdf_type" id="bulk_type_standard" value="standard" checked>
                                     <label class="form-check-label small" for="bulk_type_standard">
-                                        <i class="fas fa-file-pdf text-danger mr-1"></i> PCCP / Standard
+                                        <i class="fas fa-file-pdf text-danger mr-1"></i> Dokumen 1
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="pdf_type" id="bulk_type_similar" value="similar">
                                     <label class="form-check-label small" for="bulk_type_similar">
-                                        <i class="fas fa-file-alt text-info mr-1"></i> Similar / Dimensi
+                                        <i class="fas fa-file-alt text-info mr-1"></i> Dokumen 2
                                     </label>
                                 </div>
                             </div>
@@ -1254,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             const catLabel = cat.options[cat.selectedIndex]?.text || '';
             const type = document.querySelector('input[name="pdf_type"]:checked')?.value || '';
-            const typeLabel = type === 'standard' ? 'PCCP / Standard' : 'Similar / Dimensi';
+            const typeLabel = type === 'standard' ? 'Dokumen 1' : 'Dokumen 2';
             
             Swal.fire({
                 title: 'Konfirmasi Upload Sekaligus',

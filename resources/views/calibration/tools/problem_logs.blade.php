@@ -13,16 +13,13 @@
         border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
-        border-top: none !important;
         width: 100% !important;
         table-layout: auto !important;
     }
-    
     #problemLogsTable td, #problemLogsTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-
     #problemLogsTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
@@ -32,30 +29,33 @@
         padding: 4px 6px !important;
     }
 
-    #problemLogsTable > thead > tr > th {
+    /* Global TH sticky setup - Forced override for admin.blade.php blue headers */
+    #problemLogsTable > thead > tr > th,
+    #problemLogsTable thead th,
+    .table#problemLogsTable thead th {
         position: -webkit-sticky !important;
         position: sticky !important;
-        background-color: #ffffff !important;
+        background-color: #f8fafc !important;
         background-clip: padding-box !important;
-        color: #5a5c69 !important;
+        color: #475569 !important;
         font-weight: 700 !important;
-        text-transform: uppercase;
+        text-transform: uppercase !important;
         font-size: 0.62rem !important;
-        letter-spacing: 0.2px;
+        letter-spacing: 0.2px !important;
         padding: 10px 12px !important;
-        border-top: 1px solid #e2e8f0 !important;
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e3e6f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
+        line-height: 1.2 !important;
         white-space: nowrap !important;
-        box-shadow: inset 0 -1px 0 #e2e8f0;
+        box-shadow: inset 0 -1px 0 #e2e8f0 !important;
         top: 0 !important;
         z-index: 105 !important;
     }
 
-    /* Remove DataTables default sorting icons and background */
+    /* Forced overrides for DataTables elements */
     #problemLogsTable.dataTable thead .sorting:before,
     #problemLogsTable.dataTable thead .sorting:after,
     #problemLogsTable.dataTable thead .sorting_asc:before,
@@ -69,9 +69,9 @@
     #problemLogsTable.dataTable thead .sorting_asc,
     #problemLogsTable.dataTable thead .sorting_desc {
         background-image: none !important;
-        background-color: #ffffff !important;
+        background-color: #f8fafc !important;
+        color: #475569 !important;
     }
-
     #problemLogsTable .btn {
         min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;

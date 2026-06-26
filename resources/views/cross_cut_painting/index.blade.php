@@ -521,8 +521,13 @@
                     <h5 class="modal-title font-weight-bold"><i class="fas fa-image mr-2"></i>Bukti Foto Hasil Cross Cut</h5>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <div class="modal-body">
-                    <img id="modalViewImage" src="" class="img-fluid border shadow-sm">
+                <div class="modal-body overflow-auto">
+                    <img id="modalViewImage" src="" class="img-fluid border shadow-sm" style="cursor: zoom-in; transition: transform 0.25s ease;" onclick="this.style.transform = this.style.transform === 'scale(2)' ? 'scale(1)' : 'scale(2)'; this.style.cursor = this.style.transform === 'scale(2)' ? 'zoom-out' : 'zoom-in';">
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <a href="#" id="downloadImageBtnPainting" class="btn btn-primary" download>
+                        <i class="fas fa-download mr-1"></i>Download Gambar
+                    </a>
                 </div>
             </div>
         </div>
@@ -617,6 +622,13 @@
                 pdfTitle: 'LAPORAN CHECKSHEET CROSS CUT PAINTING',
                 docNo: 'QC-KRW-F-0215',
                 approveRoute: "{{ route('cross_cut_painting.approve', ['id' => ':id', 'type' => ':type']) }}"
+            });
+
+            // Update Download Button link on Modal Show
+            $('#imageModal').on('show.bs.modal', function (e) {
+                var btn = $(e.relatedTarget);
+                var imagePath = btn.data('image');
+                $('#downloadImageBtnPainting').attr('href', imagePath);
             });
 
             // Link Synchronization (Sync Print/Export links with current filter selections)

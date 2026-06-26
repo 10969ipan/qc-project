@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Hasil Verifikasi')
 
@@ -62,85 +62,85 @@
             max-height: 60vh !important;
         }
     }
+
     #dataTable, table.dataTable {
-                border-collapse: separate !important;
-                border-spacing: 0 !important;
-                border: none !important;
-                border-top: none !important;
-                width: 100% !important;
-            }
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
     }
     #dataTable td, #dataTable th {
-                border-left: none !important;
-                border-right: 1px solid #f1f5f9 !important;
-            }
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
     }
     #dataTable tbody td {
-                border-bottom: 1px solid #f1f5f9 !important;
-                border-top: none !important;
-                vertical-align: middle !important;
-                color: #334155 !important;
-                font-size: 0.68rem !important;
-                padding: 4px 6px !important;
-            }
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 4px 6px !important;
     }
-    #dataTable > thead > tr > th {
-                position: -webkit-sticky !important;
-                position: sticky !important;
-                background-color: #f8fafc !important;
-                background-clip: padding-box !important;
-                color: #475569 !important;
-                font-weight: 700 !important;
-                text-transform: uppercase;
-                font-size: 0.62rem !important;
-                letter-spacing: 0.2px;
-                padding: 6px 12px !important;
-                border-top: 1px solid #e2e8f0 !important;
-                border-left: none !important;
-                border-right: 1px solid #e2e8f0 !important;
-                border-bottom: 1px solid #e2e8f0 !important;
-                vertical-align: middle !important;
-                line-height: 1.2;
-                white-space: nowrap !important;
-                box-shadow: inset 0 -1px 0 #e2e8f0;
-                top: 0 !important;
-                z-index: 105 !important;
-            }
 
-            /* Remove DataTables default sorting icons and background */
-            #dataTable.dataTable thead .sorting:before,
-            #dataTable.dataTable thead .sorting:after,
-            #dataTable.dataTable thead .sorting_asc:before,
-            #dataTable.dataTable thead .sorting_asc:after,
-            #dataTable.dataTable thead .sorting_desc:before,
-            #dataTable.dataTable thead .sorting_desc:after {
-                display: none !important;
-            }
+    /* Global TH sticky setup - Forced override for admin.blade.php blue headers */
+    #dataTable > thead > tr > th,
+    #dataTable thead th,
+    .table#dataTable thead th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #f8fafc !important;
+        background-clip: padding-box !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px !important;
+        padding: 6px 12px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #e2e8f0 !important;
+        top: 0 !important;
+        z-index: 105 !important;
+    }
+
+    /* Forced overrides for DataTables elements */
+    #dataTable.dataTable thead .sorting:before,
+    #dataTable.dataTable thead .sorting:after,
+    #dataTable.dataTable thead .sorting_asc:before,
+    #dataTable.dataTable thead .sorting_asc:after,
+    #dataTable.dataTable thead .sorting_desc:before,
+    #dataTable.dataTable thead .sorting_desc:after {
+        display: none !important;
     }
     #dataTable.dataTable thead th,
-            #dataTable.dataTable thead .sorting,
-            #dataTable.dataTable thead .sorting_asc,
-            #dataTable.dataTable thead .sorting_desc {
-                background-image: none !important;
-                background-color: #f8fafc !important;
-            }
+    #dataTable.dataTable thead .sorting,
+    #dataTable.dataTable thead .sorting_asc,
+    #dataTable.dataTable thead .sorting_desc {
+        background-image: none !important;
+        background-color: #f8fafc !important;
+        color: #475569 !important;
     }
     #dataTable .btn {
-                min-width: 0 !important;
-                padding: 0.2rem 0.4rem !important;
-                font-size: 0.6rem !important;
-                margin: 1px !important;
-            }
+        min-width: 0 !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
     }
     #dataTable .badge {
-                font-size: 0.6rem !important;
-                padding: 0.2rem 0.4rem !important;
-            }
-            
-            /* Measurement Cell Styling */
-            .meas-cell-row {
-                height: 52px;
-                display: flex;
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+    
+    /* Measurement Cell Styling */
+    .meas-cell-row {
+        height: 52px;
+        display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 0 4px;
