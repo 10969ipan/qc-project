@@ -988,14 +988,16 @@
 
                                 @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                        @php
+                                            $user = auth()->user();
+                                            $isAdmin = $user->role === 'admin';
+                                        @endphp
                                         @if(request('view_mode') !== 'verifikasi')
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')
                                         @endif
                                         {{-- Tombol Aksi untuk Persetujuan --}}
                                         @php
-                                            $user = auth()->user();
-                                            $isAdmin = $user->role === 'admin';
                                             $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
                                             $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
