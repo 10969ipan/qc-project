@@ -668,6 +668,7 @@
                                             </button>
                                         @endif
 
+                                        @endif
                                         @php $showEdit = (request('view_mode') === 'verifikasi' || $canEdit); $showDel = (request('view_mode') === 'verifikasi' || $canDelete); @endphp
                                         @include('partials.action_dropdown', [
                                             'canEdit'      => $showEdit,
