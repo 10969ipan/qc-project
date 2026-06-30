@@ -23,11 +23,9 @@
         width: 100% !important;
         table-layout: auto !important;
     }
-    }
     #dataTableKakotora td, #dataTableKakotora th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
-    }
     }
     #dataTableKakotora tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
@@ -73,7 +71,6 @@
     #dataTableKakotora.dataTable thead .sorting_desc:after {
         display: none !important;
     }
-    }
     #dataTableKakotora.dataTable thead th,
     #dataTableKakotora.dataTable thead .sorting,
     #dataTableKakotora.dataTable thead .sorting_asc,
@@ -82,13 +79,11 @@
         background-color: #f8fafc !important;
         color: #475569 !important;
     }
-    }
     #dataTableKakotora .btn {
         min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
-    }
     }
     #dataTableKakotora .badge {
         font-size: 0.6rem !important;
@@ -134,6 +129,11 @@
         content: "";
         clear: both;
         display: table;
+    }
+
+    /* Prevent global-loader from blocking clicks */
+    #global-loader {
+        pointer-events: none !important;
     }
 </style>
 
@@ -330,15 +330,16 @@
                                             {{ $item->status }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
+                                    <td class="text-center align-middle">
+                                        <div class="d-flex justify-content-center align-items-center" style="gap: 5px;">
                                             @if ($item->form_analysis_path)
-                                                <a href="{{ $item->form_analysis_url }}" class="btn btn-info btn-sm" target="_blank"
-                                                    title="Download Form Analysis">
-                                                    <i class="fas fa-file-download"></i>
-                                                </a>
+                                                <button type="button" class="btn btn-outline-info btn-sm shadow-sm rounded view-pdf-btn-kakotora"
+                                                    data-src="{{ $item->form_analysis_url }}"
+                                                    title="Lihat Form Analysis">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </button>
                                             @endif
-                                            <button type="button" class="btn btn-primary btn-sm btn-edit-kakotora"
+                                            <button type="button" class="btn btn-outline-primary btn-sm btn-edit-kakotora shadow-sm rounded"
                                                 data-id="{{ $item->id }}" data-date="{{ $item->date }}"
                                                 data-no_reg="{{ $item->no_reg }}" data-issue_date="{{ $item->issue_date }}"
                                                 data-rev_model="{{ $item->rev_model }}" data-family="{{ $item->family }}"
@@ -358,15 +359,12 @@
                                                 title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('kakotora.destroy', $item->id) }}" method="POST"
-                                                class="d-inline"
-                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                class="btn btn-outline-danger btn-sm shadow-sm rounded"
+                                                onclick="kakotoraDeleteRow('{{ route('kakotora.destroy', $item->id) }}', '{{ csrf_token() }}')"
+                                                title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -787,12 +785,19 @@
                                         <textarea name="remarks" id="edit_remarks" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="2"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group row align-items-start mb-2">
-                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Form Analysis</label>
-                                    <div class="col-sm-9">
-                                        <div id="edit_file_preview" class="mb-2"></div>
-                                        <input type="file" name="form_analysis" class="form-control-file border-0 p-1 shadow-sm rounded" style="background:#fff;">
-                                        <small class="text-muted">Max 10MB (pptx, xlsx, doc, pdf)</small>
+                                <div class="mb-3" style="border: 1px solid #e9ecef; border-radius: 6px;">
+                                    <div class="p-3">
+                                        <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Form Analysis
+                                        </label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="file" name="form_analysis" id="edit_form_analysis" class="form-control-file form-control-sm border-0 shadow-sm" style="background:#fff;" accept=".pptx,.xlsx,.doc,.docx,.pdf">
+                                            <button type="button" class="btn btn-sm btn-light text-danger ml-2 d-none" id="clear_edit_file" title="Hapus pilihan file" style="border: 1px solid #e3e6f0; border-radius:4px; padding:2px 8px;">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <small class="text-muted text-xs d-block mt-1">Upload file form analysis. Max 10MB (pptx, xlsx, doc, pdf).</small>
+                                        <div id="edit_file_preview" class="mt-2"></div>
                                     </div>
                                 </div>
                             </div>
@@ -819,13 +824,75 @@
         </div>
     </div>
     @endif
+
+    <!-- Modal View PDF Kakotora -->
+    <div class="modal fade" id="modalViewPdfKakotora" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;"><i class="fas fa-file-pdf mr-2 text-danger"></i> Lihat File</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0 d-flex flex-column" style="background-color: #f8fafc; height: 85vh; overflow: hidden;">
+                    <iframe id="kakotoraPdfIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 
 @push('scripts')
-    <script src="{{ asset('vendor/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
     <script>
+        // Global error logger to capture any JS errors immediately
+        window.onerror = function(msg, url, line, col, error) {
+            alert("JS Error: " + msg + "\nURL: " + url + "\nLine: " + line);
+        };
+
+        // ============================================================
+        // GLOBAL FUNCTIONS - defined outside document.ready
+        // so they are always accessible from onclick attributes
+        // ============================================================
+
+        function kakotoraDeleteRow(url, token) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: 'Data kakotora ini akan dihapus permanen!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = url;
+                    var csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = token;
+                    var methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+                    form.appendChild(csrfInput);
+                    form.appendChild(methodInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        // Old function kept for safety
+        function deleteKakotora(id, token, actionUrl) {
+            kakotoraDeleteRow(actionUrl, token);
+        }
+
         $(document).ready(function () {
             var isAdmin = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
             var colOffset = isAdmin ? 1 : 0;
@@ -1082,9 +1149,18 @@
                 $('#edit_remarks').val(remarks);
 
                 if (file_url) {
-                    $('#edit_file_preview').html('<a href="' + file_url + '" target="_blank" class="btn btn-xs btn-info"><i class="fas fa-file-download"></i> Lihat File Sekarang</a>');
+                    let fileName = file_url.split('/').pop();
+                    $('#edit_file_preview').html(`
+                        <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
+                        <div id="form-analysis-file-row" class="d-flex align-items-center mb-1 p-1 border rounded bg-light" style="overflow:hidden; font-size: 0.75rem;">
+                            <i class="fas fa-file-pdf text-danger mr-1 flex-shrink-0" style="font-size: 1.1rem;"></i>
+                            <span class="text-truncate mr-2 flex-grow-1" style="min-width:0;" title="${fileName}">${fileName}</span>
+                            <button type="button" class="btn btn-info btn-sm mr-1 flex-shrink-0 view-pdf-btn-kakotora" data-src="${file_url}" style="font-size:0.65rem; padding:2px 6px;">View</button>
+                            <button type="button" class="btn btn-danger btn-sm flex-shrink-0 btn-delete-pdf-ajax" data-id="${id}" style="font-size:0.65rem; padding:2px 6px;">Hapus</button>
+                        </div>
+                    `);
                 } else {
-                    $('#edit_file_preview').html('<span class="text-muted small">Tidak ada file</span>');
+                    $('#edit_file_preview').html('');
                 }
 
                 // Set Action URL
@@ -1206,6 +1282,93 @@
                     });
                 });
             }
+            // Single Delete Logic - handled by global deleteKakotora() function
+
+            // Delete Form Analysis logic via AJAX
+            $(document).on('click', '.btn-delete-pdf-ajax', function() {
+                var btn = $(this);
+                var id = btn.data('id');
+                
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: 'File PDF akan dihapus secara langsung dan permanen!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74a3b',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Hapus File!',
+                    cancelButtonText: 'Batal'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Menghapus File...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        $.ajax({
+                            url: '{{ url("kakotora/delete-pdf") }}/' + id,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    $('#edit_file_preview').empty();
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: response.message,
+                                        timer: 1500,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        // Update local DOM so the PDF button disappears from the table too
+                                        var editBtn = $('.btn-edit-kakotora[data-id="'+id+'"]');
+                                        editBtn.attr('data-file_url', '');
+                                        editBtn.data('file_url', '');
+                                        editBtn.closest('div').find('.view-pdf-btn-kakotora').remove();
+                                    });
+                                } else {
+                                    Swal.fire('Gagal!', response.message, 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Error!', 'Gagal menghapus file.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // View PDF logic
+            $(document).on('click', '.view-pdf-btn-kakotora', function(e) {
+                e.preventDefault();
+                const url = $(this).data('src');
+                $('#kakotoraPdfIframe').attr('src', url);
+                $('#modalViewPdfKakotora').modal('show');
+            });
+
+            // Clear iframe on hide
+            $('#modalViewPdfKakotora').on('hidden.bs.modal', function () {
+                $('#kakotoraPdfIframe').attr('src', '');
+            });
+
+            // Handle clear input file
+            $('#edit_form_analysis').on('change', function() {
+                if ($(this)[0].files.length > 0) {
+                    $('#clear_edit_file').removeClass('d-none');
+                } else {
+                    $('#clear_edit_file').addClass('d-none');
+                }
+            });
+
+            $('#clear_edit_file').on('click', function() {
+                $('#edit_form_analysis').val('');
+                $(this).addClass('d-none');
+            });
+
         });
     </script>
 @endpush

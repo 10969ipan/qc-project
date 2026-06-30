@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
 
     // KAKOTORA
     Route::post('kakotora/bulk-destroy', [\App\Http\Controllers\KakotoraController::class, 'bulkDestroy'])->name('kakotora.bulk_destroy');
+    Route::post('kakotora/delete-pdf/{id}', [\App\Http\Controllers\KakotoraController::class, 'deletePdf'])->name('kakotora.delete_pdf');
     Route::get('kakotora/print', [\App\Http\Controllers\KakotoraController::class, 'print'])->name('kakotora.print');
     Route::resource('kakotora', \App\Http\Controllers\KakotoraController::class);
 

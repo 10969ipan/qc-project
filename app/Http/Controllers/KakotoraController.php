@@ -114,7 +114,9 @@ class KakotoraController extends Controller
         $data['plant'] = $request->plant;
 
         if ($request->hasFile('form_analysis')) {
-            $path = $request->file('form_analysis')->store('kakotora', 'public');
+            $file = $request->file('form_analysis');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('kakotora', $filename, 'public');
             $data['form_analysis_path'] = $path;
         }
 
@@ -164,12 +166,21 @@ class KakotoraController extends Controller
             'form_analysis' => 'nullable|file|mimes:pptx,xlsx,doc,docx,pdf|max:10240',
         ]);
 
+        if ($request->has('delete_file') && $request->delete_file == '1') {
+            if ($kakotora->form_analysis_path) {
+                Storage::disk('public')->delete($kakotora->form_analysis_path);
+                $validated['form_analysis_path'] = null;
+            }
+        }
+        
         if ($request->hasFile('form_analysis')) {
             // Delete old file if exists
             if ($kakotora->form_analysis_path) {
                 Storage::disk('public')->delete($kakotora->form_analysis_path);
             }
-            $path = $request->file('form_analysis')->store('kakotora', 'public');
+            $file = $request->file('form_analysis');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('kakotora', $filename, 'public');
             $validated['form_analysis_path'] = $path;
         }
 
@@ -190,6 +201,21 @@ class KakotoraController extends Controller
         ActivityLogger::log('deleted', null, "Menghapus data KAKOTORA: {$noReg}");
 
         return redirect()->route('kakotora.index', ['plant' => $plant])->with('success', 'Data KAKOTORA berhasil dihapus.');
+    }
+
+    public function deletePdf($id)
+    {
+        $kakotora = Kakotora::findOrFail($id);
+
+        if ($kakotora->form_analysis_path) {
+            Storage::disk('public')->delete($kakotora->form_analysis_path);
+            $kakotora->update(['form_analysis_path' => null]);
+            ActivityLogger::log('updated', $kakotora, "Menghapus file form analysis KAKOTORA: {$kakotora->no_reg}");
+            
+            return response()->json(['success' => true, 'message' => 'File berhasil dihapus.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'File tidak ditemukan.'], 404);
     }
 
     public function bulkDestroy(Request $request)
