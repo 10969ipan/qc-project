@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kakotora;
+use App\Models\KakotoraProblem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Helpers\ActivityLogger;
@@ -25,8 +26,11 @@ class KakotoraController extends Controller
         // Get unique claims and statuses for dropdown filters
         $claims = Kakotora::where('plant', $plant)->whereNotNull('category_claim')->where('category_claim', '!=', '')->distinct()->pluck('category_claim');
         $statuses = Kakotora::where('plant', $plant)->whereNotNull('status')->where('status', '!=', '')->distinct()->pluck('status');
+        $problems = KakotoraProblem::where('plant', $plant)->orderBy('name')->pluck('name');
+        
+        $similarParts = \App\Models\Item::withoutGlobalScope('plant')->select('name', 'part_number')->distinct()->orderBy('name')->get();
 
-        return view('kakotora.index', compact('kakotoras', 'plant', 'claims', 'statuses'));
+        return view('kakotora.index', compact('kakotoras', 'plant', 'claims', 'statuses', 'problems', 'similarParts'));
     }
 
     public function print(Request $request)
@@ -256,5 +260,42 @@ class KakotoraController extends Controller
             \Illuminate\Support\Facades\DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function addProblem(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'plant' => 'required|string|max:255',
+        ]);
+
+        $exists = KakotoraProblem::where('plant', $request->plant)
+            ->where('name', $request->name)
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'Problem sudah ada!']);
+        }
+
+        $problem = KakotoraProblem::create([
+            'plant' => $request->plant,
+            'name' => $request->name,
+        ]);
+
+        return response()->json(['success' => true, 'problem' => $problem->name]);
+    }
+
+    public function deleteProblem(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'plant' => 'required|string',
+        ]);
+
+        KakotoraProblem::where('plant', $request->plant)
+            ->where('name', $request->name)
+            ->delete();
+
+        return response()->json(['success' => true]);
     }
 }

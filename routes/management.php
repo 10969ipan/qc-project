@@ -22,8 +22,6 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('categories', CategoryController::class)->except(['create']);
 
         // Thickness Standards
-        Route::post('thickness-standards/import', [\App\Http\Controllers\ThicknessStandardController::class, 'import'])->name('thickness-standards.import');
-        Route::resource('thickness-standards', \App\Http\Controllers\ThicknessStandardController::class);
 
         // Settings UI Prototype
         Route::get('settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
@@ -70,7 +68,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('customer-claim-records-print', [CustomerClaimRecordController::class, 'printView'])->name('customer-claim-records.print');
         Route::delete('customer-claim-records/{id}/attachment/{index}', [CustomerClaimRecordController::class, 'deleteAttachment'])->name('customer-claim-records.attachment.destroy');
         Route::resource('customer-claim-records', CustomerClaimRecordController::class)->names('customer-claim-records');
-    });
+        
+});
 
     // Public/Shared Access to Master Files
     Route::get('items/search-by-part', [ItemController::class, 'searchByPartNumber'])->name('items.search-by-part');

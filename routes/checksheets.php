@@ -43,8 +43,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checksheet/plating', [PlatingChecksheetController::class, 'store'])->name('plating.store');
 
         // Durability Plating (Thickness Data)
-        Route::get('/checksheet/durability-plating', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'create'])->name('durability_plating.create');
-        Route::post('/checksheet/durability-plating', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'store'])->name('durability_plating.store');
 
         // Painting
         Route::get('/checksheet/painting', [PaintingChecksheetController::class, 'create'])->name('painting.create');
@@ -120,7 +118,6 @@ Route::middleware(['auth'])->group(function () {
         // Index Pages
         Route::get('/report/checksheets', [SubAssyChecksheetController::class, 'index'])->name('admin.checksheets.index');
         Route::get('/report/plating-checksheets', [PlatingChecksheetController::class, 'index'])->name('plating.index');
-        Route::get('/report/durability-plating-checksheets', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'index'])->name('durability_plating.index');
         Route::get('/report/painting-checksheets', [PaintingChecksheetController::class, 'index'])->name('painting.index');
         Route::get('/report/double-tape-checksheets', [DoubleTapeChecksheetController::class, 'index'])->name('double_tape.index');
         Route::get('/report/in-process-checksheets', [InProcessChecksheetController::class, 'index'])->name('in_process.index');
@@ -150,9 +147,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/plating-checksheets/export-pdf', [PlatingChecksheetController::class, 'exportPdf'])->name('plating.export_pdf');
         Route::get('/report/plating-checksheets/print', [PlatingChecksheetController::class, 'printView'])->name('plating.print');
         
-        Route::get('/report/durability-plating-checksheets/daily-recap', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'dailyRecap'])->name('durability_plating.daily_recap');
-        Route::get('/report/durability-plating-checksheets/export-pdf', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'exportPdf'])->name('durability_plating.export_pdf');
-        Route::get('/report/durability-plating-checksheets/print', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'printView'])->name('durability_plating.print');
 
         Route::get('/report/painting-checksheets/daily-recap', [PaintingChecksheetController::class, 'dailyRecap'])->name('painting.daily_recap');
         Route::get('/report/painting-checksheets/export-pdf', [PaintingChecksheetController::class, 'exportPdf'])->name('painting.export_pdf');
@@ -195,10 +189,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/plating-checksheets/{id}/reject/{type}', [PlatingChecksheetController::class, 'reject'])->name('plating.reject');
 
         // Durability Plating Approval
-        Route::get('/report/durability-plating-checksheets/{id}/edit-approval', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'editApproval'])->name('durability_plating.edit_approval');
-        Route::put('/report/durability-plating-checksheets/{id}/update-approval', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'updateApproval'])->name('durability_plating.update_approval');
-        Route::post('/durability-plating-checksheets/{id}/approve/{type}', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'approve'])->name('durability_plating.approve');
-        Route::post('/durability-plating-checksheets/{id}/reject/{type}', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'reject'])->name('durability_plating.reject');
 
         // Painting Approval
         Route::get('/report/painting-checksheets/{id}/edit-approval', [PaintingChecksheetController::class, 'editApproval'])->name('painting.edit_approval');
@@ -235,7 +225,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/sortir-checksheets/bulk-destroy', [SortirChecksheetController::class, 'bulkDestroy'])->name('sortir.bulk_destroy');
         Route::post('/plating-checksheets/bulk-approve', [PlatingChecksheetController::class, 'bulkApprove'])->name('plating.bulk_approve');
         Route::post('/plating-checksheets/bulk-destroy', [PlatingChecksheetController::class, 'bulkDestroy'])->name('plating.bulk_destroy');
-        Route::post('/durability-plating-checksheets/bulk-approve', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'bulkApprove'])->name('durability_plating.bulk_approve');
         Route::post('/painting-checksheets/bulk-approve', [PaintingChecksheetController::class, 'bulkApprove'])->name('painting.bulk_approve');
         Route::post('/painting-checksheets/bulk-destroy', [PaintingChecksheetController::class, 'bulkDestroy'])->name('painting.bulk_destroy');
         Route::post('/double-tape-checksheets/bulk-approve', [DoubleTapeChecksheetController::class, 'bulkApprove'])->name('double_tape.bulk_approve');
@@ -254,6 +243,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/incoming-chemical/{id}/approve/{type}', [IncomingChemicalController::class, 'approve'])->name('incoming.chemicals.approve');
         Route::post('/incoming-chemical/{id}/reject/{type}', [IncomingChemicalController::class, 'reject'])->name('incoming.chemicals.reject');
 
+                Route::post('standard-performance-tests/import', [\App\Http\Controllers\StandardPerformanceTestController::class, 'import'])->name('standard-performance-tests.import');
+        Route::get('standard-performance-tests-template', [\App\Http\Controllers\StandardPerformanceTestController::class, 'downloadTemplate'])->name('standard-performance-tests.template');
+        Route::post('standard-performance-tests/thickness', [\App\Http\Controllers\StandardPerformanceTestController::class, 'storeThickness'])->name('standard-performance-tests.thickness.store');
+        Route::get('standard-performance-tests/report', [\App\Http\Controllers\StandardPerformanceTestController::class, 'report'])->name('standard-performance-tests.report');
+                Route::put('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'updateThickness'])->name('standard-performance-tests.thickness.update');
+        Route::delete('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'destroyThickness'])->name('standard-performance-tests.thickness.destroy');
+        Route::resource('standard-performance-tests', \App\Http\Controllers\StandardPerformanceTestController::class);
+
         // Edit/Update/Delete (General Management)
         Route::prefix('admin')->group(function () {
             // Sub Assy
@@ -267,9 +264,6 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('plating-checksheets/{id}', [PlatingChecksheetController::class, 'destroy'])->name('plating.destroy');
 
             // Durability Plating Edit/Update/Delete
-            Route::get('durability-plating-checksheets/{id}/edit', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'edit'])->name('durability_plating.edit');
-            Route::put('durability-plating-checksheets/{id}', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'update'])->name('durability_plating.update');
-            Route::delete('durability-plating-checksheets/{id}', [\App\Http\Controllers\DurabilityPlatingChecksheetController::class, 'destroy'])->name('durability_plating.destroy');
 
             // Painting Edit/Update/Delete
             Route::get('painting-checksheets/{id}/edit', [PaintingChecksheetController::class, 'edit'])->name('painting.edit');

@@ -103,7 +103,7 @@
 
         var input = document.createElement('input');
         input.type = 'text';
-        input.className = 'ips-input';
+        input.className = 'ips-input no-autoupper';
         input.placeholder = placeholder;
         input.autocomplete = 'off';
         input.spellcheck = false;

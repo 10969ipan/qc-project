@@ -482,7 +482,12 @@
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Similar Part</label>
                                     <div class="col-sm-9">
-                                        <textarea name="similar_part" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                        <div class="d-flex w-100 mb-1">
+                                            <input type="text" id="add_similar_part_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper" list="similarPartsList" placeholder="Cari / ketik part..." autocomplete="off">
+                                            <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="appendSimilarPart('add_similar_part_search', 'add')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        <div id="add_similar_part_container" class="w-100 mt-2"></div>
+                                        <input type="hidden" name="similar_part" id="add_similar_part_hidden">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-center mb-2">
@@ -519,19 +524,49 @@
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Problem</label>
                                     <div class="col-sm-9">
-                                        <textarea name="problem" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                        <div class="d-flex w-100">
+                                            <select class="form-control form-control-sm border-0 shadow-sm" name="problem" id="add_problem_select">
+                                                <option value="">- Pilih Problem -</option>
+                                                @foreach($problems as $p)
+                                                    <option value="{{ $p }}">{{ $p }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="deleteProblem('add_problem_select')" title="Hapus Problem Terpilih dari Master"><i class="fas fa-times"></i></button>
+                                            <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="addNewProblem('add_problem_select')" title="Tambah Problem Baru"><i class="fas fa-plus"></i></button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Cause</label>
                                     <div class="col-sm-9">
-                                        <textarea name="cause" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                        <select class="custom-select custom-select-sm border-0 shadow-sm font-weight-bold text-dark mb-1" id="add_cause_4m" style="width: 120px;" onchange="updateHiddenCause('add')">
+                                            <option value="">- 4M -</option>
+                                            <option value="Man">Man</option>
+                                            <option value="Material">Material</option>
+                                            <option value="Method">Method</option>
+                                            <option value="Machine">Machine</option>
+                                        </select>
+                                        <textarea id="add_cause_text" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="4" placeholder="Ketik deskripsi cause..." oninput="updateHiddenCause('add')"></textarea>
+                                        <input type="hidden" name="cause" id="add_cause_hidden">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Countermeasure</label>
                                     <div class="col-sm-9">
-                                        <textarea name="countermeasure" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="8"></textarea>
+                                        <div class="d-flex flex-wrap align-items-start w-100 mb-1" style="gap: 5px;">
+                                            <select class="custom-select custom-select-sm border-0 shadow-sm font-weight-bold text-dark" id="add_cm_4m" style="width: 110px;">
+                                                <option value="">- 4M -</option>
+                                                <option value="Man">Man</option>
+                                                <option value="Material">Material</option>
+                                                <option value="Method">Method</option>
+                                                <option value="Machine">Machine</option>
+                                            </select>
+                                            <textarea id="add_cm_corrective" class="form-control form-control-sm border-0 shadow-sm no-autoupper flex-fill" rows="3" style="min-width: 120px; resize: none;" placeholder="Corrective..."></textarea>
+                                            <textarea id="add_cm_preventive" class="form-control form-control-sm border-0 shadow-sm no-autoupper flex-fill" rows="3" style="min-width: 120px; resize: none;" placeholder="Preventive..."></textarea>
+                                            <button type="button" class="btn btn-sm btn-primary shadow-sm" onclick="appendCountermeasure('add')" title="Tambahkan"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        <div id="add_cm_container" class="w-100 mt-2"></div>
+                                        <input type="hidden" name="countermeasure" id="add_cm_hidden">
                                     </div>
                                 </div>
                             </div>
@@ -588,6 +623,13 @@
             </div>
         </div>
     </div>
+
+    <!-- Datalist Similar Part -->
+    <datalist id="similarPartsList">
+        @foreach($similarParts as $sp)
+            <option value="{{ $sp->name }} ({{ $sp->part_number }})"></option>
+        @endforeach
+    </datalist>
 
     <!-- Modal Edit Kakotora -->
     <div class="modal fade" id="modalEditKakotora" tabindex="-1" role="dialog" aria-hidden="true">
@@ -697,7 +739,12 @@
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Similar Part</label>
                                     <div class="col-sm-9">
-                                        <textarea name="similar_part" id="edit_similar_part" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                        <div class="d-flex w-100 mb-1">
+                                            <input type="text" id="edit_similar_part_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper" list="similarPartsList" placeholder="Cari / ketik part..." autocomplete="off">
+                                            <button type="button" class="btn btn-sm btn-info shadow-sm ml-1" onclick="appendSimilarPart('edit_similar_part_search', 'edit')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        <div id="edit_similar_part_container" class="w-100 mt-2"></div>
+                                        <input type="hidden" name="similar_part" id="edit_similar_part_hidden">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-center mb-2">
@@ -734,19 +781,49 @@
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Problem</label>
                                     <div class="col-sm-9">
-                                        <textarea name="problem" id="edit_problem" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                        <div class="d-flex w-100">
+                                            <select class="form-control form-control-sm border-0 shadow-sm" name="problem" id="edit_problem_select">
+                                                <option value="">- Pilih Problem -</option>
+                                                @foreach($problems as $p)
+                                                    <option value="{{ $p }}">{{ $p }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="deleteProblem('edit_problem_select')" title="Hapus Problem Terpilih dari Master"><i class="fas fa-times"></i></button>
+                                            <button type="button" class="btn btn-sm btn-info shadow-sm ml-1" onclick="addNewProblem('edit_problem_select')" title="Tambah Problem Baru"><i class="fas fa-plus"></i></button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Cause</label>
                                     <div class="col-sm-9">
-                                        <textarea name="cause" id="edit_cause" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="6"></textarea>
+                                        <select class="custom-select custom-select-sm border-0 shadow-sm font-weight-bold text-dark mb-1" id="edit_cause_4m" style="width: 120px;" onchange="updateHiddenCause('edit')">
+                                            <option value="">- 4M -</option>
+                                            <option value="Man">Man</option>
+                                            <option value="Material">Material</option>
+                                            <option value="Method">Method</option>
+                                            <option value="Machine">Machine</option>
+                                        </select>
+                                        <textarea id="edit_cause_text" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="4" placeholder="Ketik deskripsi cause..." oninput="updateHiddenCause('edit')"></textarea>
+                                        <input type="hidden" name="cause" id="edit_cause_hidden">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-start mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Countermeasure</label>
                                     <div class="col-sm-9">
-                                        <textarea name="countermeasure" id="edit_countermeasure" class="form-control form-control-sm border-0 shadow-sm no-autoupper" rows="8"></textarea>
+                                        <div class="d-flex flex-wrap align-items-start w-100 mb-1" style="gap: 5px;">
+                                            <select class="custom-select custom-select-sm border-0 shadow-sm font-weight-bold text-dark" id="edit_cm_4m" style="width: 110px;">
+                                                <option value="">- 4M -</option>
+                                                <option value="Man">Man</option>
+                                                <option value="Material">Material</option>
+                                                <option value="Method">Method</option>
+                                                <option value="Machine">Machine</option>
+                                            </select>
+                                            <textarea id="edit_cm_corrective" class="form-control form-control-sm border-0 shadow-sm no-autoupper flex-fill" rows="3" style="min-width: 120px; resize: none;" placeholder="Corrective..."></textarea>
+                                            <textarea id="edit_cm_preventive" class="form-control form-control-sm border-0 shadow-sm no-autoupper flex-fill" rows="3" style="min-width: 120px; resize: none;" placeholder="Preventive..."></textarea>
+                                            <button type="button" class="btn btn-sm btn-info shadow-sm" onclick="appendCountermeasure('edit')" title="Tambahkan"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        <div id="edit_cm_container" class="w-100 mt-2"></div>
+                                        <input type="hidden" name="countermeasure" id="edit_cm_hidden">
                                     </div>
                                 </div>
                             </div>
@@ -893,11 +970,283 @@
             kakotoraDeleteRow(actionUrl, token);
         }
 
+        function addNewProblem(selectId) {
+            Swal.fire({
+                title: 'Tambah Problem Baru',
+                input: 'text',
+                customClass: {
+                    input: 'no-autoupper'
+                },
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    placeholder: 'Masukkan problem baru...',
+                    style: 'text-transform: none;'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+                showLoaderOnConfirm: true,
+                preConfirm: (name) => {
+                    if(!name) {
+                        Swal.showValidationMessage('Nama problem tidak boleh kosong!');
+                        return false;
+                    }
+                    return $.ajax({
+                        url: '{{ route("kakotora.add_problem") }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            plant: '{{ $plant }}',
+                            name: name
+                        }
+                    }).then(response => {
+                        if (!response.success) {
+                            throw new Error(response.message || 'Gagal menyimpan data');
+                        }
+                        return response;
+                    }).catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error.message || error}`);
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var newProblem = result.value.problem;
+                    $('#add_problem_select').append(new Option(newProblem, newProblem, false, false));
+                    $('#edit_problem_select').append(new Option(newProblem, newProblem, false, false));
+                    
+                    $('#' + selectId).val(newProblem);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Problem baru telah ditambahkan.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        function deleteProblem(selectId) {
+            var select = document.getElementById(selectId);
+            var name = select.value;
+            if (!name) {
+                Swal.fire('Peringatan', 'Silakan pilih problem yang akan dihapus terlebih dahulu.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Hapus Problem?',
+                text: 'Problem "' + name + '" akan dihapus permanen dari daftar master opsi. (Data kakotora yang sudah terlanjur menggunakan problem ini tidak akan terhapus, namun opsinya hilang dari dropdown)',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return $.ajax({
+                        url: '{{ route("kakotora.delete_problem") }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            plant: '{{ $plant }}',
+                            name: name
+                        }
+                    }).then(response => {
+                        if (!response.success) {
+                            throw new Error('Gagal menghapus data');
+                        }
+                        return response;
+                    }).catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error.message || error}`);
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Remove from both selects
+                    $("#add_problem_select option[value='" + name + "']").remove();
+                    $("#edit_problem_select option[value='" + name + "']").remove();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Problem telah dihapus dari daftar.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
         $(document).ready(function () {
+            // Prevent Bootstrap modal from stealing focus from SweetAlert
+            $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
+            window.updateHiddenSimilarPart = function(prefix) {
+                var container = document.getElementById(prefix + '_similar_part_container');
+                var hidden = document.getElementById(prefix + '_similar_part_hidden');
+                var inputs = container.querySelectorAll('input[type="text"]');
+                var vals = [];
+                var count = inputs.length;
+                inputs.forEach(function(inp, index) {
+                    var val = inp.value.trim();
+                    // Bersihkan nomor (1., 2.) jika sudah ada dari load data lama
+                    val = val.replace(/^\d+\.\s*/, '');
+                    
+                    if (count > 1) {
+                        vals.push((index + 1) + '. ' + val);
+                    } else {
+                        vals.push(val);
+                    }
+                });
+                hidden.value = vals.join('\n');
+            };
+
+            window.removeSimilarPart = function(btn, prefix) {
+                btn.parentElement.remove();
+                window.updateHiddenSimilarPart(prefix);
+            };
+
+            window.addSimilarPartElement = function(prefix, val) {
+                var container = document.getElementById(prefix + '_similar_part_container');
+                var div = document.createElement('div');
+                div.className = 'd-flex align-items-center mb-1';
+                div.innerHTML = '<input type="text" class="form-control form-control-sm border-0 shadow-sm bg-light font-weight-bold" value="' + val + '" readonly>' +
+                                '<button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="window.removeSimilarPart(this, \'' + prefix + '\')" title="Hapus Part"><i class="fas fa-times"></i></button>';
+                container.appendChild(div);
+                window.updateHiddenSimilarPart(prefix);
+            };
+
+            window.appendSimilarPart = function(inputId, prefix) {
+                var input = document.getElementById(inputId);
+                var val = input.value.trim();
+                
+                if (val !== '') {
+                    // Cek apakah value ada di datalist
+                    var listId = input.getAttribute('list');
+                    var datalist = document.getElementById(listId);
+                    var exists = false;
+                    
+                    if (datalist) {
+                        var options = datalist.options;
+                        for (var i = 0; i < options.length; i++) {
+                            if (options[i].value === val) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!exists) {
+                        Swal.fire('Peringatan', 'Part tidak terdaftar! Harap pilih part dari daftar yang tersedia.', 'warning');
+                        return;
+                    }
+
+                    window.addSimilarPartElement(prefix, val);
+                    input.value = '';
+                    input.focus();
+                }
+            };
+            window.updateHiddenCause = function(prefix) {
+                var m = document.getElementById(prefix + '_cause_4m').value;
+                var txt = document.getElementById(prefix + '_cause_text').value.trim();
+                var hidden = document.getElementById(prefix + '_cause_hidden');
+                if (m && txt) {
+                    hidden.value = '[' + m + '] ' + txt;
+                } else if (txt) {
+                    hidden.value = txt;
+                } else if (m) {
+                    hidden.value = '[' + m + '] ';
+                } else {
+                    hidden.value = '';
+                }
+            };
+
+            window.addCmElement = function(prefix, m, corr, prev) {
+                var container = document.getElementById(prefix + '_cm_container');
+                var div = document.createElement('div');
+                div.className = 'd-flex align-items-start mb-2 bg-light p-2 rounded shadow-sm position-relative';
+                
+                var compiledText = '[' + m + '] Corrective: ' + corr + ' | Preventive: ' + prev;
+                
+                div.innerHTML = '<div class="flex-grow-1 small">' +
+                                '<strong>[' + m + ']</strong><br>' +
+                                '<span class="text-dark font-weight-bold">Corrective:</span> ' + corr + '<br>' +
+                                '<span class="text-dark font-weight-bold">Preventive:</span> ' + prev + 
+                                '</div>' +
+                                '<input type="hidden" class="cm-raw-value" value="' + compiledText.replace(/"/g, '&quot;') + '">' +
+                                '<button type="button" class="btn btn-sm btn-danger ml-2" onclick="window.removeCm(this, \'' + prefix + '\')" title="Hapus"><i class="fas fa-times"></i></button>';
+                container.appendChild(div);
+                window.updateHiddenCm(prefix);
+            };
+
+            window.removeCm = function(btn, prefix) {
+                btn.parentElement.remove();
+                window.updateHiddenCm(prefix);
+            };
+
+            window.updateHiddenCm = function(prefix) {
+                var container = document.getElementById(prefix + '_cm_container');
+                var hidden = document.getElementById(prefix + '_cm_hidden');
+                var raws = container.querySelectorAll('.cm-raw-value');
+                var vals = [];
+                var count = raws.length;
+                raws.forEach(function(inp, index) {
+                    var val = inp.value;
+                    val = val.replace(/^\d+\.\s*/, '');
+                    if (count > 1) {
+                        vals.push((index + 1) + '. ' + val);
+                    } else {
+                        vals.push(val);
+                    }
+                });
+                hidden.value = vals.join('\n');
+            };
+
+            window.appendCountermeasure = function(prefix) {
+                var m = document.getElementById(prefix + '_cm_4m');
+                var corr = document.getElementById(prefix + '_cm_corrective');
+                var prev = document.getElementById(prefix + '_cm_preventive');
+                
+                if (!m.value) { Swal.fire('Peringatan', 'Pilih 4M terlebih dahulu!', 'warning'); return; }
+                if (!corr.value.trim() && !prev.value.trim()) { Swal.fire('Peringatan', 'Isi Corrective atau Preventive minimal satu!', 'warning'); return; }
+                
+                window.addCmElement(prefix, m.value, corr.value.trim(), prev.value.trim());
+                
+                m.value = '';
+                corr.value = '';
+                prev.value = '';
+                m.focus();
+            };
             var isAdmin = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
             var colOffset = isAdmin ? 1 : 0;
 
             var formatChildRow = function (d) {
+                var cmRaw = d[19 + colOffset] || '-';
+                var cmFormatted = cmRaw;
+                
+                if (cmRaw !== '-') {
+                    var lines = cmRaw.split('\n');
+                    var fLines = [];
+                    lines.forEach(function(line) {
+                        var mMatch = line.match(/^(?:(\d+\.)\s*)?(\[(?:Man|Material|Method|Machine)\])\s*Corrective:\s*(.*?)\s*\|\s*Preventive:\s*(.*)$/si);
+                        if (mMatch) {
+                            var num = mMatch[1] ? mMatch[1] + ' ' : '';
+                            var f = '<div class="mb-2 text-dark">' + num + '<strong>' + mMatch[2] + '</strong><br>' +
+                                    '<div style="padding-left: 1.5rem;"><span class="font-weight-bold">&bull; Corrective:</span> ' + mMatch[3] + '<br>' +
+                                    '<span class="font-weight-bold">&bull; Preventive:</span> ' + mMatch[4] + '</div></div>';
+                            fLines.push(f);
+                        } else {
+                            fLines.push('<div>' + line + '</div>');
+                        }
+                    });
+                    cmFormatted = fLines.join('');
+                }
+
                 return '<div class="p-3" style="background-color: #f8f9fc;">' +
                     '<table class="table table-sm table-borderless mb-0">' +
                     '<tr>' +
@@ -914,7 +1263,7 @@
                     '</tr>' +
                     '<tr>' +
                     '<td style="font-weight: bold; padding: 0.5rem;">Countermeasure</td>' +
-                    '<td style="white-space: pre-wrap; padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + (d[19 + colOffset] || '-') + '</td>' +
+                    '<td style="padding: 0.5rem; border-left: 1px solid #e3e6f0;">' + cmFormatted + '</td>' +
                     '</tr>' +
                     '</table>' +
                     '</div>';
@@ -1136,12 +1485,65 @@
                 $('#edit_part_name').val(part_name);
                 $('#edit_mould').val(mould);
                 $('#edit_owner_mould').val(owner_mould);
-                $('#edit_similar_part').val(similar_part);
+                
+                var container = $('#edit_similar_part_container');
+                container.empty();
+                if(similar_part) {
+                    var parts = similar_part.split('\n');
+                    parts.forEach(function(p) {
+                        if(p.trim() !== '') {
+                            window.addSimilarPartElement('edit', p.trim());
+                        }
+                    });
+                }
+                window.updateHiddenSimilarPart('edit');
+
                 $('#edit_section').val(section);
                 $('#edit_process').val(process);
-                $('#edit_problem').val(problem);
-                $('#edit_cause').val(cause);
-                $('#edit_countermeasure').val(countermeasure);
+                
+                // Set problem field properly
+                var editProbSel = $('#edit_problem_select');
+                var exists = false;
+                editProbSel.find('option').each(function(){
+                    if($(this).val() == problem && problem != '') {
+                        exists = true;
+                    }
+                });
+                if(!exists && problem) {
+                    editProbSel.append(new Option(problem, problem, false, false));
+                }
+                editProbSel.val(problem);
+
+                // Parse Cause
+                var mMatchCause = (cause || '').match(/^\[(Man|Material|Method|Machine)\]\s*(.*)$/si);
+                if (mMatchCause) {
+                    $('#edit_cause_4m').val(mMatchCause[1]);
+                    $('#edit_cause_text').val(mMatchCause[2]);
+                } else {
+                    $('#edit_cause_4m').val('');
+                    $('#edit_cause_text').val(cause || '');
+                }
+                $('#edit_cause_hidden').val(cause || '');
+
+                // Parse Countermeasure
+                var cmContainer = $('#edit_cm_container');
+                cmContainer.empty();
+                if(countermeasure) {
+                    var cmParts = countermeasure.split('\n');
+                    cmParts.forEach(function(p) {
+                        var cleanP = p.replace(/^\d+\.\s*/, '').trim();
+                        if(cleanP !== '') {
+                            var mMatchCm = cleanP.match(/^\[(Man|Material|Method|Machine)\]\s*Corrective:\s*(.*?)\s*\|\s*Preventive:\s*(.*)$/si);
+                            if (mMatchCm) {
+                                window.addCmElement('edit', mMatchCm[1], mMatchCm[2], mMatchCm[3]);
+                            } else {
+                                // Legacy data
+                                window.addCmElement('edit', 'Method', cleanP, '-');
+                            }
+                        }
+                    });
+                }
+                window.updateHiddenCm('edit');
                 $('#edit_pic').val(pic);
                 $('#edit_supplier').val(supplier);
                 $('#edit_defect_category').val(defect_category);
@@ -1353,6 +1755,15 @@
             // Clear iframe on hide
             $('#modalViewPdfKakotora').on('hidden.bs.modal', function () {
                 $('#kakotoraPdfIframe').attr('src', '');
+            });
+
+            $('#modalTambahKakotora').on('hidden.bs.modal', function () {
+                $(this).find('form')[0].reset();
+                $('#add_similar_part_container').empty();
+                $('#add_similar_part_hidden').val('');
+                $('#add_cause_hidden').val('');
+                $('#add_cm_container').empty();
+                $('#add_cm_hidden').val('');
             });
 
             // Handle clear input file

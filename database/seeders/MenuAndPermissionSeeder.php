@@ -180,6 +180,11 @@ class MenuAndPermissionSeeder extends Seeder
                                 ]
                             ],
                             ['name' => 'KAKOTORA', 'route' => 'kakotora.index', 'order' => 2],
+                            [
+                                'name' => 'DURABILITY',
+                                'route' => 'standard-performance-tests.index',
+                                'order' => 3,
+                            ],
                         ]
                     ],
                     [
@@ -197,6 +202,11 @@ class MenuAndPermissionSeeder extends Seeder
                                 ]
                             ],
                             ['name' => 'KAKOTORA', 'route' => 'kakotora.index', 'order' => 2],
+                            [
+                                'name' => 'DURABILITY',
+                                'route' => 'standard-performance-tests.index',
+                                'order' => 3,
+                            ],
                         ]
                     ],
                 ]
