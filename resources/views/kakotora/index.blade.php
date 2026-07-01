@@ -387,7 +387,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ route('kakotora.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="formAddKakotora" action="{{ route('kakotora.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="plant" value="{{ $plant }}">
                     <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
@@ -1781,6 +1781,82 @@
             });
 
         });
+    function validateKakotoraForm(e, prefix) {
+        // Cek Similar Part
+        const similarPartHidden = document.getElementById(prefix + '_similar_part_hidden');
+        if (!similarPartHidden || !similarPartHidden.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Field Similar Part tidak boleh kosong. Silakan isi dan tambahkan (+) part yang mirip.',
+                icon: 'warning'
+            });
+            return false;
+        }
+
+        // Cek Problem
+        const problemSelect = document.getElementById(prefix + '_problem_select');
+        if (!problemSelect || !problemSelect.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Field Problem tidak boleh kosong. Silakan pilih atau tambahkan problem.',
+                icon: 'warning'
+            });
+            return false;
+        }
+
+        // Cek Cause
+        const causeHidden = document.getElementById(prefix + '_cause_hidden');
+        if (!causeHidden || !causeHidden.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Field Cause tidak boleh kosong. Silakan isi 4M dan deskripsinya.',
+                icon: 'warning'
+            });
+            return false;
+        }
+
+        // Cek Countermeasure
+        const cmHidden = document.getElementById(prefix + '_cm_hidden');
+        if (!cmHidden || !cmHidden.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Field Countermeasure tidak boleh kosong. Silakan isi setidaknya satu countermeasure dan klik (+).',
+                icon: 'warning'
+            });
+            return false;
+        }
+
+        // Cek Jika ada ketikan di Countermeasure tapi belum di klik +
+        const cm4m = document.getElementById(prefix + '_cm_4m');
+        const cmCorrective = document.getElementById(prefix + '_cm_corrective');
+        const cmPreventive = document.getElementById(prefix + '_cm_preventive');
+        
+        if (cmCorrective && cmPreventive && cm4m) {
+            if (cmCorrective.value.trim() !== '' || cmPreventive.value.trim() !== '') {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Belum Ditambahkan!',
+                    text: 'Anda sudah mengetik Countermeasure, tetapi belum klik tombol (+). Silakan klik tanda (+) terlebih dahulu agar data masuk ke daftar.',
+                    icon: 'warning'
+                });
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    document.getElementById('formAddKakotora').addEventListener('submit', function(e) {
+        validateKakotoraForm(e, 'add');
+    });
+
+    document.getElementById('formEditKakotora').addEventListener('submit', function(e) {
+        validateKakotoraForm(e, 'edit');
+    });
     </script>
 @endpush
 

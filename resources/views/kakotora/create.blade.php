@@ -79,7 +79,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('kakotora.store') }}" method="POST" enctype="multipart/form-data">
+                    <form id="formCreateKakotora" action="{{ route('kakotora.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="plant" value="{{ $plant }}">
 
@@ -279,6 +279,28 @@
         var nextSibling = e.target.nextElementSibling;
         nextSibling.innerText = fileName;
         nextSibling.style.color = '#334155';
+    });
+
+    document.getElementById('formCreateKakotora').addEventListener('submit', function(e) {
+        let emptyFields = [];
+        const similarPart = document.querySelector('textarea[name="similar_part"]').value.trim();
+        const problem = document.querySelector('textarea[name="problem"]').value.trim();
+        const cause = document.querySelector('textarea[name="cause"]').value.trim();
+        const cm = document.querySelector('textarea[name="countermeasure"]').value.trim();
+
+        if (!similarPart) emptyFields.push('Similar Part');
+        if (!problem) emptyFields.push('Problem');
+        if (!cause) emptyFields.push('Cause');
+        if (!cm) emptyFields.push('Countermeasure');
+
+        if (emptyFields.length > 0) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Field berikut wajib diisi: ' + emptyFields.join(', ') + '.',
+                icon: 'warning'
+            });
+        }
     });
 </script>
 @endsection
