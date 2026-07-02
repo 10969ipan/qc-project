@@ -26,6 +26,53 @@ class ItemController extends Controller
         $this->itemService = $itemService;
     }
 
+    public function addCustomer(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'plant' => 'nullable|string|max:255',
+        ]);
+
+        $exists = \App\Models\ItemCustomer::where('name', $request->name)
+            ->where(function($q) use ($request) {
+                if ($request->plant) {
+                    $q->where('plant', $request->plant);
+                } else {
+                    $q->whereNull('plant');
+                }
+            })
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'Customer sudah ada di daftar!']);
+        }
+
+        $customer = \App\Models\ItemCustomer::create([
+            'plant' => $request->plant,
+            'name' => $request->name,
+        ]);
+
+        return response()->json(['success' => true, 'customer' => $customer->name]);
+    }
+
+    public function deleteCustomer(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'plant' => 'nullable|string',
+        ]);
+
+        $query = \App\Models\ItemCustomer::where('name', $request->name);
+        if ($request->plant) {
+            $query->where('plant', $request->plant);
+        } else {
+            $query->whereNull('plant');
+        }
+        $query->delete();
+
+        return response()->json(['success' => true]);
+    }
+
     public function index(Request $request)
     {
         $restrictedRoles = ['inspector'];
@@ -96,12 +143,21 @@ class ItemController extends Controller
         }
         $allItemsList = $allItemsQuery->orderBy('name')->get();
 
-        // Get unique customers for filter dropdown
         $customersQuery = Item::distinct();
+        $settingsCustomersQuery = \App\Models\ItemCustomer::query();
+        
         if ($plantId) {
             $customersQuery->where('plant_id', $plantId);
+            $plantCodeModel = \App\Models\Plant::find($plantId);
+            if ($plantCodeModel) {
+                $settingsCustomersQuery->where('plant', $plantCodeModel->code);
+            }
         }
-        $customers = $customersQuery->orderBy('customer')->pluck('customer')->filter()->values();
+        
+        $itemCustomers = $customersQuery->pluck('customer')->filter()->values()->toArray();
+        $settingCustomers = $settingsCustomersQuery->pluck('name')->filter()->values()->toArray();
+        
+        $customers = collect(array_merge($itemCustomers, $settingCustomers))->unique()->sort()->values();
 
         return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers'));
     }

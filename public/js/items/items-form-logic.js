@@ -242,7 +242,12 @@
                 const item = response.item;
                 $('#edit_name').val(item.name);
                 $('#edit_category_id').val(item.category_id);
-                $('#edit_customer').val(item.customer);
+                // Ensure existing customer value is in the select (may not exist if added externally)
+                var custSel = document.getElementById('edit_customer_select');
+                if (custSel && item.customer && !Array.from(custSel.options).some(o => o.value === item.customer)) {
+                    custSel.appendChild(new Option(item.customer, item.customer));
+                }
+                $('#edit_customer_select').val(item.customer);
                 $('#edit_part_number').val(item.part_number);
                 $('#edit_sap_code').val(item.sap_code);
                 $('#edit_cavity').val(item.cavity || 1);
@@ -430,6 +435,9 @@
      *  modal HTML is already in the DOM.
      * ============================================================ */
     $(document).ready(function () {
+        // Prevent Bootstrap modal from stealing focus from SweetAlert
+        $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
         // -- Tambah Item modal --
         initClientPdfPreview('tambah_files_input', 'tambah_preview_files', true);
         initClientPdfPreview('tambah_similar_input', 'tambah_preview_similar', false);
@@ -451,8 +459,131 @@
             const efInput = document.getElementById('edit_files_input');
             if (efInput) { efInput.value = ''; if (efInput._previewReset) efInput._previewReset(); }
             const esInput = document.getElementById('edit_similar_input');
-            if (esInput) { esInput.value = ''; if (esInput._previewReset) esInput._previewReset(); }
         });
     });
+
+    /* ============================================================
+     *  ITEM CUSTOMER — Select with add/delete (like Kakotora Problem)
+     * ============================================================ */
+    window.addNewItemCustomer = function(selectId) {
+        Swal.fire({
+            title: 'Tambah Customer Baru',
+            input: 'text',
+        inputAttributes: {
+            autocapitalize: 'off',
+            placeholder: 'Masukkan nama customer baru...',
+            style: 'text-transform: none;'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Tambah',
+        cancelButtonText: 'Batal',
+        showLoaderOnConfirm: true,
+        preConfirm: (name) => {
+            if (!name || !name.trim()) {
+                Swal.showValidationMessage('Nama customer tidak boleh kosong!');
+                return false;
+            }
+            return $.ajax({
+                url: ROUTES.addCustomer,
+                type: 'POST',
+                data: {
+                    _token: ITEMS.csrfToken,
+                    plant: ITEMS.plant,
+                    name: name.trim()
+                }
+            }).then(response => {
+                if (!response.success) {
+                    throw new Error(response.message || 'Gagal menyimpan data');
+                }
+                return response;
+            }).catch(error => {
+                Swal.showValidationMessage(`Request failed: ${error.message || error}`);
+                throw error;
+            });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            var newCustomer = result.value.customer;
+            // Add to both selects so it's available in Tambah & Edit modals
+            ['tambah_customer_select', 'edit_customer_select'].forEach(function(id) {
+                var sel = document.getElementById(id);
+                if (sel && !Array.from(sel.options).some(o => o.value === newCustomer)) {
+                    sel.appendChild(new Option(newCustomer, newCustomer));
+                }
+                if (sel) sel.value = newCustomer;
+            });
+            // Also set the active select explicitly
+            var active = document.getElementById(selectId);
+            if (active) active.value = newCustomer;
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Customer baru telah ditambahkan.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    });
+};
+
+window.deleteItemCustomer = function(selectId) {
+    var sel = document.getElementById(selectId);
+    var name = sel ? sel.value : '';
+    if (!name) {
+        Swal.fire('Peringatan', 'Pilih customer yang ingin dihapus dari daftar terlebih dahulu.', 'warning');
+        return;
+    }
+    Swal.fire({
+        title: 'Hapus dari Daftar?',
+        text: '"' + name + '" akan dihapus dari opsi dropdown. Data item yang sudah menggunakan customer ini tidak terpengaruh.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74a3b',
+        cancelButtonColor: '#858796',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return $.ajax({
+                url: ROUTES.deleteCustomer,
+                type: 'POST',
+                data: {
+                    _token: ITEMS.csrfToken,
+                    plant: ITEMS.plant,
+                    name: name
+                }
+            }).then(response => {
+                if (!response.success) {
+                    throw new Error('Gagal menghapus data');
+                }
+                return response;
+            }).catch(error => {
+                Swal.showValidationMessage(`Request failed: ${error.message || error}`);
+                throw error;
+            });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            ['tambah_customer_select', 'edit_customer_select'].forEach(function(id) {
+                var s = document.getElementById(id);
+                if (s) {
+                    Array.from(s.options).filter(o => o.value === name).forEach(o => o.remove());
+                    if (s.value === name) s.value = '';
+                }
+            });
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Customer telah dihapus dari daftar.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    });
+};
 
 })();

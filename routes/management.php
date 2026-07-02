@@ -16,6 +16,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
         Route::delete('items/{id}/pdf-similar', [ItemController::class, 'deleteSimilarPdf'])->name('items.delete-similar-pdf');
         Route::post('items/bulk-upload-pdf', [ItemController::class, 'bulkUploadPdf'])->name('items.bulk-upload-pdf');
+        Route::post('items/add-customer', [ItemController::class, 'addCustomer'])->name('items.add-customer');
+        Route::post('items/delete-customer', [ItemController::class, 'deleteCustomer'])->name('items.delete-customer');
         Route::resource('items', ItemController::class)->except(['create']);
 
         // Categories

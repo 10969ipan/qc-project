@@ -575,8 +575,16 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Customer</label>
-                                    <textarea name="customer" id="edit_customer" class="form-control form-control-sm border-0 shadow-sm"
-                                        rows="2"></textarea>
+                                    <div class="d-flex w-100">
+                                        <select class="form-control form-control-sm border-0 shadow-sm" name="customer" id="edit_customer_select">
+                                            <option value="">- Pilih Customer -</option>
+                                            @foreach($customers as $cust)
+                                                <option value="{{ $cust }}">{{ $cust }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="deleteItemCustomer('edit_customer_select')" title="Hapus Customer Terpilih"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="addNewItemCustomer('edit_customer_select')" title="Tambah Customer Baru"><i class="fas fa-plus"></i></button>
+                                    </div>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
@@ -840,8 +848,16 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Customer</label>
-                                    <textarea name="customer" class="form-control form-control-sm border-0 shadow-sm" rows="2"
-                                        placeholder="Masukkan Nama Customer..."></textarea>
+                                    <div class="d-flex w-100">
+                                        <select class="form-control form-control-sm border-0 shadow-sm" name="customer" id="tambah_customer_select">
+                                            <option value="">- Pilih Customer -</option>
+                                            @foreach($customers as $cust)
+                                                <option value="{{ $cust }}">{{ $cust }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="deleteItemCustomer('tambah_customer_select')" title="Hapus Customer Terpilih"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="addNewItemCustomer('tambah_customer_select')" title="Tambah Customer Baru"><i class="fas fa-plus"></i></button>
+                                    </div>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
@@ -1002,9 +1018,12 @@
                     deletePdf: "{{ route('admin.items.delete-pdf', ['id' => '__ID__', 'index' => '__INDEX__']) }}",
                     deleteSimilarPdf: "{{ route('admin.items.delete-similar-pdf', ':id') }}",
                     viewPdf: "{{ route('items.pdf', ['id' => '__ID__']) }}",
+                    addCustomer: "{{ route('admin.items.add-customer') }}",
+                    deleteCustomer: "{{ route('admin.items.delete-customer') }}",
                     pdfWorker: "{{ asset('js/vendor/pdf.worker.min.js') }}"
                 },
-                csrfToken: "{{ csrf_token() }}"
+                csrfToken: "{{ csrf_token() }}",
+                plant: "{{ $plantCode ?? '' }}"
             };
         </script>
         <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
