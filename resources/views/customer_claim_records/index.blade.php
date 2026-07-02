@@ -564,7 +564,7 @@
             }
         });
     </script>
-    <script src="{{ asset('js/customer-claim-records/customer-claim-records.js') }}"></script>
+    <script src="{{ asset('js/customer-claim-records/customer-claim-records.js') }}?v={{ filemtime(public_path('js/customer-claim-records/customer-claim-records.js')) }}"></script>
 @endpush
 
 
