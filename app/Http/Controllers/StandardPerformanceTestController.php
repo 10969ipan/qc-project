@@ -310,6 +310,25 @@ class StandardPerformanceTestController extends Controller
     private function renderReport(Request $request, $testType)
     {
         $query = DurabilityThicknessReport::with('standard')->orderBy('created_at', 'desc');
+
+        // Hanya tampilkan baris yang benar-benar memiliki data aktual untuk jenis tes ini
+        $query->where(function ($q) use ($testType) {
+            if ($testType === 'thickness') {
+                $q->where(function($sub) {
+                    $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
+                        ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
+                        ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
+                });
+            } elseif ($testType === 'corrodkote') {
+                $q->whereNotNull('actual_corrodkote')->where('actual_corrodkote', '!=', '')->where('actual_corrodkote', '!=', '-');
+            } elseif ($testType === 'cass') {
+                $q->whereNotNull('actual_cass')->where('actual_cass', '!=', '')->where('actual_cass', '!=', '-');
+            } elseif ($testType === 'salt_spray') {
+                $q->whereNotNull('actual_salt_spray')->where('actual_salt_spray', '!=', '')->where('actual_salt_spray', '!=', '-');
+            } elseif ($testType === 'porecount') {
+                $q->whereNotNull('actual_porecount')->where('actual_porecount', '!=', '')->where('actual_porecount', '!=', '-');
+            }
+        });
         
         if ($request->filled('search')) {
             $search = $request->search;
@@ -405,7 +424,8 @@ class StandardPerformanceTestController extends Controller
     }
 
     private function isFieldEmpty($value) {
-        return is_null($value) || trim($value) === '';
+        $val = trim($value);
+        return is_null($value) || $val === '' || $val === '-';
     }
 
     private function clearTestData($report, $type) {
