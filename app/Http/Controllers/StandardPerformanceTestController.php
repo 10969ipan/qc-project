@@ -404,31 +404,78 @@ class StandardPerformanceTestController extends Controller
         return redirect()->back()->with('success', 'Data Thickness berhasil diupdate.');
     }
 
-    public function destroyThickness($id)
+    private function isFieldEmpty($value) {
+        return is_null($value) || trim($value) === '';
+    }
+
+    private function clearTestData($report, $type) {
+        if ($type === 'thickness') {
+            $report->actual_cu = null;
+            $report->actual_ni = null;
+            $report->actual_cr = null;
+        } elseif ($type === 'corrodkote') {
+            $report->actual_corrodkote_waktu = null;
+            $report->actual_corrodkote = null;
+        } elseif ($type === 'cass') {
+            $report->actual_cass_waktu = null;
+            $report->actual_cass = null;
+        } elseif ($type === 'salt_spray') {
+            $report->actual_salt_spray_waktu = null;
+            $report->actual_salt_spray = null;
+        } elseif ($type === 'porecount') {
+            $report->actual_porecount = null;
+        }
+        
+        $allEmpty = $this->isFieldEmpty($report->actual_cu) && $this->isFieldEmpty($report->actual_ni) && $this->isFieldEmpty($report->actual_cr)
+            && $this->isFieldEmpty($report->actual_corrodkote_waktu) && $this->isFieldEmpty($report->actual_corrodkote)
+            && $this->isFieldEmpty($report->actual_cass_waktu) && $this->isFieldEmpty($report->actual_cass)
+            && $this->isFieldEmpty($report->actual_salt_spray_waktu) && $this->isFieldEmpty($report->actual_salt_spray)
+            && $this->isFieldEmpty($report->actual_porecount);
+
+        if ($allEmpty) {
+            $report->delete();
+        } else {
+            $report->save();
+        }
+    }
+
+    public function destroyThickness(Request $request, $id)
     {
         $report = DurabilityThicknessReport::findOrFail($id);
-        $report->delete();
+        $type = $request->query('type', 'thickness');
+        
+        $this->clearTestData($report, $type);
 
-        ActivityLogger::log('deleted', null, "Hapus Thickness Report untuk ID Laporan: {$id}");
+        $typeName = strtoupper(str_replace('_', ' ', $type));
+        ActivityLogger::log('deleted', null, "Hapus Data $typeName Report untuk ID Laporan: {$id}");
 
-        return redirect()->back()->with('success', 'Data Thickness berhasil dihapus.');
+        return redirect()->back()->with('success', "Data $typeName berhasil dihapus.");
     }
 
     public function bulkDestroyThickness(Request $request)
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:durability_thickness_reports,id'
+            'ids.*' => 'exists:durability_thickness_reports,id',
+            'type' => 'nullable|string'
         ]);
 
+        $type = $request->input('type', 'thickness');
         $count = count($request->ids);
-        DurabilityThicknessReport::whereIn('id', $request->ids)->delete();
+        
+        foreach($request->ids as $id) {
+            $report = DurabilityThicknessReport::find($id);
+            if ($report) {
+                $this->clearTestData($report, $type);
+            }
+        }
 
-        ActivityLogger::log('deleted', null, "Hapus Massal Laporan Durability Plating ({$count} data)");
+        $typeName = strtoupper(str_replace('_', ' ', $type));
+        ActivityLogger::log('deleted', null, "Hapus Massal Data $typeName Durability Plating ({$count} data)");
 
         return response()->json([
             'success' => true,
-            'message' => "Berhasil menghapus {$count} data laporan."
+            'message' => "Berhasil menghapus {$count} data laporan $typeName."
         ]);
     }
 }
