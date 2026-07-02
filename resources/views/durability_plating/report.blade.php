@@ -121,6 +121,22 @@
         border-color: #cbd5e1 !important; /* Darker border so it remains visible */
     }
 
+    /* Selected row override */
+    #dataTable tbody tr.table-primary td,
+    #dataTable tbody tr.table-primary td.sticky-col,
+    #dataTable tbody tr.table-primary td.td-standar,
+    #dataTable tbody tr.table-primary td.td-aktual {
+        background-color: #cce5ff !important;
+        border-color: #b8daff !important;
+    }
+    
+    #dataTable tbody tr.table-primary:hover td,
+    #dataTable tbody tr.table-primary:hover td.sticky-col,
+    #dataTable tbody tr.table-primary:hover td.td-standar,
+    #dataTable tbody tr.table-primary:hover td.td-aktual {
+        background-color: #b8daff !important;
+    }
+
     /* Result/Judgment badge size */
     #dataTable td .badge {
         font-size: 0.75rem !important;
