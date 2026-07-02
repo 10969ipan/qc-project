@@ -300,8 +300,8 @@
                                         <tr>
                         <th rowspan="2" class="align-middle text-center">
                             <div class="d-flex flex-column align-items-center justify-content-center">
-                                <span style="font-size: 10px; margin-bottom: 5px; white-space: nowrap;">Semua (<span id="checkedCountDisplay">0</span>)</span>
-                                <div class="custom-control custom-checkbox" style="margin-left: 20px;">
+                                <span style="font-size: 10px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; line-height: 1.2;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
+                                <div class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input" id="checkAllRows">
                                     <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
                                 </div>
@@ -385,9 +385,9 @@
                         @endphp
                         <tr>
                             <td class="align-middle text-center">
-                                <div class="custom-control custom-checkbox" style="margin-left: 20px;">
+                                <div class="custom-control custom-checkbox d-flex justify-content-center align-items-center">
                                     <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $report->id }}" value="{{ $report->id }}">
-                                    <label class="custom-control-label" for="checkRow{{ $report->id }}" style="cursor:pointer;"></label>
+                                    <label class="custom-control-label" for="checkRow{{ $report->id }}" style="cursor:pointer; margin-left: 0.5rem;"></label>
                                 </div>
                             </td>
                             <td class="text-center">{{ $reports->firstItem() + $index }}</td>
