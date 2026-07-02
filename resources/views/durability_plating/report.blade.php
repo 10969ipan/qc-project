@@ -522,6 +522,7 @@
                         <label class="small font-weight-bold text-gray-700">Nama Part</label>
                         <input type="text" id="edit_thickness_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
                     </div>
+                    @if($testType == 'thickness')
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Cu</label>
@@ -536,6 +537,47 @@
                             <input type="text" name="actual_cr" id="edit_actual_cr" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
+                    @elseif($testType == 'corrodkote')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_corrodkote_waktu" id="edit_actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_corrodkote" id="edit_actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @elseif($testType == 'cass')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_cass_waktu" id="edit_actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_cass" id="edit_actual_cass" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @elseif($testType == 'salt_spray')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_salt_spray_waktu" id="edit_actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_salt_spray" id="edit_actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @elseif($testType == 'porecount')
+                    <div class="row">
+                        <div class="col-md-12 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_porecount" id="edit_actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @endif
                     
 
                     <div class="row mt-3">
@@ -1001,6 +1043,17 @@
             $('#edit_actual_cu').val(item.actual_cu);
             $('#edit_actual_ni').val(item.actual_ni);
             $('#edit_actual_cr').val(item.actual_cr);
+            
+            $('#edit_actual_corrodkote_waktu').val(item.actual_corrodkote_waktu);
+            $('#edit_actual_corrodkote').val(item.actual_corrodkote);
+            
+            $('#edit_actual_cass_waktu').val(item.actual_cass_waktu);
+            $('#edit_actual_cass').val(item.actual_cass);
+            
+            $('#edit_actual_salt_spray_waktu').val(item.actual_salt_spray_waktu);
+            $('#edit_actual_salt_spray').val(item.actual_salt_spray);
+            
+            $('#edit_actual_porecount').val(item.actual_porecount);
             
             $('#edit_result_judgment').val(item.result_judgment ?? '-');
             $('#edit_description').val(item.description);
