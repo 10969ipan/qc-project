@@ -587,13 +587,15 @@
 
                                 @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
                                     <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                        @php
+                                            $user = auth()->user();
+                                            $isAdmin = $user->role === 'admin';
+                                        @endphp
                                         @if(request('view_mode') !== 'verifikasi')
                                         @if($loop->first)
                                             @include('partials.bulk_approve_button')
                                         @endif
                                         @php
-                                            $user = auth()->user();
-                                            $isAdmin = $user->role === 'admin';
                                             $canApproveKashift = ($user->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
                                             $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
