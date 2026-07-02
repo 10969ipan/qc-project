@@ -59,7 +59,7 @@ $(document).ready(function() {
         toggleFields($('#modal_plant_id').val(), 'modal');
     }
 
-    $('.btn-edit-claim').on('click', function() {
+    $(document).on('click', '.btn-edit-claim', function() {
         const id = $(this).data('id');
         const plantId = $(this).data('plant');
         const year = $(this).data('year');
@@ -89,5 +89,54 @@ $(document).ready(function() {
 
     $('#edit_plant_id').on('change', function() {
         toggleFields($(this).val(), 'edit');
+    });
+
+    $('#formTambahClaim').on('submit', function(e) {
+        let emptyFields = [];
+        
+        if (!$('#modal_plant_id').val()) {
+            emptyFields.push('Plant');
+        }
+        if (!$('#modal_year').val()) {
+            emptyFields.push('Tahun');
+        }
+
+        $(this).find('input[type="number"]').each(function() {
+            if (!$(this).is(':hidden') && !$(this).prop('readonly') && $(this).closest('td').is(':visible')) {
+                if ($(this).val() === '') {
+                    let nameAttr = $(this).attr('name') || '';
+                    let label = 'Field';
+                    
+                    if (nameAttr.includes('total_claim_pcs')) label = 'Total Claim (pcs)';
+                    else if (nameAttr.includes('total_delivery')) label = 'Total Delivery';
+                    else if (nameAttr.includes('target_value')) label = 'Target PPM';
+                    else if (nameAttr.includes('total_claims')) label = 'Total Claim';
+                    
+                    let rowLabel = $(this).closest('tr').find('td:first').text().trim();
+                    if (rowLabel) {
+                        label += ` (${rowLabel})`;
+                    }
+                    
+                    emptyFields.push(label);
+                }
+            }
+        });
+
+        if (emptyFields.length > 0) {
+            e.preventDefault();
+            
+            let displayList = emptyFields.slice(0, 5).map(f => `<li>${f}</li>`).join('');
+            if (emptyFields.length > 5) {
+                displayList += `<li>... dan ${emptyFields.length - 5} field lainnya</li>`;
+            }
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap',
+                html: `<div style="text-align: left; font-size: 0.9em;">Harap isi field berikut sebelum menyimpan data:<ul style="margin-top: 10px; padding-left: 20px;">${displayList}</ul></div>`,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Mengerti'
+            });
+        }
     });
 });

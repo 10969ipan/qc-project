@@ -231,8 +231,7 @@
                                                                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                                     <input type="hidden" name="year" value="{{ request('year') }}">
                                                                     <input type="hidden" name="month" value="{{ request('month') }}">
-                                                                    <button type="submit" class="btn btn-danger btn-xs py-0"
-                                                                        onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus">
+                                                                    <button type="submit" class="btn btn-danger btn-xs py-0 btn-delete" title="Hapus">
                                                                         <i class="fas fa-trash fa-xs"></i>
                                                                     </button>
                                                                 </form>
@@ -272,7 +271,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ route('admin.customer-claims.store') }}" method="POST">
+                <form id="formTambahClaim" action="{{ route('admin.customer-claims.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                     <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">

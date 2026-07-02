@@ -200,4 +200,36 @@ $(document).ready(function () {
             }
         });
     });
+
+    $('#formTambahRecord, #formEditRecord').on('submit', function(e) {
+        let emptyFields = [];
+        
+        $(this).find('input[required], select[required], textarea[required]').each(function() {
+            if (!$(this).prop('disabled') && ($(this).val() === '' || $(this).val() === null)) {
+                let label = $(this).closest('.form-group').find('label').text().replace(/\*/g, '').trim();
+                if (!label) {
+                    label = $(this).attr('name') || 'Field';
+                }
+                emptyFields.push(label);
+            }
+        });
+
+        if (emptyFields.length > 0) {
+            e.preventDefault();
+            
+            let uniqueFields = [...new Set(emptyFields)];
+            let displayList = uniqueFields.slice(0, 5).map(f => `<li>${f}</li>`).join('');
+            if (uniqueFields.length > 5) {
+                displayList += `<li>... dan ${uniqueFields.length - 5} field lainnya</li>`;
+            }
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap',
+                html: `<div style="text-align: left; font-size: 0.9em;">Harap isi field wajib berikut sebelum menyimpan data:<ul style="margin-top: 10px; padding-left: 20px;">${displayList}</ul></div>`,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Mengerti'
+            });
+        }
+    });
 });

@@ -7,12 +7,17 @@
         $currentPlant = $plants->firstWhere('id', $plantId);
         $plantCode = strtolower($currentPlant->name ?? 'ALL');
         
-        // Resolve menu ID for permission checks
-        $currentMenu = \App\Models\AppMenu::where('route', 'admin.customer-claim-records.index')->first();
-        $menuId = $currentMenu ? $currentMenu->id : null;
-        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
-        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+        // Resolve menu IDs for permission checks
+        $menuIds = \App\Models\AppMenu::where('route', 'admin.customer-claim-records.index')->pluck('id');
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuIds->isNotEmpty()) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            foreach ($menuIds as $mId) {
+                if (auth()->user()->role === 'admin' || auth()->user()->hasPermission($mId, 'export')) $canExport = true;
+                if (auth()->user()->role === 'admin' || auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
+                if (auth()->user()->role === 'admin' || auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
+            }
+        }
 
         $docHeader = \App\Models\GeneralSetting::getDocHeader('customer_claim', $plantCode, [
             'no_dokumen' => '-',

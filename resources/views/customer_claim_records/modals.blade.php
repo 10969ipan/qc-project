@@ -10,8 +10,8 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('admin.customer-claim-records.store') }}" method="POST"
-                enctype="multipart/form-data">
+            <form id="formTambahRecord" action="{{ route('admin.customer-claim-records.store') }}" method="POST"
+                enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     <input type="hidden" name="plant_id" value="{{ $plantId }}">
@@ -272,7 +272,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="formEditRecord" action="" method="POST" enctype="multipart/form-data">
+            <form id="formEditRecord" action="" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
