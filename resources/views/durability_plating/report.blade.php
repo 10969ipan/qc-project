@@ -579,6 +579,7 @@
             </div>
             <form action="#" method="POST" id="formInputCorrodkote" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 <input type="hidden" name="report_id" id="corrodkote_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="row">
@@ -677,6 +678,7 @@
             </div>
             <form action="#" method="POST" id="formInputCass" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 <input type="hidden" name="report_id" id="cass_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="row">
@@ -793,6 +795,7 @@
             </div>
             <form action="#" method="POST" id="formInputSaltSpray" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 <input type="hidden" name="report_id" id="salt_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="row">
@@ -891,6 +894,7 @@
             </div>
             <form action="#" method="POST" id="formInputPorecount" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 <input type="hidden" name="report_id" id="porecount_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="row">
@@ -1007,6 +1011,11 @@
 
         $('.btn-input-corrodkote').click(function() {
             let item = $(this).data('item');
+            
+            let url = "{{ route('standard-performance-tests.thickness.update', ':id') }}";
+            url = url.replace(':id', item.id);
+            $('#formInputCorrodkote').attr('action', url);
+            
             $('#corrodkote_report_id').val(item.id);
             $('#corrodkote_part_name').val($(this).data('part'));
             $('#corrodkote_customer').val($(this).data('customer'));
@@ -1019,6 +1028,11 @@
         });
         $('.btn-input-cass').click(function() {
             let item = $(this).data('item');
+
+            let url = "{{ route('standard-performance-tests.thickness.update', ':id') }}";
+            url = url.replace(':id', item.id);
+            $('#formInputCass').attr('action', url);
+
             $('#cass_report_id').val(item.id);
             $('#cass_part_name').val($(this).data('part'));
             $('#cass_customer').val($(this).data('customer'));
@@ -1031,6 +1045,11 @@
         });
         $('.btn-input-salt-spray').click(function() {
             let item = $(this).data('item');
+
+            let url = "{{ route('standard-performance-tests.thickness.update', ':id') }}";
+            url = url.replace(':id', item.id);
+            $('#formInputSaltSpray').attr('action', url);
+
             $('#salt_report_id').val(item.id);
             $('#salt_part_name').val($(this).data('part'));
             $('#salt_customer').val($(this).data('customer'));
@@ -1043,6 +1062,11 @@
         });
         $('.btn-input-porecount').click(function() {
             let item = $(this).data('item');
+
+            let url = "{{ route('standard-performance-tests.thickness.update', ':id') }}";
+            url = url.replace(':id', item.id);
+            $('#formInputPorecount').attr('action', url);
+
             $('#porecount_report_id').val(item.id);
             $('#porecount_part_name').val($(this).data('part'));
             $('#porecount_customer').val($(this).data('customer'));
