@@ -61,7 +61,15 @@
             <td class="logo">
                 <img src="{{ asset('master item/ipp.jpg') }}" style="max-width: 60px; max-height: 45px;">
             </td>
-            <td class="title">LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }}</td>
+            <td class="title">
+                @php
+                    $displayTitle = ucwords(str_replace('_', ' ', $testType));
+                    if (!str_ends_with(strtolower($displayTitle), 'test')) {
+                        $displayTitle .= ' Test';
+                    }
+                @endphp
+                LAPORAN {{ strtoupper($displayTitle) }}
+            </td>
             <td class="doc-info">
                 <table>
                     <tr>

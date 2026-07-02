@@ -443,18 +443,20 @@
                                             <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
                                         </button>
 
-                                        <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
-                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
-                                        </button>
-                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
-                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
-                                        </button>
-                                        <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
-                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
-                                        </button>
-                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
-                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
-                                        </button>
+                                        @if($testType == 'thickness')
+                                            <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
+                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
+                                            </button>
+                                            <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
+                                            </button>
+                                            <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
+                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
+                                            </button>
+                                            <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
+                                            </button>
+                                        @endif
                                         
                                         <div class="dropdown-divider"></div>
                                         <form action="{{ route('standard-performance-tests.thickness.destroy', $report->id) }}" method="POST" class="d-inline delete-form w-100">
