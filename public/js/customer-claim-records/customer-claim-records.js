@@ -60,7 +60,7 @@ $(document).ready(function () {
         $('#previewModal').modal('show');
     });
 
-    $('.btn-edit-record').click(function () {
+    $(document).on('click', '.btn-edit-record', function () {
         const data = $(this).data('json');
         const id = $(this).data('id');
         const form = $('#formEditRecord');
@@ -181,7 +181,7 @@ $(document).ready(function () {
         });
     });
 
-    $('.btn-delete-record').click(function(e) {
+    $(document).on('click', '.btn-delete-record', function(e) {
         e.preventDefault();
         const form = $(this).closest('form');
         
