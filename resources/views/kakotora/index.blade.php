@@ -468,13 +468,13 @@
                                 <div class="form-group row align-items-center mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part No.</label>
                                     <div class="col-sm-9">
-                                        <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                        <input type="text" name="part_number" id="add_part_number" list="partNumberList" class="form-control form-control-sm border-0 shadow-sm no-autoupper" placeholder="Cari / ketik Part No." autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-center mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part Name</label>
                                     <div class="col-sm-9">
-                                        <input type="text" name="part_name" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                        <input type="text" name="part_name" id="add_part_name" list="partNameList" class="form-control form-control-sm border-0 shadow-sm no-autoupper" placeholder="Cari / ketik Part Name" autocomplete="off">
                                     </div>
                                 </div>
                             </div>
@@ -630,6 +630,16 @@
             <option value="{{ $sp->name }} ({{ $sp->part_number }})"></option>
         @endforeach
     </datalist>
+    <datalist id="partNameList">
+        @foreach($similarParts as $sp)
+            <option value="{{ $sp->name }}">{{ $sp->part_number }}</option>
+        @endforeach
+    </datalist>
+    <datalist id="partNumberList">
+        @foreach($similarParts as $sp)
+            <option value="{{ $sp->part_number }}">{{ $sp->name }}</option>
+        @endforeach
+    </datalist>
 
     <!-- Modal Edit Kakotora -->
     <div class="modal fade" id="modalEditKakotora" tabindex="-1" role="dialog" aria-hidden="true">
@@ -725,13 +735,13 @@
                                 <div class="form-group row align-items-center mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part No.</label>
                                     <div class="col-sm-9">
-                                        <input type="text" name="part_number" id="edit_part_number" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                        <input type="text" name="part_number" id="edit_part_number" list="partNumberList" class="form-control form-control-sm border-0 shadow-sm no-autoupper" autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-center mb-2">
                                     <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Part Name</label>
                                     <div class="col-sm-9">
-                                        <input type="text" name="part_name" id="edit_part_name" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
+                                        <input type="text" name="part_name" id="edit_part_name" list="partNameList" class="form-control form-control-sm border-0 shadow-sm no-autoupper" autocomplete="off">
                                     </div>
                                 </div>
                             </div>
@@ -1779,6 +1789,29 @@
                 $('#edit_form_analysis').val('');
                 $(this).addClass('d-none');
             });
+
+            // Autofill Part Name & Part No
+            window.partsData = @json($similarParts);
+            
+            function autofillPart(prefix, source) {
+                var nameInput = $('#' + prefix + '_part_name');
+                var noInput = $('#' + prefix + '_part_number');
+                
+                if (source === 'name') {
+                    var val = nameInput.val().trim();
+                    var match = window.partsData.find(p => p.name === val);
+                    if (match) noInput.val(match.part_number);
+                } else if (source === 'number') {
+                    var val = noInput.val().trim();
+                    var match = window.partsData.find(p => p.part_number === val);
+                    if (match) nameInput.val(match.name);
+                }
+            }
+            
+            $('#add_part_name').on('change input', function() { autofillPart('add', 'name'); });
+            $('#add_part_number').on('change input', function() { autofillPart('add', 'number'); });
+            $('#edit_part_name').on('change input', function() { autofillPart('edit', 'name'); });
+            $('#edit_part_number').on('change input', function() { autofillPart('edit', 'number'); });
 
         });
     function validateKakotoraForm(e, prefix) {

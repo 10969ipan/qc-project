@@ -202,7 +202,7 @@
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Status FB</label>
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Status Feedback</label>
                                 <div class="col-sm-8">
                                     <input type="text" name="status_feedback" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
                                 </div>
@@ -464,7 +464,7 @@
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Status FB</label>
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Status Feedback</label>
                                 <div class="col-sm-8">
                                     <input type="text" name="status_feedback" class="form-control form-control-sm border-0 shadow-sm no-autoupper">
                                 </div>
