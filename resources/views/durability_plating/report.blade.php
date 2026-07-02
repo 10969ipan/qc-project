@@ -491,7 +491,7 @@
                                         @endif
                                         
                                         <div class="dropdown-divider"></div>
-                                        <form action="{{ route('standard-performance-tests.thickness.destroy', $report->id) }}" method="POST" class="d-inline delete-form w-100">
+                                        <form action="{{ route('standard-performance-tests.thickness.destroy', ['id' => $report->id, 'type' => $testType]) }}" method="POST" class="d-inline delete-form w-100">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
                                                 <i class="fas fa-trash fa-fw mr-2"></i> Hapus
@@ -1069,7 +1069,8 @@
     window.__DURABILITY_PLATING_REPORT__ = {
         updateUrl: "{{ route('standard-performance-tests.thickness.update', ':id') }}",
         bulkDestroyUrl: "{{ route('standard-performance-tests.thickness.bulk_destroy') }}",
-        csrfToken: "{{ csrf_token() }}"
+        csrfToken: "{{ csrf_token() }}",
+        testType: "{{ $testType }}"
     };
 </script>
 <script src="{{ asset('js/durability_plating/report.js') }}?v={{ filemtime(public_path('js/durability_plating/report.js')) }}"></script>

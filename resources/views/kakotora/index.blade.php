@@ -700,9 +700,9 @@
                                     <div class="col-sm-9">
                                         <select name="family" id="edit_family" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="">- Pilih Family -</option>
-                                            <option value="M">M</option>
-                                            <option value="C">C</option>
-                                            <option value="S">S</option>
+                                            <option value="M">M (Matic)</option>
+                                            <option value="C">C (Cube)</option>
+                                            <option value="S">S (Sport)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -711,8 +711,8 @@
                                     <div class="col-sm-9">
                                         <select name="category_nm_mp" id="edit_category_nm_mp" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="">- Pilih Kategori -</option>
-                                            <option value="NM">NM</option>
-                                            <option value="MP">MP</option>
+                                            <option value="NM">NM (New Model)</option>
+                                            <option value="MP">MP (Mass Pro)</option>
                                         </select>
                                     </div>
                                 </div>

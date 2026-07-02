@@ -127,8 +127,8 @@
 <div class="card shadow mb-4">
     <div class="card-body">
         <form id="filterFormMaster" onsubmit="return false;"
-            class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-            style="gap: 12px; overflow-x: auto; white-space: nowrap;">
+            class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+            style="gap: 12px;">
             
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
@@ -143,9 +143,29 @@
                 <button type="button" id="btnResetFilterMaster" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
                     <i class="fas fa-undo fa-sm"></i>
                 </button>
-                <a href="{{ route('standard-performance-tests.report') }}" class="btn btn-warning btn-sm shadow-sm rounded-pill px-3" title="Lihat Laporan">
-                    <i class="fas fa-file-alt fa-sm"></i> Laporan
-                </a>
+                <div class="dropdown">
+                    <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 dropdown-toggle" type="button" id="dropdownMenuLaporan" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Laporan" data-boundary="window">
+                        <i class="fas fa-file-alt fa-sm"></i> Laporan
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuLaporan" style="font-size:0.85rem; border-radius:8px; min-width: 200px; z-index: 1050;">
+                        <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Pilih Laporan</div>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report') }}">
+                            <i class="fas fa-layer-group fa-fw mr-2 text-success"></i> Thickness
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.corrodkote') }}">
+                            <i class="fas fa-vial fa-fw mr-2 text-info"></i> Corrodkote
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.cass') }}">
+                            <i class="fas fa-flask fa-fw mr-2 text-primary"></i> Cass Test
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.salt_spray') }}">
+                            <i class="fas fa-spray-can fa-fw mr-2 text-warning"></i> Salt Spray Test
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.porecount') }}">
+                            <i class="fas fa-search-plus fa-fw mr-2 text-danger"></i> Porecount Test
+                        </a>
+                    </div>
+                </div>
 
                 <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalImport" title="Import Data">
                     <i class="fas fa-file-excel fa-sm"></i> Import
@@ -571,9 +591,9 @@
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Shift</label>
                             <select name="shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="">-</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
                             </select>
                         </div>
                         <div class="col-md-4 form-group mb-3">
@@ -600,54 +620,7 @@
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Corrodkote</label>
-                            <div class="row no-gutters">
-                                <div class="col pr-1">
-                                    <span class="text-muted" style="font-size:0.7rem;">Waktu (Jam)</span>
-                                    <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" placeholder="-" value="-">
-                                </div>
-                                <div class="col pl-1">
-                                    <span class="text-muted" style="font-size:0.7rem;">Hasil</span>
-                                    <input type="text" name="actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" placeholder="-" value="-">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cass Test</label>
-                            <div class="row no-gutters">
-                                <div class="col pr-1">
-                                    <span class="text-muted" style="font-size:0.7rem;">Waktu (Jam)</span>
-                                    <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" placeholder="-" value="-">
-                                </div>
-                                <div class="col pl-1">
-                                    <span class="text-muted" style="font-size:0.7rem;">Hasil</span>
-                                    <input type="text" name="actual_cass" class="form-control form-control-sm border-0 shadow-sm" placeholder="-" value="-">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Salt Spray Test</label>
-                            <div class="row no-gutters">
-                                <div class="col pr-1">
-                                    <span class="text-muted" style="font-size:0.7rem;">Waktu (Jam)</span>
-                                    <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" placeholder="-" value="-">
-                                </div>
-                                <div class="col pl-1">
-                                    <span class="text-muted" style="font-size:0.7rem;">Hasil</span>
-                                    <input type="text" name="actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" placeholder="-" value="-">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Porecount Test</label>
-                            <span class="text-muted d-block" style="font-size:0.7rem;">Hasil</span>
-                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" placeholder="Hasil" value="-">
-                        </div>
-                    </div>
+
                     <div class="row mt-3">
                         <div class="col-md-6 form-group mb-0">
                             <label class="small font-weight-bold text-gray-700">Result / Judgment</label>

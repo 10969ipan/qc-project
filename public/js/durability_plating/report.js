@@ -192,7 +192,8 @@ $(document).ready(function() {
                         type: 'POST',
                         data: {
                             _token: config.csrfToken,
-                            ids: selectedIds
+                            ids: selectedIds,
+                            type: config.testType
                         },
                         success: function(response) {
                             if (response.success) {
