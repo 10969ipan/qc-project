@@ -247,7 +247,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('standard-performance-tests-template', [\App\Http\Controllers\StandardPerformanceTestController::class, 'downloadTemplate'])->name('standard-performance-tests.template');
         Route::post('standard-performance-tests/thickness', [\App\Http\Controllers\StandardPerformanceTestController::class, 'storeThickness'])->name('standard-performance-tests.thickness.store');
         Route::get('standard-performance-tests/report', [\App\Http\Controllers\StandardPerformanceTestController::class, 'report'])->name('standard-performance-tests.report');
+        Route::get('standard-performance-tests/report/corrodkote', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportCorrodkote'])->name('standard-performance-tests.report.corrodkote');
+        Route::get('standard-performance-tests/report/cass', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportCass'])->name('standard-performance-tests.report.cass');
+        Route::get('standard-performance-tests/report/salt-spray', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportSaltSpray'])->name('standard-performance-tests.report.salt_spray');
+        Route::get('standard-performance-tests/report/porecount', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportPorecount'])->name('standard-performance-tests.report.porecount');
                 Route::put('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'updateThickness'])->name('standard-performance-tests.thickness.update');
+        Route::post('standard-performance-tests/thickness/bulk-delete', [\App\Http\Controllers\StandardPerformanceTestController::class, 'bulkDestroyThickness'])->name('standard-performance-tests.thickness.bulk_destroy');
         Route::delete('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'destroyThickness'])->name('standard-performance-tests.thickness.destroy');
         Route::resource('standard-performance-tests', \App\Http\Controllers\StandardPerformanceTestController::class);
 

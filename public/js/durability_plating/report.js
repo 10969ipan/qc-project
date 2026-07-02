@@ -110,6 +110,116 @@ $(document).ready(function() {
         $('#modalInputPorecount').modal('show');
     });
 
+    // Bulk Delete Logic
+    const checkAllBtn = $('#checkAllRows');
+    const bulkMenu = $('#bulkActionMenu');
+    const bulkSelectedCount = $('#bulkSelectedCount');
+    const btnBulkDelete = $('#btnBulkDelete');
+    const countDisplay = $('#checkedCountDisplay');
+
+    function updateCount() {
+        const checkedCount = $('.row-checkbox:checked').length;
+        const totalCheckboxes = $('.row-checkbox').length;
+        
+        countDisplay.text(checkedCount);
+        if (bulkSelectedCount.length > 0) {
+            bulkSelectedCount.text(checkedCount);
+        }
+        
+        if (totalCheckboxes > 0) {
+            checkAllBtn.prop('checked', checkedCount === totalCheckboxes);
+        }
+
+        if (checkedCount > 0) {
+            bulkMenu.fadeIn(200);
+        } else {
+            bulkMenu.fadeOut(200);
+        }
+
+        $('.row-checkbox').each(function() {
+            const row = $(this).closest('tr');
+            if ($(this).is(':checked')) {
+                row.addClass('table-primary');
+            } else {
+                row.removeClass('table-primary');
+            }
+        });
+    }
+
+    if (checkAllBtn.length > 0) {
+        checkAllBtn.on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('.row-checkbox').prop('checked', isChecked);
+            updateCount();
+        });
+    }
+
+    $('#dataTable tbody').on('change', '.row-checkbox', function(e) {
+        e.stopPropagation();
+        updateCount();
+    });
+
+    if (btnBulkDelete.length > 0) {
+        btnBulkDelete.on('click', function() {
+            const selectedIds = $('.row-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selectedIds.length === 0) return;
+
+            Swal.fire({
+                title: 'Hapus ' + selectedIds.length + ' Data?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Hapus Semua!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        text: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: config.bulkDestroyUrl,
+                        type: 'POST',
+                        data: {
+                            _token: config.csrfToken,
+                            ids: selectedIds
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire(
+                                'Gagal!',
+                                'Terjadi kesalahan saat menghapus data.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        });
+    }
+
     // Delete SweetAlert
     $('.delete-form').submit(function(e) {
         e.preventDefault();

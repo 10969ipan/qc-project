@@ -299,6 +299,16 @@ class StandardPerformanceTestController extends Controller
 
     public function report(Request $request)
     {
+        return $this->renderReport($request, 'thickness');
+    }
+
+    public function reportCorrodkote(Request $request) { return $this->renderReport($request, 'corrodkote'); }
+    public function reportCass(Request $request) { return $this->renderReport($request, 'cass'); }
+    public function reportSaltSpray(Request $request) { return $this->renderReport($request, 'salt_spray'); }
+    public function reportPorecount(Request $request) { return $this->renderReport($request, 'porecount'); }
+
+    private function renderReport(Request $request, $testType)
+    {
         $query = DurabilityThicknessReport::with('standard')->orderBy('created_at', 'desc');
         
         if ($request->filled('search')) {
@@ -332,7 +342,7 @@ class StandardPerformanceTestController extends Controller
                 'revisi' => '- / -',
                 'halaman' => '1 / 1'
             ]);
-            return view('durability_plating.print', compact('reports', 'docHeader'));
+            return view('durability_plating.print', compact('reports', 'docHeader', 'testType'));
         }
 
         $reports = $query->paginate(10)->withQueryString();
@@ -347,7 +357,7 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('customer_name')
             ->pluck('customer_name');
 
-        return view('durability_plating.report', compact('reports', 'items', 'customers'));
+        return view('durability_plating.report', compact('reports', 'items', 'customers', 'testType'));
     }
 
     public function updateThickness(Request $request, $id)
@@ -402,5 +412,23 @@ class StandardPerformanceTestController extends Controller
         ActivityLogger::log('deleted', null, "Hapus Thickness Report untuk ID Laporan: {$id}");
 
         return redirect()->back()->with('success', 'Data Thickness berhasil dihapus.');
+    }
+
+    public function bulkDestroyThickness(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:durability_thickness_reports,id'
+        ]);
+
+        $count = count($request->ids);
+        DurabilityThicknessReport::whereIn('id', $request->ids)->delete();
+
+        ActivityLogger::log('deleted', null, "Hapus Massal Laporan Durability Plating ({$count} data)");
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menghapus {$count} data laporan."
+        ]);
     }
 }

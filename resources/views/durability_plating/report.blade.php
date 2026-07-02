@@ -273,6 +273,7 @@
             <div class="table-responsive mb-0" style="min-height: 280px;">
                 <table class="table table-bordered table-hover" id="dataTable">
                 <colgroup>
+                    <col style="width: 45px;">       <!-- Checkbox -->
                     <col style="width: 38px;">       <!-- No -->
                     <col style="width: 150px;">      <!-- Nama Part -->
                     <col style="width: 110px;">      <!-- Customer -->
@@ -297,6 +298,15 @@
                 </colgroup>
                                                 <thead>
                                         <tr>
+                        <th rowspan="2" class="align-middle text-center">
+                            <div class="d-flex flex-column align-items-center justify-content-center">
+                                <span style="font-size: 10px; margin-bottom: 5px; white-space: nowrap;">Semua (<span id="checkedCountDisplay">0</span>)</span>
+                                <div class="custom-control custom-checkbox" style="margin-left: 20px;">
+                                    <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                    <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                </div>
+                            </div>
+                        </th>
                         <th rowspan="2" class="align-middle text-center">No.</th>
                         <th rowspan="2" class="align-middle sticky-col">Name Part</th>
                         <th rowspan="2" class="align-middle">Customer</th>
@@ -374,6 +384,12 @@
                             $std = $report->standard;
                         @endphp
                         <tr>
+                            <td class="align-middle text-center">
+                                <div class="custom-control custom-checkbox" style="margin-left: 20px;">
+                                    <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $report->id }}" value="{{ $report->id }}">
+                                    <label class="custom-control-label" for="checkRow{{ $report->id }}" style="cursor:pointer;"></label>
+                                </div>
+                            </td>
                             <td class="text-center">{{ $reports->firstItem() + $index }}</td>
                             <td class="text-center font-weight-bold sticky-col">{{ $std->part_name ?? '-' }}</td>
                             <td class="text-center">{{ $std->customer_name ?? '-' }}</td>
@@ -1021,11 +1037,23 @@
     </div>
 </div>
 
+    <!-- Float Menu untuk Bulk Delete -->
+    <div id="bulkActionMenu" class="position-fixed shadow-lg rounded" style="bottom: 80px; left: 50%; transform: translateX(-50%); display: none; z-index: 1050; background: white; padding: 15px; border: 1px solid #e3e6f0;">
+        <div class="d-flex align-items-center">
+            <span class="mr-3 font-weight-bold text-gray-800"><span id="bulkSelectedCount">0</span> Data Terpilih</span>
+            <button class="btn btn-danger btn-sm shadow-sm" id="btnBulkDelete">
+                <i class="fas fa-trash-alt mr-1"></i> Hapus Data
+            </button>
+        </div>
+    </div>
+
 @push('scripts')
 <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
 <script>
     window.__DURABILITY_PLATING_REPORT__ = {
-        updateUrl: "{{ route('standard-performance-tests.thickness.update', ':id') }}"
+        updateUrl: "{{ route('standard-performance-tests.thickness.update', ':id') }}",
+        bulkDestroyUrl: "{{ route('standard-performance-tests.thickness.bulk_destroy') }}",
+        csrfToken: "{{ csrf_token() }}"
     };
 </script>
 <script src="{{ asset('js/durability_plating/report.js') }}?v={{ filemtime(public_path('js/durability_plating/report.js')) }}"></script>
