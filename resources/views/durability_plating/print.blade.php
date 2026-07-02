@@ -61,7 +61,7 @@
             <td class="logo">
                 <img src="{{ asset('master item/ipp.jpg') }}" style="max-width: 60px; max-height: 45px;">
             </td>
-            <td class="title">LAPORAN STANDARD PERFORMANCE TEST PLATING PLASTIC</td>
+            <td class="title">LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }}</td>
             <td class="doc-info">
                 <table>
                     <tr>
