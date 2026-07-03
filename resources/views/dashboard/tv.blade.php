@@ -13,11 +13,16 @@
     
     <!-- Scripts (Local Assets) -->
     <script>
-        const originalWarn = console.warn;
-        console.warn = function(...args) {
-            if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
-            originalWarn.apply(console, args);
-        };
+        (function() {
+            if (!window.tailwindWarnMuted) {
+                const originalWarn = console.warn;
+                console.warn = function(...args) {
+                    if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+                    originalWarn.apply(console, args);
+                };
+                window.tailwindWarnMuted = true;
+            }
+        })();
     </script>
     <script src="{{ asset('js/vendor/tailwind.min.js') }}"></script>
     <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
