@@ -75,8 +75,8 @@
                                     <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
                                     <a class="collapse-item" href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
                                     <a class="collapse-item" href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
-                                    <a class="collapse-item" href="{{ route('cross_cut_painting.create') }}">Cross Cut Painting</a>
-                                    <a class="collapse-item" href="{{ route('painting.create') }}">Painting</a>
+                                    <a class="collapse-item" href="{{ route('cross_cut_painting.create', ['plant' => 'jakarta']) }}">Cross Cut Painting</a>
+                                    <a class="collapse-item" href="{{ route('painting.create', ['plant' => 'jakarta']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -88,8 +88,8 @@
                                     <a class="collapse-item" href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub Assy</a>
                                     <a class="collapse-item" href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
                                     <a class="collapse-item" href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
-                                    <a class="collapse-item" href="{{ route('cross_cut_painting.index') }}">Cross Cut Painting</a>
-                                    <a class="collapse-item" href="{{ route('painting.index') }}">Painting</a>
+                                    <a class="collapse-item" href="{{ route('cross_cut_painting.index', ['plant' => 'jakarta']) }}">Cross Cut Painting</a>
+                                    <a class="collapse-item" href="{{ route('painting.index', ['plant' => 'jakarta']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'jakarta']) }}">Sortir</a>
                                 </div>
                             @endif
@@ -147,7 +147,7 @@
                                         href="{{ route('cross_cut_painting.create', ['plant' => 'karawang']) }}">Cross Cut
                                         Painting</a>
                                     <a class="collapse-item" href="{{ route('plating.create') }}">Plating</a>
-                                    <a class="collapse-item" href="{{ route('painting.create') }}">Painting</a>
+                                    <a class="collapse-item" href="{{ route('painting.create', ['plant' => 'karawang']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('double_tape.create') }}">Double Tape</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                 </div>
@@ -170,7 +170,7 @@
                                         href="{{ route('cross_cut_painting.index', ['plant' => 'karawang']) }}">Cross Cut
                                         Painting</a>
                                     <a class="collapse-item" href="{{ route('plating.index') }}">Plating</a>
-                                    <a class="collapse-item" href="{{ route('painting.index') }}">Painting</a>
+                                    <a class="collapse-item" href="{{ route('painting.index', ['plant' => 'karawang']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('double_tape.index') }}">Double Tape</a>
                                     <a class="collapse-item" href="{{ route('sortir.index', ['plant' => 'karawang']) }}">Sortir</a>
                                 </div>

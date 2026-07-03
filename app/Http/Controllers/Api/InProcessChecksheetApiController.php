@@ -38,7 +38,8 @@ class InProcessChecksheetApiController extends Controller
 
         foreach ($modelsToCheck as $processName => $modelClass) {
             if (class_exists($modelClass)) {
-                $checksheet = $modelClass::where('unique_code_id', $unique_code_id)
+                $checksheet = $modelClass::withoutGlobalScopes()
+                    ->where('unique_code_id', $unique_code_id)
                     ->with(['item'])
                     ->latest()
                     ->first();
