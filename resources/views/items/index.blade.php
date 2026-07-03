@@ -134,14 +134,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mx-3" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
+
 
     @if(session('import_warnings'))
         <div class="alert alert-warning alert-dismissible fade show mx-3" role="alert" style="max-height: 250px; overflow-y: auto;">
@@ -588,9 +581,12 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
-                                    <textarea name="defects" id="edit_defects" class="form-control form-control-sm border-0 shadow-sm"
-                                        rows="18"></textarea>
-                                    <small class="text-muted">Pisahkan setiap defect dengan baris baru.</small>
+                                    <div class="d-flex w-100 mb-1">
+                                        <input type="text" id="edit_defect_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper" list="defectsList" placeholder="Cari / ketik defect..." autocomplete="off">
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="appendDefect('edit_defect_search', 'edit')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
+                                    </div>
+                                    <div id="edit_defect_container" class="w-100 mt-2"></div>
+                                    <input type="hidden" name="defects" id="edit_defects_hidden">
                                 </div>
                             </div>
                             <div class="col-md-6 text-left">
@@ -861,9 +857,13 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">List Defect</label>
-                                    <textarea name="defects" class="form-control form-control-sm border-0 shadow-sm" rows="18"
-                                        placeholder="Pisahkan setiap defect dengan baris baru"></textarea>
-                                    <small class="text-muted">Biarkan kosong untuk menggunakan default defects.</small>
+                                    <div class="d-flex w-100 mb-1">
+                                        <input type="text" id="add_defect_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper" list="defectsList" placeholder="Cari / ketik defect..." autocomplete="off">
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="appendDefect('add_defect_search', 'add')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
+                                    </div>
+                                    <div id="add_defect_container" class="w-100 mt-2"></div>
+                                    <input type="hidden" name="defects" id="add_defects_hidden">
+                                    <small class="text-muted mt-1 d-block">Biarkan kosong untuk menggunakan default defects.</small>
                                 </div>
                             </div>
                             <div class="col-md-6 text-left">
@@ -1028,9 +1028,9 @@
         </script>
         <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
         <script src="{{ asset('js/items/items-pdf-viewer.js') }}"></script>
-        <script src="{{ asset('js/items/items-form-logic.js') }}?v={{ time() }}"></script>
-        <script src="{{ asset('js/items/items-actions.js') }}?v={{ time() }}"></script>
-        <script src="{{ asset('js/vendor/item-search.js') }}?v={{ time() }}"></script>
+        <script src="{{ asset('js/items/items-form-logic.js') }}?v={{ filemtime(public_path('js/items/items-form-logic.js')) }}"></script>
+        <script src="{{ asset('js/items/items-actions.js') }}?v={{ filemtime(public_path('js/items/items-actions.js')) }}"></script>
+        <script src="{{ asset('js/vendor/item-search.js') }}?v={{ filemtime(public_path('js/vendor/item-search.js')) }}"></script>
         
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -1401,7 +1401,91 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+    window.updateHiddenDefects = function(prefix) {
+        let container = document.getElementById(prefix + '_defect_container');
+        let hidden = document.getElementById(prefix + '_defects_hidden');
+        if (!container || !hidden) return;
+
+        let inputs = container.querySelectorAll('input[type="text"]');
+        let vals = [];
+        inputs.forEach(function(inp) {
+            let val = inp.value.trim();
+            val = val.replace(/^\d+\.\s*/, '');
+            vals.push(val);
+        });
+        hidden.value = vals.join('\n');
+    };
+
+    window.removeDefect = function(btn, prefix) {
+        btn.parentElement.remove();
+        window.updateHiddenDefects(prefix);
+    };
+
+    window.addDefectBadge = function(val, prefix) { // Keep name as addDefectBadge so items-form-logic.js works without changes
+        let container = document.getElementById(prefix + '_defect_container');
+        if (!container) return;
+        
+        let div = document.createElement('div');
+        div.className = 'd-flex align-items-center mb-1';
+        div.innerHTML = '<input type="text" class="defect-text form-control form-control-sm border-0 shadow-sm bg-light font-weight-bold" value="' + val + '" readonly>' +
+                        '<button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="window.removeDefect(this, \'' + prefix + '\')" title="Hapus"><i class="fas fa-times"></i></button>';
+        container.appendChild(div);
+        window.updateHiddenDefects(prefix);
+    };
+
+    window.appendDefect = function(inputId, prefix) {
+        let inputEl = document.getElementById(inputId);
+        let val = inputEl.value.trim();
+        
+        if (val !== '') {
+            // Optional: Validate datalist (disabled for now to allow new custom defects)
+            // let listId = inputEl.getAttribute('list');
+            // let datalist = document.getElementById(listId);
+            // let exists = false;
+            // if (datalist) {
+            //     for (let i = 0; i < datalist.options.length; i++) {
+            //         if (datalist.options[i].value === val) { exists = true; break; }
+            //     }
+            // }
+            // if (!exists) {
+            //     Swal.fire('Peringatan', 'Defect tidak terdaftar!', 'warning');
+            //     return;
+            // }
+
+            window.addDefectBadge(val, prefix);
+            inputEl.value = '';
+            inputEl.focus();
+        }
+    };
 </script>
+
+<datalist id="defectsList">
+    @php
+        $allDefects = [];
+        $itemsWithDefects = \App\Models\Item::whereNotNull('defects')->pluck('defects');
+        foreach($itemsWithDefects as $defectsArray) {
+            if (is_array($defectsArray)) {
+                foreach($defectsArray as $d) {
+                    $allDefects[] = trim($d);
+                }
+            } elseif (is_string($defectsArray)) {
+                $decoded = json_decode($defectsArray, true);
+                if (is_array($decoded)) {
+                    foreach($decoded as $d) {
+                        $allDefects[] = trim($d);
+                    }
+                }
+            }
+        }
+        $allDefects = array_unique(array_filter($allDefects));
+        sort($allDefects);
+    @endphp
+    @foreach($allDefects as $d)
+        <option value="{{ $d }}"></option>
+    @endforeach
+</datalist>
+
 @endpush
 
 

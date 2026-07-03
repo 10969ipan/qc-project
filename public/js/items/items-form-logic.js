@@ -253,7 +253,16 @@
                 $('#edit_cavity').val(item.cavity || 1);
                 $('#edit_weight_standard').val(item.weight_standard);
                 $('#edit_standard_cycle_time').val(item.standard_cycle_time);
-                $('#edit_defects').val(response.defects_text);
+                $('#edit_defect_container').empty();
+                $('#edit_defects_hidden').val(response.defects_text || '');
+                if (response.defects_text) {
+                    let defectsArr = response.defects_text.split('\n');
+                    defectsArr.forEach(function(d) {
+                        if(d.trim() && typeof window.addDefectBadge === 'function') {
+                            window.addDefectBadge(d.trim(), 'edit');
+                        }
+                    });
+                }
                 $('#edit_plant').val(response.plant_code);
                 $('#edit_item_id').val(item.id);
 
@@ -452,6 +461,10 @@
             if (tfInput) { tfInput.value = ''; if (tfInput._previewReset) tfInput._previewReset(); }
             const tsInput = document.getElementById('tambah_similar_input');
             if (tsInput) { tsInput.value = ''; if (tsInput._previewReset) tsInput._previewReset(); }
+            
+            // Clear defects list
+            $('#add_defect_container').empty();
+            $('#add_defects_hidden').val('');
         });
 
         // Reset Edit new-file previews when modal is hidden
