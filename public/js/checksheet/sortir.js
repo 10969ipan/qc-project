@@ -121,17 +121,7 @@ class SortirCreate {
             // Isi otomatis OK dan NG
             $('input[name="total_ok"]').val(sampleSize);
             $('input[name="total_ng"]').val(0);
-            $('#checkOK').prop('checked', true);
             this.updateJudgment();
-        });
-
-        $('#checkOK').on('change', () => {
-            if ($('#checkOK').is(':checked')) {
-                var sampling = parseInt($('input[name="sampling_qty"]').val()) || 0;
-                $('input[name="total_ok"]').val(sampling);
-                $('input[name="total_ng"]').val(0);
-                this.updateJudgment();
-            }
         });
 
         // Sinkronisasi Dua Arah
@@ -182,6 +172,16 @@ class SortirCreate {
                 container.html('<div style="width: 100px; height: 100px; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; margin: 0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>');
             }
 
+            // Update defect select options
+            var defectsRaw = selectedOption.data('defects') || '';
+            var defects = defectsRaw.split('\n').map(d => d.trim()).filter(d => d);
+            var defectSelect = $('#defectSelect');
+            defectSelect.empty();
+            defectSelect.append('<option value="">-- Pilih Defect --</option>');
+            defects.forEach(function(d) {
+                defectSelect.append($('<option>').val(d).text(d));
+            });
+
             // Isi otomatis total_qty dengan sisa qty dan atur batas maksimal
             var remainingQty = parseInt(selectedOption.data('remaining-qty')) || 0;
             var totalQtyInput = $('input[name="total_qty"]');
@@ -191,7 +191,6 @@ class SortirCreate {
             $('input[name="sampling_qty"]').val(remainingQty);
             $('input[name="total_ok"]').val(remainingQty);
             $('input[name="total_ng"]').val(0);
-            $('#checkOK').prop('checked', true);
             this.updateJudgment();
         });
 
@@ -234,7 +233,7 @@ class SortirCreate {
             var newRow = `
                 <div class="row no-gutters mb-2 defect-row align-items-center bg-white p-1 rounded shadow-sm">
                     <div class="col-8 pr-1">
-                        <input type="text" class="form-control font-weight-bold" name="defect_types[]" placeholder="Jenis Defect">
+                        <select class="form-control defect-select font-weight-bold" name="defect_types[]">${$('#defectSelect').html()}</select>
                     </div>
                     <div class="col-3 pr-1">
                         <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
@@ -263,14 +262,20 @@ class SortirCreate {
         $('#aql_info').hide();
 
         var judgmentSelect = $('#judgmentSelect');
+        var judgmentBadge = $('#judgmentBadge');
+        
         if (sampling > 0 || ng > 0) {
+            judgmentBadge.removeClass('d-none');
             if (ng > 0) {
                 judgmentSelect.val('NG').removeClass('text-success').addClass('text-danger');
+                judgmentBadge.text('NG').removeClass('text-success bg-white border-success').addClass('text-danger bg-white border-danger').css('border-color', '#dc2626');
             } else {
                 judgmentSelect.val('OK').removeClass('text-danger').addClass('text-success');
+                judgmentBadge.text('OK').removeClass('text-danger bg-white border-danger').addClass('text-success bg-white border-success').css('border-color', '#16a34a');
             }
         } else {
             judgmentSelect.val('').removeClass('text-success text-danger');
+            judgmentBadge.addClass('d-none').text('-').removeClass('text-success text-danger bg-white border-success border-danger');
         }
 
         this.toggleNextProsesDropdown();
@@ -506,7 +511,7 @@ class SortirCreate {
                 let hasAtLeastOneValidDefect = false;
 
                 $(".defect-row").each(function () {
-                    const typeInput = $(this).find('input[name="defect_types[]"]');
+                    const typeInput = $(this).find('input[name="defect_types[]"], select[name="defect_types[]"]');
                     const qtyInput = $(this).find('input[name="defect_quantities[]"]');
                     const type = typeInput.val() ? typeInput.val().trim() : "";
                     const qty = parseInt(qtyInput.val()) || 0;

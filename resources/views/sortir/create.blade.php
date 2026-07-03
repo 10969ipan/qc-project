@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Input Data Sortir')
 
@@ -100,7 +100,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Input Data Sortir (Item NG dari Sub Assy, In-Process & Cross Cut)
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Sortir (Item NG dari Sub Assy & In-Process)
             </h6>
         </div>
         <div class="card-body">
@@ -155,7 +155,8 @@
                                                     data-source-date="{{ $ngItem['date'] }}"
                                                     data-source-shift="{{ $ngItem['shift'] }}"
                                                     data-remaining-qty="{{ $ngItem['remaining_qty'] }}"
-                                                    data-files="{{ json_encode($ngItem['file_paths'] ?? ($ngItem['file_path'] ? [$ngItem['file_path']] : [])) }}">
+                                                    data-files="{{ json_encode($ngItem['file_paths'] ?? ($ngItem['file_path'] ? [$ngItem['file_path']] : [])) }}"
+                                                    data-defects="{{ $ngItem['defects'] ?? '' }}">
                                                     {{ $ngItem['item_name'] }} ({{ $ngItem['part_number'] }})
                                                     - {{ strtoupper(str_replace('_', ' ', $ngItem['source_type'])) }}
                                                     @if(!empty($ngItem['next_proses']))
@@ -213,19 +214,15 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="check_ok" value="1"
-                                            id="checkOK">
-                                        <label class="form-check-label text-success font-weight-bold" for="checkOK">OK
-                                            (Pass)</label>
-                                    </div>
-                                    <hr class="my-2">
+
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="row no-gutters mb-2 defect-row align-items-center">
                                             <div class="col-8 pr-1">
-                                                <input type="text" class="form-control font-weight-bold"
-                                                    name="defect_types[]" placeholder="Jenis Defect">
+                                                <select class="form-control defect-select font-weight-bold"
+                                                    name="defect_types[]" id="defectSelect">
+                                                    <option value="">-- Pilih Defect --</option>
+                                                </select>
                                             </div>
                                             <div class="col-3 pr-1">
                                                 <input type="number" class="form-control text-center font-weight-bold"
@@ -256,8 +253,12 @@
                                 </td>
 
                                 <!-- Keputusan -->
-                                <td class="align-middle">
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
+                                <td class="align-middle text-center" style="min-width: 150px;">
+                                    <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm"
+                                        style="border: 2px solid transparent;">
+                                        -
+                                    </div>
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect"
                                         required>
                                         <option value="" disabled selected>-- Result --</option>
                                         <option value="OK" class="text-success">OK</option>
