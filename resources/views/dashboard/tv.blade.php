@@ -12,6 +12,13 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     
     <!-- Scripts (Local Assets) -->
+    <script>
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+            originalWarn.apply(console, args);
+        };
+    </script>
     <script src="{{ asset('js/vendor/tailwind.min.js') }}"></script>
     <script src="{{ asset('js/vendor/canvasjs.min.js') }}"></script>
     <script src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
