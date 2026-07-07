@@ -327,7 +327,7 @@
                         <tr id="editDimensionHeadRow">
                             <th style="min-width: 100px; position: sticky; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
                             @for ($j = 1; $j <= $maxPointFound; $j++)
-                                <th class="point-header">P{{ $j }}</th>
+                                <th class="point-header" style="background-color: #f8f9fc !important; color: #475569 !important;">P{{ $j }}</th>
                             @endfor
                         </tr>
                     </thead>
@@ -414,7 +414,7 @@
             if (currentPoints < maxPoints) {
                 currentPoints++;
                 // Add header
-                $('#editDimensionHeadRow').append(`<th class="point-header">P${currentPoints}</th>`);
+                $('#editDimensionHeadRow').append(`<th class="point-header" style="background-color: #f8f9fc !important; color: #475569 !important;">P${currentPoints}</th>`);
 
                 // Add cells to each row
                 $('.edit-cavity-row').each(function () {

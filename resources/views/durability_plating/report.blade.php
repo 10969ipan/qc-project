@@ -60,13 +60,14 @@
     #dataTable > thead > tr:nth-child(2) > th { z-index: 9 !important; }
     #dataTable > thead > tr:nth-child(3) > th { z-index: 8 !important; }
 
-    /* Fix column layout via table-layout fixed */
+    /* Fix column layout via table-layout auto */
     #dataTable {
-        table-layout: fixed !important;
+        table-layout: auto !important;
     }
     #dataTable th, #dataTable td {
-        word-break: break-word;
-        overflow: hidden;
+        white-space: nowrap;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
     }
 
     /* Sticky left columns logic */
@@ -288,30 +289,54 @@
         <div id="tableContainer" style="display: none;">
             <div class="table-responsive mb-0" style="min-height: 280px;">
                 <table class="table table-bordered table-hover" id="dataTable">
-                <colgroup>
-                    <col style="width: 45px;">       <!-- Checkbox -->
-                    <col style="width: 38px;">       <!-- No -->
-                    <col style="width: 150px;">      <!-- Nama Part -->
-                    <col style="width: 110px;">      <!-- Customer -->
-                    <col style="width: 130px;">      <!-- Std Customer -->
-                    <!-- STANDAR -->
-                    <col style="width: 60px;">       <!-- S Cu -->
-                    <col style="width: 60px;">       <!-- S Ni -->
-                    <col style="width: 60px;">       <!-- S Cr -->
-                    <!-- AKTUAL -->
-                    <col style="width: 60px;">       <!-- A Cu -->
-                    <col style="width: 60px;">       <!-- A Ni -->
-                    <col style="width: 60px;">       <!-- A Cr -->
-                    <!-- Trail -->
-                    <col style="width: 85px;">       <!-- Tanggal Test -->
-                    <col style="width: 90px;">       <!-- Tgl Produksi -->
-                    <col style="width: 50px;">       <!-- Shift -->
-                    <col style="width: 80px;">       <!-- No Lot -->
-                    <col style="width: 100px;">      <!-- Result/Judgment -->
-                    <col style="width: 95px;">       <!-- PIC -->
-                    <col style="width: 140px;">      <!-- Description -->
-                    <col style="width: 65px;">       <!-- Actions -->
-                </colgroup>
+                    <colgroup>
+                        <col style="width: 45px;">       <!-- Checkbox -->
+                        <col style="width: 38px;">       <!-- No -->
+                        <col style="width: 150px;">      <!-- Nama Part -->
+                        <col style="width: 110px;">      <!-- Customer -->
+                        <col style="width: 130px;">      <!-- Std Customer -->
+                        
+                        @if($testType == 'thickness')
+                            <!-- STANDAR -->
+                            <col style="width: 60px;"> <col style="width: 60px;"> <col style="width: 60px;">
+                            <!-- AKTUAL -->
+                            <col style="width: 60px;"> <col style="width: 60px;"> <col style="width: 60px;">
+                        @elseif($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                            <col style="width: 80px;"> <col style="width: 80px;">
+                            <col style="width: 80px;"> <col style="width: 80px;">
+                        @elseif($testType == 'porecount')
+                            <col style="width: 100px;">
+                            <col style="width: 100px;">
+                        @endif
+
+                        <col style="width: 85px;">       <!-- Tanggal Test -->
+                        <col style="width: 90px;">       <!-- Tgl Produksi -->
+                        <col style="width: 50px;">       <!-- Shift -->
+                        
+                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                            <col style="width: 90px;">       <!-- Tgl Masuk -->
+                            <col style="width: 70px;">       <!-- Jam Masuk -->
+                            <col style="width: 90px;">       <!-- Tgl Keluar -->
+                            <col style="width: 70px;">       <!-- Jam Keluar -->
+                        @endif
+
+                        <col style="width: 80px;">       <!-- No Lot -->
+                        <col style="width: 100px;">      <!-- Result/Judgment -->
+                        
+                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                            <col style="width: 80px;">       <!-- Evidence -->
+                        @endif
+                        
+                        <col style="width: 95px;">       <!-- PIC -->
+                        
+                        <col style="width: auto;">       <!-- Description (auto to stretch) -->
+                        
+                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                            <col style="width: 80px;">       <!-- Thickness Data -->
+                        @endif
+
+                        <col style="width: 65px;">       <!-- Actions -->
+                    </colgroup>
                                                 <thead>
                                         <tr>
                         <th rowspan="2" class="align-middle text-center">
@@ -348,6 +373,12 @@
                         <th rowspan="2" class="align-middle text-center">Tanggal Test</th>
                         <th rowspan="2" class="align-middle text-center">Tgl Produksi</th>
                         <th rowspan="2" class="align-middle text-center">Shift</th>
+                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                            <th rowspan="2" class="align-middle text-center">Tgl Masuk</th>
+                            <th rowspan="2" class="align-middle text-center">Jam Masuk</th>
+                            <th rowspan="2" class="align-middle text-center">Tgl Keluar</th>
+                            <th rowspan="2" class="align-middle text-center">Jam Keluar</th>
+                        @endif
                         <th rowspan="2" class="align-middle text-center">No Lot</th>
                         <th rowspan="2" class="align-middle text-center">Result</th>
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
@@ -355,18 +386,21 @@
                         @endif
                         <th rowspan="2" class="align-middle text-center">PIC</th>
                         <th rowspan="2" class="align-middle text-center">Description</th>
+                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                            <th rowspan="2" class="align-middle text-center">Thickness</th>
+                        @endif
                         <th rowspan="2" class="text-center align-middle">Actions</th>
                     </tr>
                     <tr>
                         @if($testType == 'thickness')
                             <!-- STANDAR THICKNESS -->
-                            <th class="text-center th-standar" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Cu</span></th>
-                            <th class="text-center th-standar" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Ni</span></th>
                             <th class="text-center th-standar" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Cr</span></th>
+                            <th class="text-center th-standar" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Ni</span></th>
+                            <th class="text-center th-standar" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Cu</span></th>
                             <!-- AKTUAL THICKNESS -->
-                            <th class="text-center th-aktual" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Cu</span></th>
-                            <th class="text-center th-aktual" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Ni</span></th>
                             <th class="text-center th-aktual" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Cr</span></th>
+                            <th class="text-center th-aktual" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Ni</span></th>
+                            <th class="text-center th-aktual" style="width: 60px; min-width: 60px; max-width: 60px;"><span style="text-transform: none !important; font-weight: bold !important;">Cu</span></th>
                         @elseif($testType == 'corrodkote')
                             <!-- STANDAR CORRODKOTE -->
                             <th class="text-center th-standar" style="width: 80px;"><span style="text-transform: none !important; font-weight: bold !important;">Time (hours)</span></th>
@@ -413,12 +447,12 @@
                             
                                                         <!-- STANDAR -->
                             @if($testType == 'thickness')
-                                <td class="text-center td-standar">{{ $std->thickness_cu ?? '-' }}</td>
-                                <td class="text-center td-standar">{{ $std->thickness_ni ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->thickness_cr ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_ni ?? '-' }}</td>
+                                <td class="text-center td-standar">{{ $std->thickness_ni ?? '-' }}</td>
+                                <td class="text-center td-standar">{{ $std->thickness_cu ?? '-' }}</td>
                                 <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cr ?? '-' }}</td>
+                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_ni ?? '-' }}</td>
+                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cu ?? '-' }}</td>
                             @elseif($testType == 'corrodkote')
                                 <td class="text-center td-standar">{{ $std->corrodkote_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->corrodkote_std_max_corrosion ?? '-' }}</td>
@@ -442,6 +476,12 @@
                             <td class="text-center">{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}</td>
                             <td class="text-center">{{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('d/m/Y') : '-' }}</td>
                             <td class="text-center">{{ $report->shift ?? '-' }}</td>
+                            @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                                <td class="text-center">{{ $report->tgl_masuk ? \Carbon\Carbon::parse($report->tgl_masuk)->format('d/m/Y') : '-' }}</td>
+                                <td class="text-center">{{ $report->jam_masuk ? \Carbon\Carbon::parse($report->jam_masuk)->format('H:i') : '-' }}</td>
+                                <td class="text-center">{{ $report->tgl_keluar ? \Carbon\Carbon::parse($report->tgl_keluar)->format('d/m/Y') : '-' }}</td>
+                                <td class="text-center">{{ $report->jam_keluar ? \Carbon\Carbon::parse($report->jam_keluar)->format('H:i') : '-' }}</td>
+                            @endif
                             <td class="text-center">{{ $report->lot_no ?? '-' }}</td>
                             <td class="text-center">
                                                             @php
@@ -455,10 +495,29 @@
                                 <span class="{{ $rjClass }}">{{ $rj }}</span>
                             </td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
-                                <td class="text-center text-muted"><i class="fas fa-file-pdf"></i></td> <!-- Placeholder Evidence -->
+                                <td class="text-center">
+                                    @if($report->evidence_before || $report->evidence_after)
+                                        <button class="btn btn-sm btn-info py-0 px-2 btn-view-evidence" 
+                                                data-before="{{ $report->evidence_before ? asset($report->evidence_before) : '' }}" 
+                                                data-after="{{ $report->evidence_after ? asset($report->evidence_after) : '' }}"
+                                                data-before-time="{{ $report->evidence_before_uploaded_at ? \Carbon\Carbon::parse($report->evidence_before_uploaded_at)->format('d-m-Y H:i') : '' }}"
+                                                data-after-time="{{ $report->evidence_after_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_uploaded_at)->format('d-m-Y H:i') : '' }}">
+                                            <i class="fas fa-images"></i> View
+                                        </button>
+                                    @else
+                                        <span class="badge badge-warning" style="font-size: 0.7rem;">Data belum di<br>proses/test</span>
+                                    @endif
+                                </td>
                             @endif
                             <td class="text-center">{{ $report->analis ? $report->analis->name : '-' }}</td>
                             <td class="text-center">{{ $report->description ?? '-' }}</td>
+                            @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                                <td class="text-center">
+                                    <a href="{{ route('standard-performance-tests.report', ['report_id' => $report->id]) }}" class="btn btn-sm btn-secondary py-0 px-2" title="Lihat Data Thickness">
+                                        <i class="fas fa-external-link-alt"></i> Data
+                                    </a>
+                                </td>
+                            @endif
 
                             <td class="align-middle text-center" style="width: 50px;">
                                 <div class="dropdown no-arrow">
@@ -471,7 +530,10 @@
                                         <button type="button" class="dropdown-item btn-edit-thickness" 
                                             data-id="{{ $report->id }}" 
                                             data-item="{{ json_encode($report) }}" 
-                                            data-part="{{ $std->part_name }}">
+                                            data-part="{{ $std->part_name }}"
+                                            data-stdcu="{{ $std->thickness_cu }}"
+                                            data-stdni="{{ $std->thickness_ni }}"
+                                            data-stdcr="{{ $std->thickness_cr }}">
                                             <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
                                         </button>
 
@@ -528,16 +590,20 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="" method="POST" id="formEditThickness">
+            <form action="" method="POST" id="formEditThickness" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
+                            <input type="date" name="tanggal_cek" id="edit_tanggal_cek" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
                             <input type="date" name="production_date" id="edit_production_date" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Shift</label>
                             <select name="shift" id="edit_shift" class="form-control form-control-sm border-0 shadow-sm">
                                 <option value="1">1</option>
@@ -545,7 +611,7 @@
                                 <option value="3">3</option>
                             </select>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
                             <input type="text" name="lot_no" id="edit_lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
                         </div>
@@ -557,16 +623,16 @@
                     @if($testType == 'thickness')
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="actual_cu" id="edit_actual_cu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                            <input type="text" name="actual_cr" id="edit_actual_cr" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="actual_ni" id="edit_actual_ni" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="actual_ni" id="edit_actual_ni" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="actual_cr" id="edit_actual_cr" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                            <input type="text" name="actual_cu" id="edit_actual_cu" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
                         </div>
                     </div>
                     @elseif($testType == 'corrodkote')
@@ -612,8 +678,27 @@
                     @endif
                     
 
-                    <div class="row mt-3">
-                        <div class="col-md-6 form-group mb-0">
+                    @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
+                            <div class="d-flex align-items-center">
+                                <input type="date" name="tgl_masuk" id="edit_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                <input type="time" name="jam_masuk" id="edit_jam_masuk" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
+                            <div class="d-flex align-items-center">
+                                <input type="date" name="tgl_keluar" id="edit_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                <input type="time" name="jam_keluar" id="edit_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="row mt-2">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                             <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                 <option value="-">-</option>
@@ -621,9 +706,25 @@
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-6 form-group mb-0">
+                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
+                            <input type="file" name="evidence_before" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" style="font-size: 0.75rem;" accept="image/*">
+                            <small class="text-muted d-block mt-1" style="font-size: 0.65rem;">Kosongkan jika tidak diubah</small>
+                            <small class="text-dark d-none mt-1" id="edit_evidence_before_time" style="font-size: 0.65rem;"></small>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
+                            <input type="file" name="evidence_after" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" style="font-size: 0.75rem;" accept="image/*">
+                            <small class="text-muted d-block mt-1" style="font-size: 0.65rem;">Kosongkan jika tidak diubah</small>
+                            <small class="text-dark d-none mt-1" id="edit_evidence_after_time" style="font-size: 0.65rem;"></small>
+                        </div>
+                        @endif
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 form-group mb-0">
                             <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan (opsional)..."></textarea>
+                            <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="3" placeholder="Masukkan keterangan..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -671,13 +772,17 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time of test (hours) Standard</label>
                             <input type="text" name="standard_time" id="corrodkote_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time of test (hours) Actual</label>
-                            <input type="text" name="actual_time" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                     <div class="row">
@@ -687,7 +792,7 @@
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="tanggal_produksi" id="corrodkote_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="date" name="production_date" id="corrodkote_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Shift</label>
@@ -699,31 +804,49 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="no_lot" id="corrodkote_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                            <input type="date" name="tgl_masuk" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
+                            <input type="time" name="jam_masuk" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                            <input type="date" name="tgl_keluar" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                            <input type="time" name="jam_keluar" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">No Lot</label>
+                            <input type="text" name="lot_no" id="corrodkote_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence (File)</label>
-                            <input type="file" name="evidence" class="form-control form-control-sm border-0 shadow-sm p-1">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
+                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
+                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">PIC</label>
-                            <input type="text" name="pic" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-8 form-group mb-3">
+                        <div class="col-md-12 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1"></textarea>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -770,13 +893,17 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time (hours) STD. Min RN</label>
                             <input type="text" name="standard_time" id="cass_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time (hours) Actual</label>
-                            <input type="text" name="actual_time" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_cass" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                     <div class="row">
@@ -786,7 +913,7 @@
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="tanggal_produksi" id="cass_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="date" name="production_date" id="cass_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Shift</label>
@@ -818,29 +945,29 @@
                     <div class="row">
                         <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="no_lot" id="cass_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="lot_no" id="cass_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
                             </select>
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence (File)</label>
-                            <input type="file" name="evidence" class="form-control form-control-sm border-0 shadow-sm p-1">
+                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
+                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">PIC</label>
-                            <input type="text" name="pic" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
+                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-12 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1"></textarea>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -887,13 +1014,17 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time (hours) STD. Rusting</label>
                             <input type="text" name="standard_time" id="salt_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time (hours) STD. Rusting Actual</label>
-                            <input type="text" name="actual_time" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                     <div class="row">
@@ -903,7 +1034,7 @@
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="tanggal_produksi" id="salt_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="date" name="production_date" id="salt_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Shift</label>
@@ -915,31 +1046,49 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="no_lot" id="salt_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                            <input type="date" name="tgl_masuk" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
+                            <input type="time" name="jam_masuk" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                            <input type="date" name="tgl_keluar" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                            <input type="time" name="jam_keluar" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">No Lot</label>
+                            <input type="text" name="lot_no" id="salt_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence (File)</label>
-                            <input type="file" name="evidence" class="form-control form-control-sm border-0 shadow-sm p-1">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
+                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
+                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">PIC</label>
-                            <input type="text" name="pic" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-8 form-group mb-3">
+                        <div class="col-md-12 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1"></textarea>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -991,8 +1140,8 @@
                             <input type="text" name="standard_min" id="porecount_standard_min" class="form-control form-control-sm border-0 shadow-sm" readonly>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Act</label>
-                            <input type="text" name="actual" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                     <div class="row">
@@ -1002,7 +1151,7 @@
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="tanggal_produksi" id="porecount_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="date" name="production_date" id="porecount_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Shift</label>
@@ -1014,31 +1163,31 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="no_lot" id="porecount_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="lot_no" id="porecount_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence (File)</label>
-                            <input type="file" name="evidence" class="form-control form-control-sm border-0 shadow-sm p-1">
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
+                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
+                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">PIC</label>
-                            <input type="text" name="pic" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-8 form-group mb-3">
+                        <div class="col-md-12 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1"></textarea>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -1049,6 +1198,48 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal View Evidence -->
+<div class="modal fade" id="modalViewEvidence" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+            <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
+                    <i class="fas fa-images mr-2 text-info"></i> Evidence Photo
+                </h5>
+                <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #f8fafc; border-radius: 0 0 12px 12px;">
+                <div class="row text-center">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h6 class="font-weight-bold text-gray-700 mb-2">Before Test</h6>
+                        <div class="border rounded bg-white p-2 d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 250px;">
+                            <style>
+                                .img-zoom { transition: transform 0.3s ease; cursor: zoom-in; }
+                                .img-zoom:hover { transform: scale(1.8); z-index: 1055; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; }
+                            </style>
+                            <img id="evidenceBeforeImg" src="" alt="Evidence Before" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 270px; display: none;">
+                            <span id="evidenceBeforeEmpty" class="text-muted">Tidak ada foto</span>
+                            <small id="evidenceBeforeTimeText" class="text-dark font-weight-bold" style="font-size: 0.7rem; display: none;"></small>
+                            <a href="#" download id="btnDownloadBefore" class="btn btn-sm btn-success position-absolute" style="bottom: 10px; right: 10px; display: none;" title="Download Before"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-700 mb-2">After Test</h6>
+                        <div class="border rounded bg-white p-2 d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 250px;">
+                            <img id="evidenceAfterImg" src="" alt="Evidence After" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 270px; display: none;">
+                            <span id="evidenceAfterEmpty" class="text-muted">Tidak ada foto</span>
+                            <small id="evidenceAfterTimeText" class="text-dark font-weight-bold" style="font-size: 0.7rem; display: none;"></small>
+                            <a href="#" download id="btnDownloadAfter" class="btn btn-sm btn-success position-absolute" style="bottom: 10px; right: 10px; display: none;" title="Download After"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1074,5 +1265,49 @@
     };
 </script>
 <script src="{{ asset('js/durability_plating/report.js') }}?v={{ filemtime(public_path('js/durability_plating/report.js')) }}"></script>
+<script>
+    $(document).ready(function() {
+        $('.btn-view-evidence').on('click', function() {
+            var beforeUrl = $(this).data('before');
+            var afterUrl = $(this).data('after');
+            var beforeTime = $(this).data('before-time');
+            var afterTime = $(this).data('after-time');
+
+            if (beforeUrl) {
+                $('#evidenceBeforeImg').attr('src', beforeUrl).show();
+                $('#btnDownloadBefore').attr('href', beforeUrl).show();
+                $('#evidenceBeforeEmpty').hide();
+                if (beforeTime) {
+                    $('#evidenceBeforeTimeText').text('Diunggah: ' + beforeTime).show();
+                } else {
+                    $('#evidenceBeforeTimeText').hide();
+                }
+            } else {
+                $('#evidenceBeforeImg').hide();
+                $('#btnDownloadBefore').hide();
+                $('#evidenceBeforeEmpty').show();
+                $('#evidenceBeforeTimeText').hide();
+            }
+
+            if (afterUrl) {
+                $('#evidenceAfterImg').attr('src', afterUrl).show();
+                $('#btnDownloadAfter').attr('href', afterUrl).show();
+                $('#evidenceAfterEmpty').hide();
+                if (afterTime) {
+                    $('#evidenceAfterTimeText').text('Diunggah: ' + afterTime).show();
+                } else {
+                    $('#evidenceAfterTimeText').hide();
+                }
+            } else {
+                $('#evidenceAfterImg').hide();
+                $('#btnDownloadAfter').hide();
+                $('#evidenceAfterEmpty').show();
+                $('#evidenceAfterTimeText').hide();
+            }
+
+            $('#modalViewEvidence').modal('show');
+        });
+    });
+</script>
 @endpush
 @endsection

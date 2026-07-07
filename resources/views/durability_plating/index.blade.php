@@ -201,9 +201,9 @@
                         <th rowspan="2">Actions</th>
                     </tr>
                     <tr>
-                        <th><span style="text-transform: none !important; font-weight: bold !important;">Cu</span></th>
-                        <th><span style="text-transform: none !important; font-weight: bold !important;">Ni</span></th>
                         <th><span style="text-transform: none !important; font-weight: bold !important;">Cr</span></th>
+                        <th><span style="text-transform: none !important; font-weight: bold !important;">Ni</span></th>
+                        <th><span style="text-transform: none !important; font-weight: bold !important;">Cu</span></th>
                         <th>Frek.</th>
                         <th>Waktu (Jam)</th>
                         <th>Std Max % Corrosion</th>
@@ -227,9 +227,9 @@
                             <td>{{ $std->customer_standard }}</td>
                             
                             <!-- Thickness -->
-                            <td>{{ $std->thickness_cu ?: '-' }}</td>
-                            <td>{{ $std->thickness_ni ?: '-' }}</td>
                             <td>{{ $std->thickness_cr ?: '-' }}</td>
+                            <td>{{ $std->thickness_ni ?: '-' }}</td>
+                            <td>{{ $std->thickness_cu ?: '-' }}</td>
                             <td>{{ $std->thickness_freq ?: '-' }}</td>
                             
                             <!-- Corrodkote -->
@@ -259,12 +259,12 @@
                                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $std->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
                                         <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Aksi Data</div>
                                         
-                                        <button type="button" class="dropdown-item btn-edit" data-id="{{ $std->id }}" data-item="{{ json_encode($std) }}">
-                                            <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Data
+                                        <button type="button" class="dropdown-item btn-thickness" data-id="{{ $std->id }}" data-name="{{ $std->part_name }}" data-cu="{{ $std->thickness_cu }}" data-ni="{{ $std->thickness_ni }}" data-cr="{{ $std->thickness_cr }}">
+                                            <i class="fas fa-layer-group text-success fa-fw mr-2"></i> Input Thickness
                                         </button>
                                         
-                                        <button type="button" class="dropdown-item btn-thickness" data-id="{{ $std->id }}" data-name="{{ $std->part_name }}">
-                                            <i class="fas fa-layer-group text-success fa-fw mr-2"></i> Input Thickness
+                                        <button type="button" class="dropdown-item btn-edit" data-id="{{ $std->id }}" data-item="{{ json_encode($std) }}">
+                                            <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Data
                                         </button>
 
                                         <div class="dropdown-divider"></div>
@@ -319,16 +319,16 @@
                     <h6 class="font-weight-bold mt-3 mb-3 text-primary border-bottom pb-2"><i class="fas fa-layer-group mr-1"></i> Thickness (<span style="text-transform: none !important;">m&micro;</span>)</h6>
                     <div class="row">
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="thickness_cu" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                            <input type="text" name="thickness_cr" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Ni</label>
                             <input type="text" name="thickness_ni" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="thickness_cr" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                            <input type="text" name="thickness_cu" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Frek.</label>
@@ -441,16 +441,16 @@
                     <h6 class="font-weight-bold mt-3 mb-3 text-info border-bottom pb-2"><i class="fas fa-layer-group mr-1"></i> Thickness (<span style="text-transform: none !important;">m&micro;</span>)</h6>
                     <div class="row">
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="thickness_cu" id="edit_thickness_cu" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                            <input type="text" name="thickness_cr" id="edit_thickness_cr" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Ni</label>
                             <input type="text" name="thickness_ni" id="edit_thickness_ni" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="thickness_cr" id="edit_thickness_cr" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                            <input type="text" name="thickness_cu" id="edit_thickness_cu" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Frek.</label>
@@ -607,16 +607,16 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="actual_cu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                            <input type="text" name="actual_cr" id="actual_cr_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="actual_ni" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <input type="text" name="actual_ni" id="actual_ni_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="actual_cr" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                            <input type="text" name="actual_cu" id="actual_cu_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input" required>
                         </div>
                     </div>
                     
@@ -624,7 +624,7 @@
                     <div class="row mt-3">
                         <div class="col-md-6 form-group mb-0">
                             <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                            <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm">
                                 <option value="-">-</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
@@ -724,10 +724,34 @@
             table.search('').draw();
         });
         // Thickness Modal
+        var stdCr = 0, stdNi = 0, stdCu = 0;
         $('#dataTable').on('click', '.btn-thickness', function() {
             $('#thickness_test_id').val($(this).data('id'));
             $('#thickness_part_name').val($(this).data('name'));
+            stdCr = parseFloat($(this).data('cr')) || 0;
+            stdNi = parseFloat($(this).data('ni')) || 0;
+            stdCu = parseFloat($(this).data('cu')) || 0;
+            $('.actual-thickness-input').val('');
+            $('#result_judgment_select').val('-');
             $('#modalThickness').modal('show');
+        });
+
+        // Auto judgment logic
+        $('.actual-thickness-input').on('keyup change', function() {
+            var actCr = parseFloat($('#actual_cr_input').val());
+            var actNi = parseFloat($('#actual_ni_input').val());
+            var actCu = parseFloat($('#actual_cu_input').val());
+            
+            // Only judge if all inputs are filled and valid numbers
+            if (!isNaN(actCr) && !isNaN(actNi) && !isNaN(actCu)) {
+                if (actCr >= stdCr && actNi >= stdNi && actCu >= stdCu) {
+                    $('#result_judgment_select').val('OK');
+                } else {
+                    $('#result_judgment_select').val('NG');
+                }
+            } else {
+                $('#result_judgment_select').val('-');
+            }
         });
 
         $('#dataTable').on('click', '.btn-edit', function() {
@@ -740,9 +764,9 @@
             $('#edit_customer_name').val(item.customer_name);
             $('#edit_customer_standard').val(item.customer_standard);
             
-            $('#edit_thickness_cu').val(item.thickness_cu);
-            $('#edit_thickness_ni').val(item.thickness_ni);
             $('#edit_thickness_cr').val(item.thickness_cr);
+            $('#edit_thickness_ni').val(item.thickness_ni);
+            $('#edit_thickness_cu').val(item.thickness_cu);
             $('#edit_thickness_freq').val(item.thickness_freq);
             
             $('#edit_corrodkote_time').val(item.corrodkote_time);

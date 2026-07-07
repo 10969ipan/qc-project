@@ -108,7 +108,7 @@ class StandardPerformanceTestController extends Controller
         $sheet->setTitle('Template Std Performance');
         
         $headers = [
-            'No.', 'Nama Part', 'Customer', 'Standard Customer', 'Cu', 'Ni', 'Cr', 'Frek. Thickness',
+            'No.', 'Nama Part', 'Customer', 'Standard Customer', 'Cr', 'Ni', 'Cu', 'Frek. Thickness',
             'Corrodkote Waktu', 'Corrodkote Std Max', 'Corrodkote Frek',
             'Cass Waktu', 'Cass Std Min', 'Cass Frek',
             'Salt Spray Waktu', 'Salt Spray Std', 'Salt Spray Frek',
@@ -140,9 +140,9 @@ class StandardPerformanceTestController extends Controller
                     $item->part_name,
                     $item->customer_name,
                     $item->customer_standard,
-                    $item->thickness_cu,
-                    $item->thickness_ni,
                     $item->thickness_cr,
+                    $item->thickness_ni,
+                    $item->thickness_cu,
                     $item->thickness_freq,
                     $item->corrodkote_time,
                     $item->corrodkote_std_max_corrosion,
@@ -161,7 +161,7 @@ class StandardPerformanceTestController extends Controller
             // Default sample rows jika tidak ada data
             $rowsData = [
                 [
-                    1, 'Sample Part A', 'HONDA', 'HES', '10', '15', '20', '1x/Shift',
+                    1, 'Sample Part A', 'HONDA', 'HES', '20', '15', '10', '1x/Shift',
                     '24', 'Max 5%', '1x/Shift',
                     '48', 'Min RN 8', '1x/Shift',
                     '72', 'Max 2%', '1x/Shift',
@@ -221,9 +221,9 @@ class StandardPerformanceTestController extends Controller
                     [
                         'customer_name' => $row[2] ?? null,
                         'customer_standard' => $row[3] ?? null,
-                        'thickness_cu' => $row[4] ?? null,
+                        'thickness_cr' => $row[4] ?? null,
                         'thickness_ni' => $row[5] ?? null,
-                        'thickness_cr' => $row[6] ?? null,
+                        'thickness_cu' => $row[6] ?? null,
                         'thickness_freq' => $row[7] ?? null,
                         'corrodkote_time' => $row[8] ?? null,
                         'corrodkote_std_max_corrosion' => $row[9] ?? null,
@@ -268,10 +268,14 @@ class StandardPerformanceTestController extends Controller
             'actual_salt_spray' => 'nullable|string|max:255',
             'actual_porecount' => 'nullable|string|max:255',
             'result_judgment' => 'nullable|string|max:255',
+            'tgl_masuk' => 'nullable|date',
+            'jam_masuk' => 'nullable|date_format:H:i',
+            'tgl_keluar' => 'nullable|date',
+            'jam_keluar' => 'nullable|date_format:H:i',
             'description' => 'nullable|string'
         ]);
 
-        DurabilityThicknessReport::create([
+        $report = DurabilityThicknessReport::create([
             'standard_performance_test_id' => $request->standard_performance_test_id,
             'production_date' => $request->production_date,
             'shift' => $request->shift,
@@ -287,10 +291,34 @@ class StandardPerformanceTestController extends Controller
             'actual_salt_spray' => $request->actual_salt_spray ?? '-',
             'actual_porecount' => $request->actual_porecount ?? '-',
             'result_judgment' => $request->result_judgment ?? '-',
+            'tgl_masuk' => $request->tgl_masuk,
+            'jam_masuk' => $request->jam_masuk,
+            'tgl_keluar' => $request->tgl_keluar,
+            'jam_keluar' => $request->jam_keluar,
             'tanggal_cek' => now()->toDateString(),
             'analis_id' => auth()->id(),
             'description' => $request->description,
         ]);
+        
+        if ($request->hasFile('evidence_before')) {
+            $fileBefore = $request->file('evidence_before');
+            $filenameBefore = time() . '_before_' . $fileBefore->getClientOriginalName();
+            $fileBefore->move(public_path('uploads/durability_plating'), $filenameBefore);
+            $report->update([
+                'evidence_before' => 'uploads/durability_plating/' . $filenameBefore,
+                'evidence_before_uploaded_at' => now()
+            ]);
+        }
+        
+        if ($request->hasFile('evidence_after')) {
+            $fileAfter = $request->file('evidence_after');
+            $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
+            $fileAfter->move(public_path('uploads/durability_plating'), $filenameAfter);
+            $report->update([
+                'evidence_after' => 'uploads/durability_plating/' . $filenameAfter,
+                'evidence_after_uploaded_at' => now()
+            ]);
+        }
         
         ActivityLogger::log('created', null, "Input Thickness Report untuk ID: {$request->standard_performance_test_id}");
 
@@ -352,6 +380,9 @@ class StandardPerformanceTestController extends Controller
         if ($request->filled('result_judgment')) {
             $query->where('result_judgment', $request->result_judgment);
         }
+        if ($request->filled('report_id')) {
+            $query->where('id', $request->report_id);
+        }
         
         if ($request->has('print')) {
             $reports = $query->get();
@@ -396,31 +427,62 @@ class StandardPerformanceTestController extends Controller
             'actual_salt_spray' => 'nullable|string|max:255',
             'actual_porecount' => 'nullable|string|max:255',
             'result_judgment' => 'nullable|string|max:255',
+            'tgl_masuk' => 'nullable|date',
+            'jam_masuk' => 'nullable|date_format:H:i',
+            'tgl_keluar' => 'nullable|date',
+            'jam_keluar' => 'nullable|date_format:H:i',
             'description' => 'nullable|string'
         ]);
 
         $report = DurabilityThicknessReport::findOrFail($id);
-        $report->update([
-            'production_date' => $request->production_date,
-            'shift' => $request->shift,
-            'lot_no' => $request->lot_no,
-            'actual_cu' => $request->actual_cu,
-            'actual_ni' => $request->actual_ni,
-            'actual_cr' => $request->actual_cr,
-            'actual_corrodkote_waktu' => $request->actual_corrodkote_waktu,
-            'actual_corrodkote' => $request->actual_corrodkote,
-            'actual_cass_waktu' => $request->actual_cass_waktu,
-            'actual_cass' => $request->actual_cass,
-            'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu,
-            'actual_salt_spray' => $request->actual_salt_spray,
-            'actual_porecount' => $request->actual_porecount,
-            'result_judgment' => $request->result_judgment,
-            'description' => $request->description,
-        ]);
+        
+        $updateData = [];
+        $fields = [
+            'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr', 
+            'actual_corrodkote_waktu', 'actual_corrodkote', 'actual_cass_waktu', 'actual_cass', 
+            'actual_salt_spray_waktu', 'actual_salt_spray', 'actual_porecount', 
+            'result_judgment', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek', 'description'
+        ];
+
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $updateData[$field] = $request->$field;
+            }
+        }
+
+        if (!empty($updateData)) {
+            $report->update($updateData);
+        }
+        
+        if ($request->hasFile('evidence_before')) {
+            if ($report->evidence_before && file_exists(public_path($report->evidence_before))) {
+                @unlink(public_path($report->evidence_before));
+            }
+            $fileBefore = $request->file('evidence_before');
+            $filenameBefore = time() . '_before_' . $fileBefore->getClientOriginalName();
+            $fileBefore->move(public_path('uploads/durability_plating'), $filenameBefore);
+            $report->update([
+                'evidence_before' => 'uploads/durability_plating/' . $filenameBefore,
+                'evidence_before_uploaded_at' => now()
+            ]);
+        }
+
+        if ($request->hasFile('evidence_after')) {
+            if ($report->evidence_after && file_exists(public_path($report->evidence_after))) {
+                @unlink(public_path($report->evidence_after));
+            }
+            $fileAfter = $request->file('evidence_after');
+            $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
+            $fileAfter->move(public_path('uploads/durability_plating'), $filenameAfter);
+            $report->update([
+                'evidence_after' => 'uploads/durability_plating/' . $filenameAfter,
+                'evidence_after_uploaded_at' => now()
+            ]);
+        }
         
         ActivityLogger::log('updated', null, "Update Thickness Report untuk ID Laporan: {$id}");
 
-        return redirect()->back()->with('success', 'Data Thickness berhasil diupdate.');
+        return redirect()->back()->with('success', 'Data berhasil diupdate.');
     }
 
     private function isFieldEmpty($value) {

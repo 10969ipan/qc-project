@@ -14,12 +14,13 @@ $(document).ready(function() {
         $('#formEditThickness').attr('action', url);
         
         $('#edit_thickness_part_name').val(partName);
+        $('#edit_tanggal_cek').val(item.tanggal_cek);
         $('#edit_production_date').val(item.production_date);
         $('#edit_shift').val(item.shift);
         $('#edit_lot_no').val(item.lot_no);
-        $('#edit_actual_cu').val(item.actual_cu);
-        $('#edit_actual_ni').val(item.actual_ni);
         $('#edit_actual_cr').val(item.actual_cr);
+        $('#edit_actual_ni').val(item.actual_ni);
+        $('#edit_actual_cu').val(item.actual_cu);
         
         $('#edit_actual_corrodkote_waktu').val(item.actual_corrodkote_waktu);
         $('#edit_actual_corrodkote').val(item.actual_corrodkote);
@@ -32,10 +33,68 @@ $(document).ready(function() {
         
         $('#edit_actual_porecount').val(item.actual_porecount);
         
+        $('#edit_tgl_masuk').val(item.tgl_masuk);
+        if (item.jam_masuk) {
+            $('#edit_jam_masuk').val(item.jam_masuk.substring(0, 5));
+        }
+        $('#edit_tgl_keluar').val(item.tgl_keluar);
+        if (item.jam_keluar) {
+            $('#edit_jam_keluar').val(item.jam_keluar.substring(0, 5));
+        }
+        
         $('#edit_result_judgment').val(item.result_judgment ?? '-');
         $('#edit_description').val(item.description);
         
+        function formatDbDate(dbDateStr) {
+            if (!dbDateStr) return null;
+            let dateObj = new Date(dbDateStr);
+            if (isNaN(dateObj)) return null;
+            let d = ('0' + dateObj.getDate()).slice(-2);
+            let m = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+            let y = dateObj.getFullYear();
+            let h = ('0' + dateObj.getHours()).slice(-2);
+            let min = ('0' + dateObj.getMinutes()).slice(-2);
+            return d + '-' + m + '-' + y + ' ' + h + ':' + min;
+        }
+
+        let beforeTimeFormatted = formatDbDate(item.evidence_before_uploaded_at);
+        if (beforeTimeFormatted) {
+            $('#edit_evidence_before_time').text('Diunggah: ' + beforeTimeFormatted).removeClass('d-none');
+        } else {
+            $('#edit_evidence_before_time').addClass('d-none');
+        }
+
+        let afterTimeFormatted = formatDbDate(item.evidence_after_uploaded_at);
+        if (afterTimeFormatted) {
+            $('#edit_evidence_after_time').text('Diunggah: ' + afterTimeFormatted).removeClass('d-none');
+        } else {
+            $('#edit_evidence_after_time').addClass('d-none');
+        }
+        
+        editStdCr = parseFloat($(this).data('stdcr')) || 0;
+        editStdNi = parseFloat($(this).data('stdni')) || 0;
+        editStdCu = parseFloat($(this).data('stdcu')) || 0;
+
         $('#modalEditThickness').modal('show');
+    });
+
+    // Auto judgment logic for Edit Thickness Modal
+    var editStdCr = 0, editStdNi = 0, editStdCu = 0;
+    $('.edit-actual-thickness-input').on('keyup change', function() {
+        var actCr = parseFloat($('#edit_actual_cr').val());
+        var actNi = parseFloat($('#edit_actual_ni').val());
+        var actCu = parseFloat($('#edit_actual_cu').val());
+        
+        // Only judge if all inputs are filled and valid numbers
+        if (!isNaN(actCr) && !isNaN(actNi) && !isNaN(actCu)) {
+            if (actCr >= editStdCr && actNi >= editStdNi && actCu >= editStdCu) {
+                $('#edit_result_judgment').val('OK');
+            } else {
+                $('#edit_result_judgment').val('NG');
+            }
+        } else {
+            $('#edit_result_judgment').val('-');
+        }
     });
 
     $('.btn-input-corrodkote').click(function() {

@@ -126,16 +126,16 @@
             </tr>
             <tr>
                 <!-- STANDAR THICKNESS -->
-                <th>Cu</th>
-                <th>Ni</th>
                 <th>Cr</th>
+                <th>Ni</th>
+                <th>Cu</th>
                 <th>Time (Hours)</th>
                 <th>Time (Hours)</th>
                 <th>Time (Hours)</th>
                 <!-- AKTUAL THICKNESS -->
-                <th>Cu</th>
-                <th>Ni</th>
                 <th>Cr</th>
+                <th>Ni</th>
+                <th>Cu</th>
                 <!-- AKTUAL Corrodkote -->
                 <th>Time</th>
                 <th>Result</th>
@@ -155,17 +155,17 @@
                     <td>{{ optional($report->standard)->customer_name ?? '-' }}</td>
                     <td>{{ optional($report->standard)->customer_standard ?? '-' }}</td>
                     <!-- STANDAR -->
-                    <td>{{ optional($report->standard)->thickness_cu ?? '-' }}</td>
-                    <td>{{ optional($report->standard)->thickness_ni ?? '-' }}</td>
                     <td>{{ optional($report->standard)->thickness_cr ?? '-' }}</td>
+                    <td>{{ optional($report->standard)->thickness_ni ?? '-' }}</td>
+                    <td>{{ optional($report->standard)->thickness_cu ?? '-' }}</td>
                     <td>{{ optional($report->standard)->corrodkote_time ?? '-' }}</td>
                     <td>{{ optional($report->standard)->cass_time ?? '-' }}</td>
                     <td>{{ optional($report->standard)->salt_spray_time ?? '-' }}</td>
                     <td>{{ optional($report->standard)->porecount_std_min ?? '-' }}</td>
                     <!-- AKTUAL -->
-                    <td>{{ $report->actual_cu ?? '-' }}</td>
-                    <td>{{ $report->actual_ni ?? '-' }}</td>
                     <td>{{ $report->actual_cr ?? '-' }}</td>
+                    <td>{{ $report->actual_ni ?? '-' }}</td>
+                    <td>{{ $report->actual_cu ?? '-' }}</td>
                     <td>{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
                     <td>{{ $report->actual_corrodkote ?? '-' }}</td>
                     <td>{{ $report->actual_cass_waktu ?? '-' }}</td>
