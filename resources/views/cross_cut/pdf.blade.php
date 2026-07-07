@@ -205,7 +205,7 @@
                                 <td>{{ $checksheet->chemical_catalyst ?? '-' }}</td>
                             </tr>
                             <tr>
-                                <th>Abu</th>
+                                <th>Copper</th>
                                 <td>{{ $checksheet->chemical_abu ?? '-' }}</td>
                             </tr>
                         </table>

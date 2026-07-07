@@ -80,7 +80,7 @@
                     <input type="text" class="form-control form-control-sm no-autoupper" name="chemical_catalyst" value="{{ $checksheet->chemical_catalyst }}">
                 </div>
                 <div class="col-6 form-group mb-2">
-                    <label class="small font-weight-bold">Bak No (Abu)</label>
+                    <label class="small font-weight-bold">Bak No (Copper)</label>
                     <input type="text" class="form-control form-control-sm no-autoupper" name="chemical_abu" value="{{ $checksheet->chemical_abu }}">
                 </div>
             </div>

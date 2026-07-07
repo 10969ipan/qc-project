@@ -339,7 +339,7 @@
                                                 <td class="p-1">{{ $checksheet->chemical_catalyst ?? '-' }}</td>
                                             </tr>
                                             <tr>
-                                                <th class="p-1">Abu</th>
+                                                <th class="p-1">Copper</th>
                                                 <td class="p-1">{{ $checksheet->chemical_abu ?? '-' }}</td>
                                             </tr>
                                         </tbody>

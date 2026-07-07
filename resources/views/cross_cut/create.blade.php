@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Input Data Checksheet')
 
@@ -181,7 +181,7 @@
                                 <td class="align-middle" style="min-width: 150px;">
                                     <div class="form-group mb-2"><label>Catalyst</label><input type="text"
                                             class="form-control" name="chemical_catalyst"></div>
-                                    <div class="form-group mb-0"><label>Abu</label><input type="text" class="form-control"
+                                    <div class="form-group mb-0"><label>Copper</label><input type="text" class="form-control"
                                             name="chemical_abu"></div>
                                 </td>
                                 <!-- Posisi Remark -->

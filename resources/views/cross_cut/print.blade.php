@@ -199,7 +199,7 @@
             </tr>
             <tr>
                 <th>Catalyst</th>
-                <th>Abu</th>
+                <th>Copper</th>
             </tr>
         </thead>
         <tbody>
