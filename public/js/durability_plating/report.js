@@ -53,6 +53,9 @@ $(document).ready(function() {
         let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let originalAfterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
 
+        let beforeTimeFormatted = formatDbDate(item.evidence_before_uploaded_at);
+        let afterTimeFormatted  = formatDbDate(item.evidence_after_uploaded_at);
+
         showEvidenceCard('edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
             'edit_evidence_before_empty', 'btn_delete_evidence_before', 'edit_evidence_before_time',
             originalBeforeUrl, beforeTimeFormatted);
