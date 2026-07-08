@@ -295,7 +295,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($records as $record)
+                        @foreach($records as $record)
                             <tr>
                                 <td class="text-center align-middle">{{ $loop->iteration }}</td>
                                 <td class="text-nowrap align-middle text-center">
@@ -388,11 +388,7 @@
                                     @endif
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="26" class="text-center py-4 text-muted">Belum ada data claim</td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -461,6 +457,7 @@
                     { "orderable": false, "targets": [20, 23] } // Evidential, Aksi
                 ],
                 language: {
+                    emptyTable: "Belum ada data claim",
                     info: "Showing _START_ to _END_ of _TOTAL_ entries",
                     infoEmpty: "Showing 0 to 0 of 0 entries",
                     paginate: {
