@@ -23,13 +23,13 @@ $(document).ready(function() {
         $('#edit_actual_cu').val(item.actual_cu);
         
         $('#edit_actual_corrodkote_waktu').val(item.actual_corrodkote_waktu);
-        $('#edit_actual_corrodkote').val(item.actual_corrodkote);
+        $('#edit_standar_jam_corrodkote').val(item.standar_jam_corrodkote);
         
         $('#edit_actual_cass_waktu').val(item.actual_cass_waktu);
-        $('#edit_actual_cass').val(item.actual_cass);
+        $('#edit_standar_jam_cass').val(item.standar_jam_cass);
         
         $('#edit_actual_salt_spray_waktu').val(item.actual_salt_spray_waktu);
-        $('#edit_actual_salt_spray').val(item.actual_salt_spray);
+        $('#edit_standar_jam_salt_spray').val(item.standar_jam_salt_spray);
         
         $('#edit_actual_porecount').val(item.actual_porecount);
         
@@ -45,54 +45,10 @@ $(document).ready(function() {
         $('#edit_result_judgment').val(item.result_judgment ?? '-');
         $('#edit_description').val(item.description);
         
-        function formatDbDate(dbDateStr) {
-            if (!dbDateStr) return null;
-            let dateObj = new Date(dbDateStr);
-            if (isNaN(dateObj)) return null;
-            let d = ('0' + dateObj.getDate()).slice(-2);
-            let m = ('0' + (dateObj.getMonth() + 1)).slice(-2);
-            let y = dateObj.getFullYear();
-            let h = ('0' + dateObj.getHours()).slice(-2);
-            let min = ('0' + dateObj.getMinutes()).slice(-2);
-            return d + '-' + m + '-' + y + ' ' + h + ':' + min;
-        }
-
-        let beforeTimeFormatted = formatDbDate(item.evidence_before_uploaded_at);
-        if (beforeTimeFormatted) {
-            $('#edit_evidence_before_time').text('Diunggah: ' + beforeTimeFormatted).removeClass('d-none');
-        } else {
-            $('#edit_evidence_before_time').addClass('d-none');
-        }
-
-        let afterTimeFormatted = formatDbDate(item.evidence_after_uploaded_at);
-        if (afterTimeFormatted) {
-            $('#edit_evidence_after_time').text('Diunggah: ' + afterTimeFormatted).removeClass('d-none');
-        } else {
-            $('#edit_evidence_after_time').addClass('d-none');
-        }
         
         editStdCr = parseFloat($(this).data('stdcr')) || 0;
         editStdNi = parseFloat($(this).data('stdni')) || 0;
         editStdCu = parseFloat($(this).data('stdcu')) || 0;
-
-        // Evidence preview helpers
-        // ponytail: must use css('display','flex') not .show() — empty divs use inline flex,
-        // and Bootstrap d-flex !important would prevent jQuery .hide() from working if class was used.
-        function showEvidenceCard(previewId, wrapId, emptyId, deleteBtnId, timeId, url, time) {
-            if (url) {
-                $('#' + previewId).attr('src', url);
-                $('#' + wrapId).show();
-                $('#' + emptyId).hide();
-                $('#' + deleteBtnId).removeClass('d-none').css('display', 'flex');
-                $('#' + timeId).text(time ? 'Diunggah: ' + time : '');
-            } else {
-                $('#' + previewId).attr('src', '');
-                $('#' + wrapId).hide();
-                $('#' + emptyId).css('display', 'flex');
-                $('#' + deleteBtnId).addClass('d-none').css('display', '');
-                $('#' + timeId).text('');
-            }
-        }
 
         let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let originalAfterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
@@ -185,6 +141,47 @@ $(document).ready(function() {
     handleNewDataDeleteBtn('btn_delete_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'input_new_evidence_before');
     handleNewDataDeleteBtn('btn_delete_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'input_new_evidence_after');
 
+    const inputModals = ['corrodkote', 'cass', 'salt_spray', 'porecount'];
+    inputModals.forEach(t => {
+        bindLivePreview(`input_${t}_evidence_before`, `${t}_evidence_before_preview`, `${t}_evidence_before_preview_wrap`, `${t}_evidence_before_empty`, `btn_delete_${t}_evidence_before`);
+        bindLivePreview(`input_${t}_evidence_after`,  `${t}_evidence_after_preview`,  `${t}_evidence_after_preview_wrap`,  `${t}_evidence_after_empty`,  `btn_delete_${t}_evidence_after`);
+        
+        handleNewDataDeleteBtn(`btn_delete_${t}_evidence_before`, `${t}_evidence_before_preview`, `${t}_evidence_before_preview_wrap`, `${t}_evidence_before_empty`, `input_${t}_evidence_before`);
+        handleNewDataDeleteBtn(`btn_delete_${t}_evidence_after`,  `${t}_evidence_after_preview`,  `${t}_evidence_after_preview_wrap`,  `${t}_evidence_after_empty`,  `input_${t}_evidence_after`);
+    });
+
+    function formatDbDate(dbDateStr) {
+        if (!dbDateStr) return null;
+        let dateObj = new Date(dbDateStr);
+        if (isNaN(dateObj)) return null;
+        let d = ('0' + dateObj.getDate()).slice(-2);
+        let m = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+        let y = dateObj.getFullYear();
+        let h = ('0' + dateObj.getHours()).slice(-2);
+        let min = ('0' + dateObj.getMinutes()).slice(-2);
+        return d + '-' + m + '-' + y + ' ' + h + ':' + min;
+    }
+
+    function showEvidenceCard(previewId, wrapId, emptyId, deleteBtnId, timeId, url, time) {
+        if (url) {
+            $('#' + previewId).attr('src', url);
+            $('#' + wrapId).show();
+            $('#' + emptyId).hide();
+            $('#' + deleteBtnId).removeClass('d-none').css('display', 'flex');
+            if(timeId) {
+                $('#' + timeId).text(time ? 'Diunggah: ' + time : '').removeClass('d-none');
+            }
+        } else {
+            $('#' + previewId).attr('src', '');
+            $('#' + wrapId).hide();
+            $('#' + emptyId).css('display', 'flex');
+            $('#' + deleteBtnId).addClass('d-none').css('display', '');
+            if(timeId) {
+                $('#' + timeId).text('').addClass('d-none');
+            }
+        }
+    }
+
     // Auto judgment logic for Edit Thickness Modal
     var editStdCr = 0, editStdNi = 0, editStdCu = 0;
     $('.edit-actual-thickness-input').on('keyup change', function() {
@@ -219,6 +216,12 @@ $(document).ready(function() {
         $('#corrodkote_produksi').val(item.production_date);
         $('#corrodkote_shift').val(item.shift);
         $('#corrodkote_lot').val(item.lot_no);
+
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        showEvidenceCard('corrodkote_evidence_before_preview', 'corrodkote_evidence_before_preview_wrap', 'corrodkote_evidence_before_empty', 'btn_delete_corrodkote_evidence_before', null, beforeUrl, null);
+        showEvidenceCard('corrodkote_evidence_after_preview', 'corrodkote_evidence_after_preview_wrap', 'corrodkote_evidence_after_empty', 'btn_delete_corrodkote_evidence_after', null, afterUrl, null);
+
         $('#modalInputCorrodkote').modal('show');
     });
 
@@ -237,6 +240,12 @@ $(document).ready(function() {
         $('#cass_produksi').val(item.production_date);
         $('#cass_shift').val(item.shift);
         $('#cass_lot').val(item.lot_no);
+
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        showEvidenceCard('cass_evidence_before_preview', 'cass_evidence_before_preview_wrap', 'cass_evidence_before_empty', 'btn_delete_cass_evidence_before', null, beforeUrl, null);
+        showEvidenceCard('cass_evidence_after_preview', 'cass_evidence_after_preview_wrap', 'cass_evidence_after_empty', 'btn_delete_cass_evidence_after', null, afterUrl, null);
+
         $('#modalInputCass').modal('show');
     });
 
@@ -255,6 +264,12 @@ $(document).ready(function() {
         $('#salt_produksi').val(item.production_date);
         $('#salt_shift').val(item.shift);
         $('#salt_lot').val(item.lot_no);
+
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        showEvidenceCard('salt_spray_evidence_before_preview', 'salt_spray_evidence_before_preview_wrap', 'salt_spray_evidence_before_empty', 'btn_delete_salt_spray_evidence_before', null, beforeUrl, null);
+        showEvidenceCard('salt_spray_evidence_after_preview', 'salt_spray_evidence_after_preview_wrap', 'salt_spray_evidence_after_empty', 'btn_delete_salt_spray_evidence_after', null, afterUrl, null);
+
         $('#modalInputSaltSpray').modal('show');
     });
 
@@ -273,6 +288,12 @@ $(document).ready(function() {
         $('#porecount_produksi').val(item.production_date);
         $('#porecount_shift').val(item.shift);
         $('#porecount_lot').val(item.lot_no);
+
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        showEvidenceCard('porecount_evidence_before_preview', 'porecount_evidence_before_preview_wrap', 'porecount_evidence_before_empty', 'btn_delete_porecount_evidence_before', null, beforeUrl, null);
+        showEvidenceCard('porecount_evidence_after_preview', 'porecount_evidence_after_preview_wrap', 'porecount_evidence_after_empty', 'btn_delete_porecount_evidence_after', null, afterUrl, null);
+
         $('#modalInputPorecount').modal('show');
     });
 
@@ -427,3 +448,39 @@ $(document).ready(function() {
     
     $(window).on('resize', fixStickyHeaderTops);
 });
+
+    // Auto-calculate Tgl/Jam Keluar based on Tgl/Jam Masuk + Standar Jam
+    function autoCalculateChamberTime($form) {
+        let $tglMasuk = $form.find('input[name="tgl_masuk"]');
+        let $jamMasuk = $form.find('input[name="jam_masuk"]');
+        let $tglKeluar = $form.find('input[name="tgl_keluar"]');
+        let $jamKeluar = $form.find('input[name="jam_keluar"]');
+        let $standarJam = $form.find('.auto-calc-jam');
+
+        if ($tglMasuk.length && $jamMasuk.length && $tglKeluar.length && $jamKeluar.length && $standarJam.length) {
+            let tglMasukVal = $tglMasuk.val();
+            let jamMasukVal = $jamMasuk.val();
+            let standarJamVal = parseFloat($standarJam.val());
+
+            if (tglMasukVal && jamMasukVal && !isNaN(standarJamVal) && standarJamVal > 0) {
+                let masukDate = new Date(`${tglMasukVal}T${jamMasukVal}:00`);
+                masukDate.setHours(masukDate.getHours() + standarJamVal);
+
+                let outYear = masukDate.getFullYear();
+                let outMonth = ('0' + (masukDate.getMonth() + 1)).slice(-2);
+                let outDay = ('0' + masukDate.getDate()).slice(-2);
+                
+                let outHours = ('0' + masukDate.getHours()).slice(-2);
+                let outMins = ('0' + masukDate.getMinutes()).slice(-2);
+
+                $tglKeluar.val(`${outYear}-${outMonth}-${outDay}`);
+                $jamKeluar.val(`${outHours}:${outMins}`);
+            }
+        }
+    }
+
+    $(document).on('keyup change', '.auto-calc-jam, .auto-calc-trigger', function() {
+        let $form = $(this).closest('.modal-content').length ? $(this).closest('.modal-content') : $(this).closest('form');
+        autoCalculateChamberTime($form);
+    });
+

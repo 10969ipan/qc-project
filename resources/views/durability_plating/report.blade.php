@@ -530,17 +530,17 @@
                                 <td class="text-center td-standar">{{ $std->corrodkote_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->corrodkote_std_max_corrosion ?? '-' }}</td>
                                 <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_corrodkote ?? '-' }}</td>
+                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->standar_jam_corrodkote ?? '-' }}</td>
                             @elseif($testType == 'cass')
                                 <td class="text-center td-standar">{{ $std->cass_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->cass_std_min_rn ?? '-' }}</td>
                                 <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cass_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cass ?? '-' }}</td>
+                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->standar_jam_cass ?? '-' }}</td>
                             @elseif($testType == 'salt_spray')
                                 <td class="text-center td-standar">{{ $std->salt_spray_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->salt_spray_std_rusting ?? '-' }}</td>
                                 <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_salt_spray_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_salt_spray ?? '-' }}</td>
+                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->standar_jam_salt_spray ?? '-' }}</td>
                             @elseif($testType == 'porecount')
                                 <td class="text-center td-standar">{{ $std->porecount_std_min ?? '-' }}</td>
                                 <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_porecount ?? '-' }}</td>
@@ -724,8 +724,8 @@
                             <input type="text" name="actual_corrodkote_waktu" id="edit_actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_corrodkote" id="edit_actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_corrodkote" id="edit_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
                         </div>
                     </div>
                     @elseif($testType == 'cass')
@@ -735,8 +735,8 @@
                             <input type="text" name="actual_cass_waktu" id="edit_actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_cass" id="edit_actual_cass" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_cass" id="edit_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
                         </div>
                     </div>
                     @elseif($testType == 'salt_spray')
@@ -746,8 +746,8 @@
                             <input type="text" name="actual_salt_spray_waktu" id="edit_actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_salt_spray" id="edit_actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_salt_spray" id="edit_standar_jam_salt_spray" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
                         </div>
                     </div>
                     @elseif($testType == 'porecount')
@@ -765,8 +765,8 @@
                         <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
                             <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_masuk" id="edit_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2">
-                                <input type="time" name="jam_masuk" id="edit_jam_masuk" class="form-control form-control-sm border-0 shadow-sm">
+                                <input type="date" name="tgl_masuk" id="edit_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2 auto-calc-trigger" data-target="edit">
+                                <input type="time" name="jam_masuk" id="edit_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="edit">
                             </div>
                         </div>
                         <div class="col-md-6 form-group mb-3">
@@ -924,8 +924,8 @@
                             <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_corrodkote" id="corrodkote_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                     </div>
                     <div class="row">
@@ -965,11 +965,11 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
                             <input type="text" name="lot_no" id="corrodkote_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
                             <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
@@ -977,13 +977,56 @@
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
-                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                    </div>
+                    <div class="row">
+                        <!-- Evidence Before -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence Before
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
+                                    <span class="small font-weight-bold text-primary">
+                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_corrodkote_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="corrodkote_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="corrodkote_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="corrodkote_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                    <input type="file" name="evidence_before" id="input_corrodkote_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
-                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+
+                        <!-- Evidence After -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
+                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
+                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_corrodkote_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="corrodkote_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="corrodkote_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="corrodkote_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                    <input type="file" name="evidence_after" id="input_corrodkote_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1045,8 +1088,8 @@
                             <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_cass" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_cass" id="cass_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                     </div>
                     <div class="row">
@@ -1086,11 +1129,11 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
                             <input type="text" name="lot_no" id="cass_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
                             <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
@@ -1098,13 +1141,56 @@
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
-                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                    </div>
+                    <div class="row">
+                        <!-- Evidence Before -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence Before
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
+                                    <span class="small font-weight-bold text-primary">
+                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_cass_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="cass_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="cass_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="cass_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                    <input type="file" name="evidence_before" id="input_cass_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
-                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+
+                        <!-- Evidence After -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
+                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
+                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_cass_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="cass_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="cass_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="cass_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                    <input type="file" name="evidence_after" id="input_cass_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1166,8 +1252,8 @@
                             <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_salt_spray" id="salt_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                     </div>
                     <div class="row">
@@ -1207,11 +1293,11 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
                             <input type="text" name="lot_no" id="salt_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
                             <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
@@ -1219,13 +1305,56 @@
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
-                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                    </div>
+                    <div class="row">
+                        <!-- Evidence Before -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence Before
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
+                                    <span class="small font-weight-bold text-primary">
+                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_salt_spray_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="salt_spray_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="salt_spray_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="salt_spray_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                    <input type="file" name="evidence_before" id="input_salt_spray_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
-                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+
+                        <!-- Evidence After -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
+                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
+                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_salt_spray_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="salt_spray_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="salt_spray_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="salt_spray_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                    <input type="file" name="evidence_after" id="input_salt_spray_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1306,11 +1435,11 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">No Lot</label>
                             <input type="text" name="lot_no" id="porecount_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result</label>
                             <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="">Pilih...</option>
@@ -1318,13 +1447,56 @@
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
-                            <input type="file" name="evidence_before" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+                    </div>
+                    <div class="row">
+                        <!-- Evidence Before -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence Before
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
+                                    <span class="small font-weight-bold text-primary">
+                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_porecount_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="porecount_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="porecount_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="porecount_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                    <input type="file" name="evidence_before" id="input_porecount_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
-                            <input type="file" name="evidence_after" class="form-control form-control-sm border-0 shadow-sm p-1" accept="image/*">
+
+                        <!-- Evidence After -->
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                            </label>
+                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
+                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
+                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                    </span>
+                                    <button type="button" id="btn_delete_porecount_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="porecount_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="porecount_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="porecount_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                    <input type="file" name="evidence_after" id="input_porecount_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1547,8 +1719,8 @@
                             <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                            <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                     </div>
                     @elseif($testType == 'cass')
@@ -1558,8 +1730,8 @@
                             <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_cass" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                            <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                     </div>
                     @elseif($testType == 'salt_spray')
@@ -1569,8 +1741,8 @@
                             <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                            <input type="text" name="standar_jam_salt_spray" id="new_standar_jam_salt" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                     </div>
                     @elseif($testType == 'porecount')
@@ -1588,15 +1760,15 @@
                         <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
                             <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2">
-                                <input type="time" name="jam_masuk" class="form-control form-control-sm border-0 shadow-sm">
+                                <input type="date" name="tgl_masuk" id="new_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2 auto-calc-trigger" data-target="new">
+                                <input type="time" name="jam_masuk" id="new_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="new">
                             </div>
                         </div>
                         <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
                             <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
-                                <input type="time" name="jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                <input type="date" name="tgl_keluar" id="new_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                <input type="time" name="jam_keluar" id="new_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
                             </div>
                         </div>
                     </div>

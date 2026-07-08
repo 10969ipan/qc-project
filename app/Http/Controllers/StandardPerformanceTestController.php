@@ -261,11 +261,11 @@ class StandardPerformanceTestController extends Controller
             'actual_ni' => 'nullable|string|max:255',
             'actual_cr' => 'nullable|string|max:255',
             'actual_corrodkote_waktu' => 'nullable|string|max:255',
-            'actual_corrodkote' => 'nullable|string|max:255',
+            'standar_jam_corrodkote' => 'nullable|string|max:255',
             'actual_cass_waktu' => 'nullable|string|max:255',
-            'actual_cass' => 'nullable|string|max:255',
+            'standar_jam_cass' => 'nullable|string|max:255',
             'actual_salt_spray_waktu' => 'nullable|string|max:255',
-            'actual_salt_spray' => 'nullable|string|max:255',
+            'standar_jam_salt_spray' => 'nullable|string|max:255',
             'actual_porecount' => 'nullable|string|max:255',
             'result_judgment' => 'nullable|string|max:255',
             'tgl_masuk' => 'nullable|date',
@@ -284,11 +284,11 @@ class StandardPerformanceTestController extends Controller
             'actual_ni' => $request->actual_ni,
             'actual_cr' => $request->actual_cr,
             'actual_corrodkote_waktu' => $request->actual_corrodkote_waktu ?? '-',
-            'actual_corrodkote' => $request->actual_corrodkote ?? '-',
+            'standar_jam_corrodkote' => $request->standar_jam_corrodkote ?? '-',
             'actual_cass_waktu' => $request->actual_cass_waktu ?? '-',
-            'actual_cass' => $request->actual_cass ?? '-',
+            'standar_jam_cass' => $request->standar_jam_cass ?? '-',
             'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
-            'actual_salt_spray' => $request->actual_salt_spray ?? '-',
+            'standar_jam_salt_spray' => $request->standar_jam_salt_spray ?? '-',
             'actual_porecount' => $request->actual_porecount ?? '-',
             'result_judgment' => $request->result_judgment ?? '-',
             'tgl_masuk' => $request->tgl_masuk,
@@ -348,11 +348,11 @@ class StandardPerformanceTestController extends Controller
                         ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
                 });
             } elseif ($testType === 'corrodkote') {
-                $q->whereNotNull('actual_corrodkote')->where('actual_corrodkote', '!=', '')->where('actual_corrodkote', '!=', '-');
+                $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
             } elseif ($testType === 'cass') {
-                $q->whereNotNull('actual_cass')->where('actual_cass', '!=', '')->where('actual_cass', '!=', '-');
+                $q->whereNotNull('standar_jam_cass')->where('standar_jam_cass', '!=', '')->where('standar_jam_cass', '!=', '-');
             } elseif ($testType === 'salt_spray') {
-                $q->whereNotNull('actual_salt_spray')->where('actual_salt_spray', '!=', '')->where('actual_salt_spray', '!=', '-');
+                $q->whereNotNull('standar_jam_salt_spray')->where('standar_jam_salt_spray', '!=', '')->where('standar_jam_salt_spray', '!=', '-');
             } elseif ($testType === 'porecount') {
                 $q->whereNotNull('actual_porecount')->where('actual_porecount', '!=', '')->where('actual_porecount', '!=', '-');
             }
@@ -428,11 +428,11 @@ class StandardPerformanceTestController extends Controller
             'actual_ni' => 'nullable|string|max:255',
             'actual_cr' => 'nullable|string|max:255',
             'actual_corrodkote_waktu' => 'nullable|string|max:255',
-            'actual_corrodkote' => 'nullable|string|max:255',
+            'standar_jam_corrodkote' => 'nullable|string|max:255',
             'actual_cass_waktu' => 'nullable|string|max:255',
-            'actual_cass' => 'nullable|string|max:255',
+            'standar_jam_cass' => 'nullable|string|max:255',
             'actual_salt_spray_waktu' => 'nullable|string|max:255',
-            'actual_salt_spray' => 'nullable|string|max:255',
+            'standar_jam_salt_spray' => 'nullable|string|max:255',
             'actual_porecount' => 'nullable|string|max:255',
             'result_judgment' => 'nullable|string|max:255',
             'tgl_masuk' => 'nullable|date',
@@ -448,8 +448,8 @@ class StandardPerformanceTestController extends Controller
         $updateData = [];
         $fields = [
             'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr',
-            'actual_corrodkote_waktu', 'actual_corrodkote', 'actual_cass_waktu', 'actual_cass',
-            'actual_salt_spray_waktu', 'actual_salt_spray', 'actual_porecount',
+            'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'actual_cass_waktu', 'standar_jam_cass',
+            'actual_salt_spray_waktu', 'standar_jam_salt_spray', 'actual_porecount',
             'result_judgment', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek', 'description'
         ];
 
@@ -521,21 +521,21 @@ class StandardPerformanceTestController extends Controller
             $report->actual_cr = null;
         } elseif ($type === 'corrodkote') {
             $report->actual_corrodkote_waktu = null;
-            $report->actual_corrodkote = null;
+            $report->standar_jam_corrodkote = null;
         } elseif ($type === 'cass') {
             $report->actual_cass_waktu = null;
-            $report->actual_cass = null;
+            $report->standar_jam_cass = null;
         } elseif ($type === 'salt_spray') {
             $report->actual_salt_spray_waktu = null;
-            $report->actual_salt_spray = null;
+            $report->standar_jam_salt_spray = null;
         } elseif ($type === 'porecount') {
             $report->actual_porecount = null;
         }
         
         $allEmpty = $this->isFieldEmpty($report->actual_cu) && $this->isFieldEmpty($report->actual_ni) && $this->isFieldEmpty($report->actual_cr)
-            && $this->isFieldEmpty($report->actual_corrodkote_waktu) && $this->isFieldEmpty($report->actual_corrodkote)
-            && $this->isFieldEmpty($report->actual_cass_waktu) && $this->isFieldEmpty($report->actual_cass)
-            && $this->isFieldEmpty($report->actual_salt_spray_waktu) && $this->isFieldEmpty($report->actual_salt_spray)
+            && $this->isFieldEmpty($report->actual_corrodkote_waktu) && $this->isFieldEmpty($report->standar_jam_corrodkote)
+            && $this->isFieldEmpty($report->actual_cass_waktu) && $this->isFieldEmpty($report->standar_jam_cass)
+            && $this->isFieldEmpty($report->actual_salt_spray_waktu) && $this->isFieldEmpty($report->standar_jam_salt_spray)
             && $this->isFieldEmpty($report->actual_porecount);
 
         if ($allEmpty) {

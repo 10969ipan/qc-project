@@ -167,11 +167,11 @@
                     <td>{{ $report->actual_ni ?? '-' }}</td>
                     <td>{{ $report->actual_cu ?? '-' }}</td>
                     <td>{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
-                    <td>{{ $report->actual_corrodkote ?? '-' }}</td>
+                    <td>{{ $report->standar_jam_corrodkote ?? '-' }}</td>
                     <td>{{ $report->actual_cass_waktu ?? '-' }}</td>
-                    <td>{{ $report->actual_cass ?? '-' }}</td>
+                    <td>{{ $report->standar_jam_cass ?? '-' }}</td>
                     <td>{{ $report->actual_salt_spray_waktu ?? '-' }}</td>
-                    <td>{{ $report->actual_salt_spray ?? '-' }}</td>
+                    <td>{{ $report->standar_jam_salt_spray ?? '-' }}</td>
                     <td>{{ $report->actual_porecount ?? '-' }}</td>
                     <!-- INFO -->
                     <td>{{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('d-m-Y') : '-' }}</td>
