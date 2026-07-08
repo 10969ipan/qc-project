@@ -447,40 +447,34 @@ $(document).ready(function() {
     });
     
     $(window).on('resize', fixStickyHeaderTops);
-});
 
     // Auto-calculate Tgl/Jam Keluar based on Tgl/Jam Masuk + Standar Jam
     function autoCalculateChamberTime($form) {
-        let $tglMasuk = $form.find('input[name="tgl_masuk"]');
-        let $jamMasuk = $form.find('input[name="jam_masuk"]');
-        let $tglKeluar = $form.find('input[name="tgl_keluar"]');
-        let $jamKeluar = $form.find('input[name="jam_keluar"]');
-        let $standarJam = $form.find('.auto-calc-jam');
+        var $tglMasuk  = $form.find('input[name="tgl_masuk"]');
+        var $jamMasuk  = $form.find('input[name="jam_masuk"]');
+        var $tglKeluar = $form.find('input[name="tgl_keluar"]');
+        var $jamKeluar = $form.find('input[name="jam_keluar"]');
+        var $standarJam = $form.find('.auto-calc-jam');
 
-        if ($tglMasuk.length && $jamMasuk.length && $tglKeluar.length && $jamKeluar.length && $standarJam.length) {
-            let tglMasukVal = $tglMasuk.val();
-            let jamMasukVal = $jamMasuk.val();
-            let standarJamVal = parseFloat($standarJam.val());
+        if (!$tglMasuk.length || !$jamMasuk.length || !$tglKeluar.length || !$jamKeluar.length || !$standarJam.length) return;
 
-            if (tglMasukVal && jamMasukVal && !isNaN(standarJamVal) && standarJamVal > 0) {
-                let masukDate = new Date(`${tglMasukVal}T${jamMasukVal}:00`);
-                masukDate.setHours(masukDate.getHours() + standarJamVal);
+        var tglMasukVal  = $tglMasuk.val();
+        var jamMasukVal  = $jamMasuk.val();
+        var standarJamVal = parseFloat($standarJam.val());
 
-                let outYear = masukDate.getFullYear();
-                let outMonth = ('0' + (masukDate.getMonth() + 1)).slice(-2);
-                let outDay = ('0' + masukDate.getDate()).slice(-2);
-                
-                let outHours = ('0' + masukDate.getHours()).slice(-2);
-                let outMins = ('0' + masukDate.getMinutes()).slice(-2);
-
-                $tglKeluar.val(`${outYear}-${outMonth}-${outDay}`);
-                $jamKeluar.val(`${outHours}:${outMins}`);
-            }
+        if (tglMasukVal && jamMasukVal && !isNaN(standarJamVal) && standarJamVal > 0) {
+            var masukDate = new Date(tglMasukVal + 'T' + jamMasukVal + ':00');
+            masukDate.setTime(masukDate.getTime() + standarJamVal * 3600000);
+            function pad(n) { return ('0' + n).slice(-2); }
+            $tglKeluar.val(masukDate.getFullYear() + '-' + pad(masukDate.getMonth()+1) + '-' + pad(masukDate.getDate()));
+            $jamKeluar.val(pad(masukDate.getHours()) + ':' + pad(masukDate.getMinutes()));
         }
     }
 
     $(document).on('keyup change', '.auto-calc-jam, .auto-calc-trigger', function() {
-        let $form = $(this).closest('.modal-content').length ? $(this).closest('.modal-content') : $(this).closest('form');
+        var $form = $(this).closest('.modal-content');
+        if (!$form.length) { $form = $(this).closest('form'); }
         autoCalculateChamberTime($form);
     });
 
+});
