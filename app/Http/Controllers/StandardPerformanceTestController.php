@@ -401,17 +401,25 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('part_name', 'asc')
             ->get();
 
+        $masterItems = \App\Models\StandardPerformanceTest::orderBy('part_name', 'asc')->get();
+
         $customers = \App\Models\StandardPerformanceTest::whereNotNull('customer_name')
             ->select('customer_name')
             ->distinct()
             ->orderBy('customer_name')
             ->pluck('customer_name');
 
-        return view('durability_plating.report', compact('reports', 'items', 'customers', 'testType'));
+        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'testType'));
     }
 
     public function updateThickness(Request $request, $id)
     {
+        // ponytail: tanggal_test is sent by input modals (Corrodkote/Cass/Salt/Porecount)
+        // but the DB column is tanggal_cek. Map it here.
+        if ($request->has('tanggal_test') && !$request->has('tanggal_cek')) {
+            $request->merge(['tanggal_cek' => $request->tanggal_test]);
+        }
+
         $request->validate([
             'production_date' => 'nullable|date',
             'shift' => 'nullable|string|max:255',
@@ -431,6 +439,7 @@ class StandardPerformanceTestController extends Controller
             'jam_masuk' => 'nullable|date_format:H:i',
             'tgl_keluar' => 'nullable|date',
             'jam_keluar' => 'nullable|date_format:H:i',
+            'tanggal_cek' => 'nullable|date',
             'description' => 'nullable|string'
         ]);
 
@@ -438,9 +447,9 @@ class StandardPerformanceTestController extends Controller
         
         $updateData = [];
         $fields = [
-            'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr', 
-            'actual_corrodkote_waktu', 'actual_corrodkote', 'actual_cass_waktu', 'actual_cass', 
-            'actual_salt_spray_waktu', 'actual_salt_spray', 'actual_porecount', 
+            'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr',
+            'actual_corrodkote_waktu', 'actual_corrodkote', 'actual_cass_waktu', 'actual_cass',
+            'actual_salt_spray_waktu', 'actual_salt_spray', 'actual_porecount',
             'result_judgment', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek', 'description'
         ];
 
@@ -454,6 +463,21 @@ class StandardPerformanceTestController extends Controller
             $report->update($updateData);
         }
         
+        // Handle X-button deletions before processing new uploads
+        if ($request->input('delete_evidence_before') === '1') {
+            if ($report->evidence_before && file_exists(public_path($report->evidence_before))) {
+                @unlink(public_path($report->evidence_before));
+            }
+            $report->update(['evidence_before' => null, 'evidence_before_uploaded_at' => null]);
+        }
+
+        if ($request->input('delete_evidence_after') === '1') {
+            if ($report->evidence_after && file_exists(public_path($report->evidence_after))) {
+                @unlink(public_path($report->evidence_after));
+            }
+            $report->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
+        }
+
         if ($request->hasFile('evidence_before')) {
             if ($report->evidence_before && file_exists(public_path($report->evidence_before))) {
                 @unlink(public_path($report->evidence_before));

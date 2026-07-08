@@ -75,8 +75,115 @@ $(document).ready(function() {
         editStdNi = parseFloat($(this).data('stdni')) || 0;
         editStdCu = parseFloat($(this).data('stdcu')) || 0;
 
+        // Evidence preview helpers
+        // ponytail: must use css('display','flex') not .show() — empty divs use inline flex,
+        // and Bootstrap d-flex !important would prevent jQuery .hide() from working if class was used.
+        function showEvidenceCard(previewId, wrapId, emptyId, deleteBtnId, timeId, url, time) {
+            if (url) {
+                $('#' + previewId).attr('src', url);
+                $('#' + wrapId).show();
+                $('#' + emptyId).hide();
+                $('#' + deleteBtnId).removeClass('d-none').css('display', 'flex');
+                $('#' + timeId).text(time ? 'Diunggah: ' + time : '');
+            } else {
+                $('#' + previewId).attr('src', '');
+                $('#' + wrapId).hide();
+                $('#' + emptyId).css('display', 'flex');
+                $('#' + deleteBtnId).addClass('d-none').css('display', '');
+                $('#' + timeId).text('');
+            }
+        }
+
+        let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let originalAfterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+
+        showEvidenceCard('edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
+            'edit_evidence_before_empty', 'btn_delete_evidence_before', 'edit_evidence_before_time',
+            originalBeforeUrl, beforeTimeFormatted);
+        showEvidenceCard('edit_evidence_after_preview', 'edit_evidence_after_preview_wrap',
+            'edit_evidence_after_empty', 'btn_delete_evidence_after', 'edit_evidence_after_time',
+            originalAfterUrl, afterTimeFormatted);
+
+        // Store originals on buttons for X restore logic
+        $('#btn_delete_evidence_before').data({ originalUrl: originalBeforeUrl, hasNewFile: false });
+        $('#btn_delete_evidence_after').data({ originalUrl: originalAfterUrl,  hasNewFile: false });
+
+        // Reset file inputs and delete flags
+        $('#input_evidence_before').val('');
+        $('#input_evidence_after').val('');
+        $('#delete_evidence_before').val('0');
+        $('#delete_evidence_after').val('0');
+
         $('#modalEditThickness').modal('show');
     });
+
+    // Smart X button: if new file staged → cancel & restore original; else → delete DB photo
+    function handleDeleteBtn(btnId, previewId, wrapId, emptyId, timeId, inputId, deleteFlagId) {
+        $('#' + btnId).on('click', function() {
+            var d = $(this).data();
+            if (d.hasNewFile) {
+                // Cancel new selection → restore original
+                $('#' + inputId).val('');
+                $(this).data('hasNewFile', false);
+                if (d.originalUrl) {
+                    $('#' + previewId).attr('src', d.originalUrl);
+                    $('#' + wrapId).show();
+                    $('#' + emptyId).hide();
+                    $('#' + deleteFlagId).val('0');
+                } else {
+                    $('#' + wrapId).hide();
+                    $('#' + emptyId).css('display', 'flex');
+                    $(this).addClass('d-none').css('display', '');
+                }
+            } else {
+                // Delete existing DB photo
+                $('#' + inputId).val('');
+                $('#' + wrapId).hide();
+                $('#' + emptyId).css('display', 'flex');
+                $(this).addClass('d-none').css('display', '');
+                $('#' + deleteFlagId).val('1');
+            }
+        });
+    }
+    handleDeleteBtn('btn_delete_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
+        'edit_evidence_before_empty', 'edit_evidence_before_time', 'input_evidence_before', 'delete_evidence_before');
+    handleDeleteBtn('btn_delete_evidence_after',  'edit_evidence_after_preview',  'edit_evidence_after_preview_wrap',
+        'edit_evidence_after_empty',  'edit_evidence_after_time',  'input_evidence_after',  'delete_evidence_after');
+
+    // Live preview when new file chosen — also show X and mark hasNewFile
+    function bindLivePreview(inputId, previewId, wrapId, emptyId, deleteBtnId) {
+        $('#' + inputId).off('change.preview').on('change.preview', function() {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#' + previewId).attr('src', e.target.result);
+                    $('#' + wrapId).show();
+                    $('#' + emptyId).hide();
+                    $('#' + deleteBtnId).data('hasNewFile', true)
+                        .removeClass('d-none').css('display', 'flex');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    bindLivePreview('input_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap', 'edit_evidence_before_empty', 'btn_delete_evidence_before');
+    bindLivePreview('input_evidence_after',  'edit_evidence_after_preview',  'edit_evidence_after_preview_wrap',  'edit_evidence_after_empty',  'btn_delete_evidence_after');
+
+    bindLivePreview('input_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'btn_delete_new_evidence_before');
+    bindLivePreview('input_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'btn_delete_new_evidence_after');
+
+    // Simple X handler for New Data Modal
+    function handleNewDataDeleteBtn(btnId, previewId, wrapId, emptyId, inputId) {
+        $('#' + btnId).on('click', function() {
+            $('#' + inputId).val('');
+            $('#' + wrapId).hide();
+            $('#' + emptyId).css('display', 'flex');
+            $(this).addClass('d-none').css('display', '');
+        });
+    }
+    handleNewDataDeleteBtn('btn_delete_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'input_new_evidence_before');
+    handleNewDataDeleteBtn('btn_delete_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'input_new_evidence_after');
 
     // Auto judgment logic for Edit Thickness Modal
     var editStdCr = 0, editStdNi = 0, editStdCu = 0;

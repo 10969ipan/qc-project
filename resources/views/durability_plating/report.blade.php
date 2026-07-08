@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan ' . ucwords(str_replace('_', ' ', $testType)))
+@section('title', 'Laporan ' . ucwords(str_replace('_', ' ', $testType)) . ' Test')
 
 @section('content')
 <style>
@@ -149,7 +149,7 @@
 
 @php
     $plantCode = auth()->check() && auth()->user()->plant ? strtolower(auth()->user()->plant->name) : 'jakarta';
-    $docHeader = \App\Models\GeneralSetting::getDocHeader('master_standard_performance_test', $plantCode, [
+    $docHeader = \App\Models\GeneralSetting::getDocHeader($testType, $plantCode, [
         'no_dokumen' => '-',
         'tgl_terbit' => '-',
         'revisi' => '- / -',
@@ -166,7 +166,7 @@
                 </td>
                 <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
                     <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                        LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }}
+                        LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST
                     </h1>
                 </td>
                 <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
@@ -197,6 +197,50 @@
         </table>
     </div>
 </div>
+
+@if(session('success'))
+    <div class="alert alert-success border-0 shadow-sm rounded mb-3 mt-3">
+        <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger border-0 shadow-sm rounded mb-3 mt-3">
+        <i class="fas fa-exclamation-circle mr-2"></i> {{ session('error') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger border-0 shadow-sm rounded mb-3 mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="font-weight-bold"><i class="fas fa-exclamation-triangle mr-2"></i>Terdapat Kesalahan Input:</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <hr class="my-2">
+        <ul class="mb-0 pl-3">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    
+    <script>
+        // Auto-open modal if there are errors (assuming it's the Add Data modal that failed, because it's the only one submitting directly here. Actually Edit uses update via Ajax or normal form? Let's assume user knows).
+        document.addEventListener("DOMContentLoaded", function() {
+            if ($('#modalAddData').length) {
+                $('#modalAddData').modal('show');
+            }
+        });
+    </script>
+@endif
 
 <div class="card shadow mb-4">
     <div class="card-body">
@@ -268,12 +312,41 @@
                     class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
                     <i class="fas fa-undo fa-sm"></i>
                 </a>
-                <button type="submit" name="print" value="true" formtarget="_blank" class="btn btn-warning btn-sm shadow-sm rounded-pill px-3" title="Print Laporan">
+                <button type="submit" name="print" value="true" formtarget="_blank" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Print Laporan">
                     <i class="fas fa-print fa-sm"></i> Print
                 </button>
-                <a href="{{ route('standard-performance-tests.index') }}" class="btn btn-light border btn-sm shadow-sm rounded-pill px-3" title="Kembali">
-                    <i class="fas fa-arrow-left fa-sm"></i> Kembali
-                </a>
+                <div class="dropdown">
+                    <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 dropdown-toggle" type="button" id="dropdownMenuLaporan" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Laporan" data-boundary="window">
+                        <i class="fas fa-file-alt fa-sm"></i> Laporan
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuLaporan" style="font-size:0.85rem; border-radius:8px; min-width: 200px; z-index: 1050;">
+                        <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Pilih Laporan</div>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report') }}">
+                            <i class="fas fa-layer-group fa-fw mr-2 text-success"></i> Thickness
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.corrodkote') }}">
+                            <i class="fas fa-vial fa-fw mr-2 text-info"></i> Corrodkote
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.cass') }}">
+                            <i class="fas fa-flask fa-fw mr-2 text-primary"></i> Cass Test
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.salt_spray') }}">
+                            <i class="fas fa-spray-can fa-fw mr-2 text-warning"></i> Salt Spray Test
+                        </a>
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.porecount') }}">
+                            <i class="fas fa-search-plus fa-fw mr-2 text-danger"></i> Porecount Test
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item py-2 font-weight-bold text-secondary" href="{{ route('standard-performance-tests.index') }}">
+                            <i class="fas fa-table fa-fw mr-2"></i> Master Standar
+                        </a>
+                    </div>
+                </div>
+                @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalAddData" title="Tambah Data Baru">
+                    <i class="fas fa-plus fa-sm"></i> Tambah Data
+                </button>
+                @endif
             </div>
         </form>
 
@@ -484,11 +557,11 @@
                             @endif
                             <td class="text-center">{{ $report->lot_no ?? '-' }}</td>
                             <td class="text-center">
-                                                            @php
+                                @php
                                     $rj = $report->result_judgment ?? '-';
                                     $rjClass = match(strtolower($rj)) {
-                                        'ok' => 'badge badge-success',
-                                        'ng' => 'badge badge-danger',
+                                        'ok' => 'text-success font-weight-bold',
+                                        'ng' => 'text-danger font-weight-bold',
                                         default => 'text-muted'
                                     };
                                 @endphp
@@ -497,15 +570,15 @@
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                 <td class="text-center">
                                     @if($report->evidence_before || $report->evidence_after)
-                                        <button class="btn btn-sm btn-info py-0 px-2 btn-view-evidence" 
+                                        <a href="javascript:void(0)" class="text-primary btn-view-evidence" style="font-size: 0.8rem; text-decoration: underline;"
                                                 data-before="{{ $report->evidence_before ? asset($report->evidence_before) : '' }}" 
                                                 data-after="{{ $report->evidence_after ? asset($report->evidence_after) : '' }}"
                                                 data-before-time="{{ $report->evidence_before_uploaded_at ? \Carbon\Carbon::parse($report->evidence_before_uploaded_at)->format('d-m-Y H:i') : '' }}"
                                                 data-after-time="{{ $report->evidence_after_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_uploaded_at)->format('d-m-Y H:i') : '' }}">
                                             <i class="fas fa-images"></i> View
-                                        </button>
+                                        </a>
                                     @else
-                                        <span class="badge badge-warning" style="font-size: 0.7rem;">Data belum di<br>proses/test</span>
+                                        <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">Tidak ada foto</span>
                                     @endif
                                 </td>
                             @endif
@@ -513,9 +586,18 @@
                             <td class="text-center">{{ $report->description ?? '-' }}</td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                 <td class="text-center">
-                                    <a href="{{ route('standard-performance-tests.report', ['report_id' => $report->id]) }}" class="btn btn-sm btn-secondary py-0 px-2" title="Lihat Data Thickness">
-                                        <i class="fas fa-external-link-alt"></i> Data
-                                    </a>
+                                    @php
+                                        $hasThickness = (!empty(trim($report->actual_cu)) && trim($report->actual_cu) !== '-') ||
+                                                        (!empty(trim($report->actual_ni)) && trim($report->actual_ni) !== '-') ||
+                                                        (!empty(trim($report->actual_cr)) && trim($report->actual_cr) !== '-');
+                                    @endphp
+                                    @if($hasThickness)
+                                        <a href="{{ route('standard-performance-tests.report', ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                            <i class="fas fa-external-link-alt"></i> Data
+                                        </a>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">Tidak ada data</span>
+                                    @endif
                                 </td>
                             @endif
 
@@ -580,11 +662,11 @@
 
 <!-- Modal Edit Thickness -->
 <div class="modal fade" id="modalEditThickness" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
-                    <i class="fas fa-edit mr-2 text-info"></i> Edit Laporan {{ ucwords(str_replace('_', ' ', $testType)) }}
+                    <i class="fas fa-edit mr-2 text-info"></i> Edit Laporan {{ ucwords(str_replace('_', ' ', $testType)) }} Test
                 </h5>
                 <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -706,21 +788,82 @@
                                 <option value="NG">NG</option>
                             </select>
                         </div>
-                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence Before</label>
-                            <input type="file" name="evidence_before" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" style="font-size: 0.75rem;" accept="image/*">
-                            <small class="text-muted d-block mt-1" style="font-size: 0.65rem;">Kosongkan jika tidak diubah</small>
-                            <small class="text-dark d-none mt-1" id="edit_evidence_before_time" style="font-size: 0.65rem;"></small>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Evidence After</label>
-                            <input type="file" name="evidence_after" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" style="font-size: 0.75rem;" accept="image/*">
-                            <small class="text-muted d-block mt-1" style="font-size: 0.65rem;">Kosongkan jika tidak diubah</small>
-                            <small class="text-dark d-none mt-1" id="edit_evidence_after_time" style="font-size: 0.65rem;"></small>
-                        </div>
-                        @endif
                     </div>
+
+                    @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                    <input type="hidden" name="delete_evidence_before" id="delete_evidence_before" value="0">
+                    <input type="hidden" name="delete_evidence_after"  id="delete_evidence_after"  value="0">
+
+                    <div class="mb-3">
+                        <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                            <i class="fas fa-images mr-1 text-info"></i> Evidence Foto
+                        </label>
+                        <div class="row">
+                            {{-- BEFORE --}}
+                            <div class="col-6">
+                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
+                                        <span class="small font-weight-bold text-primary">
+                                            <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                        </span>
+                                        <button type="button" id="btn_delete_evidence_before"
+                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
+                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
+                                            title="Hapus foto Before">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div id="edit_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
+                                        <img id="edit_evidence_before_preview" src="" alt="Before"
+                                            class="d-block w-100"
+                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    </div>
+                                    <div id="edit_evidence_before_empty"
+                                        style="display:none; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <small style="font-size:0.72rem;">Belum ada foto</small>
+                                    </div>
+                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                        <small class="text-info d-block mb-1" id="edit_evidence_before_time" style="font-size:0.62rem;"></small>
+                                        <input type="file" name="evidence_before" id="input_evidence_before"
+                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- AFTER --}}
+                            <div class="col-6">
+                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#edf7ed; border-bottom:1px solid #b7dbb7;">
+                                        <span class="small font-weight-bold text-success">
+                                            <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                        </span>
+                                        <button type="button" id="btn_delete_evidence_after"
+                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
+                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
+                                            title="Hapus foto After">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div id="edit_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
+                                        <img id="edit_evidence_after_preview" src="" alt="After"
+                                            class="d-block w-100"
+                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    </div>
+                                    <div id="edit_evidence_after_empty"
+                                        style="display:none; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <small style="font-size:0.72rem;">Belum ada foto</small>
+                                    </div>
+                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #edf7ed;">
+                                        <small class="text-success d-block mb-1" id="edit_evidence_after_time" style="font-size:0.62rem;"></small>
+                                        <input type="file" name="evidence_after" id="input_evidence_after"
+                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     <div class="row">
                         <div class="col-md-12 form-group mb-0">
                             <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
@@ -1261,7 +1404,8 @@
         updateUrl: "{{ route('standard-performance-tests.thickness.update', ':id') }}",
         bulkDestroyUrl: "{{ route('standard-performance-tests.thickness.bulk_destroy') }}",
         csrfToken: "{{ csrf_token() }}",
-        testType: "{{ $testType }}"
+        testType: "{{ $testType }}",
+        baseUrl: "{{ rtrim(asset(''), '/') }}/"
     };
 </script>
 <script src="{{ asset('js/durability_plating/report.js') }}?v={{ filemtime(public_path('js/durability_plating/report.js')) }}"></script>
@@ -1307,7 +1451,254 @@
 
             $('#modalViewEvidence').modal('show');
         });
+
+        // Handle datalist selection for Tambah Data
+        $('#add_part_search').on('input change', function() {
+            var val = $(this).val().trim().toLowerCase();
+            var id = '';
+            $('#masterPartList option').each(function() {
+                var optionVal = ($(this).attr('value') || '').trim().toLowerCase();
+                if (optionVal === val) {
+                    id = $(this).attr('data-id');
+                    return false; // break loop
+                }
+            });
+            $('#hidden_standard_performance_test_id').val(id);
+        });
+
+        $('#formAddData').on('submit', function(e) {
+            var val = $('#add_part_search').val().trim().toLowerCase();
+            var id = $('#hidden_standard_performance_test_id').val();
+            if(!id) {
+                $('#masterPartList option').each(function() {
+                    var optionVal = ($(this).attr('value') || '').trim().toLowerCase();
+                    if (optionVal === val) {
+                        id = $(this).attr('data-id');
+                        $('#hidden_standard_performance_test_id').val(id);
+                        return false; 
+                    }
+                });
+            }
+            if(!id) {
+                e.preventDefault();
+                alert('Part / Customer tidak valid. Silakan pilih dari daftar yang tersedia.');
+                $('#add_part_search').focus();
+                return false;
+            }
+        });
     });
 </script>
 @endpush
+
+@if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+<!-- Modal Input Data Baru -->
+<div class="modal fade" id="modalAddData" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
+                    <i class="fas fa-plus mr-2 text-success"></i> Tambah Data Laporan {{ ucwords(str_replace('_', ' ', $testType)) }} Test
+                </h5>
+                <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formAddData" action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
+                    
+                    <!-- Part Selection -->
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Pilih Part / Customer <span class="text-danger">*</span></label>
+                        <input type="text" id="add_part_search" list="masterPartList" class="form-control form-control-sm border-0 shadow-sm" placeholder="Ketik / Pilih Part..." autocomplete="off" required>
+                        <input type="hidden" name="standard_performance_test_id" id="hidden_standard_performance_test_id">
+                        <datalist id="masterPartList">
+                            @foreach($masterItems as $item)
+                                <option data-id="{{ $item->id }}" value="{{ $item->part_name }} - {{ $item->customer_name }}"></option>
+                            @endforeach
+                        </datalist>
+                    </div>
+
+                    <!-- General Fields (Tanggal, Shift, Lot) -->
+                    <div class="row">
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
+                            <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Shift</label>
+                            <select name="shift" class="form-control form-control-sm border-0 shadow-sm">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">No Lot</label>
+                            <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
+                        </div>
+                    </div>
+
+                    <!-- Test Specific Fields -->
+                    @if($testType == 'corrodkote')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @elseif($testType == 'cass')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_cass" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @elseif($testType == 'salt_spray')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @elseif($testType == 'porecount')
+                    <div class="row">
+                        <div class="col-md-12 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
+                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <!-- Chamber Time -->
+                    @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
+                            <div class="d-flex align-items-center">
+                                <input type="date" name="tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                <input type="time" name="jam_masuk" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
+                            <div class="d-flex align-items-center">
+                                <input type="date" name="tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                <input type="time" name="jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="row mt-2">
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                <option value="-">-</option>
+                                <option value="OK">OK</option>
+                                <option value="NG">NG</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Evidence Upload (Card Style like Edit Modal) -->
+                    <div class="mb-3">
+                        <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                            <i class="fas fa-images mr-1 text-info"></i> Evidence Foto
+                        </label>
+                        <div class="row">
+                            {{-- BEFORE --}}
+                            <div class="col-6">
+                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
+                                        <span class="small font-weight-bold text-primary">
+                                            <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                        </span>
+                                        <button type="button" id="btn_delete_new_evidence_before"
+                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
+                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
+                                            title="Hapus foto Before">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div id="new_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
+                                        <img id="new_evidence_before_preview" src="" alt="Before"
+                                            class="d-block w-100"
+                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    </div>
+                                    <div id="new_evidence_before_empty"
+                                        style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <small style="font-size:0.72rem;">Belum ada foto</small>
+                                    </div>
+                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                        <input type="file" name="evidence_before" id="input_new_evidence_before"
+                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- AFTER --}}
+                            <div class="col-6">
+                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#edf7ed; border-bottom:1px solid #b7dbb7;">
+                                        <span class="small font-weight-bold text-success">
+                                            <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                        </span>
+                                        <button type="button" id="btn_delete_new_evidence_after"
+                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
+                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
+                                            title="Hapus foto After">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div id="new_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
+                                        <img id="new_evidence_after_preview" src="" alt="After"
+                                            class="d-block w-100"
+                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    </div>
+                                    <div id="new_evidence_after_empty"
+                                        style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <small style="font-size:0.72rem;">Belum ada foto</small>
+                                    </div>
+                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #edf7ed;">
+                                        <input type="file" name="evidence_after" id="input_new_evidence_after"
+                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 form-group mb-0">
+                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3" placeholder="Masukkan keterangan..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                    <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm px-4 font-weight-bold shadow-sm">
+                        <i class="fas fa-save mr-1"></i> Simpan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection

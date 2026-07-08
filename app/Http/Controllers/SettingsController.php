@@ -71,6 +71,12 @@ class SettingsController extends Controller
             'double_tape' => 'Double Tape',
             'cross_cut' => 'Cross-Cut',
             'cross_cut_painting' => 'Cross-Cut Painting',
+            'master_standard_performance_test' => 'Master Standar Plating',
+            'thickness' => 'Thickness Test',
+            'corrodkote' => 'Corrodkote Test',
+            'cass' => 'CASS Test',
+            'salt_spray' => 'Salt Spray Test',
+            'porecount' => 'Porecount Test',
         ];
 
         return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings', 'nextProcesses', 'qcModules'));

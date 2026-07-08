@@ -82,6 +82,7 @@
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         height: 65px !important; 
     }
+
 </style>
 
     @php
@@ -491,7 +492,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex justify-content-end mt-3">
+            <div class="mt-3 pagination-container">
                 {{ $checksheets->appends(request()->except('page'))->links() }}
             </div>
         </div>
