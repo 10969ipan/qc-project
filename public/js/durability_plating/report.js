@@ -215,7 +215,19 @@ $(document).ready(function() {
         $('#corrodkote_standard_time').val($(this).data('time'));
         $('#corrodkote_produksi').val(item.production_date);
         $('#corrodkote_shift').val(item.shift);
-        $('#corrodkote_lot').val(item.lot_no);
+        if (item.lot_no) {
+            $('#corrodkote_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
+        } else {
+            $('#corrodkote_lot').val('').prop('readonly', false).removeClass('bg-light');
+        }
+
+        // Tgl/Jam Keluar selalu readonly (auto-calc)
+        $('#corrodkote_tgl_keluar, #corrodkote_jam_keluar').prop('readonly', true);
+
+        // Reset Tgl/Jam Masuk & Keluar
+        $('#corrodkote_tgl_masuk, #corrodkote_jam_masuk').val('');
+        $('#corrodkote_tgl_keluar').val('');
+        $('#corrodkote_jam_keluar').val('');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
@@ -239,7 +251,20 @@ $(document).ready(function() {
         $('#cass_standard_time').val($(this).data('time'));
         $('#cass_produksi').val(item.production_date);
         $('#cass_shift').val(item.shift);
-        $('#cass_lot').val(item.lot_no);
+        
+        if (item.lot_no) {
+            $('#cass_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
+        } else {
+            $('#cass_lot').val('').prop('readonly', false).removeClass('bg-light');
+        }
+
+        // Tgl/Jam Keluar selalu readonly (auto-calc)
+        $('#cass_tgl_keluar, #cass_jam_keluar').prop('readonly', true);
+
+        // Reset Tgl/Jam Masuk & Keluar
+        $('#cass_tgl_masuk, #cass_jam_masuk').val('');
+        $('#cass_tgl_keluar').val('');
+        $('#cass_jam_keluar').val('');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
@@ -263,7 +288,20 @@ $(document).ready(function() {
         $('#salt_standard_time').val($(this).data('time'));
         $('#salt_produksi').val(item.production_date);
         $('#salt_shift').val(item.shift);
-        $('#salt_lot').val(item.lot_no);
+        
+        if (item.lot_no) {
+            $('#salt_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
+        } else {
+            $('#salt_lot').val('').prop('readonly', false).removeClass('bg-light');
+        }
+
+        // Tgl/Jam Keluar selalu readonly (auto-calc)
+        $('#salt_tgl_keluar, #salt_jam_keluar').prop('readonly', true);
+
+        // Reset Tgl/Jam Masuk & Keluar
+        $('#salt_tgl_masuk, #salt_jam_masuk').val('');
+        $('#salt_tgl_keluar').val('');
+        $('#salt_jam_keluar').val('');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
@@ -287,7 +325,12 @@ $(document).ready(function() {
         $('#porecount_standard_min').val($(this).data('stdmin'));
         $('#porecount_produksi').val(item.production_date);
         $('#porecount_shift').val(item.shift);
-        $('#porecount_lot').val(item.lot_no);
+        
+        if (item.lot_no) {
+            $('#porecount_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
+        } else {
+            $('#porecount_lot').val('').prop('readonly', false).removeClass('bg-light');
+        }
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
