@@ -291,7 +291,7 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="4" class="align-middle">Approval Status</th>
                             <th colspan="2" class="align-middle">Mengetahui</th>
-                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 400px;">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
                             @endif
@@ -404,8 +404,8 @@
                                     </td>
                                 @endforeach
 
-                                <td class="align-middle text-left" style="min-width: 150px;">
-                                    {{ $checksheet->keterangan ?? '-' }}
+                                <td class="align-middle text-left" style="min-width: 400px; word-wrap: break-word;">
+                                    {!! nl2br(e($checksheet->keterangan ?? '-')) !!}
                                     @if($checksheet->rejection_remarks)
                                         <div class="text-danger small font-weight-bold mt-1">
                                             <i class="fas fa-exclamation-triangle"></i> REJECTED:

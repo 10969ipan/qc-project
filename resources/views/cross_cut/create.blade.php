@@ -631,7 +631,7 @@
             if (visualOkCheck && keteranganInput) {
                 visualOkCheck.addEventListener('change', function() {
                     var currentVal = keteranganInput.value;
-                    var appendStr = "Visual 100% OK";
+                    var appendStr = "1. Pengecekan visual telah dilakukan secara menyeluruh (100%)\n2. Hasil pengecekan  OK, tidak ditemukan NG yang menyimpang dari standar";
                     if (this.checked) {
                         Swal.fire({
                             title: 'Perhatian!',

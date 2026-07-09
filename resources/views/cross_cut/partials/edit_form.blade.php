@@ -342,7 +342,7 @@
         if (visualOkCheck_edit && keteranganInput_edit) {
             visualOkCheck_edit.addEventListener('change', function() {
                 var currentVal = keteranganInput_edit.value;
-                var appendStr = "Visual 100% OK";
+                var appendStr = "1. Pengecekan visual telah dilakukan secara menyeluruh (100%)\n2. Hasil pengecekan visual OK, tidak ditemukan cacat/NG yang menyimpang dari standar";
                 if (this.checked) {
                     if (currentVal.indexOf(appendStr) === -1) {
                         keteranganInput_edit.value = currentVal ? currentVal + '\n' + appendStr : appendStr;

@@ -275,13 +275,12 @@
                             <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle no-export">Hasil Cross Cut</th>
                             <th rowspan="2" class="align-middle">Bak No</th>
-                            <th rowspan="2" class="align-middle">Posisi Remark</th>
-                            <th rowspan="2" class="align-middle">Visual OK</th>
+                            <th rowspan="2" class="align-middle">Judgment & Posisi Remark</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="4" class="align-middle">Approval Status</th>
                             <th colspan="2" class="align-middle">Mengetahui</th>
-                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 400px;">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Actions</th>
                             @endif
@@ -349,13 +348,6 @@
                                 </td>
                                 <td class="align-middle">{{ $checksheet->position_remark_judgment }} -
                                     {{ $checksheet->position_remark_no_lot }}
-                                </td>
-                                <td class="align-middle text-center">
-                                    @if($checksheet->visual_ok)
-                                        <span class="badge badge-success"><i class="fas fa-check"></i> OK</span>
-                                    @else
-                                        -
-                                    @endif
                                 </td>
                                 <td class="align-middle">{{ $checksheet->result_remark }}</td>
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
@@ -519,7 +511,7 @@
                                     @endif
                                 </td>
 
-                                <td class="align-middle">
+                                <td class="align-middle text-left" style="min-width: 400px; word-wrap: break-word;">
                                     @if($checksheet->rejection_remarks)
                                         <div class="text-danger font-weight-bold">
                                             <i class="fas fa-exclamation-triangle"></i> REJECTED
@@ -540,7 +532,7 @@
                                                 @endif
                                             </div>
                                         @endif
-                                        {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->keterangan)) !!}
+                                        {!! nl2br(str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->keterangan ?? ''))) !!}
                                     @endif
                                 </td>
 

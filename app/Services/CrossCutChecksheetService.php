@@ -129,6 +129,7 @@ class CrossCutChecksheetService extends BaseService
                 'chemical_abu' => $data['chemical_abu'] ?? null,
                 'position_remark_judgment' => $data['position_remark_judgment'],
                 'position_remark_no_lot' => $data['position_remark_no_lot'],
+                'visual_ok' => $data['visual_ok'] ?? false,
                 'result_remark' => $data['result_remark'] ?? null,
                 'keterangan' => $data['keterangan'] ?? null,
                 'next_proses' => $data['next_proses'] ?? null,
@@ -170,6 +171,7 @@ class CrossCutChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             $checksheet = CrossCutChecksheet::findOrFail($id);
+            $data['visual_ok'] = $data['visual_ok'] ?? false;
 
             $imagePath = $checksheet->image_path;
             if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
