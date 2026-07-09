@@ -224,8 +224,6 @@ $(document).ready(function() {
             $('#corrodkote_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
-        // Tgl/Jam Keluar selalu readonly (auto-calc)
-        $('#corrodkote_tgl_keluar, #corrodkote_jam_keluar').prop('readonly', true);
 
         // Reset Tgl/Jam Masuk & Keluar
         $('#corrodkote_tgl_masuk, #corrodkote_jam_masuk').val('');
@@ -261,8 +259,6 @@ $(document).ready(function() {
             $('#cass_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
-        // Tgl/Jam Keluar selalu readonly (auto-calc)
-        $('#cass_tgl_keluar, #cass_jam_keluar').prop('readonly', true);
 
         // Reset Tgl/Jam Masuk & Keluar
         $('#cass_tgl_masuk, #cass_jam_masuk').val('');
@@ -298,8 +294,6 @@ $(document).ready(function() {
             $('#salt_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
-        // Tgl/Jam Keluar selalu readonly (auto-calc)
-        $('#salt_tgl_keluar, #salt_jam_keluar').prop('readonly', true);
 
         // Reset Tgl/Jam Masuk & Keluar
         $('#salt_tgl_masuk, #salt_jam_masuk').val('');

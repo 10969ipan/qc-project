@@ -956,12 +956,12 @@
                             <input type="time" name="jam_masuk" id="corrodkote_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber <i class="fas fa-lock fa-xs text-muted" title="Otomatis"></i></label>
-                            <input type="date" name="tgl_keluar" id="corrodkote_tgl_keluar" class="form-control form-control-sm border-0 bg-light" readonly>
+                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                            <input type="date" name="tgl_keluar" id="corrodkote_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Keluar <i class="fas fa-lock fa-xs text-muted" title="Otomatis"></i></label>
-                            <input type="time" name="jam_keluar" id="corrodkote_jam_keluar" class="form-control form-control-sm border-0 bg-light" readonly>
+                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                            <input type="time" name="jam_keluar" id="corrodkote_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     <div class="row">
@@ -1120,12 +1120,12 @@
                             <input type="time" name="jam_masuk" id="cass_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber <i class="fas fa-lock fa-xs text-muted" title="Otomatis"></i></label>
-                            <input type="date" name="tgl_keluar" id="cass_tgl_keluar" class="form-control form-control-sm border-0 bg-light" readonly>
+                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                            <input type="date" name="tgl_keluar" id="cass_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Keluar <i class="fas fa-lock fa-xs text-muted" title="Otomatis"></i></label>
-                            <input type="time" name="jam_keluar" id="cass_jam_keluar" class="form-control form-control-sm border-0 bg-light" readonly>
+                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                            <input type="time" name="jam_keluar" id="cass_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     <div class="row">
@@ -1284,12 +1284,12 @@
                             <input type="time" name="jam_masuk" id="salt_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber <i class="fas fa-lock fa-xs text-muted" title="Otomatis"></i></label>
-                            <input type="date" name="tgl_keluar" id="salt_tgl_keluar" class="form-control form-control-sm border-0 bg-light" readonly>
+                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                            <input type="date" name="tgl_keluar" id="salt_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Keluar <i class="fas fa-lock fa-xs text-muted" title="Otomatis"></i></label>
-                            <input type="time" name="jam_keluar" id="salt_jam_keluar" class="form-control form-control-sm border-0 bg-light" readonly>
+                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                            <input type="time" name="jam_keluar" id="salt_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     <div class="row">
