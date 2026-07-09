@@ -278,8 +278,10 @@ class CrossCutPaintingChecksheetService extends BaseService
                 $checksheet->approval_status = 'Rejected';
             } elseif ($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED') {
                 $checksheet->approval_status = 'Approved';
+                $checksheet->rejection_remarks = null;
             } else {
                 $checksheet->approval_status = 'Pending';
+                $checksheet->rejection_remarks = null;
             }
 
             $checksheet->save();

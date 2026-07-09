@@ -266,10 +266,12 @@ class CrossCutChecksheetService extends BaseService
             $this->updateLevel($checksheet, 'kashift_plating', 'kashift_plating_approved_at', $data['kashift_plating'], $user);
             $this->updateLevel($checksheet, 'supervisor_plating', 'supervisor_plating_approved_at', $data['supervisor_plating'], $user);
             $this->updateLevel($checksheet, 'supervisor_qc', 'supervisor_approved_at', $data['supervisor_qc'], $user);
+            $this->updateLevel($checksheet, 'asst_manager_plating', 'asst_manager_plating_approved_at', $data['asst_manager_plating'], $user);
             $this->updateLevel($checksheet, 'asst_manager_qc', 'asst_manager_approved_at', $data['asst_manager_qc'], $user);
 
             if (
                 $checksheet->asst_manager_qc === 'REJECTED' ||
+                $checksheet->asst_manager_plating === 'REJECTED' ||
                 $checksheet->supervisor_qc === 'REJECTED' ||
                 $checksheet->supervisor_plating === 'REJECTED' ||
                 $checksheet->kashift_plating === 'REJECTED' ||
@@ -278,8 +280,10 @@ class CrossCutChecksheetService extends BaseService
                 $checksheet->approval_status = 'Rejected';
             } elseif ($checksheet->asst_manager_qc === 'Approved') {
                 $checksheet->approval_status = 'Approved';
+                $checksheet->rejection_remarks = null;
             } else {
                 $checksheet->approval_status = 'Pending';
+                $checksheet->rejection_remarks = null;
             }
 
             $checksheet->save();
