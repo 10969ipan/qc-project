@@ -464,16 +464,6 @@ class CrossCutChecksheetController extends Controller
     {
         try {
             $data = [];
-            if ($type === 'kashift_plating') {
-                $request->validate([
-                    'approver_name' => 'required|string|min:3|max:100',
-                ], [
-                    'approver_name.required' => 'Nama approver wajib diisi.',
-                    'approver_name.min' => 'Nama approver minimal 3 karakter.',
-                    'approver_name.max' => 'Nama approver maksimal 100 karakter.',
-                ]);
-                $data['approver_name'] = $request->approver_name;
-            }
 
             $this->crossCutService->singleApprove($id, $type, $data);
             $checksheet = CrossCutChecksheet::find($id);

@@ -544,11 +544,7 @@
                     <div class="modal-body">
                         <p class="mb-4">Anda akan melakukan tindakan sebagai <strong id="approvalLabelText"></strong>.</p>
 
-                        {{-- Special input for Kashift Plating (if needed) --}}
-                        <div class="form-group" id="approverNameGroup" style="display: none;">
-                            <label class="font-weight-bold">Nama Approver <span class="text-danger">*</span></label>
-                            <input type="text" name="approver_name" id="approver_name_input" class="form-control" placeholder="Masukkan Nama...">
-                        </div>
+
 
                         <div class="form-group d-none">
                             <label class="font-weight-bold">Tindakan:</label>

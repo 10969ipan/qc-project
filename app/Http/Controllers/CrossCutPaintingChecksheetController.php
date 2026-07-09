@@ -346,10 +346,6 @@ class CrossCutPaintingChecksheetController extends Controller
         $redirectParams = $request->only($preservationKeys);
         try {
             $data = [];
-            if ($type === 'kashift_plating') {
-                $request->validate(['approver_name' => 'required|string|min:3|max:100']);
-                $data['approver_name'] = $request->approver_name;
-            }
             $this->paintingService->singleApprove($id, $type, $data);
             $checksheet = \App\Models\CrossCutPaintingChecksheet::find($id);
             $mapping = $this->getApprovalMapping($type);

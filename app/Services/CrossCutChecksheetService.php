@@ -394,17 +394,12 @@ class CrossCutChecksheetService extends BaseService
             }
 
             // Apply approval
-            if ($type === 'kashift_plating') {
-                $checksheet->kashift_plating = $data['approver_name'];
-                $checksheet->kashift_plating_approved_at = now();
-            } else {
-                $checksheet->{$field} = $user->name;
-                $dateField = $this->getApprovalDateField($type);
-                $checksheet->{$dateField} = now();
+            $checksheet->{$field} = $user->name;
+            $dateField = $this->getApprovalDateField($type);
+            $checksheet->{$dateField} = now();
 
-                if ($type === 'asst_manager') {
-                    $checksheet->approval_status = 'Approved';
-                }
+            if ($type === 'asst_manager') {
+                $checksheet->approval_status = 'Approved';
             }
 
             $checksheet->save();

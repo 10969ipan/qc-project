@@ -239,13 +239,8 @@ class CrossCutIndex {
         form.attr('action', url);
         $('#approvalLabelText').text(label);
 
-        if (type === 'kashift_plating') {
-            $('#approverNameGroup').show();
-            $('#approver_name_input').prop('required', true);
-        } else {
-            $('#approverNameGroup').hide();
-            $('#approver_name_input').prop('required', false);
-        }
+        $('#approverNameGroup').hide();
+        $('#approver_name_input').prop('required', false);
 
         const action = isReject ? 'reject' : 'approve';
         $(`input[name="action_type"][value="${action}"]`).prop('checked', true).parent().addClass('active').siblings().removeClass('active');
