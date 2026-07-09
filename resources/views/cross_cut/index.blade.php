@@ -279,7 +279,8 @@
                             <th rowspan="2" class="align-middle">Visual OK</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="5" class="align-middle">Approval Status</th>
+                            <th colspan="4" class="align-middle">Approval Status</th>
+                            <th colspan="2" class="align-middle">Mengetahui</th>
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Actions</th>
@@ -287,6 +288,7 @@
                         </tr>
                         <tr class="text-center">
                             <th style="font-size: 10px;">Kepala Regu QC</th>
+                            <th style="font-size: 10px;">Kashift Plating</th>
                             <th style="font-size: 10px;">Supervisor Quality</th>
                             <th style="font-size: 10px;">Supervisor Plating</th>
                             <th style="font-size: 10px;">Asst Manager QC</th>
@@ -382,6 +384,32 @@
                                     @if($checksheet->karu_qc_approved_at)
                                         <br><small
                                             class="text-muted">{{ \Carbon\Carbon::parse($checksheet->karu_qc_approved_at)->format('d/m/Y H:i') }}</small>
+                                    @endif
+                                </td>
+
+                                {{-- Level 2: Kashift Plating --}}
+                                <td class="align-middle text-center">
+                                    @if($checksheet->kashift_plating)
+                                        @if($checksheet->kashift_plating === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                            <br><small class="text-muted">oleh
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                            <br><small class="text-muted">oleh {{ $checksheet->kashift_plating }}</small>
+                                        @endif
+                                    @else
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                    @if($checksheet->kashift_plating_approved_at)
+                                        <br><small
+                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_plating_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
@@ -528,6 +556,7 @@
                                             // Map role → [field_to_check, admin_label]
                                             $approvalLevels = [
                                                 'karu_qc'              => ['field' => 'karu_qc',              'label' => 'KR'],
+                                                'kashift_plating'      => ['field' => 'kashift_plating',      'label' => 'Kashift P'],
                                                 'supervisor'           => ['field' => 'supervisor_qc',         'label' => 'SPV Q'],
                                                 'supervisor_plating'   => ['field' => 'supervisor_plating',    'label' => 'SPV P'],
                                                 'asst_manager'         => ['field' => 'asst_manager_qc',       'label' => 'Asst MGR Q'],
@@ -586,7 +615,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 23 : 22 }}" class="text-center">No data
+                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 24 : 23 }}" class="text-center">No data
                                     available</td>
                             </tr>
                         @endforelse
@@ -649,19 +678,21 @@
 
     <!-- Modal Penolakan untuk setiap checksheet dan tipe -->
     @foreach($checksheets as $cs)
-        @foreach(['karu_qc', 'supervisor_plating', 'supervisor', 'manager_plating', 'manager'] as $rejectType)
+        @foreach(['karu_qc', 'kashift_plating', 'supervisor_plating', 'supervisor', 'asst_manager_plating', 'asst_manager'] as $rejectType)
             @php
                 $canReject = false;
                 // Dimodifikasi: Mengizinkan penolakan pada level apa pun tanpa menunggu level sebelumnya
                 if ($rejectType == 'karu_qc' && ((auth()->user()->role === 'karu_qc' || auth()->user()->role === 'admin') && (!$cs->karu_qc || $cs->karu_qc === 'REJECTED'))) {
                     $canReject = true;
+                } elseif ($rejectType == 'kashift_plating' && ((auth()->user()->role === 'kashift_plating' || auth()->user()->role === 'admin') && (!$cs->kashift_plating || $cs->kashift_plating === 'REJECTED'))) {
+                    $canReject = true;
                 } elseif ($rejectType == 'supervisor_plating' && ((auth()->user()->role === 'supervisor_plating' || auth()->user()->role === 'admin') && (!$cs->supervisor_plating || $cs->supervisor_plating === 'REJECTED'))) {
                     $canReject = true;
                 } elseif ($rejectType == 'supervisor' && ((auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin') && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'manager_plating' && ((auth()->user()->role === 'manager_plating' || auth()->user()->role === 'admin') && (!$cs->manager_plating || $cs->manager_plating === 'REJECTED'))) {
+                } elseif ($rejectType == 'asst_manager_plating' && ((auth()->user()->role === 'asst_manager_plating' || auth()->user()->role === 'admin') && (!$cs->asst_manager_plating || $cs->asst_manager_plating === 'REJECTED'))) {
                     $canReject = true;
-                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || auth()->user()->role === 'admin') && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
+                } elseif ($rejectType == 'asst_manager' && ((auth()->user()->role === 'asst_manager' || auth()->user()->role === 'admin') && (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED'))) {
                     $canReject = true;
                 }
             @endphp

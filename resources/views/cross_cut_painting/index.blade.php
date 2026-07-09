@@ -289,7 +289,8 @@
                             <th rowspan="2" class="align-middle">Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
                             <th rowspan="2" class="align-middle">Judgement</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="5" class="align-middle">Approval Status</th>
+                            <th colspan="4" class="align-middle">Approval Status</th>
+                            <th colspan="2" class="align-middle">Mengetahui</th>
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
@@ -297,6 +298,7 @@
                         </tr>
                         <tr class="text-center">
                             <th style="font-size: 10px;">Kepala Regu QC</th>
+                            <th style="font-size: 10px;">Kashift Plating</th>
                             <th style="font-size: 10px;">Supervisor Quality</th>
                             <th style="font-size: 10px;">Supervisor Plating</th>
                             <th style="font-size: 10px;">Asst Manager QC</th>
@@ -425,10 +427,11 @@
                                             // Mapping current role to its button label
                                             $rolesToApprove = [
                                                 'karu_qc' => 'KR',
+                                                'kashift_plating' => 'Kashift P',
                                                 'supervisor' => 'SPV Q',
                                                 'supervisor_plating' => 'SPV P',
-                                                'asst_manager_plating' => 'Asst MGR P',
-                                                'asst_manager' => 'Asst MGR Q'
+                                                'asst_manager' => 'Asst MGR Q',
+                                                'asst_manager_plating' => 'Asst MGR P'
                                             ];
 
                                             $currentRole = $user->role;
@@ -481,7 +484,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 21 : 20 }}" class="text-center py-4">
+                                <td colspan="{{ auth()->user()->role !== 'inspector' ? 22 : 21 }}" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-info-circle fa-2x mb-2"></i><br>
                                         Tidak ada data yang tersedia
