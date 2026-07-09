@@ -462,6 +462,7 @@ class CrossCutPaintingChecksheetController extends Controller
             'supervisor_plating' => 'required|in:Pending,Approved,Rejected',
             'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
             'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'asst_manager_plating' => 'required|in:Pending,Approved,Rejected',
         ]);
 
         try {
