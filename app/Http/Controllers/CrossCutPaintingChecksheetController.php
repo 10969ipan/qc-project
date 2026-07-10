@@ -487,4 +487,26 @@ class CrossCutPaintingChecksheetController extends Controller
             return redirect()->back()->with('error', 'Gagal memperbarui status approval: ' . $e->getMessage());
         }
     }
+
+    protected function applySequentialApprovalFilter($query, $type)
+    {
+        $sequence = [
+            'karu_qc' => 'karu_qc',
+            'kashift_plating' => 'kashift_plating',
+            'supervisor' => 'supervisor_qc',
+            'supervisor_plating' => 'supervisor_plating',
+            'asst_manager' => 'asst_manager_qc',
+            'asst_manager_plating' => 'asst_manager_plating'
+        ];
+
+        $keys = array_keys($sequence);
+        $currentIndex = array_search($type, $keys);
+        
+        if ($currentIndex > 0) {
+            for ($i = $currentIndex - 1; $i >= 0; $i--) {
+                $prevField = $sequence[$keys[$i]];
+                $query->whereNotNull($prevField)->where($prevField, '!=', 'REJECTED');
+            }
+        }
+    }
 }

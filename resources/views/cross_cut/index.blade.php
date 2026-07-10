@@ -554,14 +554,29 @@
                                                 'asst_manager'         => ['field' => 'asst_manager_qc',       'label' => 'Asst MGR Q'],
                                                 'asst_manager_plating' => ['field' => 'asst_manager_plating',  'label' => 'Asst MGR P'],
                                             ];
+                                            $approvalKeys = array_keys($approvalLevels);
                                         @endphp
 
                                         @foreach($approvalLevels as $approvalRole => $config)
                                             @php
                                                 $f = $config['field'];
                                                 $lbl = $config['label'];
+
+                                                $idx = array_search($approvalRole, $approvalKeys);
+                                                $prevApproved = true;
+                                                if ($idx > 0) {
+                                                    for ($i = $idx - 1; $i >= 0; $i--) {
+                                                        $prevF = $approvalLevels[$approvalKeys[$i]]['field'];
+                                                        if (empty($checksheet->$prevF) || $checksheet->$prevF === 'REJECTED') {
+                                                            $prevApproved = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
                                                 $canApprove = ($isAdmin || $currentRole === $approvalRole)
-                                                              && (!$checksheet->$f || $checksheet->$f === 'REJECTED');
+                                                              && (empty($checksheet->$f) || $checksheet->$f === 'REJECTED')
+                                                              && $prevApproved;
                                             @endphp
                                             @if($canApprove)
                                                 <form

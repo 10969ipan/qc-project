@@ -395,6 +395,9 @@ class CrossCutChecksheetService extends BaseService
                 throw new \Exception("Checksheet sudah disetujui oleh " . $this->getApprovalLabel($type));
             }
 
+            // Sequential check
+            $this->checkSequentialApproval($checksheet, $type);
+
             // Apply approval
             $checksheet->{$field} = $user->name;
             $dateField = $this->getApprovalDateField($type);
@@ -449,7 +452,34 @@ class CrossCutChecksheetService extends BaseService
             'supervisor' => 'SPV Quality',
             'manager_plating' => 'Manager Plating',
             'manager' => 'Manager QC',
+            'asst_manager' => 'Asst Manager QC',
         ];
         return $labels[$type] ?? ucfirst($type);
+    }
+
+    private function checkSequentialApproval($checksheet, $currentType)
+    {
+        $sequence = [
+            'karu_qc',
+            'kashift_plating',
+            'supervisor', 
+            'supervisor_plating',
+            'asst_manager', 
+            'asst_manager_plating'
+        ];
+
+        $currentIndex = array_search($currentType, $sequence);
+        
+        if ($currentIndex > 0) {
+            for ($i = $currentIndex - 1; $i >= 0; $i--) {
+                $prevType = $sequence[$i];
+                $prevField = $this->getApprovalField($prevType);
+                if (empty($checksheet->$prevField) || $checksheet->$prevField === 'REJECTED') {
+                    $prevLabel = $this->getApprovalLabel($prevType);
+                    // ponytail: manual exception thrown if preceding roles haven't approved yet
+                    throw new \Exception("Tidak bisa approve loncat. {$prevLabel} harus approve terlebih dahulu.");
+                }
+            }
+        }
     }
 }

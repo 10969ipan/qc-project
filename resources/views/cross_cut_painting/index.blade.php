@@ -433,6 +433,7 @@
                                                 'asst_manager' => 'Asst MGR Q',
                                                 'asst_manager_plating' => 'Asst MGR P'
                                             ];
+                                            $approvalKeys = array_keys($rolesToApprove);
 
                                             $currentRole = $user->role;
                                         @endphp
@@ -441,7 +442,22 @@
                                         @foreach($rolesToApprove as $role => $label)
                                             @php
                                                 $field = getApprovalField($role);
-                                                $canApproveThis = ($isAdmin || $currentRole === $role) && (!$checksheet->$field || $checksheet->$field === 'REJECTED');
+
+                                                $idx = array_search($role, $approvalKeys);
+                                                $prevApproved = true;
+                                                if ($idx > 0) {
+                                                    for ($i = $idx - 1; $i >= 0; $i--) {
+                                                        $prevF = getApprovalField($approvalKeys[$i]);
+                                                        if (empty($checksheet->$prevF) || $checksheet->$prevF === 'REJECTED') {
+                                                            $prevApproved = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
+                                                $canApproveThis = ($isAdmin || $currentRole === $role) 
+                                                                  && (empty($checksheet->$field) || $checksheet->$field === 'REJECTED')
+                                                                  && $prevApproved;
                                             @endphp
                                             
                                             @if($canApproveThis)

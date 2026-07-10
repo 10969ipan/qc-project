@@ -316,6 +316,11 @@ trait HasChecksheetApproval
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
             });
 
+            // Hook for sequential approval enforcement (if implemented in controller)
+            if (method_exists($this, 'applySequentialApprovalFilter')) {
+                $this->applySequentialApprovalFilter($query, $type);
+            }
+
             // Get IDs before updating to know the count
             $checksheetIds = $query->pluck('id')->toArray();
             $approvedCount = count($checksheetIds);
