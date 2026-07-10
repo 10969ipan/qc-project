@@ -262,6 +262,7 @@ class StandardPerformanceTestController extends Controller
             'actual_cr' => 'nullable|string|max:255',
             'actual_corrodkote_waktu' => 'nullable|string|max:255',
             'standar_jam_corrodkote' => 'nullable|string|max:255',
+            'aktual_corrosion' => 'nullable|string|max:255',
             'actual_cass_waktu' => 'nullable|string|max:255',
             'standar_jam_cass' => 'nullable|string|max:255',
             'actual_salt_spray_waktu' => 'nullable|string|max:255',
@@ -285,6 +286,7 @@ class StandardPerformanceTestController extends Controller
             'actual_cr' => $request->actual_cr,
             'actual_corrodkote_waktu' => $request->actual_corrodkote_waktu ?? '-',
             'standar_jam_corrodkote' => $request->standar_jam_corrodkote ?? '-',
+            'aktual_corrosion' => $request->aktual_corrosion ?? null,
             'actual_cass_waktu' => $request->actual_cass_waktu ?? '-',
             'standar_jam_cass' => $request->standar_jam_cass ?? '-',
             'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
@@ -429,6 +431,7 @@ class StandardPerformanceTestController extends Controller
             'actual_cr' => 'nullable|string|max:255',
             'actual_corrodkote_waktu' => 'nullable|string|max:255',
             'standar_jam_corrodkote' => 'nullable|string|max:255',
+            'aktual_corrosion' => 'nullable|string|max:255',
             'actual_cass_waktu' => 'nullable|string|max:255',
             'standar_jam_cass' => 'nullable|string|max:255',
             'actual_salt_spray_waktu' => 'nullable|string|max:255',
@@ -448,7 +451,7 @@ class StandardPerformanceTestController extends Controller
         $updateData = [];
         $fields = [
             'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr',
-            'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'actual_cass_waktu', 'standar_jam_cass',
+            'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'aktual_corrosion', 'actual_cass_waktu', 'standar_jam_cass',
             'actual_salt_spray_waktu', 'standar_jam_salt_spray', 'actual_porecount',
             'result_judgment', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek', 'description'
         ];
@@ -522,6 +525,7 @@ class StandardPerformanceTestController extends Controller
         } elseif ($type === 'corrodkote') {
             $report->actual_corrodkote_waktu = null;
             $report->standar_jam_corrodkote = null;
+            $report->aktual_corrosion = null;
         } elseif ($type === 'cass') {
             $report->actual_cass_waktu = null;
             $report->standar_jam_cass = null;

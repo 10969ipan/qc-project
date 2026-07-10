@@ -24,6 +24,7 @@ $(document).ready(function() {
         
         $('#edit_actual_corrodkote_waktu').val(item.actual_corrodkote_waktu);
         $('#edit_standar_jam_corrodkote').val(item.standar_jam_corrodkote);
+        $('#edit_aktual_corrosion').val(item.aktual_corrosion);
         
         $('#edit_actual_cass_waktu').val(item.actual_cass_waktu);
         $('#edit_standar_jam_cass').val(item.standar_jam_cass);
@@ -216,6 +217,7 @@ $(document).ready(function() {
         $('#corrodkote_customer').val($(this).data('customer'));
         $('#corrodkote_std').val($(this).data('std'));
         $('#corrodkote_standard_time').val($(this).data('time'));
+        $('#corrodkote_aktual_corrosion').val(item.aktual_corrosion || '');
         $('#corrodkote_produksi').val(item.production_date);
         $('#corrodkote_shift').val(item.shift);
         if (item.lot_no) {

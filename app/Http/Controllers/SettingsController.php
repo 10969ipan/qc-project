@@ -701,4 +701,75 @@ class SettingsController extends Controller
             'message' => 'Header Dokumen berhasil dihapus.'
         ]);
     }
+
+    /**
+     * Get Dashboard Layout for a specific role
+     */
+    public function getDashboardLayouts(Request $request)
+    {
+        $role = $request->get('role');
+        $setting = GeneralSetting::where('category', 'dashboard_layout')
+            ->where('key', $role)
+            ->first();
+
+        $layout = [];
+        if ($setting && is_string($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $layout = $decoded;
+            }
+        }
+
+        return response()->json($layout);
+    }
+
+    /**
+     * Save Dashboard Layout for a specific role
+     */
+    public function saveDashboardLayouts(Request $request)
+    {
+        $role = $request->input('role');
+        $layout = $request->input('layout', []);
+
+        // jQuery AJAX sends booleans as strings "true" / "false"
+        foreach ($layout as $key => $val) {
+            if ($val === 'true') {
+                $layout[$key] = true;
+            } elseif ($val === 'false') {
+                $layout[$key] = false;
+            } else {
+                $layout[$key] = filter_var($val, FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role tidak valid.'], 400);
+        }
+
+        try {
+            $setting = GeneralSetting::updateOrCreate(
+                [
+                    'category' => 'dashboard_layout',
+                    'key' => $role
+                ],
+                [
+                    'value' => json_encode($layout),
+                    'description' => "Dashboard layout configuration for role: $role"
+                ]
+            );
+
+            ActivityLogger::log('updated', null, "Memperbarui layout dashboard untuk role: {$role}");
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Layout dashboard berhasil disimpan.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gagal menyimpan layout dashboard: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menyimpan layout dashboard: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

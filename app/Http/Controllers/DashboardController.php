@@ -36,6 +36,20 @@ class DashboardController extends Controller
         $data['selectedMonth'] = (int) $month;
         $data['selectedYear'] = $year;
 
+        // Dashboard Layout Config
+        $setting = \App\Models\GeneralSetting::where('category', 'dashboard_layout')
+            ->where('key', $user->role)
+            ->first();
+
+        $dashboardLayout = [];
+        if ($setting && is_string($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $dashboardLayout = $decoded;
+            }
+        }
+        $data['dashboardLayout'] = $dashboardLayout;
+
         return view('layouts.dashboard', $data);
     }
 

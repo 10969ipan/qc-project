@@ -394,6 +394,9 @@
                         @endif
 
                         <col style="width: 80px;">       <!-- No Lot -->
+                        @if($testType == 'corrodkote')
+                        <col style="width: 80px;">       <!-- Aktual % Corrosion -->
+                        @endif
                         <col style="width: 100px;">      <!-- Result/Judgment -->
                         
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
@@ -453,6 +456,9 @@
                             <th rowspan="2" class="align-middle text-center">Jam Keluar</th>
                         @endif
                         <th rowspan="2" class="align-middle text-center">No Lot</th>
+                        @if($testType == 'corrodkote')
+                        <th rowspan="2" class="align-middle text-center">Aktual % Corrosion</th>
+                        @endif
                         <th rowspan="2" class="align-middle text-center">Result</th>
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                             <th rowspan="2" class="align-middle text-center">Evidence</th>
@@ -556,6 +562,11 @@
                                 <td class="text-center">{{ $report->jam_keluar ? \Carbon\Carbon::parse($report->jam_keluar)->format('H:i') : '-' }}</td>
                             @endif
                             <td class="text-center">{{ $report->lot_no ?? '-' }}</td>
+                            @if($testType == 'corrodkote')
+                            <td class="text-center font-weight-bold">
+                                {{ (isset($report->aktual_corrosion) && $report->aktual_corrosion !== '' && $report->aktual_corrosion !== '-') ? $report->aktual_corrosion . '%' : '-' }}
+                            </td>
+                            @endif
                             <td class="text-center">
                                 @php
                                     $rj = $report->result_judgment ?? '-';
@@ -719,13 +730,17 @@
                     </div>
                     @elseif($testType == 'corrodkote')
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
                             <input type="text" name="actual_corrodkote_waktu" id="edit_actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                             <input type="text" name="standar_jam_corrodkote" id="edit_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                            <input type="text" name="aktual_corrosion" id="edit_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     @elseif($testType == 'cass')
@@ -915,17 +930,21 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time of test (hours) Standard</label>
                             <input type="text" name="standard_time" id="corrodkote_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Time of test (hours) Actual</label>
                             <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-3 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                             <input type="text" name="standar_jam_corrodkote" id="corrodkote_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                        </div>
+                        <div class="col-md-3 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                            <input type="text" name="aktual_corrosion" id="corrodkote_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     <div class="row">
@@ -1714,13 +1733,17 @@
                     <!-- Test Specific Fields -->
                     @if($testType == 'corrodkote')
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
                             <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
                             <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                            <input type="text" name="aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     @elseif($testType == 'cass')

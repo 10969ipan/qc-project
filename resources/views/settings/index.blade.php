@@ -26,6 +26,9 @@
                     <a class="nav-link settings-sidebar-item" id="activity-logs-tab" data-toggle="pill" href="#activity-logs" role="tab" aria-controls="activity-logs" aria-selected="false">
                         <span>Log Aktivitas</span>
                     </a>
+                    <a class="nav-link settings-sidebar-item" id="dashboard-layout-tab" data-toggle="pill" href="#dashboard-layout" role="tab" aria-controls="dashboard-layout" aria-selected="false">
+                        <span>Layout Dashboard</span>
+                    </a>
                     <a class="nav-link settings-sidebar-item" id="header-dokumen-tab" data-toggle="pill" href="#header-dokumen" role="tab" aria-controls="header-dokumen" aria-selected="false">
                         <span>Header Dokumen</span>
                     </a>
@@ -190,6 +193,79 @@
                                     @endforeach
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Dashboard Layout -->
+            <div class="tab-pane fade" id="dashboard-layout" role="tabpanel" aria-labelledby="dashboard-layout-tab">
+                <div class="card shadow border-0 rounded-lg mb-4 slide-in">
+                    <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-bottom-0 px-4">
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark mb-1" style="font-size: 1.1rem; letter-spacing: -0.3px;">Layout Dashboard</h6>
+                            <p class="text-muted small mb-0">Konfigurasi visibilitas grafik dashboard berdasarkan Role</p>
+                        </div>
+                        <div class="d-flex align-items-center mt-3 mt-md-0">
+                            <!-- Role Selector -->
+                            <div class="premium-input-group mr-3 mb-2 mb-md-0">
+                                <span class="input-icon"><i class="fas fa-user-tag"></i></span>
+                                <select id="dashboardRoleSelector" class="premium-input" style="min-width: 150px;">
+                                    @foreach($roles as $role)
+                                    <option value="{{ $role }}" {{ $role == $selectedRole ? 'selected' : '' }}>{{ $role }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="button" id="saveDashboardLayout" class="btn btn-dark rounded-pill px-4 shadow-sm btn-sm-modern h-100 py-2">
+                                <i class="fas fa-save mr-2"></i> Simpan
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body px-4 pt-0">
+                        <div class="alert alert-info border-0 shadow-sm" style="border-radius: 10px;">
+                            <i class="fas fa-info-circle mr-2"></i> Secara default, jika tidak ada konfigurasi, semua grafik akan ditampilkan.
+                        </div>
+                        
+                        <div class="row" id="dashboardLayoutCheckboxes">
+                            @php
+                                $dashboardWidgets = [
+                                    'chartClaimJakarta' => 'Claim Jakarta',
+                                    'chartClaimKarawang' => 'Claim Karawang',
+                                    'chartClaimFrequency' => 'Frekuensi Claim (Total)',
+                                    'chartJakarta' => 'Approval Jakarta (Bar/Line Chart)',
+                                    'gauge-jakarta' => 'Approval Daily Jakarta (Gauge)',
+                                    'chartKarawang' => 'Approval Karawang (Bar/Line Chart)',
+                                    'gauge-karawang' => 'Approval Daily Karawang (Gauge)',
+                                    'chartNgJakarta' => 'Monitoring Rate NG Jakarta',
+                                    'chartNgKarawang' => 'Monitoring Rate NG Karawang',
+                                    'productionJakarta' => 'Produksi Sub Assy Jakarta',
+                                    'productionKarawang' => 'Produksi Sub Assy Karawang',
+                                    'injectionJakarta' => 'Produksi Injection Jakarta',
+                                    'injectionKarawang' => 'Produksi Injection Karawang',
+                                    'chartContainer' => 'Approval [Plant] (Single View)',
+                                    'gauge-total' => 'Approval Daily [Plant] (Single View)',
+                                    'chartNgSingle' => 'Monitoring Rate NG [Plant] (Single View)',
+                                    'productionSingle' => 'Produksi Sub Assy [Plant] (Single View)',
+                                    'injectionSingle' => 'Produksi Injection [Plant] (Single View)',
+                                ];
+                            @endphp
+
+                            @foreach($dashboardWidgets as $widgetId => $widgetLabel)
+                                <div class="col-md-6 mb-3">
+                                    <div class="premium-setting-item d-flex align-items-center justify-content-between p-3 rounded-xl h-100" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.9rem;">{{ $widgetLabel }}</h6>
+                                                <small class="text-muted" style="font-size: 0.75rem;">ID: {{ $widgetId }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="custom-control custom-switch custom-switch-success custom-switch-md">
+                                            <input type="checkbox" class="custom-control-input dashboard-layout-toggle" id="layout_{{ $widgetId }}" data-widget-id="{{ $widgetId }}" checked>
+                                            <label class="custom-control-label" for="layout_{{ $widgetId }}"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -2796,6 +2872,84 @@
             }
         }
         
+        // --- Dashboard Layout Script ---
+        const dashboardRoleSelector = $('#dashboardRoleSelector');
+        
+        function loadDashboardLayout() {
+            var role = dashboardRoleSelector.val();
+            if (!role) return;
+
+            $.ajax({
+                url: "{{ route('admin.settings.dashboard-layouts') }}",
+                type: 'GET',
+                data: { role: role },
+                success: function(response) {
+                    // response is layout object or empty array
+                    $('.dashboard-layout-toggle').each(function() {
+                        var widgetId = $(this).data('widget-id');
+                        // if empty object/array, default is checked
+                        if ($.isEmptyObject(response)) {
+                            $(this).prop('checked', true);
+                        } else {
+                            // if property exists, set to its boolean value, else default true
+                            var val = response.hasOwnProperty(widgetId) ? response[widgetId] : true;
+                            var isVisible = (val === true || val === 'true' || val === 1 || val === '1');
+                            $(this).prop('checked', isVisible);
+                        }
+                    });
+                },
+                error: function() {
+                    console.error("Gagal memuat layout dashboard.");
+                }
+            });
+        }
+
+        dashboardRoleSelector.on('change', loadDashboardLayout);
+        
+        // Load initial layout on tab show if first time or just load
+        $('a[data-toggle="pill"][href="#dashboard-layout"]').on('shown.bs.tab', function (e) {
+            loadDashboardLayout();
+        });
+        
+        $('#saveDashboardLayout').on('click', function() {
+            var role = dashboardRoleSelector.val();
+            var layout = {};
+            
+            $('.dashboard-layout-toggle').each(function() {
+                var widgetId = $(this).data('widget-id');
+                layout[widgetId] = $(this).is(':checked');
+            });
+            
+            var btn = $(this);
+            var originalText = btn.html();
+            btn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...').prop('disabled', true);
+            
+            $.ajax({
+                url: "{{ route('admin.settings.dashboard-layouts.save') }}",
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    role: role,
+                    layout: layout
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500
+                    });
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menyimpan konfigurasi.';
+                    Swal.fire('Error', msg, 'error');
+                },
+                complete: function() {
+                    btn.html(originalText).prop('disabled', false);
+                }
+            });
+        });
+        // --- End Dashboard Layout Script ---
         $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
             if ($(e.target).attr('href') === '#header-dokumen') {
                 loadDocumentHeaders();

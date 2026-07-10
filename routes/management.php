@@ -30,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('settings/general', [\App\Http\Controllers\SettingsController::class, 'updateGeneralSettings'])->name('settings.general.update');
         Route::get('settings/permissions', [\App\Http\Controllers\SettingsController::class, 'getPermissions'])->name('settings.permissions');
         
+        // Dashboard Layout Settings
+        Route::get('settings/dashboard-layouts', [\App\Http\Controllers\SettingsController::class, 'getDashboardLayouts'])->name('settings.dashboard-layouts');
+        Route::post('settings/dashboard-layouts', [\App\Http\Controllers\SettingsController::class, 'saveDashboardLayouts'])->name('settings.dashboard-layouts.save');
+        
         // User Management CRUD
         Route::post('settings/users', [\App\Http\Controllers\SettingsController::class, 'storeUser'])->name('settings.users.store');
         Route::put('settings/users/{id}', [\App\Http\Controllers\SettingsController::class, 'updateUser'])->name('settings.users.update');

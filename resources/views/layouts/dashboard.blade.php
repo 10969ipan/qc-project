@@ -187,6 +187,14 @@
 
 
     
+    @php
+        $showClaimJakarta = ($dashboardLayout['chartClaimJakarta'] ?? true) && ($isDualView || (Auth::user()->plant->code ?? '') !== 'karawang');
+        $showClaimKarawang = ($dashboardLayout['chartClaimKarawang'] ?? true) && ($isDualView || (Auth::user()->plant->code ?? '') === 'karawang');
+        $showClaimFrequency = $dashboardLayout['chartClaimFrequency'] ?? true;
+        $showAnyClaim = $showClaimJakarta || $showClaimKarawang || $showClaimFrequency;
+    @endphp
+
+    @if($showAnyClaim)
     <div class="row mb-5 px-md-3 px-lg-4">
         <div class="col-12 mb-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -219,7 +227,7 @@
         </div>
 
         
-        @if($isDualView || (Auth::user()->plant->code ?? '') !== 'karawang')
+        @if(($dashboardLayout['chartClaimJakarta'] ?? true) && ($isDualView || (Auth::user()->plant->code ?? '') !== 'karawang'))
             <div class="{{ $isDualView ? 'col-xl-4 col-lg-6' : 'col-lg-6' }} col-md-12 mb-4">
                 <div class="modern-card">
                     <div class="modern-card-header d-flex align-items-center">
@@ -240,7 +248,7 @@
         @endif
 
         
-        @if($isDualView || (Auth::user()->plant->code ?? '') === 'karawang')
+        @if(($dashboardLayout['chartClaimKarawang'] ?? true) && ($isDualView || (Auth::user()->plant->code ?? '') === 'karawang'))
             <div class="{{ $isDualView ? 'col-xl-4 col-lg-6' : 'col-lg-6' }} col-md-12 mb-4">
                 <div class="modern-card">
                     <div class="modern-card-header d-flex align-items-center">
@@ -262,6 +270,7 @@
 
         
         
+        @if($dashboardLayout['chartClaimFrequency'] ?? true)
         <div class="{{ $isDualView ? 'col-xl-4 col-lg-6' : 'col-lg-6' }} col-md-12 mb-4">
             <div class="modern-card">
                 <div class="modern-card-header d-flex align-items-center">
@@ -279,18 +288,24 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
+    @endif
 
     @if(isset($combinedStats))
         <div class="row">
             @php
-                
+                $showJakartaApproval = ($dashboardLayout['chartJakarta'] ?? true) || ($dashboardLayout['gauge-jakarta'] ?? true);
+                $showKarawangApproval = ($dashboardLayout['chartKarawang'] ?? true) || ($dashboardLayout['gauge-karawang'] ?? true);
+                $showSingleApproval = ($dashboardLayout['chartContainer'] ?? true) || ($dashboardLayout['gauge-total'] ?? true);
             @endphp
             @if($isDualView && isset($statsJakarta) && isset($statsKarawang))
                 
+                @if($showJakartaApproval)
                 <div class="col-12 mb-5">
                     <div class="row">
                         
+                        @if($dashboardLayout['chartJakarta'] ?? true)
                         <div class="col-xl-8 col-lg-7 mb-4 mb-xl-0">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header d-flex align-items-center">
@@ -308,7 +323,9 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($dashboardLayout['gauge-jakarta'] ?? true)
                         <div class="col-xl-4 col-lg-5">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header d-flex align-items-center">
@@ -326,13 +343,17 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
+                @endif
 
                 
+                @if($showKarawangApproval)
                 <div class="col-12 mb-5">
                     <div class="row">
                         
+                        @if($dashboardLayout['chartKarawang'] ?? true)
                         <div class="col-xl-8 col-lg-7 mb-4 mb-xl-0">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header d-flex align-items-center">
@@ -350,7 +371,9 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($dashboardLayout['gauge-karawang'] ?? true)
                         <div class="col-xl-4 col-lg-5">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header d-flex align-items-center">
@@ -368,10 +391,13 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
+                @endif
 
                 
+                @if($dashboardLayout['chartNgJakarta'] ?? true)
                 <div class="col-xl-6 col-lg-12 mb-5">
                     <div class="modern-card h-100">
                         <div class="modern-card-header">
@@ -391,8 +417,9 @@
                         </div>
                     </div>
                 </div>
-
+                @endif
                 
+                @if($dashboardLayout['chartNgKarawang'] ?? true)
                 <div class="col-xl-6 col-lg-12 mb-5">
                     <div class="modern-card h-100">
                         <div class="modern-card-header">
@@ -412,11 +439,14 @@
                         </div>
                     </div>
                 </div>
+                @endif
             @else
                 
+                @if($showSingleApproval)
                 <div class="col-12 mb-5">
                     <div class="row">
                         
+                        @if($dashboardLayout['chartContainer'] ?? true)
                         <div class="col-xl-8 col-lg-7 mb-4 mb-xl-0">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header">
@@ -439,7 +469,9 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                         
+                        @if($dashboardLayout['gauge-total'] ?? true)
                         <div class="col-xl-4 col-lg-5">
                             <div class="modern-card h-100">
                                 <div class="modern-card-header">
@@ -457,10 +489,13 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
+                @endif
 
                 
+                @if($dashboardLayout['chartNgSingle'] ?? true)
                 <div class="col-12 mb-5">
                     <div class="modern-card h-100">
                         <div class="modern-card-header">
@@ -483,6 +518,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             @endif
         </div>
 
@@ -531,6 +567,7 @@
         
         <div class="row">
             
+            @if($dashboardLayout['productionJakarta'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header d-flex justify-content-between align-items-center">
@@ -684,8 +721,10 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             
+            @if($dashboardLayout['productionKarawang'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header d-flex justify-content-between align-items-center">
@@ -843,8 +882,10 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             
+            @if($dashboardLayout['injectionJakarta'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header d-flex justify-content-between align-items-center">
@@ -1006,8 +1047,10 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             
+            @if($dashboardLayout['injectionKarawang'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header d-flex justify-content-between align-items-center">
@@ -1170,12 +1213,14 @@
                     </div>
                 </div>
             </div>
+            @endif
 
         </div>
     @else
 
         <div class="row">
             
+            @if($dashboardLayout['productionSingle'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     @php
@@ -1347,8 +1392,10 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             
+            @if($dashboardLayout['injectionSingle'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     <div class="modern-card-header d-flex justify-content-between align-items-center">
@@ -1523,6 +1570,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     @endif
 

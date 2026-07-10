@@ -105,6 +105,9 @@
                 <th rowspan="3">Tgl Produksi</th>
                 <th rowspan="3">Shift</th>
                 <th rowspan="3">No Lot</th>
+                @if($testType == 'corrodkote')
+                <th rowspan="3">Aktual % Corrosion</th>
+                @endif
                 <th rowspan="3">Tgl Check</th>
                 <th rowspan="3">Result</th>
                 <th rowspan="3">PIC</th>
@@ -177,6 +180,11 @@
                     <td>{{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('d-m-Y') : '-' }}</td>
                     <td>{{ $report->shift ?? '-' }}</td>
                     <td>{{ $report->lot_no ?? '-' }}</td>
+                    @if($testType == 'corrodkote')
+                    <td>
+                        {{ (isset($report->aktual_corrosion) && $report->aktual_corrosion !== '' && $report->aktual_corrosion !== '-') ? $report->aktual_corrosion . '%' : '-' }}
+                    </td>
+                    @endif
                     <td>{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d-m-Y') : '-' }}</td>
                     <td>
                         @if($report->result_judgment === 'OK')
@@ -192,7 +200,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="28" style="padding: 20px;">Tidak ada data laporan.</td>
+                    <td colspan="29" style="padding: 20px;">Tidak ada data laporan.</td>
                 </tr>
             @endforelse
         </tbody>
