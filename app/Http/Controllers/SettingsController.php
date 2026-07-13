@@ -161,6 +161,8 @@ class SettingsController extends Controller
             'initials' => 'nullable|string|max:10',
         ]);
 
+        $oldData = $user->only(['name', 'email', 'role', 'plant_id', 'initials']);
+
         $data = $request->only(['name', 'email', 'role', 'plant_id', 'initials']);
         
         if ($request->filled('password')) {
@@ -169,7 +171,19 @@ class SettingsController extends Controller
 
         $user->update($data);
 
-        ActivityLogger::log('updated', $user, "Memperbarui data user: {$user->name}");
+        // ponytail: track only actually changed fields
+        $changes = [];
+        foreach ($oldData as $key => $oldVal) {
+            $newVal = $user->$key;
+            if ((string)$oldVal !== (string)$newVal) {
+                $changes[$key] = ['old' => $oldVal, 'new' => $newVal];
+            }
+        }
+        if ($request->filled('password')) {
+            $changes['password'] = ['old' => '••••••', 'new' => '(diperbarui)'];
+        }
+
+        ActivityLogger::log('updated', $user, "Memperbarui data user: {$user->name}", $changes ?: null);
 
         return response()->json([
             'status' => 'success',
@@ -219,11 +233,14 @@ class SettingsController extends Controller
     public function toggleUserStatus(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $oldStatus = $user->is_active ? 'aktif' : 'non-aktif';
         $user->is_active = $request->input('is_active');
         $user->save();
 
-        $status = $user->is_active ? 'aktif' : 'non-aktif';
-        ActivityLogger::log('status_toggle', $user, "Mengubah status user {$user->name} menjadi {$status}");
+        $newStatus = $user->is_active ? 'aktif' : 'non-aktif';
+        ActivityLogger::log('status_toggle', $user, "Mengubah status user {$user->name} menjadi {$newStatus}", [
+            'status' => ['old' => $oldStatus, 'new' => $newStatus]
+        ]);
 
         return response()->json([
             'status' => 'success',
@@ -363,6 +380,8 @@ class SettingsController extends Controller
             'plant_krw' => 'boolean',
         ]);
 
+        $oldData = $menu->only(['name', 'is_active', 'is_maintenance', 'maintenance_message', 'plant_code']);
+
         $plants = [];
         if ($request->plant_jkt) $plants[] = 'JKT';
         if ($request->plant_krw) $plants[] = 'KRW';
@@ -375,7 +394,15 @@ class SettingsController extends Controller
             'plant_code' => !empty($plants) ? implode(',', $plants) : null,
         ]);
 
-        ActivityLogger::log('updated', $menu, "Memperbarui detail menu: {$menu->name}");
+        $changes = [];
+        foreach ($oldData as $key => $oldVal) {
+            $newVal = $menu->$key;
+            if ((string)$oldVal !== (string)$newVal) {
+                $changes[$key] = ['old' => $oldVal, 'new' => $newVal];
+            }
+        }
+
+        ActivityLogger::log('updated', $menu, "Memperbarui detail menu: {$menu->name}", $changes ?: null);
 
         return response()->json([
             'status' => 'success',
@@ -595,6 +622,8 @@ class SettingsController extends Controller
             ], 422);
         }
 
+        $oldData = $nextProcess->only(['name', 'plant_id', 'module', 'order', 'is_active']);
+
         $nextProcess->update([
             'name' => strtoupper($request->name),
             'plant_id' => $request->plant_id,
@@ -603,7 +632,15 @@ class SettingsController extends Controller
             'is_active' => $request->has('is_active') ? $request->is_active : $nextProcess->is_active
         ]);
 
-        ActivityLogger::log('updated', $nextProcess, "Memperbarui Next Process: {$nextProcess->name}");
+        $changes = [];
+        foreach ($oldData as $key => $oldVal) {
+            $newVal = $nextProcess->$key;
+            if ((string)$oldVal !== (string)$newVal) {
+                $changes[$key] = ['old' => $oldVal, 'new' => $newVal];
+            }
+        }
+
+        ActivityLogger::log('updated', $nextProcess, "Memperbarui Next Process: {$nextProcess->name}", $changes ?: null);
 
         return response()->json([
             'status' => 'success',

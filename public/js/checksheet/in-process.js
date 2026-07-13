@@ -116,8 +116,15 @@ class InProcessIndex {
                 dataType: "json",
                 success: function (response) {
                     if (response.success) {
-                        window.location.href =
-                            response.redirect || window.location.href;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message || 'Data berhasil disimpan.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = response.redirect || window.location.href;
+                        });
                     } else {
                         $modalErrors
                             .html(

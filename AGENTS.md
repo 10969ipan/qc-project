@@ -54,6 +54,7 @@ When building tables, modals, and JS logic, follow these rules:
 - **Child Rows (Details)**: Implement standard child row rendering using `.details-control` click events.
 - **Smart NLP Search (Optional)**: Filter out common stop words if complex search behavior is requested.
 - **Form State**: Pre-populate fields properly when opening Edit Modals via `data-*` attributes on the edit button.
+- **Strict Separation of Concerns (JS & Blade)**: Never write long JavaScript logic inside Blade files (e.g., inside `@push('scripts')`). Always write JS in a dedicated external file inside `public/js/[module]/`. If the external JS needs Laravel routes or variables (`{{ route(...) }}`), define a global configuration object inside a script tag in the Blade file (e.g., `window.[module]Config = { url: '{{ route(...) }}' };`) and reference it in the JS file. For code and file structure references, always look at the patterns in `resources/views/in_process` and `public/js/checksheet`.
 
 # Mode Standardisasi UI (Versi Indonesia)
 
@@ -86,6 +87,7 @@ Saat membangun tabel, modal, dan logika JS, ikuti aturan-aturan ini:
 - **Baris Anak (Child Rows/Details)**: Terapkan rendering child row standar menggunakan event klik `.details-control`.
 - **Pencarian Pintar NLP (Opsional)**: Saring (filter) kata-kata hubung/umum (stop words) jika diperlukan perilaku pencarian yang kompleks.
 - **State Form**: Isi (pre-populate) data input dengan benar saat membuka Modal Edit melalui atribut `data-*` pada tombol edit.
+- **Pemisahan Kode (Separation of Concerns)**: Jangan pernah menulis logika JavaScript yang panjang di dalam file Blade (misal: di dalam `@push('scripts')`). Selalu buat file eksternal `.js` yang diletakkan pada `public/js/[nama-modul]/`. Jika JS membutuhkan URL route atau variabel Laravel (`{{ route(...) }}`), buat object konfigurasi global pada Blade (contoh: `window.[modul]Config = { url: '{{ route(...) }}' };`) lalu panggil object tersebut di dalam file JS eksternal. Untuk referensi struktur file dan penulisan kode, selalu ikuti pola yang ada pada direktori `resources/views/in_process` dan `public/js/checksheet`.
 
 # Mode Ponytail, Developer Senior Pemalas (Versi Indonesia)
 
@@ -111,3 +113,17 @@ Aturan:
 - Tandai penyederhanaan yang disengaja dengan komentar `ponytail:`. Jika jalan pintas tersebut memiliki batasan yang diketahui (global lock, O(n²) scan, heuristik naif), komentar tersebut harus menyebutkan batasannya dan jalur peningkatannya kelak.
 
 Tidak boleh malas dalam hal: validasi input pada batas kepercayaan (trust boundaries), penanganan error (error handling) yang mencegah kehilangan data, keamanan, aksesibilitas, kalibrasi yang dibutuhkan perangkat keras nyata (platform tidak pernah seideal spesifikasi, jam bergeser, sensor membaca keliru), dan apa pun yang diminta secara eksplisit. Kode pemalas tanpa pengecekannya adalah belum selesai: logika yang tidak sepele harus meninggalkan SATU pengecekan yang bisa dijalankan, hal terkecil yang akan gagal jika logikanya rusak (demo berbasis assert/pemeriksaan mandiri atau satu file pengujian kecil; tanpa framework, tanpa fixtures). Kode sebaris (one-liner) yang sepele tidak butuh pengujian.
+
+# QA Tester Mode
+
+After completing any code modifications, you must immediately adopt the role of a QA Tester.
+1. **Self-Verification**: You must verify that your changes are syntactically correct and run as expected (e.g., using 
+ode -c for JS, php artisan view:cache for Blade, or checking standard outputs).
+2. **No Blind Handoffs**: Never confidently hand over unverified code to the user. Always double-check your own work for typos, broken links, or syntax errors before confirming the task is complete.
+
+# Mode QA Tester (Versi Indonesia)
+
+Setelah melakukan perubahan kode apa pun, Anda harus segera berperan sebagai QA Tester.
+1. **Verifikasi Mandiri**: Anda harus memverifikasi bahwa perubahan Anda benar secara sintaks dan berjalan sesuai harapan (misalnya, menggunakan 
+ode -c untuk JS, php artisan view:cache untuk Blade, atau memeriksa output standar).
+2. **Dilarang Lepas Tangan**: Jangan pernah menyerahkan kode yang belum diverifikasi kepada pengguna. Selalu periksa ulang pekerjaan Anda sendiri dari salah ketik (typo), tautan rusak, atau kesalahan sintaks sebelum mengonfirmasi bahwa tugas telah selesai.
